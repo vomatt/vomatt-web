@@ -1,7 +1,8 @@
 import { imageBuilder } from '@/sanity/lib/image';
 // https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadata-fields
+import { MainDataPayload } from '@/types';
 
-const getMetaData = ({ data }) => {
+const getMetaData = ({ data }: MainDataPayload) => {
 	const { site, page } = data || {};
 	const siteTitle = site?.title || '';
 	const metaDesc = page?.sharing?.metaDesc || site?.sharing?.metaDesc;

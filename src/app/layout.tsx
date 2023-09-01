@@ -7,7 +7,11 @@ import StyledJsxRegistry from './registry';
 const { site } = await getSiteData();
 export const metadata = getMetaData({ data: site });
 
-export default async function RootLayout({ children }) {
+export default async function RootLayout({
+	children,
+}: {
+	children: React.ReactNode;
+}) {
 	return (
 		<html lang="en">
 			<head>

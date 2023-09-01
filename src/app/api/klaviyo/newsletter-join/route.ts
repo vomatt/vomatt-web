@@ -1,19 +1,13 @@
 import { NextResponse } from 'next/server';
 
-export async function POST(req, res) {
-	if (req.method !== 'POST') {
-		return res.status(404).json({ error: 'must be a POST request' });
-	}
-
-	const {
-		body: { listID, email },
-	} = req;
+export async function POST(req: Request, res: Response) {
+	const { listID, email } = await req.json();
 
 	if (!email || !listID) {
 		console.warn('No email or list ID provided');
-		return res
-			.status(404)
-			.json({ error: 'Must contain an email address and list ID' });
+		return NextResponse.json({
+			error: 'Must contain an email address and list ID',
+		});
 	}
 
 	const API_KEY = process.env.KLAVIYO_API_KEY;

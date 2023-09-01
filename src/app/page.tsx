@@ -20,7 +20,7 @@ export default async function Page() {
 
 	return (
 		<>
-			{page.modules?.map((module, key) => (
+			{page.modules?.map((module: any, key: number) => (
 				<Module key={key} index={key} module={module} />
 			))}
 		</>
