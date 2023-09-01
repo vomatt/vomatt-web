@@ -1,3 +1,4 @@
+import '@/styles/scss/main.scss';
 import Layout from '@/layout';
 import getMetaData from '@/lib/getMetaData';
 import { getSiteData } from '@/sanity/lib/fetch';

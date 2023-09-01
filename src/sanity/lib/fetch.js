@@ -87,7 +87,6 @@ export async function getSiteData() {
 	const query = `{${queries.site}}`;
 	const data = sanityFetch({
 		query,
-		tags: ['home'],
 	});
 
 	return data;

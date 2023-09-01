@@ -5,8 +5,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import Menu from '@/components/Menu';
 
 import MobileMenuTrigger from './mobile-menu-trigger';
+import { HeaderPayload } from '@/types';
 
-function Header({ data }) {
+type HeaderProps = {
+	data: HeaderPayload;
+};
+
+function Header({ data }: HeaderProps) {
 	const router = useRouter();
 	const headerRef = useRef();
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -34,7 +39,8 @@ function Header({ data }) {
 					'is-open': isMobileMenuOpen,
 				})}
 			>
-				<div className="header-interior f-h">
+				<div className="header-interior f-h c">
+					<div className="heaer-logo">Vomatt</div>
 					{data?.menu?.items && (
 						<Menu
 							items={data.menu.items}
@@ -74,7 +80,9 @@ function Header({ data }) {
 					padding: 10px var(--s-contain);
 					z-index: 100;
 				}
-
+				.heaer-logo {
+					font-size: 24px;
+				}
 				.header-links {
 					ul {
 						gap: 10px;

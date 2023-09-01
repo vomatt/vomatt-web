@@ -12,8 +12,14 @@ import Announcement from './Announcement';
 import Footer from './Footer';
 import Header from './Header';
 import Main from './Main';
+import { SiteDataPayload } from '@/types';
 
-const Layout = ({ children, siteData = {} }) => {
+type LayoutProps = {
+	children: React.ReactNode;
+	siteData: SiteDataPayload;
+};
+
+const Layout = ({ children, siteData }: LayoutProps) => {
 	const pathname = usePathname();
 	// const { height, width } = useWindowDimensions();
 	// const { isMobileScreen } = vs();
@@ -24,6 +30,7 @@ const Layout = ({ children, siteData = {} }) => {
 
 	useEffect(() => {
 		if (siteData?.integrations?.gaID) {
+			const url = process.env.SITE_URL;
 			gtag.pageview(url, siteData?.integrations?.gaID);
 		}
 	}, [siteData]);
@@ -38,7 +45,7 @@ const Layout = ({ children, siteData = {} }) => {
 			<AdaSkip />
 			<Announcement data={siteData?.announcement} />
 			<Header data={siteData?.header} />
-			<Main siteData={siteData}>{children}</Main>
+			<Main>{children}</Main>
 			<Footer siteData={siteData} data={siteData.footer} />
 		</>
 	);

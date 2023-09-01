@@ -6,6 +6,15 @@ import React from 'react';
 import CustomLink from '@/components/CustomLink';
 import Dropdown from '@/components/MenuDropdown';
 import { getActive, getLinkRouteObject } from '@/lib/routes';
+import { MenuItem, MenuDropdownItems } from '@/types';
+
+type MenuProps = {
+	items: MenuItem[];
+	hasFocus?: boolean;
+	onClick?: () => void;
+	className: string;
+	ulClassName: string;
+};
 
 const Menu = ({
 	items,
@@ -14,7 +23,7 @@ const Menu = ({
 	className,
 	ulClassName,
 	...rest
-}) => {
+}: MenuProps) => {
 	const searchParams = useSearchParams();
 	const pathName = usePathname();
 
@@ -38,10 +47,7 @@ const Menu = ({
 							}).length > 0;
 
 						return (
-							<li
-								key={item._key}
-								className={cx({ 'is-active': activeDropdown })}
-							>
+							<li key={key} className={cx({ 'is-active': activeDropdown })}>
 								<Dropdown
 									title={item.title}
 									items={item.dropdownItems}
@@ -60,6 +66,7 @@ const Menu = ({
 						query: searchParams,
 						pathName,
 					});
+
 					return (
 						<li key={key} className={cx({ 'is-active': isActive })}>
 							<CustomLink
@@ -67,7 +74,6 @@ const Menu = ({
 								link={link}
 								onClick={onClick}
 								title={item.title}
-								isNewTab={item.isNewTab}
 							/>
 						</li>
 					);
