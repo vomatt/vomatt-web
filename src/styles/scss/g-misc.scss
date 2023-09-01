@@ -1,0 +1,17 @@
+// override starter-library/scss/__animation.scss opacity 0
+body {
+	opacity: 1;
+}
+
+// Set the minimum container height to fill the screen so that the footer is always at the bottom.
+:root {
+	--s-main-min-height: calc(
+		var(--s-vp-height, 0px) - var(--s-announcement, 0px) - var(--s-header, 0px) -
+			var(--s-footer, 0px)
+	);
+}
+
+#main {
+	min-height: var(--s-main-min-height);
+	padding: 0.1px 0;
+}

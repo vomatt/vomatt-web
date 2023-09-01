@@ -1,0 +1,5 @@
+{
+	"rewrites": [
+		{ "source": "/sanity/(.*)", "destination": "/sanity/index.html" }
+	]
+}

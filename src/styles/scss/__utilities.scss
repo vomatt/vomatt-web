@@ -1,0 +1,455 @@
+// ***COLORS***
+
+:root {
+	--cr-subtle: rgba(125, 125, 125, 0.2);
+	--cr-subtle-1: rgba(125, 125, 125, 0.2);
+	--cr-subtle-2: rgba(125, 125, 125, 0.4);
+	--cr-subtle-3: rgba(125, 125, 125, 0.6);
+	--cr-subtle-4: rgba(125, 125, 125, 0.8);
+	--cr-subtle-5: rgba(125, 125, 125, 1);
+}
+
+.cr-subtle,
+.cr-subtle-1 {
+	color: var(--cr-subtle-1);
+}
+.cr-subtle-2 {
+	color: var(--cr-subtle-2);
+}
+.cr-subtle-3 {
+	color: var(--cr-subtle-3);
+}
+.cr-subtle-4 {
+	color: var(--cr-subtle-4);
+}
+.cr-subtle-5 {
+	color: var(--cr-subtle-5);
+}
+
+.bg-subtle,
+.bg-subtle-1 {
+	background-color: var(--cr-subtle-1);
+}
+.bg-subtle-2 {
+	background-color: var(--cr-subtle-2);
+}
+.bg-subtle-3 {
+	background-color: var(--cr-subtle-3);
+}
+.bg-subtle-4 {
+	background-color: var(--cr-subtle-4);
+}
+.bg-subtle-5 {
+	background-color: var(--cr-subtle-5);
+}
+
+// ***LAYOUTS***
+
+.c,
+.c-1,
+.c-2,
+.c-3,
+.c-4,
+.c-5 {
+	position: relative;
+	width: calc(100vw - var(--s-contain) * 2);
+	max-width: var(--s-contain-max);
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.c-1,
+.w-1 {
+	max-width: var(--w-1);
+}
+.c-2,
+.w-2 {
+	max-width: var(--w-2);
+}
+.c-3,
+.w-3 {
+	max-width: var(--w-3);
+}
+.c-4,
+.w-4 {
+	max-width: var(--w-4);
+}
+.c-5,
+.w-5 {
+	max-width: var(--w-5);
+}
+
+.f-h {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+}
+
+.f-v {
+	display: flex;
+	flex-direction: column;
+}
+
+.f-w {
+	flex-wrap: wrap;
+}
+.f-nw {
+	flex-wrap: nowrap;
+}
+.f-a-s {
+	align-items: stretch;
+}
+.f-a-c {
+	align-items: center;
+}
+.f-a-e {
+	align-items: flex-end;
+}
+.f-j-s {
+	justify-content: flex-start;
+}
+.f-j-c {
+	justify-content: center;
+}
+.f-j-e {
+	justify-content: flex-end;
+}
+.f-j-b {
+	justify-content: space-between;
+}
+
+.g {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+.g-1 {
+	grid-template-columns: repeat(1, 1fr);
+}
+.g-2 {
+	grid-template-columns: repeat(2, 1fr);
+}
+.g-3 {
+	grid-template-columns: repeat(3, 1fr);
+}
+.g-4 {
+	grid-template-columns: repeat(4, 1fr);
+}
+.g-5 {
+	grid-template-columns: repeat(5, 1fr);
+}
+.g-6 {
+	grid-template-columns: repeat(6, 1fr);
+}
+
+// ***IMAGE OBJECT FIT***
+/*
+	When dealing with a variety of media sizes that need size guardrails, we can use object-fit to:
+	1. contain the media within certain bounds (in this example, the media's width/height limit is 200px), or
+	2. cover the bounds without warping the media.
+
+	Example usage:
+	<div class="image-wrapper">
+		<span class="object-fit"><img></span>
+	</div>
+*/
+
+.object-fit,
+.object-contain {
+	--offset: 1px;
+
+	position: absolute;
+	display: block;
+	width: 100%;
+	height: 100%;
+	top: 50%;
+	left: 50%;
+	transform: translate3d(-50%, -50%, 0);
+	overflow: hidden;
+	-o-user-select: none;
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	user-select: none;
+
+	> *:not(picture),
+	> picture > img {
+		position: absolute;
+		max-width: unset;
+		top: 50%;
+		left: 50%;
+		transform: translate3d(-50%, -50%, 0);
+		-webkit-backface-visibility: hidden;
+	}
+}
+
+.object-fit > *:not(picture),
+.object-fit > picture > img {
+	width: calc(100% + var(--offset) * 2) !important;
+	height: calc(100% + var(--offset) * 2) !important;
+	object-fit: cover;
+}
+
+.object-contain > *:not(picture),
+.object-contain > picture > img {
+	width: 100% !important;
+	height: 100% !important;
+	object-fit: contain;
+}
+
+/*
+	Example usage:
+	<div class="image-wrapper child-contain">
+		<img src="foo"><img>
+	</div>
+
+	.image-wrapper {
+		width: 200px;
+		height: 200px;
+	}
+*/
+
+.child-fit > *,
+.child-cover > *,
+.child-contain > * {
+	width: 100%;
+	-webkit-backface-visibility: hidden;
+	backface-visibility: hidden;
+}
+
+.child-fit > *,
+.child-cover > * {
+	height: 101%;
+	object-fit: cover;
+}
+
+.child-contain > * {
+	height: 100%;
+	object-fit: contain;
+}
+
+// ***POSITIONING***
+
+.p-fill {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	top: 0;
+	left: 0;
+}
+
+.p-center {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate3d(-50%, -50%, 0);
+}
+
+.p-center-h {
+	left: 50%;
+	transform: translate3d(-50%, 50%, 0);
+}
+
+.p-center-v {
+	top: 50%;
+	transform: translate3d(0, -50%, 0);
+}
+
+// ***ICONS***
+
+.icon-close,
+.icon-plus,
+.icon-minus {
+	--thickness: 1px;
+
+	position: relative;
+	display: inline-block;
+	width: 0.75em;
+	height: 0.75em;
+
+	&:before,
+	&:after {
+		content: '';
+		display: block;
+		position: absolute;
+		width: 100%;
+		top: 50%;
+		left: 50%;
+	}
+
+	&:before {
+		border-top: var(--thickness) solid;
+	}
+
+	&:after {
+		border-bottom: var(--thickness) solid;
+	}
+
+	&.icon-close {
+		&:before {
+			transform: translate3d(-50%, -50%, 0) rotate(45deg);
+		}
+		&:after {
+			transform: translate3d(-50%, -50%, 0) rotate(-45deg);
+		}
+	}
+
+	&.icon-plus,
+	&.icon-minus {
+		&:before {
+			transform: translate3d(-50%, -50%, 0) rotate(90deg);
+		}
+		&:after {
+			transform: translate3d(-50%, -50%, 0);
+		}
+	}
+
+	&.icon-minus:before {
+		display: none;
+	}
+}
+
+.icon-caret,
+.icon-arrow {
+	&,
+	&-left,
+	&-right,
+	&-top,
+	&-bottom {
+		--thickness: 1px;
+
+		position: relative;
+		display: inline-block;
+		width: 0.75em;
+		height: 0.75em;
+
+		&:before {
+			content: '';
+			display: block;
+			position: absolute;
+			width: 65%;
+			height: 65%;
+			top: 50%;
+			left: 50%;
+			border-top: var(--thickness) solid;
+			border-left: var(--thickness) solid;
+			transform: translate3d(-50%, -50%, 0) rotate(45deg);
+		}
+
+		&[class*='icon-arrow'] {
+			&:after {
+				content: '';
+				display: block;
+				position: absolute;
+				width: 95%;
+				top: 50%;
+				left: 50%;
+				border-top: var(--thickness) solid;
+				transform: translate3d(-50%, -50%, 0);
+			}
+
+			&:before {
+				width: 45%;
+				height: 45%;
+			}
+		}
+
+		&[class*='icon-arrow-left']:before {
+			left: 32%;
+		}
+
+		&[class*='icon-arrow-right']:before {
+			left: 69%;
+		}
+
+		&[class*='icon-arrow-top']:after,
+		&[class*='icon-arrow-bottom']:after {
+			transform: translate3d(-50%, -50%, 0) rotate(-90deg);
+		}
+
+		&[class*='icon-arrow-top']:before {
+			top: 32%;
+		}
+
+		&[class*='icon-arrow-bottom']:before {
+			top: 69%;
+		}
+	}
+
+	&-left:before {
+		transform: translate3d(-50%, -50%, 0) rotate(315deg);
+	}
+
+	&-right:before {
+		transform: translate3d(-50%, -50%, 0) rotate(135deg);
+	}
+
+	&-top:before {
+		top: 60%;
+		transform: translate3d(-50%, -50%, 0) rotate(45deg);
+	}
+
+	&-bottom:before {
+		top: 40%;
+		transform: translate3d(-50%, -50%, 0) rotate(225deg);
+	}
+}
+
+// ***MISC***
+
+// remove all visible spaces between elements
+.no-text-space {
+	font-size: 0;
+	line-height: 0;
+}
+
+// hidden at page load. made visible in js-index.js
+.avoid-style-flash {
+	visibility: hidden;
+}
+
+// no highlighting (via :selection), typically applied to clickable elements
+.user-select-disable {
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-o-user-select: none;
+	user-select: none;
+}
+
+// for accessibility (e.g. a form label that isn't needed for regular users)
+.screen-reader-only {
+	position: absolute !important;
+	left: -10000px !important;
+	top: auto !important;
+	width: 1px !important;
+	height: 1px !important;
+	overflow: hidden !important;
+}
+
+// hiding elements
+.is-hidden {
+	display: none !important;
+}
+
+@media (max-width: 1024px) {
+	.tablet-up-only {
+		display: none !important;
+	}
+}
+
+@media (min-width: 1025px) {
+	.tablet-down-only {
+		display: none !important;
+	}
+}
+
+@media (max-width: 600px) {
+	.mobile-up-only {
+		display: none !important;
+	}
+}
+
+@media (min-width: 601px) {
+	.mobile-down-only {
+		display: none !important;
+	}
+}
