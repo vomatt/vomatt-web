@@ -19,7 +19,7 @@
 	--cr-accent: #0000ff;
 	--cr-black: #000000;
 	--cr-white: #ffffff;
-
+	--cr-chrome: rgba(229, 231, 235, 0.60);
 	--t-h-1: 700 48px/1.1 'Helvetica Neue', Helvetica, sans-serif;
 	--t-h-2: 700 36px/1.1 'Helvetica Neue', Helvetica, sans-serif;
 	--t-h-3: 700 30px/1.1 'Helvetica Neue', Helvetica, sans-serif;
@@ -48,8 +48,8 @@
 	}
 }
 
-/*	
-	update edge spacing when --s-edge reaches its max width	
+/*
+	update edge spacing when --s-edge reaches its max width
 	var(--s-contain-max) / ( 1 - var(--s-contain) * 2 )
 	e.g. 2000px / (1 - 4% * 2) = 2174px
 */
@@ -63,9 +63,7 @@
 // scroll positioning anchoring
 html {
 	scroll-behavior: smooth;
-	scroll-padding-top: calc(
-		var(--s-announcement, 0px) + var(--s-header, 0px) + 20px
-	);
+	scroll-padding-top: calc(var(--s-announcement, 0px) + var(--s-header, 0px) + 20px);
 }
 
 ::selection {
@@ -100,21 +98,33 @@ html {
 .cr-accent {
 	color: var(--cr-accent);
 }
+
 .cr-black {
 	color: var(--cr-black);
 }
+
 .cr-white {
 	color: var(--cr-white);
+}
+
+.cr-chrome {
+	color: var(--cr-chrome)
 }
 
 .bg-accent {
 	background-color: var(--cr-accent);
 }
+
 .bg-black {
 	background-color: var(--cr-black);
 }
+
 .bg-white {
 	background-color: var(--cr-white);
+}
+
+.bg-chrome {
+	background-color: var(--cr-chrome)
 }
 
 // ***TYPOGRAPHY***
@@ -291,7 +301,7 @@ input[type='checkbox'] {
 		}
 	}
 
-	~ label {
+	~label {
 		display: inline-block;
 		padding-left: 0.5em;
 		vertical-align: bottom;
@@ -373,14 +383,14 @@ input[type='checkbox'] {
 		}
 
 		&,
-		& ~ label {
+		&~label {
 			height: var(--height);
 			padding: calc((var(--height) - var(--line-height)) / 2) var(--padding-h);
 			font: var(--t-b-2);
 			line-height: var(--line-height);
 		}
 
-		& ~ label {
+		&~label {
 			position: absolute;
 			top: 0;
 			left: 0;
@@ -390,6 +400,7 @@ input[type='checkbox'] {
 	}
 
 	&:not(.is-not-inline-label) {
+
 		input[type='text'],
 		input[type='email'],
 		input[type='tel'],
@@ -397,17 +408,14 @@ input[type='checkbox'] {
 		input[type='password'],
 		select,
 		textarea {
+
 			&:not(select):focus,
 			&:placeholder-shown,
 			&.is-contain-value {
-				padding-top: calc(
-					(var(--height) - var(--line-height)) / 2 + var(--focus-offset)
-				);
-				padding-bottom: calc(
-					(var(--height) - var(--line-height)) / 2 - var(--focus-offset)
-				);
+				padding-top: calc((var(--height) - var(--line-height)) / 2 + var(--focus-offset));
+				padding-bottom: calc((var(--height) - var(--line-height)) / 2 - var(--focus-offset));
 
-				& ~ label {
+				&~label {
 					top: var(--focus-offset);
 					padding-top: 0;
 					padding-bottom: 0;
@@ -421,8 +429,7 @@ input[type='checkbox'] {
 
 	select {
 		padding-right: calc(var(--padding-h) + 8px + var(--padding-h));
-		background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 5'%3E%3Cpath fill-rule='evenodd' d='m3,5L6,0H0l3,5'/%3E%3C/svg%3E")
-			right var(--padding-h) center/8px no-repeat;
+		background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 5'%3E%3Cpath fill-rule='evenodd' d='m3,5L6,0H0l3,5'/%3E%3C/svg%3E") right var(--padding-h) center/8px no-repeat;
 		-webkit-user-select: none;
 		-moz-user-select: none;
 		-o-user-select: none;
@@ -455,7 +462,7 @@ input[type='checkbox'] {
 // ***WYSIWYG***
 
 .wysiwyg {
-	> *:not(:last-child) {
+	>*:not(:last-child) {
 		margin-bottom: 10px;
 	}
 
@@ -519,7 +526,7 @@ input[type='checkbox'] {
 
 	blockquote {
 		margin: 30px auto;
-		quotes: '\201C''\201D''\2018''\2019';
+		quotes: '\201C' '\201D' '\2018' '\2019';
 
 		&,
 		p {
@@ -621,7 +628,7 @@ input[type='checkbox'] {
 		transition-duration: 0.8s;
 	}
 
-	&:where(html) > .loader {
+	&:where(html)>.loader {
 		position: fixed;
 	}
 }

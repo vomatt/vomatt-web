@@ -164,6 +164,18 @@ export const site = groq`
 	}
 `;
 
+export interface Site {
+	site: {
+		title: string;
+		cookieConsent: any;
+		announcement: any;
+		header: any;
+		footer: any;
+		sharing: any;
+		integrations: any;
+	};
+}
+
 export const pagePaths = groq`
   *[_type == "pGeneral" && slug.current != null && !(_id in [${homeID}]) ].slug.current
 `;

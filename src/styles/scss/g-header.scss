@@ -1,0 +1,11 @@
+.g-header {
+	.brand-logo {
+		width: 150px;
+		color: var(--cr-black)
+	}
+
+	&__interior {
+		padding: 28px;
+		border-radius: 20px;
+	}
+}

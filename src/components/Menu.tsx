@@ -7,14 +7,24 @@ import CustomLink from '@/components/CustomLink';
 import Dropdown from '@/components/MenuDropdown';
 import { getActive, getLinkRouteObject } from '@/lib/routes';
 
-const Menu = ({
-	items,
-	hasFocus = true,
-	onClick,
-	className,
-	ulClassName,
-	...rest
-}) => {
+export interface MenuProps {
+	items: any;
+	hasFocus?: Boolean;
+	onClick?: () => void;
+	className?: string;
+	ulClassName?: string;
+}
+
+const Menu = (props: MenuProps) => {
+	const {
+		items,
+		hasFocus = true,
+		onClick,
+		className,
+		ulClassName,
+		...rest
+	} = props;
+
 	const searchParams = useSearchParams();
 	const pathName = usePathname();
 

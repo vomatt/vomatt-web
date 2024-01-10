@@ -1,20 +1,26 @@
 import cx from 'classnames';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useRef, useState } from 'react';
-
+import React, {
+	ReactNode,
+	useEffect,
+	useRef,
+	useCallback,
+	useState,
+} from 'react';
+import BrandLogo from '@/components/BrandLogo';
 import Menu from '@/components/Menu';
 
 import MobileMenuTrigger from './mobile-menu-trigger';
 
 function Header({ data }) {
 	const router = useRouter();
-	const headerRef = useRef();
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-	useEffect(() => {
+	const headerRef = useCallback((node: HTMLElement | null) => {
+		const headerHeight = node.getBoundingClientRect().height;
 		document.documentElement.style.setProperty(
 			'--s-header',
-			`${headerRef?.current?.offsetHeight || 0}px`
+			`${headerHeight}px`
 		);
 	}, []);
 
@@ -34,18 +40,15 @@ function Header({ data }) {
 					'is-open': isMobileMenuOpen,
 				})}
 			>
-				<div className="header-interior f-h">
+				<div className="g-header__interior f-h f-a-c bg-chrome">
+					<BrandLogo />
 					{data?.menu?.items && (
 						<Menu
 							items={data.menu.items}
-							className="header-links mobile-up-only"
+							className="g-header__links mobile-up-only"
 							ulClassName="f-h f-a-c t-b-2 user-select-disable"
 						/>
 					)}
-					<MobileMenuTrigger
-						isMobileMenuOpen={isMobileMenuOpen}
-						onHandleClick={onToggleMenu}
-					/>
 				</div>
 			</header>
 

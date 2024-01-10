@@ -13,7 +13,8 @@ import Footer from './Footer';
 import Header from './Header';
 import Main from './Main';
 
-const Layout = ({ children, siteData = {} }) => {
+const Layout = ({ children, siteData }) => {
+	const { header, footer } = siteData;
 	const pathname = usePathname();
 	// const { height, width } = useWindowDimensions();
 	// const { isMobileScreen } = vs();
@@ -22,11 +23,11 @@ const Layout = ({ children, siteData = {} }) => {
 		siteSetup();
 	}, []);
 
-	useEffect(() => {
-		if (siteData?.integrations?.gaID) {
-			gtag.pageview(url, siteData?.integrations?.gaID);
-		}
-	}, [siteData]);
+	// useEffect(() => {
+	// 	if (siteData?.integrations?.gaID) {
+	// 		gtag.pageview(url, siteData?.integrations?.gaID);
+	// 	}
+	// }, [siteData]);
 
 	if (pathname.startsWith('/sanity')) {
 		return children;
@@ -36,10 +37,10 @@ const Layout = ({ children, siteData = {} }) => {
 		<>
 			<HeadTrackingCode siteData={siteData} />
 			<AdaSkip />
-			<Announcement data={siteData?.announcement} />
-			<Header data={siteData?.header} />
+			{/* <Announcement data={siteData?.announcement} /> */}
+			<Header data={header} />
 			<Main siteData={siteData}>{children}</Main>
-			<Footer siteData={siteData} data={siteData.footer} />
+			<Footer siteData={siteData} data={footer} />
 		</>
 	);
 };

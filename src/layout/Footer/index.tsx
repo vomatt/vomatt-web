@@ -14,13 +14,6 @@ function Footer({ siteData, data }) {
 	const pathname = usePathname();
 	const footerRef = useRef();
 
-	useEffect(() => {
-		document.documentElement.style.setProperty(
-			'--s-footer',
-			`${footerRef?.current?.offsetHeight || 0}px`
-		);
-	}, []);
-
 	return (
 		<>
 			<LazyMotion features={domAnimation}>

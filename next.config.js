@@ -1,6 +1,7 @@
 const path = require('path');
 
 const nextConfig = {
+	reactStrictMode: true,
 	swcMinify: true,
 	sassOptions: {
 		includePaths: [path.join(__dirname, 'styles')],
@@ -8,10 +9,6 @@ const nextConfig = {
 	images: {
 		dangerouslyAllowSVG: true,
 		domains: ['cdn.sanity.io'],
-	},
-	i18n: {
-		locales: ['en'],
-		defaultLocale: 'en',
 	},
 };
 

@@ -4,7 +4,19 @@ import React from 'react';
 
 import { getLinkRouteObject } from '@/lib/routes';
 
-const CustomLink = ({
+type CMSLinkType = {
+	link?: any;
+	title?: string;
+	ariaLabel?: string;
+	children?: React.ReactNode;
+	className?: string;
+	isNewTab?: boolean;
+	isButton?: boolean;
+	tabIndex?: number;
+	onClick?: () => void;
+};
+
+const CustomLink: React.FC<CMSLinkType> = ({
 	link,
 	title,
 	children,
