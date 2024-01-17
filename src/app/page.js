@@ -1,28 +1,15 @@
-import Link from 'next/link';
+import SignUp from '@/components/SignUp';
+import defineMetadata from '@/lib/defineMetadata';
 
-import { Module } from '@/components/modules';
-import getMetaData from '@/lib/getMetaData';
-import { getHomePageData } from '@/sanity/lib/fetch';
-
-const homePageData = await getHomePageData();
-export const metadata = getMetaData({ data: homePageData });
+// export async function generateMetadata({}) {
+// 	const data = await getPageData();
+// 	return defineMetadata({ data });
+// }
 
 export default async function Page() {
-	const { page } = homePageData || {};
-
-	if (!page) {
-		return (
-			<Link href="/sanity/desk/settings;general" target="_blank">
-				Click to set Hompage
-			</Link>
-		);
-	}
-
 	return (
-		<>
-			{page.modules?.map((module, key) => (
-				<Module key={key} index={key} module={module} />
-			))}
-		</>
+		<div className="p-home">
+			<SignUp />
+		</div>
 	);
 }

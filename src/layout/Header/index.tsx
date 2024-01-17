@@ -2,11 +2,12 @@ import cx from 'classnames';
 import { useRouter } from 'next/navigation';
 import React, {
 	ReactNode,
+	useCallback,
 	useEffect,
 	useRef,
-	useCallback,
 	useState,
 } from 'react';
+
 import BrandLogo from '@/components/BrandLogo';
 import Menu from '@/components/Menu';
 
@@ -46,7 +47,7 @@ function Header({ data }) {
 						<Menu
 							items={data.menu.items}
 							className="g-header__links mobile-up-only"
-							ulClassName="f-h f-a-c t-b-2 user-select-disable"
+							ulClassName="g-header__menu-list f-h f-a-c t-b-2 user-select-disable"
 						/>
 					)}
 				</div>
@@ -69,43 +70,6 @@ function Header({ data }) {
 					/>
 				)}
 			</div>
-
-			<style global jsx>{`
-				.g-header {
-					position: relative;
-					width: 100%;
-					padding: 10px var(--s-contain);
-					z-index: 100;
-				}
-
-				.header-links {
-					ul {
-						gap: 10px;
-					}
-				}
-
-				.mobile-menu {
-					position: fixed;
-					width: 100%;
-					height: 100%;
-					overflow-y: auto;
-					top: 0;
-					right: 0;
-					padding: 20px var(--s-edge);
-					transform: translate3d(100%, 0px, 0px);
-					background-color: var(--cr-white);
-					transition: transform 0.3s var(--e-inOut-circ);
-					z-index: 120;
-
-					&.is-open {
-						transform: translate3d(0px, 0px, 0px);
-					}
-
-					.mobile-menu-links {
-						gap: 10px;
-					}
-				}
-			`}</style>
 		</>
 	);
 }

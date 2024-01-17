@@ -1,12 +1,10 @@
 import cx from 'classnames';
-import { useSearchParams } from 'next/navigation';
 import { usePathname } from 'next/navigation';
 import React from 'react';
 
 import CustomLink from '@/components/CustomLink';
 import Dropdown from '@/components/MenuDropdown';
-import { getActive, getLinkRouteObject } from '@/lib/routes';
-
+import { checkIfActive, getLinkRouteObject } from '@/lib/routes';
 export interface MenuProps {
 	items: any;
 	hasFocus?: Boolean;
@@ -16,42 +14,30 @@ export interface MenuProps {
 }
 
 const Menu = (props: MenuProps) => {
-	const {
-		items,
-		hasFocus = true,
-		onClick,
-		className,
-		ulClassName,
-		...rest
-	} = props;
+	const { items, hasFocus = true, onClick, className, ulClassName } = props;
 
-	const searchParams = useSearchParams();
 	const pathName = usePathname();
 
 	if (!items) return null;
 
 	return (
 		<div className={className || ''}>
-			<ul className={ulClassName || ''} {...rest}>
-				{items.map((item, key) => {
-					const { link, dropdownItems } = item || {};
+			<ul className={ulClassName || ''}>
+				{items.map((item, index) => {
+					const { link, dropdownItems } = item ?? {};
 					const isDropdown = !!dropdownItems;
 
 					if (isDropdown) {
-						const activeDropdown =
+						const isActive =
 							dropdownItems.filter((item) => {
-								return getActive({
-									pageSlug: getLinkRouteObject(item.link)?.slug,
-									query: searchParams,
-									pathName,
+								return checkIfActive({
+									pathName: pathName,
+									url: getLinkRouteObject(item?.link)?.route?.url,
 								});
 							}).length > 0;
 
 						return (
-							<li
-								key={item._key}
-								className={cx({ 'is-active': activeDropdown })}
-							>
+							<li key={index} className={cx({ 'is-active': isActive })}>
 								<Dropdown
 									title={item.title}
 									items={item.dropdownItems}
@@ -65,19 +51,18 @@ const Menu = (props: MenuProps) => {
 						return null;
 					}
 
-					const isActive = getActive({
-						pageSlug: getLinkRouteObject(link)?.slug,
-						query: searchParams,
-						pathName,
+					const isActive = checkIfActive({
+						pathName: pathName,
+						url: getLinkRouteObject(link)?.route?.url,
 					});
+
 					return (
-						<li key={key} className={cx({ 'is-active': isActive })}>
+						<li key={index} className={cx({ 'is-active': isActive })}>
 							<CustomLink
-								tabIndex={!hasFocus ? -1 : null}
 								link={link}
 								onClick={onClick}
 								title={item.title}
-								isNewTab={item.isNewTab}
+								tabIndex={!hasFocus ? -1 : null}
 							/>
 						</li>
 					);

@@ -1,12 +1,13 @@
-import Layout from '@/layout';
-import getMetaData from '@/lib/getMetaData';
-import { getSiteData } from '@/sanity/lib/fetch';
 import '@/styles/scss/main.scss';
-import localFont from 'next/font/local';
+
+// import localFont from 'next/font/local';
+import Layout from '@/layout';
+import defineMetadata from '@/lib/defineMetadata';
+import { getSiteData } from '@/sanity/lib/fetch';
 
 export async function generateMetadata({}) {
 	const { site } = await getSiteData();
-	return getMetaData({ data: site });
+	return defineMetadata({ data: site });
 }
 
 export default async function RootLayout({

@@ -1,13 +1,13 @@
 import { imageBuilder } from '@/sanity/lib/image';
 // https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadata-fields
 
-const getMetaData = ({ data }) => {
+export default function defineMetadata({ data }) {
 	const { site, page } = data || {};
 	const siteTitle = site?.title || '';
 	const metaDesc = page?.sharing?.metaDesc || site?.sharing?.metaDesc;
 	const metaTitle =
 		page?.isHomepage == true
-			? siteTitle
+			? page?.sharing?.metaTitle || siteTitle
 			: `${
 					page?.sharing?.metaTitle || page?.title || 'Page not found'
 			  } | ${siteTitle}`;
@@ -15,14 +15,14 @@ const getMetaData = ({ data }) => {
 	const siteFavicon = site?.sharing?.favicon || false;
 	const siteFaviconUrl = siteFavicon
 		? imageBuilder.image(siteFavicon).width(256).height(256).url()
-		: '/icon.png';
+		: '/favicon.ico';
 
 	const shareGraphic =
 		page?.sharing?.shareGraphic?.asset ||
 		site?.sharing?.shareGraphic?.asset ||
 		'';
 	const shareGraphicUrl = shareGraphic
-		? imageBuilder.image(shareGraphic).width(1200).height(630).url()
+		? imageBuilder.image(shareGraphic).url()
 		: false;
 
 	const disableIndex = page?.sharing?.disableIndex;
@@ -30,10 +30,9 @@ const getMetaData = ({ data }) => {
 	return {
 		title: metaTitle,
 		description: metaDesc,
-		creator: 'View Source',
-		publisher: 'View Source',
-		applicationName: 'View Source Template',
-		keywords: ['Next.js', 'View Source', 'JavaScript'],
+		creator: siteTitle,
+		publisher: siteTitle,
+		applicationName: siteTitle,
 		openGraph: {
 			title: metaTitle,
 			description: metaDesc,
@@ -51,12 +50,6 @@ const getMetaData = ({ data }) => {
 		},
 		icons: {
 			icon: siteFaviconUrl,
-			shortcut: '/shortcut-icon.png',
-			apple: '/apple-icon.png',
-			other: {
-				rel: 'apple-touch-icon-precomposed',
-				url: '/apple-touch-icon-precomposed.png',
-			},
 		},
 		themeColor: [
 			{ media: '(prefers-color-scheme: light)', color: 'white' },
@@ -66,7 +59,7 @@ const getMetaData = ({ data }) => {
 			card: 'summary_large_image',
 			title: metaTitle,
 			description: metaDesc,
-			creator: 'View Source',
+			creator: siteTitle,
 			images: [shareGraphicUrl],
 		},
 		metadataBase: new URL(process.env.SITE_URL),
@@ -84,6 +77,4 @@ const getMetaData = ({ data }) => {
 			},
 		}),
 	};
-};
-
-export default getMetaData;
+}

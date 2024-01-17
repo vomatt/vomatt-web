@@ -1,17 +1,3 @@
-// ***SETTINGS***
-
-// @font-face {
-// 	font-family: 'FONTNAME';
-// 	font-weight: 400;
-// 	font-style: normal;
-// 	font-display: block;
-
-// Shopify
-// 	src: url(../assets/font-fontname-regular.woff2) format('woff2');
-
-// WP:
-// 	src: url(../../assets-fonts/fontname-regular.woff2) format('woff2');
-
 // ALSO PRELOAD IN </HEAD>
 // }
 
@@ -20,7 +6,10 @@
 	--cr-black: #000000;
 	--cr-white: #ffffff;
 	--cr-chrome: rgba(229, 231, 235, 0.60);
-	--t-h-1: 700 48px/1.1 'Helvetica Neue', Helvetica, sans-serif;
+	--cr-surface-grey-darker: #171717;
+	--surface-sage: #535C51;
+
+	--t-h-1: 400 48px/1.1 'Helvetica Neue', Helvetica, sans-serif;
 	--t-h-2: 700 36px/1.1 'Helvetica Neue', Helvetica, sans-serif;
 	--t-h-3: 700 30px/1.1 'Helvetica Neue', Helvetica, sans-serif;
 	--t-h-4: 700 24px/1.1 'Helvetica Neue', Helvetica, sans-serif;
@@ -38,7 +27,7 @@
 	--s-contain: 4vw;
 	--s-contain-max: 2000px;
 	--s-edge: var(--s-contain);
-
+	--radius-xxs: 4px;
 	// Create variables for values that need to be consistent across the website. - e.g. --gap, --br (border-radius)
 }
 
@@ -111,6 +100,14 @@ html {
 	color: var(--cr-chrome)
 }
 
+.cr-surface-grey-darker {
+	color: var(--cr-surface-grey-darker)
+}
+
+.cr-surface-sage {
+	color: var(--surface-sage)
+}
+
 .bg-accent {
 	background-color: var(--cr-accent);
 }
@@ -125,6 +122,14 @@ html {
 
 .bg-chrome {
 	background-color: var(--cr-chrome)
+}
+
+.bg-surface-grey-darker {
+	background-color: var(--cr-surface-grey-darker)
+}
+
+.bg-surface-sage {
+	background-color: var(--surface-sage)
 }
 
 // ***TYPOGRAPHY***
@@ -197,7 +202,7 @@ h6,
 
 .btn,
 .btn-outline {
-	--height: 45px;
+	--height: 72px;
 	padding: 0 25px;
 	overflow: hidden;
 	transition: background-color 0.3s, color 0.3s;
@@ -331,9 +336,9 @@ input[type='checkbox'] {
 }
 
 .field {
-	--height: 45px;
+	--height: 72px;
 	--line-height: 20px;
-	--focus-offset: 5px;
+	--focus-offset: 12px;
 	--padding-h: 16px;
 
 	position: relative;
@@ -370,7 +375,7 @@ input[type='checkbox'] {
 		color: inherit;
 		border: 1px solid;
 		transition: 0.2s;
-
+		border-radius: var(--radius-xxs);
 		// focus state adjustments
 		outline-offset: -1px;
 		outline-color: transparent;

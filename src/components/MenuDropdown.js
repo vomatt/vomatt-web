@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import React, { useState } from 'react';
 
 import CustomLink from '@/components/CustomLink';
-import { getActive, getLinkRouteObject } from '@/lib/routes';
+import { checkIfActive, getLinkRouteObject } from '@/lib/routes';
 
 const MenuDropdown = ({ title, items, onClick }) => {
 	const searchParams = useSearchParams();
@@ -24,7 +24,7 @@ const MenuDropdown = ({ title, items, onClick }) => {
 				<div className="dropdown-content">
 					<ul className="dropdown-nav">
 						{items.map((item, key) => {
-							const isActive = getActive({
+							const isActive = checkIfActive({
 								pageSlug: getLinkRouteObject(item.link)?.slug,
 								query: searchParams,
 								pathName,

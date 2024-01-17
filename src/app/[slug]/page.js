@@ -3,14 +3,14 @@ import { notFound } from 'next/navigation';
 import React from 'react';
 
 import { Module } from '@/components/modules';
-import getMetaData from '@/lib/getMetaData';
+import defineMetadata from '@/lib/defineMetadata';
 import { getPageBySlug, getPagesPaths } from '@/sanity/lib/fetch';
 
 export const dynamicParams = true;
 
 export async function generateMetadata({ params, searchParams }, parent) {
 	const data = await getPageBySlug(params.slug);
-	return getMetaData({ data });
+	return defineMetadata({ data });
 }
 
 export async function generateStaticParams() {

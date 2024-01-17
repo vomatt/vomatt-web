@@ -1,8 +1,19 @@
 // determine if current page is active or not
-export const getActive = ({ pageSlug, query, pathName }) => {
-	const slugs = [].concat(query.slug);
-	const currentPath = slugs ? slugs.join('/') : pathName.replace(/^\//g, '');
-	return currentPath == pageSlug;
+
+export const checkIfActive = ({
+	pathName,
+	url,
+	isChild,
+}: {
+	pathName: string;
+	url: string;
+	isChild?: any;
+}) => {
+	if (isChild) {
+		return pathName.split('/')[1] == url.split('/')[1];
+	} else {
+		return pathName == url;
+	}
 };
 
 export const getRoute = ({ type, slug }) => {
@@ -19,7 +30,7 @@ export const getRoute = ({ type, slug }) => {
 	}
 };
 
-export const getLinkRouteObject = (link) => {
+export const getLinkRouteObject = (link: any) => {
 	if (!link) return '';
 
 	return {

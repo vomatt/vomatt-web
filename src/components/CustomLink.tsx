@@ -24,7 +24,7 @@ const CustomLink: React.FC<CMSLinkType> = ({
 	ariaLabel,
 	isNewTab,
 	isButton,
-	...rest
+	...props
 }) => {
 	if (!link.route) {
 		return null;
@@ -32,18 +32,18 @@ const CustomLink: React.FC<CMSLinkType> = ({
 
 	const { route } = getLinkRouteObject(link);
 	const { url } = route;
+	const isOpenNewTab = isNewTab ?? link.isNewTab;
 
 	return (
 		<NextLink
 			href={url}
-			scroll={false}
-			target={url?.match('^mailto:') || isNewTab ? '_blank' : null}
-			rel={isNewTab ? 'noopener noreferrer' : null}
-			aria-label={ariaLabel || `Go to ${url}`}
+			target={url?.match('^mailto:') || isOpenNewTab ? '_blank' : null}
+			rel={isOpenNewTab ? 'noopener noreferrer' : null}
+			aria-label={ariaLabel || `${title || `Go to ${url}`}`}
 			className={cx(className, {
 				btn: isButton,
 			})}
-			{...rest}
+			{...props}
 		>
 			{title || children}
 		</NextLink>
