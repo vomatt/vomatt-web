@@ -1,0 +1,51 @@
+.c-auth {
+	max-width: 600px;
+	margin: 0 auto;
+	height: 100%;
+	height: calc(var(--s-vp-height) - var(--s-header) * 2);
+	width: 100%;
+
+	&__heading {
+		text-transform: uppercase;
+		margin-bottom: 40px;
+		text-align: center;
+	}
+
+	&__content {
+		max-width: 350px;
+		width: 100%;
+		margin: 0 auto;
+	}
+
+	&__form {
+		margin: 0 auto 24px;
+		width: 100%;
+	}
+
+	.btn {
+		width: 100%;
+		border-radius: var(--radius-xxs);
+	}
+
+
+	&__info {
+		text-align: center;
+
+		p {
+			margin-bottom: 12px;
+		}
+
+		&-cta {
+			width: 100%;
+			border-radius: 10px;
+			border: 1px solid;
+			height: 40px;
+		}
+	}
+
+	&__help {
+		margin-top: 36px;
+		text-align: center;
+	}
+
+}

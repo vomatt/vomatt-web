@@ -1,4 +1,4 @@
-import SignUp from '@/components/SignUp';
+import Auth from '@/app/_components/auth';
 import defineMetadata from '@/lib/defineMetadata';
 import { getPageHomeData } from '@/sanity/lib/fetch';
 
@@ -10,7 +10,7 @@ export async function generateMetadata({}) {
 export default async function Page() {
 	return (
 		<div className="p-home">
-			<SignUp />
+			<Auth />
 		</div>
 	);
 }

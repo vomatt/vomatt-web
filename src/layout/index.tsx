@@ -7,7 +7,6 @@ import useWindowDimensions from '@/hooks/useWindowDimensions';
 import HeadTrackingCode from '@/layout/HeadTrackingCode';
 import * as gtag from '@/lib/gtag';
 
-import AdaSkip from './AdaSkip';
 import Announcement from './Announcement';
 import Footer from './Footer';
 import Header from './Header';
@@ -36,7 +35,6 @@ const Layout = ({ children, siteData }) => {
 	return (
 		<>
 			<HeadTrackingCode siteData={siteData} />
-			<AdaSkip />
 			{/* <Announcement data={siteData?.announcement} /> */}
 			<Header data={header} />
 			<Main siteData={siteData}>{children}</Main>

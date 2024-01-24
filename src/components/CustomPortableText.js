@@ -2,7 +2,7 @@ import { PortableText } from '@portabletext/react';
 import React from 'react';
 
 import CustomLink from '@/components/CustomLink';
-import CustomImage from '@/components/Image';
+import Img from '@/components/Image';
 
 const PortableTextComponents = {
 	block: {
@@ -20,9 +20,8 @@ const PortableTextComponents = {
 	types: {
 		image: (data) => {
 			const { value } = data;
-			return <CustomImage image={value} />;
+			return <Img image={value} />;
 		},
-
 		iframe: ({ value }) => {
 			const { embedSnippet } = value;
 			if (!embedSnippet) {
@@ -74,31 +73,20 @@ const PortableTextComponents = {
 	},
 	marks: {
 		link: ({ value, children }) => {
-			return (
-				<CustomLink
-					link={value}
-					isNewTab={value.isNewTab}
-					title={children[0]}
-				/>
-			);
+			return <CustomLink link={value}>{children}</CustomLink>;
 		},
 		callToAction: ({ value, children }) => {
 			return (
-				<CustomLink
-					link={value.link}
-					isNewTab={value.link.isNewTab}
-					title={children[0]}
-					isButton={true}
-				/>
+				<CustomLink link={value.link} isButton={true}>
+					{children}
+				</CustomLink>
 			);
 		},
 	},
 };
 
-const CustomPortableText = ({ blocks }) => {
+export default function CustomPortableText({ blocks }) {
 	if (!blocks) return null;
 
 	return <PortableText value={blocks} components={PortableTextComponents} />;
-};
-
-export default CustomPortableText;
+}

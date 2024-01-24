@@ -1,4 +1,5 @@
 import cx from 'classnames';
+import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, {
 	ReactNode,
@@ -42,7 +43,9 @@ function Header({ data }) {
 				})}
 			>
 				<div className="g-header__interior f-h f-a-c bg-chrome">
-					<BrandLogo />
+					<NextLink href="/" className="g-header__logo-link">
+						<BrandLogo />
+					</NextLink>
 					{data?.menu?.items && (
 						<Menu
 							items={data.menu.items}
