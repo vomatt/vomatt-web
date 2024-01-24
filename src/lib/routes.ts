@@ -18,6 +18,8 @@ export const checkIfActive = ({
 
 export const getRoute = ({ type, slug }) => {
 	switch (type) {
+		case 'pHome':
+			return '/';
 		case 'pGeneral':
 			return `/${slug}`;
 		case 'articlePage':

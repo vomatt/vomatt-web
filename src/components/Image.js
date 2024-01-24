@@ -1,7 +1,7 @@
-/* https://nextjs.org/docs/api-reference/next/image */
 import cx from 'classnames';
-import Image from 'next/image';
+import Image from 'next/image'; /* https://nextjs.org/docs/api-reference/next/image */
 import React, { useEffect, useRef, useState } from 'react';
+import { useInView } from 'react-intersection-observer';
 
 import { buildImageSrc } from '@/lib/helpers';
 
@@ -25,33 +25,34 @@ function getImageDimensions(id) {
 	return { width, height, aspectRatio };
 }
 
-const ImageFunc = ({
+export default function Img({
 	image,
 	alt,
 	className,
 	responsiveImage,
 	breakpoint = 600,
 	quality = 80,
-}) => {
-	const [isLoading, setLoading] = useState(true);
-	const [isLoaded, setLoaded] = useState(true);
+}) {
+	const { ref, inView } = useInView({
+		triggerOnce: true,
+	});
+	const [isLoaded, setLoaded] = useState(false);
 	const imageId = getSanityRefId(image) || false;
 
 	// get image dimension and src
-	const aspectRatio = image.customRatio || undefined;
 	const imageDimension = getImageDimensions(imageId);
+	const aspectRatio =
+		image.customRatio || imageDimension.aspectRatio || undefined;
 	const imageWidth = imageDimension.width;
-	const imageHeight = Math.round(
-		imageWidth / (aspectRatio || imageDimension.aspectRatio)
-	);
+	const imageHeight = Math.round(imageWidth / aspectRatio);
 	const src = buildImageSrc(image, {
-		...{ width: imageWidth },
-		...{ height: imageHeight },
+		...{ width: inView ? imageWidth : 100 },
+		...{
+			height: inView ? imageHeight : Math.round(100 / aspectRatio),
+		},
 		quality,
 	});
 	const responsiveImageSrc = buildImageSrc(responsiveImage, {
-		...{ width: imageWidth },
-		...{ height: imageHeight },
 		quality,
 	});
 
@@ -63,67 +64,55 @@ const ImageFunc = ({
 	});
 
 	useEffect(() => {
-		if (pictureRef.current) {
+		if (inView && pictureRef.current) {
 			setRenderedDimensions({
 				width: pictureRef.current.offsetWidth,
 				height: pictureRef.current.offsetHeight,
 			});
 		}
-	}, []);
+	}, [inView]);
 
 	if (!image || !imageId) {
 		return false;
 	}
 
 	return (
-		<>
-			<picture
-				ref={pictureRef}
-				className={className}
-				style={{ aspectRatio: aspectRatio || 'unset' }}
-			>
-				{responsiveImageSrc && (
-					<>
-						<source
-							media={`(min-width: ${breakpoint + 1}px)`}
-							width={imageWidth}
-							height={imageHeight}
-							srcset={src}
-						/>
+		<picture ref={pictureRef} className={className}>
+			{responsiveImageSrc && (
+				<>
+					<source
+						media={`(min-width: ${breakpoint + 1}px)`}
+						width={imageWidth}
+						height={imageHeight}
+						srcSet={src}
+					/>
 
-						<source
-							media={`(max-width: ${breakpoint}px)`}
-							width={imageWidth}
-							height={imageHeight}
-							srcset={responsiveImageSrc}
-						/>
-					</>
-				)}
-
-				<Image
-					src={src}
-					width={imageWidth}
-					height={imageHeight}
-					sizes={`${renderedDimensions.width}px`}
-					quality={quality}
-					alt={alt || image.alt || 'image'}
-					onLoad={() => setLoading(false)}
-					onLoadingComplete={() => setLoaded(false)}
-					className={cx({
-						lazyload: isLoading,
-						lazyloading: isLoading,
-						lazyloaded: !isLoaded,
-					})}
-				/>
-			</picture>
-
-			<style jsx>{`
-				:global(img) {
-					width: 100%;
-				}
-			`}</style>
-		</>
+					<source
+						media={`(max-width: ${breakpoint}px)`}
+						width={imageWidth}
+						height={imageHeight}
+						srcSet={responsiveImageSrc}
+					/>
+				</>
+			)}
+			<Image
+				ref={ref}
+				width={imageWidth}
+				height={imageHeight}
+				sizes={inView ? `${renderedDimensions.width}px` : '0vw'}
+				src={src}
+				quality={quality}
+				alt={alt || image.alt || 'image'}
+				{...(inView && {
+					onLoad: () => {
+						setLoaded(true);
+					},
+				})}
+				className={cx({
+					lazyload: !isLoaded,
+					lazyloaded: isLoaded,
+				})}
+			/>
+		</picture>
 	);
-};
-
-export default ImageFunc;
+}

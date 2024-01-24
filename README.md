@@ -21,7 +21,7 @@ Clone this repository from your GitHub or Click [Use this template](https://gith
 ? File /sanity.cli.js already exists. Do you want to overwrite it? (n)
 ? Select project template to use... (Clean project with no predefined schemas)
 ? File /sanity/schema.js already exists. Do you want to overwrite it? (n)
-? File /sanity/env.js already exists. Do you want to overwrite it? (n)
+? File /sanity/lib/env.js already exists. Do you want to overwrite it? (n)
 ? File /sanity/lib/client.js already exists. Do you want to overwrite it? (n)
 ? File /sanity/lib/image.js already exists. Do you want to overwrite it? (n)
 ? Would you like to add the project ID and dataset to your .env file? (Y)

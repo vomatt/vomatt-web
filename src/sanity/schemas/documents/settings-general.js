@@ -10,12 +10,6 @@ export default defineType({
 			type: 'string',
 			description: 'The name of your site, usually your company/brand name',
 		},
-		{
-			title: 'Home Page',
-			name: 'home',
-			type: 'reference',
-			to: [{ type: 'pGeneral' }],
-		},
 	],
 	preview: {
 		prepare() {

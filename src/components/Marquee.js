@@ -1,19 +1,13 @@
-import React from 'react';
-import useInView from 'react-cool-inview';
-import Image from '@/components/Image';
 import cx from 'classnames';
+import React from 'react';
 
-const MarqueeComp = (props) => {
-	const { data } = props;
-	const { pausable, reverse, speed } = data;
+import Image from '@/components/Image';
 
-	const { observe, inView } = useInView({
-		unobserveOnEnter: true,
-		threshold: 0.1,
-	});
-
+export default function Marquee(data) {
+	const { pausable, reverse, speed, items } = data;
 	const animationSpeed = `${speed}s` || '30s';
-	if (!data.items?.length && !props.children) return null;
+
+	if (!items?.length && !props.children) return null;
 
 	return (
 		<>
@@ -23,21 +17,21 @@ const MarqueeComp = (props) => {
 				})}
 				data-direction={reverse ? 'right' : 'left'}
 			>
-				<div ref={observe} className="marquee-inner">
-					{[...Array(3)].map((e, i) => {
+				<div className="marquee-inner">
+					{[...Array(3)].map((el, index) => {
 						return (
 							<div
-								key={i}
+								key={index}
 								className="marquee-block"
 								aria-hidden={i > 0 ? 'true' : 'false'}
 							>
 								{props.children && props.children}
-								{data.items.map((item, key) => {
+								{items.map((item, index) => {
 									switch (item._type) {
 										case 'simple':
 											return (
 												<span
-													key={key}
+													key={index}
 													className={cx('marquee-text', item.font)}
 												>
 													{item.text}
@@ -46,15 +40,11 @@ const MarqueeComp = (props) => {
 										case 'image':
 											return (
 												<div
-													key={key}
+													key={index}
 													className="marquee-image"
 													style={{ flex: item.image.aspectRatio }}
 												>
-													<Image
-														image={item.image}
-														hasPlaceholder={false}
-														forceLoad={inView}
-													/>
+													<Image image={item.image} alt={item.image.alt} />
 												</div>
 											);
 									}
@@ -67,7 +57,6 @@ const MarqueeComp = (props) => {
 			<style jsx>{`
 				.marquee {
 					--gap: 1rem;
-
 					position: relative;
 					padding: 10px 0;
 
@@ -86,6 +75,7 @@ const MarqueeComp = (props) => {
 							transform: translate3d(calc(-100% - var(--gap)), 0, 0);
 						}
 					}
+
 					.marquee-inner {
 						position: relative;
 						width: 100%;
@@ -93,6 +83,7 @@ const MarqueeComp = (props) => {
 						display: flex;
 						gap: var(--gap);
 					}
+
 					.marquee-block {
 						flex-shrink: 0;
 						display: flex;
@@ -101,12 +92,15 @@ const MarqueeComp = (props) => {
 						min-width: 100%;
 						animation: marquee ${animationSpeed} 0.5s linear infinite;
 					}
+
 					.marquee-text {
 						white-space: nowrap;
+
 						&:not(:last-child) {
 							margin-right: var(--gap);
 						}
 					}
+
 					&.is-pausable {
 						@media (hover: hover) {
 							&:hover {
@@ -117,6 +111,7 @@ const MarqueeComp = (props) => {
 						}
 					}
 				}
+
 				@media (prefers-reduced-motion: reduce) {
 					.marquee-block {
 						animation-play-state: paused !important;
@@ -125,6 +120,4 @@ const MarqueeComp = (props) => {
 			`}</style>
 		</>
 	);
-};
-
-export default MarqueeComp;
+}

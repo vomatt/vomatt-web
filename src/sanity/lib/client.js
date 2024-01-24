@@ -6,7 +6,7 @@ import {
 	projectId,
 	revalidateSecret,
 	useCdn,
-} from '../env';
+} from './env';
 
 export const client = createClient({
 	projectId,

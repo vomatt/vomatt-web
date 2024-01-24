@@ -3,10 +3,10 @@ import React from 'react';
 
 import CustomPortableText from '@/components/CustomPortableText';
 import { buildRgbaCssString } from '@/lib/helpers';
-import theme from '@/styles/theme';
 
-const Freeform = ({ data, className }) => {
+export default function Freeform({ data, className }) {
 	const { content, sectionAppearance } = data;
+	const mobileBreakpoint = 600;
 	const isPadding = sectionAppearance?.backgroundColor;
 	const spacingTop = sectionAppearance?.spacingTop || 0;
 	const spacingBottom = sectionAppearance?.spacingBottom || 0;
@@ -61,7 +61,7 @@ const Freeform = ({ data, className }) => {
 							margin-bottom: ${spacingBottom}px;`}
 				}
 
-				@media screen and (max-width: ${theme.layout.mobileUp}px) {
+				@media screen and (max-width: ${mobileBreakpoint}px) {
 					.free-form {
 						${isPadding
 							? `padding-top: ${spacingTopMobile}px;
@@ -74,6 +74,4 @@ const Freeform = ({ data, className }) => {
 			`}</style>
 		</>
 	);
-};
-
-export default Freeform;
+}

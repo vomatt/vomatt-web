@@ -1,6 +1,7 @@
 import { groq } from 'next-sanity';
+
 // Construct our "home" page GROQ
-export const homeID = groq`*[_type=="settingsGeneral"][0].home->_id`;
+export const homeID = groq`*[_type=="pHome"]->_id`;
 export const staticPageSlug = groq`[]`;
 
 // Construct our "link" GROQ
@@ -81,7 +82,17 @@ export const freeformObj = groq`
 `;
 
 // Construct our content "modules" GROQ
-export const modules = groq`
+export const pageModules = groq`
+	_type == 'freeform' => {
+		${freeformObj}
+	},
+	_type == 'carousel' => {
+		_type,
+		_key,
+		items,
+		autoplay,
+		autoplayInterval,
+	},
 	_type == 'marquee' => {
 		_type,
 		_key,
@@ -90,7 +101,7 @@ export const modules = groq`
 				_type,
 				text
 			},
-			_type == 'photo' => {
+			_type == 'image' => {
 				_type,
 				"image": {
 					${imageMeta}
@@ -101,20 +112,6 @@ export const modules = groq`
 		reverse,
 		pausable
 	},
-	_type == 'freeform' => {
-		${freeformObj}
-	},
-	_type == 'accordionList' => {
-		_type,
-		_key,
-		items[]{
-			"id": _key,
-			title,
-			content[]{
-				${portableTextContent}
-			}
-		}
-	}
 `;
 
 // Construct our "site" GROQ
@@ -130,7 +127,7 @@ export const site = groq`
 			display,
 			messages,
 			autoplay,
-			autoplay_interval,
+			autoplayInterval,
 			backgroundColor,
 			textColor,
 			emphasizeColor,
@@ -148,7 +145,6 @@ export const site = groq`
 			menuLegal->{
 				${menu}
 			},
-			"siteCopyright": *[_type == "gFooter"][0].siteCopyright
 		},
 		"sharing": *[_type == "settingsSharing"][0]{
 			metaTitle,
@@ -164,32 +160,45 @@ export const site = groq`
 	}
 `;
 
-export interface Site {
-	site: {
-		title: string;
-		cookieConsent: any;
-		announcement: any;
-		header: any;
-		footer: any;
-		sharing: any;
-		integrations: any;
-	};
-}
-
 export const pagePaths = groq`
-  *[_type == "pGeneral" && slug.current != null && !(_id in [${homeID}]) ].slug.current
+  *[_type == "pGeneral" && slug.current != null ].slug.current
 `;
 
+export const pageHomeQuery = `
+	*[_type == "pHome"][0]{
+		sharing,
+		"isHomepage": true,
+		pageModules[]{
+			${pageModules}
+		},
+	}
+`;
+
+export const page404Query = `*[_type == "p404" && _id == "p404"][0]{
+	heading,
+	"slug": "404",
+	paragraph[]{
+		${portableTextContent}
+	},
+	callToAction{
+		${callToAction}
+	}
+}`;
+
 export const pagesBySlugQuery = groq`
-		{
-			"page": *[_type == "pGeneral" && slug.current == $slug][0]{
-				title,
-				"slug": slug.current,
-				sharing,
-				modules[]{
-					${modules}
-				},
+	*[_type == "pGeneral" && slug.current == $slug][0]{
+			title,
+			"slug": slug.current,
+			sharing,
+			pageModules[]{
+				${pageModules}
 			},
-			${site}
-		}
-	`;
+	}`;
+
+// new pages below...
+// export const pageAboutQuery = groq`
+// 	*[_type == "pSpace"][0]{
+// 			title,
+// 			"slug": slug.current,
+// 			sharing
+// 	}`;

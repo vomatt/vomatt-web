@@ -1,6 +1,6 @@
 {
 	"name": "starter-next-js-sanity",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"private": true,
 	"scripts": {
 		"dev": "next",
@@ -33,6 +33,7 @@
 		"react-cool-inview": "^2.0.8",
 		"react-dom": "^18.2.0",
 		"react-icons": "^4.7.1",
+		"react-intersection-observer": "^9.5.3",
 		"react-is": "^18.2.0",
 		"rxjs": "^7.8.0",
 		"sanity": "^3.14.5",

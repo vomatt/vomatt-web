@@ -1,35 +1,44 @@
-import cx from 'classnames';
+import { draftMode } from 'next/headers';
 import { notFound } from 'next/navigation';
-import React from 'react';
+import { LiveQuery } from 'next-sanity/preview/live-query';
 
-import { Module } from '@/components/modules';
 import defineMetadata from '@/lib/defineMetadata';
 import { getPageBySlug, getPagesPaths } from '@/sanity/lib/fetch';
+import { pagesBySlugQuery } from '@/sanity/lib/queries';
 
-export const dynamicParams = true;
-
-export async function generateMetadata({ params, searchParams }, parent) {
-	const data = await getPageBySlug(params.slug);
-	return defineMetadata({ data });
-}
+import PageGeneral from '../_components/page-general';
 
 export async function generateStaticParams() {
 	const slugs = await getPagesPaths();
-	return slugs.map((slug) => ({ slug }));
+	const params = slugs.map((slug) => ({ slug }));
+	return params;
+}
+
+const getPageData = async ({ params }) => {
+	return await getPageBySlug(params);
+};
+
+export async function generateMetadata({ params, searchParams }, parent) {
+	const data = await getPageData({ params });
+	return defineMetadata({ data });
 }
 
 export default async function PageSlugRoute({ params }) {
-	const data = await getPageBySlug(params.slug);
+	const data = await getPageData({ params });
 	const { page } = data;
+
 	if (!page) {
 		return notFound();
 	}
 
 	return (
-		<div className={cx('page-general', 'c-3')}>
-			{page.modules?.map((module, key) => (
-				<Module key={key} index={key} module={module} />
-			))}
-		</div>
+		<LiveQuery
+			enabled={draftMode().isEnabled}
+			query={pagesBySlugQuery}
+			initialData={page}
+			params={{ slug: params.slug }}
+		>
+			<PageGeneral data={page} />
+		</LiveQuery>
 	);
 }

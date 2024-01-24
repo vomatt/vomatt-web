@@ -11,7 +11,7 @@ import {
 	dataset,
 	previewSecretId,
 	projectId,
-} from './src/sanity/env';
+} from './src/sanity/lib/env';
 import schemas from './src/sanity/schemas/schema';
 
 export default defineConfig({

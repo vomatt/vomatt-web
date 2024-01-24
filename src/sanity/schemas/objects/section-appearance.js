@@ -1,7 +1,6 @@
 import { defineType } from 'sanity';
 
 export default defineType({
-	title: 'Section Appearance',
 	name: 'sectionAppearance',
 	type: 'object',
 	options: {

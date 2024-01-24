@@ -5,8 +5,8 @@ import {
 	PackageIcon,
 } from '@sanity/icons';
 
-export const settingsMenu = (S) =>
-	S.listItem()
+export const settingsMenu = (S) => {
+	return S.listItem()
 		.title('Settings')
 		.child(
 			S.list()
@@ -42,3 +42,4 @@ export const settingsMenu = (S) =>
 				])
 		)
 		.icon(CogIcon);
+};

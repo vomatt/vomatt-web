@@ -3,12 +3,11 @@ import 'server-only';
 import { draftMode } from 'next/headers';
 
 import { client } from '@/sanity/lib/client';
-import { pagePaths, pagesBySlugQuery } from '@/sanity/lib/queries';
+import { pagePaths } from '@/sanity/lib/queries';
 import * as queries from '@/sanity/lib/queries';
 
-import { revalidateSecret } from '../env';
+import { revalidateSecret, token } from './env';
 
-export const token = process.env.SANITY_API_READ_TOKEN;
 const DEFAULT_PARAMS = {};
 const DEFAULT_TAGS = [];
 
@@ -17,23 +16,20 @@ export async function sanityFetch({
 	params = DEFAULT_PARAMS,
 	tags = DEFAULT_TAGS,
 }) {
-	// const isPreviewMode = draftMode().isEnabled;
-	const isPreviewMode = false;
+	const isPreviewMode = draftMode().isEnabled;
+
 	if (isPreviewMode && !token) {
 		throw new Error(
 			'The `SANITY_API_READ_TOKEN` environment variable is required.'
 		);
 	}
 
-	// @TODO this won't be necessary after https://github.com/sanity-io/client/pull/299 lands
-	const sanityClient =
-		client.config().useCdn && isPreviewMode
-			? client.withConfig({ useCdn: false })
-			: client;
-
-	return sanityClient.fetch(query, params, {
+	return client.fetch(query, params, {
 		// We only cache if there's a revalidation webhook setup
-		cache: revalidateSecret ? 'force-cache' : 'no-store',
+		cache:
+			revalidateSecret && process.env.NODE_ENV !== 'development'
+				? 'force-cache'
+				: 'no-store',
 		...(isPreviewMode && {
 			cache: undefined,
 			token: token,
@@ -48,72 +44,62 @@ export async function sanityFetch({
 	});
 }
 
-export function getPagesPaths() {
-	return client.fetch(pagePaths, {}, { token, perspective: 'published' });
-}
-
-export function getPageBySlug(slug) {
-	return sanityFetch({
-		query: pagesBySlugQuery,
-		params: { slug },
-		tags: [`page:${slug}`],
-	});
-}
-
-export function getHomePageData() {
-	const homePageQuery = `
-		*[_type == "pGeneral" && _id == ${queries.homeID}] | order(_updatedAt desc)[0]{
-			title,
-			"slug": slug.current,
-			sharing,
-			"isHomepage": true,
-			modules[]{
-				${queries.modules}
-			},
-		}
-	`;
-	const query = `{
-			"page": ${homePageQuery},
-			${queries.site}
-		}`;
-
-	return sanityFetch({
-		query,
-		tags: ['home'],
-	});
-}
-
 export async function getSiteData() {
-	const query = `{${queries.site}}`;
 	const data = sanityFetch({
-		query,
-		tags: ['home'],
+		query: `{${queries.site}}`,
 	});
 
 	return data;
 }
 
-export async function get404PageData(preview) {
-	const pageQueryData = `*[_type == "page404" && _id == "page404"] | order(_updatedAt desc)[0]{
-			heading,
-			"slug": "404",
-			sharing,
-			paragraph[]{
-				${queries.portableTextContent}
-			},
-			callToAction{
-				${queries.callToAction}
-			}
-		}`;
+const getPageDataStructure = ({ query }) => {
+	const data = `{
+		"page": ${query},
+		${queries.site}
+	}`;
 
-	const query = `
-		{
-			"page": ${pageQueryData},
-			${queries.site}
-		}
-	`;
+	return data;
+};
+
+export async function getPageHomeData() {
+	const query = getPageDataStructure({ query: queries.pageHomeQuery });
 
 	return sanityFetch({
 		query,
+		tags: [`pHome`],
 	});
 }
+
+export async function get404PageData() {
+	const query = getPageDataStructure({ query: queries.page404Query });
+
+	return sanityFetch({
+		query,
+		tags: [`p404`],
+	});
+}
+
+export function getPagesPaths() {
+	return client.fetch(pagePaths, {}, { token, perspective: 'published' });
+}
+
+export function getPageBySlug(params) {
+	const query = getPageDataStructure({ query: queries.pagesBySlugQuery });
+
+	return sanityFetch({
+		query,
+		params: params,
+		tags: [`pGeneral:${params.slug}`],
+	});
+}
+
+// new pages below...
+// export function getAboutPage(params) {
+// 	const query = getPageDataStructure({ query: queries.pageAboutQuery });
+
+// 	return sanityFetch({
+// 		query,
+// 		params: params,
+// 		tags: [`pAbout:${params.slug}`],
+// 	});
+// }

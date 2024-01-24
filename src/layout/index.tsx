@@ -2,7 +2,7 @@
 import { usePathname } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react';
 
-import { siteSetup, VS } from '@/hooks/useVsSetup';
+import { siteSetup } from '@/hooks/useSetup';
 import useWindowDimensions from '@/hooks/useWindowDimensions';
 import HeadTrackingCode from '@/layout/HeadTrackingCode';
 import * as gtag from '@/lib/gtag';
