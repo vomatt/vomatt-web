@@ -1,21 +1,47 @@
-// ALSO PRELOAD IN </HEAD>
-// }
+@font-face {
+	font-family: 'Gerstner Programm';
+	font-weight: 400;
+	font-style: normal;
+	font-display: block;
+	src: url(/fonts/gerstner-programm-regular.woff2) format('woff2');
+}
+
+@font-face {
+	font-family: 'ABC Diatype Mono';
+	font-weight: 400;
+	font-style: normal;
+	font-display: block;
+	src: url(/fonts/abc-diatype-mono-regular.woff2) format('woff2');
+}
 
 :root {
-	--cr-accent: #0000ff;
+	--cr-primary: #2966F6;
+	--cr-secondary: #D0F046;
+	--cr-tertiary: #C5D3D7;
+	--cr-quarternary: #F15A22;
+	--cr-accent: #535C51;
+
+	--cr-success: #006837;
+	--cr-warning: #ECBD5E;
+	--cr-error: #A3220F;
+
 	--cr-black: #000000;
 	--cr-white: #ffffff;
 	--cr-chrome: rgba(229, 231, 235, 0.60);
 	--cr-surface-grey-darker: #171717;
 	--surface-sage: #535C51;
 
-	--t-h-1: 400 48px/1.1 'Helvetica Neue', Helvetica, sans-serif;
-	--t-h-2: 700 36px/1.1 'Helvetica Neue', Helvetica, sans-serif;
-	--t-h-3: 700 30px/1.1 'Helvetica Neue', Helvetica, sans-serif;
-	--t-h-4: 700 24px/1.1 'Helvetica Neue', Helvetica, sans-serif;
-	--t-b-1: 24px/1.25 'Helvetica Neue', Helvetica, sans-serif;
-	--t-b-2: 16px/1.25 'Helvetica Neue', Helvetica, sans-serif;
-	--t-label-1: 14px/1 'Helvetica Neue', Helvetica, sans-serif;
+	--t-h-1: 400 74px/0.91 'Gerstner Programm', Helvetica, sans-serif;
+	--t-h-2: 400 48px/1.08 'Gerstner Programm', Helvetica, sans-serif;
+	--t-h-3: 400 42px/1 'Gerstner Programm', Helvetica, sans-serif;
+	--t-h-4: 400 28px/0.96 'Gerstner Programm', Helvetica, sans-serif;
+	--t-h-5: 400 24px/1 'Gerstner Programm', Helvetica, sans-serif;
+	--t-h-6: 400 18px/1.11 'Gerstner Programm', Helvetica, sans-serif;
+	--t-b-1: 16px/1.33 'Gerstner Programm', Helvetica, sans-serif;
+	--t-b-2: 12px/1.33 'Gerstner Programm', Helvetica, sans-serif;
+	--t-b-link: 12px/1 'ABC Diatype Mono', Helvetica, sans-serif;
+	--t-l-1: 16px/1 'Gerstner Programm', Helvetica, sans-serif;
+	--t-l-2: 12px/1 'Gerstner Programm', Helvetica, sans-serif;
 
 	--w-1: 1500px;
 	--w-2: 1200px;
@@ -84,6 +110,22 @@ html {
 	background-color: var(--cr-white);
 }
 
+.cr-primary {
+	color: var(--cr-primary);
+}
+
+.cr-secondary {
+	color: var(--cr-secondary);
+}
+
+.cr-tertiary {
+	color: var(--cr-tertiary);
+}
+
+.cr-quarternary {
+	color: var(--cr-quarternary);
+}
+
 .cr-accent {
 	color: var(--cr-accent);
 }
@@ -106,6 +148,22 @@ html {
 
 .cr-surface-sage {
 	color: var(--surface-sage)
+}
+
+.bg-primary {
+	background-color: var(--cr-primary);
+}
+
+.bg-secondary {
+	background-color: var(--cr-secondary);
+}
+
+.bg-tertiary {
+	background-color: var(--cr-tertiary);
+}
+
+.bg-quarternary {
+	background-color: var(--cr-quarternary);
 }
 
 .bg-accent {
@@ -142,14 +200,32 @@ body {
 
 .t-h-1 {
 	font: var(--t-h-1);
+	letter-spacing: -3px;
 }
 
 .t-h-2 {
 	font: var(--t-h-2);
+	letter-spacing: -0.8px;
 }
 
 .t-h-3 {
 	font: var(--t-h-3);
+	letter-spacing: -2px;
+}
+
+.t-h-4 {
+	font: var(--t-h-4);
+	letter-spacing: -0.8px;
+}
+
+.t-h-5 {
+	font: var(--t-h-5);
+	letter-spacing: -0.8px;
+}
+
+.t-h-6 {
+	font: var(--t-h-6);
+	letter-spacing: -0.4px;
 }
 
 h1,
@@ -170,10 +246,18 @@ h6,
 	font: var(--t-b-2);
 }
 
-.t-label-1 {
+.t-l-1 {
+	font: var(--t-l-1);
+	letter-spacing: -0.4px;
+}
+
+.t-l-2 {
+	font: var(--t-l-2);
+	letter-spacing: -0.4px;
+}
+
+.t-uppercase {
 	text-transform: uppercase;
-	letter-spacing: 0.1em;
-	font: var(--t-label-1);
 }
 
 // ***BUTTONS***
@@ -214,7 +298,6 @@ h6,
 
 	@media (hover: hover) {
 		&:hover {
-			color: var(--cr-black);
 			background-color: var(--cr-accent);
 		}
 	}

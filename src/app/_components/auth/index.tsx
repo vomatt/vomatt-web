@@ -1,6 +1,5 @@
 'use client';
-import cx from 'classnames';
-import NextLink from 'next/link';
+
 import React, { useState } from 'react';
 
 import SignIn from '@/app/_components/auth/SignIn';
@@ -25,13 +24,7 @@ const Auth: React.FC<AuthType> = ({ className }) => {
 		signIn: <SignIn onSetPageStatus={onSetPageStatus} />,
 	};
 
-	return (
-		<>
-			<div className={cx('c-sign-in f-v f-j-c', className)}>
-				{pageStatusScreen[pageStatus]}
-			</div>
-		</>
-	);
+	return pageStatusScreen[pageStatus];
 };
 
 export default Auth;

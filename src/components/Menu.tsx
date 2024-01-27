@@ -2,7 +2,7 @@ import cx from 'classnames';
 import { usePathname } from 'next/navigation';
 import React from 'react';
 
-import CustomLink from '@/components/CustomLink';
+import CMSLink from '@/components/CMSLink';
 import Dropdown from '@/components/MenuDropdown';
 import { checkIfActive, getLinkRouteObject } from '@/lib/routes';
 export interface MenuProps {
@@ -58,11 +58,12 @@ const Menu = (props: MenuProps) => {
 
 					return (
 						<li key={index} className={cx({ 'is-active': isActive })}>
-							<CustomLink
+							<CMSLink
 								link={link}
 								onClick={onClick}
 								title={item.title}
 								tabIndex={!hasFocus ? -1 : null}
+								className="t-l-1"
 							/>
 						</li>
 					);

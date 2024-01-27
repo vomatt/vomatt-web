@@ -42,19 +42,9 @@ export default function defineMetadata({ data }) {
 			locale: 'en_US',
 			type: 'website',
 		},
-		viewport: {
-			width: 'device-width',
-			initialScale: 1.0,
-			maximumScale: 5.0,
-			userScalable: 'yes',
-		},
 		icons: {
 			icon: siteFaviconUrl,
 		},
-		themeColor: [
-			{ media: '(prefers-color-scheme: light)', color: 'white' },
-			{ media: '(prefers-color-scheme: dark)', color: 'black' },
-		],
 		twitter: {
 			card: 'summary_large_image',
 			title: metaTitle,

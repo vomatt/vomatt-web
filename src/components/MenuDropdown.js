@@ -3,7 +3,7 @@ import { useSearchParams } from 'next/navigation';
 import { usePathname } from 'next/navigation';
 import React, { useState } from 'react';
 
-import CustomLink from '@/components/CustomLink';
+import CMSLink from '@/components/CMSLink';
 import { checkIfActive, getLinkRouteObject } from '@/lib/routes';
 
 const MenuDropdown = ({ title, items, onClick }) => {
@@ -35,7 +35,7 @@ const MenuDropdown = ({ title, items, onClick }) => {
 									key={key}
 									className={cx('t-l-2', { 'is-active': isActive })}
 								>
-									<CustomLink
+									<CMSLink
 										tabIndex={!isOpen ? -1 : null}
 										link={item.link}
 										title={item.title}

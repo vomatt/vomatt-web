@@ -1,7 +1,7 @@
 import { PortableText } from '@portabletext/react';
 import React from 'react';
 
-import CustomLink from '@/components/CustomLink';
+import CMSLink from '@/components/CMSLink';
 import Img from '@/components/Image';
 
 const PortableTextComponents = {
@@ -73,13 +73,13 @@ const PortableTextComponents = {
 	},
 	marks: {
 		link: ({ value, children }) => {
-			return <CustomLink link={value}>{children}</CustomLink>;
+			return <CMSLink link={value}>{children}</CMSLink>;
 		},
 		callToAction: ({ value, children }) => {
 			return (
-				<CustomLink link={value.link} isButton={true}>
+				<CMSLink link={value.link} isButton={true}>
 					{children}
-				</CustomLink>
+				</CMSLink>
 			);
 		},
 	},

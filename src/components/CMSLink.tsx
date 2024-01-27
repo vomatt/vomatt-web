@@ -16,7 +16,7 @@ type CMSLinkType = {
 	onClick?: () => void;
 };
 
-const CustomLink: React.FC<CMSLinkType> = ({
+const CMSLink: React.FC<CMSLinkType> = ({
 	link,
 	title,
 	children,
@@ -50,4 +50,4 @@ const CustomLink: React.FC<CMSLinkType> = ({
 	);
 };
 
-export default CustomLink;
+export default CMSLink;
