@@ -28,7 +28,7 @@ const SignIn: React.FC<SignInType> = ({ className, onSetPageStatus }) => {
 						required={true}
 						isFloatingLabel={true}
 					/>
-					<button className="btn">submit</button>
+					<button className="btn t-uppercase">submit</button>
 				</form>
 				<div className="c-auth__info">
 					<p className="t-b-1">Do not have an account?</p>

@@ -18,7 +18,7 @@
 	}
 
 	&__form {
-		margin: 0 auto 24px;
+		margin: 0 auto 36px;
 		width: 100%;
 	}
 
@@ -48,4 +48,47 @@
 		text-align: center;
 	}
 
+	&__verification {
+		&-subheading {
+			margin-bottom: 40px;
+		}
+
+		&-inputs {
+			gap: 8px;
+		}
+
+		input {
+			flex: 1;
+			padding: 4px 0 5px;
+			box-sizing: content-box;
+			background: none;
+			height: 70px;
+			max-width: 45px;
+			border-radius: 14px;
+			background: var(--bg-white, #F6F8F7);
+			box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.12);
+			font: var(--t-h-6);
+			text-align: center;
+
+			&:focus-visible {
+				outline: 1px solid var(--cr-black);
+			}
+
+			&::-webkit-outer-spin-button,
+			&::-webkit-inner-spin-button {
+				-webkit-appearance: none;
+				margin: 0;
+			}
+
+			/* Firefox */
+			&[type=number] {
+				-moz-appearance: textfield;
+			}
+		}
+
+		&-submit-btn {
+			margin: 36px auto;
+
+		}
+	}
 }
