@@ -196,6 +196,8 @@ body {
 	font: var(--t-b-2);
 	line-height: 1;
 	-webkit-font-smoothing: subpixel-antialiased;
+	background-color: var(--cr-black);
+	color: var(--cr-white);
 }
 
 .t-h-1 {
@@ -300,6 +302,10 @@ h6,
 		&:hover {
 			background-color: var(--cr-accent);
 		}
+	}
+
+	&--primary {
+		background-color: var(--cr-primary);
 	}
 }
 
@@ -462,11 +468,12 @@ input[type='checkbox'] {
 		// focus state adjustments
 		outline-offset: -1px;
 		outline-color: transparent;
+		border: 1px solid var(--cr-accent);
 
 		@media (hover: hover) {
 			&:focus-visible {
 				outline-style: solid !important;
-				outline-color: var(--cr-accent) !important;
+				outline-color: var(--cr-primary) !important;
 			}
 		}
 
@@ -476,6 +483,7 @@ input[type='checkbox'] {
 			padding: calc((var(--height) - var(--line-height)) / 2) var(--padding-h);
 			font: var(--t-b-2);
 			line-height: var(--line-height);
+			color: var(--cr-accent);
 		}
 
 		&~label {

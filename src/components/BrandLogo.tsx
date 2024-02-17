@@ -1,10 +1,17 @@
-export default function Logo() {
+import classNames from 'classnames';
+import cx from 'classnames';
+
+interface LogoProps {
+	className?: string;
+}
+
+export default function Logo({ className }: LogoProps) {
 	return (
-		<div className="brand-logo">
+		<div className={cx('brand-logo', className)}>
 			<svg
 				className="svg-vomatt"
 				viewBox="0 0 152 32"
-				fill="none"
+				fill="currentColor"
 				xmlns="http://www.w3.org/2000/svg"
 			>
 				<path

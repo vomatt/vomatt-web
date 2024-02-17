@@ -42,14 +42,14 @@ function Header({ data }) {
 					'is-open': isMobileMenuOpen,
 				})}
 			>
-				<div className="g-header__interior f-h f-a-c bg-chrome">
-					<NextLink href="/" className="g-header__logo-link">
+				<div className="g-header__interior f-h f-a-c bg-surface-grey-darker">
+					<NextLink href="/" className="g-header__logo-link cr-white">
 						<BrandLogo />
 					</NextLink>
 					{data?.menu?.items && (
 						<Menu
 							items={data.menu.items}
-							className="g-header__links mobile-up-only"
+							className="g-header__links mobile-up-only cr-white"
 							ulClassName="g-header__menu-list f-h f-a-c t-b-2 user-select-disable"
 						/>
 					)}

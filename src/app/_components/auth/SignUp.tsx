@@ -50,7 +50,7 @@ const SignUp: React.FC<SignUpType> = ({ className, onSetPageStatus }) => {
 							},
 						})}
 					/>
-					<button className="btn t-uppercase">enter</button>
+					<button className="btn btn--primary t-uppercase">enter</button>
 				</form>
 				{error && (
 					<motion.div
@@ -75,7 +75,7 @@ const SignUp: React.FC<SignUpType> = ({ className, onSetPageStatus }) => {
 					<p className="t-b-2">Already have an account?</p>
 					<button
 						type="button"
-						className="cr-surface-sage c-auth__info-cta"
+						className="cr-surface-sage c-auth__info-cta t-uppercase"
 						onClick={() => onSetPageStatus(STATUS_SIGN_IN)}
 					>
 						Sign In

@@ -124,7 +124,7 @@ const VerificationForm: FC<Props> = ({ email, length = 6 }) => {
 				</div>
 				<button
 					type="submit"
-					className="c-auth__verification-submit-btn btn t-uppercase"
+					className="c-auth__verification-submit-btn btn btn--primary t-uppercase"
 				>
 					enter
 				</button>
