@@ -1,8 +1,10 @@
 'use client';
 import cx from 'classnames';
 import NextLink from 'next/link';
+import { useState } from 'react';
 
 import Field from '@/components/Field';
+import { validateEmail } from '@/lib/helpers';
 
 import AuthContainer from './AuthContainer';
 import { STATUS_SIGN_UP } from './index';
@@ -13,9 +15,26 @@ type SignInType = {
 };
 
 const SignIn: React.FC<SignInType> = ({ className, onSetPageStatus }) => {
-	const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
-		console.log('🚀 ~ onSubmit ~ e:', e);
+	const [errors, setErrors] = useState(null);
+
+	const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+		event.preventDefault();
+		const email = event.target[0].value;
+		const isValidEmail = validateEmail(email);
+		if (!isValidEmail) {
+			setErrors({ email: 'Please enter a valid email.' });
+			return;
+		}
+
+		try {
+			const res = await fetch('/api/auth/login', {
+				method: 'POST',
+				body: JSON.stringify(email),
+			});
+			const data = res.json();
+		} catch (error) {
+			console.log('🚀 ~ file: SignIn.tsx:36 ~ onSubmit ~ error:', error);
+		}
 	};
 
 	return (
@@ -24,9 +43,11 @@ const SignIn: React.FC<SignInType> = ({ className, onSetPageStatus }) => {
 				<form onSubmit={onSubmit} className="c-auth__form">
 					<Field
 						label="Email address"
+						type="email"
 						name="email"
 						required={true}
 						isFloatingLabel={true}
+						errors={errors}
 					/>
 					<button className="btn btn--primary t-uppercase">submit</button>
 				</form>

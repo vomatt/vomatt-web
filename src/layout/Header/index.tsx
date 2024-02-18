@@ -14,8 +14,9 @@ import Menu from '@/components/Menu';
 
 import MobileMenuTrigger from './mobile-menu-trigger';
 
-function Header({ data }) {
+export default function Header({ data, userSession }) {
 	const router = useRouter();
+	const isLoggedIn = userSession;
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
 	const headerRef = useCallback((node: HTMLElement | null) => {
@@ -40,13 +41,19 @@ function Header({ data }) {
 				ref={headerRef}
 				className={cx('g-header', {
 					'is-open': isMobileMenuOpen,
+					'is-logged-in': isLoggedIn,
 				})}
 			>
-				<div className="g-header__interior f-h f-a-c bg-surface-grey-darker">
+				<div
+					className={cx('g-header__interior f-h f-a-c bg-surface-grey-darker', {
+						'f-j-c': !isLoggedIn,
+					})}
+				>
 					<NextLink href="/" className="g-header__logo-link cr-white">
 						<BrandLogo />
 					</NextLink>
-					{data?.menu?.items && (
+
+					{isLoggedIn && data?.menu?.items && (
 						<Menu
 							items={data.menu.items}
 							className="g-header__links mobile-up-only cr-white"
@@ -76,5 +83,3 @@ function Header({ data }) {
 		</>
 	);
 }
-
-export default Header;

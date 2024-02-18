@@ -4,6 +4,7 @@
 	height: 100%;
 	height: calc(var(--s-vp-height) - var(--s-header) * 2);
 	width: 100%;
+	color: var(--cr-white);
 
 	&__heading {
 		text-transform: uppercase;

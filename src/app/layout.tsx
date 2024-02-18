@@ -1,8 +1,10 @@
 import '@/styles/scss/main.scss';
 
+import cx from 'classnames';
 import localFont from 'next/font/local';
 
 import Layout from '@/layout';
+import { getUserSession } from '@/lib/auth';
 import defineMetadata from '@/lib/defineMetadata';
 import { getSiteData } from '@/sanity/lib/fetch';
 
@@ -32,10 +34,17 @@ export default async function RootLayout({
 	children: React.ReactNode;
 }) {
 	const { site } = await getSiteData();
+	const userSession = await getUserSession();
+
 	return (
 		<html lang="en">
-			<body className={fonts.className}>
-				<Layout siteData={site}>{children}</Layout>
+			<body
+				className={cx(fonts.className)}
+				style={{ minHeight: userSession ? 'auto' : '100dvh' }}
+			>
+				<Layout siteData={site} userSession={userSession}>
+					{children}
+				</Layout>
 			</body>
 		</html>
 	);

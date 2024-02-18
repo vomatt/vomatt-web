@@ -8,7 +8,7 @@ import { fadeAnim } from '@/lib/animate';
 type FieldType = {
 	id?: string;
 	name: string;
-	type?: 'text' | 'checkbox' | 'select' | 'textarea';
+	type?: 'text' | 'email' | 'checkbox' | 'select' | 'textarea';
 	label: string;
 	placeholder?: string;
 	className?: string;

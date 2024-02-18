@@ -193,7 +193,7 @@ html {
 // ***TYPOGRAPHY***
 
 body {
-	font: var(--t-b-2);
+	font: var(--t-b-1);
 	line-height: 1;
 	-webkit-font-smoothing: subpixel-antialiased;
 	background-color: var(--cr-black);
@@ -437,6 +437,14 @@ input[type='checkbox'] {
 		margin-bottom: var(--field-gap, 15px);
 	}
 
+	&.is-error {
+
+		input[type='text'],
+		input[type='email'] {
+			border-color: var(--cr-error);
+		}
+	}
+
 	label {
 		display: block;
 		font: var(--t-b-2);
@@ -462,13 +470,14 @@ input[type='checkbox'] {
 		overflow: hidden;
 		border: none;
 		color: inherit;
-		border: 1px solid;
-		transition: 0.2s;
 		border-radius: var(--radius-xxs);
 		// focus state adjustments
 		outline-offset: -1px;
 		outline-color: transparent;
-		border: 1px solid var(--cr-accent);
+		border-width: 2px;
+		border-style: solid;
+		border-color: inherit;
+		transition: 0.2s;
 
 		@media (hover: hover) {
 			&:focus-visible {
@@ -483,7 +492,7 @@ input[type='checkbox'] {
 			padding: calc((var(--height) - var(--line-height)) / 2) var(--padding-h);
 			font: var(--t-b-2);
 			line-height: var(--line-height);
-			color: var(--cr-accent);
+			color: inherit;
 		}
 
 		&~label {

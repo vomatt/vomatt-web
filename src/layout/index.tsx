@@ -1,6 +1,6 @@
 'use client';
 import { usePathname } from 'next/navigation';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { ReactNode, useEffect } from 'react';
 
 import { siteSetup } from '@/hooks/useSetup';
 import useWindowDimensions from '@/hooks/useWindowDimensions';
@@ -12,11 +12,15 @@ import Footer from './Footer';
 import Header from './Header';
 import Main from './Main';
 
-const Layout = ({ children, siteData }) => {
+type MainProps = {
+	siteData: any;
+	children: ReactNode;
+	userSession: any;
+};
+
+export default function Layout({ children, siteData, userSession }: MainProps) {
 	const { header, footer } = siteData;
 	const pathname = usePathname();
-	// const { height, width } = useWindowDimensions();
-	// const { isMobileScreen } = vs();
 
 	useEffect(() => {
 		siteSetup();
@@ -36,11 +40,9 @@ const Layout = ({ children, siteData }) => {
 		<>
 			<HeadTrackingCode siteData={siteData} />
 			{/* <Announcement data={siteData?.announcement} /> */}
-			<Header data={header} />
+			<Header data={header} userSession={userSession} />
 			<Main siteData={siteData}>{children}</Main>
 			<Footer siteData={siteData} data={footer} />
 		</>
 	);
-};
-
-export default Layout;
+}

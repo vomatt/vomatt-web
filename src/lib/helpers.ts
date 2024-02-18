@@ -2,7 +2,7 @@ import { imageBuilder } from '@/sanity/lib/image';
 
 // ***UTILITIES / GET***
 
-export function getRandomInt(min, max) {
+export function getRandomInt(min: number, max: number) {
 	const _min = Math.ceil(min);
 	const _max = Math.floor(max);
 
@@ -10,7 +10,7 @@ export function getRandomInt(min, max) {
 	return Math.floor(Math.random() * (_max - _min + 1) + _min);
 }
 
-export function getUrlBaseAndPath(url) {
+export function getUrlBaseAndPath(url: string) {
 	if (url.includes('?')) {
 		return url.split('?')[0];
 	} else {
@@ -20,7 +20,7 @@ export function getUrlBaseAndPath(url) {
 
 // ***UTILITIES / FORMAT***
 
-export function formatNumberSuffix(value, suffixOnly) {
+export function formatNumberSuffix(value: string, suffixOnly: string) {
 	let int = parseInt(value);
 	let integer = suffixOnly ? '' : int;
 
@@ -38,7 +38,7 @@ export function formatNumberSuffix(value, suffixOnly) {
 	}
 }
 
-export function formatHandleize(str) {
+export function formatHandleize(string: string) {
 	return String(string)
 		.normalize('NFKD') // split accented characters into their base characters and diacritical marks
 		.replace(/[\u0300-\u036f]/g, '') // remove all the accents, which happen to be all in the \u03xx UNICODE block.
@@ -49,18 +49,7 @@ export function formatHandleize(str) {
 		.toLowerCase(); // convert to lowercase
 }
 
-export function formatPad(val, length = 2, char = 0) {
-	// example, leading zero: 8 = "08",
-	// example, password: 000088885581 = "********5581"
-	return val.toString().padStart(length, char);
-}
-
-export function formatClamp(value, min = 0, max = 1) {
-	// example, formatClamp(999, 0, 300) = 300
-	return value < min ? min : value > max ? max : value;
-}
-
-export function formatNumberWithCommas(string) {
+export function formatNumberWithCommas(string: string) {
 	// example, formatNumberWithCommas(3000.12) = 3,000.12
 	const parts = string.toString().split('.');
 	parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -68,29 +57,21 @@ export function formatNumberWithCommas(string) {
 	return parts.join('.');
 }
 
-export function formatDateUsStandard(date) {
-	return [
-		formatPad(date.getDate()),
-		formatPad(date.getMonth() + 1),
-		date.getFullYear(),
-	].join('/');
-}
-
 // ***UTILITIES / VALIDATION***
 
-export function validateEmail(string) {
+export function validateEmail(email: string) {
 	const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 
-	return regex.test(string);
+	return regex.test(email);
 }
 
-export function validateUsPhone(string) {
+export function validateUsPhone(phoneNumber: string) {
 	const regex = /^\(?(\d{3})\)?[- ]?(\d{3})[- ]?(\d{4})$/;
 
-	return regex.test(string);
+	return regex.test(phoneNumber);
 }
 
-export function validateAndReturnJson(json) {
+export function validateAndReturnJson(json: string) {
 	try {
 		JSON.parse(json);
 	} catch (e) {
@@ -98,23 +79,12 @@ export function validateAndReturnJson(json) {
 		return false;
 	}
 
-	return JSON.parse(string);
+	return JSON.parse(json);
 }
 
 // ***UTILITIES / ARRAY***
 
-export function arrayIntersection(a1, a2) {
-	return a1.filter(function (n) {
-		return a2.indexOf(n) !== -1;
-	});
-}
-
 // https://stackoverflow.com/questions/1960473/get-all-unique-values-in-a-javascript-array-remove-duplicates
-export const arrayUniqueValues = (array) => {
-	let unique = [...new Set(array)];
-
-	return unique;
-};
 
 // sorting array of objects asc
 export function arraySortObjValAsc(arr, objVal) {
@@ -163,81 +133,9 @@ export function scrollEnable() {
 	document.querySelector('body').style.overflow = 'auto';
 }
 
-// simple debounce
-export function debounce(fn, ms) {
-	let timer;
-
-	return (_) => {
-		clearTimeout(timer);
-		timer = setTimeout((_) => {
-			timer = null;
-			fn.apply(this, arguments);
-		}, ms);
-	};
-}
-
-// delay with promise
-export function sleeper(ms) {
-	return function (x) {
-		return new Promise((resolve) => setTimeout(() => resolve(x), ms));
-	};
-}
-
 // ***REACT SPECIFIC***
 
-export function buildImageSrc(image, { width, height, format, quality = 80 }) {
-	if (!image) {
-		return false;
-	}
-
-	let imgSrc = imageBuilder.image(image);
-
-	if (width) {
-		imgSrc = imgSrc.width(Math.round(width));
-	}
-
-	if (height) {
-		imgSrc = imgSrc.height(Math.round(height));
-	}
-
-	if (format) {
-		imgSrc = imgSrc.format(format);
-	}
-
-	if (quality) {
-		imgSrc = imgSrc.quality(quality);
-	}
-
-	return imgSrc.fit('max').auto('format').url();
-}
-
-export function buildImageSrcSet(
-	image,
-	{ srcSizes, aspectRatio = 1, format, quality = 80 }
-) {
-	if (!image) {
-		return false;
-	}
-
-	const sizes = srcSizes.map((width) => {
-		let imgSrc = buildImageSrc(image, {
-			...{ width },
-			height: aspectRatio && Math.round(width * aspectRatio) / 100,
-			...{ format },
-			...{ quality },
-		});
-
-		if (format) {
-			imgSrc = imgSrc.format(format);
-		}
-
-		return `${imgSrc} ${width}w`;
-	});
-
-	return sizes.join(',');
-}
-
-export function buildRgbaCssString(color) {
+export function buildRgbaCssString(color: any) {
 	if (!color) {
 		return false;
 	}

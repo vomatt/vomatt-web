@@ -1,7 +1,9 @@
-import { imageBuilder } from '@/sanity/lib/image';
 // https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadata-fields
+import { Metadata } from 'next';
 
-export default function defineMetadata({ data }) {
+import { imageBuilder } from '@/sanity/lib/image';
+
+export default function defineMetadata({ data }): Metadata {
 	const { site, page } = data || {};
 	const siteTitle = site?.title || '';
 	const metaDesc = page?.sharing?.metaDesc || site?.sharing?.metaDesc;
@@ -23,7 +25,7 @@ export default function defineMetadata({ data }) {
 		'';
 	const shareGraphicUrl = shareGraphic
 		? imageBuilder.image(shareGraphic).url()
-		: false;
+		: '';
 
 	const disableIndex = page?.sharing?.disableIndex;
 

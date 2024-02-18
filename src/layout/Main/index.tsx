@@ -6,6 +6,7 @@ import {
 } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import React, { ReactNode } from 'react';
+
 import { pageTransitionFade } from '@/lib/animate';
 
 type MainProps = {

@@ -26,7 +26,6 @@ const SignUp: React.FC<SignUpType> = ({ className, onSetPageStatus }) => {
 
 	const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		console.log('🚀 ~ onSubmit ~ e:', e);
 	};
 
 	return (
