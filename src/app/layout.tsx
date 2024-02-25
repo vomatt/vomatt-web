@@ -13,19 +13,31 @@ export async function generateMetadata({}) {
 	return defineMetadata({ data: site });
 }
 
-const fonts = localFont({
+const fontsGerstnerProgramm = localFont({
 	src: [
 		{
-			path: '../public/fonts/gerstner-programm-regular.woff2',
+			path: '../fonts/gerstner-programm-regular.woff2',
 			weight: '400',
 			style: 'normal',
 		},
 		{
-			path: '../public/fonts/abc-diatype-mono-regular.woff2',
+			path: '../fonts/abc-diatype-mono-regular.woff2',
 			weight: '400',
 			style: 'normal',
 		},
 	],
+	variable: '--font-gerstner-programm',
+});
+
+const fontsAbcDiatypeMono = localFont({
+	src: [
+		{
+			path: '../fonts/abc-diatype-mono-regular.woff2',
+			weight: '400',
+			style: 'normal',
+		},
+	],
+	variable: '--font-abc-diatype-mono',
 });
 
 export default async function RootLayout({
@@ -39,7 +51,10 @@ export default async function RootLayout({
 	return (
 		<html lang="en">
 			<body
-				className={cx(fonts.className)}
+				className={cx(
+					fontsGerstnerProgramm.className,
+					fontsAbcDiatypeMono.className
+				)}
 				style={{ minHeight: userSession ? 'auto' : '100dvh' }}
 			>
 				<Layout siteData={site} userSession={userSession}>

@@ -61,6 +61,13 @@ const getPageDataStructure = ({ query }) => {
 	return data;
 };
 
+export async function getSignUpInfoData() {
+	return sanityFetch({
+		query: queries.gSignUpDataQuery,
+		tags: [`gSignUp`],
+	});
+}
+
 export async function getPageHomeData() {
 	const query = getPageDataStructure({ query: queries.pageHomeQuery });
 

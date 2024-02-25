@@ -158,3 +158,29 @@ export function slugify(str) {
 		.replace(/\s+/g, '-') // replace spaces with hyphens
 		.replace(/-+/g, '-'); // remove consecutive hyphens
 }
+
+export function buildImageSrc(image, { width, height, format, quality = 80 }) {
+	if (!image) {
+		return false;
+	}
+
+	let imgSrc = imageBuilder.image(image);
+
+	if (width) {
+		imgSrc = imgSrc.width(Math.round(width));
+	}
+
+	if (height) {
+		imgSrc = imgSrc.height(Math.round(height));
+	}
+
+	if (format) {
+		imgSrc = imgSrc.format(format);
+	}
+
+	if (quality) {
+		imgSrc = imgSrc.quality(quality);
+	}
+
+	return imgSrc.fit('max').auto('format').url();
+}

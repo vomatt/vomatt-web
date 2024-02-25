@@ -2,8 +2,9 @@
 import cx from 'classnames';
 import NextLink from 'next/link';
 import { useState } from 'react';
+import { SubmitHandler, useForm } from 'react-hook-form';
 
-import Field from '@/components/Field';
+import HookFormField from '@/components/HookFormField';
 import { validateEmail } from '@/lib/helpers';
 
 import AuthContainer from './AuthContainer';
@@ -14,24 +15,30 @@ type SignInType = {
 	className?: string;
 };
 
-const SignIn: React.FC<SignInType> = ({ className, onSetPageStatus }) => {
-	const [errors, setErrors] = useState(null);
+type FormValues = {
+	email: string;
+};
 
-	const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-		event.preventDefault();
-		const email = event.target[0].value;
-		const isValidEmail = validateEmail(email);
-		if (!isValidEmail) {
-			setErrors({ email: 'Please enter a valid email.' });
-			return;
-		}
+const SignIn: React.FC<SignInType> = ({ className, onSetPageStatus }) => {
+	const [error, setError] = useState(null);
+
+	const {
+		handleSubmit,
+		register,
+		watch,
+		reset,
+		formState: { errors },
+	} = useForm();
+
+	const onSubmit: SubmitHandler<FormValues> = async (data) => {
+		const { email } = data;
 
 		try {
 			const res = await fetch('/api/auth/login', {
 				method: 'POST',
-				body: JSON.stringify(email),
-			});
-			const data = res.json();
+				body: JSON.stringify({ email }),
+			}).then((res) => res.json());
+			return res;
 		} catch (error) {
 			console.log('🚀 ~ file: SignIn.tsx:36 ~ onSubmit ~ error:', error);
 		}
@@ -40,13 +47,17 @@ const SignIn: React.FC<SignInType> = ({ className, onSetPageStatus }) => {
 	return (
 		<AuthContainer type="sign-up" className="c-auth__sign-in" title="Sign In">
 			<>
-				<form onSubmit={onSubmit} className="c-auth__form">
-					<Field
+				<form onSubmit={handleSubmit(onSubmit)} className="c-auth__form">
+					<HookFormField
 						label="Email address"
-						type="email"
 						name="email"
+						type="email"
+						register={register}
 						required={true}
-						isFloatingLabel={true}
+						pattern={{
+							value: /\S+@\S+\.\S+/,
+							message: 'Please enter a valid email.',
+						}}
 						errors={errors}
 					/>
 					<button className="btn btn--primary t-uppercase">submit</button>

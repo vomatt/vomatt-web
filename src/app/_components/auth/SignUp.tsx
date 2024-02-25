@@ -1,20 +1,31 @@
 'use client';
 import { motion } from 'framer-motion';
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { SubmitHandler, useForm } from 'react-hook-form';
 
-import Field from '@/components/Field';
+import CustomPortableText from '@/components/CustomPortableText';
+import HookFormField from '@/components/HookFormField';
 import { fadeAnim } from '@/lib/animate';
 
 import AuthContainer from './AuthContainer';
 import { STATUS_SIGN_IN } from './index';
 
-type SignUpType = {
+interface SignUpProps {
 	onSetPageStatus: (value: string) => void;
 	className?: string;
+	signUpInfoData: any;
+}
+
+type FormValues = {
+	email: string;
 };
 
-const SignUp: React.FC<SignUpType> = ({ className, onSetPageStatus }) => {
+const SignUp: React.FC<SignUpProps> = ({
+	className,
+	onSetPageStatus,
+	signUpInfoData,
+}) => {
+	const { policyMessage } = signUpInfoData || {};
 	const [error, setError] = useState(false);
 	const {
 		handleSubmit,
@@ -24,8 +35,8 @@ const SignUp: React.FC<SignUpType> = ({ className, onSetPageStatus }) => {
 		formState: { errors },
 	} = useForm();
 
-	const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
+	const onSubmit: SubmitHandler<FormValues> = async (data) => {
+		const { name, email } = data;
 	};
 
 	return (
@@ -36,20 +47,33 @@ const SignUp: React.FC<SignUpType> = ({ className, onSetPageStatus }) => {
 		>
 			<>
 				<form className="c-auth__form" onSubmit={handleSubmit(onSubmit)}>
-					<Field
+					<HookFormField
+						label="Name"
+						name="name"
+						type="text"
+						required={true}
+						pattern={{
+							value: /^[a-z ,.'-]+$/i,
+							message: 'Please enter a valid name.',
+						}}
+						register={register}
+						errors={errors}
+					/>
+					<HookFormField
 						label="Email address"
 						name="email"
+						type="email"
+						register={register}
 						required={true}
-						isFloatingLabel={true}
-						{...register('email', {
-							required: 'required',
-							pattern: {
-								value: /\S+@\S+\.\S+/,
-								message: 'Entered value does not match email format',
-							},
-						})}
+						pattern={{
+							value: /\S+@\S+\.\S+/,
+							message: 'Please enter a valid email.',
+						}}
+						errors={errors}
 					/>
-					<button className="btn btn--primary t-uppercase">enter</button>
+					<button type="submit" className="btn btn--primary t-uppercase">
+						enter
+					</button>
 				</form>
 				{error && (
 					<motion.div
@@ -71,6 +95,9 @@ const SignUp: React.FC<SignUpType> = ({ className, onSetPageStatus }) => {
 					</motion.div>
 				)}
 				<div className="c-auth__info">
+					<div className="c-auth__info-message">
+						<CustomPortableText blocks={policyMessage} />
+					</div>
 					<p className="t-b-2">Already have an account?</p>
 					<button
 						type="button"

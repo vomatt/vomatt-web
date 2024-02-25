@@ -164,6 +164,14 @@ export const pagePaths = groq`
   *[_type == "pGeneral" && slug.current != null ].slug.current
 `;
 
+export const gSignUpDataQuery = `
+	*[_type == "gSignUp"][0]{
+		policyMessage[]{
+			${portableTextContent}
+		},
+	}
+`;
+
 export const pageHomeQuery = `
 	*[_type == "pHome"][0]{
 		sharing,

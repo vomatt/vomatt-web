@@ -4,6 +4,7 @@ import gAnnouncement from './documents/g-announcement';
 import gCookie from './documents/g-cookie';
 import gFooter from './documents/g-footer';
 import gHeader from './documents/g-header';
+import gSignUp from './documents/g-sign-up';
 import p404 from './documents/p-404';
 // Page types
 import pGeneral from './documents/p-general';
@@ -55,6 +56,7 @@ const schemas = [
 	gCookie,
 	gHeader,
 	gFooter,
+	gSignUp,
 
 	pGeneral,
 	p404,

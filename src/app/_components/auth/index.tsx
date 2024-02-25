@@ -8,13 +8,14 @@ import VerificationForm from '@/app/_components/auth/VerificationForm';
 
 type AuthType = {
 	className?: string;
+	signUpInfoData: any;
 };
 
 export const STATUS_SIGN_UP = 'signUp';
 export const STATUS_SIGN_IN = 'signIn';
 export const VERIFICATION = 'verification';
 
-const Auth: React.FC<AuthType> = ({ className }) => {
+const Auth: React.FC<AuthType> = ({ className, signUpInfoData }) => {
 	const [pageStatus, setPageStatus] = useState(STATUS_SIGN_IN);
 
 	const onSetPageStatus = (value: string) => {
@@ -22,7 +23,12 @@ const Auth: React.FC<AuthType> = ({ className }) => {
 	};
 
 	const pageStatusScreen = {
-		signUp: <SignUp onSetPageStatus={onSetPageStatus} />,
+		signUp: (
+			<SignUp
+				onSetPageStatus={onSetPageStatus}
+				signUpInfoData={signUpInfoData}
+			/>
+		),
 		signIn: <SignIn onSetPageStatus={onSetPageStatus} />,
 		verification: <VerificationForm email="chinklaus@gmail.com" />,
 	};

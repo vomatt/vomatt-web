@@ -34,15 +34,26 @@ export const globalMenu = (S) =>
 								.documentId('gFooter')
 						)
 						.icon(ComponentIcon),
-
 					S.divider(),
 					S.listItem()
 						.title('Cookie Consent')
 						.child(
 							S.editor()
+								.title('Cookie Consent')
 								.id('gCookie')
 								.schemaType('gCookie')
 								.documentId('gCookie')
+						)
+						.icon(ComponentIcon),
+					S.divider(),
+					S.listItem()
+						.title('Sign Up Settings')
+						.child(
+							S.editor()
+								.title('Sign Up Settings')
+								.id('gSignUp')
+								.schemaType('gSignUp')
+								.documentId('gSignUp')
 						)
 						.icon(ComponentIcon),
 				])

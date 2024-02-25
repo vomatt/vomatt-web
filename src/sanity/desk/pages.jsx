@@ -50,8 +50,7 @@ export const pagesMenu = (S) => {
 						.child(
 							S.documentTypeList('pGeneral')
 								.title('Other Pages')
-								.filter(`_type == "pGeneral")`)
-								.apiVersion('v2023-08-01')
+								.filter(`_type == "pGeneral"`)
 								.child((documentId) =>
 									S.document().documentId(documentId).schemaType('pGeneral')
 								)

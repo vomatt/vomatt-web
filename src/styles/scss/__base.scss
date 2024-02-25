@@ -3,7 +3,7 @@
 	font-weight: 400;
 	font-style: normal;
 	font-display: block;
-	src: url(/fonts/gerstner-programm-regular.woff2) format('woff2');
+	src: url('../../fonts/gerstner-programm-regular.woff2') format('woff2');
 }
 
 @font-face {
@@ -11,7 +11,7 @@
 	font-weight: 400;
 	font-style: normal;
 	font-display: block;
-	src: url(/fonts/abc-diatype-mono-regular.woff2) format('woff2');
+	src: url('../../fonts/abc-diatype-mono-regular.woff2') format('woff2');
 }
 
 :root {
@@ -292,6 +292,7 @@ h6,
 	padding: 0 25px;
 	overflow: hidden;
 	transition: background-color 0.3s, color 0.3s;
+	font: var(--t-l-1);
 }
 
 .btn {
@@ -437,6 +438,24 @@ input[type='checkbox'] {
 		margin-bottom: var(--field-gap, 15px);
 	}
 
+	&.is-floating-label {
+		*::-webkit-input-placeholder {
+			color: transparent;
+		}
+
+		*::-moz-placeholder {
+			color: transparent;
+		}
+
+		*:-ms-input-placeholder {
+			color: transparent;
+		}
+
+		*:-moz-placeholder {
+			color: transparent;
+		}
+	}
+
 	&.is-error {
 
 		input[type='text'],
@@ -445,9 +464,15 @@ input[type='checkbox'] {
 		}
 	}
 
+	.error-message {
+		margin-top: 6px;
+		font: var(--t-b-1);
+		color: var(--cr-error);
+	}
+
 	label {
 		display: block;
-		font: var(--t-b-2);
+		font: var(--t-b-1);
 		line-height: 1;
 
 		&:not(:last-child) {
@@ -490,7 +515,7 @@ input[type='checkbox'] {
 		&~label {
 			height: var(--height);
 			padding: calc((var(--height) - var(--line-height)) / 2) var(--padding-h);
-			font: var(--t-b-2);
+			font: var(--t-b-1);
 			line-height: var(--line-height);
 			color: inherit;
 		}
@@ -504,33 +529,34 @@ input[type='checkbox'] {
 		}
 	}
 
-	&:not(.is-not-inline-label) {
 
-		input[type='text'],
-		input[type='email'],
-		input[type='tel'],
-		input[type='url'],
-		input[type='password'],
-		select,
-		textarea {
 
-			&:not(select):focus,
-			&:placeholder-shown,
-			&.is-contain-value {
-				padding-top: calc((var(--height) - var(--line-height)) / 2 + var(--focus-offset));
-				padding-bottom: calc((var(--height) - var(--line-height)) / 2 - var(--focus-offset));
+	input[type='text'],
+	input[type='email'],
+	input[type='tel'],
+	input[type='url'],
+	input[type='password'],
+	select,
+	textarea {
 
-				&~label {
-					top: var(--focus-offset);
-					padding-top: 0;
-					padding-bottom: 0;
-					line-height: 1;
-					font-size: 11px;
-					color: var(--cr-subtle-5);
-				}
+		&:not(select):focus,
+		&:not(:placeholder-shown),
+		&:focus:not(:placeholder-shown),
+		&.is-contain-value {
+			padding-top: calc((var(--height) - var(--line-height)) / 2 + var(--focus-offset));
+			padding-bottom: calc((var(--height) - var(--line-height)) / 2 - var(--focus-offset));
+
+			&~label {
+				top: var(--focus-offset);
+				padding-top: 0;
+				padding-bottom: 0;
+				line-height: 1;
+				font-size: 11px;
+				color: var(--cr-subtle-5);
 			}
 		}
 	}
+
 
 	select {
 		padding-right: calc(var(--padding-h) + 8px + var(--padding-h));

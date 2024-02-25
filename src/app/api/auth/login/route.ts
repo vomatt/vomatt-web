@@ -5,7 +5,8 @@ import { encrypt } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
 	const body = await request.json();
-	const { email, name } = body;
+	const { email } = body;
+
 	// const res = await fetch('https://data.mongodb-api.com/...', {
 	// 	method: 'POST',
 	// 	headers: {
@@ -17,7 +18,7 @@ export async function POST(request: NextRequest) {
 
 	// const data = await res.json();
 
-	const user = { email, name: name ?? 'Klaus CHin' };
+	const user = { email, name: 'Klaus CHin' };
 	const expires = new Date(Date.now() + 10 * 1000);
 	const session = await encrypt({ user, expires });
 
