@@ -1,4 +1,3 @@
-import { EditIcon } from '@sanity/icons';
 import { defineType } from 'sanity';
 
 import { getPortableTextPreview } from '../../lib/helpers';

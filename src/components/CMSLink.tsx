@@ -2,10 +2,12 @@ import cx from 'classnames';
 import NextLink from 'next/link';
 import React from 'react';
 
-import { getLinkRouteObject } from '@/lib/routes';
-
 type CMSLinkType = {
-	link?: any;
+	link?: {
+		_type: string;
+		route: string;
+		isNewTab: boolean;
+	};
 	title?: string;
 	ariaLabel?: string;
 	children?: React.ReactNode;
@@ -30,16 +32,15 @@ const CMSLink: React.FC<CMSLinkType> = ({
 		return null;
 	}
 
-	const { route } = getLinkRouteObject(link);
-	const { url } = route;
+	const { route } = link;
 	const isOpenNewTab = isNewTab ?? link.isNewTab;
 
 	return (
 		<NextLink
-			href={url}
-			target={url?.match('^mailto:') || isOpenNewTab ? '_blank' : null}
+			href={route}
+			target={route?.match('^mailto:') || isOpenNewTab ? '_blank' : null}
 			rel={isOpenNewTab ? 'noopener noreferrer' : null}
-			aria-label={ariaLabel || `${title || `Go to ${url}`}`}
+			aria-label={ariaLabel || `${title || `Go to ${route}`}`}
 			className={cx(className, {
 				btn: isButton,
 			})}

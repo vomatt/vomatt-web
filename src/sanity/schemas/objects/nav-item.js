@@ -1,6 +1,5 @@
 import { LinkIcon, MasterDetailIcon, WarningOutlineIcon } from '@sanity/icons';
 import { defineType } from 'sanity';
-import { getRoute } from '@/lib/routes';
 
 export default defineType({
 	title: 'Nav Item',
@@ -24,19 +23,16 @@ export default defineType({
 	preview: {
 		select: {
 			title: 'title',
-			route: 'link.route',
+			link: 'link',
 		},
-		prepare({ title, route }) {
-			const path = JSON.parse(route);
-			const isExternal = path.url.includes('http');
-			const subtitle = `${getRoute({ type: path._type, slug: path.slug })} ${
-				path.url === '/' ? ' (home page)' : ''
-			}`;
+		prepare({ title, link }) {
+			const isExternal = link.route.includes('http');
+			const subtitle = link.route;
 
 			return {
 				title: title,
 				subtitle: subtitle,
-				media: path.url
+				media: link.route
 					? isExternal
 						? LinkIcon
 						: MasterDetailIcon

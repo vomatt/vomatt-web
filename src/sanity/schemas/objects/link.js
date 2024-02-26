@@ -1,5 +1,6 @@
 import { LinkIcon } from '@sanity/icons';
-import { defineType } from 'sanity';
+import { defineField, defineType } from 'sanity';
+
 import { LinkInput } from '@/sanity/component/LinkInput';
 
 export default defineType({
@@ -8,19 +9,19 @@ export default defineType({
 	icon: LinkIcon,
 	type: 'object',
 	fields: [
-		{
+		defineField({
 			type: 'string',
 			title: 'URL',
 			name: 'route',
 			components: {
 				input: LinkInput,
 			},
-		},
-		{
+		}),
+		defineField({
 			title: 'Open in new tab',
 			name: 'isNewTab',
 			type: 'boolean',
 			initialValue: false,
-		},
+		}),
 	],
 });

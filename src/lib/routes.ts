@@ -1,5 +1,3 @@
-// determine if current page is active or not
-
 export const checkIfActive = ({
 	pathName,
 	url,
@@ -30,13 +28,4 @@ export const getRoute = ({ type, slug }) => {
 		default:
 			break;
 	}
-};
-
-export const getLinkRouteObject = (link: any) => {
-	if (!link) return '';
-
-	return {
-		...link,
-		route: link && link?.route ? JSON.parse(link.route) : '',
-	};
 };

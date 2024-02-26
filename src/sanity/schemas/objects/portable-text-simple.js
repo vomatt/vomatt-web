@@ -17,6 +17,13 @@ export default defineType({
 					{ title: 'Underline', value: 'underline' },
 					{ title: 'Strike', value: 'strike-through' },
 				],
+				annotations: [
+					{
+						title: 'Inline Link',
+						name: 'link',
+						type: 'link',
+					},
+				],
 			},
 		},
 	],

@@ -5,6 +5,8 @@ import {
 	UnknownIcon,
 } from '@sanity/icons';
 
+import { apiVersion, dataset, previewSecretId, projectId } from '../lib/env';
+
 // Extract home page
 const currentHomePage = (S) => {
 	return S.listItem()
@@ -51,6 +53,7 @@ export const pagesMenu = (S) => {
 							S.documentTypeList('pGeneral')
 								.title('Other Pages')
 								.filter(`_type == "pGeneral"`)
+								.apiVersion(`${apiVersion}`)
 								.child((documentId) =>
 									S.document().documentId(documentId).schemaType('pGeneral')
 								)

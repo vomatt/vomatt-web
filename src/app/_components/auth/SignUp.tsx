@@ -36,7 +36,7 @@ const SignUp: React.FC<SignUpProps> = ({
 	} = useForm();
 
 	const onSubmit: SubmitHandler<FormValues> = async (data) => {
-		const { name, email } = data;
+		const { email } = data;
 	};
 
 	return (

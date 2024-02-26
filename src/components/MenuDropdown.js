@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import React, { useState } from 'react';
 
 import CMSLink from '@/components/CMSLink';
-import { checkIfActive, getLinkRouteObject } from '@/lib/routes';
+import { checkIfActive } from '@/lib/routes';
 
 const MenuDropdown = ({ title, items, onClick }) => {
 	const searchParams = useSearchParams();
@@ -24,10 +24,10 @@ const MenuDropdown = ({ title, items, onClick }) => {
 				<div className="dropdown-content">
 					<ul className="dropdown-nav">
 						{items.map((item, key) => {
+							const { link } = item || {};
 							const isActive = checkIfActive({
-								pageSlug: getLinkRouteObject(item.link)?.slug,
-								query: searchParams,
-								pathName,
+								pathName: pathName,
+								url: link.route,
 							});
 
 							return (
@@ -37,7 +37,7 @@ const MenuDropdown = ({ title, items, onClick }) => {
 								>
 									<CMSLink
 										tabIndex={!isOpen ? -1 : null}
-										link={item.link}
+										link={link}
 										title={item.title}
 										onClick={onClick}
 									/>

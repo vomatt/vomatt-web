@@ -4,7 +4,7 @@ import React from 'react';
 
 import CMSLink from '@/components/CMSLink';
 import Dropdown from '@/components/MenuDropdown';
-import { checkIfActive, getLinkRouteObject } from '@/lib/routes';
+import { checkIfActive } from '@/lib/routes';
 export interface MenuProps {
 	items: any;
 	hasFocus?: Boolean;
@@ -32,7 +32,7 @@ const Menu = (props: MenuProps) => {
 							dropdownItems.filter((item) => {
 								return checkIfActive({
 									pathName: pathName,
-									url: getLinkRouteObject(item?.link)?.route?.url,
+									url: link.route,
 								});
 							}).length > 0;
 
@@ -53,7 +53,7 @@ const Menu = (props: MenuProps) => {
 
 					const isActive = checkIfActive({
 						pathName: pathName,
-						url: getLinkRouteObject(link)?.route?.url,
+						url: link.route,
 					});
 
 					return (
