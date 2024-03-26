@@ -1,0 +1,45 @@
+.c-accordion {
+	position: relative;
+	border-bottom: 1px solid currentColor;
+
+	&__toggle {
+		width: 100%;
+		padding: var(--padding-v) 0;
+		gap: 10px;
+		text-align: left;
+
+		.icon-plus,
+		.icon-caret-bottom {
+			transition: transform 0.3s;
+		}
+	}
+
+	&__title {
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+	}
+
+	&__content {
+		overflow: hidden;
+		pointer-events: none;
+	}
+
+	&__content-interior {
+		padding-bottom: var(--padding-v);
+	}
+
+	&.is-active {
+		.c-accordion__toggle .icon-plus {
+			transform: rotate(45deg);
+		}
+
+		.c-accordion__toggle .icon-caret-bottom {
+			transform: rotate(180deg);
+		}
+
+		.c-accordion__content {
+			pointer-events: auto;
+		}
+	}
+}

@@ -1,0 +1,47 @@
+.g-header {
+	position: relative;
+	width: 100%;
+	padding: 10px var(--s-contain);
+	z-index: 100;
+
+	.header-links {
+		ul {
+			gap: 10px;
+		}
+	}
+
+	.brand-logo {
+		width: 150px;
+	}
+
+	&__interior {
+		padding: 28px;
+		border-radius: 20px;
+	}
+
+	&__menu-list {
+		gap: 16px;
+	}
+}
+
+.mobile-menu {
+	position: fixed;
+	width: 100%;
+	height: 100%;
+	overflow-y: auto;
+	top: 0;
+	right: 0;
+	padding: 20px var(--s-edge);
+	transform: translate3d(100%, 0px, 0px);
+	background-color: var(--cr-white);
+	transition: transform 0.3s var(--e-inOut-circ);
+	z-index: 120;
+
+	&.is-open {
+		transform: translate3d(0px, 0px, 0px);
+	}
+
+	.mobile-menu-links {
+		gap: 10px;
+	}
+}

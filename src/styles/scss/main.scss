@@ -3,6 +3,18 @@
 @import '__base';
 @import '__animation';
 
-@import 'g-misc';
-@import 'g-header';
+// ***COMPONENTS***
+@import 'c-accordion';
 @import 'c-auth';
+// @import 'c-carousel';
+
+// ***GLOBAL***
+@import 'g-misc';
+@import 'g-ada-skip';
+@import 'g-announcement';
+@import 'g-header';
+@import 'g-mobile-menu';
+@import 'g-footer';
+
+@import 'p-404';
+@import 'p-general';

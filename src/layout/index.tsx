@@ -7,6 +7,7 @@ import useWindowDimensions from '@/hooks/useWindowDimensions';
 import HeadTrackingCode from '@/layout/HeadTrackingCode';
 import * as gtag from '@/lib/gtag';
 
+import AdaSkip from './AdaSkip';
 import Announcement from './Announcement';
 import Footer from './Footer';
 import Header from './Header';
@@ -39,6 +40,7 @@ export default function Layout({ children, siteData, userSession }: MainProps) {
 	return (
 		<>
 			<HeadTrackingCode siteData={siteData} />
+			<AdaSkip />
 			{/* <Announcement data={siteData?.announcement} /> */}
 			<Header data={header} userSession={userSession} />
 			<Main siteData={siteData}>{children}</Main>

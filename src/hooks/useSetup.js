@@ -29,8 +29,4 @@ export function siteSetup() {
 	}, 400);
 
 	// setup --s-vp-height variable
-	document.documentElement.style.setProperty(
-		'--s-vp-height',
-		`${window.innerHeight}px`
-	);
 }

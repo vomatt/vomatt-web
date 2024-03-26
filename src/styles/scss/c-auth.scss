@@ -2,7 +2,7 @@
 	max-width: 600px;
 	margin: 0 auto;
 	height: 100%;
-	height: calc(var(--s-vp-height) - var(--s-header) * 2);
+	height: calc(100svh - var(--s-header) * 2);
 	width: 100%;
 	color: var(--cr-white);
 
