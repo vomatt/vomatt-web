@@ -6,16 +6,17 @@ import CustomPortableText from '@/components/CustomPortableText';
 
 import { formatNumberSuffix } from '../../lib/helpers';
 
-const Announcement = ({ data }) => {
+export default function Announcement({ data }) {
 	const pathname = usePathname();
 	const { display, messages } = data || {};
-	const announcementRef = useRef();
+	const announcementRef = useRef(null);
+
 	const [isDisplay, setDisplay] = useState(false);
 	const [activeBlock, setActiveBlock] = useState(0);
 	const [isAutoplay, setAutoplay] = useState(data?.autoplay);
 
-	const updateActiveBlock = (key) => {
-		setActiveBlock(key);
+	const updateActiveBlock = (index) => {
+		setActiveBlock(index);
 		setAutoplay(false);
 	};
 
@@ -49,6 +50,7 @@ const Announcement = ({ data }) => {
 
 	// changes on display change
 	useEffect(() => {
+		const announcementElement = announcementRef.current;
 		const updateRootVariable = () => {
 			const { visibleHeight } = getAnnouncementHeight();
 
@@ -59,13 +61,15 @@ const Announcement = ({ data }) => {
 		};
 
 		updateRootVariable();
-		const { height, visibleHeight } = getAnnouncementHeight();
-		announcementRef.current.style.marginTop = `${visibleHeight - height}px`;
+		if (announcementElement) {
+			const { height, visibleHeight } = getAnnouncementHeight();
+			announcementElement.style.marginTop = `${visibleHeight - height}px`;
 
-		setTimeout(() => {
-			announcementRef.current.style.transition = `margin 0.4s, height 0.4s 0.2s`;
-		}, 400);
-	}, [isDisplay, getAnnouncementHeight]);
+			setTimeout(() => {
+				announcementElement.style.transition = `margin 0.4s, height 0.4s 0.2s`;
+			}, 400);
+		}
+	}, [isDisplay, announcementRef, getAnnouncementHeight]);
 
 	// changes on active block change
 	useEffect(() => {
@@ -82,7 +86,7 @@ const Announcement = ({ data }) => {
 		}, 600);
 
 		// autoplay
-		const interval = data?.autoplay_interval || 8;
+		const interval = data?.autoplayInterval || 8;
 		const autoplayInterval =
 			isAutoplay && isDisplay
 				? setInterval(() => {
@@ -100,12 +104,14 @@ const Announcement = ({ data }) => {
 			<div ref={announcementRef} className="g-announcement">
 				{messages && (
 					<div className="announcement-blocks">
-						{messages.map((el, key) => {
+						{messages.map((el, index) => {
 							if (el.content)
 								return (
 									<div
-										key={key}
-										className={cx('block', { 'is-active': activeBlock == key })}
+										key={index}
+										className={cx('block', {
+											'is-active': activeBlock == index,
+										})}
 									>
 										<CustomPortableText blocks={el.content} />
 									</div>
@@ -113,109 +119,33 @@ const Announcement = ({ data }) => {
 						})}
 					</div>
 				)}
-				{messages && (
+				{messages && messages.length > 1 && (
 					<div className="announcement-dots f-h f-a-c f-j-c">
-						{messages.map((el, key) => {
+						{messages.map((el, index) => {
 							return (
 								<button
 									type="button"
-									key={key}
-									data-announcement-trigger={key}
+									key={index}
+									data-announcement-trigger={index}
 									aria-label={`Jump to the ${formatNumberSuffix(
-										key + 1
+										index + 1
 									)} message`}
-									className={cx({ 'is-active': activeBlock == key })}
-									onClick={() => updateActiveBlock(key)}
+									className={cx({ 'is-active': activeBlock == index })}
+									onClick={() => updateActiveBlock(index)}
 								></button>
 							);
 						})}
 					</div>
 				)}
 			</div>
+
 			<style jsx>{`
 				.g-announcement {
-					--dot-size: 10px;
-					--dot-gap: 8px;
 					--color: ${data?.textColor?.hex || '#FFFFFF'};
 					--background: ${data?.backgroundColor?.hex || '#000000'};
 					--emphasize: ${data?.emphasizeColor?.hex || '#D5FF00'};
-					display: none;
-					position: relative;
-					text-align: center;
-					color: var(--color);
-					background-color: var(--background);
-
-					&:empty {
-						display: none;
-					}
-
-					.announcement-blocks {
-						position: relative;
-
-						.block {
-							position: relative;
-							width: 100%;
-							top: 0;
-							left: 0;
-							padding: 10px 0;
-							transition: opacity 0.4s 0.4s;
-
-							:global(b),
-							:global(strong) {
-								color: var(--emphasize);
-							}
-
-							&:not(.is-active) {
-								position: absolute;
-								opacity: 0;
-								pointer-events: none;
-								transition-delay: 0s;
-							}
-						}
-					}
-
-					.announcement-dots {
-						position: absolute;
-						width: 100%;
-						left: 0;
-						bottom: 0;
-						padding: 0 10px 6px;
-						gap: var(--dot-gap);
-
-						button {
-							position: relative;
-							width: var(--dot-size);
-							height: var(--dot-size);
-							border: 1px solid;
-							border-radius: 100%;
-							transition: background 0.2s, border 0.2s;
-
-							&:after {
-								content: '';
-								position: absolute;
-								top: 50%;
-								left: 50%;
-								width: calc(var(--dot-size) + var(--dot-gap));
-								height: calc(var(--dot-size) + var(--dot-gap));
-								transform: translate3d(-50%, -50%, 0);
-							}
-
-							&.is-active {
-								color: var(--emphasize);
-								background-color: var(--emphasize);
-							}
-
-							@media (hover: hover) {
-								&:hover {
-									color: var(--emphasize);
-								}
-							}
-						}
-					}
 				}
 			`}</style>
 		</>
 	);
-};
-
-export default Announcement;
+}

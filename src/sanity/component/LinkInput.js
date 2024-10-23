@@ -5,7 +5,6 @@ import { set, unset } from 'sanity';
 
 import { getRoute } from '@/lib/routes';
 import { client } from '@/sanity/lib/client';
-import * as queries from '@/sanity/lib/queries';
 
 export const LinkInput = (props) => {
 	const { elementProps, onChange, schemaType, validation, value = '' } = props;
@@ -21,15 +20,20 @@ export const LinkInput = (props) => {
 		[onChange]
 	);
 
+	const handleQueryChange = useCallback((query) => {
+		setQuery(query);
+	}, []);
+
 	const optionsList = useMemo(() => {
 		if (!query) {
 			return options;
 		}
 
 		const queryInOptions = options.filter((item) => {
-			const { value } = item;
+			const { value, payload } = item;
+			const { pageTitle } = payload;
 
-			if (value.includes(query.toLowerCase())) {
+			if (value.includes(query.toLowerCase()) || pageTitle.includes(query)) {
 				return item;
 			}
 		});
@@ -37,7 +41,7 @@ export const LinkInput = (props) => {
 		if (queryInOptions.length === 0) {
 			return [
 				{
-					value: getRoute({ type: 'externalUrl', slug: query }),
+					value: getRoute({ documentType: 'externalUrl', slug: query }),
 					payload: {
 						pageTitle: query,
 					},
@@ -45,31 +49,27 @@ export const LinkInput = (props) => {
 				},
 			];
 		}
+
 		return queryInOptions;
 	}, [query, options]);
 
-	const handleQueryChange = useCallback((query) => {
-		setQuery(query);
-	}, []);
-
 	useEffect(() => {
 		const getOptionListData = async () => {
-			const groqQuery = `*[_type == "pGeneral"]{
+			const groqQuery = `*[_type == "pHome" || _type == "pGeneral" ]{
 				title,
 				_type,
 				_id,
 				"slug": slug.current,
 			}`;
-			const homePageID = await client.fetch(queries.homeID);
+
 			const data = await client.fetch(groqQuery);
 			const result = data.map((item) => {
 				const { _type, slug, _id, title } = item;
-				const routeSlug = homePageID === _id ? '' : slug;
-
+				const pageTitle = _type === 'pHome' ? 'Home Page' : title;
 				return {
-					value: getRoute({ type: _type, slug: routeSlug }),
+					value: getRoute({ documentType: _type, slug: slug }),
 					payload: {
-						pageTitle: title,
+						pageTitle,
 						_id,
 					},
 				};
@@ -94,7 +94,7 @@ export const LinkInput = (props) => {
 				onChange={handleChange}
 				onQueryChange={handleQueryChange}
 				icon={SearchIcon}
-				placeholder="Type to find page"
+				placeholder="Paste a link or search"
 				renderOption={(option) => {
 					const { value, isNew, payload } = option;
 					return (

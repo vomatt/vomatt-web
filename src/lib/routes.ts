@@ -14,18 +14,19 @@ export const checkIfActive = ({
 	}
 };
 
-export const getRoute = ({ type, slug }) => {
-	switch (type) {
+export const getRoute = ({ documentType, slug }) => {
+	switch (documentType) {
 		case 'pHome':
 			return '/';
 		case 'pGeneral':
 			return `/${slug}`;
 		case 'articlePage':
-			return `article/${slug}`;
+			return `/article/${slug}`;
 		case 'externalUrl':
 			return slug;
 
 		default:
-			break;
+			console.warn('Invalid document type:', documentType);
+			return slug ? `/${slug}` : undefined;
 	}
 };

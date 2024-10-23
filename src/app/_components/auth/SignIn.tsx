@@ -4,11 +4,11 @@ import NextLink from 'next/link';
 import { useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
+import { getVerifyCode } from '@/app/api/login/getVerifyCode';
 import HookFormField from '@/components/HookFormField';
-import { validateEmail } from '@/lib/helpers';
 
 import AuthContainer from './AuthContainer';
-import { STATUS_SIGN_UP } from './index';
+import { STATUS_SIGN_UP, VERIFICATION } from './index';
 
 type SignInType = {
 	onSetPageStatus: (value: string) => void;
@@ -25,8 +25,7 @@ const SignIn: React.FC<SignInType> = ({ className, onSetPageStatus }) => {
 	const {
 		handleSubmit,
 		register,
-		watch,
-		reset,
+
 		formState: { errors },
 	} = useForm();
 
@@ -34,19 +33,20 @@ const SignIn: React.FC<SignInType> = ({ className, onSetPageStatus }) => {
 		const { email } = data;
 
 		try {
-			const res = await fetch('/api/auth/login', {
-				method: 'POST',
-				body: JSON.stringify({ email }),
-			}).then((res) => res.json());
-			return res;
+			const res = await getVerifyCode(email);
+			if (res.status === 'success') {
+				onSetPageStatus(VERIFICATION);
+				return;
+			}
 		} catch (error) {
 			console.log('🚀 ~ file: SignIn.tsx:36 ~ onSubmit ~ error:', error);
+			setError('Something went wrong, pleas try again later');
 		}
 	};
 
 	return (
-		<AuthContainer type="sign-up" className="c-auth__sign-in" title="Sign In">
-			<>
+        (<AuthContainer type="sign-up" className="c-auth__sign-in" title="Sign In">
+            <>
 				<form onSubmit={handleSubmit(onSubmit)} className="c-auth__form">
 					<HookFormField
 						label="Email address"
@@ -81,8 +81,8 @@ const SignIn: React.FC<SignInType> = ({ className, onSetPageStatus }) => {
 					</p>
 				</div>
 			</>
-		</AuthContainer>
-	);
+        </AuthContainer>)
+    );
 };
 
 export default SignIn;

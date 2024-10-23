@@ -18,27 +18,29 @@ const getPageData = async ({ params }) => {
 	return await getPageBySlug(params);
 };
 
-export async function generateMetadata({ params, searchParams }, parent) {
-	const data = await getPageData({ params });
-	return defineMetadata({ data });
+export async function generateMetadata(props, parent) {
+    const params = await props.params;
+    const data = await getPageData({ params });
+    return defineMetadata({ data });
 }
 
-export default async function PageSlugRoute({ params }) {
-	const data = await getPageData({ params });
-	const { page } = data;
+export default async function PageSlugRoute(props) {
+    const params = await props.params;
+    const data = await getPageData({ params });
+    const { page } = data;
 
-	if (!page) {
+    if (!page) {
 		return notFound();
 	}
 
-	return (
-		<LiveQuery
-			enabled={draftMode().isEnabled}
+    return (
+        (<LiveQuery
+			enabled={(await draftMode()).isEnabled}
 			query={pagesBySlugQuery}
 			initialData={page}
 			params={{ slug: params.slug }}
 		>
-			<PageGeneral data={page} />
-		</LiveQuery>
-	);
+            <PageGeneral data={page} />
+        </LiveQuery>)
+    );
 }

@@ -40,12 +40,12 @@ const SignUp: React.FC<SignUpProps> = ({
 	};
 
 	return (
-		<AuthContainer
+        (<AuthContainer
 			type="sign-up"
 			className="c-auth__sign-up"
 			title="create your account"
 		>
-			<>
+            <>
 				<form className="c-auth__form" onSubmit={handleSubmit(onSubmit)}>
 					<HookFormField
 						label="Name"
@@ -108,8 +108,8 @@ const SignUp: React.FC<SignUpProps> = ({
 					</button>
 				</div>
 			</>
-		</AuthContainer>
-	);
+        </AuthContainer>)
+    );
 };
 
 export default SignUp;

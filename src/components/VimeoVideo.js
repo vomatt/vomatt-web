@@ -1,14 +1,15 @@
-import React, {
-	useRef,
-	useState,
-	useEffect,
-	forwardRef,
-	useImperativeHandle,
-} from 'react';
 import Player from '@vimeo/player';
-import useInView from 'react-cool-inview';
 import cx from 'classnames';
 import Image from 'next/image';
+import React, {
+	forwardRef,
+	useEffect,
+	useImperativeHandle,
+	useRef,
+	useState,
+} from 'react';
+import useInView from 'react-cool-inview';
+
 import { imageBuilder } from '@/sanity/lib/image';
 
 const VimeoVideo = forwardRef(function VimeoVideo(

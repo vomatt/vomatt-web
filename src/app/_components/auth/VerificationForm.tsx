@@ -83,12 +83,15 @@ const VerificationForm: FC<Props> = ({ email, length = 6 }) => {
 		evt.currentTarget.select();
 	}
 
-	async function handleSubmit(evt: FormEvent<HTMLFormElement>) {
-		evt.preventDefault();
+	async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+		event.preventDefault();
 
 		try {
-			// const data = await schema.validate(code, { context: { length } });
-			// alert(`Code is ${data?.join('')}`);
+			const res = await fetch('/api/login/verify-code', {
+				method: 'POST',
+				body: JSON.stringify({ email, verifyCode: code.join('') }),
+			});
+			const data = await res.json();
 		} catch (e) {}
 	}
 
@@ -96,7 +99,7 @@ const VerificationForm: FC<Props> = ({ email, length = 6 }) => {
 		<AuthContainer
 			type="verification"
 			className="c-auth__verification"
-			title="your voice awaits"
+			title="Code Verification"
 		>
 			<p className="c-auth__verification-subheading t-b-2">
 				We sent an email to {email} for your login credentials

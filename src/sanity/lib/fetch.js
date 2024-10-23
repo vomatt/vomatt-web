@@ -16,7 +16,7 @@ export async function sanityFetch({
 	params = DEFAULT_PARAMS,
 	tags = DEFAULT_TAGS,
 }) {
-	const isPreviewMode = draftMode().isEnabled;
+	const isPreviewMode = (await draftMode()).isEnabled;
 
 	if (isPreviewMode && !token) {
 		throw new Error(

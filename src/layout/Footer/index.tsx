@@ -12,7 +12,7 @@ import { pageTransitionFade } from '@/lib/animate';
 
 function Footer({ siteData, data }) {
 	const pathname = usePathname();
-	const footerRef = useRef();
+	const footerRef = useRef(undefined);
 
 	return (
 		<>
