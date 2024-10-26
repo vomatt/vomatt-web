@@ -1,4 +1,3 @@
-import classNames from 'classnames';
 import cx from 'classnames';
 
 interface LogoProps {
@@ -7,7 +6,7 @@ interface LogoProps {
 
 export default function Logo({ className }: LogoProps) {
 	return (
-		<div className={cx('brand-logo', className)}>
+		<div className={cx(className)}>
 			<svg
 				className="svg-vomatt"
 				viewBox="0 0 152 32"

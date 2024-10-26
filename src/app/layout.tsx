@@ -1,5 +1,5 @@
 import '@/styles/scss/main.scss';
-
+import React, { ReactNode } from 'react';
 import cx from 'classnames';
 import localFont from 'next/font/local';
 
@@ -43,7 +43,7 @@ const fontsAbcDiatypeMono = localFont({
 export default async function RootLayout({
 	children,
 }: {
-	children: React.ReactNode;
+	children: ReactNode;
 }) {
 	const { site } = await getSiteData();
 	const userSession = await getUserSession();

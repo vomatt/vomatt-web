@@ -9,6 +9,7 @@ type AuthContainerType = {
 	className?: string;
 	children: React.ReactNode;
 };
+
 const AuthContainer: React.FC<AuthContainerType> = ({
 	type,
 	title,
@@ -22,10 +23,13 @@ const AuthContainer: React.FC<AuthContainerType> = ({
 			animate="show"
 			exit="hide"
 			variants={fadeAnim}
-			className={cx('c-auth f-v f-j-c', className)}
+			className={cx(
+				'c-auth max-w-[600px] h-[calc(100vh_-_var(--s-header)_*_2)] mx-auto text-white w-full flex flex-col justify-center',
+				className
+			)}
 		>
-			<h1 className="c-auth__heading t-h-2">{title}</h1>
-			<div className="c-auth__content f-v f-j-c">{children}</div>
+			<h1 className="mb-10 uppercase t-h-2 text-center">{title}</h1>
+			<div className="max-w-96 w-full mx-auto">{children}</div>
 		</motion.div>
 	);
 };

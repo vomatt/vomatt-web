@@ -1,6 +1,6 @@
 'use client';
 import { usePathname } from 'next/navigation';
-import React, { ReactNode, useEffect } from 'react';
+import React, { ReactNode, Fragment, useEffect } from 'react';
 
 import { siteSetup } from '@/hooks/useSetup';
 import useWindowDimensions from '@/hooks/useWindowDimensions';
@@ -13,13 +13,13 @@ import Footer from './Footer';
 import Header from './Header';
 import Main from './Main';
 
-type MainProps = {
+interface LayoutProps {
 	siteData: any;
 	children: ReactNode;
 	userSession: any;
-};
+}
 
-export default function Layout({ children, siteData, userSession }: MainProps) {
+const Layout: React.FC<LayoutProps> = ({ siteData, userSession, children }) => {
 	const { header, footer } = siteData;
 	const pathname = usePathname();
 
@@ -38,13 +38,15 @@ export default function Layout({ children, siteData, userSession }: MainProps) {
 	}
 
 	return (
-		<>
+		<Fragment>
 			<HeadTrackingCode siteData={siteData} />
 			<AdaSkip />
 			{/* <Announcement data={siteData?.announcement} /> */}
 			<Header data={header} userSession={userSession} />
 			<Main siteData={siteData}>{children}</Main>
 			<Footer siteData={siteData} data={footer} />
-		</>
+		</Fragment>
 	);
-}
+};
+
+export default Layout;

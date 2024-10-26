@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import CustomPortableText from '@/components/CustomPortableText';
 
-import { formatNumberSuffix } from '../../lib/helpers';
+import { formatNumberSuffix } from '../../lib/utils';
 
 export default function Announcement({ data }) {
 	const pathname = usePathname();

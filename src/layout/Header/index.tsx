@@ -20,6 +20,8 @@ export default function Header({ data, userSession }) {
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
 	const headerRef = useCallback((node: HTMLElement | null) => {
+		if (!node) return;
+
 		const headerHeight = node.getBoundingClientRect().height;
 		document.documentElement.style.setProperty(
 			'--s-header',
@@ -39,18 +41,21 @@ export default function Header({ data, userSession }) {
 		<>
 			<header
 				ref={headerRef}
-				className={cx('g-header', {
+				className={cx('g-header py-2.5 relative w-full z-100 px-contain', {
 					'is-open': isMobileMenuOpen,
 					'is-logged-in': isLoggedIn,
 				})}
 			>
 				<div
-					className={cx('g-header__interior f-h f-a-c bg-surface-grey-darker', {
-						'f-j-c': !isLoggedIn,
-					})}
+					className={cx(
+						'flex justify-center rounded p-7 bg-grey-900 rounded-2xl',
+						{
+							'f-j-c': !isLoggedIn,
+						}
+					)}
 				>
-					<NextLink href="/" className="g-header__logo-link cr-white">
-						<BrandLogo />
+					<NextLink href="/">
+						<BrandLogo className="w-40 text-white" />
 					</NextLink>
 
 					{isLoggedIn && data?.menu?.items && (

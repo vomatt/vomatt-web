@@ -1,6 +1,12 @@
+import cx from 'classnames';
 import { imageBuilder } from '@/sanity/lib/image';
+import { twMerge } from 'tailwind-merge';
 
 // ***UTILITIES / GET***
+
+export function cn(...inputs: string[]) {
+	return twMerge(cx(inputs));
+}
 
 export function getRandomInt(min: number, max: number) {
 	const _min = Math.ceil(min);

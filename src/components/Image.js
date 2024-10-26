@@ -3,7 +3,7 @@ import Image from 'next/image'; /* https://nextjs.org/docs/api-reference/next/im
 import React, { useEffect, useRef, useState } from 'react';
 import { useInView } from 'react-intersection-observer';
 
-import { buildImageSrc } from '@/lib/helpers';
+import { buildImageSrc } from '@/lib/utils';
 
 function getSanityRefId(image) {
 	if (typeof image === 'string') {

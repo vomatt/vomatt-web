@@ -40,13 +40,13 @@ const SignUp: React.FC<SignUpProps> = ({
 	};
 
 	return (
-        (<AuthContainer
+		<AuthContainer
 			type="sign-up"
 			className="c-auth__sign-up"
 			title="create your account"
 		>
-            <>
-				<form className="c-auth__form" onSubmit={handleSubmit(onSubmit)}>
+			<>
+				<form className="" onSubmit={handleSubmit(onSubmit)}>
 					<HookFormField
 						label="Name"
 						name="name"
@@ -71,7 +71,7 @@ const SignUp: React.FC<SignUpProps> = ({
 						}}
 						errors={errors}
 					/>
-					<button type="submit" className="btn btn--primary t-uppercase">
+					<button type="submit" className="btn btn--primary uppercase">
 						enter
 					</button>
 				</form>
@@ -101,15 +101,15 @@ const SignUp: React.FC<SignUpProps> = ({
 					<p className="t-b-2">Already have an account?</p>
 					<button
 						type="button"
-						className="cr-surface-sage c-auth__info-cta t-uppercase"
+						className="cr-grey-900 c-auth__info-cta uppercase"
 						onClick={() => onSetPageStatus(STATUS_SIGN_IN)}
 					>
 						Sign In
 					</button>
 				</div>
 			</>
-        </AuthContainer>)
-    );
+		</AuthContainer>
+	);
 };
 
 export default SignUp;

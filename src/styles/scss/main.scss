@@ -1,3 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+	@font-face {
+		font-family: 'Gerstner Programm';
+		font-weight: 400;
+		font-style: normal;
+		font-display: block;
+		src: url('/fonts/gerstner-programm-regular.woff2') format('woff2');
+	}
+
+	@font-face {
+		font-family: 'ABC Diatype Mono';
+		font-weight: 400;
+		font-style: normal;
+		font-display: block;
+		src: url('/fonts/abc-diatype-mono-regular.woff2') format('woff2');
+	}
+}
+
 @import '__reset';
 @import '__utilities';
 @import '__base';
@@ -5,14 +27,12 @@
 
 // ***COMPONENTS***
 @import 'c-accordion';
-@import 'c-auth';
 // @import 'c-carousel';
 
 // ***GLOBAL***
 @import 'g-misc';
 @import 'g-ada-skip';
 @import 'g-announcement';
-@import 'g-header';
 @import 'g-mobile-menu';
 @import 'g-footer';
 

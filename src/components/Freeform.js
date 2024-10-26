@@ -2,7 +2,7 @@ import cx from 'classnames';
 import React from 'react';
 
 import CustomPortableText from '@/components/CustomPortableText';
-import { buildRgbaCssString } from '@/lib/helpers';
+import { buildRgbaCssString } from '@/lib/utils';
 
 export default function Freeform({ data, className }) {
 	const { content, sectionAppearance } = data;
