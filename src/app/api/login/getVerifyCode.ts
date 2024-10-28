@@ -2,9 +2,12 @@
 
 export async function getVerifyCode(email: string) {
 	try {
-		const data = await fetch(
+		const res = await fetch(
 			`${process.env.API_URL}/user/generateVerifyCode?email=${email}`
 		);
+		const data = await res.json();
+
+		console.log('🚀 ~ file: getVerifyCode.ts:8 ~ getVerifyCode ~ data:', data);
 
 		if (!data) {
 			return {

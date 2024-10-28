@@ -35,17 +35,23 @@ interface ButtonProps
 	extends React.ButtonHTMLAttributes<HTMLButtonElement>,
 		VariantProps<typeof buttonVariants> {
 	asChild?: boolean;
+	isLoading?: boolean;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-	({ className, variant, size, asChild, ...props }, ref) => {
+	(
+		{ isLoading, className, variant, size, asChild, type = 'button', ...props },
+		ref
+	) => {
 		return (
 			<button
 				className={cn(buttonVariants({ variant, size, className }))}
-				type="button"
+				type={type}
 				ref={ref}
 				{...props}
-			/>
+			>
+				{isLoading ? 'Loading...' : props.children}
+			</button>
 		);
 	}
 );

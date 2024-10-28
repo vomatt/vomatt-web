@@ -68,7 +68,7 @@ export default function Header({ data, userSession }) {
 				</div>
 			</header>
 
-			<div
+			{/* <div
 				className={cx('mobile-menu', {
 					'is-open': isMobileMenuOpen,
 				})}
@@ -84,7 +84,7 @@ export default function Header({ data, userSession }) {
 						ulClassName="f-j f-a-c t-h-3"
 					/>
 				)}
-			</div>
+			</div> */}
 		</>
 	);
 }

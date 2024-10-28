@@ -19,7 +19,11 @@ interface LayoutProps {
 	userSession: any;
 }
 
-const Layout: React.FC<LayoutProps> = ({ siteData, userSession, children }) => {
+export default function Layout({
+	siteData,
+	userSession,
+	children,
+}: LayoutProps) {
 	const { header, footer } = siteData;
 	const pathname = usePathname();
 
@@ -34,19 +38,16 @@ const Layout: React.FC<LayoutProps> = ({ siteData, userSession, children }) => {
 	// }, [siteData]);
 
 	if (pathname.startsWith('/sanity')) {
-		return children;
+		return <>{children}</>;
 	}
 
 	return (
-		<Fragment>
+		<>
 			<HeadTrackingCode siteData={siteData} />
 			<AdaSkip />
-			{/* <Announcement data={siteData?.announcement} /> */}
 			<Header data={header} userSession={userSession} />
 			<Main siteData={siteData}>{children}</Main>
 			<Footer siteData={siteData} data={footer} />
-		</Fragment>
+		</>
 	);
-};
-
-export default Layout;
+}

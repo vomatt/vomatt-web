@@ -2,16 +2,15 @@
 import { motion } from 'framer-motion';
 import React, { useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
-
+import Button from '@/components/Button';
 import CustomPortableText from '@/components/CustomPortableText';
 import HookFormField from '@/components/HookFormField';
 import { fadeAnim } from '@/lib/animate';
 
-import AuthContainer from './AuthContainer';
-import { STATUS_SIGN_IN } from './index';
+import AuthContainer from '@/components/auth/AuthContainer';
+import NextLink from 'next/link';
 
 interface SignUpProps {
-	onSetPageStatus: (value: string) => void;
 	className?: string;
 	signUpInfoData: any;
 }
@@ -20,11 +19,7 @@ type FormValues = {
 	email: string;
 };
 
-const SignUp: React.FC<SignUpProps> = ({
-	className,
-	onSetPageStatus,
-	signUpInfoData,
-}) => {
+const SignUp: React.FC<SignUpProps> = ({ className, signUpInfoData }) => {
 	const { policyMessage } = signUpInfoData || {};
 	const [error, setError] = useState(false);
 	const {
@@ -46,7 +41,7 @@ const SignUp: React.FC<SignUpProps> = ({
 			title="create your account"
 		>
 			<>
-				<form className="" onSubmit={handleSubmit(onSubmit)}>
+				<form className="mb-12" onSubmit={handleSubmit(onSubmit)}>
 					<HookFormField
 						label="Name"
 						name="name"
@@ -71,9 +66,9 @@ const SignUp: React.FC<SignUpProps> = ({
 						}}
 						errors={errors}
 					/>
-					<button type="submit" className="btn btn--primary uppercase">
+					<Button size="xg" className="w-full uppercase">
 						enter
-					</button>
+					</Button>
 				</form>
 				{error && (
 					<motion.div
@@ -94,19 +89,17 @@ const SignUp: React.FC<SignUpProps> = ({
 						</div>
 					</motion.div>
 				)}
-				<div className="c-auth__info">
-					<div className="c-auth__info-message">
-						<CustomPortableText blocks={policyMessage} />
-					</div>
-					<p className="t-b-2">Already have an account?</p>
-					<button
-						type="button"
-						className="cr-grey-900 c-auth__info-cta uppercase"
-						onClick={() => onSetPageStatus(STATUS_SIGN_IN)}
-					>
-						Sign In
-					</button>
+
+				<div className="mb-3">
+					<CustomPortableText blocks={policyMessage} />
 				</div>
+
+				<p className="t-b-1 text-center">
+					Already have an account?{' '}
+					<NextLink href="/" className="cr-grey-900 underline">
+						Sign In
+					</NextLink>
+				</p>
 			</>
 		</AuthContainer>
 	);

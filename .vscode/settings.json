@@ -12,5 +12,6 @@
 
 	// settings are overwritten in .prettierrc
 	"prettier.requireConfig": true, // require a prettier configuration file to format
-	"prettier.useTabs": true
+	"prettier.useTabs": true,
+	"typescript.tsdk": "node_modules/typescript/lib"
 }
