@@ -40,13 +40,6 @@ export default function HookFormField({
 	...rest
 }: HookFormFieldProps) {
 	const [newValue, setNewValue] = useState<any | null>(value || '');
-	const handleChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
-		setNewValue(e.target.value);
-
-		if (onChange) {
-			onChange(e);
-		}
-	};
 
 	return (
 		<div
@@ -65,7 +58,6 @@ export default function HookFormField({
 				placeholder={label}
 				required={required}
 				disabled={disabled}
-				onChange={register ? null : handleChange}
 				{...register(name, {
 					required: required,
 					pattern,

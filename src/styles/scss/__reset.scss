@@ -227,27 +227,6 @@ canvas {
 	margin: 0;
 }
 
-input,
-select,
-optgroup,
-button,
-textarea {
-	display: block;
-	padding: 0;
-	text-transform: inherit;
-	letter-spacing: inherit;
-	line-height: inherit;
-	color: inherit;
-	background-color: transparent;
-	border: 0;
-	border-radius: 0;
-	outline: none;
-	-webkit-appearance: none;
-	-moz-appearance: none;
-	-o-appearance: none;
-	appearance: none;
-}
-
 button,
 input[type='submit'] {
 	cursor: pointer;

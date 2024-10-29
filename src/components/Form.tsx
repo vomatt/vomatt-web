@@ -1,5 +1,5 @@
 'use client';
-
+import cx from 'classnames';
 import * as React from 'react';
 
 import {
@@ -164,7 +164,12 @@ const FormMessage = React.forwardRef<
 		<p
 			ref={ref}
 			id={formMessageId}
-			className={cn('text-[0.8rem] font-medium text-destructive', className)}
+			className={cx(
+				cn('text-[0.8rem] font-medium text-destructive', className),
+				{
+					'text-warn': error,
+				}
+			)}
 			{...props}
 		>
 			{body}

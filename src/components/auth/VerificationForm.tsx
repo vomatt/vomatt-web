@@ -1,9 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { FormProvider, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import Link from 'next/link';
-import { FC } from 'react';
+import { STATUS_SIGN_IN } from './AuthContainer';
 import Button from '@/components/Button';
 import {
 	InputOTP,
@@ -15,16 +14,14 @@ import {
 import {
 	Form,
 	FormControl,
-	FormDescription,
 	FormField,
 	FormItem,
-	FormLabel,
 	FormMessage,
 } from '@/components/Form';
 
-interface Props {
+interface VerificationFormProps {
 	email: string;
-	length?: number;
+	onSetPageStatus: (value: string) => void;
 }
 
 const FormSchema = z.object({
@@ -33,7 +30,10 @@ const FormSchema = z.object({
 	}),
 });
 
-const VerificationForm: FC<Props> = ({ email, length = 6 }) => {
+export default function VerificationForm({
+	email,
+	onSetPageStatus,
+}: VerificationFormProps) {
 	const form = useForm<z.infer<typeof FormSchema>>({
 		resolver: zodResolver(FormSchema),
 		defaultValues: {
@@ -49,24 +49,31 @@ const VerificationForm: FC<Props> = ({ email, length = 6 }) => {
 				body: JSON.stringify({ email, verifyCode: pin }),
 			});
 			const data = await res.json();
-		} catch (e) {}
+			console.log('🚀 ~ file:52 ~ onSubmit ~ data:', data);
+		} catch (e) {
+			console.log('file:57 ~ onSubmit ~ e:', e);
+		}
 	}
 
 	return (
 		<>
-			<h5 className="t-h-5 mb-6">
-				We sent an email to {email} for your login credentials
+			<h5 className="t-b-1 mb-8 text-center">
+				Enter it below to verify {email}
 			</h5>
-			<FormProvider {...form}>
-				<form onSubmit={form.handleSubmit(onSubmit)} className="mb-12">
+			<Form {...form}>
+				<form onSubmit={form.handleSubmit(onSubmit)} className="mb-8">
 					<FormField
 						control={form.control}
 						name="pin"
 						render={({ field }) => (
 							<FormItem className="space-y-3 mb-3">
-								<FormLabel className="t-b-1">One-Time Password</FormLabel>
 								<FormControl>
-									<InputOTP maxLength={6} autoFocus {...field}>
+									<InputOTP
+										maxLength={6}
+										autoFocus
+										{...field}
+										containerClassName="justify-center"
+									>
 										<InputOTPGroup>
 											<InputOTPSlot index={0} />
 											<InputOTPSlot index={1} />
@@ -80,25 +87,25 @@ const VerificationForm: FC<Props> = ({ email, length = 6 }) => {
 										</InputOTPGroup>
 									</InputOTP>
 								</FormControl>
-								<FormDescription>
-									Please enter the one-time password sent to your phone.
-								</FormDescription>
 								<FormMessage />
 							</FormItem>
 						)}
 					/>
-
-					<Button type="submit">Submit</Button>
+					<Button type="submit" className="w-2/3 mt-12 mx-auto block">
+						Submit
+					</Button>
+					<Button
+						className="w-2/3 mt-3 mx-auto block"
+						onClick={() => onSetPageStatus(STATUS_SIGN_IN)}
+						variant="outline"
+					>
+						Back
+					</Button>
 				</form>
-			</FormProvider>
-			<p className="t-b-1">
-				Need help?{' '}
-				<Link href="/contact" className="underline">
-					Contact support
-				</Link>
-			</p>
+			</Form>
+			<Button className="underline mx-auto block" variant="link">
+				Didn&apos;t receive email?
+			</Button>
 		</>
 	);
-};
-
-export default VerificationForm;
+}

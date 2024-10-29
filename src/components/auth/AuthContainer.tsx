@@ -3,6 +3,9 @@ import { motion } from 'framer-motion';
 
 import { fadeAnim } from '@/lib/animate';
 
+export const STATUS_SIGN_IN = 'STATUS_SIGN_IN';
+export const STATUS_VERIFICATION = 'STATUS_VERIFICATION';
+
 type AuthContainerType = {
 	type: string;
 	title: string;
@@ -10,12 +13,12 @@ type AuthContainerType = {
 	children: React.ReactNode;
 };
 
-const AuthContainer: React.FC<AuthContainerType> = ({
+export default function AuthContainer({
 	type,
 	title,
 	className,
 	children,
-}) => {
+}: AuthContainerType) {
 	return (
 		<motion.div
 			key={type}
@@ -24,14 +27,18 @@ const AuthContainer: React.FC<AuthContainerType> = ({
 			exit="hide"
 			variants={fadeAnim}
 			className={cx(
-				'c-auth max-w-[600px] h-[calc(100vh_-_var(--s-header)_*_2)] mx-auto text-white w-full flex flex-col justify-center',
+				'relative c-auth max-w-[600px] h-[calc(100vh_-_var(--s-header)_*_2)] mx-auto text-white w-full flex flex-col justify-center',
 				className
 			)}
 		>
-			<h1 className="mb-10 uppercase t-h-2 text-center">{title}</h1>
-			<div className="max-w-96 w-full mx-auto">{children}</div>
+			<h1 className="t-h-3 text-center">{title}</h1>
+			<div
+				className={cx('max-w-96 w-full mx-auto mt-3', {
+					'mt-10': type === STATUS_SIGN_IN,
+				})}
+			>
+				{children}
+			</div>
 		</motion.div>
 	);
-};
-
-export default AuthContainer;
+}

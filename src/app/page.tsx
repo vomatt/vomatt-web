@@ -1,7 +1,7 @@
-import Auth from '@/components/auth';
+import SignIn from '@/components/auth/SignIn';
 import { getUserSession } from '@/lib/auth';
 import defineMetadata from '@/lib/defineMetadata';
-import { getPageHomeData, getSignUpInfoData } from '@/sanity/lib/fetch';
+import { getPageHomeData } from '@/sanity/lib/fetch';
 
 export async function generateMetadata({}) {
 	const data = await getPageHomeData();
@@ -12,7 +12,7 @@ export default async function Page() {
 	const userSession = await getUserSession();
 
 	if (!userSession) {
-		return <Auth />;
+		return <SignIn />;
 	}
 	return <div className="p-home">Home</div>;
 }
