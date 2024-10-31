@@ -47,12 +47,9 @@ export default function Header({ data, userSession }) {
 				})}
 			>
 				<div
-					className={cx(
-						'flex justify-center rounded p-7 bg-grey-900 rounded-2xl',
-						{
-							'f-j-c': !isLoggedIn,
-						}
-					)}
+					className={cx('flex justify-center  p-7 bg-grey-900 rounded-2xl', {
+						'f-j-c': !isLoggedIn,
+					})}
 				>
 					<NextLink href="/">
 						<BrandLogo className="w-40 text-white" />

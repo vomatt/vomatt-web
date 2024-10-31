@@ -20,6 +20,7 @@ import {
 } from '@/components/Form';
 
 import { Input } from '@/components/Input';
+import { FloatingLabelInput } from '@/components/FloatingLabelInput';
 import { STATUS_VERIFICATION, STATUS_SIGN_IN } from './AuthContainer';
 
 export default function SignIn() {
@@ -106,8 +107,9 @@ function SignInForm({ onSetPageStatus, onSetEmail }: SignInType) {
 						render={({ field }) => (
 							<FormItem className="mb-5">
 								<FormControl>
-									<Input
-										placeholder="Email Address"
+									<FloatingLabelInput
+										type="text"
+										label="Email Address"
 										id="signInEmail"
 										{...field}
 									/>

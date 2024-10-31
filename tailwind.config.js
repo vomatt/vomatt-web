@@ -24,17 +24,17 @@ module.exports = {
 				secondary: 'var(--cr-secondary)',
 				tertiary: 'var(--cr-tertiary)',
 				quaternary: 'var(--cr-quaternary)',
-				grey: {
-					50: 'var(--cr-grey-50)',
-					100: 'var(--cr-grey-100)',
-					200: 'var(--cr-grey-200)',
-					300: 'var(--cr-grey-300)',
-					400: 'var(--cr-grey-400)',
-					500: 'var(--cr-grey-500)',
-					600: 'var(--cr-grey-600)',
-					700: 'var(--cr-grey-700)',
-					800: 'var(--cr-grey-800)',
-					900: 'var(--cr-grey-900)',
+				gray: {
+					50: 'var(--cr-gray-50)',
+					100: 'var(--cr-gray-100)',
+					200: 'var(--cr-gray-200)',
+					300: 'var(--cr-gray-300)',
+					400: 'var(--cr-gray-400)',
+					500: 'var(--cr-gray-500)',
+					600: 'var(--cr-gray-600)',
+					700: 'var(--cr-gray-700)',
+					800: 'var(--cr-gray-800)',
+					900: 'var(--cr-gray-900)',
 				},
 
 				success: 'var(--cr-success)',
@@ -43,6 +43,10 @@ module.exports = {
 			},
 			spacing: {
 				contain: 'var(--s-contain)',
+			},
+			height: {
+				18: '4.5rem',
+				128: '32rem',
 			},
 			keyframes: {
 				'caret-blink': {
