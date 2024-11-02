@@ -49,11 +49,11 @@ export default async function RootLayout({
 	const userSession = await getUserSession();
 
 	return (
-		<html lang="en">
+		<html lang="en" className="bg-black">
 			<body
 				className={cx(
-					fontsGerstnerProgramm.className,
-					fontsAbcDiatypeMono.className
+					fontsGerstnerProgramm.variable,
+					fontsAbcDiatypeMono.variable
 				)}
 				style={{ minHeight: userSession ? 'auto' : '100dvh' }}
 			>

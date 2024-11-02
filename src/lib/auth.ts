@@ -31,22 +31,23 @@ export async function login(formData: FormData) {
 	const session = await encrypt({ user, expires });
 
 	// Save the session in a cookie
-	(await cookies()).set('userSession', session, { expires, httpOnly: true });
+	(await cookies()).set('USER_SESSION', session, { expires, httpOnly: true });
 }
 
 export async function logout() {
 	// Destroy the session
-	(await cookies()).set('userSession', '', { expires: new Date(0) });
+	(await cookies()).set('USER_SESSION', '', { expires: new Date(0) });
 }
 
 export async function getUserSession() {
-	const session = (await cookies()).get('userSession')?.value;
+	const cookieStore = await cookies();
+	const session = cookieStore.get('USER_SESSION')?.value;
 	if (!session) return null;
-	return await decrypt(session);
+	return await session;
 }
 
 export async function updateUserSession(request: NextRequest) {
-	const session = request.cookies.get('userSession')?.value;
+	const session = request.cookies.get('USER_SESSION')?.value;
 	if (!session) return;
 
 	// Refresh the session so it doesn't expire

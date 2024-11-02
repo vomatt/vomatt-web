@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import AuthContainer from '@/components/auth/AuthContainer';
+import AuthContainer, { PageStatusType } from '@/components/auth/AuthContainer';
 import VerificationForm from '@/components/auth/VerificationForm';
 import Button from '@/components/Button';
 import NextLink from 'next/link';
@@ -12,22 +12,20 @@ import { getVerifyCode } from '@/app/api/login/getVerifyCode';
 import {
 	Form,
 	FormControl,
-	FormDescription,
 	FormField,
 	FormItem,
 	FormLabel,
 	FormMessage,
 } from '@/components/Form';
 
-import { Input } from '@/components/Input';
 import { FloatingLabelInput } from '@/components/FloatingLabelInput';
 import { STATUS_VERIFICATION, STATUS_SIGN_IN } from './AuthContainer';
 
 export default function SignIn() {
-	const [pageStatus, setPageStatus] = useState(STATUS_SIGN_IN);
+	const [pageStatus, setPageStatus] = useState<PageStatusType>(STATUS_SIGN_IN);
 	const [email, setEmail] = useState('');
 
-	const onSetPageStatus = (value: string) => {
+	const onSetPageStatus = (value: PageStatusType) => {
 		setPageStatus(value);
 	};
 
@@ -45,17 +43,14 @@ export default function SignIn() {
 	};
 
 	return (
-		<AuthContainer
-			type={pageStatus}
-			title={pageStatus === STATUS_SIGN_IN ? 'Sign in' : 'We sent you code'}
-		>
+		<AuthContainer type={pageStatus}>
 			{pageStatusScreen[pageStatus]}
 		</AuthContainer>
 	);
 }
 
 type SignInType = {
-	onSetPageStatus: (value: string) => void;
+	onSetPageStatus: (value: PageStatusType) => void;
 	onSetEmail: (value: string) => void;
 	className?: string;
 };
@@ -99,6 +94,7 @@ function SignInForm({ onSetPageStatus, onSetEmail }: SignInType) {
 
 	return (
 		<>
+			<h1 className="t-h-3 text-center mb-10">Sign in</h1>
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(onSubmit)} className="mb-10">
 					<FormField

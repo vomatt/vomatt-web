@@ -10,6 +10,7 @@ export async function generateMetadata({}) {
 
 export default async function Page() {
 	const userSession = await getUserSession();
+	console.log('🚀 ~ file: page.tsx:13 ~ Page ~ userSession:', userSession);
 
 	if (!userSession) {
 		return <SignIn />;

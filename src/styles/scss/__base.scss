@@ -11,17 +11,13 @@
 	--t-l-1: 16px/1 'Gerstner Programm', Helvetica, sans-serif;
 	--t-l-2: 12px/1 'Gerstner Programm', Helvetica, sans-serif;
 
-	--s-contain: 4vw;
+	--s-contain: Max(4vw, 36px);
 	--s-contain-max: 2000px;
-	--s-edge: var(--s-contain);
+	--s-contain-dynamic: Max(
+		var(--s-contain),
+		calc((100vw - var(--s-contain-max)) / 2)
+	);
 }
-
-/*
-	update edge spacing when --s-edge reaches its max width
-	var(--s-contain-max) / ( 1 - var(--s-contain) * 2 )
-	e.g. 2000px / (1 - 4% * 2) = 2174px
-*/
-
 @media screen and (min-width: 2174px) {
 	:root {
 		--s-edge: calc((100vw - var(--s-contain-max)) / 2);

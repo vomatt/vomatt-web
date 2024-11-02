@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -8,7 +9,6 @@ import {
 	InputOTP,
 	InputOTPGroup,
 	InputOTPSlot,
-	InputOTPSeparator,
 } from '@/components/auth/InputOTP';
 
 import {
@@ -21,7 +21,7 @@ import {
 
 interface VerificationFormProps {
 	email: string;
-	onSetPageStatus: (value: string) => void;
+	onSetPageStatus: (value: PageStatusType) => void;
 }
 
 const FormSchema = z.object({
@@ -34,6 +34,8 @@ export default function VerificationForm({
 	email,
 	onSetPageStatus,
 }: VerificationFormProps) {
+	const [error, setError] = useState('');
+	const [isLoading, setIsLoading] = useState(false);
 	const form = useForm<z.infer<typeof FormSchema>>({
 		resolver: zodResolver(FormSchema),
 		defaultValues: {
@@ -44,19 +46,32 @@ export default function VerificationForm({
 	async function onSubmit(data: z.infer<typeof FormSchema>) {
 		const { pin } = data;
 		try {
+			setError('');
+			setIsLoading(true);
 			const res = await fetch('/api/login/verify-code', {
 				method: 'POST',
 				body: JSON.stringify({ email, verifyCode: pin }),
 			});
 			const data = await res.json();
-			console.log('🚀 ~ file:52 ~ onSubmit ~ data:', data);
+			console.log(
+				'🚀 ~ file: VerificationForm.tsx:56 ~ onSubmit ~ data:',
+				data
+			);
+
+			if (data.status === 'SUCCESS') {
+			} else {
+				setError('Wrong code');
+			}
 		} catch (e) {
-			console.log('file:57 ~ onSubmit ~ e:', e);
+			setError('Something went wrong, pleas try again later');
+		} finally {
+			setIsLoading(false);
 		}
 	}
 
 	return (
 		<>
+			<h1 className="t-h-3 text-center mb-6">We sent you a code</h1>
 			<h5 className="t-b-1 mb-8 text-center">
 				Enter it below to verify {email}
 			</h5>
@@ -74,30 +89,37 @@ export default function VerificationForm({
 										{...field}
 										containerClassName="justify-center"
 									>
-										<InputOTPGroup>
-											<InputOTPSlot index={0} />
-											<InputOTPSlot index={1} />
-											<InputOTPSlot index={2} />
-										</InputOTPGroup>
-										<InputOTPSeparator />
-										<InputOTPGroup>
-											<InputOTPSlot index={3} />
-											<InputOTPSlot index={4} />
-											<InputOTPSlot index={5} />
+										<InputOTPGroup className="w-full">
+											<InputOTPSlot index={0} className="h-16" />
+											<InputOTPSlot index={1} className="h-16" />
+											<InputOTPSlot index={2} className="h-16" />
+											<InputOTPSlot index={3} className="h-16" />
+											<InputOTPSlot index={4} className="h-16" />
+											<InputOTPSlot index={5} className="h-16" />
 										</InputOTPGroup>
 									</InputOTP>
 								</FormControl>
-								<FormMessage />
+								{error && (
+									<FormMessage className="text-center text-error">
+										{error}
+									</FormMessage>
+								)}
 							</FormItem>
 						)}
 					/>
-					<Button type="submit" className="w-2/3 mt-12 mx-auto block">
+					<Button
+						type="submit"
+						className="w-full mt-8 block"
+						size="xg"
+						isLoading={isLoading}
+					>
 						Submit
 					</Button>
 					<Button
-						className="w-2/3 mt-3 mx-auto block"
+						className="w-full mt-6 mx-auto block"
 						onClick={() => onSetPageStatus(STATUS_SIGN_IN)}
 						variant="outline"
+						size="lg"
 					>
 						Back
 					</Button>
