@@ -68,7 +68,7 @@ export default function HookFormField({
 				className={cx({
 					'screen-reader-only': isHideLabel,
 				})}
-				htmlFor={id ? id : null}
+				htmlFor={id ? id : ''}
 			>
 				{label}
 			</label>

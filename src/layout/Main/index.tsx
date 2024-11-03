@@ -1,9 +1,4 @@
-import {
-	AnimatePresence,
-	domAnimation,
-	LazyMotion,
-	motion,
-} from 'framer-motion';
+import { motion } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import React, { ReactNode } from 'react';
 
@@ -17,19 +12,15 @@ type MainProps = {
 export default function Main({ children }: MainProps) {
 	const pathName = usePathname();
 	return (
-		<LazyMotion features={domAnimation}>
-			<AnimatePresence mode="wait">
-				<motion.main
-					id="main"
-					key={pathName}
-					initial="initial"
-					animate="animate"
-					exit="exit"
-					variants={pageTransitionFade}
-				>
-					{children}
-				</motion.main>
-			</AnimatePresence>
-		</LazyMotion>
+		<motion.main
+			id="main"
+			key={pathName}
+			initial="initial"
+			animate="animate"
+			exit="exit"
+			variants={pageTransitionFade}
+		>
+			{children}
+		</motion.main>
 	);
 }

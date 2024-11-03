@@ -1,16 +1,10 @@
-import React, { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { STATUS_SIGN_IN } from './AuthContainer';
 import Button from '@/components/Button';
-import {
-	InputOTP,
-	InputOTPGroup,
-	InputOTPSlot,
-} from '@/components/auth/InputOTP';
-
 import {
 	Form,
 	FormControl,
@@ -18,6 +12,9 @@ import {
 	FormItem,
 	FormMessage,
 } from '@/components/Form';
+
+import { type PageStatusType, STATUS_SIGN_IN } from './AuthContainer';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from './InputOTP';
 
 interface VerificationFormProps {
 	email: string;
@@ -43,6 +40,8 @@ export default function VerificationForm({
 		},
 	});
 
+	const router = useRouter();
+
 	async function onSubmit(data: z.infer<typeof FormSchema>) {
 		const { pin } = data;
 		try {
@@ -53,15 +52,11 @@ export default function VerificationForm({
 				body: JSON.stringify({ email, verifyCode: pin }),
 			});
 			const data = await res.json();
-			console.log(
-				'🚀 ~ file: VerificationForm.tsx:56 ~ onSubmit ~ data:',
-				data
-			);
 
-			if (data.status === 'SUCCESS') {
-			} else {
-				setError('Wrong code');
+			if (data.status === 'ERROR') {
+				return setError('Wrong code');
 			}
+			return router.replace('/');
 		} catch (e) {
 			setError('Something went wrong, pleas try again later');
 		} finally {

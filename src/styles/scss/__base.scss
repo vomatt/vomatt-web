@@ -10,7 +10,7 @@
 	--t-b-link: 12px/1 'ABC Diatype Mono', Helvetica, sans-serif;
 	--t-l-1: 16px/1 'Gerstner Programm', Helvetica, sans-serif;
 	--t-l-2: 12px/1 'Gerstner Programm', Helvetica, sans-serif;
-
+	--header-height: 64px;
 	--s-contain: Max(4vw, 36px);
 	--s-contain-max: 2000px;
 	--s-contain-dynamic: Max(
@@ -160,7 +160,9 @@ h6,
 	--height: 72px;
 	padding: 0 25px;
 	overflow: hidden;
-	transition: background-color 0.3s, color 0.3s;
+	transition:
+		background-color 0.3s,
+		color 0.3s;
 	font: var(--t-l-1);
 }
 
@@ -526,7 +528,7 @@ input[type='checkbox'] {
 
 	blockquote {
 		margin: 30px auto;
-		quotes: '\201C''\201D''\2018''\2019';
+		quotes: '\201C' '\201D' '\2018' '\2019';
 
 		&,
 		p {

@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 
 import { imageBuilder } from '@/sanity/lib/image';
 
-export default function defineMetadata({ data }): Metadata {
+export default function defineMetadata({ data }: { data: any }): Metadata {
 	const { site, page } = data || {};
 	const siteTitle = site?.title || '';
 	const metaDesc = page?.sharing?.metaDesc || site?.sharing?.metaDesc;
@@ -12,7 +12,7 @@ export default function defineMetadata({ data }): Metadata {
 			? page?.sharing?.metaTitle || siteTitle
 			: `${
 					page?.sharing?.metaTitle || page?.title || 'Page not found'
-			  } | ${siteTitle}`;
+				} | ${siteTitle}`;
 
 	const siteFavicon = site?.sharing?.favicon || false;
 	const siteFaviconUrl = siteFavicon
@@ -54,7 +54,7 @@ export default function defineMetadata({ data }): Metadata {
 			creator: siteTitle,
 			images: [shareGraphicUrl],
 		},
-		metadataBase: new URL(process.env.SITE_URL),
+		metadataBase: new URL(process.env.SITE_URL || ''),
 		alternates: {
 			canonical: '/',
 			languages: {

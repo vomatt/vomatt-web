@@ -1,5 +1,3 @@
-import SignIn from '@/components/auth/SignIn';
-import { getUserSession } from '@/lib/auth';
 import defineMetadata from '@/lib/defineMetadata';
 import { getPageHomeData } from '@/sanity/lib/fetch';
 
@@ -9,11 +7,29 @@ export async function generateMetadata({}) {
 }
 
 export default async function Page() {
-	const userSession = await getUserSession();
-	console.log('🚀 ~ file: page.tsx:13 ~ Page ~ userSession:', userSession);
-
-	if (!userSession) {
-		return <SignIn />;
-	}
-	return <div className="p-home">Home</div>;
+	return (
+		<div className="min-h-screen px-contain">
+			<h1>What’s Trending</h1>
+			<ul className="flex">
+				<li className="flex-1">
+					<div className="w-1/4">Feed</div>
+				</li>
+				<li className="flex-1">
+					<div className="w-1/4">Feed</div>
+				</li>
+				<li className="flex-1">
+					<div className="w-1/4">Feed</div>
+				</li>
+				<li className="flex-1">
+					<div className="w-1/4">Feed</div>
+				</li>
+				<li className="flex-1">
+					<div className="w-1/4">Feed</div>
+				</li>
+				<li className="flex-1">
+					<div className="w-1/4">Feed</div>
+				</li>
+			</ul>
+		</div>
+	);
 }

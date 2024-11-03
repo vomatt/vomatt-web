@@ -1,14 +1,13 @@
 'use client';
-import React, { useState } from 'react';
-import AuthContainer, { PageStatusType } from '@/components/auth/AuthContainer';
-import VerificationForm from '@/components/auth/VerificationForm';
-import Button from '@/components/Button';
-import NextLink from 'next/link';
-import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import NextLink from 'next/link';
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { getVerifyCode } from '@/app/api/login/getVerifyCode';
+import Button from '@/components/Button';
+import { FloatingLabelInput } from '@/components/FloatingLabelInput';
 import {
 	Form,
 	FormControl,
@@ -18,8 +17,9 @@ import {
 	FormMessage,
 } from '@/components/Form';
 
-import { FloatingLabelInput } from '@/components/FloatingLabelInput';
-import { STATUS_VERIFICATION, STATUS_SIGN_IN } from './AuthContainer';
+import AuthContainer, { PageStatusType } from './AuthContainer';
+import { STATUS_SIGN_IN, STATUS_VERIFICATION } from './AuthContainer';
+import VerificationForm from './VerificationForm';
 
 export default function SignIn() {
 	const [pageStatus, setPageStatus] = useState<PageStatusType>(STATUS_SIGN_IN);
@@ -78,7 +78,6 @@ function SignInForm({ onSetPageStatus, onSetEmail }: SignInType) {
 
 		try {
 			const res = await getVerifyCode(email);
-			console.log('🚀 ~ file: SignIn.tsx:85 ~ onSubmit ~ res:', res);
 			if (res.status === 'success') {
 				onSetEmail(email);
 				onSetPageStatus(STATUS_VERIFICATION);
@@ -125,22 +124,22 @@ function SignInForm({ onSetPageStatus, onSetEmail }: SignInType) {
 					{error && <p className="t-l-1 text-error mt-3">{error}</p>}
 				</form>
 			</Form>
-			<p className="t-b-2 text-center">
+			<p className="t-b-1 text-center">
 				Need help?{' '}
-				<NextLink href="/contact" className="cr-grey-900 underline">
+				<NextLink href="/contact" className="cr-gray-900 underline">
 					Forgot password
 				</NextLink>
 			</p>
 			<div className="mb-6 text-center">
 				<div className="inline-flex items-center justify-center w-full">
-					<hr className="w-64 h-px my-8 bg-grey-200 border-0 dark:bg-grey-700" />
+					<hr className="w-64 h-px my-8 bg-gray-200 border-0 dark:bg-gray-700" />
 					<span className="absolute px-2 font-medium -translate-x-1/2 text-white left-1/2 bg-black t-b-1">
 						or
 					</span>
 				</div>
-				<p className="t-b-2 text-center">
+				<p className="t-b-1 text-center">
 					Don&apos;t have an account?{' '}
-					<NextLink href="/signup" className="cr-grey-900 underline">
+					<NextLink href="/signup" className="cr-gray-900 underline">
 						Sign up
 					</NextLink>
 				</p>

@@ -1,11 +1,7 @@
 import type { Config } from 'tailwindcss';
 
 const config: Config = {
-	content: [
-		'./src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-		'./src/components/**/*.{js,ts,jsx,tsx,mdx}',
-		'./src/app/**/*.{js,ts,jsx,tsx,mdx}',
-	],
+	content: ['./src/**/*.{js,ts,jsx,tsx,mdx}'],
 	theme: {
 		fontFamily: {
 			sans: ['Graphik', 'sans-serif'],
@@ -41,7 +37,7 @@ const config: Config = {
 			},
 			spacing: {
 				contain: 'var(--s-contain)',
-				'contain-dynamic': 'var(--s-contain-dynamic)',
+				containDynamic: 'var(--s-contain-dynamic)',
 			},
 			height: {
 				18: '4.5rem',

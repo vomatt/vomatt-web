@@ -1,7 +1,7 @@
 'use client';
 
-import * as React from 'react';
 import { OTPInput, OTPInputContext } from 'input-otp';
+import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -13,9 +13,9 @@ const InputOTP = React.forwardRef<
 		ref={ref}
 		containerClassName={cn(
 			'flex items-center gap-2 has-[:disabled]:opacity-50',
-			containerClassName
+			containerClassName || ''
 		)}
-		className={cn('disabled:cursor-not-allowed', className)}
+		className={cn('disabled:cursor-not-allowed', className || '')}
 		{...props}
 	/>
 ));
@@ -86,4 +86,4 @@ const InputOTPSeparator = React.forwardRef<
 
 InputOTPSeparator.displayName = 'InputOTPSeparator';
 
-export { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator };
+export { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot };

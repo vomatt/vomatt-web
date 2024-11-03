@@ -28,7 +28,7 @@ const CMSLink: React.FC<CMSLinkType> = ({
 	isButton,
 	...props
 }) => {
-	if (!link.route) {
+	if (!link?.route) {
 		return null;
 	}
 
@@ -38,8 +38,8 @@ const CMSLink: React.FC<CMSLinkType> = ({
 	return (
 		<NextLink
 			href={route}
-			target={route?.match('^mailto:') || isOpenNewTab ? '_blank' : null}
-			rel={isOpenNewTab ? 'noopener noreferrer' : null}
+			target={route?.match('^mailto:') || isOpenNewTab ? '_blank' : ''}
+			rel={isOpenNewTab ? 'noopener noreferrer' : ''}
 			aria-label={ariaLabel || `${title || `Go to ${route}`}`}
 			className={cx(className, {
 				btn: isButton,

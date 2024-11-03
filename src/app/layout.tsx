@@ -1,7 +1,8 @@
 import '@/styles/scss/main.scss';
-import React, { ReactNode } from 'react';
+
 import cx from 'classnames';
 import localFont from 'next/font/local';
+import React, { ReactNode } from 'react';
 
 import Layout from '@/layout';
 import { getUserSession } from '@/lib/auth';

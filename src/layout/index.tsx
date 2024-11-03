@@ -1,8 +1,7 @@
 'use client';
 import { usePathname } from 'next/navigation';
-import React, { ReactNode, Fragment, useEffect } from 'react';
+import React, { ReactNode } from 'react';
 
-import { siteSetup } from '@/hooks/useSetup';
 import useWindowDimensions from '@/hooks/useWindowDimensions';
 import HeadTrackingCode from '@/layout/HeadTrackingCode';
 import * as gtag from '@/lib/gtag';
@@ -26,10 +25,6 @@ export default function Layout({
 }: LayoutProps) {
 	const { header, footer } = siteData;
 	const pathname = usePathname();
-
-	useEffect(() => {
-		siteSetup();
-	}, []);
 
 	// useEffect(() => {
 	// 	if (siteData?.integrations?.gaID) {

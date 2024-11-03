@@ -23,13 +23,13 @@ const Menu = (props: MenuProps) => {
 	return (
 		<div className={className || ''}>
 			<ul className={ulClassName || ''}>
-				{items.map((item, index) => {
+				{items.map((item: any, index: number) => {
 					const { link, dropdownItems } = item ?? {};
 					const isDropdown = !!dropdownItems;
 
 					if (isDropdown) {
 						const isActive =
-							dropdownItems.filter((item) => {
+							dropdownItems.filter((item: any) => {
 								return checkIfActive({
 									pathName: pathName,
 									url: link.route,
@@ -62,7 +62,7 @@ const Menu = (props: MenuProps) => {
 								link={link}
 								onClick={onClick}
 								title={item.title}
-								tabIndex={!hasFocus ? -1 : null}
+								tabIndex={!hasFocus ? -1 : 0}
 								className="t-l-1"
 							/>
 						</li>

@@ -20,21 +20,10 @@
 	}
 }
 
-@import '__reset';
 @import '__utilities';
 @import '__base';
-@import '__animation';
 
-// ***COMPONENTS***
-@import 'c-accordion';
-// @import 'c-carousel';
-
-// ***GLOBAL***
-@import 'g-misc';
-@import 'g-ada-skip';
-@import 'g-announcement';
-@import 'g-mobile-menu';
-@import 'g-footer';
-
-@import 'p-404';
-@import 'p-general';
+#main {
+	min-height: auto;
+	padding: 0.1px 0;
+}

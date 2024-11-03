@@ -7,8 +7,6 @@ export async function getVerifyCode(email: string) {
 		);
 		const data = await res.json();
 
-		console.log('🚀 ~ file: getVerifyCode.ts:8 ~ getVerifyCode ~ data:', data);
-
 		if (!data) {
 			return {
 				status: 'error',
@@ -18,11 +16,8 @@ export async function getVerifyCode(email: string) {
 			status: 'success',
 		};
 	} catch (error) {
-		console.log(
-			'🚀 ~ file: getVerifyCode.ts:20 ~ getVerifyCode ~ error:',
-			error
-		);
 		return {
+			error,
 			status: 'error',
 		};
 	}

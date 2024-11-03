@@ -14,7 +14,13 @@ export const checkIfActive = ({
 	}
 };
 
-export const getRoute = ({ documentType, slug }) => {
+export const getRoute = ({
+	documentType,
+	slug,
+}: {
+	documentType: string;
+	slug: string;
+}) => {
 	switch (documentType) {
 		case 'pHome':
 			return '/';

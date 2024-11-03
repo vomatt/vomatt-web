@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
+import { REFRESH_TOKEN, USER_SESSION } from '@/data/constants';
 import { decrypt } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
@@ -22,21 +23,18 @@ export async function POST(request: NextRequest) {
 		});
 
 		const data = await res.json();
-		console.log('🚀 ~ file: route.ts:25 ~ POST ~ data:', data);
-		const { status, statusCode, message, accessToken, refreshToken } =
-			data || {};
+		const { status, statusCode, accessToken, refreshToken } = data || {};
 
-		if (status === 'SUCCESS' && accessToken && refreshToken) {
+		if (status === 'SUCCESS' && accessToken) {
 			const decryptToken = await decrypt(accessToken);
 			const { exp } = decryptToken;
-			const userSession = {
-				accessToken,
-				refreshToken,
-			};
-
 			const expires = new Date(exp * 1000);
-			cookieStore.set('USER_SESSION', JSON.stringify(userSession), {
+			cookieStore.set(USER_SESSION, accessToken, {
 				expires,
+				httpOnly: true,
+			});
+
+			cookieStore.set(REFRESH_TOKEN, refreshToken, {
 				httpOnly: true,
 			});
 
@@ -49,7 +47,6 @@ export async function POST(request: NextRequest) {
 			statusCode,
 		});
 	} catch (error) {
-		console.log('🚀 ~ file: route.ts:34 ~ POST ~ error:', error);
 		return NextResponse.json({
 			status: 'ERROR',
 			message: 'Something went wrong',
