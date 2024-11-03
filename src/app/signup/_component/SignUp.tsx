@@ -4,11 +4,6 @@ import NextLink from 'next/link';
 import React, { useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
-import Button from '@/components/Button';
-import CustomPortableText from '@/components/CustomPortableText';
-import HookFormField from '@/components/HookFormField';
-import { fadeAnim } from '@/lib/animate';
-
 interface SignUpProps {
 	className?: string;
 	signUpInfoData: any;

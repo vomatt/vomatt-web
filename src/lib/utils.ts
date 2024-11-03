@@ -1,6 +1,11 @@
+import {
+	ImageFormat,
+	SanityImageSource,
+} from '@sanity/image-url/lib/types/types';
 import cx from 'classnames';
-import { imageBuilder } from '@/sanity/lib/image';
 import { twMerge } from 'tailwind-merge';
+
+import { imageBuilder } from '@/sanity/lib/image';
 
 // ***UTILITIES / GET***
 
@@ -88,57 +93,6 @@ export function validateAndReturnJson(json: string) {
 	return JSON.parse(json);
 }
 
-// ***UTILITIES / ARRAY***
-
-// https://stackoverflow.com/questions/1960473/get-all-unique-values-in-a-javascript-array-remove-duplicates
-
-// sorting array of objects asc
-export function arraySortObjValAsc(arr, objVal) {
-	return arr.sort(function (a, b) {
-		if (a[objVal] > b[objVal]) {
-			return 1;
-		}
-		if (b[objVal] > a[objVal]) {
-			return -1;
-		}
-		return 0;
-	});
-}
-
-// sorting array of objects desc
-export function arraySortObjValDesc(arr, objVal) {
-	return arr.sort(function (a, b) {
-		if (a[objVal] > b[objVal]) {
-			return -1;
-		}
-		if (b[objVal] > a[objVal]) {
-			return 1;
-		}
-		return 0;
-	});
-}
-
-// https://stackoverflow.com/questions/12303989/cartesian-product-of-multiple-arrays-in-javascript
-export function arrayCartesian(...arrays) {
-	return [...arrays].reduce(
-		(a, b) =>
-			a.map((x) => b.map((y) => x.concat(y))).reduce((a, b) => a.concat(b), []),
-		[[]]
-	);
-}
-
-// ***ACTIONS***
-
-export function scrollDisable() {
-	document.documentElement.style.overflow = 'hidden';
-	document.querySelector('body').style.overflow = 'hidden';
-}
-
-export function scrollEnable() {
-	document.documentElement.style.overflow = 'auto';
-	document.querySelector('body').style.overflow = 'auto';
-}
-
 // ***REACT SPECIFIC***
 
 export function buildRgbaCssString(color: any) {
@@ -165,7 +119,20 @@ export function slugify(str: string) {
 		.replace(/-+/g, '-'); // remove consecutive hyphens
 }
 
-export function buildImageSrc(image, { width, height, format, quality = 80 }) {
+export function buildImageSrc(
+	image: SanityImageSource,
+	{
+		width,
+		height,
+		format,
+		quality = 80,
+	}: {
+		width: number;
+		height: number;
+		format: ImageFormat | undefined;
+		quality: number;
+	}
+) {
 	if (!image) {
 		return false;
 	}

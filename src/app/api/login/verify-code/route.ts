@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
 				httpOnly: true,
 			});
 
+			// return NextResponse.json({ status: 'SUCCESS' }, { status: 200 });
 			return NextResponse.json({ status: 'SUCCESS' }, { status: 200 });
 		}
 

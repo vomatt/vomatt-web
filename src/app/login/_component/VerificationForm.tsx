@@ -56,7 +56,7 @@ export default function VerificationForm({
 			if (data.status === 'ERROR') {
 				return setError('Wrong code');
 			}
-			return router.replace('/');
+			// return router.replace('/');
 		} catch (e) {
 			setError('Something went wrong, pleas try again later');
 		} finally {

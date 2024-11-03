@@ -1,11 +1,11 @@
-import '@/styles/scss/main.scss';
+import '@/styles/global.css';
 
 import cx from 'classnames';
 import localFont from 'next/font/local';
 import React, { ReactNode } from 'react';
 
+import { getCurrentUser } from '@/data/auth';
 import Layout from '@/layout';
-import { getUserSession } from '@/lib/auth';
 import defineMetadata from '@/lib/defineMetadata';
 import { getSiteData } from '@/sanity/lib/fetch';
 
@@ -47,7 +47,7 @@ export default async function RootLayout({
 	children: ReactNode;
 }) {
 	const { site } = await getSiteData();
-	const userSession = await getUserSession();
+	const userSession = await getCurrentUser();
 
 	return (
 		<html lang="en" className="bg-black">

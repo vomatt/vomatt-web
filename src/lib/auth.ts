@@ -1,3 +1,4 @@
+'use server';
 import { jwtVerify, SignJWT } from 'jose';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
@@ -21,6 +22,10 @@ export async function decrypt(input: string): Promise<any> {
 	});
 
 	return payload;
+}
+
+export async function logout() {
+	(await cookies()).set('USER_SESSION', '', { expires: new Date(0) });
 }
 
 export async function getUserSession() {

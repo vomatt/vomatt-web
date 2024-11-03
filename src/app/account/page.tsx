@@ -1,11 +1,12 @@
+import { getCurrentUser } from '@/data/auth';
 import defineMetadata from '@/lib/defineMetadata';
 
-import SignIn from './_component/SignIn';
-
+import AccountPage from './_components/AccountPage';
 export async function generateMetadata({}) {
 	return defineMetadata({ data: {} });
 }
 
 export default async function Page() {
-	return <SignIn />;
+	const user = await getCurrentUser();
+	return <AccountPage userData={user} />;
 }

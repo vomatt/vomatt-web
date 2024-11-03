@@ -12,6 +12,7 @@ import React, {
 import BrandLogo from '@/components/BrandLogo';
 import Button from '@/components/Button';
 import Menu from '@/components/Menu';
+import SvgIcons from '@/components/SvgIcons';
 
 import MobileMenuTrigger from './mobile-menu-trigger';
 
@@ -25,7 +26,6 @@ export default function Header({
 	const router = useRouter();
 	const pathname = usePathname();
 
-	const isLoggedIn = userSession;
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
 	const headerRef = useCallback((node: HTMLElement | null) => {
@@ -52,25 +52,30 @@ export default function Header({
 				ref={headerRef}
 				className={cx('g-header py-3 relative w-full z-100 px-contain ', {
 					'is-open': isMobileMenuOpen,
-					'is-logged-in': isLoggedIn,
+					'is-logged-in': userSession,
 				})}
 			>
-				<nav className="flex bg-gray-800 rounded-lg h-full pt-4 pb-6 px-6 justify-between content-center">
+				<nav className="flex bg-gray-800 rounded-lg h-full pt-4 pb-6 px-6 justify-between items-center">
 					<NextLink href="/" className="w-[160px] text-white">
 						<BrandLogo />
 					</NextLink>
-					{!isLoggedIn && (
+					{!userSession && (
 						<Button size="sm">
 							<NextLink href={`/login?from=${pathname}`}>Login</NextLink>
 						</Button>
 					)}
-					{isLoggedIn && data?.menu?.items && (
+					{userSession && (
+						<NextLink href={`/account`} className="w-7 h-7 text-white">
+							<SvgIcons type="user-circle-outline" />
+						</NextLink>
+					)}
+					{/* {userSession && data?.menu?.items && (
 						<Menu
 							items={data.menu.items}
 							className="g-header__links mobile-up-only cr-white"
 							ulClassName="g-header__menu-list f-h f-a-c t-b-2 user-select-disable"
 						/>
-					)}
+					)} */}
 				</nav>
 			</header>
 
