@@ -22,8 +22,7 @@ import { STATUS_SIGN_IN, STATUS_VERIFICATION } from './AuthContainer';
 import VerificationForm from './VerificationForm';
 
 export default function SignIn() {
-	const [pageStatus, setPageStatus] =
-		useState<PageStatusType>(STATUS_VERIFICATION);
+	const [pageStatus, setPageStatus] = useState<PageStatusType>(STATUS_SIGN_IN);
 	const [email, setEmail] = useState('');
 
 	const onSetPageStatus = (value: PageStatusType) => {

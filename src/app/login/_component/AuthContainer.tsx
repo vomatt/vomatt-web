@@ -26,7 +26,7 @@ export default function AuthContainer({
 			exit="hide"
 			variants={fadeAnim}
 			className={cx(
-				'relative max-w-md h-[calc(100svh_-_var(--s-header))] mx-auto w-full flex flex-col justify-center px-contain',
+				'relative max-w-md h-[calc(100svh_-_var(--s-header))] mx-auto w-full flex flex-col justify-center px-5',
 				className
 			)}
 		>

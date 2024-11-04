@@ -60,7 +60,7 @@ export default function Header({
 						<BrandLogo />
 					</NextLink>
 					{!userSession && (
-						<Button size="sm">
+						<Button size="sm" asChild>
 							<NextLink href={`/login?from=${pathname}`}>Login</NextLink>
 						</Button>
 					)}

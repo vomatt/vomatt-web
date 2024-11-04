@@ -32,7 +32,7 @@
 		--t-l-1: 16px/1 'Gerstner Programm', Helvetica, sans-serif;
 		--t-l-2: 12px/1 'Gerstner Programm', Helvetica, sans-serif;
 		--header-height: 64px;
-		--s-contain: Max(4vw, 36px);
+		--s-contain: Max(4vw, 20px);
 		--s-contain-max: 2000px;
 		--s-contain-dynamic: Max(
 			var(--s-contain),
@@ -241,10 +241,9 @@
 			}
 		}
 
-		// WP specific
-	.aligncenter,
-	.alignleft,
-	.alignright {
+		.aligncenter,
+		.alignleft,
+		.alignright {
 			display: block;
 			padding: 0;
 		}
@@ -272,14 +271,14 @@
 
 @layer utilities {
 	:root {
-		--cr-black: #000000;
-		--cr-white: #ffffff;
-		--cr-cream: #fdfdf7;
-		--cr-accent: #535c51;
-		--cr-primary: #2966f6;
-		--cr-secondary: #d0f046;
-		--cr-tertiary: #d0f046;
-		--cr-quaternary: #f15a22;
+		--cr-black: 0, 0, 0;
+		--cr-white: 255, 255, 255;
+		--cr-cream: 253, 253, 247;
+		--cr-accent: 83, 92, 81;
+		--cr-primary: 41, 102, 246;
+		--cr-secondary: 208, 240, 70;
+		--cr-tertiary: 208, 240, 70;
+		--cr-quaternary: 241, 90, 34;
 
 		--cr-gray-50: #fafafa;
 		--cr-gray-100: #f5f5f5;
@@ -293,9 +292,9 @@
 		--cr-gray-900: #171717;
 		--cr-gray-950: #0a0a0a;
 
-		--cr-success: #006837;
-		--cr-warn: #ecbd5e;
-		--cr-error: #a3220f;
+		--cr-success: 0, 104, 55;
+		--cr-warn: 236, 189, 94;
+		--cr-error: 163, 34, 15;
 	}
 	.object-fit,
 	.object-contain {

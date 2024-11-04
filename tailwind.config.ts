@@ -10,14 +10,14 @@ const config: Config = {
 		},
 		extend: {
 			colors: {
-				black: 'var(--cr-black)',
-				white: 'var(--cr-white)',
-				accent: 'var(--cr-accent)',
-				cream: 'var(--cr-cream)',
-				primary: 'var(--cr-primary)',
-				secondary: 'var(--cr-secondary)',
-				tertiary: 'var(--cr-tertiary)',
-				quaternary: 'var(--cr-quaternary)',
+				black: 'rgba(var(--cr-black), 1)',
+				white: 'rgba(var(--cr-white), 1)',
+				accent: 'rgba(var(--cr-accent), 1)',
+				cream: 'rgba(var(--cr-cream), 1)',
+				primary: 'rgba(var(--cr-primary), 1)',
+				secondary: 'rgba(var(--cr-secondary), 1)',
+				tertiary: 'rgba(var(--cr-tertiary), 1)',
+				quaternary: 'rgba(var(--cr-quaternary), 1)',
 				gray: {
 					50: 'var(--cr-gray-50)',
 					100: 'var(--cr-gray-100)',
@@ -30,14 +30,13 @@ const config: Config = {
 					800: 'var(--cr-gray-800)',
 					900: 'var(--cr-gray-900)',
 				},
-
-				success: 'var(--cr-success)',
-				warn: 'var(--cr-warn)',
-				error: 'var(--cr-error)',
+				success: 'rgba(var(--cr-success)',
+				warn: 'rgba(var(--cr-warn)',
+				error: 'rgb(avar(--cr-error)',
 			},
 			spacing: {
 				contain: 'var(--s-contain)',
-				containDynamic: 'var(--s-contain-dynamic)',
+				'contain-dynamic': 'var(--s-contain-dynamic)',
 			},
 			height: {
 				18: '4.5rem',

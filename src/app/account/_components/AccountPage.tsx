@@ -14,7 +14,7 @@ export type AccountPageType = {
 export default function AccountPage({ userData }: AccountPageType) {
 	return (
 		<div className="min-h-screen px-contain">
-			<h1>Hi {userData?.nickName}</h1>
+			<h1 className="text-white mb-12">Hi {userData?.nickName}</h1>
 			<Button onClick={() => logout()}>Log out</Button>
 		</div>
 	);
