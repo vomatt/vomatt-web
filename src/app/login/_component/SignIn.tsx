@@ -126,7 +126,7 @@ function SignInForm({ onSetPageStatus, onSetEmail }: SignInType) {
 			</Form>
 			<p className="t-b-1 text-center">
 				Need help?{' '}
-				<NextLink href="/contact" className="cr-gray-900 underline">
+				<NextLink href="/forgot-password" className="cr-gray-900 underline">
 					Forgot password
 				</NextLink>
 			</p>

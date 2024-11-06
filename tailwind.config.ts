@@ -30,9 +30,9 @@ const config: Config = {
 					800: 'var(--cr-gray-800)',
 					900: 'var(--cr-gray-900)',
 				},
-				success: 'rgba(var(--cr-success)',
-				warn: 'rgba(var(--cr-warn)',
-				error: 'rgb(avar(--cr-error)',
+				success: 'rgba(var(--cr-success), 1)',
+				warn: 'rgba(var(--cr-warn) ,1)',
+				error: 'rgba(var(--cr-error), 1)',
 			},
 			spacing: {
 				contain: 'var(--s-contain)',

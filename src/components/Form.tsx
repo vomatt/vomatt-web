@@ -1,6 +1,7 @@
 'use client';
 import cx from 'classnames';
 import * as React from 'react';
+import { Slot } from '@radix-ui/react-slot';
 
 import {
 	Controller,
@@ -17,7 +18,7 @@ const Form = FormProvider;
 
 type FormFieldContextValue<
 	TFieldValues extends FieldValues = FieldValues,
-	TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
+	TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 > = {
 	name: TName;
 };
@@ -28,7 +29,7 @@ const FormFieldContext = React.createContext<FormFieldContextValue>(
 
 const FormField = <
 	TFieldValues extends FieldValues = FieldValues,
-	TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
+	TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 >({
 	...props
 }: ControllerProps<TFieldValues, TName>) => {
@@ -38,6 +39,14 @@ const FormField = <
 		</FormFieldContext.Provider>
 	);
 };
+
+type FormItemContextValue = {
+	id: string;
+};
+
+const FormItemContext = React.createContext<FormItemContextValue>(
+	{} as FormItemContextValue
+);
 
 const useFormField = () => {
 	const fieldContext = React.useContext(FormFieldContext);
@@ -61,14 +70,6 @@ const useFormField = () => {
 		...fieldState,
 	};
 };
-
-type FormItemContextValue = {
-	id: string;
-};
-
-const FormItemContext = React.createContext<FormItemContextValue>(
-	{} as FormItemContextValue
-);
 
 const FormItem = React.forwardRef<
 	HTMLDivElement,
@@ -116,7 +117,7 @@ const FormControl = React.forwardRef<HTMLDivElement, FormControlProps>(
 			useFormField();
 
 		return (
-			<div
+			<Slot
 				ref={ref}
 				id={formItemId}
 				aria-describedby={
@@ -164,12 +165,9 @@ const FormMessage = React.forwardRef<
 		<p
 			ref={ref}
 			id={formMessageId}
-			className={cx(
-				cn('text-[0.8rem] font-medium text-destructive', className || ''),
-				{
-					'text-error': error,
-				}
-			)}
+			className={cx(cn('text-[0.8rem] font-medium', className || ''), {
+				'text-error': error,
+			})}
 			{...props}
 		>
 			{body}
