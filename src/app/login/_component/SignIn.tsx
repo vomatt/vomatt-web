@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { getVerifyCode } from '@/app/api/login/getVerifyCode';
 import Button from '@/components/Button';
 import { FloatingLabelInput } from '@/components/FloatingLabelInput';
+
 import {
 	Form,
 	FormControl,
@@ -17,9 +18,11 @@ import {
 	FormMessage,
 } from '@/components/Form';
 
-import AuthContainer, { PageStatusType } from './AuthContainer';
-import { STATUS_SIGN_IN, STATUS_VERIFICATION } from './AuthContainer';
-import VerificationForm from './VerificationForm';
+import AuthContainer from '@/components/auth/AuthContainer';
+import { STATUS_SIGN_IN, STATUS_VERIFICATION } from '@/data/constants';
+import VerificationForm from '@/components/auth/VerificationForm';
+
+type PageStatusType = 'STATUS_SIGN_IN' | 'STATUS_VERIFICATION';
 
 export default function SignIn() {
 	const [pageStatus, setPageStatus] = useState<PageStatusType>(STATUS_SIGN_IN);
@@ -38,7 +41,10 @@ export default function SignIn() {
 			<SignInForm onSetPageStatus={onSetPageStatus} onSetEmail={onSetEmail} />
 		),
 		STATUS_VERIFICATION: (
-			<VerificationForm email={email} onSetPageStatus={onSetPageStatus} />
+			<VerificationForm
+				email={email}
+				backButtonFunc={() => onSetPageStatus(STATUS_SIGN_IN)}
+			/>
 		),
 	};
 
@@ -49,7 +55,7 @@ export default function SignIn() {
 	);
 }
 
-type SignInType = {
+type SignInFormType = {
 	onSetPageStatus: (value: PageStatusType) => void;
 	onSetEmail: (value: string) => void;
 	className?: string;
@@ -61,7 +67,7 @@ const FormSchema = z.object({
 	}),
 });
 
-function SignInForm({ onSetPageStatus, onSetEmail }: SignInType) {
+function SignInForm({ onSetPageStatus, onSetEmail }: SignInFormType) {
 	const [error, setError] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
 
@@ -99,23 +105,27 @@ function SignInForm({ onSetPageStatus, onSetEmail }: SignInType) {
 					<FormField
 						control={form.control}
 						name="email"
-						render={({ field }) => (
-							<FormItem className="mb-5">
-								<FormControl>
-									<FloatingLabelInput
-										type="text"
-										label="Email Address"
-										id="signInEmail"
-										{...field}
-									/>
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
+						render={({ field, formState }) => {
+							return (
+								<FormItem className="mb-5">
+									<FormControl>
+										<FloatingLabelInput
+											type="text"
+											label="Email Address"
+											id="signInEmail"
+											inputSize="md"
+											error={formState?.errors['email']?.type}
+											{...field}
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							);
+						}}
 					/>
 					<Button
-						size="xg"
 						className="w-full"
+						size="md"
 						type="submit"
 						isLoading={isLoading}
 					>

@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import Button from '@/components/Button';
 import { FloatingLabelInput } from '@/components/FloatingLabelInput';
 import { useForm } from 'react-hook-form';
+import CustomPortableText from '@/components/CustomPortableText';
 
 import { z } from 'zod';
 import {
@@ -16,11 +17,9 @@ import {
 	FormMessage,
 	FormLabel,
 } from '@/components/Form';
-
-interface SignUpProps {
-	className?: string;
-	signUpInfoData: any;
-}
+import AuthContainer from '@/components/auth/AuthContainer';
+import { STATUS_SIGN_IN, STATUS_VERIFICATION } from '@/data/constants';
+import VerificationForm from '@/components/auth/VerificationForm';
 
 const nameValidation = new RegExp(
 	/^[\w'\-,.]*[^_!¡?÷?¿\/\\+=@#$%ˆ&*(){}|~<>;:[\]]*$/
@@ -48,8 +47,59 @@ const FormSchema = z.object({
 		}),
 });
 
-const SignUp: React.FC<SignUpProps> = ({ className, signUpInfoData }) => {
-	const { policyMessage } = signUpInfoData || {};
+type SignUpType = {
+	className?: string;
+	signUpInfoData: any;
+};
+type PageStatusType = 'STATUS_SIGN_IN' | 'STATUS_VERIFICATION';
+
+export default function SignUp({ className, signUpInfoData }: SignUpType) {
+	const [pageStatus, setPageStatus] = useState<PageStatusType>(STATUS_SIGN_IN);
+	const [email, setEmail] = useState('');
+
+	const onSetPageStatus = (value: PageStatusType) => {
+		setPageStatus(value);
+	};
+
+	const onSetEmail = (value: string) => {
+		setEmail(value);
+	};
+
+	const pageStatusScreen = {
+		STATUS_SIGN_IN: (
+			<SignUpForm
+				onSetPageStatus={onSetPageStatus}
+				onSetEmail={onSetEmail}
+				signUpInfoData={signUpInfoData}
+			/>
+		),
+		STATUS_VERIFICATION: (
+			<VerificationForm
+				email={email}
+				backButtonFunc={() => onSetPageStatus(STATUS_SIGN_IN)}
+			/>
+		),
+	};
+
+	return (
+		<AuthContainer type={pageStatus}>
+			{pageStatusScreen[pageStatus]}
+		</AuthContainer>
+	);
+}
+
+type SignUpFormType = {
+	signUpInfoData: any;
+	onSetPageStatus: (value: PageStatusType) => void;
+	onSetEmail: (value: string) => void;
+};
+
+function SignUpForm({
+	onSetPageStatus,
+	signUpInfoData,
+	onSetEmail,
+}: SignUpFormType) {
+	const { policyMessage } = signUpInfoData;
 	const [error, setError] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
 
@@ -64,11 +114,26 @@ const SignUp: React.FC<SignUpProps> = ({ className, signUpInfoData }) => {
 	});
 
 	async function onSubmit(data: z.infer<typeof FormSchema>) {
-		const { email, firstName, lastName, username } = data;
 		setIsLoading(true);
 
 		try {
+			const response = await fetch('/api/sign-up', {
+				method: 'POST',
+				body: JSON.stringify(data),
+			});
+
+			const resData = await response.json();
+			console.log('🚀 ~ file: SignUp.tsx:111 ~ onSubmit ~ resData:', resData);
+
+			if (resData.status === 'ERROR') {
+				setError(resData.message);
+				return;
+			}
+
+			onSetEmail(data.email);
+			onSetPageStatus(STATUS_VERIFICATION);
 		} catch (error) {
+			setError('Something went wrong, pleas try again later');
 		} finally {
 			setIsLoading(false);
 		}
@@ -148,20 +213,14 @@ const SignUp: React.FC<SignUpProps> = ({ className, signUpInfoData }) => {
 								</FormItem>
 							)}
 						/>
-						<Button
-							size="xg"
-							className="w-full"
-							type="submit"
-							isLoading={isLoading}
-						>
+						<Button className="w-full" type="submit" isLoading={isLoading}>
 							Submit
 						</Button>
 						{error && <p className="t-l-1 text-error mt-3">{error}</p>}
 					</form>
 				</Form>
+				<CustomPortableText blocks={policyMessage} />
 			</div>
 		</div>
 	);
-};
-
-export default SignUp;
+}

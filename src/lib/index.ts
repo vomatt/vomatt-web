@@ -30,10 +30,11 @@ export async function getUserSession() {
 	return await decrypt(session);
 }
 
-// export async function getUserLanguage() {
-// 	const lang = cookies().get(USER_LANG)?.value || i18n.base;
-// 	return lang;
-// }
+export async function getUserLanguage() {
+	const sessionUserLang = (await cookies()).get(USER_LANG)?.value;
+	const lang = sessionUserLang || 'zh-TW';
+	return lang;
+}
 
 export async function updateSession(request: NextRequest) {
 	const session = request.cookies.get(USER_SESSION)?.value;

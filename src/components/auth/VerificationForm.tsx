@@ -13,12 +13,11 @@ import {
 	FormMessage,
 } from '@/components/Form';
 
-import { type PageStatusType, STATUS_SIGN_IN } from './AuthContainer';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from './InputOTP';
 
 interface VerificationFormProps {
 	email: string;
-	onSetPageStatus: (value: PageStatusType) => void;
+	backButtonFunc: () => void;
 }
 
 const FormSchema = z.object({
@@ -29,7 +28,7 @@ const FormSchema = z.object({
 
 export default function VerificationForm({
 	email,
-	onSetPageStatus,
+	backButtonFunc,
 }: VerificationFormProps) {
 	const [error, setError] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
@@ -105,16 +104,15 @@ export default function VerificationForm({
 					<Button
 						type="submit"
 						className="w-full mt-8 block"
-						size="xg"
+						size="lg"
 						isLoading={isLoading}
 					>
 						Submit
 					</Button>
 					<Button
 						className="w-full mt-6 mx-auto block"
-						onClick={() => onSetPageStatus(STATUS_SIGN_IN)}
+						onClick={() => backButtonFunc()}
 						variant="outline"
-						size="lg"
 					>
 						Back
 					</Button>

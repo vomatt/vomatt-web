@@ -18,11 +18,10 @@ const buttonVariants = cva(
 				link: 'text-primary underline-offset-4 hover:underline',
 			},
 			size: {
-				default: 'h-12 px-4 py-2 text-base [&_svg]:size-4',
-				sm: 'h-8 rounded-md px-3 text-xs [&_svg]:size-3',
-				md: 'h-10 rounded-md px-3 text-sm [&_svg]:size-3',
-				lg: 'h-14 rounded-md px-8 text-lg [&_svg]:size-5',
-				xg: 'h-16 rounded-md px-8 text-xl [&_svg]:size-6',
+				sm: 'h-10 px-3 text-sm [&_svg]:size-3',
+				default: 'h-14 px-4 py-2 text-base [&_svg]:size-3',
+				md: 'h-16 px-3 text-base [&_svg]:size-4',
+				lg: 'h-18 px-8 text-lg [&_svg]:size-5',
 				icon: 'h-9 w-9',
 			},
 		},
@@ -42,7 +41,15 @@ interface ButtonProps
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 	(
-		{ isLoading, className, variant, size, asChild, type = 'button', ...props },
+		{
+			isLoading,
+			className,
+			variant = 'default',
+			size,
+			asChild,
+			type = 'button',
+			...props
+		},
 		ref
 	) => {
 		const Comp = asChild ? Slot : 'button';

@@ -3,10 +3,6 @@ import { motion } from 'framer-motion';
 
 import { fadeAnim } from '@/lib/animate';
 
-export const STATUS_SIGN_IN = 'STATUS_SIGN_IN';
-export const STATUS_VERIFICATION = 'STATUS_VERIFICATION';
-export type PageStatusType = 'STATUS_SIGN_IN' | 'STATUS_VERIFICATION';
-
 export type AuthContainerType = {
 	type: string;
 	className?: string;
