@@ -36,3 +36,10 @@ export const getRoute = ({
 			return slug ? `/${slug}` : undefined;
 	}
 };
+
+export const getWindowURl = (windowUrl: string) => {
+	if (windowUrl.includes('localhost:')) {
+		return `http://${windowUrl}`;
+	}
+	return `https://${windowUrl}`;
+};

@@ -1,34 +1,14 @@
 import { createClient } from 'next-sanity';
-
-import {
-	apiVersion,
-	dataset,
-	projectId,
-	revalidateSecret,
-	useCdn,
-} from './env';
+import { apiVersion, dataset, projectId, studioUrl } from '../env';
 
 export const client = createClient({
 	projectId,
 	dataset,
 	apiVersion,
-	// If webhook revalidation is setup we want the freshest content, if not then it's best to use the speedy CDN
-	useCdn: revalidateSecret ? false : true,
+	useCdn: true, // Set to false if statically generating pages, using ISR or tag-based revalidation
 	perspective: 'published',
+	stega: {
+		studioUrl,
+	},
+	requestTagPrefix: 'website',
 });
-
-export function createPreviewClient(token) {
-	return createClient({
-		...options,
-		useCdn: false,
-		token,
-	});
-}
-
-export function getSanityClient(preview) {
-	if (preview?.active) {
-		return createPreviewClient(preview.token);
-	} else {
-		return client;
-	}
-}

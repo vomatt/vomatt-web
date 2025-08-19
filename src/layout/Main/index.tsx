@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { usePathname } from 'next/navigation';
 import React, { ReactNode } from 'react';
 

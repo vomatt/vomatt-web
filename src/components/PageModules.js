@@ -5,7 +5,6 @@ import React from 'react';
 
 import Img from '@/components/Image';
 
-const Marquee = dynamic(() => import('./Marquee'));
 const Carousel = dynamic(() => import('./Carousel'));
 const Freeform = dynamic(() => import('./Freeform'), {
 	loading: () => <p>Loading...</p>,
@@ -32,9 +31,6 @@ export default function PageModules({ module }) {
 					))}
 				</Carousel>
 			);
-
-		case 'marquee':
-			return <Marquee data={module} />;
 
 		default:
 			return null;

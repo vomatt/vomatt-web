@@ -1,5 +1,5 @@
 import cx from 'classnames';
-import { AnimatePresence, m } from 'framer-motion';
+import { AnimatePresence, m } from 'motion/react';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 

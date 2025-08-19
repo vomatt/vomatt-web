@@ -30,14 +30,35 @@ export const getPortableTextPreview = (content) => {
 		return 'Empty';
 	}
 
+	let contentWithText = content.filter(
+		(el) => el._type == 'block' && el?.children[0]?.text !== ''
+	);
 	let contentWithIframe = content.filter((el) => el._type == 'iframe');
+	let contentWithImageAlt = content.filter(
+		(el) => el._type == 'image' && el.alt
+	);
+
+	let contentWithImage = content.filter((el) => el._type == 'image');
+
+	if (contentWithText && contentWithText[0]) {
+		const textChildren = contentWithText[0]?.children;
+		if (!Array.isArray(textChildren)) {
+			return '';
+		}
+
+		if (textChildren.length === 1) {
+			return textChildren[0]?.text || '';
+		}
+		return textChildren.map((item) => item?.text || '').join('');
+	}
+
 	if (contentWithIframe && contentWithIframe[0]) {
 		const { embedSnippet } = contentWithIframe[0] || '';
 		const regex = /<iframe.*?src=['"](.*?)['"]/;
 
 		const getUrl = (embedSnippet) => {
 			const url = regex.exec(embedSnippet)[1];
-			if (url.includes('youtube.com')) {
+			if (url.includes('youtube.com') || url.includes('youtu.be')) {
 				return 'youtube.com';
 			}
 			if (url.includes('vimeo.com')) {
@@ -46,20 +67,7 @@ export const getPortableTextPreview = (content) => {
 			return url;
 		};
 
-		return `Iframe: ${getUrl(embedSnippet)}`;
-	}
-
-	let contentWithText = content.filter(
-		(el) => el._type != 'image' && el?.children[0]?.text !== ''
-	);
-	let contentWithImageAlt = content.filter(
-		(el) => el._type == 'image' && el.alt
-	);
-
-	let contentWithImage = content.filter((el) => el._type == 'image');
-
-	if (contentWithText && contentWithText[0]) {
-		return contentWithText[0].children[0].text;
+		return `Iframe Embed: ${getUrl(embedSnippet)}`;
 	}
 
 	if (contentWithImageAlt && contentWithImageAlt[0]) {

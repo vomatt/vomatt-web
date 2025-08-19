@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import cx from 'classnames';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 
 const accordionAnim = {
 	open: {

@@ -1,17 +1,9 @@
 import createImageUrlBuilder from '@sanity/image-url';
+import { dataset, projectId } from '../env';
 
-import { dataset, projectId } from './env';
-
-export const imageBuilder = createImageUrlBuilder({
-	projectId: projectId || '',
-	dataset: dataset || '',
-});
+// https://www.sanity.io/docs/image-url
+export const imageBuilder = createImageUrlBuilder({ projectId, dataset });
 
 export const urlForImage = (source) => {
-	// Ensure that source image contains a valid reference
-	if (!source?.asset?._ref) {
-		return undefined;
-	}
-
-	return imageBuilder?.image(source).auto('format').fit('max');
+	return imageBuilder.image(source);
 };
