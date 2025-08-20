@@ -1,4 +1,4 @@
-import cx from 'classnames';
+import clsx from 'clsx';
 import { useSearchParams } from 'next/navigation';
 import { usePathname } from 'next/navigation';
 import React, { useState } from 'react';
@@ -13,7 +13,7 @@ const MenuDropdown = ({ title, items, onClick }) => {
 
 	return (
 		<>
-			<div className={cx('dropdown', { 'is-open': isOpen })}>
+			<div className={clsx('dropdown', { 'is-open': isOpen })}>
 				<button
 					onClick={() => setIsOpen(!isOpen)}
 					aria-expanded={isOpen}
@@ -33,7 +33,7 @@ const MenuDropdown = ({ title, items, onClick }) => {
 							return (
 								<li
 									key={key}
-									className={cx('t-l-2', { 'is-active': isActive })}
+									className={clsx('t-l-2', { 'is-active': isActive })}
 								>
 									<CMSLink
 										tabIndex={!isOpen ? -1 : null}

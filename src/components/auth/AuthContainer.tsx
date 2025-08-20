@@ -1,4 +1,4 @@
-import cx from 'classnames';
+import clsx from 'clsx';
 import { motion } from 'motion/react';
 
 import { fadeAnim } from '@/lib/animate';
@@ -21,7 +21,7 @@ export default function AuthContainer({
 			animate="show"
 			exit="hide"
 			variants={fadeAnim}
-			className={cx(
+			className={clsx(
 				'relative max-w-md h-[calc(100svh-var(--s-header))] mx-auto w-full flex flex-col justify-center px-5 text-white',
 				className
 			)}

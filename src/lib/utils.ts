@@ -2,7 +2,7 @@ import {
 	ImageFormat,
 	SanityImageSource,
 } from '@sanity/image-url/lib/types/types';
-import cx from 'classnames';
+import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import {
 	FaFacebookF,
@@ -17,16 +17,18 @@ import { imageBuilder } from '@/sanity/lib/image';
 
 // ***UTILITIES / GET***
 
-export function cn(...inputs: string[]) {
-	return twMerge(cx(inputs));
+export function cn(...inputs: ClassValue[]) {
+	return twMerge(clsx(inputs));
 }
 
-export function getRandomInt(min: number, max: number) {
-	const _min = Math.ceil(min);
-	const _max = Math.floor(max);
+export function absoluteUrl(path: string) {
+	return `${process.env.NEXT_PUBLIC_APP_URL}${path}`;
+}
 
-	// inclusive of max and min
-	return Math.floor(Math.random() * (_max - _min + 1) + _min);
+export function formatUrl(url: string) {
+	const [protocol, rest] = url.split('://');
+	const normalizedRest = rest.replace(/\/+/g, '/');
+	return `${protocol}://${normalizedRest}`;
 }
 
 export function getUrlBaseAndPath(url: string) {

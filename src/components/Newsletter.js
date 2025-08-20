@@ -1,4 +1,4 @@
-import cx from 'classnames';
+import clsx from 'clsx';
 import { AnimatePresence, m } from 'motion/react';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -128,7 +128,7 @@ const Newsletter = ({ data = {} }) => {
 
 							<button
 								type="submit"
-								className={cx('btn', {
+								className={clsx('btn', {
 									'is-loading': submitting,
 									'is-disabled': terms && !hasAgreed,
 								})}

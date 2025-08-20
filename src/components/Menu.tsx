@@ -1,4 +1,4 @@
-import cx from 'classnames';
+import clsx from 'clsx';
 import { usePathname } from 'next/navigation';
 import React from 'react';
 
@@ -37,7 +37,7 @@ const Menu = (props: MenuProps) => {
 							}).length > 0;
 
 						return (
-							<li key={index} className={cx({ 'is-active': isActive })}>
+							<li key={index} className={clsx({ 'is-active': isActive })}>
 								<Dropdown
 									title={item.title}
 									items={item.dropdownItems}
@@ -57,7 +57,7 @@ const Menu = (props: MenuProps) => {
 					});
 
 					return (
-						<li key={index} className={cx({ 'is-active': isActive })}>
+						<li key={index} className={clsx({ 'is-active': isActive })}>
 							<CMSLink
 								link={link}
 								onClick={onClick}

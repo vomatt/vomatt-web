@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import cx from 'classnames';
+import clsx from 'clsx';
 import { motion } from 'motion/react';
 
 const accordionAnim = {
@@ -22,7 +22,7 @@ export default function Accordion({ title, children, className }) {
 
 	return (
 		<div
-			className={cx('c-accordion', className, {
+			className={clsx('c-accordion', className, {
 				'is-active': isActive,
 			})}
 		>

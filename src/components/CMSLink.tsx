@@ -1,4 +1,4 @@
-import cx from 'classnames';
+import clsx from 'clsx';
 import NextLink from 'next/link';
 import React from 'react';
 
@@ -41,7 +41,7 @@ const CMSLink: React.FC<CMSLinkType> = ({
 			target={route?.match('^mailto:') || isOpenNewTab ? '_blank' : ''}
 			rel={isOpenNewTab ? 'noopener noreferrer' : ''}
 			aria-label={ariaLabel || `${title || `Go to ${route}`}`}
-			className={cx(className, {
+			className={clsx(className, {
 				btn: isButton,
 			})}
 			{...props}

@@ -19,6 +19,19 @@ const pageHome = (S) => {
 		.icon(HomeIcon);
 };
 
+const pageSignUp = (S) => {
+	return S.listItem()
+		.title('Sign Up')
+		.child(
+			S.editor()
+				.id('pSignUp')
+				.title('Sign Up')
+				.schemaType('pSignUp')
+				.documentId('pSignUp')
+		)
+		.icon(DocumentsIcon);
+};
+
 const pageError = (S) => {
 	return S.listItem()
 		.title('404 Page')
@@ -53,7 +66,7 @@ export const pagesMenu = (S) => {
 		.child(
 			S.list()
 				.title('Primary Pages')
-				.items([pageHome(S), pageError(S), pageContact(S)])
+				.items([pageHome(S), pageSignUp(S), pageError(S), pageContact(S)])
 		);
 };
 

@@ -1,4 +1,4 @@
-import cx from 'classnames';
+import clsx from 'clsx';
 import Image from 'next/image'; /* https://nextjs.org/docs/api-reference/next/image */
 import React, { useEffect, useRef, useState } from 'react';
 import { useInView } from 'react-intersection-observer';
@@ -108,7 +108,7 @@ export default function Img({
 						setLoaded(true);
 					},
 				})}
-				className={cx({
+				className={clsx({
 					lazyload: !isLoaded,
 					lazyloaded: isLoaded,
 				})}

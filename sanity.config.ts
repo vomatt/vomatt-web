@@ -102,7 +102,7 @@ const devPlugins = [
 
 export default defineConfig({
 	basePath: '/sanity',
-	title: '[STARTER]',
+	title: 'Vomatt',
 	projectId: projectId || '',
 	dataset: dataset || '',
 	plugins: isDev ? devPlugins : commonPlugins,

@@ -11,6 +11,7 @@
 	},
 	"dependencies": {
 		"@portabletext/react": "^2.0.3",
+		"@radix-ui/react-label": "^2.1.7",
 		"@radix-ui/react-slot": "^1.2.3",
 		"@sanity/client": "^6.4.9",
 		"@sanity/color-input": "^3.0.2",
@@ -20,7 +21,6 @@
 		"@sanity/vision": "^3.14.4",
 		"@vimeo/player": "^2.15.3",
 		"class-variance-authority": "^0.7.1",
-		"classnames": "^2.2.6",
 		"clsx": "^2.1.1",
 		"embla-carousel-autoplay": "^6.2.0",
 		"embla-carousel-react": "^6.2.0",
@@ -29,6 +29,7 @@
 		"input-otp": "^1.2.4",
 		"jose": "^5.2.2",
 		"js-cookie": "^3.0.0",
+		"lucide-react": "^0.540.0",
 		"motion": "^12.23.12",
 		"next": "^15.4.7",
 		"next-sanity": "^10.0.12",
@@ -67,6 +68,7 @@
 		"postcss": "^8.4.47",
 		"postcss-import": "^16.1.0",
 		"tailwindcss": "^4.1.12",
+		"tw-animate-css": "^1.3.7",
 		"typescript": "^5.6.3"
 	}
 }

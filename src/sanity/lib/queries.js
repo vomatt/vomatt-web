@@ -333,10 +333,12 @@ export const pageBlogSingleQuery = defineQuery(`
 	}
 `);
 
-export const gSignUpDataQuery = defineQuery(`
-	*[_type == "gSignUp"][0]{
+export const pSignUpDataQuery = defineQuery(`
+	*[_type == "pSignUp"][0]{
+		title,
 		policyMessage[]{
 			${portableTextContentFields}
 		},
+		${baseFields},
 	}
 `);

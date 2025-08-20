@@ -1,10 +1,9 @@
 'use client';
 
-import NextLink from 'next/link';
 import { zodResolver } from '@hookform/resolvers/zod';
 import React, { useState } from 'react';
-import Button from '@/components/Button';
-import { FloatingLabelInput } from '@/components/FloatingLabelInput';
+import { Button } from '@/components/Button';
+import { Input } from '@/components/Input';
 import { useForm } from 'react-hook-form';
 import CustomPortableText from '@/components/CustomPortableText';
 
@@ -99,7 +98,7 @@ function SignUpForm({
 	signUpInfoData,
 	onSetEmail,
 }: SignUpFormType) {
-	const { policyMessage } = signUpInfoData;
+	const { policyMessage } = signUpInfoData || {};
 	const [error, setError] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
 
@@ -141,21 +140,17 @@ function SignUpForm({
 	return (
 		<div className="min-h-screen flex justify-center items-center">
 			<div className="max-w-96 w-full">
-				<h1 className="t-h-2 mb-10 text-white text-center">Sign up</h1>
+				<h1 className="text-4xl mb-10  text-center">Sign up Vomatt</h1>
 				<Form {...form}>
-					<form onSubmit={form.handleSubmit(onSubmit)} className="mb-10">
+					<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 						<FormField
 							control={form.control}
 							name="email"
 							render={({ field }) => (
-								<FormItem className="mb-5">
+								<FormItem>
+									<FormLabel>Email Address</FormLabel>
 									<FormControl>
-										<FloatingLabelInput
-											type="text"
-											label="Email Address"
-											id="signInEmail"
-											{...field}
-										/>
+										<Input type="text" {...field} />
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -165,14 +160,10 @@ function SignUpForm({
 							control={form.control}
 							name="firstName"
 							render={({ field }) => (
-								<FormItem className="mb-5">
+								<FormItem>
+									<FormLabel>First Name</FormLabel>
 									<FormControl>
-										<FloatingLabelInput
-											type="text"
-											label="First Name"
-											id="signUpFirstName"
-											{...field}
-										/>
+										<Input type="text" {...field} />
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -182,14 +173,10 @@ function SignUpForm({
 							control={form.control}
 							name="lastName"
 							render={({ field }) => (
-								<FormItem className="mb-5">
+								<FormItem>
+									<FormLabel>Last Name</FormLabel>
 									<FormControl>
-										<FloatingLabelInput
-											type="text"
-											label="Last Name"
-											id="signUpLastName"
-											{...field}
-										/>
+										<Input type="text" {...field} />
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -199,26 +186,31 @@ function SignUpForm({
 							control={form.control}
 							name="username"
 							render={({ field }) => (
-								<FormItem className="mb-5">
+								<FormItem>
+									<FormLabel>Username</FormLabel>
 									<FormControl>
-										<FloatingLabelInput
-											type="text"
-											label="Username"
-											id="signUpUsername"
-											{...field}
-										/>
+										<Input type="text" {...field} />
 									</FormControl>
 									<FormMessage />
 								</FormItem>
 							)}
 						/>
-						<Button className="w-full" type="submit" isLoading={isLoading}>
+						<Button
+							className="w-full"
+							type="submit"
+							isLoading={isLoading}
+							disabled={isLoading}
+						>
 							Submit
 						</Button>
 						{error && <p className="t-l-1 text-error mt-3">{error}</p>}
 					</form>
 				</Form>
-				<CustomPortableText blocks={policyMessage} />
+				{policyMessage && (
+					<div className="mt-10 text-sm">
+						<CustomPortableText blocks={policyMessage} />
+					</div>
+				)}
 			</div>
 		</div>
 	);

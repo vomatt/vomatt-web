@@ -1,7 +1,7 @@
 import '@/styles/global.css';
 
-import cx from 'classnames';
-import { DM_Sans, Inter, Montagu_Slab } from 'next/font/google';
+import clsx from 'clsx';
+import { Geist, Geist_Mono } from 'next/font/google';
 import React, { ReactNode } from 'react';
 import { draftMode } from 'next/headers';
 import { getCurrentUser } from '@/data/auth';
@@ -15,24 +15,14 @@ import { handleError } from '../client-utils';
 import { Toaster } from 'sonner';
 import { VisualEditing } from 'next-sanity';
 
-const inter = Inter({
+const geistSans = Geist({
+	variable: '--font-geist-sans',
 	subsets: ['latin'],
-	display: 'swap',
-	variable: '--font-inter',
 });
 
-const montagu_slab = Montagu_Slab({
+const geistMono = Geist_Mono({
+	variable: '--font-geist-mono',
 	subsets: ['latin'],
-	display: 'swap',
-	variable: '--font-montagu-slab',
-});
-
-const dm_sans = DM_Sans({
-	subsets: ['latin'],
-	display: 'swap',
-	weight: ['400', '500', '700'],
-	style: ['normal', 'italic'],
-	variable: '--font-dm-sans',
 });
 
 export async function generateMetadata() {
@@ -131,14 +121,9 @@ export default async function RootLayout({
 	return (
 		<html
 			lang="en"
-			className={cx(
-				'bg-black',
-				inter.variable,
-				montagu_slab.variable,
-				dm_sans.variable
-			)}
+			className={clsx('dark', geistSans.variable, geistMono.variable)}
 		>
-			<body>
+			<body className="text-foreground font-sans">
 				<Layout siteData={data} userSession={userSession}>
 					{children}
 				</Layout>

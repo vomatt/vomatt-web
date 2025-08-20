@@ -10,6 +10,8 @@ import pBlogIndex from './documents/p-blog-index';
 import pContact from './documents/p-contact';
 import pGeneral from './documents/p-general';
 import pHome from './documents/p-home';
+import pSignUp from './documents/p-sign-up';
+
 // Objects
 import formFields from './objects/form-builder/form-fields';
 import link from './objects/link';
@@ -40,6 +42,7 @@ export const schemaTypes = [
 	pGeneral,
 	p404,
 	pHome,
+	pSignUp,
 	pBlogIndex,
 	pBlog,
 	pBlogAuthor,

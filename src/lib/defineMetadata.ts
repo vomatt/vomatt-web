@@ -1,51 +1,48 @@
 // https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadata-fields
-import { Metadata } from 'next';
-
 import { imageBuilder } from '@/sanity/lib/image';
+import { getRoute } from '@/lib/routes';
+import { formatUrl } from '@/lib/utils';
 
-export default function defineMetadata({ data }: { data: any }): Metadata {
-	const { site, page } = data || {};
-	const siteTitle = site?.title || '';
-	const metaDesc = page?.sharing?.metaDesc || site?.sharing?.metaDesc;
-	const metaTitle =
-		page?.isHomepage == true
-			? page?.sharing?.metaTitle || siteTitle
-			: `${
-					page?.sharing?.metaTitle || page?.title || 'Page not found'
-				} | ${siteTitle}`;
+type Props = {
+	data: {
+		sharing?: any;
+		title?: string;
+		isHomepage?: boolean;
+		_type?: string;
+		slug?: string;
+	};
+};
 
-	const siteFavicon = site?.sharing?.favicon || false;
-	const siteFaviconUrl = siteFavicon
-		? imageBuilder.image(siteFavicon).width(256).height(256).url()
-		: '/favicon.ico';
+export default function defineMetadata({ data }: Props) {
+	const { sharing, title, isHomepage, _type, slug } = data || {};
 
-	const shareGraphic =
-		page?.sharing?.shareGraphic?.asset ||
-		site?.sharing?.shareGraphic?.asset ||
-		'';
+	const siteTitle = sharing?.siteTitle || '';
+	const metaDesc = sharing?.metaDesc || '';
+	const metaTitle = sharing?.metaTitle || title || `Page not found`;
+	const shareGraphic = sharing?.shareGraphic?.asset;
 	const shareGraphicUrl = shareGraphic
-		? imageBuilder.image(shareGraphic).url()
-		: '';
+		? imageBuilder.image(shareGraphic).format('webp').width(1200).url()
+		: null;
 
-	const disableIndex = page?.sharing?.disableIndex;
+	const disableIndex = sharing?.disableIndex;
+	const pageRoute = getRoute({
+		documentType: _type,
+		slug: slug,
+	});
 
 	return {
-		title: metaTitle,
+		...(isHomepage ? null : { title: metaTitle }),
 		description: metaDesc,
-		creator: siteTitle,
-		publisher: siteTitle,
-		applicationName: siteTitle,
 		openGraph: {
 			title: metaTitle,
 			description: metaDesc,
-			images: [shareGraphicUrl],
-			url: process.env.SITE_URL,
-			siteName: siteTitle,
-			locale: 'en_US',
-			type: 'website',
-		},
-		icons: {
-			icon: siteFaviconUrl,
+			images: [
+				{
+					url: shareGraphicUrl,
+					width: 1200,
+					height: 630,
+				},
+			],
 		},
 		twitter: {
 			card: 'summary_large_image',
@@ -54,19 +51,19 @@ export default function defineMetadata({ data }: { data: any }): Metadata {
 			creator: siteTitle,
 			images: [shareGraphicUrl],
 		},
-		metadataBase: new URL(process.env.SITE_URL || ''),
 		alternates: {
-			canonical: '/',
-			languages: {
-				'en-US': '/en-US',
-			},
+			...(pageRoute && {
+				canonical: formatUrl(`${process.env.SITE_URL}${pageRoute}`),
+			}),
+			// TODO: Enable when site is multilingual
+			// languages: {
+			// 	'en-US': '/en-US',
+			// },
 		},
-		...(disableIndex && {
-			robots: {
-				index: false,
-				follow: false,
-				nocache: true,
-			},
-		}),
+		robots: {
+			index: !disableIndex,
+			follow: !disableIndex,
+			nocache: true,
+		},
 	};
 }

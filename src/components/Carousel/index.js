@@ -1,4 +1,4 @@
-import cx from 'classnames';
+import clsx from 'clsx';
 import Autoplay from 'embla-carousel-autoplay';
 import useEmblaCarousel from 'embla-carousel-react';
 import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures';
@@ -60,7 +60,7 @@ const Carousel = ({
 
 	return (
 		<>
-			<div className={cx('carousel', className)}>
+			<div className={clsx('carousel', className)}>
 				<div
 					ref={viewportRef}
 					className="carousel-viewport"

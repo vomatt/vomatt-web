@@ -1,4 +1,4 @@
-import cx from 'classnames';
+import clsx from 'clsx';
 
 interface LogoProps {
 	className?: string;
@@ -7,7 +7,7 @@ interface LogoProps {
 export default function BrandLogo({ className }: LogoProps) {
 	return (
 		<svg
-			className={cx('svg-vomatt', className)}
+			className={clsx('svg-vomatt', className)}
 			viewBox="0 0 152 32"
 			fill="currentColor"
 			xmlns="http://www.w3.org/2000/svg"

@@ -1,20 +1,11 @@
-import cx from 'classnames';
+import clsx from 'clsx';
 import NextLink from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import React, {
-	ReactNode,
-	useCallback,
-	useEffect,
-	useRef,
-	useState,
-} from 'react';
-
+import React, { useCallback, useEffect, useState } from 'react';
+import { cn } from '@/lib/utils';
 import BrandLogo from '@/components/BrandLogo';
 import Button from '@/components/Button';
-import Menu from '@/components/Menu';
 import SvgIcons from '@/components/SvgIcons';
-
-import MobileMenuTrigger from './mobile-menu-trigger';
 
 export default function Header({
 	data,
@@ -50,20 +41,23 @@ export default function Header({
 		<>
 			<header
 				ref={headerRef}
-				className={cx('g-header py-3 relative w-full z-100 px-contain ', {
+				className={clsx('g-header py-3 relative w-full z-100 px-contain ', {
 					'is-open': isMobileMenuOpen,
 					'is-logged-in': userSession,
 				})}
 			>
-				<nav className="flex bg-gray-800 rounded-lg h-full py-4 px-5 justify-between items-center">
+				<nav
+					className={cn(
+						'flex bg-gray-800 rounded-lg h-full py-4 px-5  items-center justify-center',
+						{
+							'justify-between': userSession,
+						}
+					)}
+				>
 					<NextLink href="/" className="w-[160px] text-white">
 						<BrandLogo />
 					</NextLink>
-					{!userSession && (
-						<Button size="sm" asChild>
-							<NextLink href={`/login?from=${pathname}`}>Login</NextLink>
-						</Button>
-					)}
+
 					{userSession && (
 						<NextLink href={`/account`} className="w-7 h-7 text-white">
 							<SvgIcons type="user-circle-outline" />
@@ -80,7 +74,7 @@ export default function Header({
 			</header>
 
 			{/* <div
-				className={cx('mobile-menu', {
+				className={clsx('mobile-menu', {
 					'is-open': isMobileMenuOpen,
 				})}
 			>

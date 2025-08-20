@@ -1,13 +1,14 @@
 'use client';
 import { zodResolver } from '@hookform/resolvers/zod';
+
 import NextLink from 'next/link';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { getVerifyCode } from '@/app/api/login/getVerifyCode';
-import Button from '@/components/Button';
-import { FloatingLabelInput } from '@/components/FloatingLabelInput';
+import { Button } from '@/components/Button';
+import { Input } from '@/components/Input';
 
 import {
 	Form,
@@ -98,23 +99,22 @@ function SignInForm({ onSetPageStatus, onSetEmail }: SignInFormType) {
 	}
 
 	return (
-		<>
-			<h1 className="t-h-3 text-center mb-10">Sign in</h1>
+		<div className="">
+			<h1 className="font-medium text-6xl text-center mb-10">Sign in</h1>
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(onSubmit)} className="mb-10">
 					<FormField
 						control={form.control}
 						name="email"
-						render={({ field, formState }) => {
+						render={({ field }) => {
 							return (
 								<FormItem className="mb-5">
+									<FormLabel>Email Address</FormLabel>
 									<FormControl>
-										<FloatingLabelInput
-											type="text"
-											label="Email Address"
-											id="signInEmail"
-											inputSize="md"
-											error={formState?.errors['email']?.type}
+										<Input
+											type="email"
+											placeholder="m@example.com"
+											required
 											{...field}
 										/>
 									</FormControl>
@@ -123,13 +123,8 @@ function SignInForm({ onSetPageStatus, onSetEmail }: SignInFormType) {
 							);
 						}}
 					/>
-					<Button
-						className="w-full"
-						size="md"
-						type="submit"
-						isLoading={isLoading}
-					>
-						Submit
+					<Button className="w-full" type="submit" disabled={isLoading}>
+						Login
 					</Button>
 					{error && <p className="t-l-1 text-error mt-3">{error}</p>}
 				</form>
@@ -143,7 +138,7 @@ function SignInForm({ onSetPageStatus, onSetEmail }: SignInFormType) {
 			<div className="mb-6 text-center">
 				<div className="inline-flex items-center justify-center w-full">
 					<hr className="w-64 h-px my-8 bg-gray-200 border-0 dark:bg-gray-700" />
-					<span className="absolute px-2 font-medium -translate-x-1/2 text-white left-1/2 bg-black t-b-1">
+					<span className="absolute px-2 font-medium -translate-x-1/2 text-white left-1/2 bg-background t-b-1">
 						or
 					</span>
 				</div>
@@ -154,6 +149,6 @@ function SignInForm({ onSetPageStatus, onSetEmail }: SignInFormType) {
 					</NextLink>
 				</p>
 			</div>
-		</>
+		</div>
 	);
 }

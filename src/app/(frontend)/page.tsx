@@ -1,5 +1,7 @@
 import { getCurrentUser } from '@/data/auth';
 import { FeedList } from './_components/FeedList';
+import Link from 'next/link';
+import { Button } from '@/components/Button';
 // export async function generateMetadata({}) {}
 
 const fakeData = [
@@ -24,13 +26,19 @@ export default async function Page() {
 	const user = await getCurrentUser();
 	return (
 		<div className="px-contain">
-			<h1 className="text-white text-4xl px-6 mb-10">What&apos;s Trending</h1>
-			<div className="flex justify-between">
-				<FeedList data={fakeData} className="mx-auto" />
+			<div className="flex justify-center gap-10">
+				<FeedList data={fakeData} className="" />
 				{!user && (
-					<div className="text-white bg-gray-800 rounded-lg p-6">
-						<h4>Log in or sign up for Vomatt</h4>
-						<p>See what people are talking about and join the conversation.</p>
+					<div className=" bg-gray-800 rounded-lg p-6 h-fit text-center max-w-sm">
+						<h4 className="text-white font-bold text-2xl">
+							Log in or sign up for Vomatt
+						</h4>
+						<p className="text-gray mt-2">
+							See what people are talking about and join the conversation.
+						</p>
+						<Button asChild className="mt-5">
+							<Link href="/login">Log in</Link>
+						</Button>
 					</div>
 				)}
 			</div>
