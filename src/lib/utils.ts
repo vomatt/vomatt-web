@@ -447,6 +447,10 @@ const SPACING_CLASSES = {
 	},
 };
 
+export function hasArrayValue(arr: any[]) {
+	return Array.isArray(arr) && arr.length > 0;
+}
+
 export function getIcon(icon: string) {
 	switch (icon) {
 		case 'facebook':

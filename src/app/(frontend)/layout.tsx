@@ -1,7 +1,7 @@
 import '@/styles/global.css';
 
 import cx from 'classnames';
-import localFont from 'next/font/local';
+import { DM_Sans, Inter, Montagu_Slab } from 'next/font/google';
 import React, { ReactNode } from 'react';
 import { draftMode } from 'next/headers';
 import { getCurrentUser } from '@/data/auth';
@@ -15,26 +15,24 @@ import { handleError } from '../client-utils';
 import { Toaster } from 'sonner';
 import { VisualEditing } from 'next-sanity';
 
-const fontsGerstnerProgramm = localFont({
-	src: [
-		{
-			path: '../fonts/gerstner-programm-regular.woff2',
-			weight: '400',
-			style: 'normal',
-		},
-	],
-	variable: '--font-gerstner-programm',
+const inter = Inter({
+	subsets: ['latin'],
+	display: 'swap',
+	variable: '--font-inter',
 });
 
-const fontsAbcDiatypeMono = localFont({
-	src: [
-		{
-			path: '../fonts/abc-diatype-mono-regular.woff2',
-			weight: '400',
-			style: 'normal',
-		},
-	],
-	variable: '--font-abc-diatype-mono',
+const montagu_slab = Montagu_Slab({
+	subsets: ['latin'],
+	display: 'swap',
+	variable: '--font-montagu-slab',
+});
+
+const dm_sans = DM_Sans({
+	subsets: ['latin'],
+	display: 'swap',
+	weight: ['400', '500', '700'],
+	style: ['normal', 'italic'],
+	variable: '--font-dm-sans',
 });
 
 export async function generateMetadata() {
@@ -135,8 +133,9 @@ export default async function RootLayout({
 			lang="en"
 			className={cx(
 				'bg-black',
-				fontsGerstnerProgramm.variable,
-				fontsAbcDiatypeMono.variable
+				inter.variable,
+				montagu_slab.variable,
+				dm_sans.variable
 			)}
 		>
 			<body>

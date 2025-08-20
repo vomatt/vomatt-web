@@ -123,7 +123,6 @@ function SignUpForm({
 			});
 
 			const resData = await response.json();
-			console.log('🚀 ~ file: SignUp.tsx:111 ~ onSubmit ~ resData:', resData);
 
 			if (resData.status === 'ERROR') {
 				setError(resData.message);

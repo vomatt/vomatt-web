@@ -55,7 +55,7 @@ export default function Header({
 					'is-logged-in': userSession,
 				})}
 			>
-				<nav className="flex bg-gray-800 rounded-lg h-full pt-4 pb-6 px-6 justify-between items-center">
+				<nav className="flex bg-gray-800 rounded-lg h-full py-4 px-5 justify-between items-center">
 					<NextLink href="/" className="w-[160px] text-white">
 						<BrandLogo />
 					</NextLink>

@@ -8,7 +8,6 @@ import { getUserLanguage } from '@/lib';
 export async function POST(request: NextRequest) {
 	const body = await request.json();
 	const { email, firstName, lastName, username } = body;
-	console.log('🚀 ~ file: route.ts:11 ~ POST ~ body:', body);
 	const userLang = await getUserLanguage();
 
 	try {
@@ -26,10 +25,8 @@ export async function POST(request: NextRequest) {
 				userName: username,
 			}),
 		});
-		console.log('🚀 ~ file: route.ts:29 ~ POST ~ res:', res);
 
 		const data = await res.json();
-		console.log('🚀 ~ file: route.ts:31 ~ POST ~ data:', data);
 		const { status, message } = data || {};
 
 		if (status === 'SUCCESS') {
@@ -41,7 +38,6 @@ export async function POST(request: NextRequest) {
 			message: message,
 		});
 	} catch (error) {
-		console.log('🚀 ~ file: route.ts:43 ~ POST ~ error:', error);
 		return NextResponse.json({
 			status: 'ERROR',
 			message: 'Something went wrong, pleas try again later',
