@@ -1,5 +1,6 @@
-import { getPortableTextPreview } from '@/sanity/lib/utils';
 import { EditIcon } from '@sanity/icons';
+
+import { getPortableTextPreview } from '@/sanity/lib/utils';
 
 export default function freeform() {
 	return {

@@ -1,5 +1,13 @@
 'use client';
 
+import { colorInput } from '@sanity/color-input';
+import { visionTool } from '@sanity/vision';
+import { defineConfig, isDev } from 'sanity';
+import { presentationTool } from 'sanity/presentation';
+import { structureTool } from 'sanity/structure';
+import { media } from 'sanity-plugin-media';
+import { noteField } from 'sanity-plugin-note-field';
+
 import { defaultDocumentNode } from '@/sanity/defaultDocumentNode';
 import { apiVersion, dataset, projectId } from '@/sanity/env';
 import * as presentationResolver from '@/sanity/lib/presentation-resolver';
@@ -14,13 +22,6 @@ import { pHome } from '@/sanity/schemaTypes/singletons/p-home';
 import { settingsGeneral } from '@/sanity/schemaTypes/singletons/settings-general';
 import { settingsIntegration } from '@/sanity/schemaTypes/singletons/settings-integrations';
 import { structure } from '@/sanity/structure';
-import { colorInput } from '@sanity/color-input';
-import { visionTool } from '@sanity/vision';
-import { defineConfig, isDev } from 'sanity';
-import { media } from 'sanity-plugin-media';
-import { noteField } from 'sanity-plugin-note-field';
-import { presentationTool } from 'sanity/presentation';
-import { structureTool } from 'sanity/structure';
 
 const commonPlugins = [
 	structureTool({

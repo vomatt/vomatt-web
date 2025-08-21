@@ -2,10 +2,11 @@ import clsx from 'clsx';
 import NextLink from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useState } from 'react';
-import { cn } from '@/lib/utils';
+
 import BrandLogo from '@/components/BrandLogo';
 import { Button } from '@/components/Button';
 import SvgIcons from '@/components/SvgIcons';
+import { cn } from '@/lib/utils';
 
 export default function Header({
 	data,

@@ -1,16 +1,15 @@
+import { AddIcon, RemoveIcon } from '@sanity/icons';
+import { Button, Card, Inline, Stack, Text } from '@sanity/ui';
+import { randomKey } from '@sanity/util/content';
 import React, { useCallback } from 'react';
 import {
-	RenderInputCallback,
-	MemberField,
-	FieldMember,
-	ObjectInputProps,
 	BlockDefinition,
+	FieldMember,
+	MemberField,
+	ObjectInputProps,
+	RenderInputCallback,
 } from 'sanity';
 import { PortableTextBlock, set } from 'sanity';
-import { Button, Inline, Stack, Card, Text } from '@sanity/ui';
-import { randomKey } from '@sanity/util/content';
-
-import { AddIcon, RemoveIcon } from '@sanity/icons';
 
 function createTextBlock(text, cellSchema) {
 	return {

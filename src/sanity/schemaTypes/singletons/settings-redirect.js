@@ -1,5 +1,6 @@
-import { resolveHref } from '@/lib/utils';
 import { defineField, defineType } from 'sanity';
+
+import { resolveHref } from '@/lib/utils';
 
 const slugValidator = (rule) =>
 	rule.required().custom((value) => {

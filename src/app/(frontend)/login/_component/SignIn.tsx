@@ -1,15 +1,14 @@
 'use client';
 import { zodResolver } from '@hookform/resolvers/zod';
-
 import NextLink from 'next/link';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { getVerifyCode } from '@/app/api/login/getVerifyCode';
+import AuthContainer from '@/components/auth/AuthContainer';
+import VerificationForm from '@/components/auth/VerificationForm';
 import { Button } from '@/components/Button';
-import { Input } from '@/components/Input';
-
 import {
 	Form,
 	FormControl,
@@ -18,10 +17,8 @@ import {
 	FormLabel,
 	FormMessage,
 } from '@/components/Form';
-
-import AuthContainer from '@/components/auth/AuthContainer';
+import { Input } from '@/components/Input';
 import { STATUS_SIGN_IN, STATUS_VERIFICATION } from '@/data/constants';
-import VerificationForm from '@/components/auth/VerificationForm';
 
 type PageStatusType = 'STATUS_SIGN_IN' | 'STATUS_VERIFICATION';
 

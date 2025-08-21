@@ -1,5 +1,6 @@
-import customImage from '@/sanity/schemaTypes/objects/custom-image';
 import { EllipsisHorizontalIcon, StringIcon } from '@sanity/icons';
+
+import customImage from '@/sanity/schemaTypes/objects/custom-image';
 
 export default function marquee({ title, name = 'marquee', ...props } = {}) {
 	return {

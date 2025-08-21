@@ -1,6 +1,7 @@
 import { LinkIcon, MasterDetailIcon, WarningOutlineIcon } from '@sanity/icons';
-import { resolveHref } from '@/lib/utils';
 import { defineType } from 'sanity';
+
+import { resolveHref } from '@/lib/utils';
 
 export const navItem = defineType({
 	title: 'Item',

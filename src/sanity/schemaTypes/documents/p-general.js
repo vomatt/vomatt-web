@@ -1,10 +1,11 @@
+import { defineType } from 'sanity';
+
 import carousel from '@/sanity/schemaTypes/objects/carousel';
 import freeform from '@/sanity/schemaTypes/objects/freeform';
 import marquee from '@/sanity/schemaTypes/objects/marquee';
 import sharing from '@/sanity/schemaTypes/objects/sharing';
 import slug from '@/sanity/schemaTypes/objects/slug';
 import title from '@/sanity/schemaTypes/objects/title';
-import { defineType } from 'sanity';
 
 export const pGeneral = defineType({
 	title: 'Page',

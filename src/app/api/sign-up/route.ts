@@ -2,8 +2,8 @@ import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
 import { REFRESH_TOKEN, USER_SESSION } from '@/data/constants';
-import { decrypt } from '@/lib/auth';
 import { getUserLanguage } from '@/lib';
+import { decrypt } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
 	const body = await request.json();

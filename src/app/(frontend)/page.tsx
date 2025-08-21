@@ -1,7 +1,9 @@
-import { getCurrentUser } from '@/data/auth';
-import { FeedList } from './_components/FeedList';
 import Link from 'next/link';
+
 import { Button } from '@/components/Button';
+import { getCurrentUser } from '@/data/auth';
+
+import { FeedList } from './_components/FeedList';
 // export async function generateMetadata({}) {}
 
 const fakeData = [

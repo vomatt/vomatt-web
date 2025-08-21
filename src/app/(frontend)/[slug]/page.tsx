@@ -1,8 +1,10 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+
+import defineMetadata from '@/lib/defineMetadata';
 import { sanityFetch } from '@/sanity/lib/live';
 import { pageGeneralQuery, pageGeneralSlugsQuery } from '@/sanity/lib/queries';
-import defineMetadata from '@/lib/defineMetadata';
+
 import PageGeneral from '../_components/PageGeneral';
 
 export async function generateStaticParams() {

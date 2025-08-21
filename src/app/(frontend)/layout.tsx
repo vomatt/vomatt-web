@@ -2,18 +2,20 @@ import '@/styles/global.css';
 
 import clsx from 'clsx';
 import { Geist, Geist_Mono } from 'next/font/google';
-import React, { ReactNode } from 'react';
 import { draftMode } from 'next/headers';
-import { getCurrentUser } from '@/data/auth';
+import { VisualEditing } from 'next-sanity';
+import React, { ReactNode } from 'react';
+import { Toaster } from 'sonner';
+
+import DraftModeToast from '@/components/DraftModeToast';
 import { Layout } from '@/components/layout';
+import { getCurrentUser } from '@/data/auth';
 import { imageBuilder } from '@/sanity/lib/image';
 import { sanityFetch } from '@/sanity/lib/live';
 import { SanityLive } from '@/sanity/lib/live';
 import { siteDataQuery } from '@/sanity/lib/queries';
-import DraftModeToast from '@/components/DraftModeToast';
+
 import { handleError } from '../client-utils';
-import { Toaster } from 'sonner';
-import { VisualEditing } from 'next-sanity';
 
 const geistSans = Geist({
 	variable: '--font-geist-sans',

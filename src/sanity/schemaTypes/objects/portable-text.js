@@ -1,7 +1,8 @@
+import { defineType } from 'sanity';
+
 import callToAction from '@/sanity/schemaTypes/objects/call-to-action';
 import customIframe from '@/sanity/schemaTypes/objects/custom-iframe';
 import customImage from '@/sanity/schemaTypes/objects/custom-image';
-import { defineType } from 'sanity';
 
 export const portableText = defineType({
 	name: 'portableText',

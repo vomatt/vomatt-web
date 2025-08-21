@@ -1,5 +1,6 @@
-import customImage from '@/sanity/schemaTypes/objects/custom-image';
 import { InlineElementIcon } from '@sanity/icons';
+
+import customImage from '@/sanity/schemaTypes/objects/custom-image';
 
 export default function carousel() {
 	return {

@@ -1,6 +1,7 @@
-import { getSwatch } from '@/sanity/lib/utils';
 import { ControlsIcon } from '@sanity/icons';
 import { defineType } from 'sanity';
+
+import { getSwatch } from '@/sanity/lib/utils';
 
 export const settingsBrandColors = defineType({
 	title: 'Color',

@@ -4,7 +4,6 @@ import { pBlogAuthor } from './documents/p-blog-author';
 import { pBlogCategory } from './documents/p-blog-category';
 import { pBlogIndex } from './documents/p-blog-index';
 import { pGeneral } from './documents/p-general';
-import { pSignUp } from './singletons/p-sign-up';
 // Objects
 import { formFields } from './objects/form-builder/form-fields';
 import { link } from './objects/link';
@@ -21,6 +20,7 @@ import { gHeader } from './singletons/g-header';
 import { p404 } from './singletons/p-404';
 import { pContact } from './singletons/p-contact';
 import { pHome } from './singletons/p-home';
+import { pSignUp } from './singletons/p-sign-up';
 // Singletons
 import { settingsBrandColors } from './singletons/settings-color';
 import { settingsGeneral } from './singletons/settings-general';

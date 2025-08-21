@@ -1,24 +1,24 @@
 'use client';
-import NextLink from 'next/link';
 import { zodResolver } from '@hookform/resolvers/zod';
+import NextLink from 'next/link';
 import React, { useState } from 'react';
-import { Button } from '@/components/Button';
-import { Input } from '@/components/Input';
 import { useForm } from 'react-hook-form';
-import CustomPortableText from '@/components/CustomPortableText';
-
 import { z } from 'zod';
+
+import AuthContainer from '@/components/auth/AuthContainer';
+import VerificationForm from '@/components/auth/VerificationForm';
+import { Button } from '@/components/Button';
+import CustomPortableText from '@/components/CustomPortableText';
 import {
 	Form,
 	FormControl,
 	FormField,
 	FormItem,
-	FormMessage,
 	FormLabel,
+	FormMessage,
 } from '@/components/Form';
-import AuthContainer from '@/components/auth/AuthContainer';
+import { Input } from '@/components/Input';
 import { STATUS_SIGN_IN, STATUS_VERIFICATION } from '@/data/constants';
-import VerificationForm from '@/components/auth/VerificationForm';
 
 const nameValidation = new RegExp(
 	/^[\w'\-,.]*[^_!¡?÷?¿\/\\+=@#$%ˆ&*(){}|~<>;:[\]]*$/

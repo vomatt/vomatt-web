@@ -1,4 +1,5 @@
-import { Box, Stack, Card, Text } from '@sanity/ui';
+import { Box, Card, Stack, Text } from '@sanity/ui';
+
 import TablePortableText from '@/components/PortableTable/TablePortableText';
 
 const Table = ({ rows }) => {

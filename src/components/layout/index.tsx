@@ -2,12 +2,12 @@
 import { usePathname } from 'next/navigation';
 import React, { ReactNode } from 'react';
 
-import HeadTrackingCode from './HeadTrackingCode';
 import * as gtag from '@/lib/gtag';
 
 import AdaSkip from './AdaSkip';
 import Footer from './Footer';
 import Header from './Header';
+import HeadTrackingCode from './HeadTrackingCode';
 import Main from './Main';
 
 interface LayoutProps {

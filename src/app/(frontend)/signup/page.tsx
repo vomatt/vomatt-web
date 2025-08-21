@@ -1,6 +1,7 @@
 import defineMetadata from '@/lib/defineMetadata';
 import { sanityFetch } from '@/sanity/lib/live';
 import { pSignUpDataQuery } from '@/sanity/lib/queries';
+
 import SignUp from './_component/SignUp';
 
 export async function generateMetadata() {

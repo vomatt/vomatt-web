@@ -1,6 +1,7 @@
 import { Card, Flex, Text } from '@sanity/ui';
-import { getWindowURl } from '@/lib/routes';
 import { useFormValue } from 'sanity';
+
+import { getWindowURl } from '@/lib/routes';
 
 export function getUrl({ docType, slug, docId }) {
 	const baseUrl = getWindowURl(window.location.host);

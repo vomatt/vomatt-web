@@ -1,8 +1,8 @@
 import {
 	CogIcon,
 	EarthGlobeIcon,
-	PackageIcon,
 	EnterRightIcon,
+	PackageIcon,
 } from '@sanity/icons';
 
 export const settingsMenu = (S) => {

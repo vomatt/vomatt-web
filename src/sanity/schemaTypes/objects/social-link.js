@@ -1,5 +1,6 @@
-import { getIcon } from '@/lib/utils';
 import { defineType } from 'sanity';
+
+import { getIcon } from '@/lib/utils';
 
 export const socialLink = defineType({
 	title: 'Social Link',

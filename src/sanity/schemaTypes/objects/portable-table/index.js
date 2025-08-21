@@ -1,8 +1,10 @@
-import { LinkInput } from '@/sanity/schemaTypes/components/LinkInput';
 import { toPlainText } from '@portabletext/toolkit';
 import { ThLargeIcon } from '@sanity/icons';
-import { TablePreview, createTableInput } from './components';
 import { defineField, definePlugin } from 'sanity';
+
+import { LinkInput } from '@/sanity/schemaTypes/components/LinkInput';
+
+import { createTableInput,TablePreview } from './components';
 
 const defaultPortableTextSchema = {
 	name: 'portableTable',

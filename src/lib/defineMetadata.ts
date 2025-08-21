@@ -1,8 +1,9 @@
 // https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadata-fields
 import type { Metadata } from 'next';
-import { imageBuilder } from '@/sanity/lib/image';
+
 import { resolveHref } from '@/lib/utils';
 import { formatUrl } from '@/lib/utils';
+import { imageBuilder } from '@/sanity/lib/image';
 
 type Props = {
 	data: {

@@ -2,8 +2,7 @@ import {
 	ImageFormat,
 	SanityImageSource,
 } from '@sanity/image-url/lib/types/types';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { type ClassValue,clsx } from 'clsx';
 import {
 	FaFacebookF,
 	FaGithub,
@@ -13,6 +12,8 @@ import {
 	FaXTwitter,
 	FaYoutube,
 } from 'react-icons/fa6';
+import { twMerge } from 'tailwind-merge';
+
 import { imageBuilder } from '@/sanity/lib/image';
 
 // ***UTILITIES / GET***

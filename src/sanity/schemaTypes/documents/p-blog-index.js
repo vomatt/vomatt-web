@@ -1,8 +1,9 @@
+import { BookIcon } from '@sanity/icons';
+import { defineType } from 'sanity';
+
 import sharing from '@/sanity/schemaTypes/objects/sharing';
 import slug from '@/sanity/schemaTypes/objects/slug';
 import title from '@/sanity/schemaTypes/objects/title';
-import { BookIcon } from '@sanity/icons';
-import { defineType } from 'sanity';
 
 export const pBlogIndex = defineType({
 	title: 'Blogs',

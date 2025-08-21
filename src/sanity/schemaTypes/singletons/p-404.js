@@ -1,6 +1,7 @@
-import callToAction from '@/sanity/schemaTypes/objects/call-to-action';
 import { UnknownIcon } from '@sanity/icons';
 import { defineType } from 'sanity';
+
+import callToAction from '@/sanity/schemaTypes/objects/call-to-action';
 
 export const p404 = defineType({
 	title: 'Page 404',

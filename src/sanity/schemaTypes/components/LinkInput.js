@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
-import { client } from '@/sanity/lib/client';
 import { LinkIcon, MasterDetailIcon, SearchIcon } from '@sanity/icons';
 import { Autocomplete, Card, Flex, Stack, Text } from '@sanity/ui';
+import React, { useCallback, useEffect, useState } from 'react';
+import { set } from 'sanity';
+
 import { resolveHref } from '@/lib/utils';
 import { isValidUrl } from '@/lib/utils';
-import { set } from 'sanity';
+import { client } from '@/sanity/lib/client';
 
 const pageDocumentOrder = [
 	'pHome',
