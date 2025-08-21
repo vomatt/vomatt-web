@@ -33,7 +33,7 @@ const SPACING_OPTIONS = [
 	{ title: '384px', value: 96 },
 ];
 
-export default defineType({
+export const sectionAppearance = defineType({
 	name: 'sectionAppearance',
 	type: 'object',
 	options: {

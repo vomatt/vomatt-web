@@ -1,6 +1,6 @@
 import { defineType } from 'sanity';
 
-export default defineType({
+export const settingsIntegration = defineType({
 	title: 'Integrations',
 	name: 'settingsIntegration',
 	type: 'document',

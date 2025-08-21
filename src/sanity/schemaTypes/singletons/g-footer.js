@@ -1,6 +1,6 @@
 import { defineType } from 'sanity';
 
-export default defineType({
+export const gFooter = defineType({
 	title: 'Footer Settings',
 	name: 'gFooter',
 	type: 'document',

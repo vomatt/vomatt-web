@@ -3,7 +3,7 @@ import customIframe from '@/sanity/schemaTypes/objects/custom-iframe';
 import customImage from '@/sanity/schemaTypes/objects/custom-image';
 import { defineType } from 'sanity';
 
-export default defineType({
+export const portableText = defineType({
 	name: 'portableText',
 	type: 'array',
 	of: [

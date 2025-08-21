@@ -1,6 +1,6 @@
 import { defineType } from 'sanity';
 
-export default defineType({
+export const portableTextSimple = defineType({
 	name: 'portableTextSimple',
 	type: 'array',
 	of: [

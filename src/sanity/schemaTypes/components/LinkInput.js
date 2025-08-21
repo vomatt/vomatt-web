@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { client } from '@/sanity/lib/client';
 import { LinkIcon, MasterDetailIcon, SearchIcon } from '@sanity/icons';
 import { Autocomplete, Card, Flex, Stack, Text } from '@sanity/ui';
-import { getRoute } from '@/lib/routes';
+import { resolveHref } from '@/lib/utils';
 import { isValidUrl } from '@/lib/utils';
 import { set } from 'sanity';
 
@@ -39,7 +39,7 @@ const fetchOptions = async () => {
 				_id,
 				_type,
 				slug,
-				route: getRoute({ documentType: _type, slug }),
+				route: resolveHref({ documentType: _type, slug }),
 				isInternal: true,
 			},
 		}))

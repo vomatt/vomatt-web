@@ -2,12 +2,10 @@
 import { usePathname } from 'next/navigation';
 import React, { ReactNode } from 'react';
 
-import useWindowDimensions from '@/hooks/useWindowDimensions';
-import HeadTrackingCode from '@/layout/HeadTrackingCode';
+import HeadTrackingCode from './HeadTrackingCode';
 import * as gtag from '@/lib/gtag';
 
 import AdaSkip from './AdaSkip';
-import Announcement from './Announcement';
 import Footer from './Footer';
 import Header from './Header';
 import Main from './Main';
@@ -18,11 +16,7 @@ interface LayoutProps {
 	userSession: any;
 }
 
-export default function Layout({
-	siteData,
-	userSession,
-	children,
-}: LayoutProps) {
+export function Layout({ siteData, userSession, children }: LayoutProps) {
 	const { header, footer } = siteData;
 	const pathname = usePathname();
 
@@ -32,16 +26,12 @@ export default function Layout({
 	// 	}
 	// }, [siteData]);
 
-	if (pathname.startsWith('/sanity')) {
-		return <>{children}</>;
-	}
-
 	return (
 		<>
 			<HeadTrackingCode siteData={siteData} />
 			<AdaSkip />
 			<Header data={header} userSession={userSession} />
-			<Main siteData={siteData}>{children}</Main>
+			<Main>{children}</Main>
 			<Footer siteData={siteData} data={footer} />
 		</>
 	);

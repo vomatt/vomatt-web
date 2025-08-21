@@ -24,6 +24,7 @@ const fakeData = [
 
 export default async function Page() {
 	const user = await getCurrentUser();
+
 	return (
 		<div className="px-contain">
 			<div className="flex justify-center gap-10">

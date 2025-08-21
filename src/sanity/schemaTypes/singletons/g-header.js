@@ -1,6 +1,6 @@
 import { defineType } from 'sanity';
 
-export default defineType({
+export const gHeader = defineType({
 	title: 'Header Settings',
 	name: 'gHeader',
 	type: 'document',

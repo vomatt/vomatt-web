@@ -1,4 +1,4 @@
-import { SlugField } from '@/sanity/schemaTypes/component/SlugField';
+import { SlugField } from '@/sanity/schemaTypes/components/SlugField';
 
 export default function slug({ initialValue, readOnly, group } = {}) {
 	return {

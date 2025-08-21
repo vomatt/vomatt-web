@@ -4,7 +4,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import BrandLogo from '@/components/BrandLogo';
-import Button from '@/components/Button';
+import { Button } from '@/components/Button';
 import SvgIcons from '@/components/SvgIcons';
 
 export default function Header({

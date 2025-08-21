@@ -473,3 +473,30 @@ export function getIcon(icon: string) {
 			return null;
 	}
 }
+
+export const resolveHref = ({
+	documentType,
+	slug,
+}: {
+	documentType: string | undefined;
+	slug: string | undefined;
+}) => {
+	if (!documentType) return undefined;
+
+	switch (documentType) {
+		case 'pHome':
+			return '/';
+		case 'pGeneral':
+			return `/${slug}`;
+		case 'pBlogIndex':
+			return '/blog';
+		case 'pBlog':
+			return `/blog/${slug}`;
+		case 'externalUrl':
+			return slug;
+
+		default:
+			console.warn('Invalid document type:', documentType);
+			return undefined;
+	}
+};

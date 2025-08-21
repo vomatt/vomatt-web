@@ -1,6 +1,6 @@
-import { defineType, defineField } from 'sanity';
+import { defineField, defineType } from 'sanity';
 
-export default defineType({
+export const formFields = defineType({
 	name: 'formFields',
 	title: 'Form Fields',
 	type: 'object',

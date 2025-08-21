@@ -4,7 +4,7 @@ import title from '@/sanity/schemaTypes/objects/title';
 import { BookIcon } from '@sanity/icons';
 import { defineType } from 'sanity';
 
-export default defineType({
+export const pBlog = defineType({
 	title: 'Blog',
 	name: 'pBlog',
 	type: 'document',

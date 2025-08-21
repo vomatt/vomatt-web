@@ -6,7 +6,7 @@ import slug from '@/sanity/schemaTypes/objects/slug';
 import title from '@/sanity/schemaTypes/objects/title';
 import { defineType } from 'sanity';
 
-export default defineType({
+export const pHome = defineType({
 	title: 'Homepage',
 	name: 'pHome',
 	type: 'document',

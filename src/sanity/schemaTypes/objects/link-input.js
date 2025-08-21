@@ -1,8 +1,8 @@
-import { LinkInput } from '@/sanity/schemaTypes/component/LinkInput';
+import { LinkInput } from '@/sanity/schemaTypes/components/LinkInput';
 import { LinkIcon } from '@sanity/icons';
 import { defineField, defineType } from 'sanity';
 
-export default defineType({
+export const linkInput = defineType({
 	name: 'linkInput',
 	icon: LinkIcon,
 	type: 'object',

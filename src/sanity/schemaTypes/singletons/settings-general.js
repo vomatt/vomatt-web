@@ -1,6 +1,6 @@
 import { defineType } from 'sanity';
 
-export default defineType({
+export const settingsGeneral = defineType({
 	title: 'General Settings',
 	name: 'settingsGeneral',
 	type: 'document',

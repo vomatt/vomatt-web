@@ -1,7 +1,7 @@
 import { MenuIcon } from '@sanity/icons';
 import { defineType } from 'sanity';
 
-export default defineType({
+export const settingsMenu = defineType({
 	title: 'Menu',
 	name: 'settingsMenu',
 	type: 'document',

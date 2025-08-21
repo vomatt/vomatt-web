@@ -1,9 +1,8 @@
 import { LinkIcon, MasterDetailIcon, WarningOutlineIcon } from '@sanity/icons';
+import { resolveHref } from '@/lib/utils';
 import { defineType } from 'sanity';
 
-import { getRoute } from '@/lib/routes';
-
-export default defineType({
+export const navItem = defineType({
 	title: 'Item',
 	name: 'navItem',
 	type: 'object',
@@ -49,7 +48,7 @@ export default defineType({
 				title: title,
 				subtitle: isExternal
 					? externalUrl
-					: getRoute({
+					: resolveHref({
 							documentType: internalLinkType,
 							slug: internalLinkSlug,
 						}),

@@ -17,6 +17,7 @@ export function FeedList({ data, className }: FeedList) {
 			</div>
 		);
 	}
+
 	return (
 		<div className={cn('p-6 bg-gray-700 max-w-2xl rounded-lg', className)}>
 			{data.map((item, index) => (

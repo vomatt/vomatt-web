@@ -2,7 +2,7 @@ import callToAction from '@/sanity/schemaTypes/objects/call-to-action';
 import { UnknownIcon } from '@sanity/icons';
 import { defineType } from 'sanity';
 
-export default defineType({
+export const p404 = defineType({
 	title: 'Page 404',
 	name: 'p404',
 	type: 'document',

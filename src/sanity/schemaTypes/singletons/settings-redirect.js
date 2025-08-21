@@ -1,4 +1,4 @@
-import { getRoute } from '@/lib/routes';
+import { resolveHref } from '@/lib/utils';
 import { defineField, defineType } from 'sanity';
 
 const slugValidator = (rule) =>
@@ -10,7 +10,7 @@ const slugValidator = (rule) =>
 		return true;
 	});
 
-export default defineType({
+export const settingsRedirect = defineType({
 	name: 'settingsRedirect',
 	title: 'Redirects',
 	type: 'document',
@@ -68,7 +68,7 @@ export default defineType({
 				subtitle: `Destination: ${
 					isExternal
 						? externalUrl
-						: getRoute({
+						: resolveHref({
 								documentType: internalLinkType,
 								slug: internalLinkSlug,
 							})

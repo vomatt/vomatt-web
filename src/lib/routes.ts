@@ -14,12 +14,12 @@ export const checkIfActive = ({
 	}
 };
 
-export const getRoute = ({
+export const resolveHref = ({
 	documentType,
 	slug,
 }: {
-	documentType: string;
-	slug: string;
+	documentType: string | undefined;
+	slug: string | undefined;
 }) => {
 	switch (documentType) {
 		case 'pHome':

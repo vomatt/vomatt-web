@@ -1,6 +1,7 @@
 // https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadata-fields
+import type { Metadata } from 'next';
 import { imageBuilder } from '@/sanity/lib/image';
-import { getRoute } from '@/lib/routes';
+import { resolveHref } from '@/lib/utils';
 import { formatUrl } from '@/lib/utils';
 
 type Props = {
@@ -13,7 +14,7 @@ type Props = {
 	};
 };
 
-export default function defineMetadata({ data }: Props) {
+export default function defineMetadata({ data }: Props): Metadata {
 	const { sharing, title, isHomepage, _type, slug } = data || {};
 
 	const siteTitle = sharing?.siteTitle || '';
@@ -22,10 +23,10 @@ export default function defineMetadata({ data }: Props) {
 	const shareGraphic = sharing?.shareGraphic?.asset;
 	const shareGraphicUrl = shareGraphic
 		? imageBuilder.image(shareGraphic).format('webp').width(1200).url()
-		: null;
+		: '';
 
 	const disableIndex = sharing?.disableIndex;
-	const pageRoute = getRoute({
+	const pageRoute = resolveHref({
 		documentType: _type,
 		slug: slug,
 	});
@@ -44,13 +45,7 @@ export default function defineMetadata({ data }: Props) {
 				},
 			],
 		},
-		twitter: {
-			card: 'summary_large_image',
-			title: metaTitle,
-			description: metaDesc,
-			creator: siteTitle,
-			images: [shareGraphicUrl],
-		},
+
 		alternates: {
 			...(pageRoute && {
 				canonical: formatUrl(`${process.env.SITE_URL}${pageRoute}`),

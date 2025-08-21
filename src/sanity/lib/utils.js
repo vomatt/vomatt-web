@@ -39,7 +39,7 @@ export const getPortableTextPreview = (content) => {
 	);
 
 	let contentWithImage = content.filter((el) => el._type == 'image');
-
+	let contentWithTable = content.filter((el) => el._type == 'portableTable');
 	if (contentWithText && contentWithText[0]) {
 		const textChildren = contentWithText[0]?.children;
 		if (!Array.isArray(textChildren)) {
@@ -79,6 +79,9 @@ export const getPortableTextPreview = (content) => {
 		return `Image${contentWithImage.length > 1 ? 's' : ''}`;
 	}
 
+	if (contentWithTable) {
+		return `Table${contentWithTable.length > 1 ? 's' : ''}`;
+	}
 	return 'Empty';
 };
 
@@ -117,5 +120,31 @@ export const decodeAssetUrl = (id) => {
 		assetId,
 		dimensions: { width, height },
 		format,
+	};
+};
+
+export const singletonPlugin = (types) => {
+	return {
+		name: 'singletonPlugin',
+		document: {
+			// Hide 'Singletons (such as Home)' from new document options
+			newDocumentOptions: (prev, { creationContext }) => {
+				if (creationContext.type === 'global') {
+					return prev.filter(
+						(templateItem) => !types.includes(templateItem.templateId)
+					);
+				}
+
+				return prev;
+			},
+			// Removes the "duplicate" action on the Singletons (such as Home)
+			actions: (prev, { schemaType }) => {
+				if (types.includes(schemaType)) {
+					return prev.filter(({ action }) => action !== 'duplicate');
+				}
+
+				return prev;
+			},
+		},
 	};
 };

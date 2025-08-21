@@ -1,8 +1,8 @@
-import { defineType } from 'sanity';
+import { getPortableTextPreview } from '@/sanity/lib/utils';
 import { EditIcon } from '@sanity/icons';
-import { getPortableTextPreview } from '@/sanity/lib/helpers';
+import { defineType } from 'sanity';
 
-export default defineType({
+export const gAnnouncement = defineType({
 	title: 'Announcement Settings',
 	name: 'gAnnouncement',
 	type: 'document',

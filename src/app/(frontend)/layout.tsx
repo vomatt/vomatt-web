@@ -5,7 +5,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import React, { ReactNode } from 'react';
 import { draftMode } from 'next/headers';
 import { getCurrentUser } from '@/data/auth';
-import Layout from '@/layout';
+import { Layout } from '@/components/layout';
 import { imageBuilder } from '@/sanity/lib/image';
 import { sanityFetch } from '@/sanity/lib/live';
 import { SanityLive } from '@/sanity/lib/live';

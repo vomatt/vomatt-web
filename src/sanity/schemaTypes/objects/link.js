@@ -1,7 +1,7 @@
-import { defineType, defineField } from 'sanity';
 import { LinkIcon } from '@sanity/icons';
+import { defineField, defineType } from 'sanity';
 
-export default defineType({
+export const link = defineType({
 	name: 'link',
 	icon: LinkIcon,
 	type: 'object',

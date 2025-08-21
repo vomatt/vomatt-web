@@ -1,6 +1,7 @@
 import { ChevronDownIcon } from '@sanity/icons';
 import { defineType } from 'sanity';
-export default defineType({
+
+export const navDropdown = defineType({
 	title: 'Dropdown',
 	name: 'navDropdown',
 	type: 'object',

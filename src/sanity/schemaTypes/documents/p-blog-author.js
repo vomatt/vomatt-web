@@ -1,7 +1,7 @@
-import { defineType } from 'sanity';
 import { BsPeopleFill } from 'react-icons/bs';
+import { defineType } from 'sanity';
 
-export default defineType({
+export const pBlogAuthor = defineType({
 	title: 'Author',
 	name: 'pBlogAuthor',
 	type: 'document',

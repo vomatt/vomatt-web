@@ -239,16 +239,6 @@
 		}
 	}
 
-	.btn,
-	.btn-outline,
-	.btn-underline {
-		text-decoration: unset;
-
-		&:not(:first-child) {
-			margin-top: 20px;
-		}
-	}
-
 	p,
 	ol,
 	ul {
@@ -733,26 +723,6 @@
 	[aria-disabled='true'] {
 		@apply state-disabled;
 	}
-
-	/* Global focus-visible state */
-	/*
-	* TODO: Implement more robust focus management and an unify style
-	*/
-	@media (hover: hover) {
-		* {
-			outline-offset: 3px;
-			outline-style: dashed;
-			outline-color: transparent;
-		}
-
-		a:focus-visible,
-		button:focus-visible,
-		input:focus-visible,
-		textarea:focus-visible,
-		select:focus-visible {
-			@apply state-focus-visible;
-		}
-	}
 }
 
 /* Layouts */
@@ -869,12 +839,6 @@
 		width: 100%;
 		height: 100%;
 	}
-}
-
-@utility state-focus-visible {
-	outline-offset: 3px !important;
-	outline-style: dashed !important;
-	outline-color: var(--color-accent) !important;
 }
 
 @utility state-disabled {

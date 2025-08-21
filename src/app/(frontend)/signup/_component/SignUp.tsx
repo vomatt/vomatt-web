@@ -1,5 +1,5 @@
 'use client';
-
+import NextLink from 'next/link';
 import { zodResolver } from '@hookform/resolvers/zod';
 import React, { useState } from 'react';
 import { Button } from '@/components/Button';
@@ -23,6 +23,7 @@ import VerificationForm from '@/components/auth/VerificationForm';
 const nameValidation = new RegExp(
 	/^[\w'\-,.]*[^_!¡?÷?¿\/\\+=@#$%ˆ&*(){}|~<>;:[\]]*$/
 );
+
 const FormSchema = z.object({
 	email: z
 		.string()
@@ -50,24 +51,26 @@ type SignUpType = {
 	className?: string;
 	signUpInfoData: any;
 };
-type PageStatusType = 'STATUS_SIGN_IN' | 'STATUS_VERIFICATION';
 
-export default function SignUp({ className, signUpInfoData }: SignUpType) {
-	const [pageStatus, setPageStatus] = useState<PageStatusType>(STATUS_SIGN_IN);
+type currentStepType = 'STATUS_SIGN_IN' | 'STATUS_VERIFICATION';
+
+export default function SignUp({ signUpInfoData }: SignUpType) {
+	const [currentStep, setCurrentStep] =
+		useState<currentStepType>(STATUS_SIGN_IN);
 	const [email, setEmail] = useState('');
 
-	const onSetPageStatus = (value: PageStatusType) => {
-		setPageStatus(value);
+	const onSetCurrentStep = (value: currentStepType) => {
+		setCurrentStep(value);
 	};
 
 	const onSetEmail = (value: string) => {
 		setEmail(value);
 	};
 
-	const pageStatusScreen = {
+	const currentStepScreen = {
 		STATUS_SIGN_IN: (
 			<SignUpForm
-				onSetPageStatus={onSetPageStatus}
+				onSetCurrentStep={onSetCurrentStep}
 				onSetEmail={onSetEmail}
 				signUpInfoData={signUpInfoData}
 			/>
@@ -75,26 +78,26 @@ export default function SignUp({ className, signUpInfoData }: SignUpType) {
 		STATUS_VERIFICATION: (
 			<VerificationForm
 				email={email}
-				backButtonFunc={() => onSetPageStatus(STATUS_SIGN_IN)}
+				backButtonFunc={() => onSetCurrentStep(STATUS_SIGN_IN)}
 			/>
 		),
 	};
 
 	return (
-		<AuthContainer type={pageStatus}>
-			{pageStatusScreen[pageStatus]}
+		<AuthContainer type={currentStep}>
+			{currentStepScreen[currentStep]}
 		</AuthContainer>
 	);
 }
 
 type SignUpFormType = {
 	signUpInfoData: any;
-	onSetPageStatus: (value: PageStatusType) => void;
+	onSetCurrentStep: (value: currentStepType) => void;
 	onSetEmail: (value: string) => void;
 };
 
 function SignUpForm({
-	onSetPageStatus,
+	onSetCurrentStep,
 	signUpInfoData,
 	onSetEmail,
 }: SignUpFormType) {
@@ -129,7 +132,7 @@ function SignUpForm({
 			}
 
 			onSetEmail(data.email);
-			onSetPageStatus(STATUS_VERIFICATION);
+			onSetCurrentStep(STATUS_VERIFICATION);
 		} catch (error) {
 			setError('Something went wrong, pleas try again later');
 		} finally {
@@ -195,12 +198,7 @@ function SignUpForm({
 								</FormItem>
 							)}
 						/>
-						<Button
-							className="w-full"
-							type="submit"
-							isLoading={isLoading}
-							disabled={isLoading}
-						>
+						<Button className="w-full" type="submit" disabled={isLoading}>
 							Submit
 						</Button>
 						{error && <p className="t-l-1 text-error mt-3">{error}</p>}
@@ -211,6 +209,10 @@ function SignUpForm({
 						<CustomPortableText blocks={policyMessage} />
 					</div>
 				)}
+				<hr className="w-64 h-px my-8 bg-gray-200 border-0 dark:bg-gray-700" />
+				<NextLink href="/login" className="cr-gray-900 underline text-center">
+					Already have a account?
+				</NextLink>
 			</div>
 		</div>
 	);

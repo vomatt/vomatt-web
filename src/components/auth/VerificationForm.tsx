@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import Button from '@/components/Button';
+import { Button } from '@/components/Button';
 import {
 	Form,
 	FormControl,
@@ -101,12 +101,7 @@ export default function VerificationForm({
 							</FormItem>
 						)}
 					/>
-					<Button
-						type="submit"
-						className="w-full mt-8 block"
-						size="lg"
-						isLoading={isLoading}
-					>
+					<Button type="submit" className="w-full mt-8 block" size="lg">
 						Submit
 					</Button>
 					<Button
