@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import NextLink from 'next/link';
 
 import { Button } from '@/components/ui/Button';
 import { getCurrentUser } from '@/data/auth';
@@ -29,10 +29,10 @@ export default async function Page() {
 
 	return (
 		<div className="px-contain">
-			<div className="flex justify-center gap-10">
+			<div className="flex justify-between gap-10">
 				<FeedList data={fakeData} className="" />
 				{!user && (
-					<div className=" bg-gray-800 rounded-lg p-6 h-fit text-center max-w-sm">
+					<div className="bg-secondary text-secondary-foreground rounded-lg p-6 h-fit text-center max-w-sm hidden md:block">
 						<h4 className="text-white font-bold text-2xl">
 							Log in or sign up for Vomatt
 						</h4>
@@ -40,7 +40,7 @@ export default async function Page() {
 							See what people are talking about and join the conversation.
 						</p>
 						<Button asChild className="mt-5">
-							<Link href="/login">Log in</Link>
+							<NextLink href="/login">Log in</NextLink>
 						</Button>
 					</div>
 				)}

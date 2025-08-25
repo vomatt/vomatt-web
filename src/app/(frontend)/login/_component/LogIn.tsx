@@ -17,7 +17,7 @@ import {
 	FormLabel,
 	FormMessage,
 } from '@/components/Form';
-import { Input } from '@/components/Input';
+import { Input } from '@/components/ui/Input';
 import { STATUS_LOG_IN, STATUS_VERIFICATION } from '@/data/constants';
 
 type PageStatusType = 'STATUS_LOG_IN' | 'STATUS_VERIFICATION';
@@ -97,9 +97,11 @@ function LogInForm({ onSetPageStatus, onSetEmail }: LogInFormType) {
 
 	return (
 		<div className="flex flex-col justify-center h-full">
-			<h1 className="font-medium text-6xl text-center mb-10">Log in</h1>
+			<h1 className="font-medium text-3xl text-center mb-10">
+				Log in to Vomatt
+			</h1>
 			<Form {...form}>
-				<form onSubmit={form.handleSubmit(onSubmit)} className="mb-5">
+				<form onSubmit={form.handleSubmit(onSubmit)}>
 					<FormField
 						control={form.control}
 						name="email"
@@ -129,16 +131,12 @@ function LogInForm({ onSetPageStatus, onSetEmail }: LogInFormType) {
 					)}
 				</form>
 			</Form>
-
-			<div className="inline-flex items-center justify-center w-full">
-				<hr className="w-64 h-px my-8 bg-gray-200 border-0 dark:bg-gray-700" />
-				<span className="absolute px-2 font-medium -translate-x-1/2 text-white left-1/2 bg-background t-b-1">
-					or
-				</span>
-			</div>
-			<p className="t-b-1 text-center">
+			<p className="mt-5 text-center">
 				Don&apos;t have an account?{' '}
-				<NextLink href="/signup" className="cr-gray-900 underline">
+				<NextLink
+					href="/signup"
+					className="cr-gray-900 underline underline-offset-4"
+				>
 					Sign up
 				</NextLink>
 			</p>

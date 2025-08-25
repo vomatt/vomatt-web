@@ -16,7 +16,7 @@ import {
 	FormLabel,
 	FormMessage,
 } from '@/components/Form';
-import { Input } from '@/components/Input';
+import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { STATUS_LOG_IN, STATUS_VERIFICATION } from '@/data/constants';
 
@@ -143,7 +143,7 @@ function SignUpForm({
 	return (
 		<div className="min-h-screen flex justify-center items-center">
 			<div className="max-w-96 w-full">
-				<h1 className="text-4xl mb-10  text-center">Sign up Vomatt</h1>
+				<h1 className="text-3xl mb-10 text-center">Create your account</h1>
 				<Form {...form}>
 					<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 						<FormField
@@ -209,10 +209,12 @@ function SignUpForm({
 						<CustomPortableText blocks={policyMessage} />
 					</div>
 				)}
-				<hr className="w-64 h-px my-8 bg-gray-200 border-0 dark:bg-gray-700" />
-				<NextLink href="/login" className="cr-gray-900 underline text-center">
-					Already have a account?
-				</NextLink>
+				<hr className="w-full h-px my-8 bg-gray-200 border-0 dark:bg-gray-700" />
+				<div className="flex justify-center">
+					<NextLink href="/login" className="cr-gray-900 underline">
+						Already have a account?
+					</NextLink>
+				</div>
 			</div>
 		</div>
 	);

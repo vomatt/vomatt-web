@@ -1,7 +1,6 @@
-import { usePathname } from 'next/navigation';
 import React, { useRef } from 'react';
 
-function Footer({ siteData, data }: { siteData: any; data: any }) {
+export function Footer({ siteData, data }: { siteData: any; data: any }) {
 	return (
 		<footer>
 			<div className="footer-copyright">
@@ -10,5 +9,3 @@ function Footer({ siteData, data }: { siteData: any; data: any }) {
 		</footer>
 	);
 }
-
-export default Footer;

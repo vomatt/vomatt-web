@@ -20,7 +20,7 @@ export function FeedList({ data, className }: FeedList) {
 	}
 
 	return (
-		<div className={cn('p-6 bg-gray-700 max-w-2xl rounded-lg', className)}>
+		<div className={cn('p-6 bg-secondary max-w-2xl rounded-lg', className)}>
 			{data.map((item, index) => (
 				<FeedItem key={index} data={item} />
 			))}

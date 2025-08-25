@@ -1,22 +1,16 @@
+'use client';
 import clsx from 'clsx';
 import NextLink from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useState } from 'react';
 
 import BrandLogo from '@/components/BrandLogo';
-import { Button } from '@/components/ui/Button';
 import SvgIcons from '@/components/SvgIcons';
+import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 
-export default function Header({
-	data,
-	userSession,
-}: {
-	data: any;
-	userSession: any;
-}) {
+export function Header({ data, userSession }: { data: any; userSession: any }) {
 	const router = useRouter();
-	const pathname = usePathname();
 
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -42,20 +36,20 @@ export default function Header({
 		<>
 			<header
 				ref={headerRef}
-				className={clsx('g-header py-3 relative w-full z-100 px-contain ', {
-					'is-open': isMobileMenuOpen,
-					'is-logged-in': userSession,
-				})}
+				className={clsx(
+					'g-header py-3 relative w-full z-100 px-contain bg-background/85 backdrop-blur-xl',
+					{
+						'is-open': isMobileMenuOpen,
+						'is-logged-in': userSession,
+					}
+				)}
 			>
 				<nav
-					className={cn(
-						'flex bg-gray-800 rounded-lg h-full py-4 px-5  items-center justify-center',
-						{
-							'justify-between': userSession,
-						}
-					)}
+					className={cn('flex  h-full py-4 px-5 items-center justify-center', {
+						'justify-between': userSession,
+					})}
 				>
-					<NextLink href="/" className="w-[160px] text-white">
+					<NextLink href="/" className="w-[160px] text-secondary-foreground">
 						<BrandLogo />
 					</NextLink>
 
@@ -63,6 +57,15 @@ export default function Header({
 						<NextLink href={`/account`} className="w-7 h-7 text-white">
 							<SvgIcons type="user-circle-outline" />
 						</NextLink>
+					)}
+					{!userSession && (
+						<Button
+							asChild
+							size="sm"
+							className="absolute right-contain md:hidden"
+						>
+							<NextLink href="/login">Log in</NextLink>
+						</Button>
 					)}
 					{/* {userSession && data?.menu?.items && (
 						<Menu

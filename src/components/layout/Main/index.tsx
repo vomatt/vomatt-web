@@ -4,6 +4,6 @@ type MainProps = {
 	children: ReactNode;
 };
 
-export default function Main({ children }: MainProps) {
+export function Main({ children }: MainProps) {
 	return <main id="main">{children}</main>;
 }

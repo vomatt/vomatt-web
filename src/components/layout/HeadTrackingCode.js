@@ -4,7 +4,7 @@
 import Script from 'next/script';
 import React from 'react';
 
-const HeadTrackingCode = ({ siteData = {} }) => {
+export function HeadTrackingCode({ siteData = {} }) {
 	const { integrations } = siteData || {};
 
 	return (
@@ -41,6 +41,4 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 			)}
 		</>
 	);
-};
-
-export default HeadTrackingCode;
+}

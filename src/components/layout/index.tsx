@@ -1,14 +1,11 @@
-'use client';
-import { usePathname } from 'next/navigation';
 import React, { ReactNode } from 'react';
 
-import * as gtag from '@/lib/gtag';
-
-import AdaSkip from './AdaSkip';
-import Footer from './Footer';
-import Header from './Header';
-import HeadTrackingCode from './HeadTrackingCode';
-import Main from './Main';
+import { AdaSkip } from '@/components/layout/AdaSkip';
+import { AppSidebar } from '@/components/layout/AppSidebar';
+import { Header } from '@/components/layout/Header';
+import { HeadTrackingCode } from '@/components/layout/HeadTrackingCode';
+import { Main } from '@/components/layout/Main';
+import { TabBar } from '@/components/layout/TabBar';
 
 interface LayoutProps {
 	siteData: any;
@@ -18,13 +15,6 @@ interface LayoutProps {
 
 export function Layout({ siteData, userSession, children }: LayoutProps) {
 	const { header, footer } = siteData;
-	const pathname = usePathname();
-
-	// useEffect(() => {
-	// 	if (siteData?.integrations?.gaID) {
-	// 		gtag.pageview(url, siteData?.integrations?.gaID);
-	// 	}
-	// }, [siteData]);
 
 	return (
 		<>
@@ -32,7 +22,7 @@ export function Layout({ siteData, userSession, children }: LayoutProps) {
 			<AdaSkip />
 			<Header data={header} userSession={userSession} />
 			<Main>{children}</Main>
-			<Footer siteData={siteData} data={footer} />
+			<TabBar />
 		</>
 	);
 }
