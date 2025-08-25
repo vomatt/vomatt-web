@@ -22,7 +22,7 @@ import { STATUS_LOG_IN, STATUS_VERIFICATION } from '@/data/constants';
 
 type PageStatusType = 'STATUS_LOG_IN' | 'STATUS_VERIFICATION';
 
-export default function LogIn() {
+export function LogIn() {
 	const [pageStatus, setPageStatus] = useState<PageStatusType>(STATUS_LOG_IN);
 	const [email, setEmail] = useState('');
 
@@ -96,7 +96,7 @@ function LogInForm({ onSetPageStatus, onSetEmail }: LogInFormType) {
 	}
 
 	return (
-		<div className="flex flex-col justify-center h-full">
+		<>
 			<h1 className="font-medium text-3xl text-center mb-10">
 				Log in to Vomatt
 			</h1>
@@ -140,6 +140,6 @@ function LogInForm({ onSetPageStatus, onSetEmail }: LogInFormType) {
 					Sign up
 				</NextLink>
 			</p>
-		</div>
+		</>
 	);
 }

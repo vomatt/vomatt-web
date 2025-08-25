@@ -21,7 +21,10 @@ export default function AuthContainer({
 			animate="show"
 			exit="hide"
 			variants={fadeAnim}
-			className={clsx('relative max-w-xs h-dvh mx-auto w-full', className)}
+			className={clsx(
+				'relative max-w-xs mx-auto w-full min-h-[inherit] flex flex-col justify-center py-10',
+				className
+			)}
 		>
 			{children}
 		</motion.div>

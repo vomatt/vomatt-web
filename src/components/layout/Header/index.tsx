@@ -1,5 +1,6 @@
 'use client';
-import clsx from 'clsx';
+
+import { ArrowLeft } from 'lucide-react';
 import NextLink from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -11,19 +12,9 @@ import { cn } from '@/lib/utils';
 
 export function Header({ data, userSession }: { data: any; userSession: any }) {
 	const router = useRouter();
-
+	const pathname = usePathname();
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-	const headerRef = useCallback((node: HTMLElement | null) => {
-		if (!node) return;
-
-		const headerHeight = node.getBoundingClientRect().height;
-		document.documentElement.style.setProperty(
-			'--s-header',
-			`${headerHeight}px`
-		);
-	}, []);
-
+	const hideLoginButton = ['/signup', '/login'].includes(pathname);
 	const onToggleMenu = () => {
 		setIsMobileMenuOpen(!isMobileMenuOpen);
 	};
@@ -35,9 +26,8 @@ export function Header({ data, userSession }: { data: any; userSession: any }) {
 	return (
 		<>
 			<header
-				ref={headerRef}
-				className={clsx(
-					'g-header py-3 relative w-full z-100 px-contain bg-background/85 backdrop-blur-xl',
+				className={cn(
+					'g-header w-full z-100 px-contain bg-background/85 backdrop-blur-md fixed top-0 right-0 left-0 h-header',
 					{
 						'is-open': isMobileMenuOpen,
 						'is-logged-in': userSession,
@@ -49,7 +39,7 @@ export function Header({ data, userSession }: { data: any; userSession: any }) {
 						'justify-between': userSession,
 					})}
 				>
-					<NextLink href="/" className="w-[160px] text-secondary-foreground">
+					<NextLink href="/" className="md:w-40 text-secondary-foreground w-28">
 						<BrandLogo />
 					</NextLink>
 
@@ -58,11 +48,11 @@ export function Header({ data, userSession }: { data: any; userSession: any }) {
 							<SvgIcons type="user-circle-outline" />
 						</NextLink>
 					)}
-					{!userSession && (
+					{!userSession && !hideLoginButton && (
 						<Button
 							asChild
 							size="sm"
-							className="absolute right-contain md:hidden"
+							className="absolute right-contain lg:hidden"
 						>
 							<NextLink href="/login">Log in</NextLink>
 						</Button>

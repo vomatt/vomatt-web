@@ -32,7 +32,7 @@ export default async function Page() {
 			<div className="flex justify-between gap-10">
 				<FeedList data={fakeData} className="" />
 				{!user && (
-					<div className="bg-secondary text-secondary-foreground rounded-lg p-6 h-fit text-center max-w-sm hidden md:block">
+					<div className="bg-secondary text-secondary-foreground rounded-lg p-6 h-fit text-center max-w-sm hidden lg:block">
 						<h4 className="text-white font-bold text-2xl">
 							Log in or sign up for Vomatt
 						</h4>

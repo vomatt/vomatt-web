@@ -46,14 +46,13 @@
 
 	--spacing-contain: var(--s-contain);
 	--spacing-contain-dynamic: var(--s-contain-dynamic);
-	--spacing-section: var(--s-section);
-	--spacing-section-half: var(--s-section-half);
-	--spacing-header: var(--h-header);
+
+	--spacing-header: var(--header-height);
 	--spacing-contain-max: var(--s-contain-max);
 
 	--shadow-default: 0px 12px 64px rgba(0, 0, 0, 0.12);
 
-	--height-header: var(--h-header);
+	--height-header: var(--header-height);
 	--height-footer: var(--h-footer);
 	--height-main: var(--h-main);
 
@@ -172,6 +171,14 @@
 	--positive: oklch(0.68 0.15 145);
 	--negative: oklch(0.58 0.18 25);
 	--neutral: oklch(0.85 0.03 260);
+
+	--header-height: 70px;
+}
+
+@variant md {
+	:root {
+		--header-height: 80px;
+	}
 }
 
 .dark {
@@ -707,26 +714,22 @@
 		--padding-lg: calc((100vw - var(--width-lg)) / 2);
 		--padding-max: calc((100vw - var(--width-max)) / 2);
 
-		--s-section: 70px;
-		--s-section-half: calc(var(--s-section) / 2);
-
-		--s-vp-height: 100vh;
-		--s-vp-height: var(--s-vp-height-js);
-
 		--z-overlay: 50;
 		--z-dialog: calc(var(--z-overlay) + 1);
 		--z-popover: 50;
+
+		--s-vp-height: 100vh;
 
 		@supports (height: 100svh) {
 			--s-vp-height: 100svh;
 		}
 
-		--h-main: calc(var(--s-vp-height) - var(--h-announcement, 0px));
+		--h-main: calc(var(--s-vp-height) - var(--h-announcement, 0px) - var(--header-height, 0px));
 	}
 
 	html {
 		scroll-behavior: smooth;
-		scroll-padding-top: calc(var(--h-announcement, 0px) + var(--h-header, 0px) + 20px);
+		scroll-padding-top: calc(var(--h-announcement, 0px) + var(--header-height, 0px) + 20px);
 	}
 
 	/* Global disabled state */
@@ -738,18 +741,18 @@
 
 /* Layouts */
 @utility pt-header-space-* {
-	padding-top: calc(var(--h-header) + var(--h-announcement) + --value(number) * var(--spacing));
-	padding-top: calc(var(--h-header) + var(--h-announcement) + --value([*]));
+	padding-top: calc(var(--header-height) + var(--h-announcement) + --value(number) * var(--spacing));
+	padding-top: calc(var(--header-height) + var(--h-announcement) + --value([*]));
 }
 
 @utility mt-header-space-* {
-	margin-top: calc(var(--h-header) + var(--h-announcement) + --value(number) * var(--spacing));
-	margin-top: calc(var(--h-header) + var(--h-announcement) + --value([*]));
+	margin-top: calc(var(--header-height) + var(--h-announcement) + --value(number) * var(--spacing));
+	margin-top: calc(var(--header-height) + var(--h-announcement) + --value([*]));
 }
 
 @utility top-header-space-* {
-	top: calc(var(--h-header) + var(--h-announcement) + --value(number) * var(--spacing));
-	top: calc(var(--h-header) + var(--h-announcement) + --value([*]));
+	top: calc(var(--header-height) + var(--h-announcement) + --value(number) * var(--spacing));
+	top: calc(var(--header-height) + var(--h-announcement) + --value([*]));
 }
 
 @utility p-x-sm {
