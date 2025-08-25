@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { getVerifyCode } from '@/app/api/login/getVerifyCode';
 import AuthContainer from '@/components/auth/AuthContainer';
 import VerificationForm from '@/components/auth/VerificationForm';
-import { Button } from '@/components/Button';
+import { ButtonLoading } from '@/components/ButtonLoading';
 import {
 	Form,
 	FormControl,
@@ -18,12 +18,12 @@ import {
 	FormMessage,
 } from '@/components/Form';
 import { Input } from '@/components/Input';
-import { STATUS_SIGN_IN, STATUS_VERIFICATION } from '@/data/constants';
+import { STATUS_LOG_IN, STATUS_VERIFICATION } from '@/data/constants';
 
-type PageStatusType = 'STATUS_SIGN_IN' | 'STATUS_VERIFICATION';
+type PageStatusType = 'STATUS_LOG_IN' | 'STATUS_VERIFICATION';
 
-export default function SignIn() {
-	const [pageStatus, setPageStatus] = useState<PageStatusType>(STATUS_SIGN_IN);
+export default function LogIn() {
+	const [pageStatus, setPageStatus] = useState<PageStatusType>(STATUS_LOG_IN);
 	const [email, setEmail] = useState('');
 
 	const onSetPageStatus = (value: PageStatusType) => {
@@ -35,13 +35,13 @@ export default function SignIn() {
 	};
 
 	const pageStatusScreen = {
-		STATUS_SIGN_IN: (
-			<SignInForm onSetPageStatus={onSetPageStatus} onSetEmail={onSetEmail} />
+		STATUS_LOG_IN: (
+			<LogInForm onSetPageStatus={onSetPageStatus} onSetEmail={onSetEmail} />
 		),
 		STATUS_VERIFICATION: (
 			<VerificationForm
 				email={email}
-				backButtonFunc={() => onSetPageStatus(STATUS_SIGN_IN)}
+				backButtonFunc={() => onSetPageStatus(STATUS_LOG_IN)}
 			/>
 		),
 	};
@@ -53,7 +53,7 @@ export default function SignIn() {
 	);
 }
 
-type SignInFormType = {
+type LogInFormType = {
 	onSetPageStatus: (value: PageStatusType) => void;
 	onSetEmail: (value: string) => void;
 	className?: string;
@@ -65,7 +65,7 @@ const FormSchema = z.object({
 	}),
 });
 
-function SignInForm({ onSetPageStatus, onSetEmail }: SignInFormType) {
+function LogInForm({ onSetPageStatus, onSetEmail }: LogInFormType) {
 	const [error, setError] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
 
@@ -87,8 +87,8 @@ function SignInForm({ onSetPageStatus, onSetEmail }: SignInFormType) {
 				onSetPageStatus(STATUS_VERIFICATION);
 				return;
 			}
+			setError('Something went wrong, pleas try again later');
 		} catch (error) {
-			console.error('file:36 ~ onSubmit ~ error:', error);
 			setError('Something went wrong, pleas try again later');
 		} finally {
 			setIsLoading(false);
@@ -96,10 +96,10 @@ function SignInForm({ onSetPageStatus, onSetEmail }: SignInFormType) {
 	}
 
 	return (
-		<div className="">
-			<h1 className="font-medium text-6xl text-center mb-10">Sign in</h1>
+		<div className="flex flex-col justify-center h-full">
+			<h1 className="font-medium text-6xl text-center mb-10">Log in</h1>
 			<Form {...form}>
-				<form onSubmit={form.handleSubmit(onSubmit)} className="mb-10">
+				<form onSubmit={form.handleSubmit(onSubmit)} className="mb-5">
 					<FormField
 						control={form.control}
 						name="email"
@@ -120,32 +120,28 @@ function SignInForm({ onSetPageStatus, onSetEmail }: SignInFormType) {
 							);
 						}}
 					/>
-					<Button className="w-full" type="submit" disabled={isLoading}>
+
+					<ButtonLoading className="w-full" type="submit" isLoading={isLoading}>
 						Login
-					</Button>
-					{error && <p className="t-l-1 text-error mt-3">{error}</p>}
+					</ButtonLoading>
+					{error && (
+						<p className="text-destructive text-center mt-3">{error}</p>
+					)}
 				</form>
 			</Form>
+
+			<div className="inline-flex items-center justify-center w-full">
+				<hr className="w-64 h-px my-8 bg-gray-200 border-0 dark:bg-gray-700" />
+				<span className="absolute px-2 font-medium -translate-x-1/2 text-white left-1/2 bg-background t-b-1">
+					or
+				</span>
+			</div>
 			<p className="t-b-1 text-center">
-				Need help?{' '}
-				<NextLink href="/forgot-password" className="cr-gray-900 underline">
-					Forgot password
+				Don&apos;t have an account?{' '}
+				<NextLink href="/signup" className="cr-gray-900 underline">
+					Sign up
 				</NextLink>
 			</p>
-			<div className="mb-6 text-center">
-				<div className="inline-flex items-center justify-center w-full">
-					<hr className="w-64 h-px my-8 bg-gray-200 border-0 dark:bg-gray-700" />
-					<span className="absolute px-2 font-medium -translate-x-1/2 text-white left-1/2 bg-background t-b-1">
-						or
-					</span>
-				</div>
-				<p className="t-b-1 text-center">
-					Don&apos;t have an account?{' '}
-					<NextLink href="/signup" className="cr-gray-900 underline">
-						Sign up
-					</NextLink>
-				</p>
-			</div>
 		</div>
 	);
 }

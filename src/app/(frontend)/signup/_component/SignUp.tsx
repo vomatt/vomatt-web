@@ -7,7 +7,6 @@ import { z } from 'zod';
 
 import AuthContainer from '@/components/auth/AuthContainer';
 import VerificationForm from '@/components/auth/VerificationForm';
-import { Button } from '@/components/Button';
 import CustomPortableText from '@/components/CustomPortableText';
 import {
 	Form,
@@ -18,7 +17,8 @@ import {
 	FormMessage,
 } from '@/components/Form';
 import { Input } from '@/components/Input';
-import { STATUS_SIGN_IN, STATUS_VERIFICATION } from '@/data/constants';
+import { Button } from '@/components/ui/Button';
+import { STATUS_LOG_IN, STATUS_VERIFICATION } from '@/data/constants';
 
 const nameValidation = new RegExp(
 	/^[\w'\-,.]*[^_!¡?÷?¿\/\\+=@#$%ˆ&*(){}|~<>;:[\]]*$/
@@ -52,11 +52,11 @@ type SignUpType = {
 	signUpInfoData: any;
 };
 
-type currentStepType = 'STATUS_SIGN_IN' | 'STATUS_VERIFICATION';
+type currentStepType = 'STATUS_LOG_IN' | 'STATUS_VERIFICATION';
 
 export default function SignUp({ signUpInfoData }: SignUpType) {
 	const [currentStep, setCurrentStep] =
-		useState<currentStepType>(STATUS_SIGN_IN);
+		useState<currentStepType>(STATUS_LOG_IN);
 	const [email, setEmail] = useState('');
 
 	const onSetCurrentStep = (value: currentStepType) => {
@@ -68,7 +68,7 @@ export default function SignUp({ signUpInfoData }: SignUpType) {
 	};
 
 	const currentStepScreen = {
-		STATUS_SIGN_IN: (
+		STATUS_LOG_IN: (
 			<SignUpForm
 				onSetCurrentStep={onSetCurrentStep}
 				onSetEmail={onSetEmail}
@@ -78,7 +78,7 @@ export default function SignUp({ signUpInfoData }: SignUpType) {
 		STATUS_VERIFICATION: (
 			<VerificationForm
 				email={email}
-				backButtonFunc={() => onSetCurrentStep(STATUS_SIGN_IN)}
+				backButtonFunc={() => onSetCurrentStep(STATUS_LOG_IN)}
 			/>
 		),
 	};
@@ -201,7 +201,7 @@ function SignUpForm({
 						<Button className="w-full" type="submit" disabled={isLoading}>
 							Submit
 						</Button>
-						{error && <p className="t-l-1 text-error mt-3">{error}</p>}
+						{error && <p className="t-l-1 text-destructive mt-3">{error}</p>}
 					</form>
 				</Form>
 				{policyMessage && (

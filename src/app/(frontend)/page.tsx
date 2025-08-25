@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import { Button } from '@/components/Button';
+import { Button } from '@/components/ui/Button';
 import { getCurrentUser } from '@/data/auth';
 
 import { FeedList } from './_components/FeedList';

@@ -4,7 +4,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useState } from 'react';
 
 import BrandLogo from '@/components/BrandLogo';
-import { Button } from '@/components/Button';
+import { Button } from '@/components/ui/Button';
 import SvgIcons from '@/components/SvgIcons';
 import { cn } from '@/lib/utils';
 

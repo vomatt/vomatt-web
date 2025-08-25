@@ -2,6 +2,6 @@ export const REFRESH_TOKEN = 'REFRESH_TOKEN';
 export const USER_SESSION = 'USER_SESSION';
 export const USER_LANG = 'USER_LANG';
 
-export const STATUS_SIGN_IN = 'STATUS_SIGN_IN';
+export const STATUS_LOG_IN = 'STATUS_LOG_IN';
 export const STATUS_SIGN_UP = 'STATUS_SIGN_UP';
 export const STATUS_VERIFICATION = 'STATUS_VERIFICATION';

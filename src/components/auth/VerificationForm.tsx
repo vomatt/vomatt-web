@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { Button } from '@/components/Button';
+import { ButtonLoading } from '@/components/ButtonLoading';
 import {
 	Form,
 	FormControl,
@@ -12,8 +12,15 @@ import {
 	FormItem,
 	FormMessage,
 } from '@/components/Form';
+import { MailCheckIcon } from '@/components/ui/animate-icon/MailCheck';
+import { Button } from '@/components/ui/Button';
 
-import { InputOTP, InputOTPGroup, InputOTPSlot } from './InputOTP';
+import {
+	InputOTP,
+	InputOTPGroup,
+	InputOTPSeparator,
+	InputOTPSlot,
+} from './InputOTP';
 
 interface VerificationFormProps {
 	email: string;
@@ -64,18 +71,17 @@ export default function VerificationForm({
 	}
 
 	return (
-		<>
-			<h1 className="t-h-3 text-center mb-6">We sent you a code</h1>
-			<h5 className="t-b-1 mb-8 text-center">
-				Enter it below to verify {email}
-			</h5>
+		<div className="text-center flex flex-col items-center">
+			<MailCheckIcon className="size-16 md:size-20 mb-3" />
+			<h1 className="text-3xl mb-3">We sent you a code</h1>
+			<h5 className="mb-10">Enter it below to verify {email}</h5>
 			<Form {...form}>
-				<form onSubmit={form.handleSubmit(onSubmit)} className="mb-8">
+				<form onSubmit={form.handleSubmit(onSubmit)} className="w-full mb-12">
 					<FormField
 						control={form.control}
 						name="pin"
 						render={({ field }) => (
-							<FormItem className="space-y-3 mb-3">
+							<FormItem className="mb-8">
 								<FormControl>
 									<InputOTP
 										maxLength={6}
@@ -83,29 +89,36 @@ export default function VerificationForm({
 										{...field}
 										containerClassName="justify-center"
 									>
-										<InputOTPGroup className="w-full">
-											<InputOTPSlot index={0} className="h-16" />
-											<InputOTPSlot index={1} className="h-16" />
-											<InputOTPSlot index={2} className="h-16" />
-											<InputOTPSlot index={3} className="h-16" />
-											<InputOTPSlot index={4} className="h-16" />
-											<InputOTPSlot index={5} className="h-16" />
+										<InputOTPGroup>
+											<InputOTPSlot index={0} />
+											<InputOTPSlot index={1} />
+											<InputOTPSlot index={2} />
+										</InputOTPGroup>
+										<InputOTPSeparator />
+										<InputOTPGroup>
+											<InputOTPSlot index={3} />
+											<InputOTPSlot index={4} />
+											<InputOTPSlot index={5} />
 										</InputOTPGroup>
 									</InputOTP>
 								</FormControl>
 								{error && (
-									<FormMessage className="text-center text-error">
+									<FormMessage className="text-center text-destructive">
 										{error}
 									</FormMessage>
 								)}
 							</FormItem>
 						)}
 					/>
-					<Button type="submit" className="w-full mt-8 block" size="lg">
-						Submit
-					</Button>
+					<ButtonLoading
+						type="submit"
+						className="w-full mb-3"
+						isLoading={isLoading}
+					>
+						Continue
+					</ButtonLoading>
 					<Button
-						className="w-full mt-6 mx-auto block"
+						className="w-full"
 						onClick={() => backButtonFunc()}
 						variant="outline"
 					>
@@ -114,8 +127,8 @@ export default function VerificationForm({
 				</form>
 			</Form>
 			<Button className="underline mx-auto block" variant="link">
-				Didn&apos;t receive email?
+				Resend verification code
 			</Button>
-		</>
+		</div>
 	);
 }

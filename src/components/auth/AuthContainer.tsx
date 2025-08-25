@@ -21,10 +21,7 @@ export default function AuthContainer({
 			animate="show"
 			exit="hide"
 			variants={fadeAnim}
-			className={clsx(
-				'relative max-w-md h-[calc(100svh-var(--s-header))] mx-auto w-full flex flex-col justify-center px-5 text-white',
-				className
-			)}
+			className={clsx('relative max-w-xs h-dvh mx-auto w-full', className)}
 		>
 			{children}
 		</motion.div>

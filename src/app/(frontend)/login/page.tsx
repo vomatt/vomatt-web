@@ -1,11 +1,11 @@
 import defineMetadata from '@/lib/defineMetadata';
 
-import SignIn from './_component/SignIn';
+import LogIn from './_component/LogIn';
 
-export async function generateMetadata() {
+export function generateMetadata() {
 	return defineMetadata({ data: { title: 'Login Vomatt' } });
 }
 
 export default async function Page() {
-	return <SignIn />;
+	return <LogIn />;
 }
