@@ -1,5 +1,6 @@
 import NextLink from 'next/link';
 
+import { CreateVoteDialog } from '@/components/CreateVoteDialog';
 import { Button } from '@/components/ui/Button';
 import { getCurrentUser } from '@/data/auth';
 
@@ -44,6 +45,7 @@ export default async function Page() {
 						</Button>
 					</div>
 				)}
+				<CreateVoteDialog triggerClassName="fixed bottom-contain right-contain  size-14 flex justify-center items-center bg-gray-900/80 rounded-xl cursor-pointer hover:scale-120 transition-all hover:bg-gray-900" />
 			</div>
 		</div>
 	);

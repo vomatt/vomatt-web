@@ -9,6 +9,7 @@ import {
 import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 
+import { CreateVoteDialog } from '@/components/CreateVoteDialog';
 type TabBarProps = {
 	className?: string;
 };
@@ -29,7 +30,7 @@ export function TabBar({ className }: TabBarProps) {
 		{
 			title: 'Create Vote',
 			href: '/search',
-			icon: <CirclePlus />,
+			icon: <CreateVoteDialog />,
 		},
 		{
 			title: 'Activity',
