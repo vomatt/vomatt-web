@@ -45,7 +45,7 @@ export default async function Page() {
 						</Button>
 					</div>
 				)}
-				<CreateVoteDialog triggerClassName="fixed bottom-contain right-contain  size-14 flex justify-center items-center bg-gray-900/80 rounded-xl cursor-pointer hover:scale-120 transition-all hover:bg-gray-900" />
+				<CreateVoteDialog triggerClassName="fixed bottom-contain right-contain size-14 flex justify-center items-center bg-secondary rounded-xl cursor-pointer hover:scale-120 transition-all hover:bg-secondary/90" />
 			</div>
 		</div>
 	);

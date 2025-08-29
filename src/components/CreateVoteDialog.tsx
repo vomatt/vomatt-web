@@ -1,45 +1,73 @@
+'use client';
 import { Plus } from 'lucide-react';
-import React, { ReactNode } from 'react';
+import * as React from 'react';
 
+import { PollCreator } from '@/components/PollCreater';
 import { Button } from '@/components/ui/Button';
 import {
 	Dialog,
-	DialogClose,
 	DialogContent,
 	DialogDescription,
-	DialogFooter,
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger,
 } from '@/components/ui/Dialog';
-import { Input } from '@/components/ui/Input';
-import { Textarea } from '@/components/ui/Textarea';
+import {
+	Drawer,
+	DrawerClose,
+	DrawerContent,
+	DrawerDescription,
+	DrawerFooter,
+	DrawerHeader,
+	DrawerTitle,
+	DrawerTrigger,
+} from '@/components/ui/Drawer';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 type CreateVoteDialogProps = { triggerClassName?: string };
 export function CreateVoteDialog({ triggerClassName }: CreateVoteDialogProps) {
+	const [open, setOpen] = React.useState(false);
+	const isDesktop = useMediaQuery('(min-width: 768px)');
+
+	if (isDesktop) {
+		return (
+			<Dialog open={open} onOpenChange={setOpen}>
+				<DialogTrigger className={triggerClassName}>
+					<Plus />
+				</DialogTrigger>
+				<DialogContent className="sm:max-w-[425px]">
+					<DialogHeader>
+						<DialogTitle>New Poll</DialogTitle>
+						<DialogDescription>
+							Make changes to your profile here. Click save when you&apos;re
+							done.
+						</DialogDescription>
+					</DialogHeader>
+					<PollCreator />
+				</DialogContent>
+			</Dialog>
+		);
+	}
+
 	return (
-		<Dialog>
-			<DialogTrigger className={triggerClassName}>
+		<Drawer open={open} onOpenChange={setOpen}>
+			<DrawerTrigger className={triggerClassName}>
 				<Plus />
-			</DialogTrigger>
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>New Poll</DialogTitle>
-				</DialogHeader>
-				<Textarea placeholder="Poll title" />
-
-				<div className="flex flex-col gap-2">
-					<Input id="option1" placeholder="Option 1" />
-					<Input id="option2" placeholder="Option 2" />
-					<Input id="anotherOption" placeholder="Add another option" />
-				</div>
-
-				<DialogFooter className="sm:justify-start">
-					<Button type="button" variant="secondary">
-						Post
-					</Button>
-				</DialogFooter>
-			</DialogContent>
-		</Dialog>
+			</DrawerTrigger>
+			<DrawerContent>
+				<DrawerHeader className="text-left">
+					<DrawerTitle>Edit profile</DrawerTitle>
+					<DrawerDescription>
+						Make changes to your profile here. Click save when you&apos;re done.
+					</DrawerDescription>
+				</DrawerHeader>
+				<PollCreator />
+				<DrawerFooter className="pt-2">
+					<DrawerClose asChild>
+						<Button variant="outline">Cancel</Button>
+					</DrawerClose>
+				</DrawerFooter>
+			</DrawerContent>
+		</Drawer>
 	);
 }

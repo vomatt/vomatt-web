@@ -27,7 +27,7 @@ export function Header({ data, userSession }: { data: any; userSession: any }) {
 		<>
 			<header
 				className={cn(
-					'g-header w-full z-100 px-contain bg-background/85 backdrop-blur-md fixed top-0 right-0 left-0 h-header',
+					'g-header w-full z-header px-contain bg-background/85 backdrop-blur-md fixed top-0 right-0 left-0 h-header',
 					{
 						'is-open': isMobileMenuOpen,
 						'is-logged-in': userSession,
