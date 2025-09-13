@@ -1,10 +1,35 @@
+import { match as matchLocale } from '@formatjs/intl-localematcher';
+import Negotiator from 'negotiator';
+import { cookies } from 'next/headers';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 import { decrypt, getUserSession } from '@/lib/auth';
+
+import { i18n } from './i18n-config';
+
 let redirectToLogin = false;
 
+function getLocale(request: NextRequest): string | undefined {
+	// Negotiator expects plain object so we need to transform headers
+	const negotiatorHeaders: Record<string, string> = {};
+	request.headers.forEach((value, key) => (negotiatorHeaders[key] = value));
+
+	// @ts-ignore locales are readonly
+	const locales: string[] = i18n.locales;
+
+	// Use negotiator and intl-localematcher to get best locale
+	let languages = new Negotiator({ headers: negotiatorHeaders }).languages(
+		locales
+	);
+
+	const locale = matchLocale(languages, locales, i18n.defaultLocale);
+
+	return locale;
+}
+
 export async function middleware(request: NextRequest) {
+	const cookieStore = await cookies();
 	const userSession = await getUserSession();
 
 	if (
@@ -28,6 +53,7 @@ export async function middleware(request: NextRequest) {
 		);
 	}
 	const response = NextResponse.next();
+
 	// try {
 	// 	if (userSession) {
 	// 		const { userId } = userSession;
@@ -75,14 +101,16 @@ export async function middleware(request: NextRequest) {
 	// 	return NextResponse.redirect(new URL('/account/settings', request.url));
 	// }
 
+	// Check for language preference in cookie (if you want to set one)
+	const cookieLanguage = request.cookies.get('preferred-language')?.value;
+
+	if (!cookieLanguage) {
+		const locale = getLocale(request);
+		cookieStore.set('preferred-language', locale || i18n.defaultLocale);
+	}
+
 	return response;
 }
 export const config = {
-	matcher: [
-		'/account/:path*',
-		'/login',
-		'/signup',
-		'/api/user/:path*',
-		'/api/auth/logout',
-	],
+	matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };

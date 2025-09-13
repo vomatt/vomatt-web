@@ -9,6 +9,7 @@ import { Toaster } from 'sonner';
 
 import DraftModeToast from '@/components/DraftModeToast';
 import { Layout } from '@/components/layout';
+import { LanguageProvider } from '@/contexts/LanguageContext';
 import { getCurrentUser } from '@/data/auth';
 import { imageBuilder } from '@/sanity/lib/image';
 import { sanityFetch } from '@/sanity/lib/live';

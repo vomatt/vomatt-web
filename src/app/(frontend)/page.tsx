@@ -2,11 +2,12 @@ import NextLink from 'next/link';
 
 import { CreateVoteDialog } from '@/components/CreateVoteDialog';
 import { Button } from '@/components/ui/Button';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { getCurrentUser } from '@/data/auth';
 
 import { FeedList } from './_components/FeedList';
 // export async function generateMetadata({}) {}
-
+// const { t } = useLanguage();
 const fakeData = [
 	{
 		title:

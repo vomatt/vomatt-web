@@ -1,0 +1,8 @@
+{
+	"global": {
+		"poll": "poll"
+	},
+	"products": {
+		"cart": "Add to Cart"
+	}
+}
