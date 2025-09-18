@@ -1,32 +1,41 @@
 {
 	"common": {
 		"login": "登入",
+		"email": "信箱",
 		"welcome": "歡迎",
-		"loading": "載入中...",
-		"error": "Algo salió mal",
-		"cancel": "Cancelar",
-		"save": "Guardar",
-		"delete": "Eliminar",
-		"edit": "Editar"
+		"loading": "載入中",
+		"error": "發生錯誤",
+		"cancel": "取消",
+		"save": "儲存",
+		"delete": "刪除",
+		"edit": "編輯"
 	},
 	"navigation": {
-		"home": "Inicio",
-		"profile": "Perfil",
-		"settings": "Configuración",
-		"logout": "Cerrar sesión"
+		"home": "首頁",
+		"profile": "個人資料",
+		"settings": "設定",
+		"logout": "登出"
 	},
 	"user": {
 		"profile": {
-			"title": "Perfil de Usuario",
-			"name": "Nombre",
-			"email": "Correo electrónico",
-			"bio": "Biografía"
+			"title": "使用者資料",
+			"name": "姓名",
+			"email": "電子郵件",
+			"bio": "個人簡介"
 		}
 	},
-	"page": {
-		"login": {
-			"title": "登入 Vomatt",
-			"email": "信箱"
-		}
+
+	"login": {
+		"title": "登入 Vomatt",
+		"submit": "登入"
+	},
+	"signup": {
+		"title": "註冊 Vomatt",
+		"submit": "註冊"
+	},
+	"verificationCode": {
+		"title": "我們已寄出驗證碼",
+		"subtitle": "在下面輸入來驗證",
+		"INVALID_VERIFICATION_CODE": "驗證碼錯誤"
 	}
 }

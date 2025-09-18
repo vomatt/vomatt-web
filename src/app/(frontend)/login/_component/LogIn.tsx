@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { getVerifyCode } from '@/app/api/login/getVerifyCode';
+import { getVerifyCode } from '@/app/api/auth/login/getVerifyCode';
 import AuthContainer from '@/components/auth/AuthContainer';
 import VerificationForm from '@/components/auth/VerificationForm';
 import { ButtonLoading } from '@/components/ButtonLoading';
@@ -35,6 +35,37 @@ export function LogIn() {
 		setEmail(value);
 	};
 
+	const onSubmitLogin = async (pin: string) => {
+		const bodyData = {
+			email,
+			verificationCode: pin,
+		};
+
+		try {
+			const res = await fetch('/api/auth/login', {
+				method: 'POST',
+				body: JSON.stringify(bodyData),
+			});
+			const data = await res.json();
+			const apiStatus = data?.status;
+			const apiMessage = data?.message as string | undefined;
+
+			if (apiStatus === 'SUCCESS') {
+				return { status: 'OK' as const };
+			}
+
+			return {
+				status: 'ERROR' as const,
+				message: apiMessage || 'Login failed',
+			};
+		} catch (error) {
+			return {
+				status: 'ERROR' as const,
+				message: 'Something went wrong, pleas try again later',
+			};
+		}
+	};
+
 	const pageStatusScreen = {
 		STATUS_LOG_IN: (
 			<LogInForm onSetPageStatus={onSetPageStatus} onSetEmail={onSetEmail} />
@@ -43,6 +74,7 @@ export function LogIn() {
 			<VerificationForm
 				email={email}
 				backButtonFunc={() => onSetPageStatus(STATUS_LOG_IN)}
+				submitCodeFunc={onSubmitLogin}
 			/>
 		),
 	};
@@ -67,6 +99,7 @@ const FormSchema = z.object({
 });
 
 function LogInForm({ onSetPageStatus, onSetEmail }: LogInFormType) {
+	const { t } = useLanguage();
 	const [error, setError] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
 
@@ -83,7 +116,7 @@ function LogInForm({ onSetPageStatus, onSetEmail }: LogInFormType) {
 
 		try {
 			const res = await getVerifyCode(email);
-			if (res.status === 'success') {
+			if (res.status === 'SUCCESS') {
 				onSetEmail(email);
 				onSetPageStatus(STATUS_VERIFICATION);
 				return;
@@ -95,11 +128,11 @@ function LogInForm({ onSetPageStatus, onSetEmail }: LogInFormType) {
 			setIsLoading(false);
 		}
 	}
-	const { t } = useLanguage();
+
 	return (
 		<>
 			<h1 className="font-medium text-3xl text-center mb-10">
-				{t('page.login.title')}
+				{t('login.title')}
 			</h1>
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(onSubmit)}>
@@ -109,7 +142,7 @@ function LogInForm({ onSetPageStatus, onSetEmail }: LogInFormType) {
 						render={({ field }) => {
 							return (
 								<FormItem className="mb-5">
-									<FormLabel>{t('page.login.email')}</FormLabel>
+									<FormLabel>{t('common.email')}</FormLabel>
 									<FormControl>
 										<Input
 											type="email"

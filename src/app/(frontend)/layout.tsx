@@ -29,7 +29,7 @@ const geistMono = Geist_Mono({
 	subsets: ['latin'],
 });
 
-async function getServerLanguage(): string {
+async function getServerLanguage(): Promise<string> {
 	try {
 		const cookieStore = await cookies();
 		const headersList = await headers();
@@ -138,7 +138,7 @@ export default async function RootLayout({
 		],
 	});
 	const userSession = await getCurrentUser();
-	const serverLanguage = getServerLanguage();
+	const serverLanguage = await getServerLanguage();
 
 	return (
 		<html

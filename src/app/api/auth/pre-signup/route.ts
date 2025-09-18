@@ -1,35 +1,26 @@
-import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-
-import { REFRESH_TOKEN, USER_SESSION } from '@/data/constants';
-import { getUserLanguage } from '@/lib';
-import { decrypt } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
 	const body = await request.json();
-	const { email, firstName, lastName, username } = body;
-	const userLang = await getUserLanguage();
+	const { email, username } = body;
 
 	try {
-		const url = `${process.env.API_URL}/user/create`;
+		const url = `${process.env.API_URL}/api/auth/pre-signup`;
 		const res = await fetch(url, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				lang: userLang,
 			},
 			body: JSON.stringify({
 				email,
-				firstName,
-				lastName,
-				userName: username,
+				username,
 			}),
 		});
 
 		const data = await res.json();
-		const { status, message } = data || {};
+		const { success, message } = data || {};
 
-		if (status === 'SUCCESS') {
+		if (success) {
 			return NextResponse.json({ status: 'SUCCESS' }, { status: 200 });
 		}
 

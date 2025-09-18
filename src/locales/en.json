@@ -1,6 +1,10 @@
 {
 	"common": {
-		"login": "Login",
+		"login": "login",
+		"email": "email",
+		"firstName": "first name",
+		"lastName": "last name",
+		"username": "username",
 		"welcome": "Welcome",
 		"loading": "Loading...",
 		"error": "Something went wrong",
@@ -23,10 +27,17 @@
 			"bio": "Biography"
 		}
 	},
-	"page": {
-		"login": {
-			"title": "Log in to Vomatt",
-			"email": "email"
-		}
+	"login": {
+		"title": "Log in to Vomatt",
+		"submit": "login"
+	},
+	"signup": {
+		"title": "Create your account",
+		"submit": "submit"
+	},
+	"verificationCode": {
+		"title": "We sent you a code",
+		"subtitle": "Enter it below to verify",
+		"INVALID_VERIFICATION_CODE": "Wrong code"
 	}
 }

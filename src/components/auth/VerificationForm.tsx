@@ -14,6 +14,7 @@ import {
 } from '@/components/Form';
 import { MailCheckIcon } from '@/components/ui/animate-icon/MailCheck';
 import { Button } from '@/components/ui/Button';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 import {
 	InputOTP,
@@ -24,6 +25,9 @@ import {
 
 interface VerificationFormProps {
 	email: string;
+	submitCodeFunc: (
+		pin: string
+	) => Promise<{ status: 'ERROR' | 'OK'; message?: string }>;
 	backButtonFunc: () => void;
 }
 
@@ -35,6 +39,7 @@ const FormSchema = z.object({
 
 export default function VerificationForm({
 	email,
+	submitCodeFunc,
 	backButtonFunc,
 }: VerificationFormProps) {
 	const [error, setError] = useState('');
@@ -45,7 +50,7 @@ export default function VerificationForm({
 			pin: '',
 		},
 	});
-
+	const { t } = useLanguage();
 	const router = useRouter();
 
 	async function onSubmit(data: z.infer<typeof FormSchema>) {
@@ -53,14 +58,11 @@ export default function VerificationForm({
 		try {
 			setError('');
 			setIsLoading(true);
-			const res = await fetch('/api/login/verify-code', {
-				method: 'POST',
-				body: JSON.stringify({ email, verifyCode: pin }),
-			});
-			const data = await res.json();
+			const { status, message } = await submitCodeFunc(pin);
 
-			if (data.status === 'ERROR') {
-				return setError('Wrong code');
+			if (status === 'ERROR') {
+				setError(message || '');
+				return;
 			}
 			return router.replace('/');
 		} catch (e) {
@@ -73,8 +75,10 @@ export default function VerificationForm({
 	return (
 		<div className="text-center flex flex-col items-center">
 			<MailCheckIcon className="size-16 md:size-20 mb-3" />
-			<h1 className="text-3xl mb-3">We sent you a code</h1>
-			<h5 className="mb-10">Enter it below to verify {email}</h5>
+			<h1 className="text-3xl mb-3">{t('verificationCode.title')}</h1>
+			<h5 className="mb-10">
+				{t('verificationCode.subtitle')} <strong>{email}</strong>
+			</h5>
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(onSubmit)} className="w-full mb-12">
 					<FormField
@@ -104,7 +108,7 @@ export default function VerificationForm({
 								</FormControl>
 								{error && (
 									<FormMessage className="text-center text-destructive">
-										{error}
+										{t(`verificationCode[${error}]`)}
 									</FormMessage>
 								)}
 							</FormItem>

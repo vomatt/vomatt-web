@@ -6,11 +6,11 @@ import { decrypt } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
 	const body = await request.json();
-	const { email, verifyCode } = body;
+	const { email, verificationCode } = body;
 	const cookieStore = await cookies();
 
 	try {
-		const url = `${process.env.API_URL}/auth/login`;
+		const url = `${process.env.API_URL}/api/auth/signin`;
 		const res = await fetch(url, {
 			method: 'POST',
 			headers: {
@@ -18,18 +18,18 @@ export async function POST(request: NextRequest) {
 			},
 			body: JSON.stringify({
 				email,
-				verifyCode,
+				verificationCode,
 			}),
 		});
 
 		const data = await res.json();
-		const { status, statusCode, accessToken, refreshToken } = data || {};
+		const { success, errorCode, token, refreshToken } = data || {};
 
-		if (status === 'SUCCESS' && accessToken) {
-			const decryptToken = await decrypt(accessToken);
+		if (success && token) {
+			const decryptToken = await decrypt(token);
 			const { exp } = decryptToken;
 			const expires = new Date(exp * 1000);
-			cookieStore.set(USER_SESSION, accessToken, {
+			cookieStore.set(USER_SESSION, token, {
 				expires,
 				httpOnly: true,
 			});
@@ -43,8 +43,7 @@ export async function POST(request: NextRequest) {
 
 		return NextResponse.json({
 			status: 'ERROR',
-			message: 'Wrong code',
-			statusCode,
+			message: errorCode,
 		});
 	} catch (error) {
 		return NextResponse.json({

@@ -7,6 +7,7 @@ import { z } from 'zod';
 
 import AuthContainer from '@/components/auth/AuthContainer';
 import VerificationForm from '@/components/auth/VerificationForm';
+import { ButtonLoading } from '@/components/ButtonLoading';
 import CustomPortableText from '@/components/CustomPortableText';
 import {
 	Form,
@@ -16,9 +17,9 @@ import {
 	FormLabel,
 	FormMessage,
 } from '@/components/Form';
-import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { STATUS_LOG_IN, STATUS_VERIFICATION } from '@/data/constants';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { STATUS_SIGN_UP, STATUS_VERIFICATION } from '@/data/constants';
 
 const nameValidation = new RegExp(
 	/^[\w'\-,.]*[^_!¡?÷?¿\/\\+=@#$%ˆ&*(){}|~<>;:[\]]*$/
@@ -52,33 +53,73 @@ type SignUpType = {
 	signUpInfoData: any;
 };
 
-type currentStepType = 'STATUS_LOG_IN' | 'STATUS_VERIFICATION';
+type currentStepType = 'STATUS_SIGN_UP' | 'STATUS_VERIFICATION';
+
+export const defaultValues = {
+	email: '',
+	firstName: '',
+	lastName: '',
+	username: '',
+};
 
 export default function SignUp({ signUpInfoData }: SignUpType) {
 	const [currentStep, setCurrentStep] =
-		useState<currentStepType>(STATUS_LOG_IN);
-	const [email, setEmail] = useState('');
+		useState<currentStepType>(STATUS_SIGN_UP);
+
+	const [formData, setFormData] = useState(defaultValues);
 
 	const onSetCurrentStep = (value: currentStepType) => {
 		setCurrentStep(value);
 	};
 
-	const onSetEmail = (value: string) => {
-		setEmail(value);
+	const onSetFormData = (value: typeof defaultValues) => {
+		setFormData(value);
+	};
+
+	const onSubmitSignUp = async (pin: string) => {
+		const bodyData = {
+			...formData,
+			verificationCode: pin,
+		};
+
+		try {
+			const res = await fetch('/api/auth/signup', {
+				method: 'POST',
+				body: JSON.stringify(bodyData),
+			});
+			const data = await res.json();
+			const apiStatus = data?.status;
+			const apiMessage = data?.message as string | undefined;
+
+			if (apiStatus === 'SUCCESS') {
+				return { status: 'OK' as const };
+			}
+
+			return {
+				status: 'ERROR' as const,
+				message: apiMessage || 'Verification failed',
+			};
+		} catch (error) {
+			return {
+				status: 'ERROR' as const,
+				message: 'Something went wrong, pleas try again later',
+			};
+		}
 	};
 
 	const currentStepScreen = {
-		STATUS_LOG_IN: (
+		STATUS_SIGN_UP: (
 			<SignUpForm
 				onSetCurrentStep={onSetCurrentStep}
-				onSetEmail={onSetEmail}
+				onSetFormData={onSetFormData}
 				signUpInfoData={signUpInfoData}
 			/>
 		),
 		STATUS_VERIFICATION: (
 			<VerificationForm
-				email={email}
-				backButtonFunc={() => onSetCurrentStep(STATUS_LOG_IN)}
+				email={formData.email}
+				backButtonFunc={() => onSetCurrentStep(STATUS_SIGN_UP)}
+				submitCodeFunc={onSubmitSignUp}
 			/>
 		),
 	};
@@ -93,33 +134,29 @@ export default function SignUp({ signUpInfoData }: SignUpType) {
 type SignUpFormType = {
 	signUpInfoData: any;
 	onSetCurrentStep: (value: currentStepType) => void;
-	onSetEmail: (value: string) => void;
+	onSetFormData: (value: typeof defaultValues) => void;
 };
 
 function SignUpForm({
 	onSetCurrentStep,
 	signUpInfoData,
-	onSetEmail,
+	onSetFormData,
 }: SignUpFormType) {
+	const { t } = useLanguage();
 	const { policyMessage } = signUpInfoData || {};
 	const [error, setError] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
 
 	const form = useForm<z.infer<typeof FormSchema>>({
 		resolver: zodResolver(FormSchema),
-		defaultValues: {
-			email: '',
-			firstName: '',
-			lastName: '',
-			username: '',
-		},
+		defaultValues,
 	});
 
 	async function onSubmit(data: z.infer<typeof FormSchema>) {
 		setIsLoading(true);
-
+		setError('');
 		try {
-			const response = await fetch('/api/sign-up', {
+			const response = await fetch('/api/auth/pre-signup', {
 				method: 'POST',
 				body: JSON.stringify(data),
 			});
@@ -131,7 +168,7 @@ function SignUpForm({
 				return;
 			}
 
-			onSetEmail(data.email);
+			onSetFormData(data);
 			onSetCurrentStep(STATUS_VERIFICATION);
 		} catch (error) {
 			setError('Something went wrong, pleas try again later');
@@ -142,7 +179,7 @@ function SignUpForm({
 
 	return (
 		<>
-			<h1 className="text-3xl mb-10 text-center">Create your account</h1>
+			<h1 className="text-3xl mb-10 text-center">{t('signup.title')}</h1>
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 					<FormField
@@ -150,7 +187,7 @@ function SignUpForm({
 						name="email"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Email Address</FormLabel>
+								<FormLabel>{t('common.email')}</FormLabel>
 								<FormControl>
 									<Input type="text" {...field} />
 								</FormControl>
@@ -197,9 +234,10 @@ function SignUpForm({
 							</FormItem>
 						)}
 					/>
-					<Button className="w-full" type="submit" disabled={isLoading}>
-						Submit
-					</Button>
+					<ButtonLoading className="w-full" type="submit" isLoading={isLoading}>
+						{t('signup.submit')}
+					</ButtonLoading>
+
 					{error && <p className="t-l-1 text-destructive mt-3">{error}</p>}
 				</form>
 			</Form>

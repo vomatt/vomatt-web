@@ -2,7 +2,8 @@
 
 import { useEffect } from 'react';
 
-import { Language, useLanguage } from '@/contexts/LanguageContext';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { Language } from '@/types';
 
 export const useUserLanguage = (userLanguagePreference?: Language) => {
 	const { setLanguage } = useLanguage();
