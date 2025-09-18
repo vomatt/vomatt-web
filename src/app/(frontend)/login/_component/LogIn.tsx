@@ -18,6 +18,7 @@ import {
 	FormMessage,
 } from '@/components/Form';
 import { Input } from '@/components/ui/Input';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { STATUS_LOG_IN, STATUS_VERIFICATION } from '@/data/constants';
 
 type PageStatusType = 'STATUS_LOG_IN' | 'STATUS_VERIFICATION';
@@ -94,11 +95,11 @@ function LogInForm({ onSetPageStatus, onSetEmail }: LogInFormType) {
 			setIsLoading(false);
 		}
 	}
-
+	const { t } = useLanguage();
 	return (
 		<>
 			<h1 className="font-medium text-3xl text-center mb-10">
-				Log in to Vomatt
+				{t('page.login.title')}
 			</h1>
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(onSubmit)}>
@@ -108,7 +109,7 @@ function LogInForm({ onSetPageStatus, onSetEmail }: LogInFormType) {
 						render={({ field }) => {
 							return (
 								<FormItem className="mb-5">
-									<FormLabel>Email Address</FormLabel>
+									<FormLabel>{t('page.login.email')}</FormLabel>
 									<FormControl>
 										<Input
 											type="email"
@@ -124,7 +125,7 @@ function LogInForm({ onSetPageStatus, onSetEmail }: LogInFormType) {
 					/>
 
 					<ButtonLoading className="w-full" type="submit" isLoading={isLoading}>
-						Login
+						{t('common.login')}
 					</ButtonLoading>
 					{error && (
 						<p className="text-destructive text-center mt-3">{error}</p>

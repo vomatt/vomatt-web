@@ -2,6 +2,7 @@ import '@/styles/global.css';
 
 import clsx from 'clsx';
 import { Geist, Geist_Mono } from 'next/font/google';
+import { cookies, headers } from 'next/headers';
 import { draftMode } from 'next/headers';
 import { VisualEditing } from 'next-sanity';
 import React, { ReactNode } from 'react';
@@ -27,6 +28,23 @@ const geistMono = Geist_Mono({
 	variable: '--font-geist-mono',
 	subsets: ['latin'],
 });
+
+async function getServerLanguage(): string {
+	try {
+		const cookieStore = await cookies();
+		const headersList = await headers();
+
+		// Try cookie first
+		const cookieLanguage = cookieStore.get('preferred-language')?.value;
+		if (cookieLanguage) return cookieLanguage;
+
+		// Fallback to middleware-detected language
+		const detectedLanguage = headersList.get('x-detected-language');
+		return detectedLanguage || 'en';
+	} catch {
+		return 'en';
+	}
+}
 
 export async function generateMetadata() {
 	const {
@@ -120,24 +138,27 @@ export default async function RootLayout({
 		],
 	});
 	const userSession = await getCurrentUser();
+	const serverLanguage = getServerLanguage();
 
 	return (
 		<html
-			lang="en"
+			lang={serverLanguage}
 			className={clsx('dark', geistSans.variable, geistMono.variable)}
 		>
 			<body className="text-foreground font-sans">
-				<Layout siteData={data} userSession={userSession}>
-					{children}
-				</Layout>
-				<SanityLive onError={handleError} />
-				<Toaster />
-				{isEnabled && (
-					<>
-						<DraftModeToast />
-						<VisualEditing />
-					</>
-				)}
+				<LanguageProvider>
+					<Layout siteData={data} userSession={userSession}>
+						{children}
+					</Layout>
+					<SanityLive onError={handleError} />
+					<Toaster />
+					{isEnabled && (
+						<>
+							<DraftModeToast />
+							<VisualEditing />
+						</>
+					)}
+				</LanguageProvider>
 			</body>
 		</html>
 	);

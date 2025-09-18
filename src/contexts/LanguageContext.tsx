@@ -8,143 +8,159 @@ import React, {
 	useState,
 } from 'react';
 
-export type Language = 'en' | 'es' | 'fr' | 'de' | 'zh' | 'ja' | 'ko';
+import { SUPPORTED_LANGUAGES } from '@/i18n-config';
+import { LanguageCode } from '@/types';
+export interface Translations {
+	[key: string]: string | Translations;
+}
 
 interface LanguageContextType {
-	language: Language;
-	setLanguage: (lang: Language) => void;
-	t: (key: string) => string;
+	currentLanguage: LanguageCode;
+	setLanguage: (language: LanguageCode) => void;
+	t: (key: string, fallback?: string) => string;
+	isLoading: boolean;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(
 	undefined
 );
 
-// Translation data - in a real app, you might load this from files
-const translations: Record<Language, Record<string, string>> = {
-	en: {
-		welcome: 'Welcome',
-		settings: 'Settings',
-		language: 'Language',
-		profile: 'Profile',
-		home: 'Home',
-		about: 'About',
-		contact: 'Contact',
-	},
-	es: {
-		welcome: 'Bienvenido',
-		settings: 'Configuración',
-		language: 'Idioma',
-		profile: 'Perfil',
-		home: 'Inicio',
-		about: 'Acerca de',
-		contact: 'Contacto',
-	},
-	fr: {
-		welcome: 'Bienvenue',
-		settings: 'Paramètres',
-		language: 'Langue',
-		profile: 'Profil',
-		home: 'Accueil',
-		about: 'À propos',
-		contact: 'Contact',
-	},
-	de: {
-		welcome: 'Willkommen',
-		settings: 'Einstellungen',
-		language: 'Sprache',
-		profile: 'Profil',
-		home: 'Startseite',
-		about: 'Über uns',
-		contact: 'Kontakt',
-	},
-	zh: {
-		welcome: '欢迎',
-		settings: '设置',
-		language: '语言',
-		profile: '个人资料',
-		home: '首页',
-		about: '关于',
-		contact: '联系',
-	},
-	ja: {
-		welcome: 'ようこそ',
-		settings: '設定',
-		language: '言語',
-		profile: 'プロフィール',
-		home: 'ホーム',
-		about: 'について',
-		contact: 'お問い合わせ',
-	},
-	ko: {
-		welcome: '환영합니다',
-		settings: '설정',
-		language: '언어',
-		profile: '프로필',
-		home: '홈',
-		about: '소개',
-		contact: '연락처',
-	},
+// Hook to use language context
+export const useLanguage = () => {
+	const context = useContext(LanguageContext);
+	if (!context) {
+		throw new Error('useLanguage must be used within a LanguageProvider');
+	}
+	return context;
 };
 
 // Detect browser language
-const detectBrowserLanguage = (): Language => {
+const detectBrowserLanguage = (): LanguageCode => {
 	if (typeof window === 'undefined') return 'en';
 
-	const browserLang = navigator.language.split('-')[0] as Language;
-	return Object.keys(translations).includes(browserLang) ? browserLang : 'en';
+	const browserLang = navigator.language.split('-')[0] as LanguageCode;
+	return Object.keys(SUPPORTED_LANGUAGES).includes(browserLang)
+		? browserLang
+		: 'en';
+};
+
+const getLanguageFromCookie = (): LanguageCode | null => {
+	if (typeof document === 'undefined') return null;
+
+	const cookies = document.cookie.split(';');
+	const languageCookie = cookies.find((cookie) =>
+		cookie.trim().startsWith('preferred-language=')
+	);
+
+	if (languageCookie) {
+		const language = languageCookie.split('=')[1] as LanguageCode;
+		return Object.keys(SUPPORTED_LANGUAGES).includes(language)
+			? language
+			: null;
+	}
+
+	return null;
+};
+
+// Set language cookie
+const setLanguageCookie = (language: LanguageCode) => {
+	const maxAge = 365 * 24 * 60 * 60; // 1 year in seconds
+	document.cookie = `preferred-language=${language}; max-age=${maxAge}; path=/; samesite=lax`;
 };
 
 interface LanguageProviderProps {
 	children: ReactNode;
+	defaultTranslations?: Translations;
 }
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({
 	children,
+	defaultTranslations = {},
 }) => {
-	const [language, setLanguageState] = useState<Language>('en');
-	const [isInitialized, setIsInitialized] = useState(false);
-
+	const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>('en');
+	const [translations, setTranslations] =
+		useState<Translations>(defaultTranslations);
+	const [isLoading, setIsLoading] = useState(true);
+	const setLanguage = (language: LanguageCode) => {
+		setCurrentLanguage(language);
+		setLanguageCookie(language); // Use cookie instead of localStorage
+		loadTranslations(language);
+	};
+	// Load translations for a specific language
+	const loadTranslations = async (language: LanguageCode) => {
+		setIsLoading(true);
+		try {
+			// Import translations dynamically
+			const translationModule = await import(`../locales/${language}.json`);
+			setTranslations(translationModule.default);
+		} catch (error) {
+			console.warn(
+				`Failed to load translations for ${language}, using fallback`
+			);
+			// Load English as fallback
+			try {
+				const fallbackModule = await import('../locales/en.json');
+				setTranslations(fallbackModule.default);
+			} catch (fallbackError) {
+				console.error('Failed to load fallback translations');
+				setTranslations({});
+			}
+		} finally {
+			setIsLoading(false);
+		}
+	};
+	// Initialize language on mount
 	useEffect(() => {
-		// Load language from localStorage or detect browser language
-		const savedLanguage = localStorage.getItem(
-			'preferred-language'
-		) as Language;
-		const initialLanguage = savedLanguage || detectBrowserLanguage();
-		setLanguageState(initialLanguage);
-		setIsInitialized(true);
+		// Priority order: Cookie > Browser Detection > Default
+		const cookieLanguage = getLanguageFromCookie();
+		const browserLanguage = detectBrowserLanguage();
+		const initialLanguage = cookieLanguage || browserLanguage;
+
+		setCurrentLanguage(initialLanguage);
+		loadTranslations(initialLanguage);
+
+		// Update HTML attributes
+		document.documentElement.lang = initialLanguage;
+		const RTL_LANGUAGES: LanguageCode[] = ['ar', 'he', 'fa'] as any[];
+		document.documentElement.dir = RTL_LANGUAGES.includes(initialLanguage)
+			? 'rtl'
+			: 'ltr';
 	}, []);
 
-	const setLanguage = (lang: Language) => {
-		setLanguageState(lang);
-		localStorage.setItem('preferred-language', lang);
+	// Update HTML attributes when language changes
+	useEffect(() => {
+		document.documentElement.lang = currentLanguage;
+		const RTL_LANGUAGES: LanguageCode[] = ['ar', 'he', 'fa'] as any[];
+		document.documentElement.dir = RTL_LANGUAGES.includes(currentLanguage)
+			? 'rtl'
+			: 'ltr';
+	}, [currentLanguage]);
 
-		// Optional: Send to your backend API to save in user profile
-		// if (user.isAuthenticated) {
-		//   updateUserLanguagePreference(lang);
-		// }
+	// Set language and persist to localStorage
+
+	// Translation function with nested key support
+	const t = (key: string, fallback?: string): string => {
+		const keys = key.split('.');
+		let value: any = translations;
+
+		for (const k of keys) {
+			value = value?.[k];
+			if (value === undefined) break;
+		}
+
+		return typeof value === 'string' ? value : fallback || key;
 	};
 
-	const t = (key: string): string => {
-		return translations[language][key] || key;
+	const value: LanguageContextType = {
+		currentLanguage,
+		setLanguage,
+		t,
+		isLoading,
 	};
-
-	// Don't render until initialized to prevent hydration issues
-	if (!isInitialized) {
-		return <div>Loading...</div>;
-	}
 
 	return (
-		<LanguageContext.Provider value={{ language, setLanguage, t }}>
+		<LanguageContext.Provider value={value}>
 			{children}
 		</LanguageContext.Provider>
 	);
-};
-
-export const useLanguage = () => {
-	const context = useContext(LanguageContext);
-	if (context === undefined) {
-		throw new Error('useLanguage must be used within a LanguageProvider');
-	}
-	return context;
 };

@@ -1,0 +1,32 @@
+{
+	"common": {
+		"login": "登入",
+		"welcome": "歡迎",
+		"loading": "載入中...",
+		"error": "Algo salió mal",
+		"cancel": "Cancelar",
+		"save": "Guardar",
+		"delete": "Eliminar",
+		"edit": "Editar"
+	},
+	"navigation": {
+		"home": "Inicio",
+		"profile": "Perfil",
+		"settings": "Configuración",
+		"logout": "Cerrar sesión"
+	},
+	"user": {
+		"profile": {
+			"title": "Perfil de Usuario",
+			"name": "Nombre",
+			"email": "Correo electrónico",
+			"bio": "Biografía"
+		}
+	},
+	"page": {
+		"login": {
+			"title": "登入 Vomatt",
+			"email": "信箱"
+		}
+	}
+}

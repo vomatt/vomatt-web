@@ -2,7 +2,7 @@ import {
 	ImageFormat,
 	SanityImageSource,
 } from '@sanity/image-url/lib/types/types';
-import { type ClassValue,clsx } from 'clsx';
+import { type ClassValue, clsx } from 'clsx';
 import {
 	FaFacebookF,
 	FaGithub,
@@ -501,3 +501,19 @@ export const resolveHref = ({
 			return undefined;
 	}
 };
+
+export function detectServerLanguage(request: NextRequest): string {
+	// Check for language preference in cookie (if you want to set one)
+	const cookieLanguage = request.cookies.get('preferred-language')?.value;
+	if (cookieLanguage) return cookieLanguage;
+
+	// Fallback to Accept-Language header
+	const acceptLanguage = request.headers.get('accept-language');
+	if (acceptLanguage) {
+		const preferredLang = acceptLanguage.split(',')[0].split('-')[0];
+		const supportedLanguages = ['en', 'es', 'fr', 'de', 'zh', 'ja', 'ko'];
+		return supportedLanguages.includes(preferredLang) ? preferredLang : 'en';
+	}
+
+	return 'en';
+}

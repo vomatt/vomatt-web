@@ -27,23 +27,3 @@ export async function POST(request: NextRequest) {
 // Usage in a page component after user authentication:
 // const user = useUser(); // Your authentication hook
 // useUserLanguage(user?.preferredLanguage);
-
-// 7. Utility function for server-side language detection
-// utils/languageDetection.ts
-import { NextRequest } from 'next/server';
-
-export function detectServerLanguage(request: NextRequest): string {
-	// Check for language preference in cookie (if you want to set one)
-	const cookieLanguage = request.cookies.get('preferred-language')?.value;
-	if (cookieLanguage) return cookieLanguage;
-
-	// Fallback to Accept-Language header
-	const acceptLanguage = request.headers.get('accept-language');
-	if (acceptLanguage) {
-		const preferredLang = acceptLanguage.split(',')[0].split('-')[0];
-		const supportedLanguages = ['en', 'es', 'fr', 'de', 'zh', 'ja', 'ko'];
-		return supportedLanguages.includes(preferredLang) ? preferredLang : 'en';
-	}
-
-	return 'en';
-}

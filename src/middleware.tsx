@@ -1,14 +1,35 @@
 import { match as matchLocale } from '@formatjs/intl-localematcher';
 import Negotiator from 'negotiator';
-import { cookies } from 'next/headers';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 import { decrypt, getUserSession } from '@/lib/auth';
+import { LanguageCode } from '@/types';
 
-import { i18n } from './i18n-config';
+import { i18n, SUPPORTED_LANGUAGES } from './i18n-config';
 
 let redirectToLogin = false;
+function parseAcceptLanguage(acceptLanguage: string): LanguageCode[] {
+	return acceptLanguage
+		.split(',')
+		.map((lang) => {
+			const [code, quality = 'q=1'] = lang.trim().split(';');
+			const q = parseFloat(quality.replace('q=', ''));
+			return { code: code.split('-')[0] as LanguageCode, quality: q };
+		})
+		.sort((a, b) => b.quality - a.quality)
+		.map((lang) => lang.code)
+		.filter((code) => Object.keys(SUPPORTED_LANGUAGES).includes(code));
+}
+
+function detectLanguageFromHeaders(request: NextRequest): LanguageCode {
+	const acceptLanguage = request.headers.get('accept-language');
+
+	if (!acceptLanguage) return i18n.defaultLocale;
+
+	const preferredLanguages = parseAcceptLanguage(acceptLanguage);
+	return preferredLanguages[0] || i18n.defaultLocale;
+}
 
 function getLocale(request: NextRequest): string | undefined {
 	// Negotiator expects plain object so we need to transform headers
@@ -25,11 +46,10 @@ function getLocale(request: NextRequest): string | undefined {
 
 	const locale = matchLocale(languages, locales, i18n.defaultLocale);
 
-	return locale;
+	return locale || i18n.defaultLocale;
 }
 
 export async function middleware(request: NextRequest) {
-	const cookieStore = await cookies();
 	const userSession = await getUserSession();
 
 	if (
@@ -102,12 +122,29 @@ export async function middleware(request: NextRequest) {
 	// }
 
 	// Check for language preference in cookie (if you want to set one)
-	const cookieLanguage = request.cookies.get('preferred-language')?.value;
+	const savedLanguage = request.cookies.get('preferred-language')?.value;
 
-	if (!cookieLanguage) {
-		const locale = getLocale(request);
-		cookieStore.set('preferred-language', locale || i18n.defaultLocale);
+	if (!savedLanguage) {
+		const locale = getLocale(request) || i18n.defaultLocale;
+		response.cookies.set('preferred-language', locale, {
+			maxAge: 365 * 24 * 60 * 60, // 1 year
+			httpOnly: false, // Allow client-side JavaScript access
+			secure: process.env.NODE_ENV === 'production',
+			sameSite: 'lax',
+			path: '/', // Available on all paths
+		});
+
+		// Add header for initial server-side rendering
+		response.headers.set('x-detected-language', locale);
 	}
+
+	// Add current language to headers for server components
+	const currentLanguage =
+		savedLanguage && Object.keys(SUPPORTED_LANGUAGES).includes(savedLanguage)
+			? savedLanguage
+			: detectLanguageFromHeaders(request);
+
+	response.headers.set('x-current-language', currentLanguage);
 
 	return response;
 }

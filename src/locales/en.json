@@ -1,0 +1,32 @@
+{
+	"common": {
+		"login": "Login",
+		"welcome": "Welcome",
+		"loading": "Loading...",
+		"error": "Something went wrong",
+		"cancel": "Cancel",
+		"save": "Save",
+		"delete": "Delete",
+		"edit": "Edit"
+	},
+	"navigation": {
+		"home": "Home",
+		"profile": "Profile",
+		"settings": "Settings",
+		"logout": "Logout"
+	},
+	"user": {
+		"profile": {
+			"title": "User Profile",
+			"name": "Name",
+			"email": "Email",
+			"bio": "Biography"
+		}
+	},
+	"page": {
+		"login": {
+			"title": "Log in to Vomatt",
+			"email": "email"
+		}
+	}
+}
