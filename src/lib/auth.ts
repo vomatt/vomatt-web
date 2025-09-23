@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { USER_SESSION } from '@/data/constants';
 
-const secretKey = 'ericjoeklaus';
+const secretKey = process.env.JWT_SECRET;
 const key = new TextEncoder().encode(secretKey);
 
 export async function encrypt(payload: any) {
@@ -19,6 +19,14 @@ export async function encrypt(payload: any) {
 export async function decrypt(input: string): Promise<any> {
 	const { payload } = await jwtVerify(input, key, {
 		algorithms: ['HS256'],
+	});
+
+	return payload;
+}
+
+export async function decodeToken(token: string): Promise<any> {
+	const { payload } = await jwtVerify(token, key, {
+		algorithms: ['HS512'],
 	});
 
 	return payload;

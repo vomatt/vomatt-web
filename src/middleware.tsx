@@ -3,7 +3,7 @@ import Negotiator from 'negotiator';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-import { decrypt, getUserSession } from '@/lib/auth';
+import { getUserSession } from '@/lib/auth';
 import { LanguageCode } from '@/types';
 
 import { i18n, SUPPORTED_LANGUAGES } from './i18n-config';

@@ -3,6 +3,7 @@ import {
 	SanityImageSource,
 } from '@sanity/image-url/lib/types/types';
 import { type ClassValue, clsx } from 'clsx';
+import type { NextRequest } from 'next/server';
 import {
 	FaFacebookF,
 	FaGithub,
