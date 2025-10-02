@@ -44,8 +44,12 @@ export function Header({ data, userSession }: { data: any; userSession: any }) {
 					</NextLink>
 
 					{userSession && (
-						<NextLink href={`/account`} className="w-7 h-7 text-white">
-							<SvgIcons type="user-circle-outline" />
+						<NextLink
+							href={`/account`}
+							className="text-white flex items-center gap-1"
+						>
+							<SvgIcons type="user-circle-outline" className="w-7 h-7" />
+							<p>{userSession.sub}</p>
 						</NextLink>
 					)}
 					{!userSession && !hideLoginButton && (

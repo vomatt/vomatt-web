@@ -1,6 +1,7 @@
 'use client';
 import { zodResolver } from '@hookform/resolvers/zod';
 import NextLink from 'next/link';
+import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -26,7 +27,6 @@ type PageStatusType = 'STATUS_LOG_IN' | 'STATUS_VERIFICATION';
 export function LogIn() {
 	const [pageStatus, setPageStatus] = useState<PageStatusType>(STATUS_LOG_IN);
 	const [email, setEmail] = useState('');
-
 	const onSetPageStatus = (value: PageStatusType) => {
 		setPageStatus(value);
 	};
@@ -102,6 +102,7 @@ function LogInForm({ onSetPageStatus, onSetEmail }: LogInFormType) {
 	const { t } = useLanguage();
 	const [error, setError] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
+	const router = useRouter();
 
 	const form = useForm<z.infer<typeof FormSchema>>({
 		resolver: zodResolver(FormSchema),
@@ -121,7 +122,11 @@ function LogInForm({ onSetPageStatus, onSetEmail }: LogInFormType) {
 				onSetPageStatus(STATUS_VERIFICATION);
 				return;
 			}
-			setError('Something went wrong, pleas try again later');
+
+			if (res.message === 'USER_NOT_FOUND') {
+				return router.push('/signup');
+			}
+			setError(res.message);
 		} catch (error) {
 			setError('Something went wrong, pleas try again later');
 		} finally {
@@ -156,12 +161,13 @@ function LogInForm({ onSetPageStatus, onSetEmail }: LogInFormType) {
 							);
 						}}
 					/>
-
 					<ButtonLoading className="w-full" type="submit" isLoading={isLoading}>
 						{t('common.login')}
 					</ButtonLoading>
 					{error && (
-						<p className="text-destructive text-center mt-3">{error}</p>
+						<p className="text-destructive text-center mt-3">
+							{t(`login.${error}`)}
+						</p>
 					)}
 				</form>
 			</Form>

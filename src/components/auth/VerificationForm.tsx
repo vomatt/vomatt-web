@@ -108,7 +108,7 @@ export default function VerificationForm({
 								</FormControl>
 								{error && (
 									<FormMessage className="text-center text-destructive">
-										{t(`verificationCode[${error}]`)}
+										{t(`verificationCode.${error}`)}
 									</FormMessage>
 								)}
 							</FormItem>

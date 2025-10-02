@@ -29,7 +29,8 @@
 	},
 	"login": {
 		"title": "Log in to Vomatt",
-		"submit": "login"
+		"submit": "login",
+		"GENERATE_VERIFICATION_CODE_FAILED": "Fail to send the Verification Code"
 	},
 	"signup": {
 		"title": "Create your account",

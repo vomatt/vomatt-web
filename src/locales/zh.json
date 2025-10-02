@@ -2,6 +2,9 @@
 	"common": {
 		"login": "登入",
 		"email": "信箱",
+		"firstName": "名字",
+		"lastName": "姓氏",
+		"username": "帳號",
 		"welcome": "歡迎",
 		"loading": "載入中",
 		"error": "發生錯誤",
@@ -27,7 +30,8 @@
 
 	"login": {
 		"title": "登入 Vomatt",
-		"submit": "登入"
+		"submit": "登入",
+		"GENERATE_VERIFICATION_CODE_FAILED": "驗證碼發送失敗"
 	},
 	"signup": {
 		"title": "註冊 Vomatt",
@@ -35,7 +39,7 @@
 	},
 	"verificationCode": {
 		"title": "我們已寄出驗證碼",
-		"subtitle": "在下面輸入來驗證",
+		"subtitle": "輸入驗證碼來驗證",
 		"INVALID_VERIFICATION_CODE": "驗證碼錯誤"
 	}
 }

@@ -200,7 +200,7 @@ function SignUpForm({
 						name="firstName"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>First Name</FormLabel>
+								<FormLabel>{t('common.firstName')}</FormLabel>
 								<FormControl>
 									<Input type="text" {...field} />
 								</FormControl>
@@ -213,7 +213,7 @@ function SignUpForm({
 						name="lastName"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Last Name</FormLabel>
+								<FormLabel>{t('common.lastName')}</FormLabel>
 								<FormControl>
 									<Input type="text" {...field} />
 								</FormControl>
@@ -226,7 +226,7 @@ function SignUpForm({
 						name="username"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Username</FormLabel>
+								<FormLabel>{t('common.username')}</FormLabel>
 								<FormControl>
 									<Input type="text" {...field} />
 								</FormControl>
