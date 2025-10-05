@@ -74,6 +74,7 @@ export async function getTokens(): Promise<{
 } | null> {
 	const cookieStore = await cookies();
 	const accessToken = cookieStore.get('accessToken')?.value;
+	console.log('🚀 ~ :77 ~ getTokens ~ accessToken:', accessToken);
 	const refreshToken = cookieStore.get('refreshToken')?.value;
 
 	if (!accessToken || !refreshToken) return null;

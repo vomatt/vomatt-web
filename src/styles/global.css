@@ -863,134 +863,21 @@
 
 @layer utilities {
 
-	/* Icons */
-	/* Base styles for pseudo-elements */
-	[data-icon-type='close']::before,
-	[data-icon-type='close']::after,
-	[data-icon-type='plus']::before,
-	[data-icon-type='plus']::after,
-	[data-icon-type='minus']::before,
-	[data-icon-type='minus']::after {
-		content: '';
-		@apply absolute top-1/2 left-1/2 w-full;
-		border-top: var(--icon-thickness) solid var(--icon-color);
-		transition: 0.2s var(--ease-sin-in-out);
-	}
-
-	[data-icon-type='close']::after,
-	[data-icon-type='plus']::after,
-	[data-icon-type='minus']::after {
-		border-top: none;
-		border-bottom: var(--icon-thickness) solid var(--icon-color);
-	}
-
-	/* Close icon */
-	[data-icon-type='close']::before {
-		transform: translate3d(-50%, -50%, 0) rotate(45deg);
-	}
-
-	[data-icon-type='close']::after {
-		transform: translate3d(-50%, -50%, 0) rotate(-45deg);
-	}
-
-	/* Plus/Minus icons */
-	[data-icon-type='plus']::before,
-	[data-icon-type='minus']::before {
-		transform: translate3d(-50%, -50%, 0) rotate(90deg);
-	}
-
-	[data-icon-type='plus']::after,
-	[data-icon-type='minus']::after {
-		transform: translate3d(-50%, -50%, 0);
-	}
-
-	[data-icon-type='minus']::before {
+	/* Chrome, Safari and Opera */
+	.no-scrollbar::-webkit-scrollbar {
 		display: none;
 	}
 
-	/* Caret icons */
-	[data-icon-type='caret']::before,
-	[data-icon-type='caret-left']::before,
-	[data-icon-type='caret-right']::before,
-	[data-icon-type='caret-up']::before,
-	[data-icon-type='caret-down']::before {
-		content: '';
-		@apply absolute top-1/2 left-1/2 h-2/3 w-2/3;
-		border-top: var(--icon-thickness) solid var(--icon-color);
-		border-left: var(--icon-thickness) solid var(--icon-color);
-		transform: translate3d(-50%, -50%, 0) rotate(45deg);
+	/* IE and Edge */
+	.no-scrollbar {
+		-ms-overflow-style: none;
 	}
 
-	[data-icon-type='caret-left']::before {
-		transform: translate3d(-35%, -50%, 0) rotate(315deg);
+	/* Firefox */
+	.no-scrollbar {
+		scrollbar-width: none;
 	}
 
-	[data-icon-type='caret-right']::before {
-		transform: translate3d(-85%, -50%, 0) rotate(135deg);
-	}
-
-	[data-icon-type='caret-up']::before {
-		top: 60%;
-		transform: translate3d(-50%, -50%, 0) rotate(45deg);
-	}
-
-	[data-icon-type='caret-down']::before {
-		top: 40%;
-		transform: translate3d(-50%, -50%, 0) rotate(225deg);
-	}
-
-	[data-icon-type*='arrow'] {
-		position: relative;
-	}
-
-	/* Arrow icons */
-	[data-icon-type='arrow']::before,
-	[data-icon-type='arrow-left']::before,
-	[data-icon-type='arrow-right']::before,
-	[data-icon-type='arrow-up']::before,
-	[data-icon-type='arrow-down']::before {
-		content: '';
-		@apply absolute top-1/2 left-1/2 size-[65%];
-		border-top: var(--icon-thickness) solid var(--icon-color);
-		border-left: var(--icon-thickness) solid var(--icon-color);
-		border-radius: 0.5px;
-		transform: translate3d(-50%, -50%, 0) rotate(45deg);
-	}
-
-	[data-icon-type='arrow']::after,
-	[data-icon-type='arrow-left']::after,
-	[data-icon-type='arrow-right']::after,
-	[data-icon-type='arrow-up']::after,
-	[data-icon-type='arrow-down']::after {
-		content: '';
-		@apply absolute top-1/2 left-1/2 w-[100%];
-		border-top: var(--icon-thickness) solid var(--icon-color);
-		border-radius: 3px;
-		transform: translate3d(-50%, -50%, 0);
-	}
-
-	[data-icon-type='arrow-left']::before {
-		left: 32%;
-		transform: translate3d(-50%, -50%, 0) rotate(-45deg);
-	}
-
-	[data-icon-type='arrow-right']::before {
-		left: 0%;
-		rotate: 90deg;
-	}
-
-	[data-icon-type='arrow-up']::after,
-	[data-icon-type='arrow-down']::after {
-		transform: translate3d(-50%, -50%, 0) rotate(-90deg);
-	}
-
-	[data-icon-type='arrow-up']::before {
-		top: 32%;
-	}
-
-	[data-icon-type='arrow-down']::before {
-		top: 69%;
-	}
 
 	/* Other */
 	.increase-target-size {

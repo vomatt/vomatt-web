@@ -1,19 +1,12 @@
 'use client';
 
-import { BarChart3, Clock, Plus, Users, X } from 'lucide-react';
+import { BarChart3, Calendar, Clock, Plus, X } from 'lucide-react';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
 
 interface PollOption {
@@ -23,11 +16,17 @@ interface PollOption {
 
 export function PollCreator() {
 	const [question, setQuestion] = useState('');
+	const [description, setDescription] = useState('');
 	const [options, setOptions] = useState<PollOption[]>([
 		{ id: '1', text: '' },
 		{ id: '2', text: '' },
 	]);
+
 	const [duration, setDuration] = useState('1');
+	const [allowMultipleChoices, setAllowMultipleChoices] = useState(false);
+	const [startTime, setStartTime] = useState('');
+	const [endTime, setEndTime] = useState('');
+	// const [allowMultipleChoices, setAllowMultipleChoices] = useState(false);
 	const [showPreview, setShowPreview] = useState(false);
 
 	const addOption = () => {
@@ -48,9 +47,21 @@ export function PollCreator() {
 		);
 	};
 
-	const handleCreatePoll = () => {
-		// Handle poll creation logic here
-		console.log('Creating poll:', { question, options, duration });
+	const handleCreatePoll = async () => {
+		console.log('Creating poll:', { question, description, options, duration });
+		const response = await fetch('/api/create-poll', {
+			method: 'POST',
+			body: JSON.stringify({
+				question,
+				description,
+				options,
+				startTime,
+				endTime,
+				allowMultipleChoices,
+			}),
+		});
+
+		console.log('🚀 ~ :58 ~ handleCreatePoll ~ response:', response);
 	};
 
 	const isValid =
@@ -60,10 +71,7 @@ export function PollCreator() {
 
 	return (
 		<div className="space-y-6">
-			{/* Main Creation Form */}
-
 			<div className="space-y-6">
-				{/* Question Input */}
 				<div className="space-y-2">
 					<Label
 						htmlFor="question"
@@ -84,8 +92,21 @@ export function PollCreator() {
 						<span>{question.length}/280</span>
 					</div>
 				</div>
-
-				{/* Poll Options */}
+				<div className="space-y-2">
+					<Label
+						htmlFor="description"
+						className="text-sm font-medium text-card-foreground"
+					>
+						Description
+					</Label>
+					<Textarea
+						id="description"
+						placeholder="Description the background of the question"
+						value={description}
+						onChange={(e) => setDescription(e.target.value)}
+						className="min-h-[80px] resize-none bg-input border-border text-foreground placeholder:text-muted-foreground"
+					/>
+				</div>
 				<div className="space-y-3">
 					<Label className="text-sm font-medium text-card-foreground">
 						Poll Options
@@ -126,29 +147,45 @@ export function PollCreator() {
 						</Button>
 					)}
 				</div>
-
-				{/* Duration Selector */}
-				<div className="space-y-2">
-					<Label className="text-sm font-medium text-card-foreground flex items-center gap-2">
-						<Clock className="h-4 w-4" />
-						Poll Duration
-					</Label>
-					<Select value={duration} onValueChange={setDuration}>
-						<SelectTrigger className="bg-input border-border text-foreground">
-							<SelectValue />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="1">1 day</SelectItem>
-							<SelectItem value="3">3 days</SelectItem>
-							<SelectItem value="7">1 week</SelectItem>
-							<SelectItem value="30">1 month</SelectItem>
-						</SelectContent>
-					</Select>
+				<div className="flex justify-between gap-1">
+					<div className="space-y-2">
+						<Label
+							htmlFor="startTime"
+							className="text-base font-semibold flex items-center gap-2"
+						>
+							<Calendar className="w-4 h-4" />
+							Start Date
+						</Label>
+						<Input
+							id="startTime"
+							type="datetime-local"
+							value={startTime}
+							onChange={(e) => setStartTime(e.target.value)}
+							className="border-2 focus:border-purple-400 text-white"
+							// defaultValue={Date.now()}
+						/>
+					</div>
+					<div className="space-y-2">
+						<Label
+							htmlFor="endTime"
+							className="text-base font-semibold flex items-center gap-2"
+						>
+							<Calendar className="w-4 h-4" />
+							End Date (optional)
+						</Label>
+						<Input
+							id="endTime"
+							type="datetime-local"
+							value={endTime}
+							onChange={(e) => setEndTime(e.target.value)}
+							className="border-2 focus:border-purple-400 text-white"
+						/>
+					</div>
 				</div>
 			</div>
 
 			{/* Preview Section */}
-			{question && options.some((opt) => opt.text.trim()) && (
+			{/* {question && options.some((opt) => opt.text.trim()) && (
 				<Card className="border-border bg-card">
 					<CardHeader>
 						<CardTitle className="text-card-foreground">Preview</CardTitle>
@@ -197,7 +234,7 @@ export function PollCreator() {
 						</div>
 					</CardContent>
 				</Card>
-			)}
+			)} */}
 
 			{/* Action Buttons */}
 			<div className="flex gap-3">
@@ -217,7 +254,7 @@ export function PollCreator() {
 			</div>
 
 			{/* Tips */}
-			<Card className="border-border bg-muted/30 hidden">
+			{/* <Card className="border-border bg-muted/30">
 				<CardContent className="pt-6">
 					<div className="space-y-2">
 						<h4 className="font-medium text-sm text-card-foreground">
@@ -231,7 +268,7 @@ export function PollCreator() {
 						</ul>
 					</div>
 				</CardContent>
-			</Card>
+			</Card> */}
 		</div>
 	);
 }

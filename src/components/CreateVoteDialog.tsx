@@ -35,7 +35,7 @@ export function CreateVoteDialog({ triggerClassName }: CreateVoteDialogProps) {
 				<DialogTrigger className={triggerClassName}>
 					<Plus />
 				</DialogTrigger>
-				<DialogContent className="sm:max-w-[425px]">
+				<DialogContent className="sm:max-w-lg overflow-y-scroll max-h-[96vh] no-scrollbar">
 					<DialogHeader>
 						<DialogTitle>New Poll</DialogTitle>
 						<DialogDescription>
