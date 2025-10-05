@@ -3,12 +3,11 @@ import Negotiator from 'negotiator';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-import { getUserSession } from '@/lib/auth';
+import { decodeToken } from '@/lib/auth';
 import { LanguageCode } from '@/types';
 
 import { i18n, SUPPORTED_LANGUAGES } from './i18n-config';
 
-let redirectToLogin = false;
 function parseAcceptLanguage(acceptLanguage: string): LanguageCode[] {
 	return acceptLanguage
 		.split(',')
@@ -49,76 +48,66 @@ function getLocale(request: NextRequest): string | undefined {
 	return locale || i18n.defaultLocale;
 }
 
+const publicPaths = ['/login', '/register', '/forgot-password', '/', '/about'];
+const authPaths = ['/login', '/register'];
+
 export async function middleware(request: NextRequest) {
-	const userSession = await getUserSession();
+	const { pathname } = request.nextUrl;
 
-	if (
-		(!userSession || redirectToLogin) &&
-		(request.nextUrl.pathname.startsWith('/login') ||
-			request.nextUrl.pathname.startsWith('/signup'))
-	) {
-		return;
-	}
-
-	if (
-		!userSession &&
-		(request.nextUrl.pathname.startsWith('/api/user') ||
-			request.nextUrl.pathname.startsWith('/api/auth/logout'))
-	) {
-		return NextResponse.json(
-			{
-				error: 'You are not logged in. Please provide a token to gain access.',
-			},
-			{ status: 401 }
-		);
-	}
+	const isPublicPath = publicPaths.some(
+		(path) => pathname === path || pathname.startsWith(`${path}/`)
+	);
+	const isAuthPath = authPaths.some((path) => pathname.startsWith(path));
 	const response = NextResponse.next();
 
-	// try {
-	// 	if (userSession) {
-	// 		const { userId } = userSession;
+	const accessToken = request.cookies.get('accessToken')?.value;
+	const refreshToken = request.cookies.get('refreshToken')?.value;
+	// Verify access token
+	let isValidToken = false;
+	if (accessToken) {
+		try {
+			await decodeToken(accessToken);
 
-	// 		response.headers.set('X-USER-ID', userId);
-	// 		request.user = { id: userId };
-	// 	}
-	// } catch (error) {
-	// 	redirectToLogin = true;
-	// 	if (request.nextUrl.pathname.startsWith('/api')) {
-	// 		return NextResponse.json(
-	// 			{
-	// 				error: "Token is invalid or user doesn't exists",
-	// 			},
-	// 			{ status: 401 }
-	// 		);
-	// 	}
+			isValidToken = true;
+		} catch (error) {
+			isValidToken = false;
+		}
+	}
 
-	// 	return NextResponse.redirect(
-	// 		new URL(
-	// 			`/login?${new URLSearchParams({ error: 'bad-auth' })}`,
-	// 			request.url
-	// 		)
-	// 	);
-	// }
+	// If access token is invalid but refresh token exists, try to refresh
+	if (!isValidToken && refreshToken) {
+		try {
+			const response = await fetch(
+				`${process.env.SITE_URL}/api/auth/refreshToken`,
+				{
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ refreshToken }),
+				}
+			);
 
-	// const authUser = request.user;
+			if (response.ok) {
+				const res = NextResponse.next();
+				isValidToken = true;
+				return res;
+			}
+		} catch (error) {
+			console.error('Token refresh failed in middleware:', error);
+		}
+	}
 
-	// if (!authUser) {
-	// 	return NextResponse.redirect(
-	// 		new URL(
-	// 			`/login?${new URLSearchParams({
-	// 				error: 'bad-auth',
-	// 				forceLogin: 'true',
-	// 			})}`,
-	// 			request.url
-	// 		)
-	// 	);
-	// }
+	const hasValidSession = isValidToken;
 
-	// if (
-	// 	authUser &&
-	// 	(request.url.includes('/login') || request.url.includes('/register'))
-	// ) {
-	// 	return NextResponse.redirect(new URL('/account/settings', request.url));
+	// Redirect authenticated users away from auth pages
+	if (hasValidSession && isAuthPath) {
+		return NextResponse.redirect(new URL('/dashboard', request.url));
+	}
+
+	// Redirect unauthenticated users to login
+	// if (!hasValidSession && !isPublicPath) {
+	// 	const loginUrl = new URL('/login', request.url);
+	// 	loginUrl.searchParams.set('redirect', pathname);
+	// 	return NextResponse.redirect(loginUrl);
 	// }
 
 	// Check for language preference in cookie (if you want to set one)
