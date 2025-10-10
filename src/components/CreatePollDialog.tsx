@@ -1,6 +1,6 @@
 'use client';
 import { Plus } from 'lucide-react';
-import * as React from 'react';
+import { useState } from 'react';
 
 import { PollCreator } from '@/components/PollCreater';
 import { Button } from '@/components/ui/Button';
@@ -26,7 +26,19 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 type CreateVoteDialogProps = { triggerClassName?: string };
 export function CreateVoteDialog({ triggerClassName }: CreateVoteDialogProps) {
-	const [open, setOpen] = React.useState(false);
+	const initialData = {
+		question: '',
+		description: '',
+		options: '',
+		startTime: '',
+		endTime: '',
+		isAllowMultipleChoices: '',
+		isAnonymous: '',
+	};
+
+	const [open, setOpen] = useState(false);
+	const [pollData, setPollData] = useState(initialData);
+
 	const isDesktop = useMediaQuery('(min-width: 768px)');
 
 	if (isDesktop) {
@@ -43,7 +55,7 @@ export function CreateVoteDialog({ triggerClassName }: CreateVoteDialogProps) {
 							done.
 						</DialogDescription>
 					</DialogHeader>
-					<PollCreator />
+					<PollCreator onSetPollData={setPollData} initialData={pollData} />
 				</DialogContent>
 			</Dialog>
 		);

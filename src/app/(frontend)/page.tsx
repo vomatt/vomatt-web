@@ -1,6 +1,6 @@
 import NextLink from 'next/link';
 
-import { CreateVoteDialog } from '@/components/CreateVoteDialog';
+import { CreateVoteDialog } from '@/components/CreatePollDialog';
 import { Button } from '@/components/ui/Button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getCurrentUser } from '@/data/auth';

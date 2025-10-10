@@ -9,7 +9,7 @@ import {
 import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 
-import { CreateVoteDialog } from '@/components/CreateVoteDialog';
+import { CreateVoteDialog } from '@/components/CreatePollDialog';
 type TabBarProps = {
 	className?: string;
 };
