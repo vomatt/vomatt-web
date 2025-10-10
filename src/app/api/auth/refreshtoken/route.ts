@@ -1,9 +1,16 @@
+import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
-import { ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_EXPIRY } from '@/data/constants';
-export async function POST(request: NextRequest, response: NextResponse) {
+import {
+	ACCESS_TOKEN,
+	ACCESS_TOKEN_EXPIRY,
+	REFRESH_TOKEN,
+	REFRESH_TOKEN_EXPIRY,
+} from '@/data/constants';
+export async function POST(request: NextRequest) {
 	const body = await request.json();
 	const { refreshToken } = body;
+	const cookieStore = await cookies();
 
 	try {
 		const url = `${process.env.API_URL}/api/auth/refreshToken`;
@@ -18,7 +25,6 @@ export async function POST(request: NextRequest, response: NextResponse) {
 		});
 
 		const data = await res.json();
-		console.log('🚀 ~ :20 ~ POST ~ data:', data);
 		const {
 			accessToken: newAccessToken,
 			refreshToken: newRefreshToken,
@@ -26,7 +32,8 @@ export async function POST(request: NextRequest, response: NextResponse) {
 		} = data || {};
 
 		if (newAccessToken && newRefreshToken) {
-			response.cookies.set('accessToken', newAccessToken, {
+			let response = NextResponse.next();
+			cookieStore.set(ACCESS_TOKEN, newAccessToken, {
 				httpOnly: true,
 				secure: process.env.NODE_ENV === 'production',
 				sameSite: 'lax',
@@ -34,7 +41,7 @@ export async function POST(request: NextRequest, response: NextResponse) {
 				path: '/',
 			});
 
-			response.cookies.set('refreshToken', newRefreshToken, {
+			cookieStore.set(REFRESH_TOKEN, newRefreshToken, {
 				httpOnly: true,
 				secure: process.env.NODE_ENV === 'production',
 				sameSite: 'lax',

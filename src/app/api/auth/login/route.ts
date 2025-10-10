@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
-import { REFRESH_TOKEN, USER_SESSION } from '@/data/constants';
+import { ACCESS_TOKEN, REFRESH_TOKEN } from '@/data/constants';
 import { decodeToken } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
 			const decodeTokenToken = await decodeToken(token);
 			const { exp } = decodeTokenToken;
 			const expires = new Date(exp * 1000);
-			cookieStore.set(USER_SESSION, token, {
+			cookieStore.set(ACCESS_TOKEN, token, {
 				expires,
 				httpOnly: true,
 			});

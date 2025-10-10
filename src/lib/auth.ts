@@ -10,7 +10,7 @@ import {
 	REFRESH_TOKEN_EXPIRY,
 	USER_SESSION,
 } from '@/data/constants';
-import { RefreshTokenResponse } from '@/types';
+import { AuthTokens, RefreshTokenResponse } from '@/types';
 
 const secretKey = process.env.JWT_SECRET;
 
