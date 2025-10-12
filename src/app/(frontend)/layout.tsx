@@ -8,6 +8,7 @@ import { VisualEditing } from 'next-sanity';
 import React, { ReactNode } from 'react';
 import { Toaster } from 'sonner';
 
+import BrandLogo from '@/components/BrandLogo';
 import DraftModeToast from '@/components/DraftModeToast';
 import { Layout } from '@/components/layout';
 import { LanguageProvider } from '@/contexts/LanguageContext';
@@ -146,19 +147,28 @@ export default async function RootLayout({
 			className={clsx('dark', geistSans.variable, geistMono.variable)}
 		>
 			<body className="text-foreground font-sans">
-				<LanguageProvider>
-					<Layout siteData={data} userSession={userSession}>
-						{children}
-					</Layout>
-					<SanityLive onError={handleError} />
-					<Toaster />
-					{isEnabled && (
-						<>
-							<DraftModeToast />
-							<VisualEditing />
-						</>
-					)}
-				</LanguageProvider>
+				{process.env.NODE_ENV === 'production' ? (
+					<div className="h-screen flex flex-col justify-center items-center gap-5">
+						<div className="md:w-40 text-secondary-foreground w-28">
+							<BrandLogo />
+						</div>
+						<h2>Coming soon</h2>
+					</div>
+				) : (
+					<LanguageProvider>
+						<Layout siteData={data} userSession={userSession}>
+							{children}
+						</Layout>
+						<SanityLive onError={handleError} />
+						<Toaster />
+						{isEnabled && (
+							<>
+								<DraftModeToast />
+								<VisualEditing />
+							</>
+						)}
+					</LanguageProvider>
+				)}
 			</body>
 		</html>
 	);

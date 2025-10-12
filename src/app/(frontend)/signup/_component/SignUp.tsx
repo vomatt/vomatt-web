@@ -2,7 +2,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import NextLink from 'next/link';
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import AuthContainer from '@/components/auth/AuthContainer';
@@ -10,13 +10,12 @@ import VerificationForm from '@/components/auth/VerificationForm';
 import { ButtonLoading } from '@/components/ButtonLoading';
 import CustomPortableText from '@/components/CustomPortableText';
 import {
-	Form,
-	FormControl,
-	FormField,
-	FormItem,
-	FormLabel,
-	FormMessage,
-} from '@/components/Form';
+	Field,
+	FieldDescription,
+	FieldError,
+	FieldGroup,
+	FieldLabel,
+} from '@/components/ui/Field';
 import { Input } from '@/components/ui/Input';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { STATUS_SIGN_UP, STATUS_VERIFICATION } from '@/data/constants';
@@ -25,26 +24,26 @@ const nameValidation = new RegExp(
 	/^[\w'\-,.]*[^_!¡?÷?¿\/\\+=@#$%ˆ&*(){}|~<>;:[\]]*$/
 );
 
-const FormSchema = z.object({
+const formSchema = z.object({
 	email: z
 		.string()
 		.email({
-			message: 'Invalid email address',
+			message: 'invalidEmailAddress',
 		})
 		.trim(),
 	firstName: z
 		.string()
-		.min(1, { message: 'First Name is Required' })
-		.regex(nameValidation, { message: 'Invalid name' }),
+		.min(1, { message: 'required' })
+		.regex(nameValidation, { message: 'invalidName' }),
 	lastName: z
 		.string()
-		.min(1, { message: 'Last Name is Required' })
-		.regex(nameValidation, { message: 'Invalid name' }),
+		.min(1, { message: 'required' })
+		.regex(nameValidation, { message: 'invalidName' }),
 	username: z
 		.string()
-		.min(3, { message: 'Username is Required' })
+		.min(3, { message: 'required' })
 		.regex(new RegExp(/^[a-z][-a-z0-9_]*\$?$/), {
-			message: 'Invalid Username',
+			message: 'invalidName',
 		}),
 });
 
@@ -147,12 +146,12 @@ function SignUpForm({
 	const [error, setError] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
 
-	const form = useForm<z.infer<typeof FormSchema>>({
-		resolver: zodResolver(FormSchema),
+	const form = useForm<z.infer<typeof formSchema>>({
+		resolver: zodResolver(formSchema),
 		defaultValues,
 	});
 
-	async function onSubmit(data: z.infer<typeof FormSchema>) {
+	async function onSubmit(data: z.infer<typeof formSchema>) {
 		setIsLoading(true);
 		setError('');
 		try {
@@ -180,67 +179,109 @@ function SignUpForm({
 	return (
 		<>
 			<h1 className="text-3xl mb-10 text-center">{t('signup.title')}</h1>
-			<Form {...form}>
-				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-					<FormField
-						control={form.control}
+			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+				<FieldGroup>
+					<Controller
 						name="email"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>{t('common.email')}</FormLabel>
-								<FormControl>
-									<Input type="text" {...field} />
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-					<FormField
 						control={form.control}
+						render={({ field, fieldState }) => {
+							return (
+								<Field data-invalid={fieldState.invalid}>
+									<FieldLabel htmlFor="signUpEmail">
+										{t('common.email')}
+									</FieldLabel>
+									<Input
+										{...field}
+										type="text"
+										id="signUpEmail"
+										aria-invalid={fieldState.invalid}
+									/>
+
+									{fieldState.invalid && (
+										<FieldError>
+											{t(`signup.${fieldState.error?.message}`)}
+										</FieldError>
+									)}
+								</Field>
+							);
+						}}
+					/>
+					<Controller
 						name="firstName"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>{t('common.firstName')}</FormLabel>
-								<FormControl>
-									<Input type="text" {...field} />
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-					<FormField
 						control={form.control}
-						name="lastName"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>{t('common.lastName')}</FormLabel>
-								<FormControl>
-									<Input type="text" {...field} />
-								</FormControl>
-								<FormMessage />
-							</FormItem>
+						render={({ field, fieldState }) => (
+							<Field data-invalid={fieldState.invalid}>
+								<FieldLabel htmlFor="signUpFirstName">
+									{t('common.firstName')}
+								</FieldLabel>
+								<Input
+									{...field}
+									type="text"
+									id="signUpFirstName"
+									aria-invalid={fieldState.invalid}
+									autoComplete="off"
+								/>
+								{fieldState.invalid && (
+									<FieldError>
+										{t(`signup.${fieldState.error?.message}`)}
+									</FieldError>
+								)}
+							</Field>
 						)}
 					/>
-					<FormField
+					<Controller
+						name="lastName"
+						control={form.control}
+						render={({ field, fieldState }) => (
+							<Field data-invalid={fieldState.invalid}>
+								<FieldLabel htmlFor="signUpLastName">
+									{t('common.lastName')}
+								</FieldLabel>
+								<Input
+									{...field}
+									type="text"
+									id="signUpLastName"
+									aria-invalid={fieldState.invalid}
+									autoComplete="off"
+								/>
+								{fieldState.invalid && (
+									<FieldError>
+										{t(`signup.${fieldState.error?.message}`)}
+									</FieldError>
+								)}
+							</Field>
+						)}
+					/>
+					<Controller
 						control={form.control}
 						name="username"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>{t('common.username')}</FormLabel>
-								<FormControl>
-									<Input type="text" {...field} />
-								</FormControl>
-								<FormMessage />
-							</FormItem>
+						render={({ field, fieldState }) => (
+							<Field data-invalid={fieldState.invalid}>
+								<FieldLabel htmlFor="signUpUsername">
+									{t('common.username')}
+								</FieldLabel>
+								<Input
+									{...field}
+									type="text"
+									id="signUpUsername"
+									aria-invalid={fieldState.invalid}
+									autoComplete="off"
+								/>
+								{fieldState.invalid && (
+									<FieldError>
+										{t(`signup.${fieldState.error?.message}`)}
+									</FieldError>
+								)}
+							</Field>
 						)}
 					/>
-					<ButtonLoading className="w-full" type="submit" isLoading={isLoading}>
-						{t('signup.submit')}
-					</ButtonLoading>
+				</FieldGroup>
+				<ButtonLoading className="w-full" type="submit" isLoading={isLoading}>
+					{t('signup.submit')}
+				</ButtonLoading>
+			</form>
+			{error && <p className="t-l-1 text-destructive mt-3">{error}</p>}
 
-					{error && <p className="t-l-1 text-destructive mt-3">{error}</p>}
-				</form>
-			</Form>
 			{policyMessage && (
 				<div className="mt-10 text-sm">
 					<CustomPortableText blocks={policyMessage} />

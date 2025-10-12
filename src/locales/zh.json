@@ -34,8 +34,12 @@
 		"GENERATE_VERIFICATION_CODE_FAILED": "驗證碼發送失敗"
 	},
 	"signup": {
+		"required": "必填",
 		"title": "註冊 Vomatt",
-		"submit": "註冊"
+		"submit": "註冊",
+		"invalidEmailAddress": "信箱格式錯誤",
+		"invalidName": "名字格式錯誤",
+		"invalidUsername": "帳號格式錯誤"
 	},
 	"verificationCode": {
 		"title": "我們已寄出驗證碼",
