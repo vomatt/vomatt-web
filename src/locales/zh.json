@@ -2,6 +2,7 @@
 	"common": {
 		"login": "登入",
 		"email": "信箱",
+		"signUp": "註冊",
 		"firstName": "名字",
 		"lastName": "姓氏",
 		"username": "帳號",
@@ -11,7 +12,11 @@
 		"cancel": "取消",
 		"save": "儲存",
 		"delete": "刪除",
-		"edit": "編輯"
+		"edit": "編輯",
+		"continue": "繼續",
+		"invalidEmailAddress": "信箱格式錯誤",
+		"invalidName": "名字格式錯誤",
+		"invalidUsername": "帳號格式錯誤"
 	},
 	"navigation": {
 		"home": "首頁",
@@ -31,15 +36,13 @@
 	"login": {
 		"title": "登入 Vomatt",
 		"submit": "登入",
+		"footNote": "沒有帳號嗎?",
 		"GENERATE_VERIFICATION_CODE_FAILED": "驗證碼發送失敗"
 	},
 	"signup": {
 		"required": "必填",
 		"title": "註冊 Vomatt",
-		"submit": "註冊",
-		"invalidEmailAddress": "信箱格式錯誤",
-		"invalidName": "名字格式錯誤",
-		"invalidUsername": "帳號格式錯誤"
+		"submit": "註冊"
 	},
 	"verificationCode": {
 		"title": "我們已寄出驗證碼",

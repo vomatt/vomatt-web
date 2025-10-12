@@ -3,21 +3,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { getVerifyCode } from '@/app/api/auth/login/getVerifyCode';
 import AuthContainer from '@/components/auth/AuthContainer';
 import VerificationForm from '@/components/auth/VerificationForm';
 import { ButtonLoading } from '@/components/ButtonLoading';
-import {
-	Form,
-	FormControl,
-	FormField,
-	FormItem,
-	FormLabel,
-	FormMessage,
-} from '@/components/Form';
+import { Field, FieldError, FieldLabel } from '@/components/ui/Field';
 import { Input } from '@/components/ui/Input';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { STATUS_LOG_IN, STATUS_VERIFICATION } from '@/data/constants';
@@ -94,7 +87,7 @@ type LogInFormType = {
 
 const FormSchema = z.object({
 	email: z.string().email({
-		message: 'Invalid email address',
+		message: 'invalidEmailAddress',
 	}),
 });
 
@@ -139,45 +132,50 @@ function LogInForm({ onSetPageStatus, onSetEmail }: LogInFormType) {
 			<h1 className="font-medium text-3xl text-center mb-10">
 				{t('login.title')}
 			</h1>
-			<Form {...form}>
-				<form onSubmit={form.handleSubmit(onSubmit)}>
-					<FormField
-						control={form.control}
-						name="email"
-						render={({ field }) => {
-							return (
-								<FormItem className="mb-5">
-									<FormLabel>{t('common.email')}</FormLabel>
-									<FormControl>
-										<Input
-											type="email"
-											placeholder="m@example.com"
-											required
-											{...field}
-										/>
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							);
-						}}
-					/>
-					<ButtonLoading className="w-full" type="submit" isLoading={isLoading}>
-						{t('common.login')}
-					</ButtonLoading>
-					{error && (
-						<p className="text-destructive text-center mt-3">
-							{t(`login.${error}`)}
-						</p>
-					)}
-				</form>
-			</Form>
+
+			<form onSubmit={form.handleSubmit(onSubmit)}>
+				<Controller
+					control={form.control}
+					name="email"
+					render={({ field, fieldState }) => {
+						return (
+							<Field className="mb-5">
+								<FieldLabel htmlFor="loginEmail">
+									{t('common.email')}
+								</FieldLabel>
+								<Input
+									{...field}
+									type="text"
+									id="loginEmail"
+									aria-invalid={fieldState.invalid}
+									placeholder="m@example.com"
+								/>
+								{fieldState.invalid && (
+									<FieldError>
+										{t(`common.${fieldState.error?.message}`)}
+									</FieldError>
+								)}
+							</Field>
+						);
+					}}
+				/>
+				<ButtonLoading className="w-full" type="submit" isLoading={isLoading}>
+					{t('common.login')}
+				</ButtonLoading>
+				{error && (
+					<p className="text-destructive text-center mt-3">
+						{t(`login.${error}`)}
+					</p>
+				)}
+			</form>
+
 			<p className="mt-5 text-center">
-				Don&apos;t have an account?{' '}
+				{t('login.footNote')}&nbsp;
 				<NextLink
 					href="/signup"
 					className="cr-gray-900 underline underline-offset-4"
 				>
-					Sign up
+					{t('common.signUp')}
 				</NextLink>
 			</p>
 		</>

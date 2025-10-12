@@ -11,7 +11,6 @@ import { ButtonLoading } from '@/components/ButtonLoading';
 import CustomPortableText from '@/components/CustomPortableText';
 import {
 	Field,
-	FieldDescription,
 	FieldError,
 	FieldGroup,
 	FieldLabel,
@@ -199,7 +198,7 @@ function SignUpForm({
 
 									{fieldState.invalid && (
 										<FieldError>
-											{t(`signup.${fieldState.error?.message}`)}
+											{t(`common.${fieldState.error?.message}`)}
 										</FieldError>
 									)}
 								</Field>
@@ -223,7 +222,7 @@ function SignUpForm({
 								/>
 								{fieldState.invalid && (
 									<FieldError>
-										{t(`signup.${fieldState.error?.message}`)}
+										{t(`common.${fieldState.error?.message}`)}
 									</FieldError>
 								)}
 							</Field>
@@ -269,7 +268,7 @@ function SignUpForm({
 								/>
 								{fieldState.invalid && (
 									<FieldError>
-										{t(`signup.${fieldState.error?.message}`)}
+										{t(`common.${fieldState.error?.message}`)}
 									</FieldError>
 								)}
 							</Field>

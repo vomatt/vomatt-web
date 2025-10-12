@@ -1,19 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { ButtonLoading } from '@/components/ButtonLoading';
-import {
-	Form,
-	FormControl,
-	FormField,
-	FormItem,
-	FormMessage,
-} from '@/components/Form';
 import { MailCheckIcon } from '@/components/ui/animate-icon/MailCheck';
 import { Button } from '@/components/ui/Button';
+import { Field, FieldError } from '@/components/ui/Field';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 import {
@@ -79,57 +73,54 @@ export default function VerificationForm({
 			<h5 className="mb-10">
 				{t('verificationCode.subtitle')} <strong>{email}</strong>
 			</h5>
-			<Form {...form}>
-				<form onSubmit={form.handleSubmit(onSubmit)} className="w-full mb-12">
-					<FormField
-						control={form.control}
-						name="pin"
-						render={({ field }) => (
-							<FormItem className="mb-8">
-								<FormControl>
-									<InputOTP
-										maxLength={6}
-										autoFocus
-										{...field}
-										containerClassName="justify-center"
-									>
-										<InputOTPGroup>
-											<InputOTPSlot index={0} />
-											<InputOTPSlot index={1} />
-											<InputOTPSlot index={2} />
-										</InputOTPGroup>
-										<InputOTPSeparator />
-										<InputOTPGroup>
-											<InputOTPSlot index={3} />
-											<InputOTPSlot index={4} />
-											<InputOTPSlot index={5} />
-										</InputOTPGroup>
-									</InputOTP>
-								</FormControl>
-								{error && (
-									<FormMessage className="text-center text-destructive">
-										{t(`verificationCode.${error}`)}
-									</FormMessage>
-								)}
-							</FormItem>
-						)}
-					/>
-					<ButtonLoading
-						type="submit"
-						className="w-full mb-3"
-						isLoading={isLoading}
-					>
-						Continue
-					</ButtonLoading>
-					<Button
-						className="w-full"
-						onClick={() => backButtonFunc()}
-						variant="outline"
-					>
-						Back
-					</Button>
-				</form>
-			</Form>
+			<form onSubmit={form.handleSubmit(onSubmit)} className="w-full mb-12">
+				<Controller
+					control={form.control}
+					name="pin"
+					render={({ field }) => (
+						<Field className="mb-8">
+							<InputOTP
+								maxLength={6}
+								autoFocus
+								{...field}
+								containerClassName="justify-center"
+							>
+								<InputOTPGroup>
+									<InputOTPSlot index={0} />
+									<InputOTPSlot index={1} />
+									<InputOTPSlot index={2} />
+								</InputOTPGroup>
+								<InputOTPSeparator />
+								<InputOTPGroup>
+									<InputOTPSlot index={3} />
+									<InputOTPSlot index={4} />
+									<InputOTPSlot index={5} />
+								</InputOTPGroup>
+							</InputOTP>
+							{error && (
+								<FieldError className="text-center text-destructive">
+									{t(`verificationCode.${error}`)}
+								</FieldError>
+							)}
+						</Field>
+					)}
+				/>
+				<ButtonLoading
+					type="submit"
+					className="w-full mb-3"
+					isLoading={isLoading}
+				>
+					{t(`common.continue`)}
+				</ButtonLoading>
+				<Button
+					className="w-full"
+					onClick={() => backButtonFunc()}
+					variant="outline"
+				>
+					Back
+				</Button>
+			</form>
+
 			<Button className="underline mx-auto block" variant="link">
 				Resend verification code
 			</Button>
