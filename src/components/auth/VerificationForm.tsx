@@ -110,19 +110,19 @@ export default function VerificationForm({
 					className="w-full mb-3"
 					isLoading={isLoading}
 				>
-					{t(`common.continue`)}
+					{t('common.continue')}
 				</ButtonLoading>
 				<Button
 					className="w-full"
 					onClick={() => backButtonFunc()}
 					variant="outline"
 				>
-					Back
+					{t('common.back')}
 				</Button>
 			</form>
 
 			<Button className="underline mx-auto block" variant="link">
-				Resend verification code
+				{t('verificationCode.resendVerificationCode')}
 			</Button>
 		</div>
 	);

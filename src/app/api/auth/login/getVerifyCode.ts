@@ -16,10 +16,12 @@ export async function getVerifyCode(email: string) {
 		return {
 			status: 'SUCCESS',
 		};
-	} catch (error) {
+	} catch (error: unknown) {
+		const message = error instanceof Error ? error.message : String(error);
+
 		return {
 			status: 'ERROR',
-			message: error,
+			message,
 		};
 	}
 }

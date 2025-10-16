@@ -12,7 +12,7 @@ import BrandLogo from '@/components/BrandLogo';
 import DraftModeToast from '@/components/DraftModeToast';
 import { Layout } from '@/components/layout';
 import { LanguageProvider } from '@/contexts/LanguageContext';
-import { getCurrentUser } from '@/data/auth';
+import { getUserSession } from '@/data/auth';
 import { imageBuilder } from '@/sanity/lib/image';
 import { sanityFetch } from '@/sanity/lib/live';
 import { SanityLive } from '@/sanity/lib/live';
@@ -138,7 +138,7 @@ export default async function RootLayout({
 			'settingsBrandColors',
 		],
 	});
-	const userSession = await getCurrentUser();
+	const userSession = await getUserSession();
 	const serverLanguage = await getServerLanguage();
 
 	return (

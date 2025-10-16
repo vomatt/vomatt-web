@@ -1,8 +1,8 @@
 'use client';
-
 import { Calendar, Plus, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
+import { ButtonLoading } from '@/components/ButtonLoading';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -26,6 +26,7 @@ import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Switch } from '@/components/ui/Switch';
 import { Textarea } from '@/components/ui/Textarea';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { PollOption } from '@/types/poll';
 
 interface PollCreatorProps {
@@ -34,7 +35,9 @@ interface PollCreatorProps {
 
 export function PollCreator({ triggerClassName }: PollCreatorProps) {
 	const optionsLimit = 10;
+	const { t } = useLanguage();
 	const [open, setOpen] = useState(false);
+	const [isLoading, setIsLoading] = useState(false);
 	const [question, setQuestion] = useState('');
 	const [description, setDescription] = useState('');
 	const [options, setOptions] = useState<PollOption[]>([
@@ -49,6 +52,7 @@ export function PollCreator({ triggerClassName }: PollCreatorProps) {
 
 	const [showSaveDraftAlert, setShowSaveDraftAlert] = useState(false);
 	const [pendingNavigation, setPendingNavigation] = useState(false);
+	const [error, setError] = useState('');
 
 	const addOption = () => {
 		setOptions([...options, { id: Date.now().toString(), text: '' }]);
@@ -134,33 +138,65 @@ export function PollCreator({ triggerClassName }: PollCreatorProps) {
 	};
 
 	const handleCreatePoll = async () => {
-		const response = await fetch('/api/create-poll', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({
-				question,
-				description,
-				options,
-				startTime,
-				endTime,
-				isAllowMultipleChoices,
-				isAnonymous,
-			}),
-		});
+		setIsLoading(true);
+		const now = new Date();
+		const currentTime = now.toISOString().slice(0, 16); // Slice to get YYYY-MM-DDTHH:mm
 
-		if (response.ok) {
-			// Clear state after successful creation
-			setQuestion('');
-			setDescription('');
-			setOptions([
-				{ id: 'option-1', text: '' },
-				{ id: 'option-2', text: '' },
-			]);
-			setIsAllowMultipleChoices(false);
-			setStartTime('');
-			setEndTime('');
-			setIsAnonymous(false);
-			setOpen(false);
+		const body = {
+			question,
+			description,
+			options,
+			startTime: startTime || currentTime,
+			endTime,
+			isAllowMultipleChoices,
+			isAnonymous,
+		};
+
+		const bodyTest = {
+			question: '誰最帥 Test Data',
+			description: 'Static Test Des',
+			options: [
+				{
+					text: '秦琴琴',
+				},
+				{
+					text: '宜賢',
+				},
+			],
+			startTime: '2025-10-16T14:43:54.753Z',
+			endTime: '2025-10-17T14:43:54.753Z',
+			isAllowMultipleChoices: true,
+			isAnonymous: true,
+		};
+
+		try {
+			const response = await fetch('/api/create-poll', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(body),
+			});
+			const data = await response.json();
+
+			if (data?.status === 'SUCCESS') {
+				setQuestion('');
+				setDescription('');
+				setOptions([
+					{ id: 'option-1', text: '' },
+					{ id: 'option-2', text: '' },
+				]);
+				setIsAllowMultipleChoices(false);
+				setStartTime('');
+				setEndTime('');
+				setIsAnonymous(false);
+				setOpen(false);
+				return;
+			}
+
+			setError(data?.message);
+		} catch (error) {
+			setError('error');
+		} finally {
+			setIsLoading(false);
 		}
 	};
 
@@ -194,11 +230,8 @@ export function PollCreator({ triggerClassName }: PollCreatorProps) {
 				</DialogTrigger>
 				<DialogContent className="sm:max-w-lg overflow-y-scroll max-h-[96vh] no-scrollbar">
 					<DialogHeader>
-						<DialogTitle>New Poll</DialogTitle>
-						<DialogDescription>
-							Make changes to your profile here. Click save when you&apos;re
-							done.
-						</DialogDescription>
+						<DialogTitle>{t('pollCreator.title')}</DialogTitle>
+						<DialogDescription>{t('pollCreator.subtitle')}</DialogDescription>
 					</DialogHeader>
 					<div className="space-y-10">
 						<div className="space-y-6">
@@ -207,18 +240,18 @@ export function PollCreator({ triggerClassName }: PollCreatorProps) {
 									htmlFor="question"
 									className="text-sm font-medium text-card-foreground"
 								>
-									What would you like to ask?
+									{t('pollCreator.questionLabel')}
 								</Label>
 								<Textarea
 									id="question"
-									placeholder="Ask a question to start a discussion..."
+									placeholder={t('pollCreator.questionPlaceholder')}
 									value={question}
 									onChange={(e) => setQuestion(e.target.value)}
 									className="min-h-[80px] resize-none bg-input border-border text-foreground placeholder:text-muted-foreground"
 									maxLength={280}
 								/>
 								<div className="flex justify-between items-center text-xs text-muted-foreground">
-									<span>Make it engaging and clear</span>
+									<span>{t('pollCreator.questionNote')}</span>
 									<span>{question.length}/280</span>
 								</div>
 							</div>
@@ -227,11 +260,11 @@ export function PollCreator({ triggerClassName }: PollCreatorProps) {
 									htmlFor="description"
 									className="text-sm font-medium text-card-foreground"
 								>
-									Description
+									{t('pollCreator.descriptionLabel')}
 								</Label>
 								<Textarea
 									id="description"
-									placeholder="Description the background of the question"
+									placeholder={t('pollCreator.descriptionPlaceholder')}
 									value={description}
 									onChange={(e) => setDescription(e.target.value)}
 									className="min-h-[80px] resize-none bg-input border-border text-foreground placeholder:text-muted-foreground"
@@ -242,14 +275,14 @@ export function PollCreator({ triggerClassName }: PollCreatorProps) {
 									htmlFor={`options-${options[0].id}`}
 									className="text-sm font-medium text-card-foreground"
 								>
-									Poll Options
+									{t('pollCreator.pollOptionsLabel')}
 								</Label>
 								{options.map((option, index) => (
 									<div key={option.id} className="flex items-center gap-2">
 										<div className="flex-1">
 											<Input
 												id={`options-${option.id}`}
-												placeholder={`Option ${index + 1}`}
+												placeholder={`${t('pollCreator.optionsPlaceholder')} ${index + 1}`}
 												value={option.text}
 												onChange={(e) =>
 													updateOption(option.id, e.target.value)
@@ -280,7 +313,7 @@ export function PollCreator({ triggerClassName }: PollCreatorProps) {
 										disabled={!enableToAddMoreOption}
 									>
 										<Plus className="h-4 w-4 mr-2" />
-										Add Option
+										{t('pollCreator.addOptionLabel')}
 									</Button>
 								)}
 							</div>
@@ -288,7 +321,7 @@ export function PollCreator({ triggerClassName }: PollCreatorProps) {
 								<div className="space-y-2">
 									<Label htmlFor="startTime" className="text-sm font-medium">
 										<Calendar className="w-4 h-4" />
-										Start Date
+										{t('pollCreator.startDateLabel')}
 									</Label>
 									<Input
 										id="startTime"
@@ -301,7 +334,7 @@ export function PollCreator({ triggerClassName }: PollCreatorProps) {
 								<div className="space-y-2">
 									<Label htmlFor="endTime" className="text-sm font-medium">
 										<Calendar className="w-4 h-4" />
-										End Date (optional)
+										{t('pollCreator.startDateLabel')} ({t('common.optional')})
 									</Label>
 									<Input
 										id="endTime"
@@ -318,7 +351,7 @@ export function PollCreator({ triggerClassName }: PollCreatorProps) {
 										htmlFor="allowMultiple"
 										className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
 									>
-										Allow multiple choices
+										{t('pollCreator.allowMultipleChoicesLabel')}
 									</Label>
 									<Switch
 										id="allowMultiple"
@@ -333,7 +366,7 @@ export function PollCreator({ triggerClassName }: PollCreatorProps) {
 											htmlFor="anonymous"
 											className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
 										>
-											Anonymous voting
+											{t('pollCreator.anonymousVotingLabel')}
 										</Label>
 										<Switch
 											id="anonymous"
@@ -348,18 +381,19 @@ export function PollCreator({ triggerClassName }: PollCreatorProps) {
 						</div>
 						{/* Action Buttons */}
 						<div className="flex gap-3">
-							<Button
+							<ButtonLoading
 								onClick={handleCreatePoll}
-								disabled={!isValid}
 								className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+								disabled={!isValid || isLoading}
+								isLoading={isLoading}
 							>
-								Create Poll
-							</Button>
+								{t('pollCreator.createPollLabel')}
+							</ButtonLoading>
 							<Button
 								variant="outline"
 								className="border-border text-muted-foreground hover:text-foreground bg-transparent"
 							>
-								Save Draft
+								{t('pollCreator.saveDraftLabel')}
 							</Button>
 						</div>
 					</div>

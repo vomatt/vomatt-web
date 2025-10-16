@@ -37,8 +37,8 @@ export async function POST(request: NextRequest) {
 		options,
 		startTime,
 		endTime,
-		allowMultipleChoices,
-		anonymous,
+		isAllowMultipleChoices,
+		isAnonymous,
 	} = body;
 
 	try {
@@ -48,23 +48,28 @@ export async function POST(request: NextRequest) {
 			options,
 			startTime,
 			endTime,
-			allowMultipleChoices,
-			anonymous,
+			allowMultipleChoices: isAllowMultipleChoices,
+			anonymous: isAnonymous,
 		};
+
 		const response = await apiAuthFetch('/api/v1/votes', {
 			method: 'POST',
-			body: JSON.stringify({ bodyData }),
+			body: JSON.stringify(bodyData),
 		});
 
-		const data = await response.json();
-		console.log('🚀 ~ :60 ~ POST ~ data:', data);
-		const { success, errorCode, token, refreshToken } = data || {};
-
+		const { success, errorCode, data } = response || {};
+		if (!success) {
+			return NextResponse.json({
+				status: 'ERROR',
+				message: errorCode,
+			});
+		}
 		return NextResponse.json({
-			status: 'ERROR',
-			message: errorCode,
+			status: 'SUCCESS',
+			message: data,
 		});
 	} catch (error) {
+		console.log('🚀 ~ :71 ~ POST ~ error:', error);
 		return NextResponse.json({
 			status: 'ERROR',
 			message: 'Something went wrong',

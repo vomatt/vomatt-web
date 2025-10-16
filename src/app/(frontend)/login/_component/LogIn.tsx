@@ -13,7 +13,11 @@ import { ButtonLoading } from '@/components/ButtonLoading';
 import { Field, FieldError, FieldLabel } from '@/components/ui/Field';
 import { Input } from '@/components/ui/Input';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { STATUS_LOG_IN, STATUS_VERIFICATION } from '@/data/constants';
+import {
+	STATUS_LOG_IN,
+	STATUS_VERIFICATION,
+	SYSTEM_ERROR,
+} from '@/data/constants';
 
 type PageStatusType = 'STATUS_LOG_IN' | 'STATUS_VERIFICATION';
 
@@ -115,13 +119,14 @@ function LogInForm({ onSetPageStatus, onSetEmail }: LogInFormType) {
 				onSetPageStatus(STATUS_VERIFICATION);
 				return;
 			}
-
+			if (res.status === 'ERROR') {
+				setError(SYSTEM_ERROR);
+			}
 			if (res.message === 'USER_NOT_FOUND') {
 				return router.push('/signup');
 			}
-			setError(res.message);
 		} catch (error) {
-			setError('Something went wrong, pleas try again later');
+			setError(SYSTEM_ERROR);
 		} finally {
 			setIsLoading(false);
 		}

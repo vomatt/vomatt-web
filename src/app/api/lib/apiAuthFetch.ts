@@ -52,7 +52,6 @@ export async function apiAuthFetch<T = any>(
 
 	// Get tokens if auth is required
 	let tokens = await getTokens();
-	console.log('🚀 ~ :55 ~ apiAuthFetch ~ tokens:', tokens);
 
 	if (!tokens) {
 		throw new AuthError('Not authenticated. Please log in.');

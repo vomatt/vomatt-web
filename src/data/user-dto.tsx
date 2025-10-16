@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { getCurrentUser } from './auth';
+import { getUserSession } from './auth';
 
 interface User {
 	team: string;
@@ -23,7 +23,7 @@ function canSeePhoneNumber(viewer: User, team: string) {
 // 	const [rows] = await sql`SELECT * FROM user WHERE slug = ${slug}`;
 // 	const userData = rows[0];
 
-// 	const currentUser = await getCurrentUser();
+// 	const currentUser = await getUserSession();
 
 // 	// only return the data relevant for this query and not everything
 // 	// <https://www.w3.org/2001/tag/doc/APIMinimization>

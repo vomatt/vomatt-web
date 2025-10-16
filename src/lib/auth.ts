@@ -44,14 +44,6 @@ export async function logout() {
 	(await cookies()).set('USER_SESSION', '', { expires: new Date(0) });
 }
 
-export async function getUserSession() {
-	const cookieStore = await cookies();
-	const session = cookieStore.get(USER_SESSION)?.value;
-	if (!session) return null;
-
-	return session;
-}
-
 export async function updateUserSession(request: NextRequest) {
 	const session = request.cookies.get(USER_SESSION)?.value;
 	if (!session) return;
@@ -74,7 +66,6 @@ export async function getTokens(): Promise<{
 } | null> {
 	const cookieStore = await cookies();
 	const accessToken = cookieStore.get('accessToken')?.value;
-	console.log('🚀 ~ :77 ~ getTokens ~ accessToken:', accessToken);
 	const refreshToken = cookieStore.get('refreshToken')?.value;
 
 	if (!accessToken || !refreshToken) return null;

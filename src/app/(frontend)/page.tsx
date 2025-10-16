@@ -1,13 +1,11 @@
-import NextLink from 'next/link';
-
+import { getPollsData } from '@/app/api/get-polls/getPollsData';
+import { LoginPrompt } from '@/components/LoginPrompt';
 import { PollCreator } from '@/components/PollCreator';
-import { Button } from '@/components/ui/Button';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { getCurrentUser } from '@/data/auth';
+import { getUserSession } from '@/data/auth';
 
 import { FeedList } from './_components/FeedList';
 // export async function generateMetadata({}) {}
-// const { t } = useLanguage();
+
 const fakeData = [
 	{
 		title:
@@ -27,25 +25,14 @@ const fakeData = [
 ];
 
 export default async function Page() {
-	const user = await getCurrentUser();
+	const user = await getUserSession();
+	const data = await getPollsData();
 
 	return (
 		<div className="px-contain">
 			<div className="flex justify-between gap-10">
-				<FeedList data={fakeData} className="" />
-				{!user && (
-					<div className="bg-secondary text-secondary-foreground rounded-lg p-6 h-fit text-center max-w-sm hidden lg:block">
-						<h4 className="text-white font-bold text-2xl">
-							Log in or sign up for Vomatt
-						</h4>
-						<p className="text-gray mt-2">
-							See what people are talking about and join the conversation.
-						</p>
-						<Button asChild className="mt-5">
-							<NextLink href="/login">Log in</NextLink>
-						</Button>
-					</div>
-				)}
+				<FeedList data={fakeData} className="mx-auto" />
+				{!user && <LoginPrompt />}
 				<PollCreator triggerClassName="fixed bottom-contain right-contain size-14 flex justify-center items-center bg-secondary rounded-xl cursor-pointer hover:scale-120 transition-all hover:bg-secondary/90" />
 			</div>
 		</div>
