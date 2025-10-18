@@ -114,16 +114,17 @@ function LogInForm({ onSetPageStatus, onSetEmail }: LogInFormType) {
 
 		try {
 			const res = await getVerifyCode(email);
+
 			if (res.status === 'SUCCESS') {
 				onSetEmail(email);
 				onSetPageStatus(STATUS_VERIFICATION);
 				return;
 			}
 			if (res.status === 'ERROR') {
+				if (res.message === 'USER_NOT_FOUND') {
+					return router.push('/signup');
+				}
 				setError(SYSTEM_ERROR);
-			}
-			if (res.message === 'USER_NOT_FOUND') {
-				return router.push('/signup');
 			}
 		} catch (error) {
 			setError(SYSTEM_ERROR);

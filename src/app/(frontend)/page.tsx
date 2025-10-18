@@ -27,11 +27,12 @@ const fakeData = [
 export default async function Page() {
 	const user = await getUserSession();
 	const data = await getPollsData();
+	console.log('🚀 ~ :30 ~ Page ~ data:', data);
 
 	return (
 		<div className="px-contain">
 			<div className="flex justify-between gap-10">
-				<FeedList data={fakeData} className="mx-auto" />
+				<FeedList data={data} className="mx-auto" />
 				{!user && <LoginPrompt />}
 				<PollCreator triggerClassName="fixed bottom-contain right-contain size-14 flex justify-center items-center bg-secondary rounded-xl cursor-pointer hover:scale-120 transition-all hover:bg-secondary/90" />
 			</div>
