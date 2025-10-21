@@ -18,6 +18,7 @@ import {
 	STATUS_VERIFICATION,
 	SYSTEM_ERROR,
 } from '@/data/constants';
+import { useSessionStorage } from '@/hooks/useSessionStorage';
 
 type PageStatusType = 'STATUS_LOG_IN' | 'STATUS_VERIFICATION';
 
@@ -97,6 +98,8 @@ const FormSchema = z.object({
 
 function LogInForm({ onSetPageStatus, onSetEmail }: LogInFormType) {
 	const { t } = useLanguage();
+	const [value, setValue, removeValue] = useSessionStorage('login-email', '');
+
 	const [error, setError] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
 	const router = useRouter();
@@ -122,6 +125,7 @@ function LogInForm({ onSetPageStatus, onSetEmail }: LogInFormType) {
 			}
 			if (res.status === 'ERROR') {
 				if (res.message === 'USER_NOT_FOUND') {
+					setValue(email);
 					return router.push('/signup');
 				}
 				setError(SYSTEM_ERROR);

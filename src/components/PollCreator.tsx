@@ -27,7 +27,7 @@ import { Label } from '@/components/ui/Label';
 import { Switch } from '@/components/ui/Switch';
 import { Textarea } from '@/components/ui/Textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { PollOption } from '@/types/poll';
+import { PollCreateOption } from '@/types/poll';
 
 interface PollCreatorProps {
 	triggerClassName?: string;
@@ -40,7 +40,7 @@ export function PollCreator({ triggerClassName }: PollCreatorProps) {
 	const [isLoading, setIsLoading] = useState(false);
 	const [question, setQuestion] = useState('');
 	const [description, setDescription] = useState('');
-	const [options, setOptions] = useState<PollOption[]>([
+	const [options, setOptions] = useState<PollCreateOption[]>([
 		{ id: 'option-1', text: '' },
 		{ id: 'option-2', text: '' },
 	]);

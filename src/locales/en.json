@@ -15,6 +15,7 @@
 		"back": "Back",
 		"continue": "continue",
 		"optional": "optional",
+		"required": "required",
 		"invalidEmailAddress": "Invalid email address",
 		"invalidName": "Invalid name",
 		"invalidUsername": "Invalid username"
@@ -52,7 +53,7 @@
 		"title": "We sent you a code",
 		"subtitle": "Enter it below to verify",
 		"resendVerificationCode": "Resend verification code",
-		"INVALID_VERIFICATION_CODE": "Wrong code"
+		"invalidVerificationCode": "Wrong code"
 	},
 	"pollCreator": {
 		"title": "Create a New Poll",

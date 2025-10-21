@@ -41,7 +41,9 @@ export async function decodeToken(token: string): Promise<any> {
 }
 
 export async function logout() {
-	(await cookies()).set('USER_SESSION', '', { expires: new Date(0) });
+	const cookieStore = await cookies();
+	cookieStore.set(ACCESS_TOKEN, '', { expires: new Date(0) });
+	cookieStore.set(REFRESH_TOKEN, '', { expires: new Date(0) });
 }
 
 export async function updateUserSession(request: NextRequest) {

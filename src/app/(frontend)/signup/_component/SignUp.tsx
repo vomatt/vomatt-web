@@ -18,6 +18,7 @@ import {
 import { Input } from '@/components/ui/Input';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { STATUS_SIGN_UP, STATUS_VERIFICATION } from '@/data/constants';
+import { useSessionStorage } from '@/hooks/useSessionStorage';
 
 const nameValidation = new RegExp(
 	/^[\w'\-,.]*[^_!¡?÷?¿\/\\+=@#$%ˆ&*(){}|~<>;:[\]]*$/
@@ -32,17 +33,17 @@ const formSchema = z.object({
 		.trim(),
 	firstName: z
 		.string()
-		.min(1, { message: 'required' })
-		.regex(nameValidation, { message: 'invalidName' }),
+		.min(1, { message: 'common.required' })
+		.regex(nameValidation, { message: 'signup.invalidName' }),
 	lastName: z
 		.string()
-		.min(1, { message: 'required' })
-		.regex(nameValidation, { message: 'invalidName' }),
+		.min(1, { message: 'common.required' })
+		.regex(nameValidation, { message: 'signup.invalidName' }),
 	username: z
 		.string()
-		.min(3, { message: 'required' })
+		.min(3, { message: 'common.required' })
 		.regex(new RegExp(/^[a-z][-a-z0-9_]*\$?$/), {
-			message: 'invalidName',
+			message: 'signup.invalidName',
 		}),
 });
 
@@ -52,8 +53,7 @@ type SignUpType = {
 };
 
 type currentStepType = 'STATUS_SIGN_UP' | 'STATUS_VERIFICATION';
-
-export const defaultValues = {
+const defaultValues = {
 	email: '',
 	firstName: '',
 	lastName: '',
@@ -86,6 +86,7 @@ export default function SignUp({ signUpInfoData }: SignUpType) {
 				body: JSON.stringify(bodyData),
 			});
 			const data = await res.json();
+			console.log('🚀 ~ :89 ~ onSubmitSignUp ~ data:', data);
 			const apiStatus = data?.status;
 			const apiMessage = data?.message as string | undefined;
 
@@ -141,13 +142,15 @@ function SignUpForm({
 	onSetFormData,
 }: SignUpFormType) {
 	const { t } = useLanguage();
+	const [value, setValue, removeValue] = useSessionStorage('login-email', '');
+
 	const { policyMessage } = signUpInfoData || {};
 	const [error, setError] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
-		defaultValues,
+		defaultValues: { ...defaultValues, email: value },
 	});
 
 	async function onSubmit(data: z.infer<typeof formSchema>) {
@@ -160,6 +163,7 @@ function SignUpForm({
 			});
 
 			const resData = await response.json();
+			console.log('🚀 ~ :165 ~ onSubmit ~ resData:', resData);
 
 			if (resData.status === 'ERROR') {
 				setError(resData.message);
@@ -197,9 +201,7 @@ function SignUpForm({
 									/>
 
 									{fieldState.invalid && (
-										<FieldError>
-											{t(`common.${fieldState.error?.message}`)}
-										</FieldError>
+										<FieldError>{t(`${fieldState.error?.message}`)}</FieldError>
 									)}
 								</Field>
 							);
@@ -221,9 +223,7 @@ function SignUpForm({
 									autoComplete="off"
 								/>
 								{fieldState.invalid && (
-									<FieldError>
-										{t(`common.${fieldState.error?.message}`)}
-									</FieldError>
+									<FieldError>{t(`${fieldState.error?.message}`)}</FieldError>
 								)}
 							</Field>
 						)}
@@ -244,9 +244,7 @@ function SignUpForm({
 									autoComplete="off"
 								/>
 								{fieldState.invalid && (
-									<FieldError>
-										{t(`signup.${fieldState.error?.message}`)}
-									</FieldError>
+									<FieldError>{t(`${fieldState.error?.message}`)}</FieldError>
 								)}
 							</Field>
 						)}
@@ -267,9 +265,7 @@ function SignUpForm({
 									autoComplete="off"
 								/>
 								{fieldState.invalid && (
-									<FieldError>
-										{t(`common.${fieldState.error?.message}`)}
-									</FieldError>
+									<FieldError>{t(`${fieldState.error?.message}`)}</FieldError>
 								)}
 							</Field>
 						)}

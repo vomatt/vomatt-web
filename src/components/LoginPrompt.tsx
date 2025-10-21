@@ -8,7 +8,7 @@ export function LoginPrompt() {
 	const { t } = useLanguage();
 
 	return (
-		<div className="bg-secondary text-secondary-foreground rounded-lg p-6 h-fit text-center max-w-sm hidden lg:block">
+		<div className="bg-secondary text-secondary-foreground rounded-xl p-6 h-fit text-center max-w-sm hidden lg:block">
 			<h4 className="text-white font-bold text-2xl">
 				{t('loginPrompt.title')}
 			</h4>

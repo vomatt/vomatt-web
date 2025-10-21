@@ -16,6 +16,7 @@
 		"back": "返回",
 		"continue": "繼續",
 		"optional": "選填",
+		"required": "必填",
 		"invalidEmailAddress": "信箱格式錯誤",
 		"invalidName": "名字格式錯誤",
 		"invalidUsername": "帳號格式錯誤"
@@ -47,7 +48,6 @@
 		"SYSTEM_ERROR": "系統出現錯誤，請稍後重試"
 	},
 	"signup": {
-		"required": "必填",
 		"title": "註冊 Vomatt",
 		"submit": "註冊"
 	},
@@ -55,7 +55,7 @@
 		"title": "我們已寄出驗證碼",
 		"subtitle": "輸入驗證碼來驗證",
 		"resendVerificationCode": "重新發送驗證碼",
-		"INVALID_VERIFICATION_CODE": "驗證碼錯誤"
+		"invalidVerificationCode": "驗證碼錯誤"
 	},
 	"pollCreator": {
 		"title": "創建新投票",

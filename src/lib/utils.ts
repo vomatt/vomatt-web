@@ -451,7 +451,9 @@ const SPACING_CLASSES = {
 	},
 };
 
-export function hasArrayValue(arr: any[]) {
+export function hasArrayValue(arr: any[] | undefined) {
+	if (!arr) return false;
+
 	return Array.isArray(arr) && arr.length > 0;
 }
 

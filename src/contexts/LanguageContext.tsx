@@ -19,6 +19,7 @@ interface LanguageContextType {
 	setLanguage: (language: LanguageCode) => void;
 	t: (key: string, fallback?: string) => string;
 	isLoading: boolean;
+	isInitialized: boolean;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(
@@ -77,6 +78,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
 	children,
 	defaultTranslations = {},
 }) => {
+	const [isInitialized, setIsInitialized] = useState(false);
 	const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>('en');
 	const [translations, setTranslations] =
 		useState<Translations>(defaultTranslations);
@@ -118,7 +120,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
 
 		setCurrentLanguage(initialLanguage);
 		loadTranslations(initialLanguage);
-
+		setIsInitialized(true);
 		// Update HTML attributes
 		document.documentElement.lang = initialLanguage;
 		const RTL_LANGUAGES: LanguageCode[] = ['ar', 'he', 'fa'] as any[];
@@ -156,6 +158,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
 		setLanguage,
 		t,
 		isLoading,
+		isInitialized,
 	};
 
 	return (
