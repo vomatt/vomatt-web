@@ -44,15 +44,16 @@
 		"ctaLabel": "登入"
 	},
 	"login": {
-		"title": "登入 Vomatt",
+		"title": "登入",
 		"submit": "登入",
 		"footNote": "沒有帳號嗎?",
 		"GENERATE_VERIFICATION_CODE_FAILED": "驗證碼發送失敗",
 		"SYSTEM_ERROR": "系統出現錯誤，請稍後重試"
 	},
 	"signup": {
-		"title": "註冊 Vomatt",
-		"submit": "註冊"
+		"title": "報名來參與大眾的聲音",
+		"submit": "註冊",
+		"alreadyHaveAccount": "已經有帳號了嗎？"
 	},
 	"verificationCode": {
 		"title": "我們已寄出驗證碼",

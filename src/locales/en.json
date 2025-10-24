@@ -43,14 +43,15 @@
 		"ctaLabel": "Log in"
 	},
 	"login": {
-		"title": "Log in to Vomatt",
+		"title": "Log in",
 		"submit": "login",
 		"GENERATE_VERIFICATION_CODE_FAILED": "Fail to send the Verification Code",
 		"SYSTEM_ERROR": "Something went wrong, pleas try again later"
 	},
 	"signup": {
-		"title": "Create your account",
-		"submit": "submit"
+		"title": "Sign up to participate the people's voices",
+		"submit": "submit",
+		"alreadyHaveAccount": "Already have a account?"
 	},
 	"verificationCode": {
 		"title": "We sent you a code",

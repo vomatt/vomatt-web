@@ -24,7 +24,7 @@ export const ClientLayout = ({ children }: { children: ReactNode }) => {
 	) : (
 		<div
 			className={cn(
-				'absolute top-1/2 left-1/2 w-sm -translate-1/2 animate-pulse'
+				'absolute top-1/2 left-1/2 w-xs -translate-1/2 animate-pulse'
 			)}
 		>
 			<BrandLogo />

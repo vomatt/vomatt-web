@@ -285,7 +285,7 @@ function SignUpForm({
 			<hr className="w-full h-px my-8 bg-gray-200 border-0 dark:bg-gray-700" />
 			<div className="flex justify-center">
 				<NextLink href="/login" className="cr-gray-900 underline">
-					Already have a account?
+					{t('signup.alreadyHaveAccount')}
 				</NextLink>
 			</div>
 		</>

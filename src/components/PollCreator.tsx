@@ -1,6 +1,6 @@
 'use client';
 import { Calendar, Plus, X } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useState } from 'react';
 
 import { ButtonLoading } from '@/components/ButtonLoading';
 import {
@@ -30,10 +30,11 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { PollCreateOption } from '@/types/poll';
 
 interface PollCreatorProps {
+	triggerChildren?: ReactNode;
 	triggerClassName?: string;
 }
 
-export function PollCreator({ triggerClassName }: PollCreatorProps) {
+export function PollCreator({ triggerChildren }: PollCreatorProps) {
 	const optionsLimit = 10;
 	const { t } = useLanguage();
 	const [open, setOpen] = useState(false);
@@ -152,23 +153,6 @@ export function PollCreator({ triggerClassName }: PollCreatorProps) {
 			isAnonymous,
 		};
 
-		const bodyTest = {
-			question: '誰最帥 Test Data',
-			description: 'Static Test Des',
-			options: [
-				{
-					text: '秦琴琴',
-				},
-				{
-					text: '宜賢',
-				},
-			],
-			startTime: '2025-10-16T14:43:54.753Z',
-			endTime: '2025-10-17T14:43:54.753Z',
-			isAllowMultipleChoices: true,
-			isAnonymous: true,
-		};
-
 		try {
 			const response = await fetch('/api/create-poll', {
 				method: 'POST',
@@ -225,8 +209,8 @@ export function PollCreator({ triggerClassName }: PollCreatorProps) {
 	return (
 		<>
 			<Dialog open={open} onOpenChange={onHandleOpenChange}>
-				<DialogTrigger className={triggerClassName}>
-					<Plus />
+				<DialogTrigger asChild={!!triggerChildren}>
+					{triggerChildren ? triggerChildren : <Plus />}
 				</DialogTrigger>
 				<DialogContent className="sm:max-w-lg overflow-y-scroll max-h-[96vh] no-scrollbar">
 					<DialogHeader>

@@ -1,9 +1,12 @@
 'use client';
+import { Calendar, Plus, X } from 'lucide-react';
 import { Home, LogOut, PlusCircle, TrendingUp, User } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import React from 'react';
 
 import BrandLogo from '@/components/BrandLogo';
+import { PollCreator } from '@/components/PollCreator';
 import { Button } from '@/components/ui/Button';
 import {
 	Sidebar,
@@ -25,16 +28,19 @@ import { cn, hasArrayValue } from '@/lib/utils';
 const navigationItems = [
 	{
 		title: 'common.home',
+		id: 'linkHome',
 		url: '/',
 		icon: Home,
 	},
 	{
 		title: 'common.createPoll',
+		id: 'actionCreatePoll',
 		url: '/',
 		icon: PlusCircle,
 	},
 	{
 		title: 'common.myPolls',
+		id: 'linkMyPolls',
 		url: '/',
 		icon: TrendingUp,
 	},
@@ -44,11 +50,17 @@ interface AppSidebarProps {
 	userSession: any;
 }
 
+const hideSideBarFromPages = ['/login', '/signup'];
+
 export function AppSidebar({ userSession }: AppSidebarProps) {
 	const { t } = useLanguage();
+	const pathname = usePathname();
+
 	function handleLogout() {
 		logout();
 	}
+
+	if (hideSideBarFromPages.includes(pathname)) return null;
 
 	return (
 		<Sidebar className="border-none backdrop-blur-lg" variant="floating">
@@ -64,14 +76,27 @@ export function AppSidebar({ userSession }: AppSidebarProps) {
 						<SidebarMenu>
 							{navigationItems.map((item) => (
 								<SidebarMenuItem key={item.title}>
-									<SidebarMenuButton asChild>
-										<Link
-											href={item.url}
-											className="flex items-center gap-3 px-4 py-3"
-										>
-											<item.icon className="w-5 h-5" />
-											<span className="font-semibold">{t(item.title)}</span>
-										</Link>
+									<SidebarMenuButton
+										asChild={item.id !== 'actionCreatePoll'}
+										className="cursor-pointer"
+									>
+										{item.id === 'actionCreatePoll' ? (
+											<PollCreator
+												triggerChildren={
+													<div className="flex items-center gap-3 w-full">
+														<item.icon className="size-4" />
+														<span className="font-semibold">
+															{t(item.title)}
+														</span>
+													</div>
+												}
+											/>
+										) : (
+											<Link href={item.url} className="flex items-center gap-3">
+												<item.icon className="size-4" />
+												<span className="font-semibold">{t(item.title)}</span>
+											</Link>
+										)}
 									</SidebarMenuButton>
 								</SidebarMenuItem>
 							))}

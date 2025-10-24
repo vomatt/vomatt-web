@@ -3,18 +3,14 @@ import '@/styles/global.css';
 import clsx from 'clsx';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { cookies, headers } from 'next/headers';
-import { draftMode } from 'next/headers';
-import { VisualEditing } from 'next-sanity';
 import React, { ReactNode } from 'react';
 import { Toaster } from 'sonner';
 
 import BrandLogo from '@/components/BrandLogo';
-import DraftModeToast from '@/components/DraftModeToast';
 import { Layout } from '@/components/layout';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { imageBuilder } from '@/sanity/lib/image';
 import { sanityFetch } from '@/sanity/lib/live';
-import { SanityLive } from '@/sanity/lib/live';
 import { siteDataQuery } from '@/sanity/lib/queries';
 
 import { handleError } from '../client-utils';
@@ -124,7 +120,6 @@ export default async function RootLayout({
 }: {
 	children: ReactNode;
 }) {
-	const { isEnabled } = await draftMode();
 	const { data } = await sanityFetch({
 		query: siteDataQuery,
 		tags: [
@@ -156,14 +151,7 @@ export default async function RootLayout({
 				) : (
 					<LanguageProvider>
 						<Layout siteData={data}>{children}</Layout>
-						<SanityLive onError={handleError} />
 						<Toaster />
-						{isEnabled && (
-							<>
-								<DraftModeToast />
-								<VisualEditing />
-							</>
-						)}
 					</LanguageProvider>
 				)}
 			</body>
