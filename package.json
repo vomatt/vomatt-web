@@ -31,6 +31,7 @@
 		"@vimeo/player": "^2.15.3",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
+		"date-fns": "^4.1.0",
 		"embla-carousel-autoplay": "^6.2.0",
 		"embla-carousel-react": "^6.2.0",
 		"embla-carousel-wheel-gestures": "^2.2.0",

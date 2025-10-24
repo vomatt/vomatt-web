@@ -1,5 +1,8 @@
 {
 	"common": {
+		"home": "home",
+		"createPoll": "Create Poll",
+		"myPolls": "My Polls",
 		"login": "login",
 		"email": "email",
 		"firstName": "first name",

@@ -1,4 +1,6 @@
 'use client';
+import { formatDistance, subDays } from 'date-fns';
+import { eoLocale } from 'date-fns/locale/eo';
 import { MessageSquare, Users } from 'lucide-react';
 import { useState } from 'react';
 
@@ -47,13 +49,18 @@ export const PollCard = ({ pollData }: PollCardProps) => {
 	};
 
 	return (
-		<div className="p-6 hover:shadow-lg transition-all duration-300 rounded-lg border-border bg-card">
+		<div className="p-6 hover:shadow-lg transition-all duration-300 rounded-xl border-border bg-card">
 			<div className="space-y-4">
 				<div className="space-y-3">
 					<div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
 						<p className="font-medium text-foreground">{creatorUsername}</p>
 						<span>•</span>
-						<time>{createdAt}</time>
+						<time>
+							{formatDistance(new Date(createdAt), new Date(), {
+								includeSeconds: true,
+								locale: eoLocale,
+							})}
+						</time>
 					</div>
 					<h3 className="text-xl font-semibold text-foreground">{title}</h3>
 					{description && (

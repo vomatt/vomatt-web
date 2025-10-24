@@ -1,5 +1,8 @@
 {
 	"common": {
+		"home": "首頁",
+		"createPoll": "建立投票",
+		"myPolls": "我的投票",
 		"login": "登入",
 		"email": "信箱",
 		"signUp": "註冊",

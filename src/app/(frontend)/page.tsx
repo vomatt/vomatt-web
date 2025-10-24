@@ -2,7 +2,7 @@ import { getPollsData } from '@/app/api/get-polls/getPollsData';
 import { LoginPrompt } from '@/components/LoginPrompt';
 import { getUserSession } from '@/data/auth';
 
-import { FeedList } from './_components/FeedList';
+import { PollFeedList } from './_components/PollFeedList';
 // export async function generateMetadata({}) {}
 
 const fakeData = [
@@ -29,8 +29,8 @@ export default async function Page() {
 
 	return (
 		<div className="px-contain flex justify-center gap-10">
-			<FeedList data={data} />
-			{!user && <LoginPrompt />}
+			<PollFeedList data={data} />
+			{!user && <LoginPrompt className="sticky top-14" />}
 		</div>
 	);
 }

@@ -12,7 +12,6 @@ import BrandLogo from '@/components/BrandLogo';
 import DraftModeToast from '@/components/DraftModeToast';
 import { Layout } from '@/components/layout';
 import { LanguageProvider } from '@/contexts/LanguageContext';
-import { getUserSession } from '@/data/auth';
 import { imageBuilder } from '@/sanity/lib/image';
 import { sanityFetch } from '@/sanity/lib/live';
 import { SanityLive } from '@/sanity/lib/live';
@@ -138,7 +137,7 @@ export default async function RootLayout({
 			'settingsBrandColors',
 		],
 	});
-	const userSession = await getUserSession();
+
 	const serverLanguage = await getServerLanguage();
 
 	return (
@@ -156,9 +155,7 @@ export default async function RootLayout({
 					</div>
 				) : (
 					<LanguageProvider>
-						<Layout siteData={data} userSession={userSession}>
-							{children}
-						</Layout>
+						<Layout siteData={data}>{children}</Layout>
 						<SanityLive onError={handleError} />
 						<Toaster />
 						{isEnabled && (

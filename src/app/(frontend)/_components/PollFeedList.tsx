@@ -2,6 +2,7 @@ import { cn, hasArrayValue } from '@/lib/utils';
 import { Pagination, Sort } from '@/types/page';
 import { Poll } from '@/types/poll';
 
+import { HomepageHeader } from './HomepageHeader';
 import { PollCard } from './PollCard';
 
 type Page = {
@@ -18,12 +19,12 @@ type Page = {
 	sort: Sort;
 };
 
-type FeedList = {
+type PollFeedList = {
 	data: Page;
 	className?: string;
 };
 
-export function FeedList({ data, className }: FeedList) {
+export function PollFeedList({ data, className }: PollFeedList) {
 	const { content } = data || {};
 
 	if (!hasArrayValue(content))
@@ -34,16 +35,19 @@ export function FeedList({ data, className }: FeedList) {
 		);
 
 	return (
-		<div
-			data-testid="cFeedList"
-			className={cn(
-				'bg-secondary rounded-xl relative grid grid-cols-3 w-full p-3 min-h-[var(--h-main)] gap-6',
-				className
-			)}
-		>
-			{content.map((item, index) => (
-				<PollCard key={index} pollData={item} />
-			))}
+		<div className="flex-1 min-h-[var(--h-main)] max-w-lg">
+			<HomepageHeader />
+			<div
+				data-testid="cFeedList"
+				className={cn(
+					'rounded-xl relative w-full flex flex-col gap-6 pt-2',
+					className
+				)}
+			>
+				{content.map((item, index) => (
+					<PollCard key={index} pollData={item} />
+				))}
+			</div>
 		</div>
 	);
 }
