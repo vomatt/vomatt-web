@@ -1,13 +1,9 @@
-import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-
-import { ACCESS_TOKEN, REFRESH_TOKEN } from '@/data/constants';
-import { decodeToken } from '@/lib/auth';
+import { setAuthTokens } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
 	const body = await request.json();
 	const { email, verificationCode } = body;
-	const cookieStore = await cookies();
 
 	try {
 		const url = `${process.env.API_URL}/api/auth/signin`;
@@ -24,19 +20,10 @@ export async function POST(request: NextRequest) {
 
 		const data = await res.json();
 		const { success, errorCode, token, refreshToken } = data || {};
+		const tokens = { accessToken: token, refreshToken };
 
 		if (success && token) {
-			const decodeTokenToken = await decodeToken(token);
-			const { exp } = decodeTokenToken;
-			const expires = new Date(exp * 1000);
-			cookieStore.set(ACCESS_TOKEN, token, {
-				expires,
-				httpOnly: true,
-			});
-
-			cookieStore.set(REFRESH_TOKEN, refreshToken, {
-				httpOnly: true,
-			});
+			setAuthTokens(tokens);
 
 			return NextResponse.json({ status: 'SUCCESS' }, { status: 200 });
 		}
