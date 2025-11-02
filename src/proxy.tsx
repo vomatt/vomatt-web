@@ -51,7 +51,7 @@ function getLocale(request: NextRequest): string | undefined {
 const publicPaths = ['/login', '/register', '/forgot-password', '/', '/about'];
 const authPaths = ['/login', '/register'];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
 	const { pathname } = request.nextUrl;
 
 	const isPublicPath = publicPaths.some(

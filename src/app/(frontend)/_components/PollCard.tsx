@@ -1,6 +1,6 @@
 'use client';
 import { formatDistance, subDays } from 'date-fns';
-import { eoLocale } from 'date-fns/locale/eo';
+import { enUS } from 'date-fns/locale';
 import { MessageSquare, Users } from 'lucide-react';
 import { useState } from 'react';
 
@@ -58,7 +58,7 @@ export const PollCard = ({ pollData }: PollCardProps) => {
 						<time>
 							{formatDistance(new Date(createdAt), new Date(), {
 								includeSeconds: true,
-								locale: eoLocale,
+								locale: enUS,
 							})}
 						</time>
 					</div>
