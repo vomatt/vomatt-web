@@ -28,22 +28,22 @@ const formSchema = z.object({
 	email: z
 		.string()
 		.email({
-			message: 'invalidEmailAddress',
+			message: 'common.invalidEmailAddress',
 		})
 		.trim(),
 	firstName: z
 		.string()
 		.min(1, { message: 'common.required' })
-		.regex(nameValidation, { message: 'signup.invalidName' }),
+		.regex(nameValidation, { message: 'common.invalidName' }),
 	lastName: z
 		.string()
 		.min(1, { message: 'common.required' })
-		.regex(nameValidation, { message: 'signup.invalidName' }),
+		.regex(nameValidation, { message: 'common.invalidName' }),
 	username: z
 		.string()
 		.min(3, { message: 'common.required' })
-		.regex(new RegExp(/^[a-z][-a-z0-9_]*\$?$/), {
-			message: 'signup.invalidName',
+		.regex(new RegExp(/^[a-zA-Z0-9._]+$/), {
+			message: 'common.invalidUsername',
 		}),
 });
 
@@ -86,7 +86,6 @@ export default function SignUp({ signUpInfoData }: SignUpType) {
 				body: JSON.stringify(bodyData),
 			});
 			const data = await res.json();
-			console.log('🚀 ~ :89 ~ onSubmitSignUp ~ data:', data);
 			const apiStatus = data?.status;
 			const apiMessage = data?.message as string | undefined;
 

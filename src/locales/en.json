@@ -21,7 +21,7 @@
 		"required": "required",
 		"invalidEmailAddress": "Invalid email address",
 		"invalidName": "Invalid name",
-		"invalidUsername": "Invalid username"
+		"invalidUsername": "Usernames can only use letters, numbers, underscores and periods."
 	},
 	"navigation": {
 		"home": "Home",

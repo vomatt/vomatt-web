@@ -22,7 +22,7 @@
 		"required": "必填",
 		"invalidEmailAddress": "信箱格式錯誤",
 		"invalidName": "名字格式錯誤",
-		"invalidUsername": "帳號格式錯誤"
+		"invalidUsername": "使用者名稱只能使用字母、數字、底線和句點"
 	},
 	"navigation": {
 		"home": "首頁",
