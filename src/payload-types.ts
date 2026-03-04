@@ -69,6 +69,7 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    pages: Page;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -78,6 +79,7 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    pages: PagesSelect<false> | PagesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -86,10 +88,20 @@ export interface Config {
   db: {
     defaultIDType: string;
   };
-  fallbackLocale: null;
-  globals: {};
-  globalsSelect: {};
-  locale: null;
+  fallbackLocale: 'en';
+  globals: {
+    'settings-general': SettingsGeneral;
+    'sign-up-page': SignUpPage;
+    home: Home;
+    contact: Contact;
+  };
+  globalsSelect: {
+    'settings-general': SettingsGeneralSelect<false> | SettingsGeneralSelect<true>;
+    'sign-up-page': SignUpPageSelect<false> | SignUpPageSelect<true>;
+    home: HomeSelect<false> | HomeSelect<true>;
+    contact: ContactSelect<false> | ContactSelect<true>;
+  };
+  locale: 'en' | 'zh-TW';
   user: User;
   jobs: {
     tasks: unknown;
@@ -320,6 +332,163 @@ export interface Auth {
   [k: string]: unknown;
 }
 
+
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages".
+ */
+export interface Page {
+  id: string;
+  title: string;
+  slug: string;
+  content?: {
+    [k: string]: unknown;
+  } | null;
+  meta?: {
+    metaTitle?: string | null;
+    metaDescription?: string | null;
+    shareImage?: (string | null) | Media;
+  } | null;
+  _status?: ('draft' | 'published') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+export interface PagesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  content?: T;
+  meta?: T | {
+    metaTitle?: T;
+    metaDescription?: T;
+    shareImage?: T;
+  };
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _uuid?: T;
+}
+/**
+ * SettingsGeneral global
+ */
+export interface SettingsGeneral {
+  id: string;
+  siteTitle?: string | null;
+  shareGraphic?: (string | null) | Media;
+  shareVideo?: (string | null) | Media;
+  favicon?: (string | null) | Media;
+  faviconLight?: (string | null) | Media;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+export interface SettingsGeneralSelect<T extends boolean = true> {
+  siteTitle?: T;
+  shareGraphic?: T;
+  shareVideo?: T;
+  favicon?: T;
+  faviconLight?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * SignUpPage global
+ */
+export interface SignUpPage {
+  id: string;
+  title?: string | null;
+  slug?: string | null;
+  policyMessage?: {
+    [k: string]: unknown;
+  } | null;
+  meta?: {
+    metaTitle?: string | null;
+    metaDescription?: string | null;
+    shareImage?: (string | null) | Media;
+  } | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+export interface SignUpPageSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  policyMessage?: T;
+  meta?: T | {
+    metaTitle?: T;
+    metaDescription?: T;
+    shareImage?: T;
+  };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * Home global
+ */
+export interface Home {
+  id: string;
+  title?: string | null;
+  content?: {
+    [k: string]: unknown;
+  } | null;
+  meta?: {
+    metaTitle?: string | null;
+    metaDescription?: string | null;
+    shareImage?: (string | null) | Media;
+  } | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+export interface HomeSelect<T extends boolean = true> {
+  title?: T;
+  content?: T;
+  meta?: T | {
+    metaTitle?: T;
+    metaDescription?: T;
+    shareImage?: T;
+  };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * Contact global
+ */
+export interface Contact {
+  id: string;
+  title?: string | null;
+  slug?: string | null;
+  contactForm?: {
+    formTitle?: string | null;
+    successMessage?: string | null;
+    errorMessage?: string | null;
+    sendToEmail?: string | null;
+    emailSubject?: string | null;
+    formFailureNotificationEmail?: string | null;
+  } | null;
+  meta?: {
+    metaTitle?: string | null;
+    metaDescription?: string | null;
+    shareImage?: (string | null) | Media;
+  } | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+export interface ContactSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  contactForm?: T | {
+    formTitle?: T;
+    successMessage?: T;
+    errorMessage?: T;
+    sendToEmail?: T;
+    emailSubject?: T;
+    formFailureNotificationEmail?: T;
+  };
+  meta?: T | {
+    metaTitle?: T;
+    metaDescription?: T;
+    shareImage?: T;
+  };
+  updatedAt?: T;
+  createdAt?: T;
+}
 
 declare module 'payload' {
   export interface GeneratedTypes extends Config {}

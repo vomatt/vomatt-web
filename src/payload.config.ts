@@ -7,6 +7,12 @@ import sharp from 'sharp';
 
 import { Users } from './collections/Users';
 import { Media } from './collections/Media';
+import { Pages } from './collections/Pages';
+
+import { Contact } from './globals/Contact';
+import { Home } from './globals/Home';
+import { SettingsGeneral } from './globals/SettingsGeneral';
+import { SignUpPage } from './globals/SignUpPage';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -18,7 +24,22 @@ export default buildConfig({
 			baseDir: path.resolve(dirname),
 		},
 	},
-	collections: [Users, Media],
+	localization: {
+		locales: [
+			{
+				label: 'English',
+				code: 'en',
+			},
+			{
+				label: '繁體中文',
+				code: 'zh-TW',
+			},
+		],
+		defaultLocale: 'en',
+		fallback: true,
+	},
+	collections: [Users, Media, Pages],
+	globals: [SettingsGeneral, SignUpPage, Home, Contact],
 	editor: lexicalEditor(),
 	secret: process.env.PAYLOAD_SECRET || '',
 	typescript: {

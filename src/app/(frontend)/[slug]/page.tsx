@@ -1,20 +1,23 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { getPayload } from 'payload';
 
-import defineMetadata from '@/lib/defineMetadata';
-import { sanityFetch } from '@/sanity/lib/live';
-import { pageGeneralQuery, pageGeneralSlugsQuery } from '@/sanity/lib/queries';
+import config from '@payload-config';
 
 import PageGeneral from '../_components/PageGeneral';
 
 export async function generateStaticParams() {
-	const { data } = await sanityFetch({
-		query: pageGeneralSlugsQuery,
-		perspective: 'published',
-		stega: false,
+	const payload = await getPayload({ config });
+	const pages = await payload.find({
+		collection: 'pages',
+		where: { _status: { equals: 'published' } },
+		select: { slug: true },
+		limit: 1000,
 	});
 
-	return data;
+	return pages.docs
+		.filter((page) => page.slug)
+		.map((page) => ({ slug: page.slug }));
 }
 
 type Props = {
@@ -23,27 +26,35 @@ type Props = {
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
 	const params = await props.params;
-	const { data } = await sanityFetch({
-		query: pageGeneralQuery,
-		params,
-		tags: [`pGeneral:${params.slug}`],
-		stega: false,
+	const payload = await getPayload({ config });
+	const result = await payload.find({
+		collection: 'pages',
+		where: { slug: { equals: params.slug } },
+		limit: 1,
 	});
-	return defineMetadata({ data });
+
+	const page = result.docs[0];
+	if (!page) return {};
+
+	const meta = page.meta as { metaTitle?: string | null; metaDescription?: string | null } | null | undefined;
+
+	return {
+		title: meta?.metaTitle ?? page.title ?? '',
+		description: meta?.metaDescription ?? '',
+	};
 }
 
 export default async function PageSlugRoute(props: Props) {
 	const params = await props.params;
-
-	const { data } = await sanityFetch({
-		query: pageGeneralQuery,
-		params,
-		tags: [`pGeneral:${params.slug}`],
+	const payload = await getPayload({ config });
+	const result = await payload.find({
+		collection: 'pages',
+		where: { slug: { equals: params.slug } },
+		limit: 1,
 	});
 
-	if (!data) {
-		return notFound();
-	}
+	const page = result.docs[0];
+	if (!page) return notFound();
 
-	return <PageGeneral data={data} />;
+	return <PageGeneral data={page} />;
 }

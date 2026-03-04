@@ -3,17 +3,14 @@ import '@/styles/global.css';
 import clsx from 'clsx';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { cookies, headers } from 'next/headers';
+import { getPayload } from 'payload';
 import React, { ReactNode } from 'react';
 import { Toaster } from 'sonner';
 
+import config from '@payload-config';
 import BrandLogo from '@/components/BrandLogo';
 import { Layout } from '@/components/layout';
 import { LanguageProvider } from '@/contexts/LanguageContext';
-import { imageBuilder } from '@/sanity/lib/image';
-import { sanityFetch } from '@/sanity/lib/live';
-import { siteDataQuery } from '@/sanity/lib/queries';
-
-import { handleError } from '../client-utils';
 
 const geistSans = Geist({
 	variable: '--font-geist-sans',
@@ -42,32 +39,27 @@ async function getServerLanguage(): Promise<string> {
 	}
 }
 
+function buildMediaUrl(doc: { url?: string | null; filename?: string | null } | null | undefined): string | null {
+	if (!doc) return null;
+	if (doc.url) return doc.url;
+	if (doc.filename) return `${process.env.SITE_URL ?? ''}/api/media/file/${doc.filename}`;
+	return null;
+}
+
 export async function generateMetadata() {
-	const {
-		data: { sharing },
-	} = await sanityFetch({
-		query: siteDataQuery,
-		tags: ['settingsGeneral'],
-		stega: false,
-	});
+	const payload = await getPayload({ config });
+	const settings = await payload.findGlobal({ slug: 'settings-general' });
 
-	const { siteTitle } = sharing || {};
-	const siteFavicon = sharing?.favicon || false;
-	const siteFaviconUrl = siteFavicon
-		? imageBuilder.image(siteFavicon).width(256).height(256).url()
-		: '/favicon.ico';
+	const siteTitle = settings.siteTitle ?? '';
+	const favicon = settings.favicon as { url?: string | null; filename?: string | null } | null | undefined;
+	const faviconLight = settings.faviconLight as { url?: string | null; filename?: string | null } | null | undefined;
+	const shareGraphic = settings.shareGraphic as { url?: string | null; filename?: string | null } | null | undefined;
+	const shareVideo = settings.shareVideo as { url?: string | null; filename?: string | null } | null | undefined;
 
-	const siteFaviconLight = sharing?.faviconLight || false;
-	const siteFaviconLightUrl = siteFaviconLight
-		? imageBuilder.image(siteFaviconLight).width(256).height(256).url()
-		: siteFaviconUrl;
-
-	const shareGraphic = sharing?.shareGraphic?.asset;
-	const shareGraphicUrl = shareGraphic
-		? imageBuilder.image(shareGraphic).format('webp').width(1200).url()
-		: null;
-
-	const shareVideoUrl = sharing?.shareVideo || null;
+	const siteFaviconUrl = buildMediaUrl(favicon) ?? '/favicon.ico';
+	const siteFaviconLightUrl = buildMediaUrl(faviconLight) ?? siteFaviconUrl;
+	const shareGraphicUrl = buildMediaUrl(shareGraphic);
+	const shareVideoUrl = buildMediaUrl(shareVideo);
 
 	return {
 		metadataBase: new URL(process.env.SITE_URL || ''),
@@ -80,21 +72,12 @@ export async function generateMetadata() {
 		applicationName: siteTitle,
 		openGraph: {
 			title: siteTitle,
-			images: [
-				{
-					url: shareGraphicUrl,
-					width: 1200,
-					height: 630,
-				},
-			],
-			videos: [
-				{
-					url: shareVideoUrl,
-					width: 1200,
-					height: 630,
-					type: 'video/mp4',
-				},
-			],
+			images: shareGraphicUrl
+				? [{ url: shareGraphicUrl, width: 1200, height: 630 }]
+				: [],
+			videos: shareVideoUrl
+				? [{ url: shareVideoUrl, width: 1200, height: 630, type: 'video/mp4' }]
+				: [],
 			url: process.env.SITE_URL,
 			siteName: siteTitle,
 			locale: 'en_US',
@@ -102,14 +85,8 @@ export async function generateMetadata() {
 		},
 		icons: {
 			icon: [
-				{
-					url: siteFaviconUrl,
-					media: '(prefers-color-scheme: light)',
-				},
-				{
-					url: siteFaviconLightUrl,
-					media: '(prefers-color-scheme: dark)',
-				},
+				{ url: siteFaviconUrl, media: '(prefers-color-scheme: light)' },
+				{ url: siteFaviconLightUrl, media: '(prefers-color-scheme: dark)' },
 			],
 		},
 	};
@@ -120,19 +97,6 @@ export default async function RootLayout({
 }: {
 	children: ReactNode;
 }) {
-	const { data } = await sanityFetch({
-		query: siteDataQuery,
-		tags: [
-			'gAnnouncement',
-			'gHeader',
-			'gFooter',
-			'settingsMenu',
-			'settingsGeneral',
-			'settingsIntegration',
-			'settingsBrandColors',
-		],
-	});
-
 	const serverLanguage = await getServerLanguage();
 
 	return (
@@ -150,7 +114,7 @@ export default async function RootLayout({
 					</div>
 				) : (
 					<LanguageProvider>
-						<Layout siteData={data}>{children}</Layout>
+						<Layout>{children}</Layout>
 						<Toaster />
 					</LanguageProvider>
 				)}

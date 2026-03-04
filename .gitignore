@@ -54,10 +54,6 @@ typings/
 # next files
 .next/
 
-# sanity dist
-sanity/dist
-public/sanity
-
 # sanity schema
 sanity/schema.js
 

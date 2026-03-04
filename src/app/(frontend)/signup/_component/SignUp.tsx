@@ -8,7 +8,7 @@ import { z } from 'zod';
 import AuthContainer from '@/components/auth/AuthContainer';
 import VerificationForm from '@/components/auth/VerificationForm';
 import { ButtonLoading } from '@/components/ButtonLoading';
-import CustomPortableText from '@/components/CustomPortableText';
+import { RichText } from '@payloadcms/richtext-lexical/react';
 import {
 	Field,
 	FieldError,
@@ -278,7 +278,7 @@ function SignUpForm({
 
 			{policyMessage && (
 				<div className="mt-10 text-sm">
-					<CustomPortableText blocks={policyMessage} />
+					<RichText data={policyMessage} />
 				</div>
 			)}
 			<hr className="w-full h-px my-8 bg-gray-200 border-0 dark:bg-gray-700" />

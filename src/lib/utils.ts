@@ -1,7 +1,3 @@
-import {
-	ImageFormat,
-	SanityImageSource,
-} from '@sanity/image-url/lib/types/types';
 import { type ClassValue, clsx } from 'clsx';
 import type { NextRequest } from 'next/server';
 import {
@@ -14,8 +10,6 @@ import {
 	FaYoutube,
 } from 'react-icons/fa6';
 import { twMerge } from 'tailwind-merge';
-
-import { imageBuilder } from '@/sanity/lib/image';
 
 // ***UTILITIES / GET***
 
@@ -137,45 +131,6 @@ export function slugify(str: string) {
 		.replace(/-+/g, '-'); // collapse hyphens
 
 	return slug;
-}
-
-export function buildImageSrc(
-	image: SanityImageSource,
-	{
-		width,
-		height,
-		format,
-		quality = 80,
-	}: {
-		width: number;
-		height: number;
-		format: ImageFormat | undefined;
-		quality: number;
-	}
-) {
-	if (!image) {
-		return false;
-	}
-
-	let imgSrc = imageBuilder.image(image);
-
-	if (width) {
-		imgSrc = imgSrc.width(Math.round(width));
-	}
-
-	if (height) {
-		imgSrc = imgSrc.height(Math.round(height));
-	}
-
-	if (format) {
-		imgSrc = imgSrc.format(format);
-	}
-
-	if (quality) {
-		imgSrc = imgSrc.quality(quality);
-	}
-
-	return imgSrc.fit('max').auto('format').url();
 }
 
 export function isValidUrl(urlString: string) {

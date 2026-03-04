@@ -13,7 +13,6 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/Sidebar';
 import { getUserSession } from '@/data/auth';
 
 interface LayoutProps {
-	siteData: any;
 	children: ReactNode;
 }
 

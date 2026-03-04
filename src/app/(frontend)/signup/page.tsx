@@ -1,23 +1,25 @@
-import defineMetadata from '@/lib/defineMetadata';
-import { sanityFetch } from '@/sanity/lib/live';
-import { pSignUpDataQuery } from '@/sanity/lib/queries';
+import type { Metadata } from 'next';
+import { getPayload } from 'payload';
+
+import config from '@payload-config';
 
 import SignUp from './_component/SignUp';
 
-export async function generateMetadata() {
-	const { data } = await sanityFetch({
-		query: pSignUpDataQuery,
-		stega: false,
-	});
-	return defineMetadata({ data });
+export async function generateMetadata(): Promise<Metadata> {
+	const payload = await getPayload({ config });
+	const data = await payload.findGlobal({ slug: 'sign-up-page' });
+
+	const meta = data.meta as { metaTitle?: string | null; metaDescription?: string | null } | null | undefined;
+
+	return {
+		title: meta?.metaTitle ?? data.title ?? 'Sign Up',
+		description: meta?.metaDescription ?? '',
+	};
 }
 
 export default async function Page() {
-	const { data: signUpInfoData } = await sanityFetch({
-		query: pSignUpDataQuery,
-		perspective: 'published',
-		stega: false,
-	});
+	const payload = await getPayload({ config });
+	const signUpPageData = await payload.findGlobal({ slug: 'sign-up-page' });
 
-	return <SignUp signUpInfoData={signUpInfoData} />;
+	return <SignUp signUpInfoData={signUpPageData} />;
 }
