@@ -54,9 +54,6 @@ typings/
 # next files
 .next/
 
-# sanity schema
-sanity/schema.js
-
 # Mac files
 .DS_Store
 
