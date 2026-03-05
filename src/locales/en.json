@@ -3,6 +3,8 @@
 		"home": "home",
 		"createPoll": "Create Poll",
 		"myPolls": "My Polls",
+		"explore": "Explore",
+		"notifications": "Notifications",
 		"login": "login",
 		"email": "email",
 		"firstName": "first name",
@@ -19,6 +21,11 @@
 		"continue": "continue",
 		"optional": "optional",
 		"required": "required",
+		"loadMore": "Load more",
+		"votes": "votes",
+		"comments": "comments",
+		"active": "Active",
+		"ended": "Ended",
 		"invalidEmailAddress": "Invalid email address",
 		"invalidName": "Invalid name",
 		"invalidUsername": "Usernames can only use letters, numbers, underscores and periods."
@@ -58,6 +65,40 @@
 		"subtitle": "Enter it below to verify",
 		"resendVerificationCode": "Resend verification code",
 		"invalidVerificationCode": "Wrong code"
+	},
+	"myPolls": {
+		"title": "My Polls",
+		"tabActive": "Active",
+		"tabDrafts": "Drafts",
+		"tabEnded": "Ended",
+		"empty": "No polls here yet.",
+		"actionEdit": "Edit",
+		"actionDelete": "Delete",
+		"actionEnd": "End Poll"
+	},
+	"explore": {
+		"title": "Explore",
+		"searchPlaceholder": "Search polls...",
+		"filterAll": "All",
+		"filterActive": "Active",
+		"filterEnded": "Ended",
+		"sortNewest": "Newest",
+		"sortMostVotes": "Most Votes",
+		"noResults": "No polls found."
+	},
+	"pollDetail": {
+		"backToFeed": "Back",
+		"share": "Share",
+		"notFound": "Poll not found."
+	},
+	"profile": {
+		"polls": "Polls",
+		"noPollsYet": "No polls yet.",
+		"editProfile": "Edit Profile"
+	},
+	"notifications": {
+		"title": "Notifications",
+		"empty": "No notifications yet."
 	},
 	"pollCreator": {
 		"title": "Create a New Poll",

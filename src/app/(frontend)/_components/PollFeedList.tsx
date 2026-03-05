@@ -1,3 +1,8 @@
+'use client';
+import { useState } from 'react';
+
+import { Button } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Spinner';
 import { cn, hasArrayValue } from '@/lib/utils';
 import { Pagination, Sort } from '@/types/page';
 import { Poll } from '@/types/poll';
@@ -6,13 +11,13 @@ import { HomepageHeader } from './HomepageHeader';
 import { PollCard } from './PollCard';
 
 type Page = {
-	content: Poll[]; // optional if omitted in your data
+	content: Poll[];
 	empty: boolean;
 	first: boolean;
 	last: boolean;
-	number: number; // current page number (0-based)
+	number: number;
 	numberOfElements: number;
-	size: number; // page size
+	size: number;
 	totalElements: number;
 	totalPages: number;
 	pageable: Pagination;
@@ -25,14 +30,34 @@ type PollFeedList = {
 };
 
 export function PollFeedList({ data, className }: PollFeedList) {
-	const { content } = data || {};
+	const [polls, setPolls] = useState<Poll[]>(data?.content ?? []);
+	const [currentPage, setCurrentPage] = useState(data?.number ?? 0);
+	const [isLast, setIsLast] = useState(data?.last ?? true);
+	const [isLoading, setIsLoading] = useState(false);
 
-	if (!hasArrayValue(content))
+	if (!hasArrayValue(data?.content)) {
 		return (
 			<div className="flex justify-center items-center">
 				<h2 className="text-3xl">No Data</h2>
 			</div>
 		);
+	}
+
+	const loadMore = async () => {
+		if (isLoading || isLast) return;
+		setIsLoading(true);
+		try {
+			const res = await fetch(`/api/get-polls?page=${currentPage + 1}`);
+			const json = await res.json();
+			if (json?.data?.content) {
+				setPolls((prev) => [...prev, ...json.data.content]);
+				setCurrentPage(json.data.number);
+				setIsLast(json.data.last);
+			}
+		} finally {
+			setIsLoading(false);
+		}
+	};
 
 	return (
 		<div className="flex-1 min-h-[var(--h-main)] max-w-lg">
@@ -44,10 +69,23 @@ export function PollFeedList({ data, className }: PollFeedList) {
 					className
 				)}
 			>
-				{content.map((item) => (
+				{polls.map((item) => (
 					<PollCard key={item.id} pollData={item} />
 				))}
 			</div>
+
+			{!isLast && (
+				<div className="flex justify-center py-6">
+					<Button
+						variant="outline"
+						onClick={loadMore}
+						disabled={isLoading}
+						className="min-w-32"
+					>
+						{isLoading ? <Spinner className="w-4 h-4" /> : 'Load more'}
+					</Button>
+				</div>
+			)}
 		</div>
 	);
 }

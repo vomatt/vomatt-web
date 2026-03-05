@@ -23,18 +23,18 @@ export function TabBar({ className }: TabBarProps) {
 			icon: <HomeIcon />,
 		},
 		{
-			title: 'Search',
-			href: '/search',
+			title: 'Explore',
+			href: '/explore',
 			icon: <Search />,
 		},
 		{
 			title: 'Create Vote',
-			href: '/search',
+			href: null,
 			icon: <PollCreator />,
 		},
 		{
-			title: 'Activity',
-			href: '/activity',
+			title: 'My Polls',
+			href: '/my-polls',
 			icon: <Star />,
 		},
 		{
@@ -49,16 +49,26 @@ export function TabBar({ className }: TabBarProps) {
 
 	return (
 		<nav className="[--tabbar-height:50px] fixed bottom-0 bg-background/85 backdrop-blur-lg w-full flex justify-between h-(--tabbar-height) items-center md:hidden">
-			{linkList.map(({ href, title, icon }, index) => (
-				<NextLink
-					key={index}
-					href={href}
-					className="flex-1 h-full flex justify-center items-center"
-					title={title}
-				>
-					{icon}
-				</NextLink>
-			))}
+			{linkList.map(({ href, title, icon }, index) =>
+				href ? (
+					<NextLink
+						key={index}
+						href={href}
+						className="flex-1 h-full flex justify-center items-center"
+						title={title}
+					>
+						{icon}
+					</NextLink>
+				) : (
+					<div
+						key={index}
+						className="flex-1 h-full flex justify-center items-center"
+						title={title}
+					>
+						{icon}
+					</div>
+				)
+			)}
 		</nav>
 	);
 }

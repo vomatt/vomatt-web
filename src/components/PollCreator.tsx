@@ -119,23 +119,34 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 	};
 
 	const handleSaveDraft = async () => {
-		const response = await fetch('/api/save-draft', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({
-				question,
-				description,
-				options,
-				startTime,
-				endTime,
-				isAllowMultipleChoices,
-				isAnonymous,
-			}),
-		});
+		const draft = {
+			question,
+			description,
+			options,
+			startTime,
+			endTime,
+			isAllowMultipleChoices,
+			isAnonymous,
+		};
 
-		if (response.ok) {
-			resetForm();
+		// Persist locally immediately for recovery
+		try {
+			localStorage.setItem('vomatt_poll_draft', JSON.stringify(draft));
+		} catch {
+			// ignore storage errors
 		}
+
+		try {
+			await fetch('/api/save-draft', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(draft),
+			});
+		} catch {
+			// Local save is the primary fallback
+		}
+
+		resetForm();
 	};
 
 	const handleCreatePoll = async () => {

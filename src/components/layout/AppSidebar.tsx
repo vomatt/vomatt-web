@@ -1,6 +1,6 @@
 'use client';
 import { Calendar, Plus, X } from 'lucide-react';
-import { Home, LogOut, PlusCircle, TrendingUp, User } from 'lucide-react';
+import { Home, LogOut, PlusCircle, Search, TrendingUp, User } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React from 'react';
@@ -41,8 +41,14 @@ const navigationItems = [
 	{
 		title: 'common.myPolls',
 		id: 'linkMyPolls',
-		url: '/',
+		url: '/my-polls',
 		icon: TrendingUp,
+	},
+	{
+		title: 'common.explore',
+		id: 'linkExplore',
+		url: '/explore',
+		icon: Search,
 	},
 ];
 

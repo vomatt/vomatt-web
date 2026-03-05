@@ -3,6 +3,8 @@
 		"home": "首頁",
 		"createPoll": "建立投票",
 		"myPolls": "我的投票",
+		"explore": "探索",
+		"notifications": "通知",
 		"login": "登入",
 		"email": "信箱",
 		"signUp": "註冊",
@@ -20,6 +22,11 @@
 		"continue": "繼續",
 		"optional": "選填",
 		"required": "必填",
+		"loadMore": "載入更多",
+		"votes": "票",
+		"comments": "留言",
+		"active": "進行中",
+		"ended": "已結束",
 		"invalidEmailAddress": "信箱格式錯誤",
 		"invalidName": "名字格式錯誤",
 		"invalidUsername": "使用者名稱只能使用字母、數字、底線和句點"
@@ -60,6 +67,40 @@
 		"subtitle": "輸入驗證碼來驗證",
 		"resendVerificationCode": "重新發送驗證碼",
 		"invalidVerificationCode": "驗證碼錯誤"
+	},
+	"myPolls": {
+		"title": "我的投票",
+		"tabActive": "進行中",
+		"tabDrafts": "草稿",
+		"tabEnded": "已結束",
+		"empty": "這裡還沒有投票。",
+		"actionEdit": "編輯",
+		"actionDelete": "刪除",
+		"actionEnd": "結束投票"
+	},
+	"explore": {
+		"title": "探索",
+		"searchPlaceholder": "搜尋投票…",
+		"filterAll": "全部",
+		"filterActive": "進行中",
+		"filterEnded": "已結束",
+		"sortNewest": "最新",
+		"sortMostVotes": "最多票數",
+		"noResults": "找不到投票。"
+	},
+	"pollDetail": {
+		"backToFeed": "返回",
+		"share": "分享",
+		"notFound": "找不到投票。"
+	},
+	"profile": {
+		"polls": "投票",
+		"noPollsYet": "還沒有投票。",
+		"editProfile": "編輯個人資料"
+	},
+	"notifications": {
+		"title": "通知",
+		"empty": "目前沒有通知。"
 	},
 	"pollCreator": {
 		"title": "創建新投票",
