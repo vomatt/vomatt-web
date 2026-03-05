@@ -80,8 +80,6 @@ export async function apiAuthFetch<T = any>(
 
 	// Handle 401 Unauthorized - try to refresh token
 	if (response.status === 401 && tokens?.refreshToken) {
-		console.log('Access token expired, attempting refresh...');
-
 		const newTokens = await refreshTokens(tokens.refreshToken);
 
 		if (newTokens) {
@@ -89,11 +87,8 @@ export async function apiAuthFetch<T = any>(
 
 			// Retry the original request with new access token
 			response = await makeRequest(newTokens.accessToken);
-
-			console.log('Token refreshed successfully');
 		} else {
 			// Refresh token is also invalid
-			console.error('Refresh token expired, logging out...');
 			await clearAuthTokens();
 
 			redirect('/login?session_expired=true', RedirectType.replace);

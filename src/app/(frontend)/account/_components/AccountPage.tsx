@@ -1,11 +1,6 @@
 'use client';
 import { Button } from '@/components/ui/Button';
 import { logout } from '@/lib/auth';
-import defineMetadata from '@/lib/defineMetadata';
-
-export async function generateMetadata({}) {
-	return defineMetadata({ data: {} });
-}
 
 export type AccountPageType = {
 	userData: any;

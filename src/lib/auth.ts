@@ -1,6 +1,7 @@
 'use server';
 import { jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 
 import {
 	ACCESS_TOKEN,
@@ -42,9 +43,9 @@ export async function setAuthTokens(tokens: AuthTokens) {
 	const { accessToken, refreshToken } = tokens;
 
 	const cookieStore = await cookies();
-	const decodeTokenToken = await decodeToken(accessToken);
-	const { exp } = decodeTokenToken;
-	const expires = exp ? new Date(exp * 1000) : ACCESS_TOKEN_EXPIRY;
+	const decoded = await decodeToken(accessToken);
+	const exp = decoded?.exp as number | undefined;
+	const expires = exp ? new Date(exp * 1000) : new Date(Date.now() + ACCESS_TOKEN_EXPIRY * 1000);
 
 	cookieStore.set(ACCESS_TOKEN, accessToken, {
 		httpOnly: true,
@@ -83,8 +84,9 @@ export async function refreshTokens(
 
 export async function logout() {
 	const cookieStore = await cookies();
-	cookieStore.set(ACCESS_TOKEN, '', { expires: new Date(0) });
-	cookieStore.set(REFRESH_TOKEN, '', { expires: new Date(0) });
+	cookieStore.delete(ACCESS_TOKEN);
+	cookieStore.delete(REFRESH_TOKEN);
+	redirect('/login');
 }
 
 export async function clearAuthTokens() {

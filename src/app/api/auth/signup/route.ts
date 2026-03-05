@@ -1,12 +1,9 @@
-import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
-import { ACCESS_TOKEN, REFRESH_TOKEN } from '@/data/constants';
-import { decodeToken } from '@/lib/auth';
+import { setAuthTokens } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
 	const body = await request.json();
-	const cookieStore = await cookies();
 	const { email, firstName, lastName, username, verificationCode } = body;
 
 	try {
@@ -29,18 +26,7 @@ export async function POST(request: NextRequest) {
 		const { success, errorCode, token, refreshToken } = data || {};
 
 		if (success) {
-			const decodeTokenToken = await decodeToken(token);
-			const { exp } = decodeTokenToken;
-			const expires = new Date(exp * 1000);
-			cookieStore.set(ACCESS_TOKEN, token, {
-				expires,
-				httpOnly: true,
-			});
-
-			cookieStore.set(REFRESH_TOKEN, refreshToken, {
-				httpOnly: true,
-			});
-
+			await setAuthTokens({ accessToken: token, refreshToken });
 			return NextResponse.json({ status: 'SUCCESS' }, { status: 200 });
 		}
 
@@ -51,7 +37,7 @@ export async function POST(request: NextRequest) {
 	} catch (error) {
 		return NextResponse.json({
 			status: 'ERROR',
-			message: 'Something went wrong, pleas try again later',
+			message: 'Something went wrong, please try again later',
 			error,
 		});
 	}

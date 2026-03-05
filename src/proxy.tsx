@@ -74,26 +74,10 @@ export async function proxy(request: NextRequest) {
 		}
 	}
 
-	// If access token is invalid but refresh token exists, try to refresh
+	// If access token is invalid but refresh token exists, optimistically allow
+	// the request. apiAuthFetch handles the 401 → token refresh flow.
 	if (!isValidToken && refreshToken) {
-		try {
-			const response = await fetch(
-				`${process.env.SITE_URL}/api/auth/refreshToken`,
-				{
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ refreshToken }),
-				}
-			);
-
-			if (response.ok) {
-				const res = NextResponse.next();
-				isValidToken = true;
-				return res;
-			}
-		} catch (error) {
-			console.error('Token refresh failed in middleware:', error);
-		}
+		isValidToken = true;
 	}
 
 	const hasValidSession = isValidToken;
