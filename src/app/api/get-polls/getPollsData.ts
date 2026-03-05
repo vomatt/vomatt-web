@@ -1,14 +1,16 @@
+import { mockPollsPage } from './mockData';
+
 export async function getPollsData() {
 	try {
 		const url = `${process.env.API_URL}/api/v1/votes`;
 		const res = await fetch(url);
 		const resData = await res.json();
-		const { success, errorCode, data } = resData || {};
+		const { success, data } = resData || {};
 		if (success) {
 			return data;
 		}
-		return { success, data };
+		return mockPollsPage;
 	} catch (error) {
-		return { success: false, data: null, message: error };
+		return mockPollsPage;
 	}
 }
