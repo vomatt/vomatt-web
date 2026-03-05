@@ -42,6 +42,8 @@
 
 	--font-sans: var(--font-geist-sans);
 	--font-mono: var(--font-geist-mono);
+	--font-display: var(--font-instrument-serif);
+	--font-data: var(--font-dm-mono);
 	--font-chinese-traditional: PingFang TC, Microsoft JhengHei;
 
 	--spacing-contain: var(--s-contain);

@@ -12,31 +12,32 @@ type Status = 'all' | 'active' | 'ended';
 type SortBy = 'newest' | 'mostVotes';
 
 function PollSearchCard({ poll }: { poll: Poll }) {
+	const isActive = poll.active && poll.votingActive;
 	return (
 		<Link href={`/poll/${poll.id}`}>
-			<div className="p-4 rounded-xl border border-border bg-card hover:shadow-sm transition-shadow">
-				<div className="flex items-start justify-between gap-2">
-					<p className="font-semibold text-foreground hover:underline flex-1">
+			<div className="group p-4 rounded-xl border border-border/60 bg-card hover:border-border hover:shadow-[0_4px_16px_rgba(0,0,0,0.2)] transition-all duration-200">
+				<div className="flex items-start justify-between gap-3">
+					<p className="font-display italic text-lg leading-snug text-foreground group-hover:text-foreground/80 transition-colors flex-1">
 						{poll.title}
 					</p>
 					<span
 						className={cn(
-							'text-xs px-2 py-0.5 rounded-full font-medium shrink-0',
-							poll.active && poll.votingActive
-								? 'bg-green-100 text-green-800'
-								: 'bg-muted text-muted-foreground'
+							'text-xs px-2.5 py-0.5 rounded-full font-medium border shrink-0',
+							isActive
+								? 'border-amber-500/30 text-amber-400 bg-amber-500/10'
+								: 'border-border/50 text-muted-foreground bg-muted/30'
 						)}
 					>
-						{poll.active && poll.votingActive ? 'Active' : 'Ended'}
+						{isActive ? 'Active' : 'Ended'}
 					</span>
 				</div>
 				{poll.description && (
-					<p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+					<p className="text-sm text-muted-foreground mt-1.5 line-clamp-2 leading-relaxed">
 						{poll.description}
 					</p>
 				)}
-				<p className="text-xs text-muted-foreground mt-2">
-					{poll.totalVotes} votes · by {poll.creatorUsername}
+				<p className="font-data text-xs text-muted-foreground mt-2.5 tabular-nums">
+					{poll.totalVotes.toLocaleString()} votes · {poll.creatorUsername}
 				</p>
 			</div>
 		</Link>
@@ -84,44 +85,54 @@ export default function ExplorePage() {
 
 	return (
 		<div className="px-contain max-w-2xl mx-auto py-6">
-			<h1 className="text-2xl font-bold mb-6">Explore</h1>
+			<h1 className="font-display italic text-4xl text-foreground mb-6">
+				Explore
+			</h1>
 
 			{/* Search input */}
 			<div className="relative mb-4">
-				<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+				<Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
 				<input
 					type="text"
 					value={query}
 					onChange={(e) => setQuery(e.target.value)}
-					placeholder="Search polls..."
-					className="w-full pl-9 pr-4 py-2 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+					placeholder="Search polls…"
+					className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border/60 bg-card text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-amber-500/40 focus:bg-amber-500/5 transition-all text-sm"
 				/>
 			</div>
 
 			{/* Filters */}
 			<div className="flex items-center justify-between gap-4 mb-6">
-				<div className="flex gap-2">
+				<div className="flex gap-1.5">
 					{statusFilters.map(({ label, value }) => (
-						<Button
+						<button
 							key={value}
-							size="sm"
-							variant={status === value ? 'default' : 'outline'}
 							onClick={() => setStatus(value)}
+							className={cn(
+								'px-3 py-1 rounded-full text-xs font-medium border transition-all duration-150',
+								status === value
+									? 'border-amber-500/40 text-amber-400 bg-amber-500/10'
+									: 'border-border/60 text-muted-foreground hover:border-border hover:text-foreground bg-card'
+							)}
 						>
 							{label}
-						</Button>
+						</button>
 					))}
 				</div>
-				<div className="flex gap-2">
+				<div className="flex gap-1.5">
 					{sortOptions.map(({ label, value }) => (
-						<Button
+						<button
 							key={value}
-							size="sm"
-							variant={sort === value ? 'default' : 'outline'}
 							onClick={() => setSort(value)}
+							className={cn(
+								'px-3 py-1 rounded-full text-xs font-medium border transition-all duration-150',
+								sort === value
+									? 'border-foreground/40 text-foreground bg-foreground/10'
+									: 'border-border/60 text-muted-foreground hover:border-border hover:text-foreground bg-card'
+							)}
 						>
 							{label}
-						</Button>
+						</button>
 					))}
 				</div>
 			</div>
@@ -132,11 +143,11 @@ export default function ExplorePage() {
 					<Spinner />
 				</div>
 			) : polls.length === 0 ? (
-				<p className="text-muted-foreground text-center py-12">
+				<p className="text-muted-foreground text-center py-12 text-sm">
 					No polls found.
 				</p>
 			) : (
-				<div className="space-y-3">
+				<div className="space-y-2.5">
 					{polls.map((poll) => (
 						<PollSearchCard key={poll.id} poll={poll} />
 					))}

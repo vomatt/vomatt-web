@@ -111,25 +111,25 @@ export function AppSidebar({ userSession }: AppSidebarProps) {
 				</SidebarGroup>
 			</SidebarContent>
 			{userSession && (
-				<SidebarFooter className="border-gray-100 p-4">
+				<SidebarFooter className="border-t border-border/40 p-4">
 					<div className="space-y-3">
-						<div className="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl">
-							<div className="w-10 h-10 bg-gradient-to-r from-purple-400 to-blue-400 rounded-full flex items-center justify-center">
-								<User className="w-5 h-5 text-white" />
+						<div className="flex items-center gap-3 p-3 bg-muted/50 rounded-xl border border-border/40">
+							<div className="w-9 h-9 bg-amber-500/20 rounded-full flex items-center justify-center border border-amber-500/30 flex-shrink-0">
+								<User className="w-4 h-4 text-amber-400" />
 							</div>
 
 							<Link className="flex-1 min-w-0" href={`/account`}>
-								<p className="font-semibold text-gray-900 text-sm truncate">
+								<p className="font-semibold text-foreground text-sm truncate">
 									{userSession.full_name}
 								</p>
-								<p className="text-xs text-gray-500 truncate">
+								<p className="text-xs text-muted-foreground truncate">
 									{userSession.email}
 								</p>
 							</Link>
 						</div>
 						<Button
-							variant="outline"
-							className="w-full justify-start gap-2"
+							variant="ghost"
+							className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
 							onClick={handleLogout}
 						>
 							<LogOut className="w-4 h-4" />

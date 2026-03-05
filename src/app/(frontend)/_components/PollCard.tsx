@@ -1,12 +1,11 @@
 'use client';
 import { formatDistance } from 'date-fns';
 import { enUS } from 'date-fns/locale';
-import { MessageSquare, Users } from 'lucide-react';
+import { Check, MessageSquare, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
-import { Progress } from '@/components/ui/Progress';
 import { cn, hasArrayValue } from '@/lib/utils';
 import { Poll } from '@/types/poll';
 
@@ -134,113 +133,177 @@ export const PollCard = ({ pollData }: PollCardProps) => {
 	const isEnded = status?.label === 'Ended';
 
 	return (
-		<div className="p-6 hover:shadow-lg transition-all duration-300 rounded-xl border-border bg-card">
-			<div className="space-y-4">
-				<div className="space-y-3">
-					<div className="flex items-center justify-between">
-						<div className="flex items-center gap-2 text-sm text-muted-foreground">
-							<Link
-								href={`/profile/${creatorUsername}`}
-								className="font-medium text-foreground hover:underline"
-							>
-								{creatorUsername}
-							</Link>
-							<span>•</span>
-							<time>
-								{formatDistance(new Date(createdAt), new Date(), {
-									includeSeconds: true,
-									locale: enUS,
-								})}
-							</time>
-						</div>
-						{status && (
-							<span
-								className={cn(
-									'text-xs font-medium px-2 py-0.5 rounded-full',
-									status.color
-								)}
-							>
-								{status.label}
-							</span>
-						)}
+		<article className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card transition-all duration-300 hover:border-border hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+			{/* Decorative top line */}
+			<div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/40 to-transparent" />
+
+			<div className="p-6 space-y-5">
+				{/* Header: creator + timestamp + status */}
+				<div className="flex items-start justify-between gap-3">
+					<div className="flex items-center gap-2 text-xs text-muted-foreground">
+						<Link
+							href={`/profile/${creatorUsername}`}
+							className="font-medium text-foreground/70 hover:text-foreground transition-colors"
+						>
+							{creatorUsername}
+						</Link>
+						<span className="text-border">·</span>
+						<time>
+							{formatDistance(new Date(createdAt), new Date(), {
+								addSuffix: true,
+								locale: enUS,
+							})}
+						</time>
 					</div>
+					{status && (
+						<span
+							className={cn(
+								'text-xs font-medium px-2.5 py-0.5 rounded-full border shrink-0',
+								isEnded
+									? 'border-border/50 text-muted-foreground bg-muted/30'
+									: 'border-amber-500/30 text-amber-400 bg-amber-500/10'
+							)}
+						>
+							{status.label}
+						</span>
+					)}
+				</div>
+
+				{/* Poll question */}
+				<div>
 					<Link href={`/poll/${pollId}`}>
-						<h3 className="text-xl font-semibold text-foreground hover:underline">
+						<h3 className="font-display text-2xl leading-snug text-foreground italic hover:text-foreground/80 transition-colors">
 							{title}
 						</h3>
 					</Link>
 					{description && (
-						<p className="text-lg text-foreground">{description}</p>
+						<p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+							{description}
+						</p>
 					)}
 				</div>
 
-				{/* Poll Options */}
-				<div className="space-y-3">
+				{/* Vote options */}
+				<div className="space-y-2">
 					{voteOptions.map((option) => {
 						const percentage = getPercentage(option.votes);
 						const isSelected = selectedOption === option.id;
 
-						return (
-							<button
-								key={option.id}
-								onClick={() => handleVote(option.id)}
-								disabled={hasVoted || isEnded}
-								className={cn(
-									'w-full text-left p-4 rounded-lg border-2 transition-all duration-300',
-									'hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20',
-									hasVoted && !isSelected && 'opacity-70',
-									hasVoted && isSelected && 'border-primary bg-primary/5',
-									!hasVoted && !isEnded && 'cursor-pointer border-border hover:bg-muted/50',
-									(hasVoted || isEnded) && 'cursor-default border-border'
-								)}
-							>
-								<div className="flex items-center justify-between mb-2">
-									<span className="font-medium text-foreground">
+						if (!hasVoted && !isEnded) {
+							return (
+								<button
+									key={option.id}
+									onClick={() => handleVote(option.id)}
+									className="w-full text-left flex items-center gap-3 px-4 py-3 rounded-xl border border-border/60 hover:border-amber-500/40 hover:bg-amber-500/5 transition-all duration-200 group/opt focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/30"
+								>
+									<div className="w-4 h-4 rounded-full border-2 border-muted-foreground/30 group-hover/opt:border-amber-500/60 transition-colors flex-shrink-0" />
+									<span className="text-sm font-medium text-foreground">
 										{option.text}
 									</span>
-									{hasVoted && (
-										<span className="text-sm font-semibold text-primary">
-											{percentage}%
-										</span>
+								</button>
+							);
+						}
+
+						return (
+							<div
+								key={option.id}
+								className={cn(
+									'relative overflow-hidden rounded-xl border transition-all duration-300',
+									isSelected
+										? 'border-amber-500/40'
+										: 'border-border/40',
+									!isSelected && hasVoted && 'opacity-55'
+								)}
+							>
+								{/* Animated fill bar */}
+								<div
+									className={cn(
+										'absolute inset-0 transition-transform duration-700 ease-out origin-left',
+										isSelected ? 'bg-amber-500/10' : 'bg-muted/20'
 									)}
+									style={{ transform: `scaleX(${percentage / 100})` }}
+								/>
+								<div className="relative flex items-center justify-between px-4 py-3">
+									<div className="flex items-center gap-3">
+										<div
+											className={cn(
+												'w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center transition-colors',
+												isSelected
+													? 'bg-amber-500'
+													: 'border-2 border-muted-foreground/25'
+											)}
+										>
+											{isSelected && (
+												<Check
+													className="w-2.5 h-2.5 text-black"
+													strokeWidth={3}
+												/>
+											)}
+										</div>
+										<span
+											className={cn(
+												'text-sm font-medium',
+												isSelected
+													? 'text-foreground'
+													: 'text-foreground/65'
+											)}
+										>
+											{option.text}
+										</span>
+									</div>
+									<span
+										className={cn(
+											'font-data text-sm tabular-nums font-medium',
+											isSelected
+												? 'text-amber-400'
+												: 'text-muted-foreground'
+										)}
+									>
+										{percentage}%
+									</span>
 								</div>
-								{hasVoted && <Progress value={percentage} className="h-2" />}
-							</button>
+							</div>
 						);
 					})}
 				</div>
 
+				{/* Vote count */}
 				{hasVoted && (
-					<div className="flex items-center gap-4 text-sm text-muted-foreground pt-2">
-						<div className="flex items-center gap-1">
-							<Users className="w-4 h-4" />
-							<span>{totalVotes} votes</span>
-						</div>
+					<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+						<Users className="w-3.5 h-3.5" />
+						<span className="font-data tabular-nums">
+							{totalVotes.toLocaleString()}
+						</span>
+						<span>votes cast</span>
 					</div>
 				)}
 
-				<div className="border-t border-border pt-4">
-					<Button
-						variant="ghost"
-						size="sm"
+				{/* Comments */}
+				<div className="border-t border-border/40 pt-4">
+					<button
 						onClick={() => setShowComments(!showComments)}
-						className="text-muted-foreground hover:text-foreground"
+						className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
 					>
-						<MessageSquare className="w-4 h-4 mr-2" />
-						{comments.length} Comments
-					</Button>
+						<MessageSquare className="w-3.5 h-3.5" />
+						<span>
+							{comments.length}{' '}
+							{comments.length === 1 ? 'comment' : 'comments'}
+						</span>
+					</button>
 
 					{showComments && (
-						<div className="mt-4 space-y-4">
+						<div className="mt-4 space-y-3">
 							{hasArrayValue(comments) &&
 								comments.map((comment) => (
-									<div key={comment.id} className="bg-muted/30 rounded-lg p-3">
-										<div className="flex items-center gap-2 text-sm mb-1">
-											<span className="font-medium text-foreground">
+									<div
+										key={comment.id}
+										className="pl-3 border-l-2 border-border/40"
+									>
+										<div className="flex items-center gap-2 text-xs mb-0.5">
+											<span className="font-medium text-foreground/80">
 												{comment.author}
 											</span>
-											<span className="text-muted-foreground">•</span>
-											<span className="text-muted-foreground">
+											<span className="text-muted-foreground/50">
 												{formatDistance(
 													new Date(comment.createdAt),
 													new Date(),
@@ -249,24 +312,26 @@ export const PollCard = ({ pollData }: PollCardProps) => {
 												ago
 											</span>
 										</div>
-										<p className="text-sm text-foreground">{comment.text}</p>
+										<p className="text-sm text-foreground/70">
+											{comment.text}
+										</p>
 									</div>
 								))}
 
-							{/* Add Comment */}
-							<div className="flex gap-2">
+							<div className="flex gap-2 pt-1">
 								<input
 									type="text"
 									value={commentText}
 									onChange={(e) => setCommentText(e.target.value)}
-									placeholder="Add a comment..."
-									className="flex-1 px-4 py-2 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+									placeholder="Add a comment…"
+									className="flex-1 px-3 py-2 text-sm rounded-lg border border-border/60 bg-muted/20 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-amber-500/40 focus:bg-amber-500/5 transition-all"
 									onKeyDown={(e) => e.key === 'Enter' && handleComment()}
 								/>
 								<Button
 									onClick={handleComment}
 									size="sm"
 									disabled={isPostingComment}
+									className="px-4"
 								>
 									Post
 								</Button>
@@ -275,6 +340,6 @@ export const PollCard = ({ pollData }: PollCardProps) => {
 					)}
 				</div>
 			</div>
-		</div>
+		</article>
 	);
 };

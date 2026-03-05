@@ -1,7 +1,7 @@
 import '@/styles/global.css';
 
 import clsx from 'clsx';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { DM_Mono, Geist, Geist_Mono, Instrument_Serif } from 'next/font/google';
 import { cookies, headers } from 'next/headers';
 import { getPayload } from 'payload';
 import React, { ReactNode } from 'react';
@@ -21,6 +21,19 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
 	variable: '--font-geist-mono',
 	subsets: ['latin'],
+});
+
+const instrumentSerif = Instrument_Serif({
+	variable: '--font-instrument-serif',
+	subsets: ['latin'],
+	weight: '400',
+	style: ['normal', 'italic'],
+});
+
+const dmMono = DM_Mono({
+	variable: '--font-dm-mono',
+	subsets: ['latin'],
+	weight: ['300', '400', '500'],
 });
 
 async function getServerLanguage(): Promise<string> {
@@ -96,7 +109,7 @@ export default async function RootLayout({
 	return (
 		<html
 			lang={serverLanguage}
-			className={clsx('dark', geistSans.variable, geistMono.variable)}
+			className={clsx('dark', geistSans.variable, geistMono.variable, instrumentSerif.variable, dmMono.variable)}
 		>
 			<body className="text-foreground font-sans">
 				{process.env.NODE_ENV === 'production' ? (
