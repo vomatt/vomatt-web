@@ -148,7 +148,7 @@ export const PollCard = ({ pollData }: PollCardProps) => {
 									onChange={(e) => setCommentText(e.target.value)}
 									placeholder="Add a comment..."
 									className="flex-1 px-4 py-2 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
-									onKeyPress={(e) => e.key === 'Enter' && handleComment()}
+									onKeyDown={(e) => e.key === 'Enter' && handleComment()}
 								/>
 								<Button onClick={handleComment} size="sm">
 									Post

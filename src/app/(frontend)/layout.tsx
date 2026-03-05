@@ -11,6 +11,7 @@ import config from '@payload-config';
 import BrandLogo from '@/components/BrandLogo';
 import { Layout } from '@/components/layout';
 import { LanguageProvider } from '@/contexts/LanguageContext';
+import { buildMediaUrl } from '@/lib/defineMetadata';
 
 const geistSans = Geist({
 	variable: '--font-geist-sans',
@@ -37,13 +38,6 @@ async function getServerLanguage(): Promise<string> {
 	} catch {
 		return 'en';
 	}
-}
-
-function buildMediaUrl(doc: { url?: string | null; filename?: string | null } | null | undefined): string | null {
-	if (!doc) return null;
-	if (doc.url) return doc.url;
-	if (doc.filename) return `${process.env.SITE_URL ?? ''}/api/media/file/${doc.filename}`;
-	return null;
 }
 
 export async function generateMetadata() {

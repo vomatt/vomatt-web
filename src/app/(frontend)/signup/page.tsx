@@ -1,14 +1,18 @@
 import type { Metadata } from 'next';
 import { getPayload } from 'payload';
+import { cache } from 'react';
 
 import config from '@payload-config';
 
 import SignUp from './_component/SignUp';
 
-export async function generateMetadata(): Promise<Metadata> {
+const getSignUpPageData = cache(async () => {
 	const payload = await getPayload({ config });
-	const data = await payload.findGlobal({ slug: 'sign-up-page' });
+	return payload.findGlobal({ slug: 'sign-up-page' });
+});
 
+export async function generateMetadata(): Promise<Metadata> {
+	const data = await getSignUpPageData();
 	const meta = data.meta as { metaTitle?: string | null; metaDescription?: string | null } | null | undefined;
 
 	return {
@@ -18,8 +22,6 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page() {
-	const payload = await getPayload({ config });
-	const signUpPageData = await payload.findGlobal({ slug: 'sign-up-page' });
-
+	const signUpPageData = await getSignUpPageData();
 	return <SignUp signUpInfoData={signUpPageData} />;
 }

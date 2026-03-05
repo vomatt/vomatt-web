@@ -10,6 +10,8 @@ import React, {
 
 import { SUPPORTED_LANGUAGES } from '@/i18n-config';
 import { LanguageCode } from '@/types';
+
+const RTL_LANGUAGES: string[] = ['ar', 'he', 'fa'];
 export interface Translations {
 	[key: string]: string | Translations;
 }
@@ -123,7 +125,6 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
 		setIsInitialized(true);
 		// Update HTML attributes
 		document.documentElement.lang = initialLanguage;
-		const RTL_LANGUAGES: LanguageCode[] = ['ar', 'he', 'fa'] as any[];
 		document.documentElement.dir = RTL_LANGUAGES.includes(initialLanguage)
 			? 'rtl'
 			: 'ltr';
@@ -132,7 +133,6 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
 	// Update HTML attributes when language changes
 	useEffect(() => {
 		document.documentElement.lang = currentLanguage;
-		const RTL_LANGUAGES: LanguageCode[] = ['ar', 'he', 'fa'] as any[];
 		document.documentElement.dir = RTL_LANGUAGES.includes(currentLanguage)
 			? 'rtl'
 			: 'ltr';

@@ -44,8 +44,8 @@ export function PollFeedList({ data, className }: PollFeedList) {
 					className
 				)}
 			>
-				{content.map((item, index) => (
-					<PollCard key={index} pollData={item} />
+				{content.map((item) => (
+					<PollCard key={item.id} pollData={item} />
 				))}
 			</div>
 		</div>

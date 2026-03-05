@@ -31,7 +31,6 @@ import { PollCreateOption } from '@/types/poll';
 
 interface PollCreatorProps {
 	triggerChildren?: ReactNode;
-	triggerClassName?: string;
 }
 
 export function PollCreator({ triggerChildren }: PollCreatorProps) {
@@ -52,8 +51,20 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 	const [isAnonymous, setIsAnonymous] = useState(false);
 
 	const [showSaveDraftAlert, setShowSaveDraftAlert] = useState(false);
-	const [pendingNavigation, setPendingNavigation] = useState(false);
 	const [error, setError] = useState('');
+
+	const resetForm = () => {
+		setQuestion('');
+		setDescription('');
+		setOptions([
+			{ id: 'option-1', text: '' },
+			{ id: 'option-2', text: '' },
+		]);
+		setIsAllowMultipleChoices(false);
+		setStartTime('');
+		setEndTime('');
+		setIsAnonymous(false);
+	};
 
 	const addOption = () => {
 		setOptions([...options, { id: Date.now().toString(), text: '' }]);
@@ -94,7 +105,6 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 	const handleClose = () => {
 		if (hasUnsavedData()) {
 			setShowSaveDraftAlert(true);
-			setPendingNavigation(true);
 		} else {
 			setOpen(false);
 		}
@@ -124,17 +134,7 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 		});
 
 		if (response.ok) {
-			// Clear state after saving
-			setQuestion('');
-			setDescription('');
-			setOptions([
-				{ id: 'option-1', text: '' },
-				{ id: 'option-2', text: '' },
-			]);
-			setIsAllowMultipleChoices(false);
-			setStartTime('');
-			setEndTime('');
-			setIsAnonymous(false);
+			resetForm();
 		}
 	};
 
@@ -162,16 +162,7 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 			const data = await response.json();
 
 			if (data?.status === 'SUCCESS') {
-				setQuestion('');
-				setDescription('');
-				setOptions([
-					{ id: 'option-1', text: '' },
-					{ id: 'option-2', text: '' },
-				]);
-				setIsAllowMultipleChoices(false);
-				setStartTime('');
-				setEndTime('');
-				setIsAnonymous(false);
+				resetForm();
 				setOpen(false);
 				return;
 			}
@@ -187,16 +178,12 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 	const handleConfirmSaveDraft = async () => {
 		await handleSaveDraft();
 		setShowSaveDraftAlert(false);
-		if (pendingNavigation) {
-			setOpen(false);
-		}
+		setOpen(false);
 	};
 
 	const handleDiscardDraft = () => {
 		setShowSaveDraftAlert(false);
-		if (pendingNavigation) {
-			setOpen(false);
-		}
+		setOpen(false);
 	};
 
 	const isValid =

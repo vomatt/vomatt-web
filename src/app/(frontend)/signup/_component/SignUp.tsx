@@ -162,7 +162,6 @@ function SignUpForm({
 			});
 
 			const resData = await response.json();
-			console.log('🚀 ~ :165 ~ onSubmit ~ resData:', resData);
 
 			if (resData.status === 'ERROR') {
 				setError(resData.message);

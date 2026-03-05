@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getPayload } from 'payload';
+import { cache } from 'react';
 
 import config from '@payload-config';
 
@@ -24,16 +25,19 @@ type Props = {
 	params: Promise<{ slug: string }>;
 };
 
-export async function generateMetadata(props: Props): Promise<Metadata> {
-	const params = await props.params;
+const getPageBySlug = cache(async (slug: string) => {
 	const payload = await getPayload({ config });
 	const result = await payload.find({
 		collection: 'pages',
-		where: { slug: { equals: params.slug } },
+		where: { slug: { equals: slug } },
 		limit: 1,
 	});
+	return result.docs[0] ?? null;
+});
 
-	const page = result.docs[0];
+export async function generateMetadata(props: Props): Promise<Metadata> {
+	const params = await props.params;
+	const page = await getPageBySlug(params.slug);
 	if (!page) return {};
 
 	const meta = page.meta as { metaTitle?: string | null; metaDescription?: string | null } | null | undefined;
@@ -46,14 +50,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 
 export default async function PageSlugRoute(props: Props) {
 	const params = await props.params;
-	const payload = await getPayload({ config });
-	const result = await payload.find({
-		collection: 'pages',
-		where: { slug: { equals: params.slug } },
-		limit: 1,
-	});
-
-	const page = result.docs[0];
+	const page = await getPageBySlug(params.slug);
 	if (!page) return notFound();
 
 	return <PageGeneral data={page} />;
