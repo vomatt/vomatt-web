@@ -7,6 +7,7 @@
 		"notifications": "Notifications",
 		"login": "login",
 		"email": "email",
+		"signUp": "Sign up",
 		"firstName": "first name",
 		"lastName": "last name",
 		"username": "username",
@@ -52,6 +53,7 @@
 	"login": {
 		"title": "Log in",
 		"submit": "login",
+		"footNote": "Don't have an account?",
 		"GENERATE_VERIFICATION_CODE_FAILED": "Fail to send the Verification Code",
 		"SYSTEM_ERROR": "Something went wrong, pleas try again later"
 	},
@@ -94,7 +96,12 @@
 	"profile": {
 		"polls": "Polls",
 		"noPollsYet": "No polls yet.",
-		"editProfile": "Edit Profile"
+		"editProfile": "Edit Profile",
+		"bio": "Bio",
+		"joinedAt": "Joined",
+		"totalVotes": "Votes",
+		"displayName": "Display Name",
+		"saveChanges": "Save Changes"
 	},
 	"notifications": {
 		"title": "Notifications",

@@ -18,7 +18,7 @@ function PollRow({ poll }: { poll: Poll }) {
 		<div className="group flex items-start justify-between gap-4 p-4 rounded-xl border border-border/60 bg-card hover:border-border hover:shadow-[0_4px_16px_rgba(0,0,0,0.2)] transition-all duration-200">
 			<div className="flex-1 min-w-0">
 				<Link href={`/poll/${poll.id}`}>
-					<p className="font-display italic text-lg leading-snug text-foreground group-hover:text-foreground/80 transition-colors truncate">
+					<p className="font-display text-lg leading-snug text-foreground group-hover:text-foreground/80 transition-colors truncate">
 						{poll.title}
 					</p>
 				</Link>
@@ -71,25 +71,20 @@ export default function MyPollsPage() {
 
 	return (
 		<div className="px-contain max-w-2xl mx-auto py-6">
-			<h1 className="font-display italic text-4xl text-foreground mb-6">My Polls</h1>
+			<h1 className="font-display text-4xl text-foreground mb-6">My Polls</h1>
 
 			{isLoading ? (
 				<div className="flex justify-center py-12">
 					<Spinner />
 				</div>
 			) : (
-				<Tabs
-					value={activeTab}
-					onValueChange={(v) => setActiveTab(v as Tab)}
-				>
+				<Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as Tab)}>
 					<TabsList className="mb-4">
 						<TabsTrigger value="active">
 							Active ({activePolls.length})
 						</TabsTrigger>
 						<TabsTrigger value="drafts">Drafts</TabsTrigger>
-						<TabsTrigger value="ended">
-							Ended ({endedPolls.length})
-						</TabsTrigger>
+						<TabsTrigger value="ended">Ended ({endedPolls.length})</TabsTrigger>
 					</TabsList>
 
 					{(['active', 'drafts', 'ended'] as Tab[]).map((tab) => (

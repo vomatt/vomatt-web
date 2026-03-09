@@ -10,7 +10,9 @@ export function HomepageHeader() {
 	return (
 		<nav className="flex justify-center sticky top-0 z-10 bg-black/80 backdrop-blur-3xl">
 			<Button asChild variant="ghost">
-				<Link href="/">{t('common.home')}</Link>
+				<Link href="/" className="capitalize">
+					{t('common.home')}
+				</Link>
 			</Button>
 		</nav>
 	);

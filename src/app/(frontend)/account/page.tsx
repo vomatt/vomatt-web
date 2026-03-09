@@ -1,12 +1,41 @@
+import { mockPolls } from '@/app/api/get-polls/mockData';
 import { getUserSession } from '@/data/auth';
 import defineMetadata from '@/lib/defineMetadata';
+import { Poll } from '@/types/poll';
+import { UserProfile } from '@/types/user';
 
 import AccountPage from './_components/AccountPage';
+
 export async function generateMetadata({}) {
 	return defineMetadata({ data: {} });
 }
 
+async function getAccountPolls(username: string): Promise<Poll[]> {
+	try {
+		const url = `${process.env.API_URL}/api/v1/votes?creatorUsername=${encodeURIComponent(username)}`;
+		const res = await fetch(url, { next: { revalidate: 60 } });
+		const resData = await res.json();
+		if (resData?.success) return resData.data?.content ?? [];
+	} catch {
+		// fall through to mock
+	}
+	return mockPolls.filter((p) => p.creatorUsername === username);
+}
+
 export default async function Page() {
-	const user = await getUserSession();
-	return <AccountPage userData={user} />;
+	const session = await getUserSession();
+	const username: string = session?.username ?? session?.nickName ?? '';
+
+	const polls = username ? await getAccountPolls(username) : [];
+
+	const profile: UserProfile = {
+		username,
+		displayName: session?.nickName ?? null,
+		bio: session?.bio ?? null,
+		joinedAt: session?.createdAt ?? new Date().toISOString(),
+		totalPolls: polls.length,
+		totalVotes: polls.reduce((sum: number, p: Poll) => sum + p.totalVotes, 0),
+	};
+
+	return <AccountPage profile={profile} polls={polls} />;
 }

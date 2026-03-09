@@ -1,9 +1,15 @@
 'use client';
-import { Calendar, Plus, X } from 'lucide-react';
-import { Home, LogOut, PlusCircle, Search, TrendingUp, User } from 'lucide-react';
+
+import {
+	Home,
+	LogOut,
+	PlusCircle,
+	Search,
+	TrendingUp,
+	User,
+} from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import React from 'react';
 
 import BrandLogo from '@/components/BrandLogo';
 import { PollCreator } from '@/components/PollCreator';
@@ -18,12 +24,9 @@ import {
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
-	SidebarProvider,
-	SidebarTrigger,
 } from '@/components/ui/Sidebar';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { logout } from '@/lib/auth';
-import { cn, hasArrayValue } from '@/lib/utils';
 
 const navigationItems = [
 	{
@@ -100,7 +103,9 @@ export function AppSidebar({ userSession }: AppSidebarProps) {
 										) : (
 											<Link href={item.url} className="flex items-center gap-3">
 												<item.icon className="size-4" />
-												<span className="font-semibold">{t(item.title)}</span>
+												<span className="font-semibold capitalize">
+													{t(item.title)}
+												</span>
 											</Link>
 										)}
 									</SidebarMenuButton>

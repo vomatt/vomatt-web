@@ -172,7 +172,7 @@ export const PollCard = ({ pollData }: PollCardProps) => {
 				{/* Poll question */}
 				<div>
 					<Link href={`/poll/${pollId}`}>
-						<h3 className="font-display text-2xl leading-snug text-foreground italic hover:text-foreground/80 transition-colors">
+						<h3 className="font-display text-2xl leading-snug text-foreground hover:text-foreground/80 transition-colors">
 							{title}
 						</h3>
 					</Link>
@@ -209,9 +209,7 @@ export const PollCard = ({ pollData }: PollCardProps) => {
 								key={option.id}
 								className={cn(
 									'relative overflow-hidden rounded-xl border transition-all duration-300',
-									isSelected
-										? 'border-amber-500/40'
-										: 'border-border/40',
+									isSelected ? 'border-amber-500/40' : 'border-border/40',
 									!isSelected && hasVoted && 'opacity-55'
 								)}
 							>
@@ -243,9 +241,7 @@ export const PollCard = ({ pollData }: PollCardProps) => {
 										<span
 											className={cn(
 												'text-sm font-medium',
-												isSelected
-													? 'text-foreground'
-													: 'text-foreground/65'
+												isSelected ? 'text-foreground' : 'text-foreground/65'
 											)}
 										>
 											{option.text}
@@ -254,9 +250,7 @@ export const PollCard = ({ pollData }: PollCardProps) => {
 									<span
 										className={cn(
 											'font-data text-sm tabular-nums font-medium',
-											isSelected
-												? 'text-amber-400'
-												: 'text-muted-foreground'
+											isSelected ? 'text-amber-400' : 'text-muted-foreground'
 										)}
 									>
 										{percentage}%
@@ -286,8 +280,7 @@ export const PollCard = ({ pollData }: PollCardProps) => {
 					>
 						<MessageSquare className="w-3.5 h-3.5" />
 						<span>
-							{comments.length}{' '}
-							{comments.length === 1 ? 'comment' : 'comments'}
+							{comments.length} {comments.length === 1 ? 'comment' : 'comments'}
 						</span>
 					</button>
 
@@ -312,9 +305,7 @@ export const PollCard = ({ pollData }: PollCardProps) => {
 												ago
 											</span>
 										</div>
-										<p className="text-sm text-foreground/70">
-											{comment.text}
-										</p>
+										<p className="text-sm text-foreground/70">{comment.text}</p>
 									</div>
 								))}
 

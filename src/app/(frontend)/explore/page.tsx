@@ -17,7 +17,7 @@ function PollSearchCard({ poll }: { poll: Poll }) {
 		<Link href={`/poll/${poll.id}`}>
 			<div className="group p-4 rounded-xl border border-border/60 bg-card hover:border-border hover:shadow-[0_4px_16px_rgba(0,0,0,0.2)] transition-all duration-200">
 				<div className="flex items-start justify-between gap-3">
-					<p className="font-display italic text-lg leading-snug text-foreground group-hover:text-foreground/80 transition-colors flex-1">
+					<p className="font-display text-lg leading-snug text-foreground group-hover:text-foreground/80 transition-colors flex-1">
 						{poll.title}
 					</p>
 					<span
@@ -85,9 +85,7 @@ export default function ExplorePage() {
 
 	return (
 		<div className="px-contain max-w-2xl mx-auto py-6">
-			<h1 className="font-display italic text-4xl text-foreground mb-6">
-				Explore
-			</h1>
+			<h1 className="font-display text-4xl text-foreground mb-6">Explore</h1>
 
 			{/* Search input */}
 			<div className="relative mb-4">

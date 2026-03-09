@@ -1,16 +1,33 @@
 'use client';
-import { Button } from '@/components/ui/Button';
-import { logout } from '@/lib/auth';
 
-export type AccountPageType = {
-	userData: any;
+import { Button } from '@/components/ui/Button';
+import { Separator } from '@/components/ui/Separator';
+import { logout } from '@/lib/auth';
+import { UserProfile } from '@/types/user';
+
+import ProfileHeader from '../../profile/[username]/_components/ProfileHeader';
+import ProfilePollList from '../../profile/[username]/_components/ProfilePollList';
+import { Poll } from '@/types/poll';
+
+export type AccountPageProps = {
+	profile: UserProfile;
+	polls: Poll[];
 };
 
-export default function AccountPage({ userData }: AccountPageType) {
+export default function AccountPage({ profile, polls }: AccountPageProps) {
 	return (
-		<div className="min-h-screen px-contain">
-			<h1 className="text-white mb-12">Hi {userData?.nickName}</h1>
-			<Button onClick={() => logout()}>Log out</Button>
+		<div className="px-contain max-w-2xl mx-auto py-6 space-y-6">
+			<ProfileHeader profile={profile} isOwner={true} />
+			<div>
+				<h2 className="text-lg font-semibold mb-4">My Polls</h2>
+				<ProfilePollList polls={polls} />
+			</div>
+			<Separator />
+			<div className="flex justify-end">
+				<Button variant="destructive" onClick={() => logout()}>
+					Log out
+				</Button>
+			</div>
 		</div>
 	);
 }
