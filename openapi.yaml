@@ -1,0 +1,1507 @@
+# Auto-generated from Zod schemas — edit scripts/generate-openapi.ts, not this file.
+# Run: npx tsx scripts/generate-openapi.ts
+openapi: 3.1.0
+info:
+  title: Vomatt Backend API
+  version: 1.0.0
+  description: |
+      Backend API consumed by the Next.js proxy layer (`API_URL`).
+      All endpoints are relative to the `API_URL` environment variable
+      (e.g. `http://localhost:8080`).
+      
+      **Authentication**: Protected endpoints require a Bearer JWT in the
+      `Authorization` header.
+servers:
+  - url: "{apiUrl}"
+    variables:
+      apiUrl:
+        default: "http://localhost:8080"
+tags:
+  - name: auth
+    description: Authentication and session management
+  - name: polls
+    description: Poll (vote) CRUD and search
+  - name: voting
+    description: Casting votes on poll options
+  - name: comments
+    description: Poll comments
+  - name: users
+    description: User profiles
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Sort:
+      type: object
+      properties:
+        empty:
+          type: boolean
+        sorted:
+          type: boolean
+        unsorted:
+          type: boolean
+      required:
+        - empty
+        - sorted
+        - unsorted
+    Pageable:
+      type: object
+      properties:
+        pageNumber:
+          type: integer
+        pageSize:
+          type: integer
+        offset:
+          type: integer
+        paged:
+          type: boolean
+        unpaged:
+          type: boolean
+        sort:
+          type: object
+          properties:
+            empty:
+              type: boolean
+            sorted:
+              type: boolean
+            unsorted:
+              type: boolean
+          required:
+            - empty
+            - sorted
+            - unsorted
+      required:
+        - pageNumber
+        - pageSize
+        - offset
+        - paged
+        - unpaged
+        - sort
+    Poll:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        active:
+          type: boolean
+        votingActive:
+          type: boolean
+        allowMultipleChoices:
+          type: boolean
+        anonymous:
+          type: boolean
+        creatorId:
+          type: string
+        creatorUsername:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type:
+            - string
+            - null
+          format: date-time
+        totalVotes:
+          type: integer
+        success:
+          type: boolean
+        errorCode:
+          type:
+            - string
+            - null
+        options:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              text:
+                type: string
+              votes:
+                type: integer
+            required:
+              - id
+              - text
+              - votes
+        comments:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              author:
+                type: string
+              text:
+                type: string
+              createdAt:
+                type: string
+                format: date-time
+            required:
+              - id
+              - author
+              - text
+              - createdAt
+      required:
+        - id
+        - title
+        - description
+        - active
+        - votingActive
+        - allowMultipleChoices
+        - anonymous
+        - creatorId
+        - creatorUsername
+        - createdAt
+        - updatedAt
+        - startTime
+        - endTime
+        - totalVotes
+        - success
+        - errorCode
+        - options
+    PollPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              title:
+                type: string
+              description:
+                type: string
+              active:
+                type: boolean
+              votingActive:
+                type: boolean
+              allowMultipleChoices:
+                type: boolean
+              anonymous:
+                type: boolean
+              creatorId:
+                type: string
+              creatorUsername:
+                type: string
+              createdAt:
+                type: string
+                format: date-time
+              updatedAt:
+                type: string
+                format: date-time
+              startTime:
+                type: string
+                format: date-time
+              endTime:
+                type:
+                  - string
+                  - null
+                format: date-time
+              totalVotes:
+                type: integer
+              success:
+                type: boolean
+              errorCode:
+                type:
+                  - string
+                  - null
+              options:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    text:
+                      type: string
+                    votes:
+                      type: integer
+                  required:
+                    - id
+                    - text
+                    - votes
+              comments:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    author:
+                      type: string
+                    text:
+                      type: string
+                    createdAt:
+                      type: string
+                      format: date-time
+                  required:
+                    - id
+                    - author
+                    - text
+                    - createdAt
+            required:
+              - id
+              - title
+              - description
+              - active
+              - votingActive
+              - allowMultipleChoices
+              - anonymous
+              - creatorId
+              - creatorUsername
+              - createdAt
+              - updatedAt
+              - startTime
+              - endTime
+              - totalVotes
+              - success
+              - errorCode
+              - options
+        empty:
+          type: boolean
+        first:
+          type: boolean
+        last:
+          type: boolean
+        number:
+          type: integer
+        numberOfElements:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+        totalPages:
+          type: integer
+        pageable:
+          type: object
+          properties:
+            pageNumber:
+              type: integer
+            pageSize:
+              type: integer
+            offset:
+              type: integer
+            paged:
+              type: boolean
+            unpaged:
+              type: boolean
+            sort:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                sorted:
+                  type: boolean
+                unsorted:
+                  type: boolean
+              required:
+                - empty
+                - sorted
+                - unsorted
+          required:
+            - pageNumber
+            - pageSize
+            - offset
+            - paged
+            - unpaged
+            - sort
+        sort:
+          type: object
+          properties:
+            empty:
+              type: boolean
+            sorted:
+              type: boolean
+            unsorted:
+              type: boolean
+          required:
+            - empty
+            - sorted
+            - unsorted
+      required:
+        - content
+        - empty
+        - first
+        - last
+        - number
+        - numberOfElements
+        - size
+        - totalElements
+        - totalPages
+        - pageable
+        - sort
+    Comment:
+      type: object
+      properties:
+        id:
+          type: string
+        author:
+          type: string
+        text:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - author
+        - text
+        - createdAt
+    CreatePollRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        options:
+          type: array
+          items:
+            type: object
+            properties:
+              text:
+                type: string
+              description:
+                type: string
+                default: ""
+              displayOrder:
+                type: integer
+                default: 0
+            required:
+              - text
+          minItems: 2
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type:
+            - string
+            - null
+          format: date-time
+        allowMultipleChoices:
+          type: boolean
+        anonymous:
+          type: boolean
+      required:
+        - title
+        - options
+        - startTime
+        - allowMultipleChoices
+        - anonymous
+    CreateCommentRequest:
+      type: object
+      properties:
+        text:
+          type: string
+          minLength: 1
+      required:
+        - text
+    UserProfile:
+      type: object
+      properties:
+        username:
+          type: string
+        displayName:
+          type:
+            - string
+            - null
+        bio:
+          type:
+            - string
+            - null
+        joinedAt:
+          type: string
+          format: date-time
+        totalPolls:
+          type: integer
+        totalVotes:
+          type: integer
+      required:
+        - username
+        - displayName
+        - bio
+        - joinedAt
+        - totalPolls
+        - totalVotes
+    UpdateProfileRequest:
+      type: object
+      properties:
+        displayName:
+          type:
+            - string
+            - null
+        bio:
+          type:
+            - string
+            - null
+    PreSignupRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        username:
+          type: string
+          minLength: 3
+      required:
+        - email
+        - username
+    SignupRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        firstName:
+          type: string
+        lastName:
+          type: string
+        username:
+          type: string
+          minLength: 3
+        verificationCode:
+          type: string
+      required:
+        - email
+        - firstName
+        - lastName
+        - username
+        - verificationCode
+    SigninRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        verificationCode:
+          type: string
+      required:
+        - email
+        - verificationCode
+    AuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        token:
+          type: string
+        refreshToken:
+          type: string
+        errorCode:
+          type:
+            - string
+            - null
+      required:
+        - success
+    RefreshTokenRequest:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+      required:
+        - refreshToken
+    RefreshTokenResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        message:
+          type:
+            - string
+            - null
+  parameters: {}
+paths:
+  /api/auth/generateVerificationCode:
+    get:
+      tags:
+        - auth
+      summary: Request a verification code
+      parameters:
+        - schema:
+            type: string
+            format: email
+            example: "user@example.com"
+          required: true
+          name: email
+          in: query
+      responses:
+        200:
+          description: Code sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                required:
+                  - success
+  /api/auth/pre-signup:
+    post:
+      tags:
+        - auth
+      summary: Validate email and username before signup
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                username:
+                  type: string
+                  minLength: 3
+              required:
+                - email
+                - username
+      responses:
+        200:
+          description: Availability result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                required:
+                  - success
+  /api/auth/signup:
+    post:
+      tags:
+        - auth
+      summary: Create a new account
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                username:
+                  type: string
+                  minLength: 3
+                verificationCode:
+                  type: string
+              required:
+                - email
+                - firstName
+                - lastName
+                - username
+                - verificationCode
+      responses:
+        200:
+          description: Registration result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  token:
+                    type: string
+                  refreshToken:
+                    type: string
+                  errorCode:
+                    type:
+                      - string
+                      - null
+                required:
+                  - success
+  /api/auth/signin:
+    post:
+      tags:
+        - auth
+      summary: Sign in with email and verification code
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                verificationCode:
+                  type: string
+              required:
+                - email
+                - verificationCode
+      responses:
+        200:
+          description: Sign-in result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  token:
+                    type: string
+                  refreshToken:
+                    type: string
+                  errorCode:
+                    type:
+                      - string
+                      - null
+                required:
+                  - success
+  /api/auth/refreshToken:
+    post:
+      tags:
+        - auth
+      summary: Refresh access token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+              required:
+                - refreshToken
+      responses:
+        200:
+          description: New token pair or error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                  refreshToken:
+                    type: string
+                  message:
+                    type:
+                      - string
+                      - null
+  /api/v1/votes:
+    get:
+      tags:
+        - polls
+      summary: "List polls (paginated, searchable)"
+      parameters:
+        - schema:
+            type: string
+            example: 0
+          required: false
+          name: page
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: q
+          in: query
+        - schema:
+            type: string
+            enum:
+              - newest
+              - oldest
+              - popular
+          required: false
+          name: sort
+          in: query
+        - schema:
+            type: string
+            enum:
+              - all
+              - active
+              - closed
+          required: false
+          name: status
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: creatorUsername
+          in: query
+      responses:
+        200:
+          description: Paginated poll list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        title:
+                          type: string
+                        description:
+                          type: string
+                        active:
+                          type: boolean
+                        votingActive:
+                          type: boolean
+                        allowMultipleChoices:
+                          type: boolean
+                        anonymous:
+                          type: boolean
+                        creatorId:
+                          type: string
+                        creatorUsername:
+                          type: string
+                        createdAt:
+                          type: string
+                          format: date-time
+                        updatedAt:
+                          type: string
+                          format: date-time
+                        startTime:
+                          type: string
+                          format: date-time
+                        endTime:
+                          type:
+                            - string
+                            - null
+                          format: date-time
+                        totalVotes:
+                          type: integer
+                        success:
+                          type: boolean
+                        errorCode:
+                          type:
+                            - string
+                            - null
+                        options:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                type: string
+                              text:
+                                type: string
+                              votes:
+                                type: integer
+                            required:
+                              - id
+                              - text
+                              - votes
+                        comments:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                type: string
+                              author:
+                                type: string
+                              text:
+                                type: string
+                              createdAt:
+                                type: string
+                                format: date-time
+                            required:
+                              - id
+                              - author
+                              - text
+                              - createdAt
+                      required:
+                        - id
+                        - title
+                        - description
+                        - active
+                        - votingActive
+                        - allowMultipleChoices
+                        - anonymous
+                        - creatorId
+                        - creatorUsername
+                        - createdAt
+                        - updatedAt
+                        - startTime
+                        - endTime
+                        - totalVotes
+                        - success
+                        - errorCode
+                        - options
+                  empty:
+                    type: boolean
+                  first:
+                    type: boolean
+                  last:
+                    type: boolean
+                  number:
+                    type: integer
+                  numberOfElements:
+                    type: integer
+                  size:
+                    type: integer
+                  totalElements:
+                    type: integer
+                  totalPages:
+                    type: integer
+                  pageable:
+                    type: object
+                    properties:
+                      pageNumber:
+                        type: integer
+                      pageSize:
+                        type: integer
+                      offset:
+                        type: integer
+                      paged:
+                        type: boolean
+                      unpaged:
+                        type: boolean
+                      sort:
+                        type: object
+                        properties:
+                          empty:
+                            type: boolean
+                          sorted:
+                            type: boolean
+                          unsorted:
+                            type: boolean
+                        required:
+                          - empty
+                          - sorted
+                          - unsorted
+                    required:
+                      - pageNumber
+                      - pageSize
+                      - offset
+                      - paged
+                      - unpaged
+                      - sort
+                  sort:
+                    type: object
+                    properties:
+                      empty:
+                        type: boolean
+                      sorted:
+                        type: boolean
+                      unsorted:
+                        type: boolean
+                    required:
+                      - empty
+                      - sorted
+                      - unsorted
+                required:
+                  - content
+                  - empty
+                  - first
+                  - last
+                  - number
+                  - numberOfElements
+                  - size
+                  - totalElements
+                  - totalPages
+                  - pageable
+                  - sort
+    post:
+      tags:
+        - polls
+      summary: Create a poll
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                options:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      text:
+                        type: string
+                      description:
+                        type: string
+                        default: ""
+                      displayOrder:
+                        type: integer
+                        default: 0
+                    required:
+                      - text
+                  minItems: 2
+                startTime:
+                  type: string
+                  format: date-time
+                endTime:
+                  type:
+                    - string
+                    - null
+                  format: date-time
+                allowMultipleChoices:
+                  type: boolean
+                anonymous:
+                  type: boolean
+              required:
+                - title
+                - options
+                - startTime
+                - allowMultipleChoices
+                - anonymous
+      responses:
+        200:
+          description: Creation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                required:
+                  - success
+  "/api/v1/votes/{id}":
+    get:
+      tags:
+        - polls
+      summary: Get a single poll
+      parameters:
+        - schema:
+            type: string
+            example: mock-1
+          required: true
+          name: id
+          in: path
+      responses:
+        200:
+          description: Poll detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  title:
+                    type: string
+                  description:
+                    type: string
+                  active:
+                    type: boolean
+                  votingActive:
+                    type: boolean
+                  allowMultipleChoices:
+                    type: boolean
+                  anonymous:
+                    type: boolean
+                  creatorId:
+                    type: string
+                  creatorUsername:
+                    type: string
+                  createdAt:
+                    type: string
+                    format: date-time
+                  updatedAt:
+                    type: string
+                    format: date-time
+                  startTime:
+                    type: string
+                    format: date-time
+                  endTime:
+                    type:
+                      - string
+                      - null
+                    format: date-time
+                  totalVotes:
+                    type: integer
+                  success:
+                    type: boolean
+                  errorCode:
+                    type:
+                      - string
+                      - null
+                  options:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        text:
+                          type: string
+                        votes:
+                          type: integer
+                      required:
+                        - id
+                        - text
+                        - votes
+                  comments:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        author:
+                          type: string
+                        text:
+                          type: string
+                        createdAt:
+                          type: string
+                          format: date-time
+                      required:
+                        - id
+                        - author
+                        - text
+                        - createdAt
+                required:
+                  - id
+                  - title
+                  - description
+                  - active
+                  - votingActive
+                  - allowMultipleChoices
+                  - anonymous
+                  - creatorId
+                  - creatorUsername
+                  - createdAt
+                  - updatedAt
+                  - startTime
+                  - endTime
+                  - totalVotes
+                  - success
+                  - errorCode
+                  - options
+  /api/v1/votes/my:
+    get:
+      tags:
+        - polls
+      summary: Get the authenticated user's polls
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Paginated poll list for the current user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        title:
+                          type: string
+                        description:
+                          type: string
+                        active:
+                          type: boolean
+                        votingActive:
+                          type: boolean
+                        allowMultipleChoices:
+                          type: boolean
+                        anonymous:
+                          type: boolean
+                        creatorId:
+                          type: string
+                        creatorUsername:
+                          type: string
+                        createdAt:
+                          type: string
+                          format: date-time
+                        updatedAt:
+                          type: string
+                          format: date-time
+                        startTime:
+                          type: string
+                          format: date-time
+                        endTime:
+                          type:
+                            - string
+                            - null
+                          format: date-time
+                        totalVotes:
+                          type: integer
+                        success:
+                          type: boolean
+                        errorCode:
+                          type:
+                            - string
+                            - null
+                        options:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                type: string
+                              text:
+                                type: string
+                              votes:
+                                type: integer
+                            required:
+                              - id
+                              - text
+                              - votes
+                        comments:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                type: string
+                              author:
+                                type: string
+                              text:
+                                type: string
+                              createdAt:
+                                type: string
+                                format: date-time
+                            required:
+                              - id
+                              - author
+                              - text
+                              - createdAt
+                      required:
+                        - id
+                        - title
+                        - description
+                        - active
+                        - votingActive
+                        - allowMultipleChoices
+                        - anonymous
+                        - creatorId
+                        - creatorUsername
+                        - createdAt
+                        - updatedAt
+                        - startTime
+                        - endTime
+                        - totalVotes
+                        - success
+                        - errorCode
+                        - options
+                  empty:
+                    type: boolean
+                  first:
+                    type: boolean
+                  last:
+                    type: boolean
+                  number:
+                    type: integer
+                  numberOfElements:
+                    type: integer
+                  size:
+                    type: integer
+                  totalElements:
+                    type: integer
+                  totalPages:
+                    type: integer
+                  pageable:
+                    type: object
+                    properties:
+                      pageNumber:
+                        type: integer
+                      pageSize:
+                        type: integer
+                      offset:
+                        type: integer
+                      paged:
+                        type: boolean
+                      unpaged:
+                        type: boolean
+                      sort:
+                        type: object
+                        properties:
+                          empty:
+                            type: boolean
+                          sorted:
+                            type: boolean
+                          unsorted:
+                            type: boolean
+                        required:
+                          - empty
+                          - sorted
+                          - unsorted
+                    required:
+                      - pageNumber
+                      - pageSize
+                      - offset
+                      - paged
+                      - unpaged
+                      - sort
+                  sort:
+                    type: object
+                    properties:
+                      empty:
+                        type: boolean
+                      sorted:
+                        type: boolean
+                      unsorted:
+                        type: boolean
+                    required:
+                      - empty
+                      - sorted
+                      - unsorted
+                required:
+                  - content
+                  - empty
+                  - first
+                  - last
+                  - number
+                  - numberOfElements
+                  - size
+                  - totalElements
+                  - totalPages
+                  - pageable
+                  - sort
+  "/api/v1/votes/{pollId}/options/{optionId}":
+    post:
+      tags:
+        - voting
+      summary: Cast a vote on a poll option
+      security:
+        - bearerAuth: []
+      parameters:
+        - schema:
+            type: string
+            example: mock-1
+          required: true
+          name: pollId
+          in: path
+        - schema:
+            type: string
+            example: opt-1-1
+          required: true
+          name: optionId
+          in: path
+      responses:
+        200:
+          description: Vote recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                required:
+                  - success
+  "/api/v1/votes/{pollId}/comments":
+    get:
+      tags:
+        - comments
+      summary: List comments for a poll
+      security:
+        - bearerAuth: []
+      parameters:
+        - schema:
+            type: string
+            example: mock-1
+          required: true
+          name: pollId
+          in: path
+      responses:
+        200:
+          description: Comment list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    author:
+                      type: string
+                    text:
+                      type: string
+                    createdAt:
+                      type: string
+                      format: date-time
+                  required:
+                    - id
+                    - author
+                    - text
+                    - createdAt
+    post:
+      tags:
+        - comments
+      summary: Post a comment on a poll
+      security:
+        - bearerAuth: []
+      parameters:
+        - schema:
+            type: string
+            example: mock-1
+          required: true
+          name: pollId
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+                  minLength: 1
+              required:
+                - text
+      responses:
+        200:
+          description: Comment created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  author:
+                    type: string
+                  text:
+                    type: string
+                  createdAt:
+                    type: string
+                    format: date-time
+                required:
+                  - id
+                  - author
+                  - text
+                  - createdAt
+  "/api/v1/users/{username}":
+    get:
+      tags:
+        - users
+      summary: Get a user's public profile
+      parameters:
+        - schema:
+            type: string
+            example: alex_dev
+          required: true
+          name: username
+          in: path
+      responses:
+        200:
+          description: User profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                  displayName:
+                    type:
+                      - string
+                      - null
+                  bio:
+                    type:
+                      - string
+                      - null
+                  joinedAt:
+                    type: string
+                    format: date-time
+                  totalPolls:
+                    type: integer
+                  totalVotes:
+                    type: integer
+                required:
+                  - username
+                  - displayName
+                  - bio
+                  - joinedAt
+                  - totalPolls
+                  - totalVotes
+        404:
+          description: User not found
+  /api/v1/users/me:
+    patch:
+      tags:
+        - users
+      summary: Update the authenticated user's profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                displayName:
+                  type:
+                    - string
+                    - null
+                bio:
+                  type:
+                    - string
+                    - null
+      responses:
+        200:
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                  displayName:
+                    type:
+                      - string
+                      - null
+                  bio:
+                    type:
+                      - string
+                      - null
+                  joinedAt:
+                    type: string
+                    format: date-time
+                  totalPolls:
+                    type: integer
+                  totalVotes:
+                    type: integer
+                required:
+                  - username
+                  - displayName
+                  - bio
+                  - joinedAt
+                  - totalPolls
+                  - totalVotes
+webhooks: {}
