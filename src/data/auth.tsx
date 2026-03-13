@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import { cache } from 'react';
 
 import { ACCESS_TOKEN } from '@/data/constants';
-import { decodeToken } from '@/lib/auth';
+import { decodeToken } from '@/lib/api/auth';
 
 // Cached helper methods makes it easy to get the same value in many places
 // without manually passing it around. This discourages passing it from Server

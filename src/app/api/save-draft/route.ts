@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
 	const body = await request.json();
 
 	// TODO: forward to backend when endpoint is ready:
-	// await apiAuthFetch('/api/v1/votes/drafts', { method: 'POST', body: JSON.stringify(body) });
+	// await apiClient('/api/v1/votes/drafts', { method: 'POST', body: JSON.stringify(body) });
 
 	return NextResponse.json({ status: 'SUCCESS', data: body });
 }

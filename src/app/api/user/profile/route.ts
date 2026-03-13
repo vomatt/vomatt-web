@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { ApiError, apiAuthFetch } from '@/app/api/lib/apiAuthFetch';
+import { ApiError, apiClient } from '@/lib/api/client';
 
 export async function PATCH(request: NextRequest) {
 	const body = await request.json();
 
 	try {
-		const response = await apiAuthFetch('/api/v1/users/me', {
+		const response = await apiClient('/api/v1/users/me', {
 			method: 'PATCH',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(body),

@@ -45,7 +45,9 @@ export async function setAuthTokens(tokens: AuthTokens) {
 	const cookieStore = await cookies();
 	const decoded = await decodeToken(accessToken);
 	const exp = decoded?.exp as number | undefined;
-	const expires = exp ? new Date(exp * 1000) : new Date(Date.now() + ACCESS_TOKEN_EXPIRY * 1000);
+	const expires = exp
+		? new Date(exp * 1000)
+		: new Date(Date.now() + ACCESS_TOKEN_EXPIRY * 1000);
 
 	cookieStore.set(ACCESS_TOKEN, accessToken, {
 		httpOnly: true,
@@ -67,15 +69,18 @@ export async function refreshTokens(
 	refreshToken: string
 ): Promise<RefreshTokenResponse | null> {
 	try {
-		const refreshUrl = `${process.env.SITE_URL}/api/auth/refresh`;
+		const refreshUrl = `${process.env.API_URL}/api/auth/refreshToken`;
 		const response = await fetch(refreshUrl, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
+			credentials: 'include',
 			body: JSON.stringify({ refreshToken }),
 		});
 
 		if (!response.ok) return null;
-		return await response.json();
+
+		const data = await response.json();
+		return data;
 	} catch (error) {
 		console.error('Token refresh failed:', error);
 		return null;

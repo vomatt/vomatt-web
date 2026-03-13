@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { ApiError, apiAuthFetch } from '@/app/api/lib/apiAuthFetch';
+import { ApiError, apiClient } from '@/lib/api/client';
 
 export async function GET(request: NextRequest) {
 	const { searchParams } = new URL(request.url);
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
 	}
 
 	try {
-		const response = await apiAuthFetch(`/api/v1/votes/${pollId}/comments`);
+		const response = await apiClient(`/api/v1/votes/${pollId}/comments`);
 		return NextResponse.json({ status: 'SUCCESS', data: response });
 	} catch (error) {
 		if (error instanceof ApiError) {
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
 	}
 
 	try {
-		const response = await apiAuthFetch(`/api/v1/votes/${pollId}/comments`, {
+		const response = await apiClient(`/api/v1/votes/${pollId}/comments`, {
 			method: 'POST',
 			body: JSON.stringify({ text }),
 		});

@@ -26,7 +26,7 @@ import {
 	SidebarMenuItem,
 } from '@/components/ui/Sidebar';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { logout } from '@/lib/auth';
+import { logout } from '@/lib/api/auth';
 
 const navigationItems = [
 	{

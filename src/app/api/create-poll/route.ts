@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { apiAuthFetch } from '@/app/api/lib/apiAuthFetch';
+import { apiClient } from '@/lib/api/client';
 
 /*
   "title": "誰最帥",
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
 			anonymous: isAnonymous,
 		};
 
-		const response = await apiAuthFetch('/api/v1/votes', {
+		const response = await apiClient('/api/v1/votes', {
 			method: 'POST',
 			body: JSON.stringify(bodyData),
 		});

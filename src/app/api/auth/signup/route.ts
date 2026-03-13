@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { setAuthTokens } from '@/lib/auth';
+import { setAuthTokens } from '@/lib/api/auth';
 
 export async function POST(request: NextRequest) {
 	const body = await request.json();

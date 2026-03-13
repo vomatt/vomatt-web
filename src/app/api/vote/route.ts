@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { ApiError, apiAuthFetch } from '@/app/api/lib/apiAuthFetch';
+import { ApiError, apiClient } from '@/lib/api/client';
 
 export async function POST(request: NextRequest) {
 	const { pollId, optionId } = await request.json();
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
 	}
 
 	try {
-		const response = await apiAuthFetch(
+		const response = await apiClient(
 			`/api/v1/votes/${pollId}/options/${optionId}`,
 			{ method: 'POST' }
 		);

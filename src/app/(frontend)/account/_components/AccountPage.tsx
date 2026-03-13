@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/Button';
 import { Separator } from '@/components/ui/Separator';
-import { logout } from '@/lib/auth';
+import { logout } from '@/lib/api/auth';
 import { UserProfile } from '@/types/user';
 
 import ProfileHeader from '../../profile/[username]/_components/ProfileHeader';

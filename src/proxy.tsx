@@ -3,7 +3,7 @@ import Negotiator from 'negotiator';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-import { decodeToken } from '@/lib/auth';
+import { decodeToken } from '@/lib/api/auth';
 import { LanguageCode } from '@/types';
 
 import { i18n, SUPPORTED_LANGUAGES } from './i18n-config';
@@ -75,7 +75,7 @@ export async function proxy(request: NextRequest) {
 	}
 
 	// If access token is invalid but refresh token exists, optimistically allow
-	// the request. apiAuthFetch handles the 401 → token refresh flow.
+	// the request. apiClient handles the 401 → token refresh flow.
 	if (!isValidToken && refreshToken) {
 		isValidToken = true;
 	}

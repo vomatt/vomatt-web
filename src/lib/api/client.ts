@@ -5,7 +5,7 @@ import {
 	getTokens,
 	refreshTokens,
 	setAuthTokens,
-} from '@/lib/auth';
+} from '@/lib/api/auth';
 
 interface ApiFetchOptions extends RequestInit {
 	isFormData?: boolean;
@@ -32,7 +32,7 @@ export class ApiError extends Error {
 	}
 }
 
-export async function apiAuthFetch<T = any>(
+export async function apiClient<T = any>(
 	endpoint: string,
 	options: ApiFetchOptions = {}
 ): Promise<T> {
@@ -44,13 +44,11 @@ export async function apiAuthFetch<T = any>(
 
 	const baseUrl = process.env.API_URL;
 
-	// Build headers
 	const headers = new Headers(customHeaders);
 	if (!isFormData && !headers.has('Content-Type')) {
 		headers.set('Content-Type', 'application/json');
 	}
 
-	// Get tokens if auth is required
 	let tokens = await getTokens();
 
 	if (!tokens) {
@@ -62,7 +60,6 @@ export async function apiAuthFetch<T = any>(
 		headers.set('Authorization', `Bearer ${tokens.accessToken}`);
 	}
 
-	// Make the request
 	async function makeRequest(accessToken?: string): Promise<Response> {
 		const requestHeaders = new Headers(headers);
 		if (accessToken) {
@@ -78,24 +75,18 @@ export async function apiAuthFetch<T = any>(
 
 	let response = await makeRequest(tokens?.accessToken);
 
-	// Handle 401 Unauthorized - try to refresh token
 	if (response.status === 401 && tokens?.refreshToken) {
 		const newTokens = await refreshTokens(tokens.refreshToken);
-
-		if (newTokens) {
-			await setAuthTokens(newTokens);
-
-			// Retry the original request with new access token
-			response = await makeRequest(newTokens.accessToken);
-		} else {
-			// Refresh token is also invalid
+		if (!newTokens) {
 			await clearAuthTokens();
 
 			redirect('/login?session_expired=true', RedirectType.replace);
 		}
+
+		await setAuthTokens(newTokens);
+		response = await makeRequest(newTokens.accessToken);
 	}
 
-	// Handle other error responses
 	if (!response.ok) {
 		let errorMessage = `Request failed with status ${response.status}`;
 		let errorData;
@@ -104,14 +95,12 @@ export async function apiAuthFetch<T = any>(
 			errorData = await response.json();
 			errorMessage = errorData.message || errorData.error || errorMessage;
 		} catch {
-			// Response is not JSON
 			errorMessage = await response.text().catch(() => errorMessage);
 		}
 
 		throw new ApiError(errorMessage, response.status, errorData);
 	}
 
-	// Parse and return response
 	const contentType = response.headers.get('content-type');
 	if (contentType?.includes('application/json')) {
 		return await response.json();
