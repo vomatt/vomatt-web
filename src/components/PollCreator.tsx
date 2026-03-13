@@ -27,6 +27,7 @@ import { Label } from '@/components/ui/Label';
 import { Switch } from '@/components/ui/Switch';
 import { Textarea } from '@/components/ui/Textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { createPoll } from '@/lib/api/endpoints/polls';
 import { PollCreateOption } from '@/types/poll';
 
 interface PollCreatorProps {
@@ -136,16 +137,6 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 			// ignore storage errors
 		}
 
-		try {
-			await fetch('/api/save-draft', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(draft),
-			});
-		} catch {
-			// Local save is the primary fallback
-		}
-
 		resetForm();
 	};
 
@@ -165,12 +156,7 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 		};
 
 		try {
-			const response = await fetch('/api/create-poll', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(body),
-			});
-			const data = await response.json();
+			const data = await createPoll(body);
 
 			if (data?.status === 'SUCCESS') {
 				resetForm();
@@ -178,7 +164,7 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 				return;
 			}
 
-			setError(data?.message);
+			setError(data?.message ?? 'error');
 		} catch (error) {
 			setError('error');
 		} finally {
