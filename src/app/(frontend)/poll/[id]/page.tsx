@@ -3,7 +3,7 @@ import { enUS } from 'date-fns/locale';
 import { ArrowLeft, Share2, Users } from 'lucide-react';
 import Link from 'next/link';
 
-import { mockPolls } from '@/app/api/get-polls/mockData';
+import { mockPolls } from '@/lib/api/mock/polls';
 import { PollCard } from '@/app/(frontend)/_components/PollCard';
 import { Button } from '@/components/ui/Button';
 import { Poll } from '@/types/poll';

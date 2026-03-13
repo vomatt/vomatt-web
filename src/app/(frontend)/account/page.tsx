@@ -1,4 +1,4 @@
-import { mockPolls } from '@/app/api/get-polls/mockData';
+import { mockPolls } from '@/lib/api/mock/polls';
 import { getUserSession } from '@/data/auth';
 import defineMetadata from '@/lib/defineMetadata';
 import { Poll } from '@/types/poll';
