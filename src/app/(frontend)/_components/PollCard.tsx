@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { cn, hasArrayValue } from '@/lib/utils';
+import { vote as castVote, postComment } from '@/lib/api/endpoints/polls';
 import { Poll } from '@/types/poll';
 
 const VOTED_STORAGE_KEY = 'vomatt_voted_polls';
@@ -89,11 +90,7 @@ export const PollCard = ({ pollData }: PollCardProps) => {
 		saveVote(pollId, optionId);
 
 		try {
-			await fetch('/api/vote', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ pollId, optionId }),
-			});
+			await castVote(pollId, optionId);
 		} catch {
 			// Vote persisted in localStorage; API sync is best-effort
 		}
@@ -114,11 +111,7 @@ export const PollCard = ({ pollData }: PollCardProps) => {
 		setCommentText('');
 
 		try {
-			await fetch('/api/comment', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ pollId, text }),
-			});
+			await postComment(pollId, text);
 		} catch {
 			// Comment shown optimistically; API sync is best-effort
 		} finally {
