@@ -3,6 +3,7 @@ import { useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
+import { getPolls } from '@/lib/api/endpoints/polls';
 import { cn, hasArrayValue } from '@/lib/utils';
 import { Pagination, Sort } from '@/types/page';
 import { Poll } from '@/types/poll';
@@ -47,12 +48,11 @@ export function PollFeedList({ data, className }: PollFeedList) {
 		if (isLoading || isLast) return;
 		setIsLoading(true);
 		try {
-			const res = await fetch(`/api/get-polls?page=${currentPage + 1}`);
-			const json = await res.json();
-			if (json?.data?.content) {
-				setPolls((prev) => [...prev, ...json.data.content]);
-				setCurrentPage(json.data.number);
-				setIsLast(json.data.last);
+			const pageData = await getPolls(currentPage + 1);
+			if (pageData?.content) {
+				setPolls((prev) => [...prev, ...pageData.content]);
+				setCurrentPage(pageData.number);
+				setIsLast(pageData.last);
 			}
 		} finally {
 			setIsLoading(false);
