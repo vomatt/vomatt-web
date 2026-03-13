@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { getVerifyCode } from '@/app/api/auth/login/getVerifyCode';
+import { getVerifyCode, login } from '@/lib/api/endpoints/auth';
 import AuthContainer from '@/components/auth/AuthContainer';
 import VerificationForm from '@/components/auth/VerificationForm';
 import { ButtonLoading } from '@/components/ButtonLoading';
@@ -34,33 +34,12 @@ export function LogIn() {
 	};
 
 	const onSubmitLogin = async (pin: string) => {
-		const bodyData = {
-			email,
-			verificationCode: pin,
-		};
-
 		try {
-			const res = await fetch('/api/auth/login', {
-				method: 'POST',
-				body: JSON.stringify(bodyData),
-			});
-			const data = await res.json();
-			const apiStatus = data?.status;
-			const apiMessage = data?.message as string | undefined;
-
-			if (apiStatus === 'SUCCESS') {
-				return { status: 'OK' as const };
-			}
-
-			return {
-				status: 'ERROR' as const,
-				message: apiMessage || 'Login failed',
-			};
-		} catch (error) {
-			return {
-				status: 'ERROR' as const,
-				message: 'Something went wrong, pleas try again later',
-			};
+			const result = await login(email, pin);
+			if (result.status === 'SUCCESS') return { status: 'OK' as const };
+			return { status: 'ERROR' as const, message: result.message || 'Login failed' };
+		} catch {
+			return { status: 'ERROR' as const, message: 'Something went wrong, please try again later' };
 		}
 	};
 
