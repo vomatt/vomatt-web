@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/Sheet';
 import { Spinner } from '@/components/ui/Spinner';
 import { Textarea } from '@/components/ui/Textarea';
+import { updateProfile } from '@/lib/api/endpoints/users';
 
 interface EditProfileSheetProps {
 	initialDisplayName: string;
@@ -31,12 +32,7 @@ export default function EditProfileSheet({ initialDisplayName, initialBio }: Edi
 		e?.preventDefault();
 		setIsPending(true);
 		try {
-			const res = await fetch('/api/user/profile', {
-				method: 'PATCH',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ displayName, bio }),
-			});
-			if (!res.ok) throw new Error('Failed to save');
+			await updateProfile({ displayName, bio });
 			toast.success('Profile updated');
 			setOpen(false);
 		} catch {
