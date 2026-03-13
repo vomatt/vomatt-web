@@ -60,7 +60,7 @@ export const mockPolls: Poll[] = [
 	{
 		id: 'mock-3',
 		title: 'Should we switch our daily standup to async?',
-		description: 'With the team spanning multiple timezones, a text-based async standup via Slack might work better than a live call.',
+		description: 'With the team spanning multiple timezones, a text-based async standup via Slack might work better than a live call. What do you think?',
 		active: true,
 		votingActive: true,
 		allowMultipleChoices: false,
