@@ -18,6 +18,7 @@ import {
 import { Input } from '@/components/ui/Input';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { STATUS_SIGN_UP, STATUS_VERIFICATION } from '@/data/constants';
+import { preSignup, signup } from '@/lib/api/endpoints/auth';
 import { useSessionStorage } from '@/hooks/useSessionStorage';
 
 const nameValidation = new RegExp(
@@ -75,33 +76,12 @@ export default function SignUp({ signUpInfoData }: SignUpType) {
 	};
 
 	const onSubmitSignUp = async (pin: string) => {
-		const bodyData = {
-			...formData,
-			verificationCode: pin,
-		};
-
 		try {
-			const res = await fetch('/api/auth/signup', {
-				method: 'POST',
-				body: JSON.stringify(bodyData),
-			});
-			const data = await res.json();
-			const apiStatus = data?.status;
-			const apiMessage = data?.message as string | undefined;
-
-			if (apiStatus === 'SUCCESS') {
-				return { status: 'OK' as const };
-			}
-
-			return {
-				status: 'ERROR' as const,
-				message: apiMessage || 'Verification failed',
-			};
-		} catch (error) {
-			return {
-				status: 'ERROR' as const,
-				message: 'Something went wrong, pleas try again later',
-			};
+			const result = await signup({ ...formData, verificationCode: pin });
+			if (result.status === 'SUCCESS') return { status: 'OK' as const };
+			return { status: 'ERROR' as const, message: result.message || 'Verification failed' };
+		} catch {
+			return { status: 'ERROR' as const, message: 'Something went wrong, please try again later' };
 		}
 	};
 
@@ -156,15 +136,10 @@ function SignUpForm({
 		setIsLoading(true);
 		setError('');
 		try {
-			const response = await fetch('/api/auth/pre-signup', {
-				method: 'POST',
-				body: JSON.stringify(data),
-			});
-
-			const resData = await response.json();
+			const resData = await preSignup(data.email, data.username);
 
 			if (resData.status === 'ERROR') {
-				setError(resData.message);
+				setError(resData.message ?? '');
 				return;
 			}
 
