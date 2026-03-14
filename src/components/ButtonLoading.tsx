@@ -1,5 +1,4 @@
 import { type VariantProps } from 'class-variance-authority';
-import { Loader2Icon } from 'lucide-react';
 
 import { Button, buttonVariants } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
