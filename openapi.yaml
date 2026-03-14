@@ -34,6 +34,12 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    PollPrivacyMode:
+      type: string
+      enum:
+        - public
+        - link-only
+        - invite-only
     Sort:
       type: object
       properties:
@@ -157,6 +163,12 @@ components:
               - author
               - text
               - createdAt
+        privacyMode:
+          type: string
+          enum:
+            - public
+            - link-only
+            - invite-only
       required:
         - id
         - title
@@ -257,6 +269,12 @@ components:
                     - author
                     - text
                     - createdAt
+              privacyMode:
+                type: string
+                enum:
+                  - public
+                  - link-only
+                  - invite-only
             required:
               - id
               - title
@@ -401,12 +419,23 @@ components:
           type: boolean
         anonymous:
           type: boolean
+        privacyMode:
+          type: string
+          enum:
+            - public
+            - link-only
+            - invite-only
+        invitedUsers:
+          type: array
+          items:
+            type: string
       required:
         - title
         - options
         - startTime
         - allowMultipleChoices
         - anonymous
+        - privacyMode
     CreateCommentRequest:
       type: object
       properties:
@@ -837,6 +866,12 @@ paths:
                               - author
                               - text
                               - createdAt
+                        privacyMode:
+                          type: string
+                          enum:
+                            - public
+                            - link-only
+                            - invite-only
                       required:
                         - id
                         - title
@@ -973,12 +1008,23 @@ paths:
                   type: boolean
                 anonymous:
                   type: boolean
+                privacyMode:
+                  type: string
+                  enum:
+                    - public
+                    - link-only
+                    - invite-only
+                invitedUsers:
+                  type: array
+                  items:
+                    type: string
               required:
                 - title
                 - options
                 - startTime
                 - allowMultipleChoices
                 - anonymous
+                - privacyMode
       responses:
         200:
           description: Creation result
@@ -1085,6 +1131,12 @@ paths:
                         - author
                         - text
                         - createdAt
+                  privacyMode:
+                    type: string
+                    enum:
+                      - public
+                      - link-only
+                      - invite-only
                 required:
                   - id
                   - title
@@ -1197,6 +1249,12 @@ paths:
                               - author
                               - text
                               - createdAt
+                        privacyMode:
+                          type: string
+                          enum:
+                            - public
+                            - link-only
+                            - invite-only
                       required:
                         - id
                         - title

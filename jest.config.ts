@@ -8,6 +8,7 @@ const config: Config = {
 	testEnvironment: 'jsdom',
 	setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
 	moduleNameMapper: {
+		'^@/(.*)$': '<rootDir>/src/$1',
 		'^@payload-config$': '<rootDir>/src/__mocks__/payload-config.ts',
 	},
 	testMatch: ['<rootDir>/src/**/__tests__/**/*.test.{ts,tsx}'],

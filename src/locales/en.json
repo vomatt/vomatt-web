@@ -123,6 +123,15 @@
 		"allowMultipleChoicesLabel": "Allow multiple choices",
 		"anonymousVotingLabel": "Anonymous voting",
 		"createPollLabel": "Create Poll",
-		"saveDraftLabel": "Save Draft"
+		"saveDraftLabel": "Save Draft",
+		"privacyLabel": "Visibility",
+		"privacyPublic": "Public",
+		"privacyLinkOnly": "Link only",
+		"privacyInviteOnly": "Invite only",
+		"privacyPublicHint": "Anyone can find and vote",
+		"privacyLinkOnlyHint": "Only people with the link can vote",
+		"privacyInviteOnlyHint": "Only invited users can vote — unregistered emails will receive an invitation",
+		"inviteUsersLabel": "Invite by username or email",
+		"inviteUsersPlaceholder": "Username or email — press Enter to add"
 	}
 }

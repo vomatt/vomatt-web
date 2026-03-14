@@ -71,6 +71,8 @@ export async function createPoll(data: PollCreatorData) {
 			endTime: data.endTime,
 			allowMultipleChoices: data.isAllowMultipleChoices,
 			anonymous: data.isAnonymous,
+			privacyMode: data.privacyMode,
+			...(data.privacyMode === 'invite-only' && { invitedUsers: data.invitedUsers }),
 		}),
 	});
 	const { success, errorCode, data: pollData } = response || {};

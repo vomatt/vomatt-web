@@ -33,6 +33,7 @@ import {
 	CreatePollRequestSchema,
 	PageableSchema,
 	PollPageSchema,
+	PollPrivacyModeSchema,
 	PollSchema,
 	SortSchema,
 } from '../src/schemas/poll';
@@ -44,6 +45,7 @@ import { UpdateProfileRequestSchema, UserProfileSchema } from '../src/schemas/us
 const registry = new OpenAPIRegistry();
 
 // Register named schemas
+registry.register('PollPrivacyMode', PollPrivacyModeSchema);
 registry.register('Sort', SortSchema);
 registry.register('Pageable', PageableSchema);
 registry.register('Poll', PollSchema);

@@ -118,6 +118,15 @@
 		"allowMultipleChoicesLabel": "允許多個選擇",
 		"anonymousVotingLabel": "匿名投票",
 		"createPollLabel": "建立投票",
-		"saveDraftLabel": "儲存草稿"
+		"saveDraftLabel": "儲存草稿",
+		"privacyLabel": "可見性",
+		"privacyPublic": "公開",
+		"privacyLinkOnly": "僅限連結",
+		"privacyInviteOnly": "僅限受邀者",
+		"privacyPublicHint": "任何人都能找到並投票",
+		"privacyLinkOnlyHint": "僅持有連結者可投票",
+		"privacyInviteOnlyHint": "僅受邀者可投票，未註冊的信箱將收到邀請信",
+		"inviteUsersLabel": "以使用者名稱或信箱邀請",
+		"inviteUsersPlaceholder": "使用者名稱或信箱 — 按 Enter 新增"
 	}
 }

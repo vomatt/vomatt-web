@@ -3,6 +3,8 @@ export interface PollCreateOption {
 	text: string;
 }
 
+export type PollPrivacyMode = 'public' | 'link-only' | 'invite-only';
+
 export interface PollCreatorData {
 	question: string;
 	description?: string;
@@ -11,6 +13,8 @@ export interface PollCreatorData {
 	endTime?: string;
 	isAllowMultipleChoices: boolean;
 	isAnonymous: boolean;
+	privacyMode: PollPrivacyMode;
+	invitedUsers?: string[];
 }
 
 export type PollOption = {
@@ -39,6 +43,7 @@ export type Poll = {
 	errorCode: string | null;
 	options: PollOption[];
 	comments?: Comment[];
+	privacyMode?: PollPrivacyMode;
 };
 
 interface Comment {

@@ -13,6 +13,8 @@ export const PollOptionSchema = z.object({
 	votes: z.number().int(),
 });
 
+export const PollPrivacyModeSchema = z.enum(['public', 'link-only', 'invite-only']);
+
 export const PollSchema = z.object({
 	id: z.string(),
 	title: z.string(),
@@ -32,6 +34,7 @@ export const PollSchema = z.object({
 	errorCode: z.string().nullable(),
 	options: z.array(PollOptionSchema),
 	comments: z.array(CommentSchema).optional(),
+	privacyMode: PollPrivacyModeSchema.optional(),
 });
 
 export const SortSchema = z.object({
@@ -82,6 +85,8 @@ export const CreatePollRequestSchema = z.object({
 	endTime: z.string().datetime({ offset: true }).nullable().optional(),
 	allowMultipleChoices: z.boolean(),
 	anonymous: z.boolean(),
+	privacyMode: PollPrivacyModeSchema,
+	invitedUsers: z.array(z.string()).optional(),
 });
 
 export const CreateCommentRequestSchema = z.object({
@@ -90,6 +95,7 @@ export const CreateCommentRequestSchema = z.object({
 
 export type Comment = z.infer<typeof CommentSchema>;
 export type PollOption = z.infer<typeof PollOptionSchema>;
+export type PollPrivacyMode = z.infer<typeof PollPrivacyModeSchema>;
 export type Poll = z.infer<typeof PollSchema>;
 export type Sort = z.infer<typeof SortSchema>;
 export type Pageable = z.infer<typeof PageableSchema>;
