@@ -1,14 +1,6 @@
 import { type ClassValue, clsx } from 'clsx';
 import type { NextRequest } from 'next/server';
-import {
-	FaFacebookF,
-	FaGithub,
-	FaInstagram,
-	FaLinkedin,
-	FaSpotify,
-	FaXTwitter,
-	FaYoutube,
-} from 'react-icons/fa6';
+import { Facebook, Github, Instagram, Linkedin, Spotify, XTwitter, Youtube } from '@/components/ui/icons';
 import { twMerge } from 'tailwind-merge';
 
 // ***UTILITIES / GET***
@@ -415,19 +407,19 @@ export function hasArrayValue(arr: any[] | undefined) {
 export function getIcon(icon: string) {
 	switch (icon) {
 		case 'facebook':
-			return FaFacebookF;
+			return Facebook;
 		case 'instagram':
-			return FaInstagram;
+			return Instagram;
 		case 'linkedin':
-			return FaLinkedin;
+			return Linkedin;
 		case 'spotify':
-			return FaSpotify;
+			return Spotify;
 		case 'x':
-			return FaXTwitter;
+			return XTwitter;
 		case 'youTube':
-			return FaYoutube;
+			return Youtube;
 		case 'github':
-			return FaGithub;
+			return Github;
 		default:
 			return null;
 	}

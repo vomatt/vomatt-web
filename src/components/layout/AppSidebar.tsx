@@ -1,13 +1,6 @@
 'use client';
 
-import {
-	Home,
-	LogOut,
-	PlusCircle,
-	Search,
-	TrendingUp,
-	User,
-} from 'lucide-react';
+import { Home, LogOut, PlusCircle, Search, TrendingUp, User } from '@/components/ui/icons';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 

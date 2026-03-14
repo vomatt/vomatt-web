@@ -1,4 +1,4 @@
-import { Plus } from 'lucide-react';
+import { Plus } from '@/components/ui/icons';
 import React, { ReactNode } from 'react';
 
 import { AdaSkip } from '@/components/layout/AdaSkip';

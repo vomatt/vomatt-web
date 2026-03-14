@@ -1,11 +1,5 @@
 'use client';
-import {
-	CirclePlus,
-	CircleUserIcon,
-	HomeIcon,
-	Search,
-	Star,
-} from 'lucide-react';
+import { CirclePlus, CircleUser, Home, Search, Star } from '@/components/ui/icons';
 import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -20,7 +14,7 @@ export function TabBar({ className }: TabBarProps) {
 		{
 			title: 'Home',
 			href: '/',
-			icon: <HomeIcon />,
+			icon: <Home />,
 		},
 		{
 			title: 'Explore',
@@ -40,7 +34,7 @@ export function TabBar({ className }: TabBarProps) {
 		{
 			title: 'Account',
 			href: '/account',
-			icon: <CircleUserIcon />,
+			icon: <CircleUser />,
 		},
 	];
 
