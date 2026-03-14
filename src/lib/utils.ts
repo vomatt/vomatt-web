@@ -1,6 +1,14 @@
 import { type ClassValue, clsx } from 'clsx';
 import type { NextRequest } from 'next/server';
-import { Facebook, Github, Instagram, Linkedin, Spotify, XTwitter, Youtube } from '@/components/ui/icons';
+import {
+	Facebook,
+	Github,
+	Instagram,
+	Linkedin,
+	Spotify,
+	XTwitter,
+	Youtube,
+} from '@/components/ui/SvgIcons';
 import { twMerge } from 'tailwind-merge';
 
 // ***UTILITIES / GET***

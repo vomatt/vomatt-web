@@ -2,7 +2,7 @@
 
 import { Slot } from '@radix-ui/react-slot';
 import { cva, VariantProps } from 'class-variance-authority';
-import { PanelLeft } from '@/components/ui/icons';
+import { PanelLeft } from '@/components/ui/SvgIcons';
 import * as React from 'react';
 
 import { Button } from '@/components/ui/Button';

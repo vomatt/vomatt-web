@@ -1,4 +1,4 @@
-import { Plus } from '@/components/ui/icons';
+import { Plus } from '@/components/ui/SvgIcons';
 import React, { ReactNode } from 'react';
 
 import { AdaSkip } from '@/components/layout/AdaSkip';

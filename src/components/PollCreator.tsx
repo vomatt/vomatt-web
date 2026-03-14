@@ -1,5 +1,5 @@
 'use client';
-import { Calendar, Plus, X } from '@/components/ui/icons';
+import { Calendar, Plus, X } from '@/components/ui/SvgIcons';
 import { ReactNode, useCallback, useEffect, useState } from 'react';
 
 import { ButtonLoading } from '@/components/ButtonLoading';
@@ -91,7 +91,10 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 	const removeInvitedUser = (value: string) =>
 		setInvitedUsers(invitedUsers.filter((u) => u !== value));
 	const handleInviteKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-		if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addInvitedUser(inviteInput); }
+		if (e.key === 'Enter' || e.key === ',') {
+			e.preventDefault();
+			addInvitedUser(inviteInput);
+		}
 		if (e.key === 'Backspace' && inviteInput === '' && invitedUsers.length > 0)
 			removeInvitedUser(invitedUsers[invitedUsers.length - 1]);
 	};
@@ -380,7 +383,9 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 								{t('pollCreator.privacyLabel')}
 							</Label>
 							<div className="flex gap-2">
-								{(['public', 'link-only', 'invite-only'] as PollPrivacyMode[]).map((mode) => (
+								{(
+									['public', 'link-only', 'invite-only'] as PollPrivacyMode[]
+								).map((mode) => (
 									<Button
 										key={mode}
 										type="button"
@@ -388,19 +393,23 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 										variant={privacyMode === mode ? 'default' : 'outline'}
 										onClick={() => setPrivacyMode(mode)}
 										className={cn(
-											privacyMode !== mode && 'border-border text-muted-foreground bg-transparent'
+											privacyMode !== mode &&
+												'border-border text-muted-foreground bg-transparent'
 										)}
 									>
 										{mode === 'public' && t('pollCreator.privacyPublic')}
 										{mode === 'link-only' && t('pollCreator.privacyLinkOnly')}
-										{mode === 'invite-only' && t('pollCreator.privacyInviteOnly')}
+										{mode === 'invite-only' &&
+											t('pollCreator.privacyInviteOnly')}
 									</Button>
 								))}
 							</div>
 							<p className="text-xs text-muted-foreground">
 								{privacyMode === 'public' && t('pollCreator.privacyPublicHint')}
-								{privacyMode === 'link-only' && t('pollCreator.privacyLinkOnlyHint')}
-								{privacyMode === 'invite-only' && t('pollCreator.privacyInviteOnlyHint')}
+								{privacyMode === 'link-only' &&
+									t('pollCreator.privacyLinkOnlyHint')}
+								{privacyMode === 'invite-only' &&
+									t('pollCreator.privacyInviteOnlyHint')}
 							</p>
 							{privacyMode === 'invite-only' && (
 								<div className="space-y-2">
@@ -427,7 +436,11 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 											value={inviteInput}
 											onChange={(e) => setInviteInput(e.target.value)}
 											onKeyDown={handleInviteKeyDown}
-											placeholder={invitedUsers.length === 0 ? t('pollCreator.inviteUsersPlaceholder') : ''}
+											placeholder={
+												invitedUsers.length === 0
+													? t('pollCreator.inviteUsersPlaceholder')
+													: ''
+											}
 											className="flex-1 min-w-[8rem] bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
 										/>
 									</div>

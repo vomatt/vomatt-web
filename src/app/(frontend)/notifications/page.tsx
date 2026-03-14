@@ -1,4 +1,4 @@
-import { Bell } from '@/components/ui/icons';
+import { Bell } from '@/components/ui/SvgIcons';
 
 export default function NotificationsPage() {
 	return (

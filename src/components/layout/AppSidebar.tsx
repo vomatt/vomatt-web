@@ -1,6 +1,13 @@
 'use client';
 
-import { Home, LogOut, PlusCircle, Search, TrendingUp, User } from '@/components/ui/icons';
+import {
+	Home,
+	LogOut,
+	PlusCircle,
+	Search,
+	TrendingUp,
+	User,
+} from '@/components/ui/SvgIcons';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 

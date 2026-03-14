@@ -1,7 +1,7 @@
 'use client';
 import { formatDistance } from 'date-fns';
 import { enUS } from 'date-fns/locale';
-import { Check, MessageSquare, Users } from '@/components/ui/icons';
+import { Check, MessageSquare, Users } from '@/components/ui/SvgIcons';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 

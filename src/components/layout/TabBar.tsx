@@ -1,5 +1,11 @@
 'use client';
-import { CirclePlus, CircleUser, Home, Search, Star } from '@/components/ui/icons';
+import {
+	CirclePlus,
+	CircleUser,
+	Home,
+	Search,
+	Star,
+} from '@/components/ui/SvgIcons';
 import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 
