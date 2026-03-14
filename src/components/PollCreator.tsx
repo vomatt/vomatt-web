@@ -1,5 +1,5 @@
 'use client';
-import { Calendar, Plus, X } from 'lucide-react';
+import { Calendar, Plus, X } from '@/components/ui/icons';
 import { ReactNode, useCallback, useEffect, useState } from 'react';
 
 import { ButtonLoading } from '@/components/ButtonLoading';

@@ -1,6 +1,6 @@
 import { formatDistance } from 'date-fns';
 import { enUS } from 'date-fns/locale';
-import { ArrowLeft, Share2, Users } from 'lucide-react';
+import { ArrowLeft, Share2, Users } from '@/components/ui/icons';
 import Link from 'next/link';
 
 import { mockPolls } from '@/lib/api/mock/polls';

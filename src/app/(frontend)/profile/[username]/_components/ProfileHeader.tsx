@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { User } from 'lucide-react';
+import { User } from '@/components/ui/icons';
 
 import { Card, CardContent } from '@/components/ui/Card';
 import { Separator } from '@/components/ui/Separator';

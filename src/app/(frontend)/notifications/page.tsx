@@ -1,4 +1,4 @@
-import { Bell } from 'lucide-react';
+import { Bell } from '@/components/ui/icons';
 
 export default function NotificationsPage() {
 	return (

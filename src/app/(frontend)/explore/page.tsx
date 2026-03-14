@@ -1,5 +1,5 @@
 'use client';
-import { Search } from 'lucide-react';
+import { Search } from '@/components/ui/icons';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 

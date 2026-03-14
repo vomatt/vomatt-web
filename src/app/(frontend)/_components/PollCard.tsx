@@ -1,7 +1,7 @@
 'use client';
 import { formatDistance } from 'date-fns';
 import { enUS } from 'date-fns/locale';
-import { Check, MessageSquare, Users } from 'lucide-react';
+import { Check, MessageSquare, Users } from '@/components/ui/icons';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
