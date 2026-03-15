@@ -238,51 +238,28 @@ function FieldError({
 function FieldStatus({
 	fieldState = {},
 	isFocused,
-	isShowErrorOnFocus = false,
 	className,
 }: {
 	fieldState?: any;
 	isFocused?: boolean;
-	isShowErrorOnFocus?: boolean;
 	className?: string;
 }) {
 	const showError = fieldState.invalid && !!fieldState.error;
 	const [isTooltipTriggered, setIsTooltipTriggered] = useState(false);
 
-	return isShowErrorOnFocus ? (
+	return (
 		<Tooltip open={(!!showError && isFocused) || isTooltipTriggered}>
 			<TooltipTrigger
-				className={cn('absolute top-0 right-2', className)}
-				asChild
-			>
-				{showError && (
-					<InformationCircleOutline
-						className="text-error h-5 w-5"
-						onMouseEnter={() => setIsTooltipTriggered(true)}
-						onMouseLeave={() => setIsTooltipTriggered(false)}
-					/>
+				className={cn(
+					'inline-block absolute bottom-0 -translate-y-4 right-2 text-error !size-5',
+					className
 				)}
-			</TooltipTrigger>
-			<TooltipContent
-				className="pointer-events-none"
-				align="end"
-				sideOffset={-2}
-			>
-				<p>{fieldState.error?.message}</p>
-			</TooltipContent>
-		</Tooltip>
-	) : (
-		<Tooltip open={isTooltipTriggered}>
-			<TooltipTrigger
-				className={cn('absolute top-1/2 right-2 -translate-y-1/2', className)}
 				asChild
 			>
 				{showError && (
 					<InformationCircleOutline
-						className="text-error h-5 w-5"
 						onMouseEnter={() => setIsTooltipTriggered(true)}
 						onMouseLeave={() => setIsTooltipTriggered(false)}
-						onClick={() => setIsTooltipTriggered((prev) => !prev)}
 					/>
 				)}
 			</TooltipTrigger>

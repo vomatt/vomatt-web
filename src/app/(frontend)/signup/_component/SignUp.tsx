@@ -253,26 +253,20 @@ function FormTextField({
 	const [isFocused, setIsFocused] = useState(false);
 	return (
 		<Field data-invalid={fieldState.invalid}>
-			<FieldContent>
-				<FieldLabel htmlFor={id}>{label}</FieldLabel>
-				<Input
-					{...field}
-					type="text"
-					id={id}
-					aria-invalid={fieldState.invalid}
-					autoComplete={autoComplete}
-					onFocus={() => setIsFocused(true)}
-					onBlur={() => {
-						field.onBlur();
-						setIsFocused(false);
-					}}
-				/>
-				<FieldStatus
-					fieldState={fieldState}
-					isFocused={isFocused}
-					isShowErrorOnFocus={true}
-				/>
-			</FieldContent>
+			<FieldLabel htmlFor={id}>{label}</FieldLabel>
+			<Input
+				{...field}
+				type="text"
+				id={id}
+				aria-invalid={fieldState.invalid}
+				autoComplete={autoComplete}
+				onFocus={() => setIsFocused(true)}
+				onBlur={() => {
+					field.onBlur();
+					setIsFocused(false);
+				}}
+			/>
+			<FieldStatus fieldState={fieldState} isFocused={isFocused} />
 		</Field>
 	);
 }
