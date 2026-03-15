@@ -16,13 +16,16 @@ function PollRow({ poll }: { poll: Poll }) {
 		<div className="group flex items-start justify-between gap-4 p-4 rounded-xl border border-border/60 bg-card hover:border-border hover:shadow-[0_4px_16px_rgba(0,0,0,0.2)] transition-all duration-200">
 			<div className="flex-1 min-w-0">
 				<Link href={`/poll/${poll.id}`}>
-					<p className="font-display text-lg leading-snug text-foreground group-hover:text-foreground/80 transition-colors truncate">
+					<p className="text-lg leading-snug text-foreground group-hover:text-foreground/80 transition-colors truncate">
 						{poll.title}
 					</p>
 				</Link>
-				<p className="font-data text-xs text-muted-foreground mt-1.5 tabular-nums">
+				<p className="text-xs text-muted-foreground mt-1.5 tabular-nums">
 					{poll.totalVotes.toLocaleString()} votes ·{' '}
-					{formatDistance(new Date(poll.createdAt), new Date(), { locale: enUS })} ago
+					{formatDistance(new Date(poll.createdAt), new Date(), {
+						locale: enUS,
+					})}{' '}
+					ago
 				</p>
 			</div>
 			<div className="flex items-center gap-2 shrink-0">
@@ -64,7 +67,9 @@ export default function MyPollsTabs({ polls }: { polls: Poll[] }) {
 			{(['active', 'drafts', 'ended'] as Tab[]).map((tab) => (
 				<TabsContent key={tab} value={tab} className="space-y-3">
 					{tabContent[tab].length === 0 ? (
-						<p className="text-muted-foreground text-center py-8">No polls here yet.</p>
+						<p className="text-muted-foreground text-center py-8">
+							No polls here yet.
+						</p>
 					) : (
 						tabContent[tab].map((poll) => <PollRow key={poll.id} poll={poll} />)
 					)}

@@ -3,6 +3,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import NextLink from 'next/link';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import type {
+	ControllerFieldState,
+	ControllerRenderProps,
+} from 'react-hook-form';
 import { z } from 'zod';
 
 import AuthContainer from '@/components/auth/AuthContainer';
@@ -11,9 +15,10 @@ import { ButtonLoading } from '@/components/ButtonLoading';
 import { RichText } from '@payloadcms/richtext-lexical/react';
 import {
 	Field,
-	FieldError,
 	FieldGroup,
 	FieldLabel,
+	FieldContent,
+	FieldStatus,
 } from '@/components/ui/Field';
 import { Input } from '@/components/ui/Input';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -71,17 +76,19 @@ export default function SignUp({ signUpInfoData }: SignUpType) {
 		setCurrentStep(value);
 	};
 
-	const onSetFormData = (value: typeof defaultValues) => {
-		setFormData(value);
-	};
-
 	const onSubmitSignUp = async (pin: string) => {
 		try {
 			const result = await signup({ ...formData, verificationCode: pin });
 			if (result.status === 'SUCCESS') return { status: 'OK' as const };
-			return { status: 'ERROR' as const, message: result.message || 'Verification failed' };
+			return {
+				status: 'ERROR' as const,
+				message: result.message || 'Verification failed',
+			};
 		} catch {
-			return { status: 'ERROR' as const, message: 'Something went wrong, please try again later' };
+			return {
+				status: 'ERROR' as const,
+				message: 'Something went wrong, please try again later',
+			};
 		}
 	};
 
@@ -89,7 +96,7 @@ export default function SignUp({ signUpInfoData }: SignUpType) {
 		STATUS_SIGN_UP: (
 			<SignUpForm
 				onSetCurrentStep={onSetCurrentStep}
-				onSetFormData={onSetFormData}
+				onSetFormData={setFormData}
 				signUpInfoData={signUpInfoData}
 			/>
 		),
@@ -121,7 +128,7 @@ function SignUpForm({
 	onSetFormData,
 }: SignUpFormType) {
 	const { t } = useLanguage();
-	const [value, setValue, removeValue] = useSessionStorage('login-email', '');
+	const [value] = useSessionStorage('login-email', '');
 
 	const { policyMessage } = signUpInfoData || {};
 	const [error, setError] = useState('');
@@ -160,87 +167,52 @@ function SignUpForm({
 					<Controller
 						name="email"
 						control={form.control}
-						render={({ field, fieldState }) => {
-							return (
-								<Field data-invalid={fieldState.invalid}>
-									<FieldLabel htmlFor="signUpEmail">
-										{t('common.email')}
-									</FieldLabel>
-									<Input
-										{...field}
-										type="text"
-										id="signUpEmail"
-										aria-invalid={fieldState.invalid}
-									/>
-
-									{fieldState.invalid && (
-										<FieldError>{t(`${fieldState.error?.message}`)}</FieldError>
-									)}
-								</Field>
-							);
-						}}
+						render={({ field, fieldState }) => (
+							<FormTextField
+								field={field}
+								fieldState={fieldState}
+								id="signUpEmail"
+								label={t('common.email')}
+							/>
+						)}
 					/>
 					<Controller
 						name="firstName"
 						control={form.control}
 						render={({ field, fieldState }) => (
-							<Field data-invalid={fieldState.invalid}>
-								<FieldLabel htmlFor="signUpFirstName">
-									{t('common.firstName')}
-								</FieldLabel>
-								<Input
-									{...field}
-									type="text"
-									id="signUpFirstName"
-									aria-invalid={fieldState.invalid}
-									autoComplete="off"
-								/>
-								{fieldState.invalid && (
-									<FieldError>{t(`${fieldState.error?.message}`)}</FieldError>
-								)}
-							</Field>
+							<FormTextField
+								field={field}
+								fieldState={fieldState}
+								id="signUpFirstName"
+								label={t('common.firstName')}
+								autoComplete="off"
+							/>
 						)}
 					/>
 					<Controller
 						name="lastName"
 						control={form.control}
 						render={({ field, fieldState }) => (
-							<Field data-invalid={fieldState.invalid}>
-								<FieldLabel htmlFor="signUpLastName">
-									{t('common.lastName')}
-								</FieldLabel>
-								<Input
-									{...field}
-									type="text"
-									id="signUpLastName"
-									aria-invalid={fieldState.invalid}
-									autoComplete="off"
-								/>
-								{fieldState.invalid && (
-									<FieldError>{t(`${fieldState.error?.message}`)}</FieldError>
-								)}
-							</Field>
+							<FormTextField
+								field={field}
+								fieldState={fieldState}
+								id="signUpLastName"
+								label={t('common.lastName')}
+								autoComplete="off"
+							/>
 						)}
 					/>
 					<Controller
 						control={form.control}
 						name="username"
 						render={({ field, fieldState }) => (
-							<Field data-invalid={fieldState.invalid}>
-								<FieldLabel htmlFor="signUpUsername">
-									{t('common.username')}
-								</FieldLabel>
-								<Input
-									{...field}
-									type="text"
-									id="signUpUsername"
-									aria-invalid={fieldState.invalid}
-									autoComplete="off"
-								/>
-								{fieldState.invalid && (
-									<FieldError>{t(`${fieldState.error?.message}`)}</FieldError>
-								)}
-							</Field>
+							<FormTextField
+								field={field}
+								fieldState={fieldState}
+								id="signUpUsername"
+								label={t('common.username')}
+								autoComplete="off"
+							/>
 						)}
 					/>
 				</FieldGroup>
@@ -262,5 +234,45 @@ function SignUpForm({
 				</NextLink>
 			</div>
 		</>
+	);
+}
+
+function FormTextField({
+	field,
+	fieldState,
+	id,
+	label,
+	autoComplete,
+}: {
+	field: ControllerRenderProps<z.infer<typeof formSchema>>;
+	fieldState: ControllerFieldState;
+	id: string;
+	label: string;
+	autoComplete?: string;
+}) {
+	const [isFocused, setIsFocused] = useState(false);
+	return (
+		<Field data-invalid={fieldState.invalid}>
+			<FieldContent>
+				<FieldLabel htmlFor={id}>{label}</FieldLabel>
+				<Input
+					{...field}
+					type="text"
+					id={id}
+					aria-invalid={fieldState.invalid}
+					autoComplete={autoComplete}
+					onFocus={() => setIsFocused(true)}
+					onBlur={() => {
+						field.onBlur();
+						setIsFocused(false);
+					}}
+				/>
+				<FieldStatus
+					fieldState={fieldState}
+					isFocused={isFocused}
+					isShowErrorOnFocus={true}
+				/>
+			</FieldContent>
+		</Field>
 	);
 }

@@ -1,11 +1,16 @@
 'use client';
 
 import { cva, type VariantProps } from 'class-variance-authority';
-import { useMemo } from 'react';
-
+import { useMemo, useState } from 'react';
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from '@/components/ui/Tooltip';
 import { Label } from '@/components/ui/Label';
 import { Separator } from '@/components/ui/Separator';
 import { cn } from '@/lib/utils';
+import { InformationCircleOutline } from '@/components/ui/SvgIcons';
 
 function FieldSet({ className, ...props }: React.ComponentProps<'fieldset'>) {
 	return (
@@ -55,7 +60,7 @@ function FieldGroup({ className, ...props }: React.ComponentProps<'div'>) {
 }
 
 const fieldVariants = cva(
-	'group/field flex w-full gap-3 data-[invalid=true]:text-destructive',
+	'relative group/field flex w-full gap-3 data-[invalid=true]:text-destructive',
 	{
 		variants: {
 			orientation: {
@@ -99,7 +104,7 @@ function FieldContent({ className, ...props }: React.ComponentProps<'div'>) {
 		<div
 			data-slot="field-content"
 			className={cn(
-				'group/field-content flex flex-1 flex-col gap-1.5 leading-snug',
+				'group/field-content flex flex-1 flex-col gap-1.5 leading-snug relative',
 				className
 			)}
 			{...props}
@@ -230,6 +235,68 @@ function FieldError({
 	);
 }
 
+function FieldStatus({
+	fieldState = {},
+	isFocused,
+	isShowErrorOnFocus = false,
+	className,
+}: {
+	fieldState?: any;
+	isFocused?: boolean;
+	isShowErrorOnFocus?: boolean;
+	className?: string;
+}) {
+	const showError = fieldState.invalid && !!fieldState.error;
+	const [isTooltipTriggered, setIsTooltipTriggered] = useState(false);
+
+	return isShowErrorOnFocus ? (
+		<Tooltip open={(!!showError && isFocused) || isTooltipTriggered}>
+			<TooltipTrigger
+				className={cn('absolute top-0 right-2', className)}
+				asChild
+			>
+				{showError && (
+					<InformationCircleOutline
+						className="text-error h-5 w-5"
+						onMouseEnter={() => setIsTooltipTriggered(true)}
+						onMouseLeave={() => setIsTooltipTriggered(false)}
+					/>
+				)}
+			</TooltipTrigger>
+			<TooltipContent
+				className="pointer-events-none"
+				align="end"
+				sideOffset={-2}
+			>
+				<p>{fieldState.error?.message}</p>
+			</TooltipContent>
+		</Tooltip>
+	) : (
+		<Tooltip open={isTooltipTriggered}>
+			<TooltipTrigger
+				className={cn('absolute top-1/2 right-2 -translate-y-1/2', className)}
+				asChild
+			>
+				{showError && (
+					<InformationCircleOutline
+						className="text-error h-5 w-5"
+						onMouseEnter={() => setIsTooltipTriggered(true)}
+						onMouseLeave={() => setIsTooltipTriggered(false)}
+						onClick={() => setIsTooltipTriggered((prev) => !prev)}
+					/>
+				)}
+			</TooltipTrigger>
+			<TooltipContent
+				className="pointer-events-none"
+				align="end"
+				sideOffset={-2}
+			>
+				<p>{fieldState.error?.message}</p>
+			</TooltipContent>
+		</Tooltip>
+	);
+}
+
 export {
 	Field,
 	FieldContent,
@@ -240,5 +307,6 @@ export {
 	FieldLegend,
 	FieldSeparator,
 	FieldSet,
+	FieldStatus,
 	FieldTitle,
 };

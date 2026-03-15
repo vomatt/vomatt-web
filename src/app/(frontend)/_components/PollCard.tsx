@@ -165,7 +165,7 @@ export const PollCard = ({ pollData }: PollCardProps) => {
 				{/* Poll question */}
 				<div>
 					<Link href={`/poll/${pollId}`}>
-						<h3 className="font-display text-2xl leading-snug text-foreground hover:text-foreground/80 transition-colors">
+						<h3 className="text-2xl leading-snug text-foreground hover:text-foreground/80 transition-colors">
 							{title}
 						</h3>
 					</Link>
@@ -242,7 +242,7 @@ export const PollCard = ({ pollData }: PollCardProps) => {
 									</div>
 									<span
 										className={cn(
-											'font-data text-sm tabular-nums font-medium',
+											'text-sm tabular-nums font-medium',
 											isSelected ? 'text-amber-400' : 'text-muted-foreground'
 										)}
 									>
@@ -258,9 +258,7 @@ export const PollCard = ({ pollData }: PollCardProps) => {
 				{hasVoted && (
 					<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
 						<Users className="w-3.5 h-3.5" />
-						<span className="font-data tabular-nums">
-							{totalVotes.toLocaleString()}
-						</span>
+						<span className="tabular-nums">{totalVotes.toLocaleString()}</span>
 						<span>votes cast</span>
 					</div>
 				)}

@@ -1,7 +1,6 @@
 import '@/styles/global.css';
 
 import clsx from 'clsx';
-import { DM_Mono, Geist, Geist_Mono, Instrument_Serif } from 'next/font/google';
 import { cookies, headers } from 'next/headers';
 import { getPayload } from 'payload';
 import React, { ReactNode } from 'react';
@@ -12,29 +11,6 @@ import BrandLogo from '@/components/BrandLogo';
 import { Layout } from '@/components/layout';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { buildMediaUrl } from '@/lib/defineMetadata';
-
-const geistSans = Geist({
-	variable: '--font-geist-sans',
-	subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-	variable: '--font-geist-mono',
-	subsets: ['latin'],
-});
-
-const instrumentSerif = Instrument_Serif({
-	variable: '--font-instrument-serif',
-	subsets: ['latin'],
-	weight: '400',
-	style: ['normal', 'italic'],
-});
-
-const dmMono = DM_Mono({
-	variable: '--font-dm-mono',
-	subsets: ['latin'],
-	weight: ['300', '400', '500'],
-});
 
 async function getServerLanguage(): Promise<string> {
 	try {
@@ -58,10 +34,22 @@ export async function generateMetadata() {
 	const settings = await payload.findGlobal({ slug: 'settings-general' });
 
 	const siteTitle = settings.siteTitle ?? '';
-	const favicon = settings.favicon as { url?: string | null; filename?: string | null } | null | undefined;
-	const faviconLight = settings.faviconLight as { url?: string | null; filename?: string | null } | null | undefined;
-	const shareGraphic = settings.shareGraphic as { url?: string | null; filename?: string | null } | null | undefined;
-	const shareVideo = settings.shareVideo as { url?: string | null; filename?: string | null } | null | undefined;
+	const favicon = settings.favicon as
+		| { url?: string | null; filename?: string | null }
+		| null
+		| undefined;
+	const faviconLight = settings.faviconLight as
+		| { url?: string | null; filename?: string | null }
+		| null
+		| undefined;
+	const shareGraphic = settings.shareGraphic as
+		| { url?: string | null; filename?: string | null }
+		| null
+		| undefined;
+	const shareVideo = settings.shareVideo as
+		| { url?: string | null; filename?: string | null }
+		| null
+		| undefined;
 
 	const siteFaviconUrl = buildMediaUrl(favicon) ?? '/favicon.ico';
 	const siteFaviconLightUrl = buildMediaUrl(faviconLight) ?? siteFaviconUrl;
@@ -107,11 +95,8 @@ export default async function RootLayout({
 	const serverLanguage = await getServerLanguage();
 
 	return (
-		<html
-			lang={serverLanguage}
-			className={clsx('dark', geistSans.variable, geistMono.variable, instrumentSerif.variable, dmMono.variable)}
-		>
-			<body className="text-foreground font-sans">
+		<html lang={serverLanguage} className={clsx('dark')}>
+			<body className="text-foreground font-family-system">
 				{process.env.NODE_ENV === 'production' ? (
 					<div className="h-screen flex flex-col justify-center items-center gap-5">
 						<div className="md:w-40 text-secondary-foreground w-28">

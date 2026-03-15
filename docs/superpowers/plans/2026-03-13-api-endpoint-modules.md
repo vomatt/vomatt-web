@@ -13,6 +13,7 @@
 ## File Map
 
 **Create:**
+
 - `src/lib/api/mock/polls.ts` — mock data (moved from route handler folder)
 - `src/lib/api/endpoints/polls.ts` — all poll functions + Server Actions
 - `src/lib/api/endpoints/auth.ts` — auth Server Actions (login, signup, preSignup, getVerifyCode)
@@ -20,6 +21,7 @@
 - `src/app/(frontend)/my-polls/_components/MyPollsTabs.tsx` — client tab UI (split from page)
 
 **Modify:**
+
 - `src/app/(frontend)/login/_component/LogIn.tsx`
 - `src/app/(frontend)/signup/_component/SignUp.tsx`
 - `src/app/(frontend)/_components/PollCard.tsx`
@@ -29,6 +31,7 @@
 - `src/app/(frontend)/page.tsx` — update import
 
 **Delete:**
+
 - `src/app/api/auth/login/route.ts`
 - `src/app/api/auth/login/getVerifyCode.ts`
 - `src/app/api/auth/signup/route.ts`
@@ -52,6 +55,7 @@
 ### Task 1: Move mock data to lib
 
 **Files:**
+
 - Create: `src/lib/api/mock/polls.ts`
 
 - [ ] **Step 1: Create `src/lib/api/mock/polls.ts`**
@@ -62,7 +66,8 @@ Copy verbatim from `src/app/api/get-polls/mockData.ts` — only the import path 
 import { Poll } from '@/types/poll';
 
 const now = new Date();
-const ago = (minutes: number) => new Date(now.getTime() - minutes * 60 * 1000).toISOString();
+const ago = (minutes: number) =>
+	new Date(now.getTime() - minutes * 60 * 1000).toISOString();
 
 export const mockPolls: Poll[] = [
 	{
@@ -90,8 +95,18 @@ export const mockPolls: Poll[] = [
 			{ id: 'opt-1-4', text: 'Python', votes: 11 },
 		],
 		comments: [
-			{ id: 'c-1-1', author: 'sarah_k', text: 'TypeScript is already our frontend stack, makes sense to unify.', createdAt: ago(10) },
-			{ id: 'c-1-2', author: 'mike_infra', text: 'Go performs really well for services that need low latency.', createdAt: ago(5) },
+			{
+				id: 'c-1-1',
+				author: 'sarah_k',
+				text: 'TypeScript is already our frontend stack, makes sense to unify.',
+				createdAt: ago(10),
+			},
+			{
+				id: 'c-1-2',
+				author: 'mike_infra',
+				text: 'Go performs really well for services that need low latency.',
+				createdAt: ago(5),
+			},
 		],
 	},
 	{
@@ -121,7 +136,8 @@ export const mockPolls: Poll[] = [
 	{
 		id: 'mock-3',
 		title: 'Should we switch our daily standup to async?',
-		description: 'With the team spanning multiple timezones, a text-based async standup via Slack might work better than a live call.',
+		description:
+			'With the team spanning multiple timezones, a text-based async standup via Slack might work better than a live call.',
 		active: true,
 		votingActive: true,
 		allowMultipleChoices: false,
@@ -141,13 +157,19 @@ export const mockPolls: Poll[] = [
 			{ id: 'opt-3-3', text: 'Hybrid — async with optional call', votes: 8 },
 		],
 		comments: [
-			{ id: 'c-3-1', author: 'lin_design', text: 'Async works great for our Berlin team members.', createdAt: ago(100) },
+			{
+				id: 'c-3-1',
+				author: 'lin_design',
+				text: 'Async works great for our Berlin team members.',
+				createdAt: ago(100),
+			},
 		],
 	},
 	{
 		id: 'mock-4',
 		title: 'What should the theme of our next team offsite be?',
-		description: "We have budget approved for a 2-day offsite. Vote for the theme you'd enjoy most.",
+		description:
+			"We have budget approved for a 2-day offsite. Vote for the theme you'd enjoy most.",
 		active: true,
 		votingActive: true,
 		allowMultipleChoices: true,
@@ -168,9 +190,24 @@ export const mockPolls: Poll[] = [
 			{ id: 'opt-4-4', text: 'Workshop & skill sharing', votes: 25 },
 		],
 		comments: [
-			{ id: 'c-4-1', author: 'tom_fe', text: 'Hackathon all the way! We build great things under pressure.', createdAt: ago(280) },
-			{ id: 'c-4-2', author: 'priya_pm', text: 'Would be great to combine hackathon with some planning sessions.', createdAt: ago(250) },
-			{ id: 'c-4-3', author: 'alex_dev', text: 'Outdoor activities really help with bonding, especially for new members.', createdAt: ago(180) },
+			{
+				id: 'c-4-1',
+				author: 'tom_fe',
+				text: 'Hackathon all the way! We build great things under pressure.',
+				createdAt: ago(280),
+			},
+			{
+				id: 'c-4-2',
+				author: 'priya_pm',
+				text: 'Would be great to combine hackathon with some planning sessions.',
+				createdAt: ago(250),
+			},
+			{
+				id: 'c-4-3',
+				author: 'alex_dev',
+				text: 'Outdoor activities really help with bonding, especially for new members.',
+				createdAt: ago(180),
+			},
 		],
 	},
 	{
@@ -227,6 +264,7 @@ export const mockPollsPage = {
 ```bash
 npx tsc --noEmit
 ```
+
 Expected: No errors
 
 - [ ] **Step 3: Commit**
@@ -241,6 +279,7 @@ git commit -m "feat: move poll mock data to lib/api/mock/polls.ts"
 ### Task 2: Create polls endpoint module
 
 **Files:**
+
 - Create: `src/lib/api/endpoints/polls.ts`
 
 - [ ] **Step 1: Create `src/lib/api/endpoints/polls.ts`**
@@ -296,7 +335,11 @@ export async function searchPolls({
 					p.description?.toLowerCase().includes(lower)
 			)
 		: mockPolls;
-	return { ...mockPollsPage, content: filtered, totalElements: filtered.length };
+	return {
+		...mockPollsPage,
+		content: filtered,
+		totalElements: filtered.length,
+	};
 }
 
 export async function getMyPolls() {
@@ -327,7 +370,9 @@ export async function createPoll(data: PollCreatorData) {
 }
 
 export async function vote(pollId: string, optionId: string) {
-	return apiClient(`/api/v1/votes/${pollId}/options/${optionId}`, { method: 'POST' });
+	return apiClient(`/api/v1/votes/${pollId}/options/${optionId}`, {
+		method: 'POST',
+	});
 }
 
 export async function getComments(pollId: string) {
@@ -347,6 +392,7 @@ export async function postComment(pollId: string, text: string) {
 ```bash
 npx tsc --noEmit
 ```
+
 Expected: No errors
 
 - [ ] **Step 3: Commit**
@@ -361,6 +407,7 @@ git commit -m "feat: add polls endpoint module with Server Actions"
 ### Task 3: Create auth endpoint module
 
 **Files:**
+
 - Create: `src/lib/api/endpoints/auth.ts`
 
 - [ ] **Step 1: Create `src/lib/api/endpoints/auth.ts`**
@@ -416,7 +463,10 @@ export async function preSignup(email: string, username: string) {
 		if (success) return { status: 'SUCCESS' as const };
 		return { status: 'ERROR' as const, message };
 	} catch {
-		return { status: 'ERROR' as const, message: 'Something went wrong, please try again later' };
+		return {
+			status: 'ERROR' as const,
+			message: 'Something went wrong, please try again later',
+		};
 	}
 }
 
@@ -441,7 +491,10 @@ export async function signup(data: {
 		}
 		return { status: 'ERROR' as const, message: errorCode };
 	} catch {
-		return { status: 'ERROR' as const, message: 'Something went wrong, please try again later' };
+		return {
+			status: 'ERROR' as const,
+			message: 'Something went wrong, please try again later',
+		};
 	}
 }
 ```
@@ -451,6 +504,7 @@ export async function signup(data: {
 ```bash
 npx tsc --noEmit
 ```
+
 Expected: No errors
 
 - [ ] **Step 3: Commit**
@@ -465,6 +519,7 @@ git commit -m "feat: add auth endpoint module with Server Actions"
 ### Task 4: Create users endpoint module
 
 **Files:**
+
 - Create: `src/lib/api/endpoints/users.ts`
 
 - [ ] **Step 1: Create `src/lib/api/endpoints/users.ts`**
@@ -474,7 +529,10 @@ git commit -m "feat: add auth endpoint module with Server Actions"
 
 import { apiClient } from '@/lib/api/client';
 
-export async function updateProfile(data: { displayName?: string; bio?: string }) {
+export async function updateProfile(data: {
+	displayName?: string;
+	bio?: string;
+}) {
 	return apiClient('/api/v1/users/me', {
 		method: 'PATCH',
 		body: JSON.stringify(data),
@@ -487,6 +545,7 @@ export async function updateProfile(data: { displayName?: string; bio?: string }
 ```bash
 npx tsc --noEmit
 ```
+
 Expected: No errors
 
 - [ ] **Step 3: Commit**
@@ -503,15 +562,19 @@ git commit -m "feat: add users endpoint module with Server Actions"
 ### Task 5: Update LogIn.tsx
 
 **Files:**
+
 - Modify: `src/app/(frontend)/login/_component/LogIn.tsx`
 
 - [ ] **Step 1: Replace import**
 
 Replace:
+
 ```ts
 import { getVerifyCode } from '@/app/api/auth/login/getVerifyCode';
 ```
+
 With:
+
 ```ts
 import { getVerifyCode, login } from '@/lib/api/endpoints/auth';
 ```
@@ -519,6 +582,7 @@ import { getVerifyCode, login } from '@/lib/api/endpoints/auth';
 - [ ] **Step 2: Replace `onSubmitLogin` body**
 
 Replace the entire `onSubmitLogin` function:
+
 ```ts
 const onSubmitLogin = async (pin: string) => {
 	const bodyData = {
@@ -551,15 +615,23 @@ const onSubmitLogin = async (pin: string) => {
 	}
 };
 ```
+
 With:
+
 ```ts
 const onSubmitLogin = async (pin: string) => {
 	try {
 		const result = await login(email, pin);
 		if (result.status === 'SUCCESS') return { status: 'OK' as const };
-		return { status: 'ERROR' as const, message: result.message || 'Login failed' };
+		return {
+			status: 'ERROR' as const,
+			message: result.message || 'Login failed',
+		};
 	} catch {
-		return { status: 'ERROR' as const, message: 'Something went wrong, please try again later' };
+		return {
+			status: 'ERROR' as const,
+			message: 'Something went wrong, please try again later',
+		};
 	}
 };
 ```
@@ -569,6 +641,7 @@ const onSubmitLogin = async (pin: string) => {
 ```bash
 npx tsc --noEmit
 ```
+
 Expected: No errors
 
 - [ ] **Step 4: Commit**
@@ -583,11 +656,13 @@ git commit -m "feat: replace login fetch with Server Action"
 ### Task 6: Update SignUp.tsx
 
 **Files:**
+
 - Modify: `src/app/(frontend)/signup/_component/SignUp.tsx`
 
 - [ ] **Step 1: Add import at top of file**
 
 Add after existing imports:
+
 ```ts
 import { preSignup, signup } from '@/lib/api/endpoints/auth';
 ```
@@ -595,6 +670,7 @@ import { preSignup, signup } from '@/lib/api/endpoints/auth';
 - [ ] **Step 2: Replace `onSubmitSignUp` body**
 
 Replace the entire `onSubmitSignUp` function:
+
 ```ts
 const onSubmitSignUp = async (pin: string) => {
 	const bodyData = {
@@ -627,15 +703,23 @@ const onSubmitSignUp = async (pin: string) => {
 	}
 };
 ```
+
 With:
+
 ```ts
 const onSubmitSignUp = async (pin: string) => {
 	try {
 		const result = await signup({ ...formData, verificationCode: pin });
 		if (result.status === 'SUCCESS') return { status: 'OK' as const };
-		return { status: 'ERROR' as const, message: result.message || 'Verification failed' };
+		return {
+			status: 'ERROR' as const,
+			message: result.message || 'Verification failed',
+		};
 	} catch {
-		return { status: 'ERROR' as const, message: 'Something went wrong, please try again later' };
+		return {
+			status: 'ERROR' as const,
+			message: 'Something went wrong, please try again later',
+		};
 	}
 };
 ```
@@ -643,6 +727,7 @@ const onSubmitSignUp = async (pin: string) => {
 - [ ] **Step 3: Replace pre-signup fetch in `onSubmit`**
 
 Replace:
+
 ```ts
 const response = await fetch('/api/auth/pre-signup', {
 	method: 'POST',
@@ -656,7 +741,9 @@ if (resData.status === 'ERROR') {
 	return;
 }
 ```
+
 With:
+
 ```ts
 const resData = await preSignup(data.email, data.username);
 
@@ -671,6 +758,7 @@ if (resData.status === 'ERROR') {
 ```bash
 npx tsc --noEmit
 ```
+
 Expected: No errors
 
 - [ ] **Step 5: Commit**
@@ -685,11 +773,13 @@ git commit -m "feat: replace signup fetch calls with Server Actions"
 ### Task 7: Update PollCard.tsx
 
 **Files:**
+
 - Modify: `src/app/(frontend)/_components/PollCard.tsx`
 
 - [ ] **Step 1: Add import**
 
 Add after existing imports:
+
 ```ts
 import { vote as castVote, postComment } from '@/lib/api/endpoints/polls';
 ```
@@ -697,6 +787,7 @@ import { vote as castVote, postComment } from '@/lib/api/endpoints/polls';
 - [ ] **Step 2: Replace `handleVote` fetch**
 
 Replace:
+
 ```ts
 await fetch('/api/vote', {
 	method: 'POST',
@@ -704,7 +795,9 @@ await fetch('/api/vote', {
 	body: JSON.stringify({ pollId, optionId }),
 });
 ```
+
 With:
+
 ```ts
 await castVote(pollId, optionId);
 ```
@@ -712,6 +805,7 @@ await castVote(pollId, optionId);
 - [ ] **Step 3: Replace `handleComment` fetch**
 
 Replace:
+
 ```ts
 await fetch('/api/comment', {
 	method: 'POST',
@@ -719,7 +813,9 @@ await fetch('/api/comment', {
 	body: JSON.stringify({ pollId, text }),
 });
 ```
+
 With:
+
 ```ts
 await postComment(pollId, text);
 ```
@@ -729,6 +825,7 @@ await postComment(pollId, text);
 ```bash
 npx tsc --noEmit
 ```
+
 Expected: No errors
 
 - [ ] **Step 5: Commit**
@@ -743,11 +840,13 @@ git commit -m "feat: replace vote/comment fetches with Server Actions"
 ### Task 8: Update PollCreator.tsx
 
 **Files:**
+
 - Modify: `src/components/PollCreator.tsx`
 
 - [ ] **Step 1: Add import**
 
 Add after existing imports:
+
 ```ts
 import { createPoll } from '@/lib/api/endpoints/polls';
 ```
@@ -755,6 +854,7 @@ import { createPoll } from '@/lib/api/endpoints/polls';
 - [ ] **Step 2: Replace `handleCreatePoll` fetch**
 
 Replace:
+
 ```ts
 const response = await fetch('/api/create-poll', {
 	method: 'POST',
@@ -771,7 +871,9 @@ if (data?.status === 'SUCCESS') {
 
 setError(data?.message);
 ```
+
 With:
+
 ```ts
 const data = await createPoll(body);
 
@@ -789,6 +891,7 @@ setError(data?.message ?? 'error');
 In `handleSaveDraft`, remove the entire second `try` block that calls `/api/save-draft` (the localStorage block above it already handles persistence):
 
 Remove:
+
 ```ts
 try {
 	await fetch('/api/save-draft', {
@@ -806,6 +909,7 @@ try {
 ```bash
 npx tsc --noEmit
 ```
+
 Expected: No errors
 
 - [ ] **Step 5: Commit**
@@ -820,11 +924,13 @@ git commit -m "feat: replace create-poll fetch with Server Action, drop save-dra
 ### Task 9: Update EditProfileSheet.tsx
 
 **Files:**
+
 - Modify: `src/app/(frontend)/profile/[username]/_components/EditProfileSheet.tsx`
 
 - [ ] **Step 1: Add import**
 
 Add after existing imports:
+
 ```ts
 import { updateProfile } from '@/lib/api/endpoints/users';
 ```
@@ -832,6 +938,7 @@ import { updateProfile } from '@/lib/api/endpoints/users';
 - [ ] **Step 2: Replace `handleSubmit` body**
 
 Replace:
+
 ```ts
 const res = await fetch('/api/user/profile', {
 	method: 'PATCH',
@@ -842,7 +949,9 @@ if (!res.ok) throw new Error('Failed to save');
 toast.success('Profile updated');
 setOpen(false);
 ```
+
 With:
+
 ```ts
 await updateProfile({ displayName, bio });
 toast.success('Profile updated');
@@ -854,6 +963,7 @@ setOpen(false);
 ```bash
 npx tsc --noEmit
 ```
+
 Expected: No errors
 
 - [ ] **Step 4: Commit**
@@ -868,6 +978,7 @@ git commit -m "feat: replace profile update fetch with Server Action"
 ### Task 10: Convert my-polls page to Server Component
 
 **Files:**
+
 - Create: `src/app/(frontend)/my-polls/_components/MyPollsTabs.tsx`
 - Modify: `src/app/(frontend)/my-polls/page.tsx`
 
@@ -892,13 +1003,16 @@ function PollRow({ poll }: { poll: Poll }) {
 		<div className="group flex items-start justify-between gap-4 p-4 rounded-xl border border-border/60 bg-card hover:border-border hover:shadow-[0_4px_16px_rgba(0,0,0,0.2)] transition-all duration-200">
 			<div className="flex-1 min-w-0">
 				<Link href={`/poll/${poll.id}`}>
-					<p className="font-display text-lg leading-snug text-foreground group-hover:text-foreground/80 transition-colors truncate">
+					<p className="text-lg leading-snug text-foreground group-hover:text-foreground/80 transition-colors truncate">
 						{poll.title}
 					</p>
 				</Link>
-				<p className="font-data text-xs text-muted-foreground mt-1.5 tabular-nums">
+				<p className="text-xs text-muted-foreground mt-1.5 tabular-nums">
 					{poll.totalVotes.toLocaleString()} votes ·{' '}
-					{formatDistance(new Date(poll.createdAt), new Date(), { locale: enUS })} ago
+					{formatDistance(new Date(poll.createdAt), new Date(), {
+						locale: enUS,
+					})}{' '}
+					ago
 				</p>
 			</div>
 			<div className="flex items-center gap-2 shrink-0">
@@ -940,7 +1054,9 @@ export default function MyPollsTabs({ polls }: { polls: Poll[] }) {
 			{(['active', 'drafts', 'ended'] as Tab[]).map((tab) => (
 				<TabsContent key={tab} value={tab} className="space-y-3">
 					{tabContent[tab].length === 0 ? (
-						<p className="text-muted-foreground text-center py-8">No polls here yet.</p>
+						<p className="text-muted-foreground text-center py-8">
+							No polls here yet.
+						</p>
 					) : (
 						tabContent[tab].map((poll) => <PollRow key={poll.id} poll={poll} />)
 					)}
@@ -954,6 +1070,7 @@ export default function MyPollsTabs({ polls }: { polls: Poll[] }) {
 - [ ] **Step 2: Replace `page.tsx` with Server Component**
 
 Replace entire file content with:
+
 ```tsx
 import { getMyPolls } from '@/lib/api/endpoints/polls';
 
@@ -965,7 +1082,7 @@ export default async function MyPollsPage() {
 
 	return (
 		<div className="px-contain max-w-2xl mx-auto py-6">
-			<h1 className="font-display text-4xl text-foreground mb-6">My Polls</h1>
+			<h1 className="text-4xl text-foreground mb-6">My Polls</h1>
 			<MyPollsTabs polls={polls} />
 		</div>
 	);
@@ -977,6 +1094,7 @@ export default async function MyPollsPage() {
 ```bash
 npx tsc --noEmit
 ```
+
 Expected: No errors
 
 - [ ] **Step 4: Commit**
@@ -991,15 +1109,19 @@ git commit -m "feat: convert my-polls to Server Component, extract MyPollsTabs c
 ### Task 11: Update home page import
 
 **Files:**
+
 - Modify: `src/app/(frontend)/page.tsx`
 
 - [ ] **Step 1: Replace import**
 
 Replace:
+
 ```ts
 import { getPollsData } from '@/app/api/get-polls/getPollsData';
 ```
+
 With:
+
 ```ts
 import { getPolls } from '@/lib/api/endpoints/polls';
 ```
@@ -1007,10 +1129,13 @@ import { getPolls } from '@/lib/api/endpoints/polls';
 - [ ] **Step 2: Update usage**
 
 Replace:
+
 ```ts
 const [user, data] = await Promise.all([getUserSession(), getPollsData()]);
 ```
+
 With:
+
 ```ts
 const [user, data] = await Promise.all([getUserSession(), getPolls()]);
 ```
@@ -1020,6 +1145,7 @@ const [user, data] = await Promise.all([getUserSession(), getPolls()]);
 ```bash
 npx tsc --noEmit
 ```
+
 Expected: No errors
 
 - [ ] **Step 4: Commit**
@@ -1070,6 +1196,7 @@ rm src/app/api/save-draft/route.ts
 ```bash
 npx tsc --noEmit
 ```
+
 Expected: No errors — no remaining imports reference the deleted files
 
 - [ ] **Step 5: Commit**

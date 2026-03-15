@@ -52,9 +52,7 @@ beforeEach(() => {
 describe('PollCard', () => {
 	it('renders the poll title', () => {
 		render(<PollCard pollData={basePoll} />);
-		expect(
-			screen.getByText('Best programming language?')
-		).toBeInTheDocument();
+		expect(screen.getByText('Best programming language?')).toBeInTheDocument();
 	});
 
 	it('renders the poll description', () => {
@@ -85,8 +83,10 @@ describe('PollCard', () => {
 		// After voting TypeScript: 8/11 votes = 73%, Rust: 3/11 = 27%
 		// Use byText on the containing span via its text content
 		await waitFor(() => {
-			const spans = document.querySelectorAll('span.font-data');
-			const texts = Array.from(spans).map((el) => el.textContent?.replace(/\s+/g, ''));
+			const spans = document.querySelectorAll('span');
+			const texts = Array.from(spans).map((el) =>
+				el.textContent?.replace(/\s+/g, '')
+			);
 			expect(texts).toContain('73%');
 			expect(texts).toContain('27%');
 		});
