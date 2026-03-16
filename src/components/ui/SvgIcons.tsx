@@ -24,6 +24,26 @@ export function ArrowLeft({ size = '1em', ...props }: IconProps) {
 	);
 }
 
+export function ArrowRight({ size = '1em', ...props }: IconProps) {
+	return (
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			width={size}
+			height={size}
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth={2}
+			strokeLinecap="round"
+			strokeLinejoin="round"
+			{...props}
+		>
+			<path d="m12 5 7 7-7 7" />
+			<path d="M5 12h14" />
+		</svg>
+	);
+}
+
 export function Bell({ size = '1em', ...props }: IconProps) {
 	return (
 		<svg
