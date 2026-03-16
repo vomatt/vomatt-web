@@ -15,14 +15,17 @@ import {
 } from '@/components/ui/Sheet';
 import { Spinner } from '@/components/ui/Spinner';
 import { Textarea } from '@/components/ui/Textarea';
-import { updateProfile } from '@/lib/api/endpoints/users';
+import { updateProfile } from '@/lib/api/services/users';
 
 interface EditProfileSheetProps {
 	initialDisplayName: string;
 	initialBio: string;
 }
 
-export default function EditProfileSheet({ initialDisplayName, initialBio }: EditProfileSheetProps) {
+export default function EditProfileSheet({
+	initialDisplayName,
+	initialBio,
+}: EditProfileSheetProps) {
 	const [open, setOpen] = useState(false);
 	const [displayName, setDisplayName] = useState(initialDisplayName);
 	const [bio, setBio] = useState(initialBio);
@@ -55,7 +58,10 @@ export default function EditProfileSheet({ initialDisplayName, initialBio }: Edi
 				</SheetHeader>
 				<form onSubmit={handleSubmit} className="flex flex-col gap-4 px-4">
 					<div className="flex flex-col gap-1.5">
-						<label htmlFor="displayName" className="text-sm font-medium text-foreground">
+						<label
+							htmlFor="displayName"
+							className="text-sm font-medium text-foreground"
+						>
 							Display Name
 						</label>
 						<Input
@@ -67,7 +73,10 @@ export default function EditProfileSheet({ initialDisplayName, initialBio }: Edi
 						/>
 					</div>
 					<div className="flex flex-col gap-1.5">
-						<label htmlFor="bio" className="text-sm font-medium text-foreground">
+						<label
+							htmlFor="bio"
+							className="text-sm font-medium text-foreground"
+						>
 							Bio
 						</label>
 						<Textarea
@@ -81,7 +90,12 @@ export default function EditProfileSheet({ initialDisplayName, initialBio }: Edi
 					</div>
 				</form>
 				<SheetFooter>
-					<Button type="submit" disabled={isPending} onClick={handleSubmit} className="w-full">
+					<Button
+						type="submit"
+						disabled={isPending}
+						onClick={handleSubmit}
+						className="w-full"
+					>
 						{isPending ? <Spinner className="mr-2" /> : null}
 						Save Changes
 					</Button>

@@ -23,7 +23,7 @@ import {
 import { Input } from '@/components/ui/Input';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { STATUS_SIGN_UP, STATUS_VERIFICATION } from '@/data/constants';
-import { preSignup, signup } from '@/lib/api/endpoints/auth';
+import { preSignup, signup } from '@/lib/api/services/auth';
 import { useSessionStorage } from '@/hooks/useSessionStorage';
 
 const nameValidation = new RegExp(
@@ -79,15 +79,16 @@ export default function SignUp({ signUpInfoData }: SignUpType) {
 	const onSubmitSignUp = async (pin: string) => {
 		try {
 			const result = await signup({ ...formData, verificationCode: pin });
+
 			if (result.status === 'SUCCESS') return { status: 'OK' as const };
 			return {
 				status: 'ERROR' as const,
-				message: result.message || 'Verification failed',
+				errorType: result.errorType || 'invalidVerificationCode',
 			};
 		} catch {
 			return {
 				status: 'ERROR' as const,
-				message: 'Something went wrong, please try again later',
+				errorType: 'serverError',
 			};
 		}
 	};

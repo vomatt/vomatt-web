@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { cn, hasArrayValue } from '@/lib/utils';
-import { vote as castVote, postComment } from '@/lib/api/endpoints/polls';
+import { vote as castVote, postComment } from '@/lib/api/services/polls';
 import { Poll } from '@/types/poll';
 
 const VOTED_STORAGE_KEY = 'vomatt_voted_polls';

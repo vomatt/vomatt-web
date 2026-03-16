@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import { PollCreator } from '@/components/PollCreator';
-import * as pollsEndpoint from '@/lib/api/endpoints/polls';
+import * as pollsEndpoint from '@/lib/api/services/polls';
 
 jest.mock('@/contexts/LanguageContext', () => ({
 	useLanguage: () => ({ t: (key: string) => key }),
@@ -17,10 +17,15 @@ const TRIGGER = <button>Create Poll</button>;
 
 /** Fill in the minimum valid form fields (question + 2 options). */
 function fillRequiredFields() {
-	fireEvent.change(screen.getByPlaceholderText('pollCreator.questionPlaceholder'), {
-		target: { value: 'Which is best?' },
-	});
-	const optionInputs = screen.getAllByPlaceholderText(/pollCreator\.optionsPlaceholder/);
+	fireEvent.change(
+		screen.getByPlaceholderText('pollCreator.questionPlaceholder'),
+		{
+			target: { value: 'Which is best?' },
+		}
+	);
+	const optionInputs = screen.getAllByPlaceholderText(
+		/pollCreator\.optionsPlaceholder/
+	);
 	fireEvent.change(optionInputs[0], { target: { value: 'Option A' } });
 	fireEvent.change(optionInputs[1], { target: { value: 'Option B' } });
 }
@@ -28,7 +33,9 @@ function fillRequiredFields() {
 async function openDialog() {
 	fireEvent.click(screen.getByText('Create Poll'));
 	await waitFor(() =>
-		expect(screen.getByPlaceholderText('pollCreator.questionPlaceholder')).toBeInTheDocument()
+		expect(
+			screen.getByPlaceholderText('pollCreator.questionPlaceholder')
+		).toBeInTheDocument()
 	);
 }
 
@@ -56,20 +63,26 @@ describe('PollCreator', () => {
 		await openDialog();
 		expect(screen.getByText('pollCreator.privacyPublic')).toBeInTheDocument();
 		expect(screen.getByText('pollCreator.privacyLinkOnly')).toBeInTheDocument();
-		expect(screen.getByText('pollCreator.privacyInviteOnly')).toBeInTheDocument();
+		expect(
+			screen.getByText('pollCreator.privacyInviteOnly')
+		).toBeInTheDocument();
 	});
 
 	it('does not show invite-users input when mode is public (default)', async () => {
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();
-		expect(screen.queryByText('pollCreator.inviteUsersLabel')).not.toBeInTheDocument();
+		expect(
+			screen.queryByText('pollCreator.inviteUsersLabel')
+		).not.toBeInTheDocument();
 	});
 
 	it('shows invite-users input when invite-only mode is selected', async () => {
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();
 		fireEvent.click(screen.getByText('pollCreator.privacyInviteOnly'));
-		expect(screen.getByText('pollCreator.inviteUsersLabel')).toBeInTheDocument();
+		expect(
+			screen.getByText('pollCreator.inviteUsersLabel')
+		).toBeInTheDocument();
 	});
 
 	it('hides invite-users input again when switching back to public', async () => {
@@ -77,7 +90,9 @@ describe('PollCreator', () => {
 		await openDialog();
 		fireEvent.click(screen.getByText('pollCreator.privacyInviteOnly'));
 		fireEvent.click(screen.getByText('pollCreator.privacyPublic'));
-		expect(screen.queryByText('pollCreator.inviteUsersLabel')).not.toBeInTheDocument();
+		expect(
+			screen.queryByText('pollCreator.inviteUsersLabel')
+		).not.toBeInTheDocument();
 	});
 
 	it('adds invited users via Enter key and removes them via × button', async () => {
@@ -85,13 +100,17 @@ describe('PollCreator', () => {
 		await openDialog();
 		fireEvent.click(screen.getByText('pollCreator.privacyInviteOnly'));
 
-		const inviteInput = screen.getByPlaceholderText('pollCreator.inviteUsersPlaceholder');
+		const inviteInput = screen.getByPlaceholderText(
+			'pollCreator.inviteUsersPlaceholder'
+		);
 		fireEvent.change(inviteInput, { target: { value: 'alice' } });
 		fireEvent.keyDown(inviteInput, { key: 'Enter' });
 		expect(screen.getByText('alice')).toBeInTheDocument();
 
 		// Remove the tag
-		const removeBtn = screen.getByText('alice').parentElement!.querySelector('button')!;
+		const removeBtn = screen
+			.getByText('alice')
+			.parentElement!.querySelector('button')!;
 		fireEvent.click(removeBtn);
 		expect(screen.queryByText('alice')).not.toBeInTheDocument();
 	});
@@ -101,7 +120,9 @@ describe('PollCreator', () => {
 		await openDialog();
 		fireEvent.click(screen.getByText('pollCreator.privacyInviteOnly'));
 
-		const inviteInput = screen.getByPlaceholderText('pollCreator.inviteUsersPlaceholder');
+		const inviteInput = screen.getByPlaceholderText(
+			'pollCreator.inviteUsersPlaceholder'
+		);
 		fireEvent.change(inviteInput, { target: { value: 'bob' } });
 		fireEvent.keyDown(inviteInput, { key: ',' });
 		expect(screen.getByText('bob')).toBeInTheDocument();
@@ -112,7 +133,9 @@ describe('PollCreator', () => {
 	it('disables submit when question is empty', async () => {
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();
-		const btn = screen.getByText('pollCreator.createPollLabel').closest('button')!;
+		const btn = screen
+			.getByText('pollCreator.createPollLabel')
+			.closest('button')!;
 		expect(btn).toBeDisabled();
 	});
 
@@ -121,7 +144,9 @@ describe('PollCreator', () => {
 		await openDialog();
 		fillRequiredFields();
 		fireEvent.click(screen.getByText('pollCreator.privacyInviteOnly'));
-		const btn = screen.getByText('pollCreator.createPollLabel').closest('button')!;
+		const btn = screen
+			.getByText('pollCreator.createPollLabel')
+			.closest('button')!;
 		expect(btn).toBeDisabled();
 	});
 
@@ -131,11 +156,15 @@ describe('PollCreator', () => {
 		fillRequiredFields();
 		fireEvent.click(screen.getByText('pollCreator.privacyInviteOnly'));
 
-		const inviteInput = screen.getByPlaceholderText('pollCreator.inviteUsersPlaceholder');
+		const inviteInput = screen.getByPlaceholderText(
+			'pollCreator.inviteUsersPlaceholder'
+		);
 		fireEvent.change(inviteInput, { target: { value: 'charlie' } });
 		fireEvent.keyDown(inviteInput, { key: 'Enter' });
 
-		const btn = screen.getByText('pollCreator.createPollLabel').closest('button')!;
+		const btn = screen
+			.getByText('pollCreator.createPollLabel')
+			.closest('button')!;
 		expect(btn).not.toBeDisabled();
 	});
 
@@ -174,7 +203,9 @@ describe('PollCreator', () => {
 		fillRequiredFields();
 		fireEvent.click(screen.getByText('pollCreator.privacyInviteOnly'));
 
-		const inviteInput = screen.getByPlaceholderText('pollCreator.inviteUsersPlaceholder');
+		const inviteInput = screen.getByPlaceholderText(
+			'pollCreator.inviteUsersPlaceholder'
+		);
 		fireEvent.change(inviteInput, { target: { value: 'dave' } });
 		fireEvent.keyDown(inviteInput, { key: 'Enter' });
 
@@ -191,7 +222,10 @@ describe('PollCreator', () => {
 	});
 
 	it('keeps dialog open when createPoll returns ERROR status', async () => {
-		mockCreatePoll.mockResolvedValue({ status: 'ERROR', message: 'Something went wrong' });
+		mockCreatePoll.mockResolvedValue({
+			status: 'ERROR',
+			message: 'Something went wrong',
+		});
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();
 		fillRequiredFields();
@@ -199,6 +233,8 @@ describe('PollCreator', () => {
 
 		await waitFor(() => expect(mockCreatePoll).toHaveBeenCalled());
 		// Dialog stays open — the question field is still visible
-		expect(screen.getByPlaceholderText('pollCreator.questionPlaceholder')).toBeInTheDocument();
+		expect(
+			screen.getByPlaceholderText('pollCreator.questionPlaceholder')
+		).toBeInTheDocument();
 	});
 });

@@ -8,12 +8,12 @@ export async function getVerifyCode(email: string) {
 			`${process.env.API_URL}/api/auth/generateVerificationCode?email=${email}`
 		);
 		const data = await res.json();
-		const { success, errorCode } = data;
-		if (!success) return { status: 'ERROR' as const, message: errorCode };
+		const { success, errorType } = data;
+		if (!success) return { status: 'ERROR' as const, errorType };
 		return { status: 'SUCCESS' as const };
 	} catch (error: unknown) {
 		const message = error instanceof Error ? error.message : String(error);
-		return { status: 'ERROR' as const, message };
+		return { status: 'ERROR' as const, errorType: message };
 	}
 }
 
@@ -48,7 +48,10 @@ export async function preSignup(email: string, username: string) {
 		if (success) return { status: 'SUCCESS' as const };
 		return { status: 'ERROR' as const, message };
 	} catch {
-		return { status: 'ERROR' as const, message: 'Something went wrong, please try again later' };
+		return {
+			status: 'ERROR' as const,
+			message: 'Something went wrong, please try again later',
+		};
 	}
 }
 
@@ -71,8 +74,11 @@ export async function signup(data: {
 			await setAuthTokens({ accessToken: token, refreshToken });
 			return { status: 'SUCCESS' as const };
 		}
-		return { status: 'ERROR' as const, message: errorCode };
+		return { status: 'ERROR' as const, errorType: errorCode };
 	} catch {
-		return { status: 'ERROR' as const, message: 'Something went wrong, please try again later' };
+		return {
+			status: 'ERROR' as const,
+			errorType: 'serverError',
+		};
 	}
 }

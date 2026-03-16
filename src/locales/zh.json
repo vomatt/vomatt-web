@@ -66,7 +66,8 @@
 		"title": "我們已寄出驗證碼",
 		"subtitle": "輸入驗證碼來驗證",
 		"resendVerificationCode": "重新發送驗證碼",
-		"invalidVerificationCode": "驗證碼錯誤"
+		"invalidVerificationCode": "驗證碼錯誤",
+		"serverError": "系統出現錯誤，請稍後再試"
 	},
 	"myPolls": {
 		"title": "我的投票",

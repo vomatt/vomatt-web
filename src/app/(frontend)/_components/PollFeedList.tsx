@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
-import { getPolls } from '@/lib/api/endpoints/polls';
+import { getPolls } from '@/lib/api/services/polls';
 import { cn, hasArrayValue } from '@/lib/utils';
 import { Pagination, Sort } from '@/types/page';
 import { Poll } from '@/types/poll';

@@ -66,7 +66,8 @@
 		"title": "We sent you a code",
 		"subtitle": "Enter it below to verify",
 		"resendVerificationCode": "Resend verification code",
-		"invalidVerificationCode": "Wrong code"
+		"invalidVerificationCode": "Wrong code",
+		"serverError": "Something went wrong, please try again later"
 	},
 	"myPolls": {
 		"title": "My Polls",

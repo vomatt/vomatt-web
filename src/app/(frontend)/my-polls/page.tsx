@@ -1,4 +1,4 @@
-import { getMyPolls } from '@/lib/api/endpoints/polls';
+import { getMyPolls } from '@/lib/api/services/polls';
 
 import MyPollsTabs from './_components/MyPollsTabs';
 

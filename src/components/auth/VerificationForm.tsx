@@ -21,7 +21,7 @@ interface VerificationFormProps {
 	email: string;
 	submitCodeFunc: (
 		pin: string
-	) => Promise<{ status: 'ERROR' | 'OK'; message?: string }>;
+	) => Promise<{ status: 'ERROR' | 'OK'; errorType?: string }>;
 	backButtonFunc: () => void;
 }
 
@@ -52,10 +52,10 @@ export default function VerificationForm({
 		try {
 			setError('');
 			setIsLoading(true);
-			const { status, message } = await submitCodeFunc(pin);
-
+			const res = await submitCodeFunc(pin);
+			const { status, errorType } = res;
 			if (status === 'ERROR') {
-				setError(message || '');
+				setError(errorType || '');
 				return;
 			}
 			return router.replace('/');

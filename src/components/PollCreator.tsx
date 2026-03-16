@@ -28,7 +28,7 @@ import { Switch } from '@/components/ui/Switch';
 import { Textarea } from '@/components/ui/Textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
-import { createPoll } from '@/lib/api/endpoints/polls';
+import { createPoll } from '@/lib/api/services/polls';
 import { PollCreateOption, PollPrivacyMode } from '@/types/poll';
 
 interface PollCreatorProps {

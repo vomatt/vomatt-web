@@ -1,4 +1,4 @@
-import { getPolls } from '@/lib/api/endpoints/polls';
+import { getPolls } from '@/lib/api/services/polls';
 import { LoginPrompt } from '@/components/LoginPrompt';
 import { getUserSession } from '@/data/auth';
 
