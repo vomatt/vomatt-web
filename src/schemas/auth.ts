@@ -5,12 +5,22 @@ export const PreSignupRequestSchema = z.object({
 	username: z.string().min(3),
 });
 
+export const PreSignupResponseSchema = z.object({
+	success: z.boolean(),
+	message: z.string().optional(),
+	errorType: z.string().optional(),
+	sessionKey: z.string().optional(),
+	expirationMinutes: z.number().int().optional(),
+});
+
 export const SignupRequestSchema = z.object({
-	email: z.string().email(),
-	firstName: z.string(),
-	lastName: z.string(),
-	username: z.string().min(3),
-	verificationCode: z.string(),
+	username: z.string().min(3).max(20),
+	email: z.string().email().max(50),
+	verificationCode: z.string().length(6),
+	phoneNumber: z.string().max(20).optional(),
+	roles: z.array(z.string()).optional(),
+	firstName: z.string().min(1),
+	lastName: z.string().min(1),
 });
 
 export const SigninRequestSchema = z.object({
@@ -24,6 +34,11 @@ export const AuthResponseSchema = z.object({
 	token: z.string().optional(),
 	refreshToken: z.string().optional(),
 	errorCode: z.string().nullable().optional(),
+	type: z.string().optional(),
+	id: z.string().optional(),
+	username: z.string().optional(),
+	email: z.string().optional(),
+	roles: z.array(z.string()).optional(),
 });
 
 export const RefreshTokenRequestSchema = z.object({
@@ -38,6 +53,7 @@ export const RefreshTokenResponseSchema = z.object({
 });
 
 export type PreSignupRequest = z.infer<typeof PreSignupRequestSchema>;
+export type PreSignupResponse = z.infer<typeof PreSignupResponseSchema>;
 export type SignupRequest = z.infer<typeof SignupRequestSchema>;
 export type SigninRequest = z.infer<typeof SigninRequestSchema>;
 export type AuthResponse = z.infer<typeof AuthResponseSchema>;

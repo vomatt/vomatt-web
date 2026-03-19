@@ -1,4 +1,4 @@
-import { mockPolls } from '@/lib/api/mock/polls';
+import { ApiError, publicFetch } from '@/lib/api/client';
 import { getUserSession } from '@/data/auth';
 import { Poll } from '@/types/poll';
 import { UserProfile } from '@/types/user';
@@ -6,36 +6,28 @@ import { UserProfile } from '@/types/user';
 import ProfileHeader from './_components/ProfileHeader';
 import ProfilePollList from './_components/ProfilePollList';
 
-async function getUserProfile(username: string): Promise<UserProfile> {
+async function getUserProfile(username: string): Promise<UserProfile | null> {
 	try {
-		const url = `${process.env.API_URL}/api/v1/users/${encodeURIComponent(username)}`;
-		const res = await fetch(url, { next: { revalidate: 60 } });
-		const resData = await res.json();
-		if (resData?.success) return resData.data;
-	} catch {
-		// fall through to mock
+		return await publicFetch<UserProfile>(
+			`${process.env.API_URL}/api/v1/users/${encodeURIComponent(username)}`,
+			{ next: { revalidate: 60 } } as RequestInit
+		);
+	} catch (error) {
+		if (error instanceof ApiError && error.statusCode === 404) return null;
+		throw error;
 	}
-	const userPolls = mockPolls.filter((p) => p.creatorUsername === username);
-	return {
-		username,
-		displayName: null,
-		bio: null,
-		joinedAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
-		totalPolls: userPolls.length,
-		totalVotes: userPolls.reduce((sum, p) => sum + p.totalVotes, 0),
-	};
 }
 
 async function getUserPolls(username: string): Promise<Poll[]> {
 	try {
-		const url = `${process.env.API_URL}/api/v1/votes?creatorUsername=${encodeURIComponent(username)}`;
-		const res = await fetch(url, { next: { revalidate: 60 } });
-		const resData = await res.json();
-		if (resData?.success) return resData.data?.content ?? [];
+		const page = await publicFetch<{ content: Poll[] }>(
+			`${process.env.API_URL}/api/v1/votes?creatorUsername=${encodeURIComponent(username)}`,
+			{ next: { revalidate: 60 } } as RequestInit
+		);
+		return page?.content ?? [];
 	} catch {
-		// fall through to mock
+		return [];
 	}
-	return mockPolls.filter((p) => p.creatorUsername === username);
 }
 
 export default async function ProfilePage({
@@ -50,6 +42,14 @@ export default async function ProfilePage({
 		getUserPolls(username),
 		getUserSession(),
 	]);
+
+	if (!profile) {
+		return (
+			<div className="px-contain max-w-2xl mx-auto py-10">
+				<p className="text-muted-foreground">User not found.</p>
+			</div>
+		);
+	}
 
 	const isOwner = session?.username === username || session?.nickName === username;
 

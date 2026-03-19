@@ -1,4 +1,4 @@
-import { mockPolls } from '@/lib/api/mock/polls';
+import { publicFetch } from '@/lib/api/client';
 import { getUserSession } from '@/data/auth';
 import defineMetadata from '@/lib/defineMetadata';
 import { Poll } from '@/types/poll';
@@ -13,13 +13,14 @@ export async function generateMetadata({}) {
 async function getAccountPolls(username: string): Promise<Poll[]> {
 	try {
 		const url = `${process.env.API_URL}/api/v1/votes?creatorUsername=${encodeURIComponent(username)}`;
-		const res = await fetch(url, { next: { revalidate: 60 } });
-		const resData = await res.json();
-		if (resData?.success) return resData.data?.content ?? [];
+		const page = await publicFetch<{ content: Poll[] }>(
+			url,
+			{ next: { revalidate: 60 } } as RequestInit
+		);
+		return page?.content ?? [];
 	} catch {
-		// fall through to mock
+		return [];
 	}
-	return mockPolls.filter((p) => p.creatorUsername === username);
 }
 
 export default async function Page() {

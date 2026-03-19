@@ -1,25 +1,19 @@
 'use server';
 
-import { ApiError, apiClient } from '@/lib/api/client';
-import { mockPolls, mockPollsPage } from '@/lib/api/mock/polls';
+import { ApiError, apiClient, publicFetch } from '@/lib/api/client';
 import { PollCreatorData } from '@/types/poll';
 
 export async function getPolls(page = 0) {
-	try {
-		const res = await fetch(`${process.env.API_URL}/api/v1/votes?page=${page}`);
-		const { success, data } = await res.json();
-		if (success) return data;
-	} catch {}
-	return mockPollsPage;
+	return publicFetch(`${process.env.API_URL}/api/v1/votes?page=${page}`);
 }
 
 export async function getPoll(id: string) {
 	try {
-		const res = await fetch(`${process.env.API_URL}/api/v1/votes/${id}`);
-		const { success, data } = await res.json();
-		if (success) return data;
-	} catch {}
-	return mockPolls.find((p) => p.id === id) ?? null;
+		return await publicFetch(`${process.env.API_URL}/api/v1/votes/${id}`);
+	} catch (error) {
+		if (error instanceof ApiError && error.statusCode === 404) return null;
+		throw error;
+	}
 }
 
 export async function searchPolls({
@@ -33,31 +27,13 @@ export async function searchPolls({
 	sort?: string;
 	status?: string;
 } = {}) {
-	try {
-		const params = new URLSearchParams({ page, sort, status });
-		if (q) params.set('q', q);
-		const res = await fetch(`${process.env.API_URL}/api/v1/votes?${params}`);
-		const { success, data } = await res.json();
-		if (success) return data;
-	} catch {}
-	const lower = q.toLowerCase();
-	const filtered = lower
-		? mockPolls.filter(
-				(p) =>
-					p.title.toLowerCase().includes(lower) ||
-					p.description?.toLowerCase().includes(lower)
-			)
-		: mockPolls;
-	return { ...mockPollsPage, content: filtered, totalElements: filtered.length };
+	const params = new URLSearchParams({ page, sort, status });
+	if (q) params.set('q', q);
+	return publicFetch(`${process.env.API_URL}/api/v1/votes?${params}`);
 }
 
 export async function getMyPolls() {
-	try {
-		return await apiClient('/api/v1/votes/my');
-	} catch (error) {
-		if (error instanceof ApiError && error.statusCode !== 404) throw error;
-		return mockPollsPage;
-	}
+	return apiClient('/api/v1/votes/my');
 }
 
 export async function createPoll(data: PollCreatorData) {
@@ -72,7 +48,9 @@ export async function createPoll(data: PollCreatorData) {
 			allowMultipleChoices: data.isAllowMultipleChoices,
 			anonymous: data.isAnonymous,
 			privacyMode: data.privacyMode,
-			...(data.privacyMode === 'invite-only' && { invitedUsers: data.invitedUsers }),
+			...(data.privacyMode === 'invite-only' && {
+				invitedUsers: data.invitedUsers,
+			}),
 		}),
 	});
 	const { success, errorCode, data: pollData } = response || {};
@@ -80,8 +58,29 @@ export async function createPoll(data: PollCreatorData) {
 	return { status: 'SUCCESS' as const, data: pollData };
 }
 
-export async function vote(pollId: string, optionId: string) {
-	return apiClient(`/api/v1/votes/${pollId}/options/${optionId}`, { method: 'POST' });
+export async function vote(pollId: string, optionIds: string[]) {
+	return apiClient(`/api/v1/votes/${pollId}/vote`, {
+		method: 'POST',
+		body: JSON.stringify({ optionIds }),
+	});
+}
+
+export async function deactivateVote(voteId: string) {
+	return apiClient(`/api/v1/votes/${voteId}/deactivate`, { method: 'PUT' });
+}
+
+export async function getVoteResults(voteId: string) {
+	return apiClient(`/api/v1/votes/${voteId}/results`);
+}
+
+export async function getMyVoteStatus(voteId: string) {
+	return apiClient(`/api/v1/votes/${voteId}/my-vote-status`);
+}
+
+export async function removeVote(voteId: string, optionId: string) {
+	return apiClient(`/api/v1/votes/${voteId}/vote/${optionId}`, {
+		method: 'DELETE',
+	});
 }
 
 export async function getComments(pollId: string) {
@@ -92,5 +91,34 @@ export async function postComment(pollId: string, text: string) {
 	return apiClient(`/api/v1/votes/${pollId}/comments`, {
 		method: 'POST',
 		body: JSON.stringify({ text }),
+	});
+}
+
+export async function updateComment(
+	voteId: string,
+	commentId: string,
+	text: string
+) {
+	return apiClient(`/api/v1/votes/${voteId}/comments/${commentId}`, {
+		method: 'PUT',
+		body: JSON.stringify({ text }),
+	});
+}
+
+export async function deleteComment(voteId: string, commentId: string) {
+	return apiClient(`/api/v1/votes/${voteId}/comments/${commentId}`, {
+		method: 'DELETE',
+	});
+}
+
+export async function likeComment(voteId: string, commentId: string) {
+	return apiClient(`/api/v1/votes/${voteId}/comments/${commentId}/like`, {
+		method: 'POST',
+	});
+}
+
+export async function unlikeComment(voteId: string, commentId: string) {
+	return apiClient(`/api/v1/votes/${voteId}/comments/${commentId}/like`, {
+		method: 'DELETE',
 	});
 }

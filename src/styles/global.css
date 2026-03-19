@@ -57,7 +57,6 @@
 
 	--height-header: var(--header-height);
 	--height-footer: var(--h-footer);
-	--height-main: var(--h-main);
 
 	--z-index-header: 48;
 	--z-index-overlay: 49;
@@ -715,7 +714,7 @@
 			--s-vp-height: 100svh;
 		}
 
-		--h-main: calc(var(--s-vp-height) - var(--h-announcement, 0px) - var(--header-height, 0px));
+
 	}
 
 	html {

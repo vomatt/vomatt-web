@@ -32,6 +32,49 @@ export class ApiError extends Error {
 	}
 }
 
+/**
+ * Parse a response from the backend's standard ApiResponse<T> envelope.
+ * Uses HTTP status as the authoritative success indicator — the app-level
+ * `success` boolean is not reliable across all endpoints.
+ */
+async function parseApiResponseBody<T>(response: Response): Promise<T> {
+	if (!response.ok) {
+		let errorMessage = `Request failed with status ${response.status}`;
+		let errorData: any;
+		try {
+			const text = await response.text();
+			errorData = text ? JSON.parse(text) : undefined;
+			errorMessage =
+				errorData?.message ?? errorData?.errorCode ?? errorMessage;
+		} catch {}
+		throw new ApiError(errorMessage, response.status, errorData);
+	}
+
+	const contentType = response.headers.get('content-type');
+	if (!contentType?.includes('application/json')) {
+		return undefined as unknown as T;
+	}
+
+	const text = await response.text();
+	if (!text) return undefined as unknown as T;
+
+	const body = JSON.parse(text);
+	// Unwrap ApiResponse envelope when present; fall back to raw body
+	return ('data' in body ? body.data : body) as T;
+}
+
+/**
+ * Fetch a public (unauthenticated) backend endpoint.
+ * Handles the ApiResponse<T> envelope and throws ApiError on failure.
+ */
+export async function publicFetch<T = any>(
+	url: string,
+	options?: RequestInit
+): Promise<T> {
+	const response = await fetch(url, options);
+	return parseApiResponseBody<T>(response);
+}
+
 export async function apiClient<T = any>(
 	endpoint: string,
 	options: ApiFetchOptions = {}
@@ -87,24 +130,5 @@ export async function apiClient<T = any>(
 		response = await makeRequest(newTokens.accessToken);
 	}
 
-	if (!response.ok) {
-		let errorMessage = `Request failed with status ${response.status}`;
-		let errorData;
-
-		try {
-			errorData = await response.json();
-			errorMessage = errorData.message || errorData.error || errorMessage;
-		} catch {
-			errorMessage = await response.text().catch(() => errorMessage);
-		}
-
-		throw new ApiError(errorMessage, response.status, errorData);
-	}
-
-	const contentType = response.headers.get('content-type');
-	if (contentType?.includes('application/json')) {
-		return await response.json();
-	}
-
-	return response as any;
+	return parseApiResponseBody<T>(response);
 }

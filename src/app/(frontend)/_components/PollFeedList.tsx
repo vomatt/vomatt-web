@@ -38,7 +38,7 @@ export function PollFeedList({ data, className }: PollFeedList) {
 
 	if (!hasArrayValue(data?.content)) {
 		return (
-			<div className="flex justify-center items-center">
+			<div className="flex justify-center items-center h-svh flex-1">
 				<h2 className="text-3xl">No Data</h2>
 			</div>
 		);

@@ -60,8 +60,11 @@ export default function ExplorePage() {
 				const params = new URLSearchParams({ sort: sortBy, status: s });
 				if (q) params.set('q', q);
 				const res = await fetch(`/api/search-polls?${params}`);
-				const json = await res.json();
+				const text = await res.text();
+				const json = text ? JSON.parse(text) : null;
 				if (json?.data?.content) setPolls(json.data.content);
+			} catch {
+				// keep current polls on error
 			} finally {
 				setIsLoading(false);
 			}

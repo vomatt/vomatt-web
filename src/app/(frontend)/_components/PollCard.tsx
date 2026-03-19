@@ -90,7 +90,7 @@ export const PollCard = ({ pollData }: PollCardProps) => {
 		saveVote(pollId, optionId);
 
 		try {
-			await castVote(pollId, optionId);
+			await castVote(pollId, [optionId]);
 		} catch {
 			// Vote persisted in localStorage; API sync is best-effort
 		}

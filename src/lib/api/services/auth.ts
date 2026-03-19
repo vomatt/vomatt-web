@@ -1,6 +1,7 @@
 'use server';
 
-import { setAuthTokens } from '@/lib/api/auth';
+import { apiClient } from '@/lib/api/client';
+import { clearAuthTokens, setAuthTokens } from '@/lib/api/auth';
 
 export async function getVerifyCode(email: string) {
 	try {
@@ -81,4 +82,20 @@ export async function signup(data: {
 			errorType: 'serverError',
 		};
 	}
+}
+
+export async function signout() {
+	await apiClient('/api/auth/signout', { method: 'POST' });
+	await clearAuthTokens();
+}
+
+export async function resendVerification(email: string) {
+	const params = new URLSearchParams({ email });
+	return apiClient(`/api/auth/resend-verification?${params}`, {
+		method: 'POST',
+	});
+}
+
+export async function forceExpireToken() {
+	return apiClient('/api/auth/force-expire-token', { method: 'POST' });
 }

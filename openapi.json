@@ -1,2284 +1,2648 @@
 {
-  "openapi": "3.1.0",
-  "info": {
-    "title": "Vomatt Backend API",
-    "version": "1.0.0",
-    "description": "Backend API consumed by the Next.js proxy layer (`API_URL`).\nAll endpoints are relative to the `API_URL` environment variable\n(e.g. `http://localhost:8080`).\n\n**Authentication**: Protected endpoints require a Bearer JWT in the\n`Authorization` header."
-  },
-  "servers": [
-    {
-      "url": "{apiUrl}",
-      "variables": {
-        "apiUrl": {
-          "default": "http://localhost:8080"
-        }
-      }
-    }
-  ],
-  "tags": [
-    {
-      "name": "auth",
-      "description": "Authentication and session management"
-    },
-    {
-      "name": "polls",
-      "description": "Poll (vote) CRUD and search"
-    },
-    {
-      "name": "voting",
-      "description": "Casting votes on poll options"
-    },
-    {
-      "name": "comments",
-      "description": "Poll comments"
-    },
-    {
-      "name": "users",
-      "description": "User profiles"
-    }
-  ],
-  "components": {
-    "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT"
-      }
-    },
-    "schemas": {
-      "PollPrivacyMode": {
-        "type": "string",
-        "enum": [
-          "public",
-          "link-only",
-          "invite-only"
-        ]
-      },
-      "Sort": {
-        "type": "object",
-        "properties": {
-          "empty": {
-            "type": "boolean"
-          },
-          "sorted": {
-            "type": "boolean"
-          },
-          "unsorted": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "empty",
-          "sorted",
-          "unsorted"
-        ]
-      },
-      "Pageable": {
-        "type": "object",
-        "properties": {
-          "pageNumber": {
-            "type": "integer"
-          },
-          "pageSize": {
-            "type": "integer"
-          },
-          "offset": {
-            "type": "integer"
-          },
-          "paged": {
-            "type": "boolean"
-          },
-          "unpaged": {
-            "type": "boolean"
-          },
-          "sort": {
-            "type": "object",
-            "properties": {
-              "empty": {
-                "type": "boolean"
-              },
-              "sorted": {
-                "type": "boolean"
-              },
-              "unsorted": {
-                "type": "boolean"
-              }
-            },
-            "required": [
-              "empty",
-              "sorted",
-              "unsorted"
-            ]
-          }
-        },
-        "required": [
-          "pageNumber",
-          "pageSize",
-          "offset",
-          "paged",
-          "unpaged",
-          "sort"
-        ]
-      },
-      "Poll": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "active": {
-            "type": "boolean"
-          },
-          "votingActive": {
-            "type": "boolean"
-          },
-          "allowMultipleChoices": {
-            "type": "boolean"
-          },
-          "anonymous": {
-            "type": "boolean"
-          },
-          "creatorId": {
-            "type": "string"
-          },
-          "creatorUsername": {
-            "type": "string"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "startTime": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "endTime": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "date-time"
-          },
-          "totalVotes": {
-            "type": "integer"
-          },
-          "success": {
-            "type": "boolean"
-          },
-          "errorCode": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "options": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string"
-                },
-                "text": {
-                  "type": "string"
-                },
-                "votes": {
-                  "type": "integer"
-                }
-              },
-              "required": [
-                "id",
-                "text",
-                "votes"
-              ]
-            }
-          },
-          "comments": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string"
-                },
-                "author": {
-                  "type": "string"
-                },
-                "text": {
-                  "type": "string"
-                },
-                "createdAt": {
-                  "type": "string",
-                  "format": "date-time"
-                }
-              },
-              "required": [
-                "id",
-                "author",
-                "text",
-                "createdAt"
-              ]
-            }
-          },
-          "privacyMode": {
-            "type": "string",
-            "enum": [
-              "public",
-              "link-only",
-              "invite-only"
-            ]
-          }
-        },
-        "required": [
-          "id",
-          "title",
-          "description",
-          "active",
-          "votingActive",
-          "allowMultipleChoices",
-          "anonymous",
-          "creatorId",
-          "creatorUsername",
-          "createdAt",
-          "updatedAt",
-          "startTime",
-          "endTime",
-          "totalVotes",
-          "success",
-          "errorCode",
-          "options"
-        ]
-      },
-      "PollPage": {
-        "type": "object",
-        "properties": {
-          "content": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string"
-                },
-                "title": {
-                  "type": "string"
-                },
-                "description": {
-                  "type": "string"
-                },
-                "active": {
-                  "type": "boolean"
-                },
-                "votingActive": {
-                  "type": "boolean"
-                },
-                "allowMultipleChoices": {
-                  "type": "boolean"
-                },
-                "anonymous": {
-                  "type": "boolean"
-                },
-                "creatorId": {
-                  "type": "string"
-                },
-                "creatorUsername": {
-                  "type": "string"
-                },
-                "createdAt": {
-                  "type": "string",
-                  "format": "date-time"
-                },
-                "updatedAt": {
-                  "type": "string",
-                  "format": "date-time"
-                },
-                "startTime": {
-                  "type": "string",
-                  "format": "date-time"
-                },
-                "endTime": {
-                  "type": [
-                    "string",
-                    "null"
-                  ],
-                  "format": "date-time"
-                },
-                "totalVotes": {
-                  "type": "integer"
-                },
-                "success": {
-                  "type": "boolean"
-                },
-                "errorCode": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
-                },
-                "options": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string"
-                      },
-                      "text": {
-                        "type": "string"
-                      },
-                      "votes": {
-                        "type": "integer"
-                      }
-                    },
-                    "required": [
-                      "id",
-                      "text",
-                      "votes"
-                    ]
-                  }
-                },
-                "comments": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string"
-                      },
-                      "author": {
-                        "type": "string"
-                      },
-                      "text": {
-                        "type": "string"
-                      },
-                      "createdAt": {
-                        "type": "string",
-                        "format": "date-time"
-                      }
-                    },
-                    "required": [
-                      "id",
-                      "author",
-                      "text",
-                      "createdAt"
-                    ]
-                  }
-                },
-                "privacyMode": {
-                  "type": "string",
-                  "enum": [
-                    "public",
-                    "link-only",
-                    "invite-only"
-                  ]
-                }
-              },
-              "required": [
-                "id",
-                "title",
-                "description",
-                "active",
-                "votingActive",
-                "allowMultipleChoices",
-                "anonymous",
-                "creatorId",
-                "creatorUsername",
-                "createdAt",
-                "updatedAt",
-                "startTime",
-                "endTime",
-                "totalVotes",
-                "success",
-                "errorCode",
-                "options"
-              ]
-            }
-          },
-          "empty": {
-            "type": "boolean"
-          },
-          "first": {
-            "type": "boolean"
-          },
-          "last": {
-            "type": "boolean"
-          },
-          "number": {
-            "type": "integer"
-          },
-          "numberOfElements": {
-            "type": "integer"
-          },
-          "size": {
-            "type": "integer"
-          },
-          "totalElements": {
-            "type": "integer"
-          },
-          "totalPages": {
-            "type": "integer"
-          },
-          "pageable": {
-            "type": "object",
-            "properties": {
-              "pageNumber": {
-                "type": "integer"
-              },
-              "pageSize": {
-                "type": "integer"
-              },
-              "offset": {
-                "type": "integer"
-              },
-              "paged": {
-                "type": "boolean"
-              },
-              "unpaged": {
-                "type": "boolean"
-              },
-              "sort": {
-                "type": "object",
-                "properties": {
-                  "empty": {
-                    "type": "boolean"
-                  },
-                  "sorted": {
-                    "type": "boolean"
-                  },
-                  "unsorted": {
-                    "type": "boolean"
-                  }
-                },
-                "required": [
-                  "empty",
-                  "sorted",
-                  "unsorted"
-                ]
-              }
-            },
-            "required": [
-              "pageNumber",
-              "pageSize",
-              "offset",
-              "paged",
-              "unpaged",
-              "sort"
-            ]
-          },
-          "sort": {
-            "type": "object",
-            "properties": {
-              "empty": {
-                "type": "boolean"
-              },
-              "sorted": {
-                "type": "boolean"
-              },
-              "unsorted": {
-                "type": "boolean"
-              }
-            },
-            "required": [
-              "empty",
-              "sorted",
-              "unsorted"
-            ]
-          }
-        },
-        "required": [
-          "content",
-          "empty",
-          "first",
-          "last",
-          "number",
-          "numberOfElements",
-          "size",
-          "totalElements",
-          "totalPages",
-          "pageable",
-          "sort"
-        ]
-      },
-      "Comment": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "author": {
-            "type": "string"
-          },
-          "text": {
-            "type": "string"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "author",
-          "text",
-          "createdAt"
-        ]
-      },
-      "CreatePollRequest": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "options": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "text": {
-                  "type": "string"
-                },
-                "description": {
-                  "type": "string",
-                  "default": ""
-                },
-                "displayOrder": {
-                  "type": "integer",
-                  "default": 0
-                }
-              },
-              "required": [
-                "text"
-              ]
-            },
-            "minItems": 2
-          },
-          "startTime": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "endTime": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "date-time"
-          },
-          "allowMultipleChoices": {
-            "type": "boolean"
-          },
-          "anonymous": {
-            "type": "boolean"
-          },
-          "privacyMode": {
-            "type": "string",
-            "enum": [
-              "public",
-              "link-only",
-              "invite-only"
-            ]
-          },
-          "invitedUsers": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        },
-        "required": [
-          "title",
-          "options",
-          "startTime",
-          "allowMultipleChoices",
-          "anonymous",
-          "privacyMode"
-        ]
-      },
-      "CreateCommentRequest": {
-        "type": "object",
-        "properties": {
-          "text": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "required": [
-          "text"
-        ]
-      },
-      "UserProfile": {
-        "type": "object",
-        "properties": {
-          "username": {
-            "type": "string"
-          },
-          "displayName": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "bio": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "joinedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "totalPolls": {
-            "type": "integer"
-          },
-          "totalVotes": {
-            "type": "integer"
-          }
-        },
-        "required": [
-          "username",
-          "displayName",
-          "bio",
-          "joinedAt",
-          "totalPolls",
-          "totalVotes"
-        ]
-      },
-      "UpdateProfileRequest": {
-        "type": "object",
-        "properties": {
-          "displayName": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "bio": {
-            "type": [
-              "string",
-              "null"
-            ]
-          }
-        }
-      },
-      "PreSignupRequest": {
-        "type": "object",
-        "properties": {
-          "email": {
-            "type": "string",
-            "format": "email"
-          },
-          "username": {
-            "type": "string",
-            "minLength": 3
-          }
-        },
-        "required": [
-          "email",
-          "username"
-        ]
-      },
-      "SignupRequest": {
-        "type": "object",
-        "properties": {
-          "email": {
-            "type": "string",
-            "format": "email"
-          },
-          "firstName": {
-            "type": "string"
-          },
-          "lastName": {
-            "type": "string"
-          },
-          "username": {
-            "type": "string",
-            "minLength": 3
-          },
-          "verificationCode": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "email",
-          "firstName",
-          "lastName",
-          "username",
-          "verificationCode"
-        ]
-      },
-      "SigninRequest": {
-        "type": "object",
-        "properties": {
-          "email": {
-            "type": "string",
-            "format": "email"
-          },
-          "verificationCode": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "email",
-          "verificationCode"
-        ]
-      },
-      "AuthResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "token": {
-            "type": "string"
-          },
-          "refreshToken": {
-            "type": "string"
-          },
-          "errorCode": {
-            "type": [
-              "string",
-              "null"
-            ]
-          }
-        },
-        "required": [
-          "success"
-        ]
-      },
-      "RefreshTokenRequest": {
-        "type": "object",
-        "properties": {
-          "refreshToken": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "refreshToken"
-        ]
-      },
-      "RefreshTokenResponse": {
-        "type": "object",
-        "properties": {
-          "accessToken": {
-            "type": "string"
-          },
-          "refreshToken": {
-            "type": "string"
-          },
-          "message": {
-            "type": [
-              "string",
-              "null"
-            ]
-          }
-        }
-      }
-    },
-    "parameters": {}
-  },
-  "paths": {
-    "/api/auth/generateVerificationCode": {
-      "get": {
-        "tags": [
-          "auth"
-        ],
-        "summary": "Request a verification code",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "email",
-              "example": "user@example.com"
-            },
-            "required": true,
-            "name": "email",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Code sent",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    }
-                  },
-                  "required": [
-                    "success"
-                  ]
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/auth/pre-signup": {
-      "post": {
-        "tags": [
-          "auth"
-        ],
-        "summary": "Validate email and username before signup",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "email": {
-                    "type": "string",
-                    "format": "email"
-                  },
-                  "username": {
-                    "type": "string",
-                    "minLength": 3
-                  }
-                },
-                "required": [
-                  "email",
-                  "username"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Availability result",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "success"
-                  ]
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/auth/signup": {
-      "post": {
-        "tags": [
-          "auth"
-        ],
-        "summary": "Create a new account",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "email": {
-                    "type": "string",
-                    "format": "email"
-                  },
-                  "firstName": {
-                    "type": "string"
-                  },
-                  "lastName": {
-                    "type": "string"
-                  },
-                  "username": {
-                    "type": "string",
-                    "minLength": 3
-                  },
-                  "verificationCode": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "email",
-                  "firstName",
-                  "lastName",
-                  "username",
-                  "verificationCode"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Registration result",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "token": {
-                      "type": "string"
-                    },
-                    "refreshToken": {
-                      "type": "string"
-                    },
-                    "errorCode": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "success"
-                  ]
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/auth/signin": {
-      "post": {
-        "tags": [
-          "auth"
-        ],
-        "summary": "Sign in with email and verification code",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "email": {
-                    "type": "string",
-                    "format": "email"
-                  },
-                  "verificationCode": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "email",
-                  "verificationCode"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Sign-in result",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "token": {
-                      "type": "string"
-                    },
-                    "refreshToken": {
-                      "type": "string"
-                    },
-                    "errorCode": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "success"
-                  ]
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/auth/refreshToken": {
-      "post": {
-        "tags": [
-          "auth"
-        ],
-        "summary": "Refresh access token",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "refreshToken": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "refreshToken"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "New token pair or error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "accessToken": {
-                      "type": "string"
-                    },
-                    "refreshToken": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/votes": {
-      "get": {
-        "tags": [
-          "polls"
-        ],
-        "summary": "List polls (paginated, searchable)",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "example": "0"
-            },
-            "required": false,
-            "name": "page",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "required": false,
-            "name": "q",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "enum": [
-                "newest",
-                "oldest",
-                "popular"
-              ]
-            },
-            "required": false,
-            "name": "sort",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "enum": [
-                "all",
-                "active",
-                "closed"
-              ]
-            },
-            "required": false,
-            "name": "status",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "required": false,
-            "name": "creatorUsername",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Paginated poll list",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "content": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string"
-                          },
-                          "title": {
-                            "type": "string"
-                          },
-                          "description": {
-                            "type": "string"
-                          },
-                          "active": {
-                            "type": "boolean"
-                          },
-                          "votingActive": {
-                            "type": "boolean"
-                          },
-                          "allowMultipleChoices": {
-                            "type": "boolean"
-                          },
-                          "anonymous": {
-                            "type": "boolean"
-                          },
-                          "creatorId": {
-                            "type": "string"
-                          },
-                          "creatorUsername": {
-                            "type": "string"
-                          },
-                          "createdAt": {
-                            "type": "string",
-                            "format": "date-time"
-                          },
-                          "updatedAt": {
-                            "type": "string",
-                            "format": "date-time"
-                          },
-                          "startTime": {
-                            "type": "string",
-                            "format": "date-time"
-                          },
-                          "endTime": {
-                            "type": [
-                              "string",
-                              "null"
-                            ],
-                            "format": "date-time"
-                          },
-                          "totalVotes": {
-                            "type": "integer"
-                          },
-                          "success": {
-                            "type": "boolean"
-                          },
-                          "errorCode": {
-                            "type": [
-                              "string",
-                              "null"
-                            ]
-                          },
-                          "options": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "id": {
-                                  "type": "string"
-                                },
-                                "text": {
-                                  "type": "string"
-                                },
-                                "votes": {
-                                  "type": "integer"
-                                }
-                              },
-                              "required": [
-                                "id",
-                                "text",
-                                "votes"
-                              ]
-                            }
-                          },
-                          "comments": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "id": {
-                                  "type": "string"
-                                },
-                                "author": {
-                                  "type": "string"
-                                },
-                                "text": {
-                                  "type": "string"
-                                },
-                                "createdAt": {
-                                  "type": "string",
-                                  "format": "date-time"
-                                }
-                              },
-                              "required": [
-                                "id",
-                                "author",
-                                "text",
-                                "createdAt"
-                              ]
-                            }
-                          },
-                          "privacyMode": {
-                            "type": "string",
-                            "enum": [
-                              "public",
-                              "link-only",
-                              "invite-only"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "id",
-                          "title",
-                          "description",
-                          "active",
-                          "votingActive",
-                          "allowMultipleChoices",
-                          "anonymous",
-                          "creatorId",
-                          "creatorUsername",
-                          "createdAt",
-                          "updatedAt",
-                          "startTime",
-                          "endTime",
-                          "totalVotes",
-                          "success",
-                          "errorCode",
-                          "options"
-                        ]
-                      }
-                    },
-                    "empty": {
-                      "type": "boolean"
-                    },
-                    "first": {
-                      "type": "boolean"
-                    },
-                    "last": {
-                      "type": "boolean"
-                    },
-                    "number": {
-                      "type": "integer"
-                    },
-                    "numberOfElements": {
-                      "type": "integer"
-                    },
-                    "size": {
-                      "type": "integer"
-                    },
-                    "totalElements": {
-                      "type": "integer"
-                    },
-                    "totalPages": {
-                      "type": "integer"
-                    },
-                    "pageable": {
-                      "type": "object",
-                      "properties": {
-                        "pageNumber": {
-                          "type": "integer"
-                        },
-                        "pageSize": {
-                          "type": "integer"
-                        },
-                        "offset": {
-                          "type": "integer"
-                        },
-                        "paged": {
-                          "type": "boolean"
-                        },
-                        "unpaged": {
-                          "type": "boolean"
-                        },
-                        "sort": {
-                          "type": "object",
-                          "properties": {
-                            "empty": {
-                              "type": "boolean"
-                            },
-                            "sorted": {
-                              "type": "boolean"
-                            },
-                            "unsorted": {
-                              "type": "boolean"
-                            }
-                          },
-                          "required": [
-                            "empty",
-                            "sorted",
-                            "unsorted"
-                          ]
-                        }
-                      },
-                      "required": [
-                        "pageNumber",
-                        "pageSize",
-                        "offset",
-                        "paged",
-                        "unpaged",
-                        "sort"
-                      ]
-                    },
-                    "sort": {
-                      "type": "object",
-                      "properties": {
-                        "empty": {
-                          "type": "boolean"
-                        },
-                        "sorted": {
-                          "type": "boolean"
-                        },
-                        "unsorted": {
-                          "type": "boolean"
-                        }
-                      },
-                      "required": [
-                        "empty",
-                        "sorted",
-                        "unsorted"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "content",
-                    "empty",
-                    "first",
-                    "last",
-                    "number",
-                    "numberOfElements",
-                    "size",
-                    "totalElements",
-                    "totalPages",
-                    "pageable",
-                    "sort"
-                  ]
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "polls"
-        ],
-        "summary": "Create a poll",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "title": {
-                    "type": "string"
-                  },
-                  "description": {
-                    "type": "string"
-                  },
-                  "options": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "text": {
-                          "type": "string"
-                        },
-                        "description": {
-                          "type": "string",
-                          "default": ""
-                        },
-                        "displayOrder": {
-                          "type": "integer",
-                          "default": 0
-                        }
-                      },
-                      "required": [
-                        "text"
-                      ]
-                    },
-                    "minItems": 2
-                  },
-                  "startTime": {
-                    "type": "string",
-                    "format": "date-time"
-                  },
-                  "endTime": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "date-time"
-                  },
-                  "allowMultipleChoices": {
-                    "type": "boolean"
-                  },
-                  "anonymous": {
-                    "type": "boolean"
-                  },
-                  "privacyMode": {
-                    "type": "string",
-                    "enum": [
-                      "public",
-                      "link-only",
-                      "invite-only"
-                    ]
-                  },
-                  "invitedUsers": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "required": [
-                  "title",
-                  "options",
-                  "startTime",
-                  "allowMultipleChoices",
-                  "anonymous",
-                  "privacyMode"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Creation result",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    }
-                  },
-                  "required": [
-                    "success"
-                  ]
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/votes/{id}": {
-      "get": {
-        "tags": [
-          "polls"
-        ],
-        "summary": "Get a single poll",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "example": "mock-1"
-            },
-            "required": true,
-            "name": "id",
-            "in": "path"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Poll detail",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "string"
-                    },
-                    "title": {
-                      "type": "string"
-                    },
-                    "description": {
-                      "type": "string"
-                    },
-                    "active": {
-                      "type": "boolean"
-                    },
-                    "votingActive": {
-                      "type": "boolean"
-                    },
-                    "allowMultipleChoices": {
-                      "type": "boolean"
-                    },
-                    "anonymous": {
-                      "type": "boolean"
-                    },
-                    "creatorId": {
-                      "type": "string"
-                    },
-                    "creatorUsername": {
-                      "type": "string"
-                    },
-                    "createdAt": {
-                      "type": "string",
-                      "format": "date-time"
-                    },
-                    "updatedAt": {
-                      "type": "string",
-                      "format": "date-time"
-                    },
-                    "startTime": {
-                      "type": "string",
-                      "format": "date-time"
-                    },
-                    "endTime": {
-                      "type": [
-                        "string",
-                        "null"
-                      ],
-                      "format": "date-time"
-                    },
-                    "totalVotes": {
-                      "type": "integer"
-                    },
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "errorCode": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "options": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string"
-                          },
-                          "text": {
-                            "type": "string"
-                          },
-                          "votes": {
-                            "type": "integer"
-                          }
-                        },
-                        "required": [
-                          "id",
-                          "text",
-                          "votes"
-                        ]
-                      }
-                    },
-                    "comments": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string"
-                          },
-                          "author": {
-                            "type": "string"
-                          },
-                          "text": {
-                            "type": "string"
-                          },
-                          "createdAt": {
-                            "type": "string",
-                            "format": "date-time"
-                          }
-                        },
-                        "required": [
-                          "id",
-                          "author",
-                          "text",
-                          "createdAt"
-                        ]
-                      }
-                    },
-                    "privacyMode": {
-                      "type": "string",
-                      "enum": [
-                        "public",
-                        "link-only",
-                        "invite-only"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "id",
-                    "title",
-                    "description",
-                    "active",
-                    "votingActive",
-                    "allowMultipleChoices",
-                    "anonymous",
-                    "creatorId",
-                    "creatorUsername",
-                    "createdAt",
-                    "updatedAt",
-                    "startTime",
-                    "endTime",
-                    "totalVotes",
-                    "success",
-                    "errorCode",
-                    "options"
-                  ]
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/votes/my": {
-      "get": {
-        "tags": [
-          "polls"
-        ],
-        "summary": "Get the authenticated user's polls",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Paginated poll list for the current user",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "content": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string"
-                          },
-                          "title": {
-                            "type": "string"
-                          },
-                          "description": {
-                            "type": "string"
-                          },
-                          "active": {
-                            "type": "boolean"
-                          },
-                          "votingActive": {
-                            "type": "boolean"
-                          },
-                          "allowMultipleChoices": {
-                            "type": "boolean"
-                          },
-                          "anonymous": {
-                            "type": "boolean"
-                          },
-                          "creatorId": {
-                            "type": "string"
-                          },
-                          "creatorUsername": {
-                            "type": "string"
-                          },
-                          "createdAt": {
-                            "type": "string",
-                            "format": "date-time"
-                          },
-                          "updatedAt": {
-                            "type": "string",
-                            "format": "date-time"
-                          },
-                          "startTime": {
-                            "type": "string",
-                            "format": "date-time"
-                          },
-                          "endTime": {
-                            "type": [
-                              "string",
-                              "null"
-                            ],
-                            "format": "date-time"
-                          },
-                          "totalVotes": {
-                            "type": "integer"
-                          },
-                          "success": {
-                            "type": "boolean"
-                          },
-                          "errorCode": {
-                            "type": [
-                              "string",
-                              "null"
-                            ]
-                          },
-                          "options": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "id": {
-                                  "type": "string"
-                                },
-                                "text": {
-                                  "type": "string"
-                                },
-                                "votes": {
-                                  "type": "integer"
-                                }
-                              },
-                              "required": [
-                                "id",
-                                "text",
-                                "votes"
-                              ]
-                            }
-                          },
-                          "comments": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "id": {
-                                  "type": "string"
-                                },
-                                "author": {
-                                  "type": "string"
-                                },
-                                "text": {
-                                  "type": "string"
-                                },
-                                "createdAt": {
-                                  "type": "string",
-                                  "format": "date-time"
-                                }
-                              },
-                              "required": [
-                                "id",
-                                "author",
-                                "text",
-                                "createdAt"
-                              ]
-                            }
-                          },
-                          "privacyMode": {
-                            "type": "string",
-                            "enum": [
-                              "public",
-                              "link-only",
-                              "invite-only"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "id",
-                          "title",
-                          "description",
-                          "active",
-                          "votingActive",
-                          "allowMultipleChoices",
-                          "anonymous",
-                          "creatorId",
-                          "creatorUsername",
-                          "createdAt",
-                          "updatedAt",
-                          "startTime",
-                          "endTime",
-                          "totalVotes",
-                          "success",
-                          "errorCode",
-                          "options"
-                        ]
-                      }
-                    },
-                    "empty": {
-                      "type": "boolean"
-                    },
-                    "first": {
-                      "type": "boolean"
-                    },
-                    "last": {
-                      "type": "boolean"
-                    },
-                    "number": {
-                      "type": "integer"
-                    },
-                    "numberOfElements": {
-                      "type": "integer"
-                    },
-                    "size": {
-                      "type": "integer"
-                    },
-                    "totalElements": {
-                      "type": "integer"
-                    },
-                    "totalPages": {
-                      "type": "integer"
-                    },
-                    "pageable": {
-                      "type": "object",
-                      "properties": {
-                        "pageNumber": {
-                          "type": "integer"
-                        },
-                        "pageSize": {
-                          "type": "integer"
-                        },
-                        "offset": {
-                          "type": "integer"
-                        },
-                        "paged": {
-                          "type": "boolean"
-                        },
-                        "unpaged": {
-                          "type": "boolean"
-                        },
-                        "sort": {
-                          "type": "object",
-                          "properties": {
-                            "empty": {
-                              "type": "boolean"
-                            },
-                            "sorted": {
-                              "type": "boolean"
-                            },
-                            "unsorted": {
-                              "type": "boolean"
-                            }
-                          },
-                          "required": [
-                            "empty",
-                            "sorted",
-                            "unsorted"
-                          ]
-                        }
-                      },
-                      "required": [
-                        "pageNumber",
-                        "pageSize",
-                        "offset",
-                        "paged",
-                        "unpaged",
-                        "sort"
-                      ]
-                    },
-                    "sort": {
-                      "type": "object",
-                      "properties": {
-                        "empty": {
-                          "type": "boolean"
-                        },
-                        "sorted": {
-                          "type": "boolean"
-                        },
-                        "unsorted": {
-                          "type": "boolean"
-                        }
-                      },
-                      "required": [
-                        "empty",
-                        "sorted",
-                        "unsorted"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "content",
-                    "empty",
-                    "first",
-                    "last",
-                    "number",
-                    "numberOfElements",
-                    "size",
-                    "totalElements",
-                    "totalPages",
-                    "pageable",
-                    "sort"
-                  ]
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/votes/{pollId}/options/{optionId}": {
-      "post": {
-        "tags": [
-          "voting"
-        ],
-        "summary": "Cast a vote on a poll option",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "example": "mock-1"
-            },
-            "required": true,
-            "name": "pollId",
-            "in": "path"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "example": "opt-1-1"
-            },
-            "required": true,
-            "name": "optionId",
-            "in": "path"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Vote recorded",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    }
-                  },
-                  "required": [
-                    "success"
-                  ]
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/votes/{pollId}/comments": {
-      "get": {
-        "tags": [
-          "comments"
-        ],
-        "summary": "List comments for a poll",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "example": "mock-1"
-            },
-            "required": true,
-            "name": "pollId",
-            "in": "path"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Comment list",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string"
-                      },
-                      "author": {
-                        "type": "string"
-                      },
-                      "text": {
-                        "type": "string"
-                      },
-                      "createdAt": {
-                        "type": "string",
-                        "format": "date-time"
-                      }
-                    },
-                    "required": [
-                      "id",
-                      "author",
-                      "text",
-                      "createdAt"
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "comments"
-        ],
-        "summary": "Post a comment on a poll",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "example": "mock-1"
-            },
-            "required": true,
-            "name": "pollId",
-            "in": "path"
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "text": {
-                    "type": "string",
-                    "minLength": 1
-                  }
-                },
-                "required": [
-                  "text"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Comment created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "string"
-                    },
-                    "author": {
-                      "type": "string"
-                    },
-                    "text": {
-                      "type": "string"
-                    },
-                    "createdAt": {
-                      "type": "string",
-                      "format": "date-time"
-                    }
-                  },
-                  "required": [
-                    "id",
-                    "author",
-                    "text",
-                    "createdAt"
-                  ]
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/users/{username}": {
-      "get": {
-        "tags": [
-          "users"
-        ],
-        "summary": "Get a user's public profile",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "example": "alex_dev"
-            },
-            "required": true,
-            "name": "username",
-            "in": "path"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "User profile",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "username": {
-                      "type": "string"
-                    },
-                    "displayName": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "bio": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "joinedAt": {
-                      "type": "string",
-                      "format": "date-time"
-                    },
-                    "totalPolls": {
-                      "type": "integer"
-                    },
-                    "totalVotes": {
-                      "type": "integer"
-                    }
-                  },
-                  "required": [
-                    "username",
-                    "displayName",
-                    "bio",
-                    "joinedAt",
-                    "totalPolls",
-                    "totalVotes"
-                  ]
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "User not found"
-          }
-        }
-      }
-    },
-    "/api/v1/users/me": {
-      "patch": {
-        "tags": [
-          "users"
-        ],
-        "summary": "Update the authenticated user's profile",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "displayName": {
-                    "type": [
-                      "string",
-                      "null"
-                    ]
-                  },
-                  "bio": {
-                    "type": [
-                      "string",
-                      "null"
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Updated profile",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "username": {
-                      "type": "string"
-                    },
-                    "displayName": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "bio": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "joinedAt": {
-                      "type": "string",
-                      "format": "date-time"
-                    },
-                    "totalPolls": {
-                      "type": "integer"
-                    },
-                    "totalVotes": {
-                      "type": "integer"
-                    }
-                  },
-                  "required": [
-                    "username",
-                    "displayName",
-                    "bio",
-                    "joinedAt",
-                    "totalPolls",
-                    "totalVotes"
-                  ]
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "webhooks": {}
+	"openapi": "3.1.0",
+	"info": {
+		"title": "Vomatt REST API",
+		"description": "Vomatt會員系統 API 文檔，提供會員管理、身份驗證等功能。",
+		"contact": {
+			"name": "Vomatt",
+			"url": "https://www.vomatt.com/contact",
+			"email": "support@vomatt.com"
+		},
+		"license": {
+			"name": "MIT License",
+			"url": "https://opensource.org/licenses/MIT"
+		},
+		"version": "1.0"
+	},
+	"servers": [
+		{ "url": "https://vomatt-api.zeabur.app", "description": "Production" },
+		{ "url": "http://localhost:8080", "description": "Development" }
+	],
+	"security": [{ "bearerAuth": [] }],
+	"tags": [
+		{ "name": "Vote", "description": "Vote management APIs" },
+		{ "name": "User", "description": "User management APIs" },
+		{
+			"name": "認證",
+			"description": "認證相關的API，包括登入、註冊、刷新令牌和登出"
+		}
+	],
+	"paths": {
+		"/api/v1/votes/{voteId}/deactivate": {
+			"put": {
+				"tags": ["Vote"],
+				"summary": "Deactivate vote",
+				"description": "Deactivate a vote (only by creator)",
+				"operationId": "deactivateVote",
+				"parameters": [
+					{
+						"name": "voteId",
+						"in": "path",
+						"description": "Vote ID",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"403": {
+						"description": "Forbidden - Only creator can deactivate",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Vote not found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "Vote deactivated successfully",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					}
+				},
+				"security": [{ "Bearer Authentication": [] }]
+			}
+		},
+		"/api/v1/votes/{voteId}/comments/{commentId}": {
+			"put": {
+				"tags": ["Vote"],
+				"summary": "Update a comment",
+				"description": "Update comment content (only by comment owner)",
+				"operationId": "updateComment",
+				"parameters": [
+					{
+						"name": "voteId",
+						"in": "path",
+						"description": "Vote ID",
+						"required": true,
+						"schema": { "type": "string" }
+					},
+					{
+						"name": "commentId",
+						"in": "path",
+						"description": "Comment ID",
+						"required": true,
+						"schema": { "type": "string", "format": "uuid" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/UpdateCommentRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"403": {
+						"description": "Forbidden - Only comment owner can update",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Comment not found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "Comment updated successfully",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseCommentDto"
+								}
+							}
+						}
+					}
+				},
+				"security": [{ "Bearer Authentication": [] }]
+			},
+			"delete": {
+				"tags": ["Vote"],
+				"summary": "Delete a comment",
+				"description": "Delete a comment (soft delete, only by comment owner)",
+				"operationId": "deleteComment",
+				"parameters": [
+					{
+						"name": "voteId",
+						"in": "path",
+						"description": "Vote ID",
+						"required": true,
+						"schema": { "type": "string" }
+					},
+					{
+						"name": "commentId",
+						"in": "path",
+						"description": "Comment ID",
+						"required": true,
+						"schema": { "type": "string", "format": "uuid" }
+					}
+				],
+				"responses": {
+					"403": {
+						"description": "Forbidden - Only comment owner can delete",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Comment not found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "Comment deleted successfully",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					}
+				},
+				"security": [{ "Bearer Authentication": [] }]
+			}
+		},
+		"/api/v1/votes": {
+			"get": {
+				"tags": ["Vote"],
+				"summary": "Get active votes",
+				"description": "Retrieve all active votes with pagination",
+				"operationId": "getActiveVotes",
+				"parameters": [
+					{
+						"name": "pageable",
+						"in": "query",
+						"required": true,
+						"schema": { "$ref": "#/components/schemas/Pageable" }
+					}
+				],
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "Active votes retrieved successfully",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponsePageVoteResponse"
+								}
+							}
+						}
+					}
+				},
+				"security": [{ "Bearer Authentication": [] }]
+			},
+			"post": {
+				"tags": ["Vote"],
+				"summary": "Create a new vote",
+				"description": "Create a new vote with multiple options",
+				"operationId": "createVote",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/CreateVoteRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"201": {
+						"description": "Vote created successfully",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseVoteResponse"
+								}
+							}
+						}
+					}
+				},
+				"security": [{ "Bearer Authentication": [] }]
+			}
+		},
+		"/api/v1/votes/{voteId}/vote": {
+			"post": {
+				"tags": ["Vote"],
+				"summary": "Vote on a poll",
+				"description": "Cast vote(s) on the specified vote",
+				"operationId": "vote",
+				"parameters": [
+					{
+						"name": "voteId",
+						"in": "path",
+						"description": "Vote ID",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/VoteRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Vote not found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid vote request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "Vote cast successfully",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseVoteResponse"
+								}
+							}
+						}
+					}
+				},
+				"security": [{ "Bearer Authentication": [] }]
+			}
+		},
+		"/api/v1/votes/{voteId}/comments": {
+			"get": {
+				"tags": ["Vote"],
+				"summary": "Get comments for a vote",
+				"description": "Retrieve all comments for a vote (paginated)",
+				"operationId": "getComments",
+				"parameters": [
+					{
+						"name": "voteId",
+						"in": "path",
+						"description": "Vote ID",
+						"required": true,
+						"schema": { "type": "string" }
+					},
+					{
+						"name": "pageable",
+						"in": "query",
+						"required": true,
+						"schema": { "$ref": "#/components/schemas/Pageable" }
+					}
+				],
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Vote not found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "Comments retrieved successfully",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponsePageCommentDto"
+								}
+							}
+						}
+					}
+				},
+				"security": [{ "Bearer Authentication": [] }]
+			},
+			"post": {
+				"tags": ["Vote"],
+				"summary": "Create a comment",
+				"description": "Add a comment to a vote",
+				"operationId": "createComment",
+				"parameters": [
+					{
+						"name": "voteId",
+						"in": "path",
+						"description": "Vote ID",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/CreateCommentRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Vote not found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"201": {
+						"description": "Comment created successfully",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseCommentDto"
+								}
+							}
+						}
+					}
+				},
+				"security": [{ "Bearer Authentication": [] }]
+			}
+		},
+		"/api/v1/votes/{voteId}/comments/{commentId}/like": {
+			"post": {
+				"tags": ["Vote"],
+				"summary": "Like a comment",
+				"description": "Add a like to a comment",
+				"operationId": "likeComment",
+				"parameters": [
+					{
+						"name": "voteId",
+						"in": "path",
+						"description": "Vote ID",
+						"required": true,
+						"schema": { "type": "string" }
+					},
+					{
+						"name": "commentId",
+						"in": "path",
+						"description": "Comment ID",
+						"required": true,
+						"schema": { "type": "string", "format": "uuid" }
+					}
+				],
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Comment not found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "Comment liked successfully",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					}
+				},
+				"security": [{ "Bearer Authentication": [] }]
+			},
+			"delete": {
+				"tags": ["Vote"],
+				"summary": "Unlike a comment",
+				"description": "Remove a like from a comment",
+				"operationId": "unlikeComment",
+				"parameters": [
+					{
+						"name": "voteId",
+						"in": "path",
+						"description": "Vote ID",
+						"required": true,
+						"schema": { "type": "string" }
+					},
+					{
+						"name": "commentId",
+						"in": "path",
+						"description": "Comment ID",
+						"required": true,
+						"schema": { "type": "string", "format": "uuid" }
+					}
+				],
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Comment not found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "Comment unliked successfully",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					}
+				},
+				"security": [{ "Bearer Authentication": [] }]
+			}
+		},
+		"/api/auth/signup": {
+			"post": {
+				"tags": ["認證"],
+				"summary": "會員註冊",
+				"description": "創建新會員帳戶",
+				"operationId": "registerUser",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/SignupRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "註冊資料無效，如用戶名已被使用",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "註冊成功",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponse" }
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/auth/signout": {
+			"post": {
+				"tags": ["認證"],
+				"summary": "會員登出",
+				"description": "會員登出系統並清除刷新令牌",
+				"operationId": "logoutUser",
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "登出成功",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/MessageResponse" }
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/auth/signin": {
+			"post": {
+				"tags": ["認證"],
+				"summary": "會員登入",
+				"description": "使用電子郵件和驗證碼登入系統",
+				"operationId": "signin",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/SigninRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "認證失敗",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "登入成功",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/JwtResponse" }
+							}
+						}
+					},
+					"429": {
+						"description": "登入嘗試次數過多，請稍後再試",
+						"content": { "*/*": { "schema": { "type": "object" } } }
+					}
+				}
+			}
+		},
+		"/api/auth/resend-verification": {
+			"post": {
+				"tags": ["認證"],
+				"summary": "重發驗證碼",
+				"description": "重新發送預註冊驗證碼到指定郵箱",
+				"operationId": "resendVerificationCode",
+				"parameters": [
+					{
+						"name": "email",
+						"in": "query",
+						"description": "郵箱地址",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "無效的郵箱或驗證已過期",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "驗證碼重發成功",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/PreSignupResponse" }
+							}
+						}
+					},
+					"429": {
+						"description": "請求過於頻繁",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/BaseResponse" }
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/auth/refreshToken": {
+			"post": {
+				"tags": ["認證"],
+				"summary": "刷新令牌",
+				"description": "使用刷新令牌獲取新的訪問令牌",
+				"operationId": "refreshToken",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/TokenRefreshRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"403": {
+						"description": "刷新令牌無效或已過期",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "令牌刷新成功",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/TokenRefreshResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/auth/pre-signup": {
+			"post": {
+				"tags": ["認證"],
+				"summary": "預註冊驗證",
+				"description": "檢查用戶名和email是否已存在，生成驗證碼並發送郵件",
+				"operationId": "preSignup",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/PreSignupRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "用戶名或email已存在",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "內部伺服器錯誤",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "預註冊請求成功，驗證碼已發送",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/PreSignupResponse" }
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/auth/force-expire-token": {
+			"post": {
+				"tags": ["認證"],
+				"summary": "強制使JWT令牌過期",
+				"description": "立即使當前JWT令牌失效，並清除刷新令牌。用於安全登出或強制終止會話。",
+				"operationId": "forceExpireToken",
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未認證或無效令牌",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "令牌已成功失效",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponse" }
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/users/me": {
+			"patch": {
+				"tags": ["User"],
+				"summary": "Update my profile",
+				"description": "Update the authenticated user's display name and bio",
+				"operationId": "updateMyProfile",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/UpdateProfileRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "Profile updated successfully",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseUserProfileResponse"
+								}
+							}
+						}
+					}
+				},
+				"security": [{ "Bearer Authentication": [] }]
+			}
+		},
+		"/api/v1/votes/{voteId}": {
+			"get": {
+				"tags": ["Vote"],
+				"summary": "Get vote by ID",
+				"description": "Retrieve vote details by vote ID",
+				"operationId": "getVote",
+				"parameters": [
+					{
+						"name": "voteId",
+						"in": "path",
+						"description": "Vote ID",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Vote not found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "Vote retrieved successfully",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseVoteResponse"
+								}
+							}
+						}
+					}
+				},
+				"security": [{ "Bearer Authentication": [] }]
+			}
+		},
+		"/api/v1/votes/{voteId}/results": {
+			"get": {
+				"tags": ["Vote"],
+				"summary": "Get vote results",
+				"description": "Retrieve detailed vote results including voter information (if not anonymous)",
+				"operationId": "getVoteResults",
+				"parameters": [
+					{
+						"name": "voteId",
+						"in": "path",
+						"description": "Vote ID",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Vote not found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "Vote results retrieved successfully",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseVoteResultResponse"
+								}
+							}
+						}
+					}
+				},
+				"security": [{ "Bearer Authentication": [] }]
+			}
+		},
+		"/api/v1/votes/{voteId}/my-vote-status": {
+			"get": {
+				"tags": ["Vote"],
+				"summary": "Check user vote status",
+				"description": "Check if the authenticated user has voted and which options they selected",
+				"operationId": "getMyVoteStatus",
+				"parameters": [
+					{
+						"name": "voteId",
+						"in": "path",
+						"description": "Vote ID",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Vote not found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "Vote status retrieved successfully",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseUserVoteStatusResponse"
+								}
+							}
+						}
+					}
+				},
+				"security": [{ "Bearer Authentication": [] }]
+			}
+		},
+		"/api/v1/votes/my": {
+			"get": {
+				"tags": ["Vote"],
+				"summary": "Get user's votes",
+				"description": "Retrieve votes created by the authenticated user (paginated)",
+				"operationId": "getMyVotes",
+				"parameters": [
+					{
+						"name": "pageable",
+						"in": "query",
+						"required": true,
+						"schema": { "$ref": "#/components/schemas/Pageable" }
+					}
+				],
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "User votes retrieved successfully",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponsePageVoteResponse"
+								}
+							}
+						}
+					}
+				},
+				"security": [{ "Bearer Authentication": [] }]
+			}
+		},
+		"/api/v1/users/{username}": {
+			"get": {
+				"tags": ["User"],
+				"summary": "Get user public profile",
+				"description": "Get a user's public profile by username",
+				"operationId": "getUserProfile",
+				"parameters": [
+					{
+						"name": "username",
+						"in": "path",
+						"description": "Username",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "User not found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "User profile retrieved successfully",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseUserProfileResponse"
+								}
+							}
+						}
+					}
+				},
+				"security": [{ "Bearer Authentication": [] }]
+			}
+		},
+		"/api/v1/users/search": {
+			"get": {
+				"tags": ["User"],
+				"summary": "Search users by username",
+				"description": "Search for users by username (case-insensitive, partial match)",
+				"operationId": "searchUsers",
+				"parameters": [
+					{
+						"name": "username",
+						"in": "query",
+						"description": "Username to search for",
+						"required": true,
+						"schema": { "type": "string" }
+					},
+					{
+						"name": "pageable",
+						"in": "query",
+						"required": true,
+						"schema": { "$ref": "#/components/schemas/Pageable" }
+					}
+				],
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "Users found successfully",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponsePageUserDto"
+								}
+							}
+						}
+					}
+				},
+				"security": [{ "Bearer Authentication": [] }]
+			}
+		},
+		"/api/auth/generateVerificationCode": {
+			"get": {
+				"tags": ["認證"],
+				"summary": "產生認證碼",
+				"description": "產生認證碼",
+				"operationId": "generateVerificationCode",
+				"parameters": [
+					{
+						"name": "email",
+						"in": "query",
+						"description": "email",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "用戶不存在",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "認證碼生成失敗",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "認證碼生成成功",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/BaseResponse" }
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/votes/{voteId}/vote/{optionId}": {
+			"delete": {
+				"tags": ["Vote"],
+				"summary": "Remove vote",
+				"description": "Remove vote from a specific option",
+				"operationId": "removeVote",
+				"parameters": [
+					{
+						"name": "voteId",
+						"in": "path",
+						"description": "Vote ID",
+						"required": true,
+						"schema": { "type": "string" }
+					},
+					{
+						"name": "optionId",
+						"in": "path",
+						"description": "Option ID",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Vote or option not found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "Vote removed successfully",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseVoteResponse"
+								}
+							}
+						}
+					}
+				},
+				"security": [{ "Bearer Authentication": [] }]
+			}
+		},
+		"/api/v1/users/{userId}": {
+			"delete": {
+				"tags": ["User"],
+				"summary": "Delete user account",
+				"description": "Delete a user account (users can only delete their own account, admins can delete any account)",
+				"operationId": "deleteUser",
+				"parameters": [
+					{
+						"name": "userId",
+						"in": "path",
+						"description": "User ID",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"403": {
+						"description": "Forbidden - Users can only delete their own account",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "User not found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "User deleted successfully",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					}
+				},
+				"security": [{ "Bearer Authentication": [] }]
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"ApiResponseMapStringString": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"errorCode": { "type": "string" },
+					"data": {
+						"type": "object",
+						"additionalProperties": { "type": "string" }
+					},
+					"message": { "type": "string" },
+					"timestamp": { "type": "string", "format": "date-time" },
+					"path": { "type": "string" }
+				}
+			},
+			"ApiResponseVoid": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"errorCode": { "type": "string" },
+					"data": {},
+					"message": { "type": "string" },
+					"timestamp": { "type": "string", "format": "date-time" },
+					"path": { "type": "string" }
+				}
+			},
+			"UpdateCommentRequest": {
+				"type": "object",
+				"properties": {
+					"text": { "type": "string", "maxLength": 2000, "minLength": 0 }
+				},
+				"required": ["text"]
+			},
+			"ApiResponseCommentDto": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"errorCode": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/CommentDto" },
+					"message": { "type": "string" },
+					"timestamp": { "type": "string", "format": "date-time" },
+					"path": { "type": "string" }
+				}
+			},
+			"CommentDto": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "string" },
+					"voteId": { "type": "string" },
+					"userId": { "type": "string" },
+					"author": { "type": "string" },
+					"text": { "type": "string" },
+					"createdAt": { "type": "string", "format": "date-time" },
+					"updatedAt": { "type": "string", "format": "date-time" },
+					"likeCount": { "type": "integer", "format": "int64" },
+					"edited": { "type": "boolean" },
+					"likedByCurrentUser": { "type": "boolean" }
+				}
+			},
+			"CreateVoteRequest": {
+				"type": "object",
+				"properties": {
+					"title": { "type": "string", "maxLength": 200, "minLength": 0 },
+					"description": {
+						"type": "string",
+						"maxLength": 1000,
+						"minLength": 0
+					},
+					"options": {
+						"type": "array",
+						"items": { "$ref": "#/components/schemas/VoteOptionRequest" },
+						"minItems": 1
+					},
+					"startTime": { "type": "string", "format": "date-time" },
+					"endTime": { "type": "string", "format": "date-time" },
+					"allowMultipleChoices": { "type": "boolean" },
+					"anonymous": { "type": "boolean" }
+				},
+				"required": ["options", "title"]
+			},
+			"VoteOptionRequest": {
+				"type": "object",
+				"properties": {
+					"text": { "type": "string", "maxLength": 200, "minLength": 0 },
+					"description": { "type": "string", "maxLength": 500, "minLength": 0 },
+					"displayOrder": { "type": "integer", "format": "int32" }
+				},
+				"required": ["text"]
+			},
+			"ApiResponseVoteResponse": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"errorCode": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/VoteResponse" },
+					"message": { "type": "string" },
+					"timestamp": { "type": "string", "format": "date-time" },
+					"path": { "type": "string" }
+				}
+			},
+			"VoteOptionResponse": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "string" },
+					"text": { "type": "string" },
+					"description": { "type": "string" },
+					"displayOrder": { "type": "integer", "format": "int32" },
+					"createdAt": { "type": "string", "format": "date-time" },
+					"votes": { "type": "integer", "format": "int64" }
+				}
+			},
+			"VoteResponse": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"errorCode": { "type": "string" },
+					"id": { "type": "string" },
+					"title": { "type": "string" },
+					"description": { "type": "string" },
+					"creatorId": { "type": "string" },
+					"creatorUsername": { "type": "string" },
+					"startTime": { "type": "string", "format": "date-time" },
+					"endTime": { "type": "string", "format": "date-time" },
+					"allowMultipleChoices": { "type": "boolean" },
+					"createdAt": { "type": "string", "format": "date-time" },
+					"updatedAt": { "type": "string", "format": "date-time" },
+					"totalVotes": { "type": "integer", "format": "int64" },
+					"options": {
+						"type": "array",
+						"items": { "$ref": "#/components/schemas/VoteOptionResponse" }
+					},
+					"active": { "type": "boolean" },
+					"anonymous": { "type": "boolean" },
+					"votingActive": { "type": "boolean" }
+				}
+			},
+			"VoteRequest": {
+				"type": "object",
+				"properties": {
+					"optionIds": {
+						"type": "array",
+						"items": { "type": "string" },
+						"minItems": 1
+					}
+				},
+				"required": ["optionIds"]
+			},
+			"CreateCommentRequest": {
+				"type": "object",
+				"properties": {
+					"text": { "type": "string", "maxLength": 2000, "minLength": 0 }
+				},
+				"required": ["text"]
+			},
+			"SignupRequest": {
+				"type": "object",
+				"description": "註冊請求，包含用戶名、電子郵件、密碼等",
+				"properties": {
+					"username": { "type": "string", "maxLength": 20, "minLength": 3 },
+					"email": {
+						"type": "string",
+						"format": "email",
+						"maxLength": 50,
+						"minLength": 0
+					},
+					"phoneNumber": { "type": "string", "maxLength": 20, "minLength": 0 },
+					"verificationCode": {
+						"type": "string",
+						"maxLength": 6,
+						"minLength": 6
+					},
+					"roles": {
+						"type": "array",
+						"items": { "type": "string" },
+						"uniqueItems": true
+					},
+					"firstName": { "type": "string", "minLength": 1 },
+					"lastName": { "type": "string", "minLength": 1 }
+				},
+				"required": [
+					"email",
+					"firstName",
+					"lastName",
+					"username",
+					"verificationCode"
+				]
+			},
+			"ApiResponse": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"errorCode": { "type": "string" },
+					"data": {},
+					"message": { "type": "string" },
+					"timestamp": { "type": "string", "format": "date-time" },
+					"path": { "type": "string" }
+				}
+			},
+			"MessageResponse": {
+				"type": "object",
+				"properties": { "message": { "type": "string" } }
+			},
+			"SigninRequest": {
+				"type": "object",
+				"description": "登入請求，包含電子郵件和驗證碼",
+				"properties": {
+					"email": { "type": "string", "minLength": 1 },
+					"verificationCode": { "type": "string", "minLength": 1 }
+				},
+				"required": ["email", "verificationCode"]
+			},
+			"JwtResponse": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"errorCode": { "type": "string" },
+					"token": { "type": "string" },
+					"type": { "type": "string" },
+					"refreshToken": { "type": "string" },
+					"id": { "type": "string" },
+					"username": { "type": "string" },
+					"email": { "type": "string" },
+					"roles": { "type": "array", "items": { "type": "string" } }
+				}
+			},
+			"PreSignupResponse": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"message": { "type": "string" },
+					"errorType": { "type": "string" },
+					"sessionKey": { "type": "string" },
+					"expirationMinutes": { "type": "integer", "format": "int64" }
+				}
+			},
+			"BaseResponse": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"errorCode": { "type": "string" }
+				}
+			},
+			"TokenRefreshRequest": {
+				"type": "object",
+				"description": "刷新令牌請求",
+				"properties": { "refreshToken": { "type": "string", "minLength": 1 } },
+				"required": ["refreshToken"]
+			},
+			"TokenRefreshResponse": {
+				"type": "object",
+				"properties": {
+					"accessToken": { "type": "string" },
+					"refreshToken": { "type": "string" },
+					"tokenType": { "type": "string" }
+				}
+			},
+			"PreSignupRequest": {
+				"type": "object",
+				"description": "預註冊請求",
+				"properties": {
+					"username": { "type": "string", "maxLength": 20, "minLength": 3 },
+					"email": {
+						"type": "string",
+						"format": "email",
+						"maxLength": 50,
+						"minLength": 0
+					}
+				},
+				"required": ["email", "username"]
+			},
+			"UpdateProfileRequest": {
+				"type": "object",
+				"properties": {
+					"displayName": { "type": "string", "maxLength": 100, "minLength": 0 },
+					"bio": { "type": "string", "maxLength": 500, "minLength": 0 }
+				}
+			},
+			"ApiResponseUserProfileResponse": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"errorCode": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/UserProfileResponse" },
+					"message": { "type": "string" },
+					"timestamp": { "type": "string", "format": "date-time" },
+					"path": { "type": "string" }
+				}
+			},
+			"UserProfileResponse": {
+				"type": "object",
+				"properties": {
+					"username": { "type": "string" },
+					"displayName": { "type": "string" },
+					"bio": { "type": "string" },
+					"joinedAt": { "type": "string", "format": "date-time" },
+					"totalPolls": { "type": "integer", "format": "int32" },
+					"totalVotes": { "type": "integer", "format": "int32" }
+				}
+			},
+			"Pageable": {
+				"type": "object",
+				"properties": {
+					"page": { "type": "integer", "format": "int32", "minimum": 0 },
+					"size": { "type": "integer", "format": "int32", "minimum": 1 },
+					"sort": { "type": "array", "items": { "type": "string" } }
+				}
+			},
+			"ApiResponsePageVoteResponse": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"errorCode": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/PageVoteResponse" },
+					"message": { "type": "string" },
+					"timestamp": { "type": "string", "format": "date-time" },
+					"path": { "type": "string" }
+				}
+			},
+			"PageVoteResponse": {
+				"type": "object",
+				"properties": {
+					"totalElements": { "type": "integer", "format": "int64" },
+					"totalPages": { "type": "integer", "format": "int32" },
+					"pageable": { "$ref": "#/components/schemas/PageableObject" },
+					"size": { "type": "integer", "format": "int32" },
+					"content": {
+						"type": "array",
+						"items": { "$ref": "#/components/schemas/VoteResponse" }
+					},
+					"number": { "type": "integer", "format": "int32" },
+					"sort": { "$ref": "#/components/schemas/SortObject" },
+					"numberOfElements": { "type": "integer", "format": "int32" },
+					"first": { "type": "boolean" },
+					"last": { "type": "boolean" },
+					"empty": { "type": "boolean" }
+				}
+			},
+			"PageableObject": {
+				"type": "object",
+				"properties": {
+					"paged": { "type": "boolean" },
+					"pageNumber": { "type": "integer", "format": "int32" },
+					"pageSize": { "type": "integer", "format": "int32" },
+					"offset": { "type": "integer", "format": "int64" },
+					"sort": { "$ref": "#/components/schemas/SortObject" },
+					"unpaged": { "type": "boolean" }
+				}
+			},
+			"SortObject": {
+				"type": "object",
+				"properties": {
+					"sorted": { "type": "boolean" },
+					"empty": { "type": "boolean" },
+					"unsorted": { "type": "boolean" }
+				}
+			},
+			"ApiResponseVoteResultResponse": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"errorCode": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/VoteResultResponse" },
+					"message": { "type": "string" },
+					"timestamp": { "type": "string", "format": "date-time" },
+					"path": { "type": "string" }
+				}
+			},
+			"VoteOptionResultResponse": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "string" },
+					"text": { "type": "string" },
+					"description": { "type": "string" },
+					"displayOrder": { "type": "integer", "format": "int32" },
+					"voteCount": { "type": "integer", "format": "int64" },
+					"percentage": { "type": "number", "format": "double" },
+					"voters": {
+						"type": "array",
+						"items": { "$ref": "#/components/schemas/VoterResponse" }
+					}
+				}
+			},
+			"VoteResultResponse": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "string" },
+					"title": { "type": "string" },
+					"description": { "type": "string" },
+					"creatorId": { "type": "string" },
+					"creatorUsername": { "type": "string" },
+					"startTime": { "type": "string", "format": "date-time" },
+					"endTime": { "type": "string", "format": "date-time" },
+					"allowMultipleChoices": { "type": "boolean" },
+					"createdAt": { "type": "string", "format": "date-time" },
+					"totalVotes": { "type": "integer", "format": "int64" },
+					"totalParticipants": { "type": "integer", "format": "int64" },
+					"options": {
+						"type": "array",
+						"items": { "$ref": "#/components/schemas/VoteOptionResultResponse" }
+					},
+					"active": { "type": "boolean" },
+					"anonymous": { "type": "boolean" },
+					"votingActive": { "type": "boolean" }
+				}
+			},
+			"VoterResponse": {
+				"type": "object",
+				"properties": {
+					"userId": { "type": "string" },
+					"username": { "type": "string" },
+					"votedAt": { "type": "string", "format": "date-time" }
+				}
+			},
+			"ApiResponseUserVoteStatusResponse": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"errorCode": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/UserVoteStatusResponse" },
+					"message": { "type": "string" },
+					"timestamp": { "type": "string", "format": "date-time" },
+					"path": { "type": "string" }
+				}
+			},
+			"UserVoteStatusResponse": {
+				"type": "object",
+				"properties": {
+					"hasVoted": { "type": "boolean" },
+					"selectedOptions": { "type": "array", "items": { "type": "string" } }
+				}
+			},
+			"ApiResponsePageCommentDto": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"errorCode": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/PageCommentDto" },
+					"message": { "type": "string" },
+					"timestamp": { "type": "string", "format": "date-time" },
+					"path": { "type": "string" }
+				}
+			},
+			"PageCommentDto": {
+				"type": "object",
+				"properties": {
+					"totalElements": { "type": "integer", "format": "int64" },
+					"totalPages": { "type": "integer", "format": "int32" },
+					"pageable": { "$ref": "#/components/schemas/PageableObject" },
+					"size": { "type": "integer", "format": "int32" },
+					"content": {
+						"type": "array",
+						"items": { "$ref": "#/components/schemas/CommentDto" }
+					},
+					"number": { "type": "integer", "format": "int32" },
+					"sort": { "$ref": "#/components/schemas/SortObject" },
+					"numberOfElements": { "type": "integer", "format": "int32" },
+					"first": { "type": "boolean" },
+					"last": { "type": "boolean" },
+					"empty": { "type": "boolean" }
+				}
+			},
+			"ApiResponsePageUserDto": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"errorCode": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/PageUserDto" },
+					"message": { "type": "string" },
+					"timestamp": { "type": "string", "format": "date-time" },
+					"path": { "type": "string" }
+				}
+			},
+			"PageUserDto": {
+				"type": "object",
+				"properties": {
+					"totalElements": { "type": "integer", "format": "int64" },
+					"totalPages": { "type": "integer", "format": "int32" },
+					"pageable": { "$ref": "#/components/schemas/PageableObject" },
+					"size": { "type": "integer", "format": "int32" },
+					"content": {
+						"type": "array",
+						"items": { "$ref": "#/components/schemas/UserDto" }
+					},
+					"number": { "type": "integer", "format": "int32" },
+					"sort": { "$ref": "#/components/schemas/SortObject" },
+					"numberOfElements": { "type": "integer", "format": "int32" },
+					"first": { "type": "boolean" },
+					"last": { "type": "boolean" },
+					"empty": { "type": "boolean" }
+				}
+			},
+			"UserDto": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "string" },
+					"username": { "type": "string" },
+					"email": { "type": "string" },
+					"phoneNumber": { "type": "string" },
+					"firstName": { "type": "string" },
+					"lastName": { "type": "string" },
+					"location": { "type": "string" },
+					"points": { "type": "integer", "format": "int32" },
+					"membershipLevel": { "type": "string" },
+					"active": { "type": "boolean" },
+					"createdAt": { "type": "string", "format": "date-time" },
+					"lastLoginAt": { "type": "string", "format": "date-time" }
+				}
+			}
+		},
+		"securitySchemes": {
+			"bearerAuth": {
+				"type": "http",
+				"name": "Authorization",
+				"in": "header",
+				"scheme": "bearer",
+				"bearerFormat": "JWT"
+			}
+		}
+	}
 }

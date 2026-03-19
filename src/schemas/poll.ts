@@ -2,18 +2,39 @@ import { z } from 'zod';
 
 export const CommentSchema = z.object({
 	id: z.string(),
+	voteId: z.string().optional(),
+	userId: z.string().optional(),
 	author: z.string(),
 	text: z.string(),
 	createdAt: z.string().datetime({ offset: true }),
+	updatedAt: z.string().datetime({ offset: true }).optional(),
+	likeCount: z.number().int().optional(),
+	edited: z.boolean().optional(),
+	likedByCurrentUser: z.boolean().optional(),
 });
 
 export const PollOptionSchema = z.object({
 	id: z.string(),
 	text: z.string(),
+	description: z.string().optional(),
+	displayOrder: z.number().int().optional(),
+	createdAt: z.string().datetime({ offset: true }).optional(),
 	votes: z.number().int(),
 });
 
 export const PollPrivacyModeSchema = z.enum(['public', 'link-only', 'invite-only']);
+
+export const VoteResultSchema = z.object({
+	optionId: z.string(),
+	optionText: z.string(),
+	voteCount: z.number().int(),
+	percentage: z.number(),
+});
+
+export const UserVoteStatusSchema = z.object({
+	hasVoted: z.boolean(),
+	selectedOptionIds: z.array(z.string()).optional(),
+});
 
 export const PollSchema = z.object({
 	id: z.string(),
@@ -30,10 +51,7 @@ export const PollSchema = z.object({
 	startTime: z.string().datetime({ offset: true }),
 	endTime: z.string().datetime({ offset: true }).nullable(),
 	totalVotes: z.number().int(),
-	success: z.boolean(),
-	errorCode: z.string().nullable(),
 	options: z.array(PollOptionSchema),
-	comments: z.array(CommentSchema).optional(),
 	privacyMode: PollPrivacyModeSchema.optional(),
 });
 
@@ -67,8 +85,8 @@ export const PollPageSchema = z.object({
 });
 
 export const CreatePollOptionSchema = z.object({
-	text: z.string(),
-	description: z.string().default(''),
+	text: z.string().max(200),
+	description: z.string().max(500).default(''),
 	displayOrder: z.number().int().default(0),
 });
 
@@ -90,12 +108,18 @@ export const CreatePollRequestSchema = z.object({
 });
 
 export const CreateCommentRequestSchema = z.object({
-	text: z.string().min(1),
+	text: z.string().min(1).max(2000),
+});
+
+export const UpdateCommentRequestSchema = z.object({
+	text: z.string().min(1).max(2000),
 });
 
 export type Comment = z.infer<typeof CommentSchema>;
 export type PollOption = z.infer<typeof PollOptionSchema>;
 export type PollPrivacyMode = z.infer<typeof PollPrivacyModeSchema>;
+export type VoteResult = z.infer<typeof VoteResultSchema>;
+export type UserVoteStatus = z.infer<typeof UserVoteStatusSchema>;
 export type Poll = z.infer<typeof PollSchema>;
 export type Sort = z.infer<typeof SortSchema>;
 export type Pageable = z.infer<typeof PageableSchema>;
@@ -103,3 +127,4 @@ export type PollPage = z.infer<typeof PollPageSchema>;
 export type CreatePollOption = z.infer<typeof CreatePollOptionSchema>;
 export type CreatePollRequest = z.infer<typeof CreatePollRequestSchema>;
 export type CreateCommentRequest = z.infer<typeof CreateCommentRequestSchema>;
+export type UpdateCommentRequest = z.infer<typeof UpdateCommentRequestSchema>;
