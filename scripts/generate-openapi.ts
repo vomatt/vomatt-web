@@ -1,10 +1,10 @@
 /**
- * Generates openapi.yaml from Zod schemas.
+ * Generates openapi.json from Zod schemas.
  *
  * Usage:
  *   npx tsx scripts/generate-openapi.ts
  *
- * This overwrites openapi.yaml at the project root.
+ * This overwrites openapi.json at the project root.
  */
 
 import { writeFileSync } from 'fs';
@@ -349,55 +349,6 @@ const document = generator.generateDocument({
 	],
 });
 
-// Serialize to YAML
-function toYaml(obj: unknown, indent = 0): string {
-	const pad = '  '.repeat(indent);
-	if (obj === null) return 'null';
-	if (typeof obj === 'boolean') return obj ? 'true' : 'false';
-	if (typeof obj === 'number') return String(obj);
-	if (typeof obj === 'string') {
-		// Multi-line strings
-		if (obj.includes('\n')) {
-			return '|\n' + obj.split('\n').map((l) => pad + '  ' + l).join('\n');
-		}
-		// Strings that need quoting
-		if (/[:{}\[\],&*?|<>=!%@`#]/.test(obj) || obj.trim() !== obj || obj === '') {
-			return JSON.stringify(obj);
-		}
-		return obj;
-	}
-	if (Array.isArray(obj)) {
-		if (obj.length === 0) return '[]';
-		return '\n' + obj.map((item) => `${pad}- ${toYaml(item, indent + 1).trimStart()}`).join('\n');
-	}
-	if (typeof obj === 'object') {
-		const entries = Object.entries(obj as Record<string, unknown>).filter(
-			([, v]) => v !== undefined
-		);
-		if (entries.length === 0) return '{}';
-		return (
-			'\n' +
-			entries
-				.map(([k, v]) => {
-					const keyStr = /[^a-zA-Z0-9_\-/]/.test(k) ? JSON.stringify(k) : k;
-					const valStr = toYaml(v, indent + 1);
-					if (valStr.startsWith('\n')) {
-						return `${pad}${keyStr}:${valStr}`;
-					}
-					return `${pad}${keyStr}: ${valStr}`;
-				})
-				.join('\n')
-		);
-	}
-	return String(obj);
-}
-
-const yaml =
-	'# Auto-generated from Zod schemas — edit scripts/generate-openapi.ts, not this file.\n' +
-	'# Run: npx tsx scripts/generate-openapi.ts\n' +
-	toYaml(document).trimStart() +
-	'\n';
-
-const outPath = join(__dirname, '..', 'openapi.yaml');
-writeFileSync(outPath, yaml, 'utf8');
-console.log(`✓ openapi.yaml written to ${outPath}`);
+const outPath = join(__dirname, '..', 'openapi.json');
+writeFileSync(outPath, JSON.stringify(document, null, 2) + '\n', 'utf8');
+console.log(`✓ openapi.json written to ${outPath}`);
