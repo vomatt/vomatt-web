@@ -15,7 +15,7 @@ export async function getFollowers(
 ): Promise<FollowListPage> {
   const params = new URLSearchParams({ page: String(page), size: String(size) });
   return publicFetch<FollowListPage>(
-    `${process.env.API_URL}/api/v1/users/${encodeURIComponent(username)}/followers?${params}`
+    `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/${encodeURIComponent(username)}/followers?${params}`
   );
 }
 
@@ -26,6 +26,6 @@ export async function getFollowing(
 ): Promise<FollowListPage> {
   const params = new URLSearchParams({ page: String(page), size: String(size) });
   return publicFetch<FollowListPage>(
-    `${process.env.API_URL}/api/v1/users/${encodeURIComponent(username)}/following?${params}`
+    `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/${encodeURIComponent(username)}/following?${params}`
   );
 }
