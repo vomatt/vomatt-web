@@ -1,20 +1,18 @@
+import type { UserSummary } from '@/types/user';
+
 describe('mock store helpers', () => {
   let store: typeof import('@/app/api/v1/users/_mock-store');
 
   beforeEach(() => {
+    // jest.resetModules() ensures the module-level seed code re-runs on each require(),
+    // giving every test a clean, fully-seeded store with no leftover mutations.
     jest.resetModules();
     store = require('@/app/api/v1/users/_mock-store');
   });
 
   afterEach(() => {
-    // Clean up any mutations made during individual tests
-    store.avatars.clear();
-    // Re-apply seed data for follows
-    store.follows.clear();
-    store.follows.set('alice', new Set(['bob', 'carol', 'eva']));
-    store.follows.set('bob', new Set(['alice', 'eva']));
-    store.follows.set('carol', new Set(['alice']));
-    store.follows.set('eva', new Set(['alice', 'bob', 'carol', 'dave']));
+    // No manual cleanup needed: jest.resetModules() + require() in beforeEach re-evaluates
+    // the module from scratch each time, so the module-level seed code always re-runs.
   });
 
   describe('MOCK_USERS', () => {
@@ -105,7 +103,7 @@ describe('mock store helpers', () => {
     it('returns UserSummary list for valid usernames', () => {
       const summaries = store.getUserSummaries(['alice', 'bob']);
       expect(summaries).toHaveLength(2);
-      summaries.forEach((s: any) => {
+      summaries.forEach((s: UserSummary) => {
         expect(s).toHaveProperty('username');
         expect(s).toHaveProperty('displayName');
         expect(s).toHaveProperty('avatarUrl');
