@@ -66,7 +66,8 @@
 		"title": "We sent you a code",
 		"subtitle": "Enter it below to verify",
 		"resendVerificationCode": "Resend verification code",
-		"invalidVerificationCode": "Wrong code",
+		"codeSent": "A new code has been sent to your email",
+		"INVALID_VERIFICATION_CODE": "Wrong code",
 		"serverError": "Something went wrong, please try again later"
 	},
 	"myPolls": {
@@ -134,5 +135,8 @@
 		"privacyInviteOnlyHint": "Only invited users can vote — unregistered emails will receive an invitation",
 		"inviteUsersLabel": "Invite by username or email",
 		"inviteUsersPlaceholder": "Username or email — press Enter to add"
+	},
+	"homePage": {
+		"feedListNoData": "Start the poll, lead the crowd."
 	}
 }

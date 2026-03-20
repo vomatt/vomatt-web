@@ -447,7 +447,6 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 								</div>
 							)}
 						</div>
-						{/* Action Buttons */}
 						<div className="flex gap-3">
 							<ButtonLoading
 								onClick={handleCreatePoll}

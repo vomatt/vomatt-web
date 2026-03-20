@@ -53,6 +53,7 @@ export async function createPoll(data: PollCreatorData) {
 			}),
 		}),
 	});
+
 	const { success, errorCode, data: pollData } = response || {};
 	if (!success) return { status: 'ERROR' as const, message: errorCode };
 	return { status: 'SUCCESS' as const, data: pollData };

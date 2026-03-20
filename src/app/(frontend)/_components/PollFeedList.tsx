@@ -1,6 +1,7 @@
 'use client';
+import { PollCreator } from '@/components/PollCreator';
 import { useState } from 'react';
-
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { getPolls } from '@/lib/api/services/polls';
@@ -31,6 +32,7 @@ type PollFeedList = {
 };
 
 export function PollFeedList({ data, className }: PollFeedList) {
+	const { t } = useLanguage();
 	const [polls, setPolls] = useState<Poll[]>(data?.content ?? []);
 	const [currentPage, setCurrentPage] = useState(data?.number ?? 0);
 	const [isLast, setIsLast] = useState(data?.last ?? true);
@@ -38,8 +40,9 @@ export function PollFeedList({ data, className }: PollFeedList) {
 
 	if (!hasArrayValue(data?.content)) {
 		return (
-			<div className="flex justify-center items-center h-svh flex-1">
-				<h2 className="text-3xl">No Data</h2>
+			<div className="flex flex-col gap-10 justify-center items-center h-svh flex-1">
+				<h2 className="text-3xl">{t('homePage.feedListNoData')}</h2>
+				<PollCreator triggerChildren={<Button>Create a poll</Button>} />
 			</div>
 		);
 	}

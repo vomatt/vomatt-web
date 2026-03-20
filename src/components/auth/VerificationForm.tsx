@@ -9,6 +9,7 @@ import { MailCheckIcon } from '@/components/ui/animate-icon/MailCheck';
 import { Button } from '@/components/ui/Button';
 import { Field, FieldError } from '@/components/ui/Field';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { resendVerification } from '@/lib/api/services/auth';
 
 import {
 	InputOTP,
@@ -21,7 +22,7 @@ interface VerificationFormProps {
 	email: string;
 	submitCodeFunc: (
 		pin: string
-	) => Promise<{ status: 'ERROR' | 'OK'; errorType?: string }>;
+	) => Promise<{ status: 'ERROR' | 'OK'; message?: string }>;
 	backButtonFunc: () => void;
 }
 
@@ -38,6 +39,11 @@ export default function VerificationForm({
 }: VerificationFormProps) {
 	const [error, setError] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
+	const [resendMessage, setResendMessage] = useState<{
+		type: 'success' | 'error';
+		key: string;
+	} | null>(null);
+	const [isResending, setIsResending] = useState(false);
 	const form = useForm<z.infer<typeof FormSchema>>({
 		resolver: zodResolver(FormSchema),
 		defaultValues: {
@@ -53,9 +59,10 @@ export default function VerificationForm({
 			setError('');
 			setIsLoading(true);
 			const res = await submitCodeFunc(pin);
-			const { status, errorType } = res;
+
+			const { status, message } = res;
 			if (status === 'ERROR') {
-				setError(errorType || '');
+				setError(message || '');
 				return;
 			}
 			return router.replace('/');
@@ -63,6 +70,20 @@ export default function VerificationForm({
 			setError('Something went wrong, pleas try again later');
 		} finally {
 			setIsLoading(false);
+		}
+	}
+
+	async function onResendVerification(email: string) {
+		setResendMessage(null);
+		setIsResending(true);
+		try {
+			const res = await resendVerification(email);
+
+			setResendMessage({ type: 'success', key: 'codeSent' });
+		} catch (error) {
+			setResendMessage({ type: 'error', key: 'serverError' });
+		} finally {
+			setIsResending(false);
 		}
 	}
 
@@ -121,9 +142,22 @@ export default function VerificationForm({
 				</Button>
 			</form>
 
-			<Button className="underline mx-auto block" variant="link">
+			<ButtonLoading
+				className="underline mx-auto block"
+				variant="link"
+				isLoading={isResending}
+				disabled={isResending}
+				onClick={() => onResendVerification(email)}
+			>
 				{t('verificationCode.resendVerificationCode')}
-			</Button>
+			</ButtonLoading>
+			{resendMessage && (
+				<p
+					className={`text-sm mt-2 text-center ${resendMessage.type === 'success' ? 'text-green-600' : 'text-destructive'}`}
+				>
+					{t(`verificationCode.${resendMessage.key}`)}
+				</p>
+			)}
 		</div>
 	);
 }

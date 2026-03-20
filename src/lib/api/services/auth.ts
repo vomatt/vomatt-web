@@ -8,6 +8,7 @@ export async function getVerifyCode(email: string) {
 		const res = await fetch(
 			`${process.env.API_URL}/api/auth/generateVerificationCode?email=${email}`
 		);
+
 		const data = await res.json();
 		const { success, errorType } = data;
 		if (!success) return { status: 'ERROR' as const, errorType };
@@ -90,10 +91,12 @@ export async function signout() {
 }
 
 export async function resendVerification(email: string) {
-	const params = new URLSearchParams({ email });
-	return apiClient(`/api/auth/resend-verification?${params}`, {
+	const res = await apiClient('/api/auth/resend-verification', {
 		method: 'POST',
+		body: JSON.stringify({ email }),
 	});
+
+	return res;
 }
 
 export async function forceExpireToken() {

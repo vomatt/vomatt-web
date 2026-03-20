@@ -66,6 +66,7 @@
 		"title": "我們已寄出驗證碼",
 		"subtitle": "輸入驗證碼來驗證",
 		"resendVerificationCode": "重新發送驗證碼",
+		"codeSent": "新的驗證碼已寄送至您的信箱",
 		"invalidVerificationCode": "驗證碼錯誤",
 		"serverError": "系統出現錯誤，請稍後再試"
 	},
@@ -129,5 +130,8 @@
 		"privacyInviteOnlyHint": "僅受邀者可投票，未註冊的信箱將收到邀請信",
 		"inviteUsersLabel": "以使用者名稱或信箱邀請",
 		"inviteUsersPlaceholder": "使用者名稱或信箱 — 按 Enter 新增"
+	},
+	"homePage": {
+		"feedListNoData": "發起投票，引領群眾。"
 	}
 }
