@@ -22,6 +22,10 @@ export const UserProfileSchema = z.object({
 	joinedAt: z.string().datetime({ offset: true }),
 	totalPolls: z.number().int(),
 	totalVotes: z.number().int(),
+	avatarUrl: z.string().nullable(),
+	followersCount: z.number().int(),
+	followingCount: z.number().int(),
+	isFollowing: z.boolean().optional(),
 });
 
 export const UpdateProfileRequestSchema = z.object({
