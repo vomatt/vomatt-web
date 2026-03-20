@@ -19,7 +19,7 @@ async function getCallerUsername(req: NextRequest): Promise<string | null> {
   const token = auth?.startsWith('Bearer ') ? auth.slice(7) : null;
   if (!token) return null;
   const payload = await decodeToken(token);
-  return payload?.username ?? payload?.nickName ?? null;
+  return payload?.username ?? null;
 }
 
 export async function PATCH(req: NextRequest) {
