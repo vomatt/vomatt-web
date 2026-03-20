@@ -34,6 +34,7 @@ export default function FollowersSheet({
   useEffect(() => {
     if (!open) return;
     setFetchState('loading');
+    setUsers([]);
     const fetchFn = type === 'followers' ? getFollowers : getFollowing;
     fetchFn(username, 0)
       .then((res) => {
