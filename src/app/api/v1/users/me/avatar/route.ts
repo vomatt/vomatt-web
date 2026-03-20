@@ -15,8 +15,11 @@ function err(message: string, status: number) {
 }
 
 async function getCallerUsername(req: NextRequest): Promise<string | null> {
+  // Try Authorization header first (used by apiClient-based calls)
   const auth = req.headers.get('authorization');
-  const token = auth?.startsWith('Bearer ') ? auth.slice(7) : null;
+  const headerToken = auth?.startsWith('Bearer ') ? auth.slice(7) : null;
+  // Fall back to ACCESS_TOKEN cookie (sent automatically via credentials: 'include')
+  const token = headerToken ?? req.cookies.get('ACCESS_TOKEN')?.value ?? null;
   if (!token) return null;
   const payload = await decodeToken(token);
   return payload?.username ?? null;
