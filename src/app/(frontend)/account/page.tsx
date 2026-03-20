@@ -36,6 +36,9 @@ export default async function Page() {
 		joinedAt: session?.createdAt ?? new Date().toISOString(),
 		totalPolls: polls.length,
 		totalVotes: polls.reduce((sum: number, p: Poll) => sum + p.totalVotes, 0),
+		avatarUrl: null,
+		followersCount: 0,
+		followingCount: 0,
 	};
 
 	return <AccountPage profile={profile} polls={polls} />;
