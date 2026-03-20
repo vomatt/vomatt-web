@@ -35,10 +35,13 @@ export function useAvatarUpload(initialAvatarUrl: string | null): UseAvatarUploa
       const result = await uploadAvatar(file);
       setAvatarUrl(result.avatarUrl);
       router.refresh();
+      return undefined;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Upload failed. Please try again.';
+      return message;
     } finally {
       setIsUploading(false);
     }
-    return undefined;
   }
 
   async function remove() {

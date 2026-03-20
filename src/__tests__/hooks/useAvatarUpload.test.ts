@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 
-jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh: jest.fn() }) }));
+const mockRefresh = jest.fn();
+jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh: mockRefresh }) }));
 jest.mock('@/lib/api/avatar-upload', () => ({
   uploadAvatar: jest.fn(),
 }));
@@ -15,6 +16,7 @@ import { useAvatarUpload } from '@/hooks/useAvatarUpload';
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockRefresh.mockClear();
   uploadAvatar.mockResolvedValue({ avatarUrl: 'https://example.com/new.jpg' });
   removeAvatar.mockResolvedValue({ avatarUrl: null });
 });
@@ -64,6 +66,7 @@ describe('useAvatarUpload', () => {
     });
     expect(uploadAvatar).toHaveBeenCalledWith(file);
     expect(result.current.avatarUrl).toBe('https://example.com/new.jpg');
+    expect(mockRefresh).toHaveBeenCalled();
   });
 
   it('calls removeAvatar and sets avatarUrl to null', async () => {
@@ -75,5 +78,18 @@ describe('useAvatarUpload', () => {
     });
     expect(removeAvatar).toHaveBeenCalled();
     expect(result.current.avatarUrl).toBeNull();
+    expect(mockRefresh).toHaveBeenCalled();
+  });
+
+  it('returns error string when uploadAvatar rejects', async () => {
+    uploadAvatar.mockRejectedValue(new Error('Server error'));
+    const { result } = renderHook(() => useAvatarUpload(null));
+    const file = new File(['img'], 'photo.jpg', { type: 'image/jpeg' });
+    let error: string | undefined;
+    await act(async () => {
+      error = await result.current.upload(file);
+    });
+    expect(error).toBeDefined();
+    expect(typeof error).toBe('string');
   });
 });
