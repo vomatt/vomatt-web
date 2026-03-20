@@ -33,6 +33,11 @@ export const UpdateProfileRequestSchema = z.object({
 	bio: z.string().nullable().optional(),
 });
 
+export const UserSummarySchema = z.object({
+	username: z.string(),
+	displayName: z.string().nullable(),
+	avatarUrl: z.string().nullable(),
+});
+
 export type UserDto = z.infer<typeof UserDtoSchema>;
-export type UserProfile = z.infer<typeof UserProfileSchema>;
 export type UpdateProfileRequest = z.infer<typeof UpdateProfileRequestSchema>;
