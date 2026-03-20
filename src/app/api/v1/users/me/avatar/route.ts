@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { ACCESS_TOKEN } from '@/data/constants';
 import { decodeToken } from '@/lib/api/auth';
 import { avatars } from '../../_mock-store';
 
@@ -19,7 +20,7 @@ async function getCallerUsername(req: NextRequest): Promise<string | null> {
   const auth = req.headers.get('authorization');
   const headerToken = auth?.startsWith('Bearer ') ? auth.slice(7) : null;
   // Fall back to ACCESS_TOKEN cookie (sent automatically via credentials: 'include')
-  const token = headerToken ?? req.cookies.get('ACCESS_TOKEN')?.value ?? null;
+  const token = headerToken ?? req.cookies.get(ACCESS_TOKEN)?.value ?? null;
   if (!token) return null;
   const payload = await decodeToken(token);
   return payload?.username ?? null;
