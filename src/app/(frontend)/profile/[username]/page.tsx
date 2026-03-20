@@ -52,10 +52,11 @@ export default async function ProfilePage({
 	}
 
 	const isOwner = session?.username === username || session?.nickName === username;
+	const isAuthenticated = !!session;
 
 	return (
 		<div className="px-contain max-w-2xl mx-auto py-6 space-y-6">
-			<ProfileHeader profile={profile} isOwner={isOwner} />
+			<ProfileHeader profile={profile} isOwner={isOwner} isAuthenticated={isAuthenticated} />
 			<div>
 				<h2 className="text-lg font-semibold mb-4">Polls</h2>
 				<ProfilePollList polls={polls} />

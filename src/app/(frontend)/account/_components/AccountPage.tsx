@@ -17,7 +17,7 @@ export type AccountPageProps = {
 export default function AccountPage({ profile, polls }: AccountPageProps) {
 	return (
 		<div className="px-contain max-w-2xl mx-auto py-6 space-y-6">
-			<ProfileHeader profile={profile} isOwner={true} />
+			<ProfileHeader profile={profile} isOwner={true} isAuthenticated={true} />
 			<div>
 				<h2 className="text-lg font-semibold mb-4">My Polls</h2>
 				<ProfilePollList polls={polls} />
