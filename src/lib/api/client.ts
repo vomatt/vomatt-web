@@ -44,8 +44,7 @@ async function parseApiResponseBody<T>(response: Response): Promise<T> {
 		try {
 			const text = await response.text();
 			errorData = text ? JSON.parse(text) : undefined;
-			errorMessage =
-				errorData?.message ?? errorData?.errorCode ?? errorMessage;
+			errorMessage = errorData?.message ?? errorData?.errorCode ?? errorMessage;
 		} catch {}
 		throw new ApiError(errorMessage, response.status, errorData);
 	}
@@ -72,6 +71,7 @@ export async function publicFetch<T = any>(
 	options?: RequestInit
 ): Promise<T> {
 	const response = await fetch(url, options);
+
 	return parseApiResponseBody<T>(response);
 }
 

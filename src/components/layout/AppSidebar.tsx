@@ -90,7 +90,10 @@ export function AppSidebar({ userSession }: AppSidebarProps) {
 		<Sidebar className="border-none" variant="floating">
 			{/* Header */}
 			<SidebarHeader className="px-5 pt-5 pb-4">
-				<Link href="/" className="block w-24 text-foreground/90 hover:text-foreground transition-colors">
+				<Link
+					href="/"
+					className="block w-24 text-foreground/90 hover:text-foreground transition-colors"
+				>
 					<BrandLogo />
 				</Link>
 			</SidebarHeader>
@@ -101,45 +104,72 @@ export function AppSidebar({ userSession }: AppSidebarProps) {
 					<SidebarGroupContent>
 						<SidebarMenu className="gap-0.5">
 							{navigationItems.map((item) => {
-								const isActive = item.id !== 'actionCreatePoll' && (
-									item.url === '/' ? pathname === '/' : pathname.startsWith(item.url)
-								);
+								const isActive =
+									item.id !== 'actionCreatePoll' &&
+									(item.url === '/'
+										? pathname === '/'
+										: pathname.startsWith(item.url));
 
 								return (
 									<SidebarMenuItem key={item.title}>
 										<SidebarMenuButton
-											asChild={item.id !== 'actionCreatePoll'}
+											asChild={item.id !== 'actionCreatePoll' || !userSession}
 											className={cn(
 												'group h-10 rounded-xl px-3 cursor-pointer transition-all duration-150',
 												'text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60',
-												isActive && 'bg-sidebar-accent text-sidebar-accent-foreground font-semibold hover:bg-sidebar-accent',
+												isActive &&
+													'bg-sidebar-accent text-sidebar-accent-foreground font-semibold hover:bg-sidebar-accent'
 											)}
 										>
 											{item.id === 'actionCreatePoll' ? (
-												<PollCreator
-													triggerChildren={
-														<div className="flex items-center gap-3 w-full">
-															<item.icon
-																className={cn(
-																	'size-4 transition-colors',
-																	'text-sidebar-foreground/50 group-hover:text-sidebar-foreground/80',
-																)}
-															/>
-															<span className="text-sm font-medium">{t(item.title)}</span>
-														</div>
-													}
-												/>
+												userSession ? (
+													<PollCreator
+														triggerChildren={
+															<div className="flex items-center gap-3 w-full">
+																<item.icon
+																	className={cn(
+																		'size-4 transition-colors',
+																		'text-sidebar-foreground/50 group-hover:text-sidebar-foreground/80'
+																	)}
+																/>
+																<span className="text-sm font-medium">
+																	{t(item.title)}
+																</span>
+															</div>
+														}
+													/>
+												) : (
+													<Link
+														href="/login"
+														className="flex items-center gap-3 w-full"
+													>
+														<item.icon
+															className={cn(
+																'size-4 transition-colors',
+																'text-sidebar-foreground/50 group-hover:text-sidebar-foreground/80'
+															)}
+														/>
+														<span className="text-sm font-medium">
+															{t(item.title)}
+														</span>
+													</Link>
+												)
 											) : (
-												<Link href={item.url} className="flex items-center gap-3 w-full">
+												<Link
+													href={item.url}
+													className="flex items-center gap-3 w-full"
+												>
 													<item.icon
 														className={cn(
 															'size-4 shrink-0 transition-colors',
 															isActive
 																? 'text-sidebar-primary'
-																: 'text-sidebar-foreground/50 group-hover:text-sidebar-foreground/80',
+																: 'text-sidebar-foreground/50 group-hover:text-sidebar-foreground/80'
 														)}
 													/>
-													<span className="text-sm font-medium capitalize">{t(item.title)}</span>
+													<span className="text-sm font-medium capitalize">
+														{t(item.title)}
+													</span>
 													{isActive && (
 														<span className="ml-auto w-1.5 h-1.5 rounded-full bg-sidebar-primary shrink-0" />
 													)}
@@ -155,26 +185,23 @@ export function AppSidebar({ userSession }: AppSidebarProps) {
 			</SidebarContent>
 
 			{/* Footer */}
-			<SidebarFooter className="p-3">
+			<SidebarFooter className="px-3 py-10">
 				{userSession ? (
 					<div className="rounded-xl border border-sidebar-border/60 bg-sidebar-accent/20 overflow-hidden">
-						{/* Profile link */}
 						<Link
 							href="/account"
 							className={cn(
 								'group flex items-center gap-3 p-3 transition-colors',
 								'hover:bg-sidebar-accent/40',
-								pathname === '/account' && 'bg-sidebar-accent/40',
+								pathname === '/account' && 'bg-sidebar-accent/40'
 							)}
 						>
-							{/* Avatar */}
 							<div className="w-8 h-8 rounded-lg bg-sidebar-primary flex items-center justify-center shrink-0 shadow-sm">
 								<span className="text-sidebar-primary-foreground text-xs font-bold tracking-wide">
 									{initials}
 								</span>
 							</div>
 
-							{/* User info */}
 							<div className="flex-1 min-w-0">
 								<p className="text-sm font-semibold text-sidebar-foreground leading-tight truncate">
 									{userSession.full_name || userSession.email}
@@ -186,11 +213,8 @@ export function AppSidebar({ userSession }: AppSidebarProps) {
 								)}
 							</div>
 
-							{/* Arrow */}
 							<ArrowRight className="size-3.5 text-sidebar-foreground/30 group-hover:text-sidebar-foreground/60 transition-colors shrink-0" />
 						</Link>
-
-						{/* Divider + Logout */}
 						<div className="border-t border-sidebar-border/40">
 							<button
 								onClick={handleLogout}

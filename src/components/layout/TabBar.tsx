@@ -12,9 +12,10 @@ import { usePathname } from 'next/navigation';
 import { PollCreator } from '@/components/PollCreator';
 type TabBarProps = {
 	className?: string;
+	userSession?: any;
 };
 
-export function TabBar({ className }: TabBarProps) {
+export function TabBar({ className, userSession }: TabBarProps) {
 	const pathname = usePathname();
 	const linkList = [
 		{
@@ -29,8 +30,8 @@ export function TabBar({ className }: TabBarProps) {
 		},
 		{
 			title: 'Create Vote',
-			href: null,
-			icon: <PollCreator />,
+			href: userSession ? null : '/login',
+			icon: userSession ? <PollCreator /> : <CirclePlus />,
 		},
 		{
 			title: 'My Polls',

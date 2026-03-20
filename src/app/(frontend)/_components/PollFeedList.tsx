@@ -1,6 +1,7 @@
 'use client';
+
 import { PollCreator } from '@/components/PollCreator';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
@@ -27,18 +28,25 @@ type Page = {
 };
 
 type PollFeedList = {
-	data: Page;
 	className?: string;
 };
 
-export function PollFeedList({ data, className }: PollFeedList) {
+export function PollFeedList({ className }: PollFeedList) {
 	const { t } = useLanguage();
-	const [polls, setPolls] = useState<Poll[]>(data?.content ?? []);
-	const [currentPage, setCurrentPage] = useState(data?.number ?? 0);
-	const [isLast, setIsLast] = useState(data?.last ?? true);
+	const [mainData, setMainData] = useState<Poll[]>([]);
+	const [currentPage, setCurrentPage] = useState(0);
+	const [isLast, setIsLast] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 
-	if (!hasArrayValue(data?.content)) {
+	useEffect(() => {
+		getPolls().then((data) => {
+			setMainData(data?.content ?? []);
+			setCurrentPage(data?.number ?? 0);
+			setIsLast(data?.last ?? true);
+		});
+	}, []);
+
+	if (!hasArrayValue(mainData?.content)) {
 		return (
 			<div className="flex flex-col gap-10 justify-center items-center h-svh flex-1">
 				<h2 className="text-3xl">{t('homePage.feedListNoData')}</h2>
@@ -72,7 +80,7 @@ export function PollFeedList({ data, className }: PollFeedList) {
 					className
 				)}
 			>
-				{polls.map((item) => (
+				{mainData.map((item) => (
 					<PollCard key={item.id} pollData={item} />
 				))}
 			</div>

@@ -25,7 +25,7 @@ export async function Layout({ children }: LayoutProps) {
 				<AdaSkip />
 				<AppSidebar userSession={userSession} />
 				<Main>{children}</Main>
-				<TabBar />
+				<TabBar userSession={userSession} />
 				{userSession && (
 					<PollCreator
 						triggerChildren={

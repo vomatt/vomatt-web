@@ -4,7 +4,9 @@ import { ApiError, apiClient, publicFetch } from '@/lib/api/client';
 import { PollCreatorData } from '@/types/poll';
 
 export async function getPolls(page = 0) {
-	return publicFetch(`${process.env.API_URL}/api/v1/votes?page=${page}`);
+	const url = `${process.env.API_URL}/api/v1/votes?page=${page}`;
+	const res = await publicFetch(url);
+	return res;
 }
 
 export async function getPoll(id: string) {
