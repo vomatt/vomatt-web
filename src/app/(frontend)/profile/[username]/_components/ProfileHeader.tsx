@@ -47,6 +47,7 @@ export default function ProfileHeader({
 						<EditProfileSheet
 							initialDisplayName={profile.displayName ?? ''}
 							initialBio={profile.bio ?? ''}
+							initialAvatarUrl={profile.avatarUrl}
 						/>
 					)}
 				</div>
