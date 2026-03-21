@@ -35,22 +35,23 @@ interface PollCreatorProps {
 	triggerChildren?: ReactNode;
 }
 
+const OPTIONS_LIMIT = 10;
+
 export function PollCreator({ triggerChildren }: PollCreatorProps) {
-	const optionsLimit = 10;
 	const { t } = useLanguage();
 	const [open, setOpen] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
-	const [question, setQuestion] = useState('');
+	const [title, setTitle] = useState('');
 	const [description, setDescription] = useState('');
 	const [options, setOptions] = useState<PollCreateOption[]>([
 		{ id: 'option-1', text: '' },
 		{ id: 'option-2', text: '' },
 	]);
 
-	const [isAllowMultipleChoices, setIsAllowMultipleChoices] = useState(false);
+	const [allowMultipleChoices, setAllowMultipleChoices] = useState(false);
 	const [startTime, setStartTime] = useState('');
 	const [endTime, setEndTime] = useState('');
-	const [isAnonymous, setIsAnonymous] = useState(false);
+	const [anonymous, setAnonymous] = useState(false);
 	const [privacyMode, setPrivacyMode] = useState<PollPrivacyMode>('public');
 	const [inviteInput, setInviteInput] = useState('');
 	const [invitedUsers, setInvitedUsers] = useState<string[]>([]);
@@ -59,16 +60,16 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 	const [error, setError] = useState('');
 
 	const resetForm = () => {
-		setQuestion('');
+		setTitle('');
 		setDescription('');
 		setOptions([
 			{ id: 'option-1', text: '' },
 			{ id: 'option-2', text: '' },
 		]);
-		setIsAllowMultipleChoices(false);
+		setAllowMultipleChoices(false);
 		setStartTime('');
 		setEndTime('');
-		setIsAnonymous(false);
+		setAnonymous(false);
 		setPrivacyMode('public');
 		setInviteInput('');
 		setInvitedUsers([]);
@@ -107,11 +108,11 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 
 	const hasUnsavedData = useCallback(() => {
 		return (
-			question.trim() !== '' ||
+			title.trim() !== '' ||
 			description.trim() !== '' ||
 			options.some((opt) => opt.text.trim() !== '')
 		);
-	}, [question, description, options]);
+	}, [title, description, options]);
 
 	// Handle browser close/refresh
 	useEffect(() => {
@@ -143,15 +144,15 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 		setOpen(value);
 	};
 
-	const handleSaveDraft = async () => {
+	const handleSaveDraft = () => {
 		const draft = {
-			question,
+			title,
 			description,
 			options,
 			startTime,
 			endTime,
-			isAllowMultipleChoices,
-			isAnonymous,
+			allowMultipleChoices,
+			anonymous,
 			privacyMode,
 			invitedUsers,
 		};
@@ -172,13 +173,13 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 		const currentTime = now.toISOString().slice(0, 16); // Slice to get YYYY-MM-DDTHH:mm
 
 		const body = {
-			question,
+			title,
 			description,
 			options,
 			startTime: startTime || currentTime,
 			endTime,
-			isAllowMultipleChoices,
-			isAnonymous,
+			allowMultipleChoices,
+			anonymous,
 			privacyMode,
 			invitedUsers,
 		};
@@ -200,19 +201,20 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 		}
 	};
 
-	const handleConfirmSaveDraft = async () => {
-		await handleSaveDraft();
+	const handleConfirmSaveDraft = () => {
+		handleSaveDraft();
 		setShowSaveDraftAlert(false);
 		setOpen(false);
 	};
 
 	const handleDiscardDraft = () => {
+		resetForm();
 		setShowSaveDraftAlert(false);
 		setOpen(false);
 	};
 
 	const isValid =
-		question.trim() &&
+		title.trim() &&
 		options.every((opt) => opt.text.trim()) &&
 		options.length >= 2 &&
 		(privacyMode !== 'invite-only' || invitedUsers.length > 0);
@@ -234,22 +236,22 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 						<div className="space-y-6">
 							<div className="space-y-2">
 								<Label
-									htmlFor="question"
+									htmlFor="title"
 									className="text-sm font-medium text-card-foreground"
 								>
 									{t('pollCreator.questionLabel')}
 								</Label>
 								<Textarea
-									id="question"
+									id="title"
 									placeholder={t('pollCreator.questionPlaceholder')}
-									value={question}
-									onChange={(e) => setQuestion(e.target.value)}
+									value={title}
+									onChange={(e) => setTitle(e.target.value)}
 									className="min-h-[80px] resize-none bg-input border-border text-foreground placeholder:text-muted-foreground"
 									maxLength={280}
 								/>
 								<div className="flex justify-between items-center text-xs text-muted-foreground">
 									<span>{t('pollCreator.questionNote')}</span>
-									<span>{question.length}/280</span>
+									<span>{title.length}/280</span>
 								</div>
 							</div>
 							<div className="space-y-2">
@@ -301,7 +303,7 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 									</div>
 								))}
 
-								{options.length < optionsLimit && (
+								{options.length < OPTIONS_LIMIT && (
 									<Button
 										variant="outline"
 										size="sm"
@@ -325,13 +327,12 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 										type="datetime-local"
 										value={startTime}
 										onChange={(e) => setStartTime(e.target.value)}
-										// defaultValue={Date.now()}
 									/>
 								</div>
 								<div className="space-y-2">
 									<Label htmlFor="endTime" className="text-sm font-medium">
 										<Calendar className="w-4 h-4" />
-										{t('pollCreator.startDateLabel')} ({t('common.optional')})
+										{t('pollCreator.endDateLabel')} ({t('common.optional')})
 									</Label>
 									<Input
 										id="endTime"
@@ -352,10 +353,8 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 									</Label>
 									<Switch
 										id="allowMultiple"
-										checked={isAllowMultipleChoices}
-										onCheckedChange={(checked) =>
-											setIsAllowMultipleChoices(checked as boolean)
-										}
+										checked={allowMultipleChoices}
+										onCheckedChange={setAllowMultipleChoices}
 									/>
 
 									<div className="flex items-center space-x-2">
@@ -367,10 +366,8 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 										</Label>
 										<Switch
 											id="anonymous"
-											checked={isAnonymous}
-											onCheckedChange={(checked) =>
-												setIsAnonymous(checked as boolean)
-											}
+											checked={anonymous}
+											onCheckedChange={setAnonymous}
 										/>
 									</div>
 								</div>
@@ -459,6 +456,7 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 							<Button
 								variant="outline"
 								className="border-border text-muted-foreground hover:text-foreground bg-transparent"
+								onClick={handleSaveDraft}
 							>
 								{t('pollCreator.saveDraftLabel')}
 							</Button>

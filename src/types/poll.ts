@@ -6,13 +6,13 @@ export interface PollCreateOption {
 export type PollPrivacyMode = 'public' | 'link-only' | 'invite-only';
 
 export interface PollCreatorData {
-	question: string;
+	title: string;
 	description?: string;
 	options: PollCreateOption[];
 	startTime: string;
 	endTime?: string;
-	isAllowMultipleChoices: boolean;
-	isAnonymous: boolean;
+	allowMultipleChoices: boolean;
+	anonymous: boolean;
 	privacyMode: PollPrivacyMode;
 	invitedUsers?: string[];
 }

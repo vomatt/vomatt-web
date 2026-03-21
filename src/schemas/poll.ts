@@ -90,11 +90,7 @@ export const CreatePollOptionSchema = z.object({
 	displayOrder: z.number().int().default(0),
 });
 
-/**
- * Request body for POST /api/v1/votes.
- * Note: the frontend `question` field is renamed to `title` before
- * forwarding to the backend (see src/app/api/create-poll/route.ts).
- */
+/** Request body for POST /api/v1/votes. */
 export const CreatePollRequestSchema = z.object({
 	title: z.string(),
 	description: z.string().optional(),

@@ -4,9 +4,7 @@ import { ApiError, apiClient, publicFetch } from '@/lib/api/client';
 import { PollCreatorData } from '@/types/poll';
 
 export async function getPolls(page = 0) {
-	const url = `${process.env.API_URL}/api/v1/votes?page=${page}`;
-	const res = await publicFetch(url);
-	return res;
+	return publicFetch(`${process.env.API_URL}/api/v1/votes?page=${page}`);
 }
 
 export async function getPoll(id: string) {
@@ -42,17 +40,15 @@ export async function createPoll(data: PollCreatorData) {
 	const response = await apiClient('/api/v1/votes', {
 		method: 'POST',
 		body: JSON.stringify({
-			title: data.question,
+			title: data.title,
 			description: data.description,
 			options: data.options,
 			startTime: data.startTime,
 			endTime: data.endTime,
-			allowMultipleChoices: data.isAllowMultipleChoices,
-			anonymous: data.isAnonymous,
+			allowMultipleChoices: data.allowMultipleChoices,
+			anonymous: data.anonymous,
 			privacyMode: data.privacyMode,
-			...(data.privacyMode === 'invite-only' && {
-				invitedUsers: data.invitedUsers,
-			}),
+			invitedUsers: data.privacyMode === 'invite-only' ? data.invitedUsers : undefined,
 		}),
 	});
 

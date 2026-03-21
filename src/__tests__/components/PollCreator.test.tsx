@@ -7,7 +7,7 @@ jest.mock('@/contexts/LanguageContext', () => ({
 	useLanguage: () => ({ t: (key: string) => key }),
 }));
 
-jest.mock('@/lib/api/endpoints/polls', () => ({
+jest.mock('@/lib/api/services/polls', () => ({
 	createPoll: jest.fn(),
 }));
 
@@ -15,7 +15,7 @@ const mockCreatePoll = pollsEndpoint.createPoll as jest.Mock;
 
 const TRIGGER = <button>Create Poll</button>;
 
-/** Fill in the minimum valid form fields (question + 2 options). */
+/** Fill in the minimum valid form fields (title + 2 options). */
 function fillRequiredFields() {
 	fireEvent.change(
 		screen.getByPlaceholderText('pollCreator.questionPlaceholder'),
