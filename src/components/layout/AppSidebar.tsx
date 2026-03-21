@@ -89,10 +89,10 @@ export function AppSidebar({ userSession }: AppSidebarProps) {
 	return (
 		<Sidebar className="border-none" variant="floating">
 			{/* Header */}
-			<SidebarHeader className="px-5 pt-5 pb-4">
+			<SidebarHeader className="px-5 pt-5 pb-5">
 				<Link
 					href="/"
-					className="block w-24 text-foreground/90 hover:text-foreground transition-colors"
+					className="block w-24 text-foreground hover:text-foreground/70 transition-colors"
 				>
 					<BrandLogo />
 				</Link>
@@ -115,10 +115,10 @@ export function AppSidebar({ userSession }: AppSidebarProps) {
 										<SidebarMenuButton
 											asChild={item.id !== 'actionCreatePoll' || !userSession}
 											className={cn(
-												'group h-10 rounded-xl px-3 cursor-pointer transition-all duration-150',
-												'text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60',
+												'group h-9 rounded-lg px-3 cursor-pointer transition-all duration-150',
+												'text-sidebar-foreground/55 hover:text-sidebar-foreground hover:bg-sidebar-accent/50',
 												isActive &&
-													'bg-sidebar-accent text-sidebar-accent-foreground font-semibold hover:bg-sidebar-accent'
+													'bg-sidebar-accent text-sidebar-accent-foreground font-medium hover:bg-sidebar-accent'
 											)}
 										>
 											{item.id === 'actionCreatePoll' ? (

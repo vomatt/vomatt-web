@@ -95,7 +95,7 @@ export default async function RootLayout({
 	const serverLanguage = await getServerLanguage();
 
 	return (
-		<html lang={serverLanguage} className={clsx('dark')}>
+		<html lang={serverLanguage} className={clsx()}>
 			<body className="text-foreground font-family-system">
 				{process.env.NODE_ENV === 'production' ? (
 					<div className="h-screen flex flex-col justify-center items-center gap-5">

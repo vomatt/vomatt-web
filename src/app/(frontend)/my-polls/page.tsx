@@ -1,10 +1,22 @@
+import { redirect } from 'next/navigation';
+
+import { getUserSession } from '@/data/auth';
 import { getMyPolls } from '@/lib/api/services/polls';
+import { Poll } from '@/types/poll';
 
 import MyPollsTabs from './_components/MyPollsTabs';
 
 export default async function MyPollsPage() {
-	const data = await getMyPolls();
-	const polls = data?.content ?? [];
+	const user = await getUserSession();
+	if (!user) redirect('/login');
+
+	let polls: Poll[] = [];
+	try {
+		const data = await getMyPolls();
+		polls = data?.content ?? [];
+	} catch {
+		// API unavailable — render empty state instead of crashing
+	}
 
 	return (
 		<div className="px-contain max-w-2xl mx-auto py-6">

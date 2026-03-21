@@ -15,15 +15,17 @@ export function LoginPrompt({ className }: LoginPromptProps) {
 	return (
 		<div
 			className={cn(
-				'bg-secondary text-secondary-foreground rounded-xl p-6 h-fit text-center max-w-sm hidden lg:block',
+				'rounded-xl border border-border bg-card p-5 h-fit max-w-[240px] hidden lg:block',
 				className
 			)}
 		>
-			<h4 className="text-white font-bold text-2xl">
+			<h4 className="text-sm font-semibold text-foreground">
 				{t('loginPrompt.title')}
 			</h4>
-			<p className="text-gray mt-2">{t('loginPrompt.subtitle')}</p>
-			<Button asChild className="mt-5">
+			<p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
+				{t('loginPrompt.subtitle')}
+			</p>
+			<Button asChild size="sm" className="mt-4 w-full">
 				<NextLink href="/login">{t('loginPrompt.ctaLabel')}</NextLink>
 			</Button>
 		</div>

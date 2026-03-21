@@ -2,6 +2,7 @@
 
 import { PollCreator } from '@/components/PollCreator';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
@@ -39,14 +40,18 @@ export function PollFeedList({ className }: PollFeedList) {
 	const [isLoading, setIsLoading] = useState(false);
 
 	useEffect(() => {
-		getPolls().then((data) => {
-			setMainData(data?.content ?? []);
-			setCurrentPage(data?.number ?? 0);
-			setIsLast(data?.last ?? true);
-		});
+		getPolls()
+			.then((data) => {
+				setMainData(data?.content ?? []);
+				setCurrentPage(data?.number ?? 0);
+				setIsLast(data?.last ?? true);
+			})
+			.catch(() => {
+				// Feed stays empty — no crash
+			});
 	}, []);
 
-	if (!hasArrayValue(mainData?.content)) {
+	if (!hasArrayValue(mainData)) {
 		return (
 			<div className="flex flex-col gap-10 justify-center items-center h-svh flex-1">
 				<h2 className="text-3xl">{t('homePage.feedListNoData')}</h2>
@@ -61,24 +66,23 @@ export function PollFeedList({ className }: PollFeedList) {
 		try {
 			const pageData = await getPolls(currentPage + 1);
 			if (pageData?.content) {
-				setPolls((prev) => [...prev, ...pageData.content]);
+				setMainData((prev) => [...prev, ...pageData.content]);
 				setCurrentPage(pageData.number);
 				setIsLast(pageData.last);
 			}
+		} catch {
+			toast.error('Failed to load more polls. Please try again.');
 		} finally {
 			setIsLoading(false);
 		}
 	};
 
 	return (
-		<div className="flex-1 min-h-[var(--h-main)] max-w-lg">
+		<div className="flex-1 min-h-[var(--h-main)] max-w-[560px]">
 			<HomepageHeader />
 			<div
 				data-testid="cFeedList"
-				className={cn(
-					'rounded-xl relative w-full flex flex-col gap-6 pt-2',
-					className
-				)}
+				className={cn('relative w-full flex flex-col gap-3 py-4', className)}
 			>
 				{mainData.map((item) => (
 					<PollCard key={item.id} pollData={item} />
