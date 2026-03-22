@@ -1,7 +1,7 @@
 'use client';
 import { zodResolver } from '@hookform/resolvers/zod';
 import NextLink from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -25,6 +25,8 @@ type PageStatusType = 'STATUS_LOG_IN' | 'STATUS_VERIFICATION';
 export function LogIn() {
 	const [pageStatus, setPageStatus] = useState<PageStatusType>(STATUS_LOG_IN);
 	const [email, setEmail] = useState('');
+	const searchParams = useSearchParams();
+	const redirectTo = searchParams.get('redirect') || '/';
 	const onSetPageStatus = (value: PageStatusType) => {
 		setPageStatus(value);
 	};
@@ -58,6 +60,7 @@ export function LogIn() {
 				email={email}
 				backButtonFunc={() => onSetPageStatus(STATUS_LOG_IN)}
 				submitCodeFunc={onSubmitLogin}
+				redirectTo={redirectTo}
 			/>
 		),
 	};

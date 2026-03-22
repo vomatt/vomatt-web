@@ -24,6 +24,7 @@ interface VerificationFormProps {
 		pin: string
 	) => Promise<{ status: 'ERROR' | 'OK'; message?: string }>;
 	backButtonFunc: () => void;
+	redirectTo?: string;
 }
 
 const FormSchema = z.object({
@@ -36,6 +37,7 @@ export default function VerificationForm({
 	email,
 	submitCodeFunc,
 	backButtonFunc,
+	redirectTo = '/',
 }: VerificationFormProps) {
 	const [error, setError] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
@@ -65,7 +67,7 @@ export default function VerificationForm({
 				setError(message || '');
 				return;
 			}
-			return router.replace('/');
+			return router.replace(redirectTo);
 		} catch (e) {
 			setError('Something went wrong, pleas try again later');
 		} finally {

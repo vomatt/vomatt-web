@@ -61,6 +61,7 @@ export async function setAuthTokens(tokens: AuthTokens) {
 		httpOnly: true,
 		secure: process.env.NODE_ENV === 'production',
 		sameSite: 'lax',
+		expires: new Date(Date.now() + REFRESH_TOKEN_EXPIRY * 1000),
 		path: '/',
 	});
 }

@@ -4,27 +4,16 @@ import { enUS } from 'date-fns/locale';
 import { Check, MessageSquare, Users } from '@/components/ui/SvgIcons';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/Button';
 import { cn, hasArrayValue } from '@/lib/utils';
-import { vote as castVote, postComment } from '@/lib/api/services/polls';
+import {
+	vote as castVote,
+	postComment,
+	getMyVoteStatus,
+} from '@/lib/api/services/polls';
 import { Poll } from '@/types/poll';
-
-const VOTED_STORAGE_KEY = 'vomatt_voted_polls';
-
-function getVotedPolls(): Record<string, string> {
-	try {
-		return JSON.parse(localStorage.getItem(VOTED_STORAGE_KEY) ?? '{}');
-	} catch {
-		return {};
-	}
-}
-
-function saveVote(pollId: string, optionId: string) {
-	const voted = getVotedPolls();
-	voted[pollId] = optionId;
-	localStorage.setItem(VOTED_STORAGE_KEY, JSON.stringify(voted));
-}
 
 function getPollStatus(poll: Poll): { label: string; variant: 'ended' | 'closing' } | null {
 	if (!poll.active || !poll.votingActive) {
@@ -45,9 +34,10 @@ function getPollStatus(poll: Poll): { label: string; variant: 'ended' | 'closing
 
 interface PollCardProps {
 	pollData: Poll;
+	isAuthenticated?: boolean;
 }
 
-export const PollCard = ({ pollData }: PollCardProps) => {
+export const PollCard = ({ pollData, isAuthenticated = false }: PollCardProps) => {
 	const {
 		title,
 		description,
@@ -57,6 +47,7 @@ export const PollCard = ({ pollData }: PollCardProps) => {
 		creatorUsername,
 	} = pollData;
 
+	const router = useRouter();
 	const [selectedOption, setSelectedOption] = useState<string | null>(null);
 	const [hasVoted, setHasVoted] = useState(false);
 	const [totalVotes, setTotalVotes] = useState(pollData.totalVotes);
@@ -67,15 +58,30 @@ export const PollCard = ({ pollData }: PollCardProps) => {
 	const [isPostingComment, setIsPostingComment] = useState(false);
 
 	useEffect(() => {
-		const voted = getVotedPolls();
-		if (voted[pollId]) {
-			setSelectedOption(voted[pollId]);
-			setHasVoted(true);
-		}
-	}, [pollId]);
+		if (!isAuthenticated) return;
+
+		getMyVoteStatus(pollId)
+			.then((data: any) => {
+				if (data?.optionIds?.length) {
+					setSelectedOption(data.optionIds[0]);
+					setHasVoted(true);
+				} else if (data?.optionId) {
+					setSelectedOption(data.optionId);
+					setHasVoted(true);
+				}
+			})
+			.catch(() => {
+				// Vote status unavailable — treat as not voted
+			});
+	}, [pollId, isAuthenticated]);
 
 	const handleVote = async (optionId: string) => {
 		if (hasVoted) return;
+
+		if (!isAuthenticated) {
+			router.push(`/login?redirect=${encodeURIComponent(`/poll/${pollId}`)}`);
+			return;
+		}
 
 		setSelectedOption(optionId);
 		setHasVoted(true);
@@ -83,16 +89,26 @@ export const PollCard = ({ pollData }: PollCardProps) => {
 		setVoteOptions((prev) =>
 			prev.map((o) => (o.id === optionId ? { ...o, votes: o.votes + 1 } : o))
 		);
-		saveVote(pollId, optionId);
 
 		try {
 			await castVote(pollId, [optionId]);
 		} catch {
-			// Vote persisted in localStorage; API sync is best-effort
+			// Revert optimistic update on failure
+			setSelectedOption(null);
+			setHasVoted(false);
+			setTotalVotes((prev) => prev - 1);
+			setVoteOptions((prev) =>
+				prev.map((o) => (o.id === optionId ? { ...o, votes: o.votes - 1 } : o))
+			);
 		}
 	};
 
 	const handleComment = async () => {
+		if (!isAuthenticated) {
+			router.push(`/login?redirect=${encodeURIComponent(`/poll/${pollId}`)}`);
+			return;
+		}
+
 		const text = commentText.trim();
 		if (!text || isPostingComment) return;
 
@@ -109,7 +125,8 @@ export const PollCard = ({ pollData }: PollCardProps) => {
 		try {
 			await postComment(pollId, text);
 		} catch {
-			// Comment shown optimistically; API sync is best-effort
+			// Revert optimistic comment on failure
+			setComments((prev) => prev.filter((c) => c.id !== optimistic.id));
 		} finally {
 			setIsPostingComment(false);
 		}

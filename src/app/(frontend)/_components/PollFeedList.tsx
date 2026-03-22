@@ -30,9 +30,10 @@ type Page = {
 
 type PollFeedList = {
 	className?: string;
+	isAuthenticated?: boolean;
 };
 
-export function PollFeedList({ className }: PollFeedList) {
+export function PollFeedList({ className, isAuthenticated }: PollFeedList) {
 	const { t } = useLanguage();
 	const [mainData, setMainData] = useState<Poll[]>([]);
 	const [currentPage, setCurrentPage] = useState(0);
@@ -65,6 +66,7 @@ export function PollFeedList({ className }: PollFeedList) {
 		setIsLoading(true);
 		try {
 			const pageData = await getPolls(currentPage + 1);
+			console.log('🚀 ~ :68 ~ loadMore ~ pageData:', pageData);
 			if (pageData?.content) {
 				setMainData((prev) => [...prev, ...pageData.content]);
 				setCurrentPage(pageData.number);
@@ -85,7 +87,7 @@ export function PollFeedList({ className }: PollFeedList) {
 				className={cn('relative w-full flex flex-col gap-3 py-4', className)}
 			>
 				{mainData.map((item) => (
-					<PollCard key={item.id} pollData={item} />
+					<PollCard key={item.id} pollData={item} isAuthenticated={isAuthenticated} />
 				))}
 			</div>
 

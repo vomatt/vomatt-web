@@ -4,6 +4,7 @@ import { ArrowLeft, Share2, Users } from '@/components/ui/SvgIcons';
 import Link from 'next/link';
 
 import { ApiError, publicFetch } from '@/lib/api/client';
+import { getUserSession } from '@/data/auth';
 import { PollCard } from '@/app/(frontend)/_components/PollCard';
 import { Button } from '@/components/ui/Button';
 import { Poll } from '@/types/poll';
@@ -26,7 +27,7 @@ export default async function PollDetailPage({
 	params: Promise<{ id: string }>;
 }) {
 	const { id } = await params;
-	const poll = await getPoll(id);
+	const [poll, user] = await Promise.all([getPoll(id), getUserSession()]);
 
 	if (!poll) {
 		return (
@@ -63,7 +64,7 @@ export default async function PollDetailPage({
 				</Button>
 			</div>
 
-			<PollCard pollData={poll} />
+			<PollCard pollData={poll} isAuthenticated={!!user} />
 
 			<div className="mt-6 p-4 rounded-xl border border-border bg-card text-sm text-muted-foreground space-y-1">
 				<div className="flex items-center gap-2">
