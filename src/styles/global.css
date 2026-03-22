@@ -55,7 +55,6 @@
 
 	--shadow-default: 0px 12px 64px rgba(0, 0, 0, 0.12);
 
-	--height-header: var(--header-height);
 	--height-footer: var(--h-footer);
 
 	--z-index-header: 48;
@@ -180,6 +179,7 @@
 	--neutral: oklch(0.55 0.06 260);
 
 	--header-height: 70px;
+	--announcement-height: 0;
 }
 
 @variant md {
@@ -719,7 +719,7 @@
 
 	html {
 		scroll-behavior: smooth;
-		scroll-padding-top: calc(var(--h-announcement, 0px) + var(--header-height, 0px) + 20px);
+		scroll-padding-top: calc(var(--announcement-height, 0px) + var(--header-height, 0px) + 20px);
 	}
 
 	/* Global disabled state */
@@ -730,6 +730,22 @@
 }
 
 /* Position */
+
+@utility pt-header-space-* {
+	padding-top: calc(var(--header-height) + var(--announcement-height, 0) + --value(number) * var(--spacing));
+	padding-top: calc(var(--header-height) + var(--announcement-height, 0) + --value([*]));
+}
+
+@utility mt-header-space-* {
+	margin-top: calc(var(--header-height) + var(--announcement-height, 0) + --value(number) * var(--spacing));
+	margin-top: calc(var(--header-height) + var(--announcement-height, 0) + --value([*]));
+}
+
+@utility top-header-space-* {
+	top: calc(var(--header-height) + var(--announcement-height, 0) + --value(number) * var(--spacing));
+	top: calc(var(--header-height) + var(--announcement-height, 0) + --value([*]));
+}
+
 @utility p-fill {
 	position: absolute;
 	width: 100%;

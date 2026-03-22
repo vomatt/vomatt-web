@@ -3,9 +3,9 @@ import { formatDistance } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import { Check, MessageSquare, Users } from '@/components/ui/SvgIcons';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
 
+import { AuthDialog } from '@/components/auth/AuthDialog';
 import { Button } from '@/components/ui/Button';
 import { cn, hasArrayValue } from '@/lib/utils';
 import {
@@ -47,7 +47,6 @@ export const PollCard = ({ pollData, isAuthenticated = false }: PollCardProps) =
 		creatorUsername,
 	} = pollData;
 
-	const router = useRouter();
 	const [selectedOption, setSelectedOption] = useState<string | null>(null);
 	const [hasVoted, setHasVoted] = useState(false);
 	const [totalVotes, setTotalVotes] = useState(pollData.totalVotes);
@@ -57,8 +56,18 @@ export const PollCard = ({ pollData, isAuthenticated = false }: PollCardProps) =
 	const [commentText, setCommentText] = useState('');
 	const [isPostingComment, setIsPostingComment] = useState(false);
 
+	const [showAuthDialog, setShowAuthDialog] = useState(false);
+	const [pendingAction, setPendingAction] = useState<
+		| { type: 'vote'; optionId: string }
+		| { type: 'comment' }
+		| null
+	>(null);
+	const [isLocallyAuthed, setIsLocallyAuthed] = useState(false);
+
+	const isAuthed = isAuthenticated || isLocallyAuthed;
+
 	useEffect(() => {
-		if (!isAuthenticated) return;
+		if (!isAuthed) return;
 
 		getMyVoteStatus(pollId)
 			.then((data: any) => {
@@ -73,39 +82,64 @@ export const PollCard = ({ pollData, isAuthenticated = false }: PollCardProps) =
 			.catch(() => {
 				// Vote status unavailable — treat as not voted
 			});
-	}, [pollId, isAuthenticated]);
+	}, [pollId, isAuthed]);
 
-	const handleVote = async (optionId: string) => {
+	const executeVote = useCallback(
+		async (optionId: string) => {
+			if (hasVoted) return;
+
+			setSelectedOption(optionId);
+			setHasVoted(true);
+			setTotalVotes((prev) => prev + 1);
+			setVoteOptions((prev) =>
+				prev.map((o) =>
+					o.id === optionId ? { ...o, votes: o.votes + 1 } : o
+				)
+			);
+
+			try {
+				await castVote(pollId, [optionId]);
+			} catch {
+				setSelectedOption(null);
+				setHasVoted(false);
+				setTotalVotes((prev) => prev - 1);
+				setVoteOptions((prev) =>
+					prev.map((o) =>
+						o.id === optionId ? { ...o, votes: o.votes - 1 } : o
+					)
+				);
+			}
+		},
+		[hasVoted, pollId]
+	);
+
+	const handleVote = (optionId: string) => {
 		if (hasVoted) return;
 
-		if (!isAuthenticated) {
-			router.push(`/login?redirect=${encodeURIComponent(`/poll/${pollId}`)}`);
+		if (!isAuthed) {
+			setPendingAction({ type: 'vote', optionId });
+			setShowAuthDialog(true);
 			return;
 		}
 
-		setSelectedOption(optionId);
-		setHasVoted(true);
-		setTotalVotes((prev) => prev + 1);
-		setVoteOptions((prev) =>
-			prev.map((o) => (o.id === optionId ? { ...o, votes: o.votes + 1 } : o))
-		);
-
-		try {
-			await castVote(pollId, [optionId]);
-		} catch {
-			// Revert optimistic update on failure
-			setSelectedOption(null);
-			setHasVoted(false);
-			setTotalVotes((prev) => prev - 1);
-			setVoteOptions((prev) =>
-				prev.map((o) => (o.id === optionId ? { ...o, votes: o.votes - 1 } : o))
-			);
-		}
+		executeVote(optionId);
 	};
 
+	const handleAuthSuccess = useCallback(() => {
+		setIsLocallyAuthed(true);
+		setShowAuthDialog(false);
+
+		if (pendingAction?.type === 'vote') {
+			executeVote(pendingAction.optionId);
+		}
+		// For comment, just close dialog — user is now authed and can submit
+		setPendingAction(null);
+	}, [pendingAction, executeVote]);
+
 	const handleComment = async () => {
-		if (!isAuthenticated) {
-			router.push(`/login?redirect=${encodeURIComponent(`/poll/${pollId}`)}`);
+		if (!isAuthed) {
+			setPendingAction({ type: 'comment' });
+			setShowAuthDialog(true);
 			return;
 		}
 
@@ -326,6 +360,12 @@ export const PollCard = ({ pollData, isAuthenticated = false }: PollCardProps) =
 					</div>
 				)}
 			</div>
+
+			<AuthDialog
+				open={showAuthDialog}
+				onOpenChange={setShowAuthDialog}
+				onAuthSuccess={handleAuthSuccess}
+			/>
 		</article>
 	);
 };

@@ -7,9 +7,13 @@ import type {
 	ControllerFieldState,
 	ControllerRenderProps,
 } from 'react-hook-form';
-import { z } from 'zod';
 
 import AuthContainer from '@/components/auth/AuthContainer';
+import {
+	signupSchema,
+	type SignupFormData,
+} from '@/components/auth/auth-schemas';
+import { useAuthFlow } from '@/components/auth/useAuthFlow';
 import VerificationForm from '@/components/auth/VerificationForm';
 import { ButtonLoading } from '@/components/ButtonLoading';
 import { RichText } from '@payloadcms/richtext-lexical/react';
@@ -22,112 +26,41 @@ import {
 } from '@/components/ui/Field';
 import { Input } from '@/components/ui/Input';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { STATUS_SIGN_UP, STATUS_VERIFICATION } from '@/data/constants';
-import { preSignup, signup } from '@/lib/api/services/auth';
 import { useSessionStorage } from '@/hooks/useSessionStorage';
-
-const nameValidation = new RegExp(
-	/^[\w'\-,.]*[^_!¡?÷?¿\/\\+=@#$%ˆ&*(){}|~<>;:[\]]*$/
-);
-
-const formSchema = z.object({
-	email: z
-		.string()
-		.email({
-			message: 'common.invalidEmailAddress',
-		})
-		.trim(),
-	firstName: z
-		.string()
-		.min(1, { message: 'common.required' })
-		.regex(nameValidation, { message: 'common.invalidName' }),
-	lastName: z
-		.string()
-		.min(1, { message: 'common.required' })
-		.regex(nameValidation, { message: 'common.invalidName' }),
-	username: z
-		.string()
-		.min(3, { message: 'common.required' })
-		.regex(new RegExp(/^[a-zA-Z0-9._]+$/), {
-			message: 'common.invalidUsername',
-		}),
-});
 
 type SignUpType = {
 	className?: string;
 	signUpInfoData: any;
 };
 
-type currentStepType = 'STATUS_SIGN_UP' | 'STATUS_VERIFICATION';
-const defaultValues = {
-	email: '',
-	firstName: '',
-	lastName: '',
-	username: '',
-};
-
 export default function SignUp({ signUpInfoData }: SignUpType) {
-	const [currentStep, setCurrentStep] =
-		useState<currentStepType>(STATUS_SIGN_UP);
-
-	const [formData, setFormData] = useState(defaultValues);
-
-	const onSetCurrentStep = (value: currentStepType) => {
-		setCurrentStep(value);
-	};
-
-	const onSubmitSignUp = async (pin: string) => {
-		try {
-			const result = await signup({ ...formData, verificationCode: pin });
-
-			if (result.status === 'SUCCESS') return { status: 'OK' as const };
-			return {
-				status: 'ERROR' as const,
-				errorType: result.errorType || 'invalidVerificationCode',
-			};
-		} catch {
-			return {
-				status: 'ERROR' as const,
-				errorType: 'serverError',
-			};
-		}
-	};
-
-	const currentStepScreen = {
-		STATUS_SIGN_UP: (
-			<SignUpForm
-				onSetCurrentStep={onSetCurrentStep}
-				onSetFormData={setFormData}
-				signUpInfoData={signUpInfoData}
-			/>
-		),
-		STATUS_VERIFICATION: (
-			<VerificationForm
-				email={formData.email}
-				backButtonFunc={() => onSetCurrentStep(STATUS_SIGN_UP)}
-				submitCodeFunc={onSubmitSignUp}
-			/>
-		),
-	};
+	const flow = useAuthFlow();
 
 	return (
-		<AuthContainer type={currentStep}>
-			{currentStepScreen[currentStep]}
+		<AuthContainer type={flow.step === 'verification' ? 'STATUS_VERIFICATION' : 'STATUS_SIGN_UP'}>
+			{flow.step === 'verification' ? (
+				<VerificationForm
+					email={flow.email}
+					backButtonFunc={flow.goBackToForm}
+					submitCodeFunc={flow.handleSignupVerified}
+				/>
+			) : (
+				<SignUpForm
+					onVerificationNeeded={flow.submitSignupForm}
+					signUpInfoData={signUpInfoData}
+				/>
+			)}
 		</AuthContainer>
 	);
 }
 
-type SignUpFormType = {
-	signUpInfoData: any;
-	onSetCurrentStep: (value: currentStepType) => void;
-	onSetFormData: (value: typeof defaultValues) => void;
-};
-
 function SignUpForm({
-	onSetCurrentStep,
+	onVerificationNeeded,
 	signUpInfoData,
-	onSetFormData,
-}: SignUpFormType) {
+}: {
+	onVerificationNeeded: (data: SignupFormData) => Promise<{ status: string; message?: string }>;
+	signUpInfoData: any;
+}) {
 	const { t } = useLanguage();
 	const [value] = useSessionStorage('login-email', '');
 
@@ -135,26 +68,22 @@ function SignUpForm({
 	const [error, setError] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
 
-	const form = useForm<z.infer<typeof formSchema>>({
-		resolver: zodResolver(formSchema),
-		defaultValues: { ...defaultValues, email: value },
+	const form = useForm<SignupFormData>({
+		resolver: zodResolver(signupSchema),
+		defaultValues: { email: value || '', firstName: '', lastName: '', username: '' },
 	});
 
-	async function onSubmit(data: z.infer<typeof formSchema>) {
+	async function onSubmit(data: SignupFormData) {
 		setIsLoading(true);
 		setError('');
 		try {
-			const resData = await preSignup(data.email, data.username);
+			const res = await onVerificationNeeded(data);
 
-			if (resData.status === 'ERROR') {
-				setError(resData.message ?? '');
-				return;
-			}
+			if (res.status === 'SUCCESS') return;
 
-			onSetFormData(data);
-			onSetCurrentStep(STATUS_VERIFICATION);
-		} catch (error) {
-			setError('Something went wrong, pleas try again later');
+			setError(res.message || 'Something went wrong');
+		} catch {
+			setError('Something went wrong, please try again later');
 		} finally {
 			setIsLoading(false);
 		}
@@ -245,7 +174,7 @@ function FormTextField({
 	label,
 	autoComplete,
 }: {
-	field: ControllerRenderProps<z.infer<typeof formSchema>>;
+	field: ControllerRenderProps<SignupFormData>;
 	fieldState: ControllerFieldState;
 	id: string;
 	label: string;

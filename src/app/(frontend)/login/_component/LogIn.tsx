@@ -4,121 +4,71 @@ import NextLink from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { z } from 'zod';
 
-import { getVerifyCode, login } from '@/lib/api/services/auth';
 import AuthContainer from '@/components/auth/AuthContainer';
+import {
+	loginSchema,
+	type LoginFormData,
+} from '@/components/auth/auth-schemas';
+import { useAuthFlow } from '@/components/auth/useAuthFlow';
 import VerificationForm from '@/components/auth/VerificationForm';
 import { ButtonLoading } from '@/components/ButtonLoading';
 import { Field, FieldError, FieldLabel } from '@/components/ui/Field';
 import { Input } from '@/components/ui/Input';
 import { useLanguage } from '@/contexts/LanguageContext';
-import {
-	STATUS_LOG_IN,
-	STATUS_VERIFICATION,
-	SYSTEM_ERROR,
-} from '@/data/constants';
-import { useSessionStorage } from '@/hooks/useSessionStorage';
-
-type PageStatusType = 'STATUS_LOG_IN' | 'STATUS_VERIFICATION';
+import { SYSTEM_ERROR } from '@/data/constants';
 
 export function LogIn() {
-	const [pageStatus, setPageStatus] = useState<PageStatusType>(STATUS_LOG_IN);
-	const [email, setEmail] = useState('');
+	const flow = useAuthFlow();
 	const searchParams = useSearchParams();
 	const redirectTo = searchParams.get('redirect') || '/';
-	const onSetPageStatus = (value: PageStatusType) => {
-		setPageStatus(value);
-	};
-
-	const onSetEmail = (value: string) => {
-		setEmail(value);
-	};
-
-	const onSubmitLogin = async (pin: string) => {
-		try {
-			const result = await login(email, pin);
-			if (result.status === 'SUCCESS') return { status: 'OK' as const };
-			return {
-				status: 'ERROR' as const,
-				message: result.message || 'Login failed',
-			};
-		} catch {
-			return {
-				status: 'ERROR' as const,
-				message: 'Something went wrong, please try again later',
-			};
-		}
-	};
-
-	const pageStatusScreen = {
-		STATUS_LOG_IN: (
-			<LogInForm onSetPageStatus={onSetPageStatus} onSetEmail={onSetEmail} />
-		),
-		STATUS_VERIFICATION: (
-			<VerificationForm
-				email={email}
-				backButtonFunc={() => onSetPageStatus(STATUS_LOG_IN)}
-				submitCodeFunc={onSubmitLogin}
-				redirectTo={redirectTo}
-			/>
-		),
-	};
 
 	return (
-		<AuthContainer type={pageStatus}>
-			{pageStatusScreen[pageStatus]}
+		<AuthContainer type={flow.step === 'verification' ? 'STATUS_VERIFICATION' : 'STATUS_LOG_IN'}>
+			{flow.step === 'verification' ? (
+				<VerificationForm
+					email={flow.email}
+					backButtonFunc={flow.goBackToForm}
+					submitCodeFunc={flow.handleLoginVerified}
+					redirectTo={redirectTo}
+				/>
+			) : (
+				<LogInForm onVerificationNeeded={flow.submitLoginEmail} />
+			)}
 		</AuthContainer>
 	);
 }
 
-type LogInFormType = {
-	onSetPageStatus: (value: PageStatusType) => void;
-	onSetEmail: (value: string) => void;
-	className?: string;
-};
-
-const FormSchema = z.object({
-	email: z.string().email({
-		message: 'invalidEmailAddress',
-	}),
-});
-
-function LogInForm({ onSetPageStatus, onSetEmail }: LogInFormType) {
+function LogInForm({
+	onVerificationNeeded,
+}: {
+	onVerificationNeeded: (email: string) => Promise<{ status: string; errorType?: string }>;
+}) {
 	const { t } = useLanguage();
-	const [value, setValue, removeValue] = useSessionStorage('login-email', '');
-
 	const [error, setError] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
 	const router = useRouter();
 
-	const form = useForm<z.infer<typeof FormSchema>>({
-		resolver: zodResolver(FormSchema),
-		defaultValues: {
-			email: '',
-		},
+	const form = useForm<LoginFormData>({
+		resolver: zodResolver(loginSchema),
+		defaultValues: { email: '' },
 	});
 
-	async function onSubmit(data: z.infer<typeof FormSchema>) {
-		const { email } = data;
+	async function onSubmit(data: LoginFormData) {
 		setIsLoading(true);
+		setError('');
 
 		try {
-			const res = await getVerifyCode(email);
+			const res = await onVerificationNeeded(data.email);
 
-			if (res.status === 'SUCCESS') {
-				onSetEmail(email);
-				onSetPageStatus(STATUS_VERIFICATION);
-				return;
+			if (res.status === 'SUCCESS') return;
+
+			if (res.errorType === 'USER_NOT_FOUND') {
+				return router.push('/signup');
 			}
-			if (res.status === 'ERROR') {
-				if (res.errorType === 'USER_NOT_FOUND') {
-					setValue(email);
-					return router.push('/signup');
-				}
-				setError(SYSTEM_ERROR);
-			}
-		} catch (error) {
+
+			setError(SYSTEM_ERROR);
+		} catch {
 			setError(SYSTEM_ERROR);
 		} finally {
 			setIsLoading(false);

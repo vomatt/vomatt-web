@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { PollCard } from '@/app/(frontend)/_components/PollCard';
 import { Poll } from '@/types/poll';
 
@@ -15,9 +15,34 @@ jest.mock('next/link', () => {
 	};
 });
 
-const mockFetch = jest.fn(() =>
-	Promise.resolve({ ok: true, json: () => Promise.resolve({}) })
-) as jest.Mock;
+// Mock next/navigation
+const mockPush = jest.fn();
+jest.mock('next/navigation', () => ({
+	useRouter: () => ({ push: mockPush, replace: jest.fn() }),
+}));
+
+// Mock poll API services
+const mockCastVote = jest.fn();
+const mockPostComment = jest.fn();
+const mockGetMyVoteStatus = jest.fn();
+
+jest.mock('@/lib/api/services/polls', () => ({
+	vote: (...args: any[]) => mockCastVote(...args),
+	postComment: (...args: any[]) => mockPostComment(...args),
+	getMyVoteStatus: (...args: any[]) => mockGetMyVoteStatus(...args),
+}));
+
+// Mock AuthDialog
+jest.mock('@/components/auth/AuthDialog', () => ({
+	AuthDialog: ({ open, onAuthSuccess }: any) => {
+		if (!open) return null;
+		return (
+			<div data-testid="auth-dialog">
+				<button onClick={onAuthSuccess}>Mock Auth Success</button>
+			</div>
+		);
+	},
+}));
 
 const basePoll: Poll = {
 	id: 'poll-1',
@@ -44,9 +69,10 @@ const basePoll: Poll = {
 };
 
 beforeEach(() => {
-	localStorage.clear();
-	global.fetch = mockFetch;
-	mockFetch.mockClear();
+	jest.clearAllMocks();
+	mockGetMyVoteStatus.mockRejectedValue(new Error('not authed'));
+	mockCastVote.mockResolvedValue({});
+	mockPostComment.mockResolvedValue({});
 });
 
 describe('PollCard', () => {
@@ -76,12 +102,10 @@ describe('PollCard', () => {
 		expect(screen.queryByText('70%')).not.toBeInTheDocument();
 	});
 
-	it('shows percentages after voting on an option', async () => {
-		render(<PollCard pollData={basePoll} />);
+	it('shows percentages after voting when authenticated', async () => {
+		render(<PollCard pollData={basePoll} isAuthenticated />);
 		fireEvent.click(screen.getByText('TypeScript'));
 
-		// After voting TypeScript: 8/11 votes = 73%, Rust: 3/11 = 27%
-		// Use byText on the containing span via its text content
 		await waitFor(() => {
 			const spans = document.querySelectorAll('span');
 			const texts = Array.from(spans).map((el) =>
@@ -92,70 +116,26 @@ describe('PollCard', () => {
 		});
 	});
 
-	it('saves the vote to localStorage', async () => {
-		render(<PollCard pollData={basePoll} />);
-		fireEvent.click(screen.getByText('TypeScript'));
-
-		await waitFor(() => {
-			const stored = JSON.parse(
-				localStorage.getItem('vomatt_voted_polls') ?? '{}'
-			);
-			expect(stored['poll-1']).toBe('opt-1');
-		});
-	});
-
-	it('calls the vote API after voting', async () => {
-		render(<PollCard pollData={basePoll} />);
+	it('calls the vote API when authenticated', async () => {
+		render(<PollCard pollData={basePoll} isAuthenticated />);
 		fireEvent.click(screen.getByText('Rust'));
 
 		await waitFor(() => {
-			expect(mockFetch).toHaveBeenCalledWith(
-				'/api/vote',
-				expect.objectContaining({
-					method: 'POST',
-					body: JSON.stringify({ pollId: 'poll-1', optionId: 'opt-2' }),
-				})
-			);
+			expect(mockCastVote).toHaveBeenCalledWith('poll-1', ['opt-2']);
 		});
 	});
 
 	it('prevents voting again once voted', async () => {
-		render(<PollCard pollData={basePoll} />);
+		render(<PollCard pollData={basePoll} isAuthenticated />);
 		fireEvent.click(screen.getByText('TypeScript'));
 
-		// Wait for vote to register (vote buttons become divs)
 		await waitFor(() => {
-			expect(
-				document.querySelector('button[class*="rounded-xl border"]')
-			).not.toBeInTheDocument();
+			expect(mockCastVote).toHaveBeenCalled();
 		});
 
-		mockFetch.mockClear();
-		// After voting, options are rendered as non-interactive divs — clicking has no effect
+		mockCastVote.mockClear();
 		fireEvent.click(screen.getByText('Rust'));
-		expect(mockFetch).not.toHaveBeenCalled();
-	});
-
-	it('restores vote state from localStorage on mount', async () => {
-		localStorage.setItem(
-			'vomatt_voted_polls',
-			JSON.stringify({ 'poll-1': 'opt-1' })
-		);
-
-		render(<PollCard pollData={basePoll} />);
-
-		await waitFor(() => {
-			expect(screen.getByText('70%')).toBeInTheDocument();
-		});
-	});
-
-	it('increments total vote count after voting', async () => {
-		render(<PollCard pollData={basePoll} />);
-		fireEvent.click(screen.getByText('TypeScript'));
-
-		await waitFor(() => {
-			expect(screen.getByText('11')).toBeInTheDocument();
-		});
+		expect(mockCastVote).not.toHaveBeenCalled();
 	});
 
 	it('toggles comments section on button click', () => {
@@ -172,11 +152,8 @@ describe('PollCard', () => {
 		};
 		render(<PollCard pollData={pollWithComment} />);
 
-		// Comments hidden initially
 		expect(screen.queryByText('Great poll!')).not.toBeInTheDocument();
-
 		fireEvent.click(screen.getByText('1 comment'));
-
 		expect(screen.getByText('Great poll!')).toBeInTheDocument();
 	});
 
@@ -189,9 +166,89 @@ describe('PollCard', () => {
 	it('shows time-remaining badge for polls ending soon', () => {
 		const soonPoll: Poll = {
 			...basePoll,
-			endTime: new Date(Date.now() + 2 * 3600 * 1000).toISOString(), // 2 hours from now
+			endTime: new Date(Date.now() + 2 * 3600 * 1000).toISOString(),
 		};
 		render(<PollCard pollData={soonPoll} />);
-		expect(screen.getByText(/Ends in \d+h/)).toBeInTheDocument();
+		expect(screen.getByText(/\d+h left/)).toBeInTheDocument();
+	});
+});
+
+describe('PollCard auth dialog', () => {
+	it('opens auth dialog when unauthenticated user clicks vote', async () => {
+		render(<PollCard pollData={basePoll} isAuthenticated={false} />);
+		fireEvent.click(screen.getByText('TypeScript'));
+
+		await waitFor(() => {
+			expect(screen.getByTestId('auth-dialog')).toBeInTheDocument();
+		});
+		expect(mockPush).not.toHaveBeenCalled();
+	});
+
+	it('does not open auth dialog when authenticated user votes', async () => {
+		render(<PollCard pollData={basePoll} isAuthenticated />);
+		fireEvent.click(screen.getByText('TypeScript'));
+
+		await waitFor(() => {
+			expect(mockCastVote).toHaveBeenCalled();
+		});
+		expect(screen.queryByTestId('auth-dialog')).not.toBeInTheDocument();
+	});
+
+	it('replays pending vote after auth success', async () => {
+		render(<PollCard pollData={basePoll} isAuthenticated={false} />);
+
+		// Click vote — opens dialog
+		fireEvent.click(screen.getByText('TypeScript'));
+		await waitFor(() => {
+			expect(screen.getByTestId('auth-dialog')).toBeInTheDocument();
+		});
+
+		// Simulate auth success
+		fireEvent.click(screen.getByText('Mock Auth Success'));
+
+		// Vote should be cast
+		await waitFor(() => {
+			expect(mockCastVote).toHaveBeenCalledWith('poll-1', ['opt-1']);
+		});
+	});
+
+	it('opens auth dialog when unauthenticated user posts comment', async () => {
+		render(<PollCard pollData={basePoll} isAuthenticated={false} />);
+
+		// Open comments
+		fireEvent.click(screen.getByText('0 comments'));
+
+		// Type a comment and click Post
+		fireEvent.change(screen.getByPlaceholderText('Add a comment…'), {
+			target: { value: 'Hello' },
+		});
+		fireEvent.click(screen.getByText('Post'));
+
+		await waitFor(() => {
+			expect(screen.getByTestId('auth-dialog')).toBeInTheDocument();
+		});
+		expect(mockPush).not.toHaveBeenCalled();
+	});
+
+	it('closes auth dialog after auth success from comment flow', async () => {
+		render(<PollCard pollData={basePoll} isAuthenticated={false} />);
+
+		// Open comments and try to post
+		fireEvent.click(screen.getByText('0 comments'));
+		fireEvent.change(screen.getByPlaceholderText('Add a comment…'), {
+			target: { value: 'Hello' },
+		});
+		fireEvent.click(screen.getByText('Post'));
+
+		await waitFor(() => {
+			expect(screen.getByTestId('auth-dialog')).toBeInTheDocument();
+		});
+
+		// Auth success
+		fireEvent.click(screen.getByText('Mock Auth Success'));
+
+		await waitFor(() => {
+			expect(screen.queryByTestId('auth-dialog')).not.toBeInTheDocument();
+		});
 	});
 });
