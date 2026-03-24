@@ -77,7 +77,7 @@ export default function EditProfileSheet({
 						<label className="text-sm font-medium text-foreground">Photo</label>
 						<div className="flex items-center gap-4">
 							{/* Avatar preview */}
-							<div className="w-16 h-16 rounded-full overflow-hidden bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center shrink-0">
+							<div className="w-16 h-16 rounded-full overflow-hidden bg-primary flex items-center justify-center shrink-0">
 								{avatarUrl ? (
 									<img src={avatarUrl} alt="Profile picture" className="w-full h-full object-cover" />
 								) : (

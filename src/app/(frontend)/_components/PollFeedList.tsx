@@ -66,7 +66,6 @@ export function PollFeedList({ className, isAuthenticated }: PollFeedList) {
 		setIsLoading(true);
 		try {
 			const pageData = await getPolls(currentPage + 1);
-			console.log('🚀 ~ :68 ~ loadMore ~ pageData:', pageData);
 			if (pageData?.content) {
 				setMainData((prev) => [...prev, ...pageData.content]);
 				setCurrentPage(pageData.number);

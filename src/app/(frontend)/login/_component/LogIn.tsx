@@ -121,7 +121,7 @@ function LogInForm({
 				{t('login.footNote')}&nbsp;
 				<NextLink
 					href="/signup"
-					className="cr-gray-900 underline underline-offset-4"
+					className="text-foreground underline underline-offset-4"
 				>
 					{t('common.signUp')}
 				</NextLink>

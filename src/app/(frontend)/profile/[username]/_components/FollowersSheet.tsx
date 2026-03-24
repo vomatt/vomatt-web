@@ -87,7 +87,7 @@ export default function FollowersSheet({
                 onClick={() => onOpenChange(false)}
                 className="flex items-center gap-3 py-2 rounded-lg hover:bg-accent/50 transition-colors px-2 -mx-2"
               >
-                <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-full overflow-hidden bg-primary flex items-center justify-center shrink-0">
                   {user.avatarUrl ? (
                     <img
                       src={user.avatarUrl}

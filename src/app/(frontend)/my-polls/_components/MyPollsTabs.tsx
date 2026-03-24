@@ -13,7 +13,7 @@ type Tab = 'active' | 'drafts' | 'ended';
 function PollRow({ poll }: { poll: Poll }) {
 	const isActive = poll.active && poll.votingActive;
 	return (
-		<div className="group flex items-start justify-between gap-4 p-4 rounded-xl border border-border/60 bg-card hover:border-border hover:shadow-[0_4px_16px_rgba(0,0,0,0.2)] transition-all duration-200">
+		<div className="group flex items-start justify-between gap-4 p-4 rounded-xl border border-border/60 bg-card hover:border-border hover:shadow-default transition-all duration-200">
 			<div className="flex-1 min-w-0">
 				<Link href={`/poll/${poll.id}`}>
 					<p className="text-lg leading-snug text-foreground group-hover:text-foreground/80 transition-colors truncate">
@@ -33,7 +33,7 @@ function PollRow({ poll }: { poll: Poll }) {
 					className={cn(
 						'text-xs px-2.5 py-0.5 rounded-full font-medium border',
 						isActive
-							? 'border-amber-500/30 text-amber-400 bg-amber-500/10'
+							? 'border-primary/30 text-primary bg-primary/8'
 							: 'border-border/50 text-muted-foreground bg-muted/30'
 					)}
 				>

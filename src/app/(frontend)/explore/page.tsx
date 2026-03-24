@@ -15,7 +15,7 @@ function PollSearchCard({ poll }: { poll: Poll }) {
 	const isActive = poll.active && poll.votingActive;
 	return (
 		<Link href={`/poll/${poll.id}`}>
-			<div className="group p-4 rounded-xl border border-border/60 bg-card hover:border-border hover:shadow-[0_4px_16px_rgba(0,0,0,0.2)] transition-all duration-200">
+			<div className="group p-4 rounded-xl border border-border/60 bg-card hover:border-border hover:shadow-default transition-all duration-200">
 				<div className="flex items-start justify-between gap-3">
 					<p className="text-lg leading-snug text-foreground group-hover:text-foreground/80 transition-colors flex-1">
 						{poll.title}
@@ -24,7 +24,7 @@ function PollSearchCard({ poll }: { poll: Poll }) {
 						className={cn(
 							'text-xs px-2.5 py-0.5 rounded-full font-medium border shrink-0',
 							isActive
-								? 'border-amber-500/30 text-amber-400 bg-amber-500/10'
+								? 'border-primary/30 text-primary bg-primary/8'
 								: 'border-border/50 text-muted-foreground bg-muted/30'
 						)}
 					>
@@ -98,7 +98,7 @@ export default function ExplorePage() {
 					value={query}
 					onChange={(e) => setQuery(e.target.value)}
 					placeholder="Search polls…"
-					className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border/60 bg-card text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-amber-500/40 focus:bg-amber-500/5 transition-all text-sm"
+					className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border/60 bg-card text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/40 focus:bg-primary/5 transition-all text-sm"
 				/>
 			</div>
 
@@ -112,7 +112,7 @@ export default function ExplorePage() {
 							className={cn(
 								'px-3 py-1 rounded-full text-xs font-medium border transition-all duration-150',
 								status === value
-									? 'border-amber-500/40 text-amber-400 bg-amber-500/10'
+									? 'border-primary/40 text-primary bg-primary/8'
 									: 'border-border/60 text-muted-foreground hover:border-border hover:text-foreground bg-card'
 							)}
 						>

@@ -157,9 +157,9 @@ function SignUpForm({
 					<RichText data={policyMessage} />
 				</div>
 			)}
-			<hr className="w-full h-px my-8 bg-gray-200 border-0 dark:bg-gray-700" />
+			<hr className="w-full h-px my-8 bg-border border-0" />
 			<div className="flex justify-center">
-				<NextLink href="/login" className="cr-gray-900 underline">
+				<NextLink href="/login" className="text-foreground underline">
 					{t('signup.alreadyHaveAccount')}
 				</NextLink>
 			</div>

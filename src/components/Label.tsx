@@ -28,7 +28,7 @@ const FloatingLabel = React.forwardRef<
 	return (
 		<Label
 			className={cn(
-				'absolute left-4 top-2 text-gray-600 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-6 peer-focus:top-2 peer-focus:text-gray-600 peer-focus:text-sm ',
+				'absolute left-4 top-2 text-muted-foreground text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-muted-foreground/50 peer-placeholder-shown:top-6 peer-focus:top-2 peer-focus:text-muted-foreground peer-focus:text-sm ',
 				className || ''
 			)}
 			ref={ref}

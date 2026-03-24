@@ -36,7 +36,7 @@ export default function AvatarUploader({ initialAvatarUrl, isOwner }: AvatarUplo
         className={[
           'w-16 h-16 rounded-full overflow-hidden flex items-center justify-center',
           isOwner ? 'cursor-pointer hover:opacity-80 transition-opacity' : 'cursor-default',
-          !avatarUrl ? 'bg-gradient-to-br from-purple-400 to-blue-400' : '',
+          !avatarUrl ? 'bg-primary' : '',
         ].join(' ')}
         aria-label={isOwner ? 'Change profile picture' : undefined}
       >

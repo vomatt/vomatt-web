@@ -160,7 +160,7 @@ export default function VerificationForm({
 			</ButtonLoading>
 			{resendMessage && (
 				<p
-					className={`text-sm mt-2 text-center ${resendMessage.type === 'success' ? 'text-green-600' : 'text-destructive'}`}
+					className={`text-sm mt-2 text-center ${resendMessage.type === 'success' ? 'text-positive' : 'text-destructive'}`}
 				>
 					{t(`verificationCode.${resendMessage.key}`)}
 				</p>
