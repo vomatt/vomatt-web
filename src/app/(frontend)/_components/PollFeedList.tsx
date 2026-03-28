@@ -39,6 +39,7 @@ export function PollFeedList({ className, isAuthenticated }: PollFeedList) {
 	const [currentPage, setCurrentPage] = useState(0);
 	const [isLast, setIsLast] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
+	const [isInitialLoading, setIsInitialLoading] = useState(true);
 
 	useEffect(() => {
 		getPolls()
@@ -49,8 +50,17 @@ export function PollFeedList({ className, isAuthenticated }: PollFeedList) {
 			})
 			.catch(() => {
 				// Feed stays empty — no crash
-			});
+			})
+			.finally(() => setIsInitialLoading(false));
 	}, []);
+
+	if (isInitialLoading) {
+		return (
+			<div className="flex-1 min-h-[var(--h-main)] flex items-center justify-center">
+				<Spinner />
+			</div>
+		);
+	}
 
 	if (!hasArrayValue(mainData)) {
 		return (

@@ -11,6 +11,9 @@ import BrandLogo from '@/components/BrandLogo';
 import { Layout } from '@/components/layout';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { buildMediaUrl } from '@/lib/defineMetadata';
+import enTranslations from '@/locales/en.json';
+import zhTranslations from '@/locales/zh.json';
+import { LanguageCode } from '@/types';
 
 async function getServerLanguage(): Promise<string> {
 	try {
@@ -93,6 +96,8 @@ export default async function RootLayout({
 	children: ReactNode;
 }) {
 	const serverLanguage = await getServerLanguage();
+	const safeLanguage: LanguageCode = serverLanguage.startsWith('zh') ? 'zh' : 'en';
+	const translations = safeLanguage === 'zh' ? zhTranslations : enTranslations;
 
 	return (
 		<html lang={serverLanguage} className={clsx()}>
@@ -105,7 +110,7 @@ export default async function RootLayout({
 						<h2>Coming soon</h2>
 					</div>
 				) : (
-					<LanguageProvider>
+					<LanguageProvider initialLanguage={safeLanguage} defaultTranslations={translations}>
 						<Layout>{children}</Layout>
 						<Toaster />
 					</LanguageProvider>

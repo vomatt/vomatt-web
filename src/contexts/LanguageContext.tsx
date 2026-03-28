@@ -74,17 +74,20 @@ const setLanguageCookie = (language: LanguageCode) => {
 interface LanguageProviderProps {
 	children: ReactNode;
 	defaultTranslations?: Translations;
+	initialLanguage?: LanguageCode;
 }
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({
 	children,
 	defaultTranslations = {},
+	initialLanguage,
 }) => {
-	const [isInitialized, setIsInitialized] = useState(false);
-	const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>('en');
+	const hasPreloaded = Object.keys(defaultTranslations).length > 0;
+	const [isInitialized, setIsInitialized] = useState(hasPreloaded);
+	const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>(initialLanguage ?? 'en');
 	const [translations, setTranslations] =
 		useState<Translations>(defaultTranslations);
-	const [isLoading, setIsLoading] = useState(true);
+	const [isLoading, setIsLoading] = useState(!hasPreloaded);
 	const setLanguage = (language: LanguageCode) => {
 		setCurrentLanguage(language);
 		setLanguageCookie(language); // Use cookie instead of localStorage
@@ -115,17 +118,25 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
 	};
 	// Initialize language on mount
 	useEffect(() => {
-		// Priority order: Cookie > Browser Detection > Default
+		if (hasPreloaded) {
+			// Server provided language + translations — just sync DOM attributes
+			document.documentElement.lang = currentLanguage;
+			document.documentElement.dir = RTL_LANGUAGES.includes(currentLanguage)
+				? 'rtl'
+				: 'ltr';
+			return;
+		}
+
+		// Client-side fallback: Cookie > Browser Detection > Default
 		const cookieLanguage = getLanguageFromCookie();
 		const browserLanguage = detectBrowserLanguage();
-		const initialLanguage = cookieLanguage || browserLanguage;
+		const detectedLanguage = cookieLanguage || browserLanguage;
 
-		setCurrentLanguage(initialLanguage);
-		loadTranslations(initialLanguage);
+		setCurrentLanguage(detectedLanguage);
+		loadTranslations(detectedLanguage);
 		setIsInitialized(true);
-		// Update HTML attributes
-		document.documentElement.lang = initialLanguage;
-		document.documentElement.dir = RTL_LANGUAGES.includes(initialLanguage)
+		document.documentElement.lang = detectedLanguage;
+		document.documentElement.dir = RTL_LANGUAGES.includes(detectedLanguage)
 			? 'rtl'
 			: 'ltr';
 	}, []);

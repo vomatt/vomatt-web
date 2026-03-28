@@ -12,8 +12,17 @@ import {
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
+import dynamic from 'next/dynamic';
 import BrandLogo from '@/components/BrandLogo';
-import { PollCreator } from '@/components/PollCreator';
+
+const PollCreator = dynamic(
+	() =>
+		import('@/components/PollCreator').then((m) => ({
+			default: m.PollCreator,
+		})),
+	{ ssr: false }
+);
+
 import {
 	Sidebar,
 	SidebarContent,
