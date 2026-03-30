@@ -127,9 +127,7 @@
 	--color-negative: var(--negative);
 	--color-neutral: var(--neutral);
 
-	--spacing-contain: var(--s-contain);
-	--spacing-contain-dynamic: var(--s-contain-dynamic);
-
+	--spacing-contain: max(1vw, 16px);
 	--spacing-header: var(--header-height);
 	--z-index-header: 48;
 	--z-index-overlay: 49;
