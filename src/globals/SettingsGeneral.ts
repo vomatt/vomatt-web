@@ -9,6 +9,7 @@ export const SettingsGeneral: GlobalConfig = {
 		{
 			name: 'siteTitle',
 			type: 'text',
+			localized: true,
 		},
 		{
 			name: 'shareGraphic',

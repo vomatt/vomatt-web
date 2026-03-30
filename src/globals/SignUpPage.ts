@@ -9,6 +9,7 @@ export const SignUpPage: GlobalConfig = {
 		{
 			name: 'title',
 			type: 'text',
+			localized: true,
 		},
 		{
 			name: 'slug',
@@ -21,6 +22,7 @@ export const SignUpPage: GlobalConfig = {
 		{
 			name: 'policyMessage',
 			type: 'richText',
+			localized: true,
 		},
 		{
 			name: 'meta',
@@ -29,10 +31,12 @@ export const SignUpPage: GlobalConfig = {
 				{
 					name: 'metaTitle',
 					type: 'text',
+					localized: true,
 				},
 				{
 					name: 'metaDescription',
 					type: 'text',
+					localized: true,
 				},
 				{
 					name: 'shareImage',

@@ -9,6 +9,7 @@ export const Contact: GlobalConfig = {
 		{
 			name: 'title',
 			type: 'text',
+			localized: true,
 		},
 		{
 			name: 'slug',
@@ -25,14 +26,17 @@ export const Contact: GlobalConfig = {
 				{
 					name: 'formTitle',
 					type: 'text',
+					localized: true,
 				},
 				{
 					name: 'successMessage',
 					type: 'text',
+					localized: true,
 				},
 				{
 					name: 'errorMessage',
 					type: 'text',
+					localized: true,
 				},
 				{
 					name: 'sendToEmail',
@@ -41,6 +45,7 @@ export const Contact: GlobalConfig = {
 				{
 					name: 'emailSubject',
 					type: 'text',
+					localized: true,
 				},
 				{
 					name: 'formFailureNotificationEmail',
@@ -55,10 +60,12 @@ export const Contact: GlobalConfig = {
 				{
 					name: 'metaTitle',
 					type: 'text',
+					localized: true,
 				},
 				{
 					name: 'metaDescription',
 					type: 'text',
+					localized: true,
 				},
 				{
 					name: 'shareImage',

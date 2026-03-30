@@ -10,10 +10,12 @@ export const Home: GlobalConfig = {
 			name: 'title',
 			type: 'text',
 			defaultValue: 'Homepage',
+			localized: true,
 		},
 		{
 			name: 'content',
 			type: 'richText',
+			localized: true,
 		},
 		{
 			name: 'meta',
@@ -22,10 +24,12 @@ export const Home: GlobalConfig = {
 				{
 					name: 'metaTitle',
 					type: 'text',
+					localized: true,
 				},
 				{
 					name: 'metaDescription',
 					type: 'text',
+					localized: true,
 				},
 				{
 					name: 'shareImage',

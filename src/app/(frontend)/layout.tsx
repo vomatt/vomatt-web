@@ -1,40 +1,26 @@
 import '@/styles/global.css';
 
 import clsx from 'clsx';
-import { cookies, headers } from 'next/headers';
 import { getPayload } from 'payload';
-import React, { ReactNode } from 'react';
+import { ReactNode } from 'react';
 import { Toaster } from 'sonner';
-
+import { TooltipProvider } from '@/components/ui/Tooltip';
 import config from '@payload-config';
 import BrandLogo from '@/components/BrandLogo';
 import { Layout } from '@/components/layout';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { buildMediaUrl } from '@/lib/defineMetadata';
+import { getServerLocale } from '@/lib/getServerLocale';
 import enTranslations from '@/locales/en.json';
 import zhTranslations from '@/locales/zh.json';
-import { LanguageCode } from '@/types';
-
-async function getServerLanguage(): Promise<string> {
-	try {
-		const cookieStore = await cookies();
-		const headersList = await headers();
-
-		// Try cookie first
-		const cookieLanguage = cookieStore.get('preferred-language')?.value;
-		if (cookieLanguage) return cookieLanguage;
-
-		// Fallback to middleware-detected language
-		const detectedLanguage = headersList.get('x-detected-language');
-		return detectedLanguage || 'en';
-	} catch {
-		return 'en';
-	}
-}
 
 export async function generateMetadata() {
+	const { payloadLocale } = await getServerLocale();
 	const payload = await getPayload({ config });
-	const settings = await payload.findGlobal({ slug: 'settings-general' });
+	const settings = await payload.findGlobal({
+		slug: 'settings-general',
+		locale: payloadLocale as 'en' | 'zh-TW',
+	});
 
 	const siteTitle = settings.siteTitle ?? '';
 	const favicon = settings.favicon as
@@ -78,7 +64,7 @@ export async function generateMetadata() {
 				: [],
 			url: process.env.SITE_URL,
 			siteName: siteTitle,
-			locale: 'en_US',
+			locale: payloadLocale === 'zh-TW' ? 'zh_TW' : 'en_US',
 			type: 'website',
 		},
 		icons: {
@@ -95,12 +81,11 @@ export default async function RootLayout({
 }: {
 	children: ReactNode;
 }) {
-	const serverLanguage = await getServerLanguage();
-	const safeLanguage: LanguageCode = serverLanguage.startsWith('zh') ? 'zh' : 'en';
-	const translations = safeLanguage === 'zh' ? zhTranslations : enTranslations;
+	const { language } = await getServerLocale();
+	const translations = language === 'zh' ? zhTranslations : enTranslations;
 
 	return (
-		<html lang={serverLanguage} className={clsx()}>
+		<html lang={language === 'zh' ? 'zh-TW' : 'en'} className={clsx()}>
 			<body className="text-foreground font-family-system">
 				{process.env.NODE_ENV === 'production' ? (
 					<div className="h-screen flex flex-col justify-center items-center gap-5">
@@ -110,8 +95,13 @@ export default async function RootLayout({
 						<h2>Coming soon</h2>
 					</div>
 				) : (
-					<LanguageProvider initialLanguage={safeLanguage} defaultTranslations={translations}>
-						<Layout>{children}</Layout>
+					<LanguageProvider
+						initialLanguage={language}
+						defaultTranslations={translations}
+					>
+						<TooltipProvider>
+							<Layout>{children}</Layout>
+						</TooltipProvider>
 						<Toaster />
 					</LanguageProvider>
 				)}

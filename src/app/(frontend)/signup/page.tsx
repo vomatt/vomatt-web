@@ -1,18 +1,22 @@
 import type { Metadata } from 'next';
 import { getPayload } from 'payload';
-import { cache } from 'react';
 
 import config from '@payload-config';
+import { getServerLocale } from '@/lib/getServerLocale';
 
 import SignUp from './_component/SignUp';
 
-const getSignUpPageData = cache(async () => {
+async function getSignUpPageData(payloadLocale: string) {
 	const payload = await getPayload({ config });
-	return payload.findGlobal({ slug: 'sign-up-page' });
-});
+	return payload.findGlobal({
+		slug: 'sign-up-page',
+		locale: payloadLocale as 'en' | 'zh-TW',
+	});
+}
 
 export async function generateMetadata(): Promise<Metadata> {
-	const data = await getSignUpPageData();
+	const { payloadLocale } = await getServerLocale();
+	const data = await getSignUpPageData(payloadLocale);
 	const meta = data.meta as { metaTitle?: string | null; metaDescription?: string | null } | null | undefined;
 
 	return {
@@ -22,6 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page() {
-	const signUpPageData = await getSignUpPageData();
+	const { payloadLocale } = await getServerLocale();
+	const signUpPageData = await getSignUpPageData(payloadLocale);
 	return <SignUp signUpInfoData={signUpPageData} />;
 }
