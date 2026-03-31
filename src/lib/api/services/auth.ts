@@ -1,12 +1,17 @@
 'use server';
 
-import { apiClient } from '@/lib/api/client';
+import { publicFetch, apiClient } from '@/lib/api/client';
 import { clearAuthTokens, setAuthTokens } from '@/lib/api/auth';
 
 export async function getVerifyCode(email: string) {
 	try {
 		const res = await fetch(
-			`${process.env.API_URL}/api/auth/generateVerificationCode?email=${email}`
+			`${process.env.API_URL}/api/v1/auth/generateVerificationCode`,
+			{
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email }),
+			}
 		);
 
 		const data = await res.json();
@@ -21,11 +26,12 @@ export async function getVerifyCode(email: string) {
 
 export async function login(email: string, verificationCode: string) {
 	try {
-		const res = await fetch(`${process.env.API_URL}/api/auth/signin`, {
+		const res = await publicFetch(`${process.env.API_URL}/api/v1/auth/signin`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ email, verificationCode }),
 		});
+
 		const data = await res.json();
 		const { success, errorCode, token, refreshToken } = data || {};
 		if (success && token) {
@@ -40,7 +46,7 @@ export async function login(email: string, verificationCode: string) {
 
 export async function preSignup(email: string, username: string) {
 	try {
-		const res = await fetch(`${process.env.API_URL}/api/auth/pre-signup`, {
+		const res = await fetch(`${process.env.API_URL}/api/v1/auth/pre-signup`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ email, username }),
@@ -65,7 +71,7 @@ export async function signup(data: {
 	verificationCode: string;
 }) {
 	try {
-		const res = await fetch(`${process.env.API_URL}/api/auth/signup`, {
+		const res = await fetch(`${process.env.API_URL}/api/v1/auth/signup`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(data),
@@ -86,19 +92,24 @@ export async function signup(data: {
 }
 
 export async function signout() {
-	await apiClient('/api/auth/signout', { method: 'POST' });
+	await apiClient('/api/v1/auth/signout', { method: 'POST' });
 	await clearAuthTokens();
 }
 
 export async function resendVerification(email: string) {
-	const res = await apiClient('/api/auth/resend-verification', {
-		method: 'POST',
-		body: JSON.stringify({ email }),
-	});
+	console.log('🚀 ~ :99 ~ resendVerification ~ email:', email);
+	const res = await publicFetch(
+		`${process.env.API_URL}/api/v1/auth/resend-verification`,
+		{
+			headers: { 'Content-Type': 'application/json' },
+			method: 'POST',
+			body: JSON.stringify({ email }),
+		}
+	);
 
 	return res;
 }
 
 export async function forceExpireToken() {
-	return apiClient('/api/auth/force-expire-token', { method: 'POST' });
+	return apiClient('/api/v1/auth/force-expire-token', { method: 'POST' });
 }

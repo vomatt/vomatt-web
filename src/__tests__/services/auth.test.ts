@@ -32,7 +32,7 @@ beforeEach(() => {
 describe('signout()', () => {
 	it('calls POST /api/auth/signout', async () => {
 		await signout();
-		expect(mockApiClient).toHaveBeenCalledWith('/api/auth/signout', {
+		expect(mockApiClient).toHaveBeenCalledWith('/api/v1/auth/signout', {
 			method: 'POST',
 		});
 	});
@@ -44,11 +44,11 @@ describe('signout()', () => {
 });
 
 describe('resendVerification()', () => {
-	it('calls POST /api/auth/resend-verification with email query param', async () => {
+	it('calls POST /api/v1/auth/resend-verification with email in body', async () => {
 		await resendVerification('user@example.com');
 		expect(mockApiClient).toHaveBeenCalledWith(
-			'/api/auth/resend-verification?email=user%40example.com',
-			{ method: 'POST' }
+			'/api/v1/auth/resend-verification',
+			{ method: 'POST', body: JSON.stringify({ email: 'user@example.com' }) }
 		);
 	});
 });
@@ -57,7 +57,7 @@ describe('forceExpireToken()', () => {
 	it('calls POST /api/auth/force-expire-token', async () => {
 		await forceExpireToken();
 		expect(mockApiClient).toHaveBeenCalledWith(
-			'/api/auth/force-expire-token',
+			'/api/v1/auth/force-expire-token',
 			{ method: 'POST' }
 		);
 	});

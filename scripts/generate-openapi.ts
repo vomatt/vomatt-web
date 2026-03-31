@@ -33,9 +33,9 @@ import {
 	CreatePollRequestSchema,
 	PageableSchema,
 	PollPageSchema,
-	PollPrivacyModeSchema,
 	PollSchema,
 	SortSchema,
+	TagDtoSchema,
 } from '../src/schemas/poll';
 import { UpdateProfileRequestSchema, UserProfileSchema } from '../src/schemas/user';
 
@@ -45,7 +45,7 @@ import { UpdateProfileRequestSchema, UserProfileSchema } from '../src/schemas/us
 const registry = new OpenAPIRegistry();
 
 // Register named schemas
-registry.register('PollPrivacyMode', PollPrivacyModeSchema);
+registry.register('TagDto', TagDtoSchema);
 registry.register('Sort', SortSchema);
 registry.register('Pageable', PageableSchema);
 registry.register('Poll', PollSchema);
@@ -73,12 +73,18 @@ const bearerAuth = registry.registerComponent('securitySchemes', 'bearerAuth', {
 // Auth paths
 // ---------------------------------------------------------------------------
 registry.registerPath({
-	method: 'get',
-	path: '/api/auth/generateVerificationCode',
+	method: 'post',
+	path: '/api/v1/auth/generateVerificationCode',
 	tags: ['auth'],
 	summary: 'Request a verification code',
 	request: {
-		query: z.object({ email: z.string().email().openapi({ example: 'user@example.com' }) }),
+		body: {
+			content: {
+				'application/json': {
+					schema: z.object({ email: z.string().email().openapi({ example: 'user@example.com' }) }),
+				},
+			},
+		},
 	},
 	responses: {
 		200: {
@@ -90,7 +96,7 @@ registry.registerPath({
 
 registry.registerPath({
 	method: 'post',
-	path: '/api/auth/pre-signup',
+	path: '/api/v1/auth/pre-signup',
 	tags: ['auth'],
 	summary: 'Validate email and username before signup',
 	request: { body: { content: { 'application/json': { schema: PreSignupRequestSchema } } } },
@@ -108,7 +114,7 @@ registry.registerPath({
 
 registry.registerPath({
 	method: 'post',
-	path: '/api/auth/signup',
+	path: '/api/v1/auth/signup',
 	tags: ['auth'],
 	summary: 'Create a new account',
 	request: { body: { content: { 'application/json': { schema: SignupRequestSchema } } } },
@@ -122,7 +128,7 @@ registry.registerPath({
 
 registry.registerPath({
 	method: 'post',
-	path: '/api/auth/signin',
+	path: '/api/v1/auth/signin',
 	tags: ['auth'],
 	summary: 'Sign in with email and verification code',
 	request: { body: { content: { 'application/json': { schema: SigninRequestSchema } } } },
@@ -136,7 +142,7 @@ registry.registerPath({
 
 registry.registerPath({
 	method: 'post',
-	path: '/api/auth/refreshToken',
+	path: '/api/v1/auth/refreshToken',
 	tags: ['auth'],
 	summary: 'Refresh access token',
 	request: { body: { content: { 'application/json': { schema: RefreshTokenRequestSchema } } } },
@@ -155,14 +161,13 @@ registry.registerPath({
 	method: 'get',
 	path: '/api/v1/votes',
 	tags: ['polls'],
-	summary: 'List polls (paginated, searchable)',
+	summary: 'Get active votes (paginated)',
 	request: {
 		query: z.object({
-			page: z.string().optional().openapi({ example: '0' }),
-			q: z.string().optional(),
-			sort: z.enum(['newest', 'oldest', 'popular']).optional(),
-			status: z.enum(['all', 'active', 'closed']).optional(),
-			creatorUsername: z.string().optional(),
+			page: z.number().int().min(0).optional().openapi({ example: 0 }),
+			size: z.number().int().min(1).optional().openapi({ example: 10 }),
+			sort: z.array(z.string()).optional(),
+			tag: z.string().optional(),
 		}),
 	},
 	responses: {

@@ -22,7 +22,14 @@ export const PollOptionSchema = z.object({
 	votes: z.number().int(),
 });
 
-export const PollPrivacyModeSchema = z.enum(['public', 'link-only', 'invite-only']);
+export const TagDtoSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	slug: z.string(),
+	description: z.string().optional(),
+	displayOrder: z.number().int().optional(),
+	usageCount: z.number().int().optional(),
+});
 
 export const VoteResultSchema = z.object({
 	optionId: z.string(),
@@ -33,7 +40,7 @@ export const VoteResultSchema = z.object({
 
 export const UserVoteStatusSchema = z.object({
 	hasVoted: z.boolean(),
-	selectedOptionIds: z.array(z.string()).optional(),
+	selectedOptions: z.array(z.string()).optional(),
 });
 
 export const PollSchema = z.object({
@@ -52,7 +59,7 @@ export const PollSchema = z.object({
 	endTime: z.string().datetime({ offset: true }).nullable(),
 	totalVotes: z.number().int(),
 	options: z.array(PollOptionSchema),
-	privacyMode: PollPrivacyModeSchema.optional(),
+	tags: z.array(TagDtoSchema).optional(),
 });
 
 export const SortSchema = z.object({
@@ -94,13 +101,12 @@ export const CreatePollOptionSchema = z.object({
 export const CreatePollRequestSchema = z.object({
 	title: z.string(),
 	description: z.string().optional(),
-	options: z.array(CreatePollOptionSchema).min(2),
+	options: z.array(CreatePollOptionSchema).min(1),
 	startTime: z.string().datetime({ offset: true }),
 	endTime: z.string().datetime({ offset: true }).nullable().optional(),
 	allowMultipleChoices: z.boolean(),
 	anonymous: z.boolean(),
-	privacyMode: PollPrivacyModeSchema,
-	invitedUsers: z.array(z.string()).optional(),
+	tagIds: z.array(z.string().uuid()).max(5).optional(),
 });
 
 export const CreateCommentRequestSchema = z.object({
@@ -113,7 +119,7 @@ export const UpdateCommentRequestSchema = z.object({
 
 export type Comment = z.infer<typeof CommentSchema>;
 export type PollOption = z.infer<typeof PollOptionSchema>;
-export type PollPrivacyMode = z.infer<typeof PollPrivacyModeSchema>;
+export type TagDto = z.infer<typeof TagDtoSchema>;
 export type VoteResult = z.infer<typeof VoteResultSchema>;
 export type UserVoteStatus = z.infer<typeof UserVoteStatusSchema>;
 export type Poll = z.infer<typeof PollSchema>;

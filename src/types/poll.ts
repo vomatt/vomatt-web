@@ -1,9 +1,8 @@
 export interface PollCreateOption {
 	id: string;
 	text: string;
+	description?: string;
 }
-
-export type PollPrivacyMode = 'public' | 'link-only' | 'invite-only';
 
 export interface PollCreatorData {
 	title: string;
@@ -13,8 +12,7 @@ export interface PollCreatorData {
 	endTime?: string;
 	allowMultipleChoices: boolean;
 	anonymous: boolean;
-	privacyMode: PollPrivacyMode;
-	invitedUsers?: string[];
+	tagIds?: string[];
 }
 
 export type PollOption = {
@@ -22,6 +20,15 @@ export type PollOption = {
 	text: string;
 	votes: number;
 	[key: string]: any; // optional, for extra fields if needed
+};
+
+export type TagDto = {
+	id: string;
+	name: string;
+	slug: string;
+	description?: string;
+	displayOrder?: number;
+	usageCount?: number;
 };
 
 export type Poll = {
@@ -42,8 +49,8 @@ export type Poll = {
 	success: boolean;
 	errorCode: string | null;
 	options: PollOption[];
+	tags?: TagDto[];
 	comments?: Comment[];
-	privacyMode?: PollPrivacyMode;
 };
 
 interface Comment {

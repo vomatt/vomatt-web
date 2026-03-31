@@ -3,8 +3,13 @@
 import { ApiError, apiClient, publicFetch } from '@/lib/api/client';
 import { PollCreatorData } from '@/types/poll';
 
-export async function getPolls(page = 0) {
-	return publicFetch(`${process.env.API_URL}/api/v1/votes?page=${page}`);
+export async function getPolls(page = 0, size = 10, tag?: string) {
+	const params = new URLSearchParams({
+		page: String(page),
+		size: String(size),
+	});
+	if (tag) params.set('tag', tag);
+	return publicFetch(`${process.env.API_URL}/api/v1/votes?${params}`);
 }
 
 export async function getPoll(id: string) {
@@ -16,45 +21,28 @@ export async function getPoll(id: string) {
 	}
 }
 
-export async function searchPolls({
-	q = '',
-	page = '0',
-	sort = 'newest',
-	status = 'all',
-}: {
-	q?: string;
-	page?: string;
-	sort?: string;
-	status?: string;
-} = {}) {
-	const params = new URLSearchParams({ page, sort, status });
-	if (q) params.set('q', q);
-	return publicFetch(`${process.env.API_URL}/api/v1/votes?${params}`);
-}
-
 export async function getMyPolls() {
 	return apiClient('/api/v1/votes/my');
 }
 
 export async function createPoll(data: PollCreatorData) {
-	const response = await apiClient('/api/v1/votes', {
+	return apiClient('/api/v1/votes', {
 		method: 'POST',
 		body: JSON.stringify({
 			title: data.title,
 			description: data.description,
-			options: data.options,
+			options: data.options.map((opt, i) => ({
+				text: opt.text,
+				description: opt.description,
+				displayOrder: i,
+			})),
 			startTime: data.startTime,
 			endTime: data.endTime,
 			allowMultipleChoices: data.allowMultipleChoices,
 			anonymous: data.anonymous,
-			privacyMode: data.privacyMode,
-			invitedUsers: data.privacyMode === 'invite-only' ? data.invitedUsers : undefined,
+			tagIds: data.tagIds,
 		}),
 	});
-
-	const { success, errorCode, data: pollData } = response || {};
-	if (!success) return { status: 'ERROR' as const, message: errorCode };
-	return { status: 'SUCCESS' as const, data: pollData };
 }
 
 export async function vote(pollId: string, optionIds: string[]) {
@@ -82,8 +70,12 @@ export async function removeVote(voteId: string, optionId: string) {
 	});
 }
 
-export async function getComments(pollId: string) {
-	return apiClient(`/api/v1/votes/${pollId}/comments`);
+export async function getComments(pollId: string, page = 0, size = 20) {
+	const params = new URLSearchParams({
+		page: String(page),
+		size: String(size),
+	});
+	return apiClient(`/api/v1/votes/${pollId}/comments?${params}`);
 }
 
 export async function postComment(pollId: string, text: string) {

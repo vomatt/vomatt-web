@@ -77,6 +77,7 @@ export function useAuthFlow() {
 					...signupData,
 					verificationCode: pin,
 				});
+
 				if (result.status === 'SUCCESS') return { status: 'OK' as const };
 				return {
 					status: 'ERROR' as const,

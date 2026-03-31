@@ -24,7 +24,11 @@ export function LogIn() {
 	const redirectTo = searchParams.get('redirect') || '/';
 
 	return (
-		<AuthContainer type={flow.step === 'verification' ? 'STATUS_VERIFICATION' : 'STATUS_LOG_IN'}>
+		<AuthContainer
+			type={
+				flow.step === 'verification' ? 'STATUS_VERIFICATION' : 'STATUS_LOG_IN'
+			}
+		>
 			{flow.step === 'verification' ? (
 				<VerificationForm
 					email={flow.email}
@@ -42,7 +46,9 @@ export function LogIn() {
 function LogInForm({
 	onVerificationNeeded,
 }: {
-	onVerificationNeeded: (email: string) => Promise<{ status: string; errorType?: string }>;
+	onVerificationNeeded: (
+		email: string
+	) => Promise<{ status: string; errorType?: string }>;
 }) {
 	const { t } = useLanguage();
 	const [error, setError] = useState('');
@@ -54,7 +60,7 @@ function LogInForm({
 		defaultValues: { email: '' },
 	});
 
-	async function onSubmit(data: LoginFormData) {
+	async function onSubmitLogin(data: LoginFormData) {
 		setIsLoading(true);
 		setError('');
 
@@ -81,7 +87,7 @@ function LogInForm({
 				{t('login.title')}
 			</h1>
 
-			<form onSubmit={form.handleSubmit(onSubmit)}>
+			<form onSubmit={form.handleSubmit(onSubmitLogin)}>
 				<Controller
 					control={form.control}
 					name="email"

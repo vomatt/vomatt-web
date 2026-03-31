@@ -22,10 +22,13 @@
 	"tags": [
 		{ "name": "Vote", "description": "Vote management APIs" },
 		{ "name": "User", "description": "User management APIs" },
+		{ "name": "Vote Comment", "description": "Vote comment management APIs" },
+		{ "name": "Admin Tag", "description": "Admin-only tag management APIs" },
 		{
 			"name": "認證",
 			"description": "認證相關的API，包括登入、註冊、刷新令牌和登出"
-		}
+		},
+		{ "name": "Tag", "description": "Tag management public APIs" }
 	],
 	"paths": {
 		"/api/v1/votes/{voteId}/deactivate": {
@@ -105,7 +108,7 @@
 		},
 		"/api/v1/votes/{voteId}/comments/{commentId}": {
 			"put": {
-				"tags": ["Vote"],
+				"tags": ["Vote Comment"],
 				"summary": "Update a comment",
 				"description": "Update comment content (only by comment owner)",
 				"operationId": "updateComment",
@@ -195,7 +198,7 @@
 				"security": [{ "Bearer Authentication": [] }]
 			},
 			"delete": {
-				"tags": ["Vote"],
+				"tags": ["Vote Comment"],
 				"summary": "Delete a comment",
 				"description": "Delete a comment (soft delete, only by comment owner)",
 				"operationId": "deleteComment",
@@ -275,6 +278,162 @@
 				"security": [{ "Bearer Authentication": [] }]
 			}
 		},
+		"/api/v1/admin/tags/{tagId}": {
+			"put": {
+				"tags": ["Admin Tag"],
+				"summary": "更新標籤",
+				"description": "管理員更新現有標籤",
+				"operationId": "updateTag",
+				"parameters": [
+					{
+						"name": "tagId",
+						"in": "path",
+						"description": "標籤 ID",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/UpdateTagRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseTagDto" }
+							}
+						}
+					}
+				},
+				"security": [{ "Bearer Authentication": [] }]
+			},
+			"delete": {
+				"tags": ["Admin Tag"],
+				"summary": "刪除標籤",
+				"description": "管理員刪除標籤",
+				"operationId": "deleteTag",
+				"parameters": [
+					{
+						"name": "tagId",
+						"in": "path",
+						"description": "標籤 ID",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					}
+				},
+				"security": [{ "Bearer Authentication": [] }]
+			}
+		},
 		"/api/v1/votes": {
 			"get": {
 				"tags": ["Vote"],
@@ -287,6 +446,12 @@
 						"in": "query",
 						"required": true,
 						"schema": { "$ref": "#/components/schemas/Pageable" }
+					},
+					{
+						"name": "tag",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "string" }
 					}
 				],
 				"responses": {
@@ -512,7 +677,7 @@
 		},
 		"/api/v1/votes/{voteId}/comments": {
 			"get": {
-				"tags": ["Vote"],
+				"tags": ["Vote Comment"],
 				"summary": "Get comments for a vote",
 				"description": "Retrieve all comments for a vote (paginated)",
 				"operationId": "getComments",
@@ -593,7 +758,7 @@
 				"security": [{ "Bearer Authentication": [] }]
 			},
 			"post": {
-				"tags": ["Vote"],
+				"tags": ["Vote Comment"],
 				"summary": "Create a comment",
 				"description": "Add a comment to a vote",
 				"operationId": "createComment",
@@ -678,7 +843,7 @@
 		},
 		"/api/v1/votes/{voteId}/comments/{commentId}/like": {
 			"post": {
-				"tags": ["Vote"],
+				"tags": ["Vote Comment"],
 				"summary": "Like a comment",
 				"description": "Add a like to a comment",
 				"operationId": "likeComment",
@@ -758,7 +923,7 @@
 				"security": [{ "Bearer Authentication": [] }]
 			},
 			"delete": {
-				"tags": ["Vote"],
+				"tags": ["Vote Comment"],
 				"summary": "Unlike a comment",
 				"description": "Remove a like from a comment",
 				"operationId": "unlikeComment",
@@ -838,7 +1003,7 @@
 				"security": [{ "Bearer Authentication": [] }]
 			}
 		},
-		"/api/auth/signup": {
+		"/api/v1/auth/signup": {
 			"post": {
 				"tags": ["認證"],
 				"summary": "會員註冊",
@@ -904,14 +1069,16 @@
 						"description": "註冊成功",
 						"content": {
 							"*/*": {
-								"schema": { "$ref": "#/components/schemas/ApiResponse" }
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseJwtResponse"
+								}
 							}
 						}
 					}
 				}
 			}
 		},
-		"/api/auth/signout": {
+		"/api/v1/auth/signout": {
 			"post": {
 				"tags": ["認證"],
 				"summary": "會員登出",
@@ -969,14 +1136,14 @@
 						"description": "登出成功",
 						"content": {
 							"*/*": {
-								"schema": { "$ref": "#/components/schemas/MessageResponse" }
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
 							}
 						}
 					}
 				}
 			}
 		},
-		"/api/auth/signin": {
+		"/api/v1/auth/signin": {
 			"post": {
 				"tags": ["認證"],
 				"summary": "會員登入",
@@ -1048,26 +1215,31 @@
 					},
 					"429": {
 						"description": "登入嘗試次數過多，請稍後再試",
-						"content": { "*/*": { "schema": { "type": "object" } } }
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseJwtResponse"
+								}
+							}
+						}
 					}
 				}
 			}
 		},
-		"/api/auth/resend-verification": {
+		"/api/v1/auth/resend-verification": {
 			"post": {
 				"tags": ["認證"],
 				"summary": "重發驗證碼",
 				"description": "重新發送預註冊驗證碼到指定郵箱",
 				"operationId": "resendVerificationCode",
-				"parameters": [
-					{
-						"name": "email",
-						"in": "query",
-						"description": "郵箱地址",
-						"required": true,
-						"schema": { "type": "string" }
-					}
-				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/EmailRequest" }
+						}
+					},
+					"required": true
+				},
 				"responses": {
 					"403": {
 						"description": "Forbidden",
@@ -1120,7 +1292,7 @@
 						"description": "驗證碼重發成功",
 						"content": {
 							"*/*": {
-								"schema": { "$ref": "#/components/schemas/PreSignupResponse" }
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
 							}
 						}
 					},
@@ -1128,14 +1300,14 @@
 						"description": "請求過於頻繁",
 						"content": {
 							"*/*": {
-								"schema": { "$ref": "#/components/schemas/BaseResponse" }
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
 							}
 						}
 					}
 				}
 			}
 		},
-		"/api/auth/refreshToken": {
+		"/api/v1/auth/refreshToken": {
 			"post": {
 				"tags": ["認證"],
 				"summary": "刷新令牌",
@@ -1202,7 +1374,7 @@
 						"content": {
 							"*/*": {
 								"schema": {
-									"$ref": "#/components/schemas/TokenRefreshResponse"
+									"$ref": "#/components/schemas/ApiResponseTokenRefreshResponse"
 								}
 							}
 						}
@@ -1210,7 +1382,7 @@
 				}
 			}
 		},
-		"/api/auth/pre-signup": {
+		"/api/v1/auth/pre-signup": {
 			"post": {
 				"tags": ["認證"],
 				"summary": "預註冊驗證",
@@ -1276,14 +1448,87 @@
 						"description": "預註冊請求成功，驗證碼已發送",
 						"content": {
 							"*/*": {
-								"schema": { "$ref": "#/components/schemas/PreSignupResponse" }
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
 							}
 						}
 					}
 				}
 			}
 		},
-		"/api/auth/force-expire-token": {
+		"/api/v1/auth/generateVerificationCode": {
+			"post": {
+				"tags": ["認證"],
+				"summary": "產生認證碼",
+				"description": "產生認證碼並發送至指定 email",
+				"operationId": "generateVerificationCode",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/EmailRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "用戶不存在",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "認證碼生成失敗",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "認證碼生成成功",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/auth/force-expire-token": {
 			"post": {
 				"tags": ["認證"],
 				"summary": "強制使JWT令牌過期",
@@ -1341,11 +1586,85 @@
 						"description": "令牌已成功失效",
 						"content": {
 							"*/*": {
-								"schema": { "$ref": "#/components/schemas/ApiResponse" }
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
 							}
 						}
 					}
 				}
+			}
+		},
+		"/api/v1/admin/tags": {
+			"post": {
+				"tags": ["Admin Tag"],
+				"summary": "建立標籤",
+				"description": "管理員建立新標籤",
+				"operationId": "createTag",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/CreateTagRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseTagDto" }
+							}
+						}
+					}
+				},
+				"security": [{ "Bearer Authentication": [] }]
 			}
 		},
 		"/api/v1/users/me": {
@@ -1891,21 +2210,12 @@
 				"security": [{ "Bearer Authentication": [] }]
 			}
 		},
-		"/api/auth/generateVerificationCode": {
+		"/api/v1/tags": {
 			"get": {
-				"tags": ["認證"],
-				"summary": "產生認證碼",
-				"description": "產生認證碼",
-				"operationId": "generateVerificationCode",
-				"parameters": [
-					{
-						"name": "email",
-						"in": "query",
-						"description": "email",
-						"required": true,
-						"schema": { "type": "string" }
-					}
-				],
+				"tags": ["Tag"],
+				"summary": "取得所有標籤",
+				"description": "取得系統中所有可用的標籤列表",
+				"operationId": "getAllTags",
 				"responses": {
 					"403": {
 						"description": "Forbidden",
@@ -1916,7 +2226,7 @@
 						}
 					},
 					"404": {
-						"description": "用戶不存在",
+						"description": "Not Found",
 						"content": {
 							"*/*": {
 								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
@@ -1924,7 +2234,7 @@
 						}
 					},
 					"400": {
-						"description": "認證碼生成失敗",
+						"description": "Bad Request",
 						"content": {
 							"*/*": {
 								"schema": {
@@ -1955,10 +2265,87 @@
 						}
 					},
 					"200": {
-						"description": "認證碼生成成功",
+						"description": "OK",
 						"content": {
 							"*/*": {
-								"schema": { "$ref": "#/components/schemas/BaseResponse" }
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseListTagDto"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/tags/popular": {
+			"get": {
+				"tags": ["Tag"],
+				"summary": "取得熱門標籤",
+				"description": "依使用次數排序取得熱門標籤（分頁）",
+				"operationId": "getPopularTags",
+				"parameters": [
+					{
+						"name": "pageable",
+						"in": "query",
+						"required": true,
+						"schema": { "$ref": "#/components/schemas/Pageable" }
+					}
+				],
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponsePageTagDto"
+								}
 							}
 						}
 					}
@@ -2185,6 +2572,43 @@
 					"likedByCurrentUser": { "type": "boolean" }
 				}
 			},
+			"UpdateTagRequest": {
+				"type": "object",
+				"properties": {
+					"name": { "type": "string", "maxLength": 30, "minLength": 0 },
+					"slug": {
+						"type": "string",
+						"maxLength": 50,
+						"minLength": 0,
+						"pattern": "^[a-z0-9\\-\\u4e00-\\u9fff\\u3040-\\u309f\\u30a0-\\u30ff]*$"
+					},
+					"description": { "type": "string", "maxLength": 200, "minLength": 0 },
+					"displayOrder": { "type": "integer", "format": "int32" }
+				},
+				"required": ["name"]
+			},
+			"ApiResponseTagDto": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"errorCode": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/TagDto" },
+					"message": { "type": "string" },
+					"timestamp": { "type": "string", "format": "date-time" },
+					"path": { "type": "string" }
+				}
+			},
+			"TagDto": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "string" },
+					"name": { "type": "string" },
+					"slug": { "type": "string" },
+					"description": { "type": "string" },
+					"displayOrder": { "type": "integer", "format": "int32" },
+					"usageCount": { "type": "integer", "format": "int32" }
+				}
+			},
 			"CreateVoteRequest": {
 				"type": "object",
 				"properties": {
@@ -2202,6 +2626,12 @@
 					"startTime": { "type": "string", "format": "date-time" },
 					"endTime": { "type": "string", "format": "date-time" },
 					"allowMultipleChoices": { "type": "boolean" },
+					"tagIds": {
+						"type": "array",
+						"items": { "type": "string", "format": "uuid" },
+						"maxItems": 5,
+						"minItems": 0
+					},
 					"anonymous": { "type": "boolean" }
 				},
 				"required": ["options", "title"]
@@ -2257,6 +2687,10 @@
 						"type": "array",
 						"items": { "$ref": "#/components/schemas/VoteOptionResponse" }
 					},
+					"tags": {
+						"type": "array",
+						"items": { "$ref": "#/components/schemas/TagDto" }
+					},
 					"active": { "type": "boolean" },
 					"anonymous": { "type": "boolean" },
 					"votingActive": { "type": "boolean" }
@@ -2282,7 +2716,7 @@
 			},
 			"SignupRequest": {
 				"type": "object",
-				"description": "註冊請求，包含用戶名、電子郵件、密碼等",
+				"description": "註冊請求",
 				"properties": {
 					"username": { "type": "string", "maxLength": 20, "minLength": 3 },
 					"email": {
@@ -2297,11 +2731,6 @@
 						"maxLength": 6,
 						"minLength": 6
 					},
-					"roles": {
-						"type": "array",
-						"items": { "type": "string" },
-						"uniqueItems": true
-					},
 					"firstName": { "type": "string", "minLength": 1 },
 					"lastName": { "type": "string", "minLength": 1 }
 				},
@@ -2313,29 +2742,16 @@
 					"verificationCode"
 				]
 			},
-			"ApiResponse": {
+			"ApiResponseJwtResponse": {
 				"type": "object",
 				"properties": {
 					"success": { "type": "boolean" },
 					"errorCode": { "type": "string" },
-					"data": {},
+					"data": { "$ref": "#/components/schemas/JwtResponse" },
 					"message": { "type": "string" },
 					"timestamp": { "type": "string", "format": "date-time" },
 					"path": { "type": "string" }
 				}
-			},
-			"MessageResponse": {
-				"type": "object",
-				"properties": { "message": { "type": "string" } }
-			},
-			"SigninRequest": {
-				"type": "object",
-				"description": "登入請求，包含電子郵件和驗證碼",
-				"properties": {
-					"email": { "type": "string", "minLength": 1 },
-					"verificationCode": { "type": "string", "minLength": 1 }
-				},
-				"required": ["email", "verificationCode"]
 			},
 			"JwtResponse": {
 				"type": "object",
@@ -2351,28 +2767,44 @@
 					"roles": { "type": "array", "items": { "type": "string" } }
 				}
 			},
-			"PreSignupResponse": {
+			"SigninRequest": {
 				"type": "object",
+				"description": "登入請求，包含電子郵件和驗證碼",
 				"properties": {
-					"success": { "type": "boolean" },
-					"message": { "type": "string" },
-					"errorType": { "type": "string" },
-					"sessionKey": { "type": "string" },
-					"expirationMinutes": { "type": "integer", "format": "int64" }
-				}
+					"email": { "type": "string", "minLength": 1 },
+					"verificationCode": { "type": "string", "minLength": 1 }
+				},
+				"required": ["email", "verificationCode"]
 			},
-			"BaseResponse": {
+			"EmailRequest": {
 				"type": "object",
+				"description": "email",
 				"properties": {
-					"success": { "type": "boolean" },
-					"errorCode": { "type": "string" }
-				}
+					"email": {
+						"type": "string",
+						"format": "email",
+						"maxLength": 50,
+						"minLength": 0
+					}
+				},
+				"required": ["email"]
 			},
 			"TokenRefreshRequest": {
 				"type": "object",
 				"description": "刷新令牌請求",
 				"properties": { "refreshToken": { "type": "string", "minLength": 1 } },
 				"required": ["refreshToken"]
+			},
+			"ApiResponseTokenRefreshResponse": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"errorCode": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/TokenRefreshResponse" },
+					"message": { "type": "string" },
+					"timestamp": { "type": "string", "format": "date-time" },
+					"path": { "type": "string" }
+				}
 			},
 			"TokenRefreshResponse": {
 				"type": "object",
@@ -2395,6 +2827,21 @@
 					}
 				},
 				"required": ["email", "username"]
+			},
+			"CreateTagRequest": {
+				"type": "object",
+				"properties": {
+					"name": { "type": "string", "maxLength": 30, "minLength": 0 },
+					"slug": {
+						"type": "string",
+						"maxLength": 50,
+						"minLength": 0,
+						"pattern": "^[a-z0-9\\-\\u4e00-\\u9fff\\u3040-\\u309f\\u30a0-\\u30ff]*$"
+					},
+					"description": { "type": "string", "maxLength": 200, "minLength": 0 },
+					"displayOrder": { "type": "integer", "format": "int32" }
+				},
+				"required": ["name"]
 			},
 			"UpdateProfileRequest": {
 				"type": "object",
@@ -2632,6 +3079,50 @@
 					"active": { "type": "boolean" },
 					"createdAt": { "type": "string", "format": "date-time" },
 					"lastLoginAt": { "type": "string", "format": "date-time" }
+				}
+			},
+			"ApiResponseListTagDto": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"errorCode": { "type": "string" },
+					"data": {
+						"type": "array",
+						"items": { "$ref": "#/components/schemas/TagDto" }
+					},
+					"message": { "type": "string" },
+					"timestamp": { "type": "string", "format": "date-time" },
+					"path": { "type": "string" }
+				}
+			},
+			"ApiResponsePageTagDto": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"errorCode": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/PageTagDto" },
+					"message": { "type": "string" },
+					"timestamp": { "type": "string", "format": "date-time" },
+					"path": { "type": "string" }
+				}
+			},
+			"PageTagDto": {
+				"type": "object",
+				"properties": {
+					"totalElements": { "type": "integer", "format": "int64" },
+					"totalPages": { "type": "integer", "format": "int32" },
+					"pageable": { "$ref": "#/components/schemas/PageableObject" },
+					"size": { "type": "integer", "format": "int32" },
+					"content": {
+						"type": "array",
+						"items": { "$ref": "#/components/schemas/TagDto" }
+					},
+					"number": { "type": "integer", "format": "int32" },
+					"sort": { "$ref": "#/components/schemas/SortObject" },
+					"numberOfElements": { "type": "integer", "format": "int32" },
+					"first": { "type": "boolean" },
+					"last": { "type": "boolean" },
+					"empty": { "type": "boolean" }
 				}
 			}
 		},

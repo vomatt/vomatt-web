@@ -9,7 +9,7 @@ import { MailCheckIcon } from '@/components/ui/animate-icon/MailCheck';
 import { Button } from '@/components/ui/Button';
 import { Field, FieldError } from '@/components/ui/Field';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { resendVerification } from '@/lib/api/services/auth';
+import { getVerifyCode } from '@/lib/api/services/auth';
 
 import {
 	InputOTP,
@@ -84,7 +84,8 @@ export default function VerificationForm({
 		setResendMessage(null);
 		setIsResending(true);
 		try {
-			const res = await resendVerification(email);
+			const res = await getVerifyCode(email);
+			console.log('🚀 ~ :88 ~ onResendVerification ~ res:', res);
 
 			setResendMessage({ type: 'success', key: 'codeSent' });
 		} catch (error) {

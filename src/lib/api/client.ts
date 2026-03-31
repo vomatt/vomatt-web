@@ -71,6 +71,7 @@ export async function publicFetch<T = any>(
 	options?: RequestInit
 ): Promise<T> {
 	const response = await fetch(url, options);
+	console.log('🚀 ~ :74 ~ publicFetch ~ response:', response);
 
 	return parseApiResponseBody<T>(response);
 }
