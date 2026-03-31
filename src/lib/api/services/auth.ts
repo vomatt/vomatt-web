@@ -26,13 +26,15 @@ export async function getVerifyCode(email: string) {
 
 export async function login(email: string, verificationCode: string) {
 	try {
-		const res = await publicFetch(`${process.env.API_URL}/api/v1/auth/signin`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ email, verificationCode }),
-		});
+		const data = await publicFetch(
+			`${process.env.API_URL}/api/v1/auth/signin`,
+			{
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email, verificationCode }),
+			}
+		);
 
-		const data = await res.json();
 		const { success, errorCode, token, refreshToken } = data || {};
 		if (success && token) {
 			await setAuthTokens({ accessToken: token, refreshToken });
