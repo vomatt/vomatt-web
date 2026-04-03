@@ -37,6 +37,7 @@ import {
 import { useLanguage } from '@/contexts/LanguageContext';
 import { logout } from '@/lib/api/auth';
 import { cn } from '@/lib/utils';
+import { UserProfile } from '@/types/user';
 
 const navigationItems = [
 	{
@@ -67,6 +68,7 @@ const navigationItems = [
 
 interface AppSidebarProps {
 	userSession: any;
+	profile: UserProfile | null;
 }
 
 const hideSideBarFromPages = ['/login', '/signup'];
@@ -83,7 +85,7 @@ function getUserInitials(fullName?: string, email?: string): string {
 	return 'U';
 }
 
-export function AppSidebar({ userSession }: AppSidebarProps) {
+export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 	const { t } = useLanguage();
 	const pathname = usePathname();
 
@@ -93,7 +95,10 @@ export function AppSidebar({ userSession }: AppSidebarProps) {
 
 	if (hideSideBarFromPages.includes(pathname)) return null;
 
-	const initials = getUserInitials(userSession?.full_name, userSession?.email);
+	const initials = getUserInitials(
+		profile?.displayName ?? undefined,
+		profile?.username
+	);
 
 	return (
 		<Sidebar className="border-none" variant="floating">
@@ -213,26 +218,18 @@ export function AppSidebar({ userSession }: AppSidebarProps) {
 
 							<div className="flex-1 min-w-0">
 								<p className="text-sm font-semibold text-sidebar-foreground leading-tight truncate">
-									{userSession.full_name || userSession.email}
+									{profile?.displayName || profile?.username}
 								</p>
-								{userSession.full_name && (
-									<p className="text-[11px] text-sidebar-foreground/50 leading-tight truncate mt-0.5">
-										{userSession.email}
-									</p>
-								)}
+								{profile?.displayName &&
+									profile.displayName !== profile.username && (
+										<p className="text-[11px] text-sidebar-foreground/50 leading-tight truncate mt-0.5">
+											@{profile.username}
+										</p>
+									)}
 							</div>
 
 							<ArrowRight className="size-3.5 text-sidebar-foreground/30 group-hover:text-sidebar-foreground/60 transition-colors shrink-0" />
 						</Link>
-						<div className="border-t border-sidebar-border/40">
-							<button
-								onClick={handleLogout}
-								className="flex items-center gap-2.5 w-full px-3 py-2.5 text-sidebar-foreground/50 hover:text-destructive hover:bg-destructive/5 transition-colors text-sm"
-							>
-								<LogOut className="size-3.5 shrink-0" />
-								<span className="font-medium">Sign out</span>
-							</button>
-						</div>
 					</div>
 				) : (
 					<div className="rounded-xl border border-sidebar-border/60 bg-sidebar-accent/20 p-3">

@@ -26,8 +26,7 @@ export default async function ProfilePage({
 		);
 	}
 
-	const isOwner =
-		session?.username === username || session?.nickName === username;
+	const isOwner = session?.sub === username;
 	const isAuthenticated = !!session;
 
 	return (
