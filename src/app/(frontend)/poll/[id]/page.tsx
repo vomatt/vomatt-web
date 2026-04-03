@@ -3,23 +3,10 @@ import { enUS } from 'date-fns/locale';
 import { ArrowLeft, Share2, Users } from '@/components/ui/SvgIcons';
 import Link from 'next/link';
 
-import { ApiError, publicFetch } from '@/lib/api/client';
 import { getUserSession } from '@/data/auth';
+import { getPoll } from '@/lib/api/services/polls';
 import { PollCard } from '@/app/(frontend)/_components/PollCard';
 import { Button } from '@/components/ui/Button';
-import { Poll } from '@/types/poll';
-
-async function getPoll(id: string): Promise<Poll | null> {
-	try {
-		return await publicFetch<Poll>(
-			`${process.env.API_URL}/api/v1/votes/${id}`,
-			{ next: { revalidate: 30 } } as RequestInit
-		);
-	} catch (error) {
-		if (error instanceof ApiError && error.statusCode === 404) return null;
-		throw error;
-	}
-}
 
 export default async function PollDetailPage({
 	params,

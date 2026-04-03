@@ -1,6 +1,6 @@
-import { publicFetch } from '@/lib/api/client';
 import { getUserSession } from '@/data/auth';
 import defineMetadata from '@/lib/defineMetadata';
+import { getPollsByCreator } from '@/lib/api/services/polls';
 import { Poll } from '@/types/poll';
 import { UserProfile } from '@/types/user';
 
@@ -10,24 +10,11 @@ export async function generateMetadata({}) {
 	return defineMetadata({ data: {} });
 }
 
-async function getAccountPolls(username: string): Promise<Poll[]> {
-	try {
-		const url = `${process.env.API_URL}/api/v1/votes?creatorUsername=${encodeURIComponent(username)}`;
-		const page = await publicFetch<{ content: Poll[] }>(
-			url,
-			{ next: { revalidate: 60 } } as RequestInit
-		);
-		return page?.content ?? [];
-	} catch {
-		return [];
-	}
-}
-
 export default async function Page() {
 	const session = await getUserSession();
 	const username: string = session?.username ?? session?.nickName ?? '';
 
-	const polls = username ? await getAccountPolls(username) : [];
+	const polls = username ? await getPollsByCreator(username) : [];
 
 	const profile: UserProfile = {
 		username,

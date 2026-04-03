@@ -1,7 +1,7 @@
 'use server';
 
 import { ApiError, apiClient, publicFetch } from '@/lib/api/client';
-import { PollCreatorData } from '@/types/poll';
+import { Poll, PollCreatorData } from '@/types/poll';
 
 export async function getPolls(page = 0, size = 10, tag?: string) {
 	const params = new URLSearchParams({
@@ -12,9 +12,24 @@ export async function getPolls(page = 0, size = 10, tag?: string) {
 	return publicFetch(`${process.env.API_URL}/api/v1/votes?${params}`);
 }
 
-export async function getPoll(id: string) {
+export async function getPollsByCreator(username: string): Promise<Poll[]> {
 	try {
-		return await publicFetch(`${process.env.API_URL}/api/v1/votes/${id}`);
+		const url = `${process.env.API_URL}/api/v1/votes?creatorUsername=${encodeURIComponent(username)}`;
+		const page = await publicFetch<{ content: Poll[] }>(url, {
+			next: { revalidate: 60 },
+		} as RequestInit);
+		return page?.content ?? [];
+	} catch {
+		return [];
+	}
+}
+
+export async function getPoll(id: string): Promise<Poll | null> {
+	try {
+		return await publicFetch<Poll>(
+			`${process.env.API_URL}/api/v1/votes/${id}`,
+			{ next: { revalidate: 30 } } as RequestInit
+		);
 	} catch (error) {
 		if (error instanceof ApiError && error.statusCode === 404) return null;
 		throw error;

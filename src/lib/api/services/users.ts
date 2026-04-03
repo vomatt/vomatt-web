@@ -1,11 +1,18 @@
 'use server';
 
-import { apiClient, publicFetch } from '@/lib/api/client';
+import { ApiError, apiClient, publicFetch } from '@/lib/api/client';
+import { UserProfile } from '@/types/user';
 
-export async function getUserProfile(username: string) {
-  return publicFetch(
-    `${process.env.API_URL}/api/v1/users/${encodeURIComponent(username)}`
-  );
+export async function getUserProfile(username: string): Promise<UserProfile | null> {
+  try {
+    return await publicFetch<UserProfile>(
+      `${process.env.API_URL}/api/v1/users/${encodeURIComponent(username)}`,
+      { next: { revalidate: 60 } } as RequestInit
+    );
+  } catch (error) {
+    if (error instanceof ApiError && error.statusCode === 404) return null;
+    throw error;
+  }
 }
 
 export async function searchUsers(username: string, page?: number, size?: number) {

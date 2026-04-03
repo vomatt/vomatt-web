@@ -33,7 +33,8 @@ describe('getUserProfile()', () => {
   it('calls the correct URL', async () => {
     await getUserProfile('alice');
     expect(mockPublicFetch).toHaveBeenCalledWith(
-      expect.stringContaining('/api/v1/users/alice')
+      expect.stringContaining('/api/v1/users/alice'),
+      expect.anything()
     );
   });
 });
