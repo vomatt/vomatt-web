@@ -34,7 +34,7 @@ export async function getTokens(): Promise<{
 	const accessToken = cookieStore.get(ACCESS_TOKEN)?.value || '';
 	const refreshToken = cookieStore.get(REFRESH_TOKEN)?.value || '';
 
-	if (!accessToken || !refreshToken) return null;
+	if (!accessToken && !refreshToken) return null;
 	return { accessToken, refreshToken };
 }
 

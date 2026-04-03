@@ -71,7 +71,6 @@ export async function publicFetch<T = any>(
 	options?: RequestInit
 ): Promise<T> {
 	const response = await fetch(url, options);
-	console.log('🚀 ~ :74 ~ publicFetch ~ response:', response);
 
 	return parseApiResponseBody<T>(response);
 }
@@ -97,6 +96,17 @@ export async function apiClient<T = any>(
 
 	if (!tokens) {
 		throw new AuthError('Not authenticated. Please log in.');
+	}
+
+	// If access token is missing but refresh token exists, refresh proactively
+	if (!tokens.accessToken && tokens.refreshToken) {
+		const newTokens = await refreshTokens(tokens.refreshToken);
+		if (!newTokens) {
+			await clearAuthTokens();
+			redirect('/login?session_expired=true', RedirectType.replace);
+		}
+		await setAuthTokens(newTokens);
+		tokens = newTokens;
 	}
 
 	// Add authorization header

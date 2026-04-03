@@ -74,10 +74,49 @@ export async function proxy(request: NextRequest) {
 		}
 	}
 
-	// If access token is invalid but refresh token exists, optimistically allow
-	// the request. apiClient handles the 401 → token refresh flow.
+	// If access token is invalid/missing but refresh token exists, try to refresh
+	// proactively so server components see a fresh access token immediately.
 	if (!isValidToken && refreshToken) {
-		isValidToken = true;
+		try {
+			const refreshUrl = `${process.env.API_URL}/api/v1/auth/refreshToken`;
+			const refreshRes = await fetch(refreshUrl, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ refreshToken }),
+			});
+
+			if (refreshRes.ok) {
+				const data = await refreshRes.json();
+				const newAccessToken: string | undefined =
+					data?.accessToken ?? data?.token;
+				const newRefreshToken: string | undefined = data?.refreshToken;
+
+				if (newAccessToken) {
+					isValidToken = true;
+					const isSecure = process.env.NODE_ENV === 'production';
+
+					response.cookies.set('accessToken', newAccessToken, {
+						httpOnly: true,
+						secure: isSecure,
+						sameSite: 'lax',
+						path: '/',
+						maxAge: 15 * 60, // 15 minutes
+					});
+
+					if (newRefreshToken) {
+						response.cookies.set('refreshToken', newRefreshToken, {
+							httpOnly: true,
+							secure: isSecure,
+							sameSite: 'lax',
+							path: '/',
+							maxAge: 7 * 24 * 60 * 60, // 7 days
+						});
+					}
+				}
+			}
+		} catch {
+			// Refresh failed — user will be treated as unauthenticated
+		}
 	}
 
 	const hasValidSession = isValidToken;
