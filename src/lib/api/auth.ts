@@ -9,6 +9,7 @@ import {
 	REFRESH_TOKEN,
 	REFRESH_TOKEN_EXPIRY,
 } from '@/data/constants';
+import { API_BASE_PATH } from '@/lib/api/constants';
 import { AuthTokens, RefreshTokenResponse } from '@/types';
 
 const secretKey = process.env.SESSION_SECRET;
@@ -70,7 +71,7 @@ export async function refreshTokens(
 	refreshToken: string
 ): Promise<RefreshTokenResponse | null> {
 	try {
-		const refreshUrl = `${process.env.API_URL}/api/v1/auth/refreshToken`;
+		const refreshUrl = `${process.env.API_URL}${API_BASE_PATH}/auth/refreshToken`;
 		const response = await fetch(refreshUrl, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },

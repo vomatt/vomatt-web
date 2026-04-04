@@ -29,8 +29,8 @@ export const getUserSession = cache(async (): Promise<Session | null> => {
 	return null;
 });
 
-// Fetches the current user's profile. Returns mock data until GET /api/v1/users/me is ready.
-// TODO: Replace with apiClient('/api/v1/users/me') when the endpoint is available.
+// Fetches the current user's profile. Returns mock data until GET /users/me is ready.
+// TODO: Replace with apiClient('/users/me') when the endpoint is available.
 export const getMyProfile = cache(async (): Promise<UserProfile | null> => {
 	const session = await getUserSession();
 	if (!session) return null;

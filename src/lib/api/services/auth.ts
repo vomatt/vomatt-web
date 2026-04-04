@@ -1,12 +1,12 @@
 'use server';
 
-import { publicFetch, apiClient } from '@/lib/api/client';
+import { publicFetch, apiClient, API_BASE_PATH } from '@/lib/api/client';
 import { clearAuthTokens, setAuthTokens } from '@/lib/api/auth';
 
 export async function getVerifyCode(email: string) {
 	try {
 		const res = await fetch(
-			`${process.env.API_URL}/api/v1/auth/generateVerificationCode`,
+			`${process.env.API_URL}${API_BASE_PATH}/auth/generateVerificationCode`,
 			{
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
@@ -27,7 +27,7 @@ export async function getVerifyCode(email: string) {
 export async function login(email: string, verificationCode: string) {
 	try {
 		const data = await publicFetch(
-			`${process.env.API_URL}/api/v1/auth/signin`,
+			'/auth/signin',
 			{
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
@@ -48,7 +48,7 @@ export async function login(email: string, verificationCode: string) {
 
 export async function preSignup(email: string, username: string) {
 	try {
-		const res = await fetch(`${process.env.API_URL}/api/v1/auth/pre-signup`, {
+		const res = await fetch(`${process.env.API_URL}${API_BASE_PATH}/auth/pre-signup`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ email, username }),
@@ -73,7 +73,7 @@ export async function signup(data: {
 	verificationCode: string;
 }) {
 	try {
-		const res = await fetch(`${process.env.API_URL}/api/v1/auth/signup`, {
+		const res = await fetch(`${process.env.API_URL}${API_BASE_PATH}/auth/signup`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(data),
@@ -94,14 +94,14 @@ export async function signup(data: {
 }
 
 export async function signout() {
-	await apiClient('/api/v1/auth/signout', { method: 'POST' });
+	await apiClient('/auth/signout', { method: 'POST' });
 	await clearAuthTokens();
 }
 
 export async function resendVerification(email: string) {
 	console.log('🚀 ~ :99 ~ resendVerification ~ email:', email);
 	const res = await publicFetch(
-		`${process.env.API_URL}/api/v1/auth/resend-verification`,
+		'/auth/resend-verification',
 		{
 			headers: { 'Content-Type': 'application/json' },
 			method: 'POST',
@@ -113,5 +113,5 @@ export async function resendVerification(email: string) {
 }
 
 export async function forceExpireToken() {
-	return apiClient('/api/v1/auth/force-expire-token', { method: 'POST' });
+	return apiClient('/auth/force-expire-token', { method: 'POST' });
 }

@@ -1,4 +1,4 @@
-import { apiClient } from '@/lib/api/client';
+import { apiClient, publicFetch } from '@/lib/api/client';
 
 import {
 	forceExpireToken,
@@ -8,6 +8,8 @@ import {
 
 jest.mock('@/lib/api/client', () => ({
 	apiClient: jest.fn(),
+	publicFetch: jest.fn(),
+	API_BASE_PATH: '/api/v1',
 }));
 
 jest.mock('@/lib/api/auth', () => ({
@@ -18,6 +20,7 @@ jest.mock('@/lib/api/auth', () => ({
 }));
 
 const mockApiClient = apiClient as jest.MockedFunction<typeof apiClient>;
+const mockPublicFetch = publicFetch as jest.MockedFunction<typeof publicFetch>;
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const mockClearAuthTokens = require('@/lib/api/auth')
 	.clearAuthTokens as jest.Mock;
@@ -25,6 +28,8 @@ const mockClearAuthTokens = require('@/lib/api/auth')
 beforeEach(() => {
 	mockApiClient.mockClear();
 	mockApiClient.mockResolvedValue(undefined);
+	mockPublicFetch.mockClear();
+	mockPublicFetch.mockResolvedValue(undefined);
 	mockClearAuthTokens.mockClear();
 	mockClearAuthTokens.mockResolvedValue(undefined);
 });
@@ -32,7 +37,7 @@ beforeEach(() => {
 describe('signout()', () => {
 	it('calls POST /api/auth/signout', async () => {
 		await signout();
-		expect(mockApiClient).toHaveBeenCalledWith('/api/v1/auth/signout', {
+		expect(mockApiClient).toHaveBeenCalledWith('/auth/signout', {
 			method: 'POST',
 		});
 	});
@@ -44,11 +49,14 @@ describe('signout()', () => {
 });
 
 describe('resendVerification()', () => {
-	it('calls POST /api/v1/auth/resend-verification with email in body', async () => {
+	it('calls POST /auth/resend-verification with email in body', async () => {
 		await resendVerification('user@example.com');
-		expect(mockApiClient).toHaveBeenCalledWith(
-			'/api/v1/auth/resend-verification',
-			{ method: 'POST', body: JSON.stringify({ email: 'user@example.com' }) }
+		expect(mockPublicFetch).toHaveBeenCalledWith(
+			'/auth/resend-verification',
+			expect.objectContaining({
+				method: 'POST',
+				body: JSON.stringify({ email: 'user@example.com' }),
+			})
 		);
 	});
 });
@@ -57,7 +65,7 @@ describe('forceExpireToken()', () => {
 	it('calls POST /api/auth/force-expire-token', async () => {
 		await forceExpireToken();
 		expect(mockApiClient).toHaveBeenCalledWith(
-			'/api/v1/auth/force-expire-token',
+			'/auth/force-expire-token',
 			{ method: 'POST' }
 		);
 	});

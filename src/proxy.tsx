@@ -4,6 +4,7 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 import { decodeToken } from '@/lib/api/auth';
+import { API_BASE_PATH } from '@/lib/api/constants';
 import { LanguageCode } from '@/types';
 
 import { i18n, SUPPORTED_LANGUAGES } from './i18n-config';
@@ -78,7 +79,7 @@ export async function proxy(request: NextRequest) {
 	// proactively so server components see a fresh access token immediately.
 	if (!isValidToken && refreshToken) {
 		try {
-			const refreshUrl = `${process.env.API_URL}/api/v1/auth/refreshToken`;
+			const refreshUrl = `${process.env.API_URL}${API_BASE_PATH}/auth/refreshToken`;
 			const refreshRes = await fetch(refreshUrl, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },

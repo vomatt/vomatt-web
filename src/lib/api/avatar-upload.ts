@@ -1,9 +1,11 @@
+import { API_BASE_PATH } from '@/lib/api/constants';
+
 export async function uploadAvatar(file: File): Promise<{ avatarUrl: string }> {
   const formData = new FormData();
   formData.append('file', file);
 
   const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? '';
-  const res = await fetch(`${baseUrl}/api/v1/users/me/avatar`, {
+  const res = await fetch(`${baseUrl}${API_BASE_PATH}/users/me/avatar`, {
     method: 'PATCH',
     body: formData,
     credentials: 'include',

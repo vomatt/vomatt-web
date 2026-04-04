@@ -12,6 +12,7 @@ import {
 jest.mock('@/lib/api/client', () => ({
   apiClient: jest.fn(),
   publicFetch: jest.fn(),
+  API_BASE_PATH: '/api/v1',
 }));
 
 const mockApiClient = apiClient as jest.MockedFunction<typeof apiClient>;
@@ -33,7 +34,7 @@ describe('getUserProfile()', () => {
   it('calls the correct URL', async () => {
     await getUserProfile('alice');
     expect(mockPublicFetch).toHaveBeenCalledWith(
-      expect.stringContaining('/api/v1/users/alice'),
+      expect.stringContaining('/users/alice'),
       expect.anything()
     );
   });
@@ -43,56 +44,56 @@ describe('searchUsers()', () => {
   it('sends GET with username query param', async () => {
     await searchUsers('bob');
     expect(mockApiClient).toHaveBeenCalledWith(
-      '/api/v1/users/search?username=bob'
+      '/users/search?username=bob'
     );
   });
 
   it('includes page param when provided', async () => {
     await searchUsers('bob', 2);
     expect(mockApiClient).toHaveBeenCalledWith(
-      '/api/v1/users/search?username=bob&page=2'
+      '/users/search?username=bob&page=2'
     );
   });
 
   it('includes size param when provided', async () => {
     await searchUsers('bob', 0, 20);
     expect(mockApiClient).toHaveBeenCalledWith(
-      '/api/v1/users/search?username=bob&page=0&size=20'
+      '/users/search?username=bob&page=0&size=20'
     );
   });
 });
 
 describe('deleteUser()', () => {
-  it('sends DELETE to /api/v1/users/{userId}', async () => {
+  it('sends DELETE to /users/{userId}', async () => {
     await deleteUser('user-123');
-    expect(mockApiClient).toHaveBeenCalledWith('/api/v1/users/user-123', {
+    expect(mockApiClient).toHaveBeenCalledWith('/users/user-123', {
       method: 'DELETE',
     });
   });
 });
 
 describe('removeAvatar()', () => {
-  it('sends DELETE to /api/v1/users/me/avatar', async () => {
+  it('sends DELETE to /users/me/avatar', async () => {
     await removeAvatar();
-    expect(mockApiClient).toHaveBeenCalledWith('/api/v1/users/me/avatar', {
+    expect(mockApiClient).toHaveBeenCalledWith('/users/me/avatar', {
       method: 'DELETE',
     });
   });
 });
 
 describe('followUser()', () => {
-  it('sends POST to /api/v1/users/{username}/follow', async () => {
+  it('sends POST to /users/{username}/follow', async () => {
     await followUser('carol');
-    expect(mockApiClient).toHaveBeenCalledWith('/api/v1/users/carol/follow', {
+    expect(mockApiClient).toHaveBeenCalledWith('/users/carol/follow', {
       method: 'POST',
     });
   });
 });
 
 describe('unfollowUser()', () => {
-  it('sends DELETE to /api/v1/users/{username}/follow', async () => {
+  it('sends DELETE to /users/{username}/follow', async () => {
     await unfollowUser('carol');
-    expect(mockApiClient).toHaveBeenCalledWith('/api/v1/users/carol/follow', {
+    expect(mockApiClient).toHaveBeenCalledWith('/users/carol/follow', {
       method: 'DELETE',
     });
   });

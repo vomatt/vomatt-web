@@ -6,6 +6,9 @@ import {
 	refreshTokens,
 	setAuthTokens,
 } from '@/lib/api/auth';
+import { API_BASE_PATH } from '@/lib/api/constants';
+
+export { API_BASE_PATH } from '@/lib/api/constants';
 
 interface ApiFetchOptions extends RequestInit {
 	isFormData?: boolean;
@@ -64,13 +67,15 @@ async function parseApiResponseBody<T>(response: Response): Promise<T> {
 
 /**
  * Fetch a public (unauthenticated) backend endpoint.
- * Handles the ApiResponse<T> envelope and throws ApiError on failure.
+ * Pass a path relative to the API version prefix, e.g. `/votes`.
+ * The full URL is built from API_URL + API_BASE_PATH automatically.
  */
 export async function publicFetch<T = any>(
-	url: string,
+	endpoint: string,
 	options?: RequestInit
 ): Promise<T> {
-	const response = await fetch(url, options);
+	const baseUrl = process.env.API_URL;
+	const response = await fetch(`${baseUrl}${API_BASE_PATH}${endpoint}`, options);
 
 	return parseApiResponseBody<T>(response);
 }
@@ -120,7 +125,7 @@ export async function apiClient<T = any>(
 			requestHeaders.set('Authorization', `Bearer ${accessToken}`);
 		}
 
-		return fetch(`${baseUrl}${endpoint}`, {
+		return fetch(`${baseUrl}${API_BASE_PATH}${endpoint}`, {
 			...fetchOptions,
 			headers: requestHeaders,
 			credentials: 'include', // Important for cookies
