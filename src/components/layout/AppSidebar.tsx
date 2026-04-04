@@ -37,7 +37,7 @@ import {
 import { useLanguage } from '@/contexts/LanguageContext';
 import { logout } from '@/lib/api/auth';
 import { cn } from '@/lib/utils';
-import { UserProfile } from '@/types/user';
+import { MyProfile } from '@/types/user';
 
 const navigationItems = [
 	{
@@ -68,7 +68,7 @@ const navigationItems = [
 
 interface AppSidebarProps {
 	userSession: any;
-	profile: UserProfile | null;
+	profile: MyProfile | null;
 }
 
 const hideSideBarFromPages = ['/login', '/signup'];

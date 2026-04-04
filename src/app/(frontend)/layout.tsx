@@ -15,8 +15,10 @@ import enTranslations from '@/locales/en.json';
 import zhTranslations from '@/locales/zh.json';
 
 export async function generateMetadata() {
-	const { payloadLocale } = await getServerLocale();
-	const payload = await getPayload({ config });
+	const [{ payloadLocale }, payload] = await Promise.all([
+		getServerLocale(),
+		getPayload({ config }),
+	]);
 	const settings = await payload.findGlobal({
 		slug: 'settings-general',
 		locale: payloadLocale as 'en' | 'zh-TW',

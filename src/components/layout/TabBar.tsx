@@ -6,10 +6,14 @@ import {
 	Search,
 	Star,
 } from '@/components/ui/SvgIcons';
+import dynamic from 'next/dynamic';
 import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 
-import { PollCreator } from '@/components/PollCreator';
+const PollCreator = dynamic(
+	() => import('@/components/PollCreator').then((m) => ({ default: m.PollCreator })),
+	{ ssr: false }
+);
 type TabBarProps = {
 	className?: string;
 	userSession?: any;

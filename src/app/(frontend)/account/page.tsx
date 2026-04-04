@@ -19,5 +19,5 @@ export default async function Page() {
 
 	const polls = await getPollsByCreator(profile.username);
 
-	return <AccountPage profile={{ ...profile, totalPolls: polls.length }} polls={polls} />;
+	return <AccountPage profile={profile} polls={polls} />;
 }

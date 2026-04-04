@@ -4,7 +4,9 @@ import { cache } from 'react';
 
 import { ACCESS_TOKEN } from '@/data/constants';
 import { decodeToken } from '@/lib/api/auth';
-import { UserProfile } from '@/types/user';
+import { AuthError } from '@/lib/api/client';
+import { getMyProfile as fetchMyProfile } from '@/lib/api/services/users';
+import { MyProfile } from '@/types/user';
 
 export interface Session {
 	sub: string;
@@ -29,21 +31,14 @@ export const getUserSession = cache(async (): Promise<Session | null> => {
 	return null;
 });
 
-// Fetches the current user's profile. Returns mock data until GET /users/me is ready.
-// TODO: Replace with apiClient('/users/me') when the endpoint is available.
-export const getMyProfile = cache(async (): Promise<UserProfile | null> => {
+export const getMyProfile = cache(async (): Promise<MyProfile | null> => {
 	const session = await getUserSession();
 	if (!session) return null;
 
-	return {
-		username: session.sub,
-		displayName: session.sub,
-		bio: null,
-		joinedAt: new Date().toISOString(),
-		totalPolls: 0,
-		totalVotes: 0,
-		avatarUrl: null,
-		followersCount: 0,
-		followingCount: 0,
-	};
+	try {
+		return await fetchMyProfile();
+	} catch (error) {
+		if (error instanceof AuthError) return null;
+		throw error;
+	}
 });

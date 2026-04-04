@@ -27,8 +27,7 @@ export async function POST(
     return NextResponse.json({ message: 'Not found' }, { status: 404 });
   }
 
-  const { username } = await params;
-  const caller = await getCallerUsername(req);
+  const [{ username }, caller] = await Promise.all([params, getCallerUsername(req)]);
   if (!caller) return err('Not authenticated', 401);
   if (caller === username) return err('Cannot follow yourself', 400);
 
@@ -49,8 +48,7 @@ export async function DELETE(
     return NextResponse.json({ message: 'Not found' }, { status: 404 });
   }
 
-  const { username } = await params;
-  const caller = await getCallerUsername(req);
+  const [{ username }, caller] = await Promise.all([params, getCallerUsername(req)]);
   if (!caller) return err('Not authenticated', 401);
 
   // Idempotent: delete regardless of whether they were following

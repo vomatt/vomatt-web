@@ -11,6 +11,17 @@ import { Poll } from '@/types/poll';
 type Status = 'all' | 'active' | 'ended';
 type SortBy = 'newest' | 'mostVotes';
 
+const statusFilters: { label: string; value: Status }[] = [
+	{ label: 'All', value: 'all' },
+	{ label: 'Active', value: 'active' },
+	{ label: 'Ended', value: 'ended' },
+];
+
+const sortOptions: { label: string; value: SortBy }[] = [
+	{ label: 'Newest', value: 'newest' },
+	{ label: 'Most Votes', value: 'mostVotes' },
+];
+
 function PollSearchCard({ poll }: { poll: Poll }) {
 	const isActive = poll.active && poll.votingActive;
 	return (
@@ -74,17 +85,6 @@ export default function ExplorePage() {
 	useEffect(() => {
 		fetchPolls(query, status, sort);
 	}, [query, status, sort]);
-
-	const statusFilters: { label: string; value: Status }[] = [
-		{ label: 'All', value: 'all' },
-		{ label: 'Active', value: 'active' },
-		{ label: 'Ended', value: 'ended' },
-	];
-
-	const sortOptions: { label: string; value: SortBy }[] = [
-		{ label: 'Newest', value: 'newest' },
-		{ label: 'Most Votes', value: 'mostVotes' },
-	];
 
 	return (
 		<div className="px-contain max-w-2xl mx-auto py-6">

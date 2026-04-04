@@ -1,7 +1,7 @@
 'use server';
 
 import { ApiError, apiClient, publicFetch } from '@/lib/api/client';
-import { UserProfile } from '@/types/user';
+import { MyProfile, UserProfile } from '@/types/user';
 
 export async function getUserProfile(username: string): Promise<UserProfile | null> {
   try {
@@ -42,9 +42,20 @@ export async function unfollowUser(username: string) {
   });
 }
 
+export async function getMyProfile(): Promise<MyProfile> {
+  return apiClient<MyProfile>('/users/me');
+}
+
 export async function updateProfile(data: { displayName?: string; bio?: string }) {
-  return apiClient('/users/me', {
+  return apiClient<UserProfile>('/users/me', {
     method: 'PATCH',
     body: JSON.stringify(data),
+  });
+}
+
+export async function updateVisibility(visibility: Record<string, boolean>) {
+  return apiClient<Record<string, boolean>>('/users/me/visibility', {
+    method: 'PATCH',
+    body: JSON.stringify({ visibility }),
   });
 }

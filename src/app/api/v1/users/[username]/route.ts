@@ -19,8 +19,7 @@ export async function GET(
     return NextResponse.json({ message: 'Not found' }, { status: 404 });
   }
 
-  const { username } = await params;
-  const caller = await getCallerUsername(req);
+  const [{ username }, caller] = await Promise.all([params, getCallerUsername(req)]);
   const profile = getEnrichedProfile(username, caller);
 
   if (!profile) {

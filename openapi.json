@@ -21,6 +21,7 @@
 	"security": [{ "bearerAuth": [] }],
 	"tags": [
 		{ "name": "Vote", "description": "Vote management APIs" },
+		{ "name": "Admin - Lookup", "description": "字典表管理 API（Admin）" },
 		{ "name": "User", "description": "User management APIs" },
 		{ "name": "Vote Comment", "description": "Vote comment management APIs" },
 		{ "name": "Admin Tag", "description": "Admin-only tag management APIs" },
@@ -28,7 +29,8 @@
 			"name": "認證",
 			"description": "認證相關的API，包括登入、註冊、刷新令牌和登出"
 		},
-		{ "name": "Tag", "description": "Tag management public APIs" }
+		{ "name": "Tag", "description": "Tag management public APIs" },
+		{ "name": "Lookup", "description": "字典表查詢 API（公開）" }
 	],
 	"paths": {
 		"/api/v1/votes/{voteId}/deactivate": {
@@ -370,6 +372,162 @@
 						"name": "tagId",
 						"in": "path",
 						"description": "標籤 ID",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					}
+				},
+				"security": [{ "Bearer Authentication": [] }]
+			}
+		},
+		"/api/v1/admin/lookups/{id}": {
+			"put": {
+				"tags": ["Admin - Lookup"],
+				"summary": "更新字典項目",
+				"operationId": "update",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"description": "字典 ID",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/UpdateLookupRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseLookupDto"
+								}
+							}
+						}
+					}
+				},
+				"security": [{ "Bearer Authentication": [] }]
+			},
+			"delete": {
+				"tags": ["Admin - Lookup"],
+				"summary": "刪除字典項目（硬刪除）",
+				"operationId": "delete",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"description": "字典 ID",
 						"required": true,
 						"schema": { "type": "string" }
 					}
@@ -1667,7 +1825,147 @@
 				"security": [{ "Bearer Authentication": [] }]
 			}
 		},
+		"/api/v1/admin/lookups": {
+			"post": {
+				"tags": ["Admin - Lookup"],
+				"summary": "建立字典項目",
+				"operationId": "create",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/CreateLookupRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseLookupDto"
+								}
+							}
+						}
+					}
+				},
+				"security": [{ "Bearer Authentication": [] }]
+			}
+		},
 		"/api/v1/users/me": {
+			"get": {
+				"tags": ["User"],
+				"summary": "Get my profile",
+				"description": "取得認證使用者的完整個人資料",
+				"operationId": "getMyProfile",
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "Profile retrieved successfully",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseMyProfileResponse"
+								}
+							}
+						}
+					}
+				}
+			},
 			"patch": {
 				"tags": ["User"],
 				"summary": "Update my profile",
@@ -1736,6 +2034,230 @@
 								"schema": {
 									"$ref": "#/components/schemas/ApiResponseUserProfileResponse"
 								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/users/me/visibility": {
+			"patch": {
+				"tags": ["User"],
+				"summary": "Update profile visibility",
+				"description": "更新公開個人資料的欄位顯示設定",
+				"operationId": "updateVisibility",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateVisibilityRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "Visibility settings updated",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseMapStringBoolean"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/admin/lookups/{id}/deactivate": {
+			"patch": {
+				"tags": ["Admin - Lookup"],
+				"summary": "停用字典項目（軟刪除）",
+				"operationId": "deactivate",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"description": "字典 ID",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					}
+				},
+				"security": [{ "Bearer Authentication": [] }]
+			}
+		},
+		"/api/v1/admin/lookups/{id}/activate": {
+			"patch": {
+				"tags": ["Admin - Lookup"],
+				"summary": "啟用字典項目",
+				"operationId": "activate",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"description": "字典 ID",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
 							}
 						}
 					}
@@ -2123,8 +2645,7 @@
 							}
 						}
 					}
-				},
-				"security": [{ "Bearer Authentication": [] }]
+				}
 			}
 		},
 		"/api/v1/users/search": {
@@ -2206,8 +2727,7 @@
 							}
 						}
 					}
-				},
-				"security": [{ "Bearer Authentication": [] }]
+				}
 			}
 		},
 		"/api/v1/tags": {
@@ -2345,6 +2865,320 @@
 							"*/*": {
 								"schema": {
 									"$ref": "#/components/schemas/ApiResponsePageTagDto"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/lookups/{lookupType}": {
+			"get": {
+				"tags": ["Lookup"],
+				"summary": "取得某 type 的所有 active 字典項目",
+				"operationId": "getActiveByType",
+				"parameters": [
+					{
+						"name": "lookupType",
+						"in": "path",
+						"description": "字典類型",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseListLookupDto"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/lookups/{lookupType}/{lookupKey}": {
+			"get": {
+				"tags": ["Lookup"],
+				"summary": "取得單筆字典項目",
+				"operationId": "getByTypeAndKey",
+				"parameters": [
+					{
+						"name": "lookupType",
+						"in": "path",
+						"description": "字典類型",
+						"required": true,
+						"schema": { "type": "string" }
+					},
+					{
+						"name": "lookupKey",
+						"in": "path",
+						"description": "字典 key",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseLookupDto"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/lookups/{lookupType}/children": {
+			"get": {
+				"tags": ["Lookup"],
+				"summary": "取得子字典項目",
+				"description": "依父節點查詢某 type 下的子項目",
+				"operationId": "getChildren",
+				"parameters": [
+					{
+						"name": "lookupType",
+						"in": "path",
+						"description": "字典類型",
+						"required": true,
+						"schema": { "type": "string" }
+					},
+					{
+						"name": "parentType",
+						"in": "query",
+						"description": "父節點 type",
+						"required": true,
+						"schema": { "type": "string" }
+					},
+					{
+						"name": "parentKey",
+						"in": "query",
+						"description": "父節點 key",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseListLookupDto"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/lookups/frontend": {
+			"get": {
+				"tags": ["Lookup"],
+				"summary": "取得前端用字典",
+				"description": "回傳所有標記為 frontendUsing 的 active 字典，依 type 分組",
+				"operationId": "getFrontendLookups",
+				"responses": {
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"*/*": {
+								"schema": {
+									"oneOf": [
+										{ "$ref": "#/components/schemas/ApiResponseVoid" },
+										{
+											"$ref": "#/components/schemas/ApiResponseMapStringString"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"*/*": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseVoid" }
+							}
+						}
+					},
+					"200": {
+						"description": "OK",
+						"content": {
+							"*/*": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseMapStringListLookupDto"
 								}
 							}
 						}
@@ -2507,8 +3341,7 @@
 							}
 						}
 					}
-				},
-				"security": [{ "Bearer Authentication": [] }]
+				}
 			}
 		}
 	},
@@ -2607,6 +3440,46 @@
 					"description": { "type": "string" },
 					"displayOrder": { "type": "integer", "format": "int32" },
 					"usageCount": { "type": "integer", "format": "int32" }
+				}
+			},
+			"JsonNode": {},
+			"UpdateLookupRequest": {
+				"type": "object",
+				"properties": {
+					"lookupType": { "type": "string", "maxLength": 50, "minLength": 0 },
+					"lookupKey": { "type": "string", "maxLength": 50, "minLength": 0 },
+					"lookupValue": { "$ref": "#/components/schemas/JsonNode" },
+					"seq": { "type": "integer", "format": "int32" },
+					"parentType": { "type": "string", "maxLength": 50, "minLength": 0 },
+					"parentKey": { "type": "string", "maxLength": 50, "minLength": 0 },
+					"description": { "type": "string", "maxLength": 100, "minLength": 0 },
+					"frontendUsing": { "type": "boolean" }
+				}
+			},
+			"ApiResponseLookupDto": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"errorCode": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/LookupDto" },
+					"message": { "type": "string" },
+					"timestamp": { "type": "string", "format": "date-time" },
+					"path": { "type": "string" }
+				}
+			},
+			"LookupDto": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "string" },
+					"lookupType": { "type": "string" },
+					"lookupKey": { "type": "string" },
+					"lookupValue": { "$ref": "#/components/schemas/JsonNode" },
+					"seq": { "type": "integer", "format": "int32" },
+					"parentType": { "type": "string" },
+					"parentKey": { "type": "string" },
+					"isActive": { "type": "boolean" },
+					"description": { "type": "string" },
+					"frontendUsing": { "type": "boolean" }
 				}
 			},
 			"CreateVoteRequest": {
@@ -2843,6 +3716,20 @@
 				},
 				"required": ["name"]
 			},
+			"CreateLookupRequest": {
+				"type": "object",
+				"properties": {
+					"lookupType": { "type": "string", "maxLength": 50, "minLength": 0 },
+					"lookupKey": { "type": "string", "maxLength": 50, "minLength": 0 },
+					"lookupValue": { "$ref": "#/components/schemas/JsonNode" },
+					"seq": { "type": "integer", "format": "int32" },
+					"parentType": { "type": "string", "maxLength": 50, "minLength": 0 },
+					"parentKey": { "type": "string", "maxLength": 50, "minLength": 0 },
+					"description": { "type": "string", "maxLength": 100, "minLength": 0 },
+					"frontendUsing": { "type": "boolean" }
+				},
+				"required": ["lookupKey", "lookupType", "lookupValue"]
+			},
 			"UpdateProfileRequest": {
 				"type": "object",
 				"properties": {
@@ -2869,7 +3756,37 @@
 					"bio": { "type": "string" },
 					"joinedAt": { "type": "string", "format": "date-time" },
 					"totalPolls": { "type": "integer", "format": "int32" },
-					"totalVotes": { "type": "integer", "format": "int32" }
+					"totalVotes": { "type": "integer", "format": "int32" },
+					"email": { "type": "string" },
+					"firstName": { "type": "string" },
+					"lastName": { "type": "string" },
+					"location": { "type": "string" },
+					"points": { "type": "integer", "format": "int32" },
+					"membershipLevel": { "type": "string" }
+				}
+			},
+			"UpdateVisibilityRequest": {
+				"type": "object",
+				"properties": {
+					"visibility": {
+						"type": "object",
+						"additionalProperties": { "type": "boolean" }
+					}
+				},
+				"required": ["visibility"]
+			},
+			"ApiResponseMapStringBoolean": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"errorCode": { "type": "string" },
+					"data": {
+						"type": "object",
+						"additionalProperties": { "type": "boolean" }
+					},
+					"message": { "type": "string" },
+					"timestamp": { "type": "string", "format": "date-time" },
+					"path": { "type": "string" }
 				}
 			},
 			"Pageable": {
@@ -3081,6 +3998,42 @@
 					"lastLoginAt": { "type": "string", "format": "date-time" }
 				}
 			},
+			"ApiResponseMyProfileResponse": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"errorCode": { "type": "string" },
+					"data": { "$ref": "#/components/schemas/MyProfileResponse" },
+					"message": { "type": "string" },
+					"timestamp": { "type": "string", "format": "date-time" },
+					"path": { "type": "string" }
+				}
+			},
+			"MyProfileResponse": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "string" },
+					"username": { "type": "string" },
+					"email": { "type": "string" },
+					"phoneNumber": { "type": "string" },
+					"firstName": { "type": "string" },
+					"lastName": { "type": "string" },
+					"displayName": { "type": "string" },
+					"bio": { "type": "string" },
+					"location": { "type": "string" },
+					"points": { "type": "integer", "format": "int32" },
+					"membershipLevel": { "type": "string" },
+					"active": { "type": "boolean" },
+					"lastLoginAt": { "type": "string", "format": "date-time" },
+					"joinedAt": { "type": "string", "format": "date-time" },
+					"totalPolls": { "type": "integer", "format": "int32" },
+					"totalVotes": { "type": "integer", "format": "int32" },
+					"visibilitySettings": {
+						"type": "object",
+						"additionalProperties": { "type": "boolean" }
+					}
+				}
+			},
 			"ApiResponseListTagDto": {
 				"type": "object",
 				"properties": {
@@ -3124,13 +4077,42 @@
 					"last": { "type": "boolean" },
 					"empty": { "type": "boolean" }
 				}
+			},
+			"ApiResponseListLookupDto": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"errorCode": { "type": "string" },
+					"data": {
+						"type": "array",
+						"items": { "$ref": "#/components/schemas/LookupDto" }
+					},
+					"message": { "type": "string" },
+					"timestamp": { "type": "string", "format": "date-time" },
+					"path": { "type": "string" }
+				}
+			},
+			"ApiResponseMapStringListLookupDto": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"errorCode": { "type": "string" },
+					"data": {
+						"type": "object",
+						"additionalProperties": {
+							"type": "array",
+							"items": { "$ref": "#/components/schemas/LookupDto" }
+						}
+					},
+					"message": { "type": "string" },
+					"timestamp": { "type": "string", "format": "date-time" },
+					"path": { "type": "string" }
+				}
 			}
 		},
 		"securitySchemes": {
 			"bearerAuth": {
 				"type": "http",
-				"name": "Authorization",
-				"in": "header",
 				"scheme": "bearer",
 				"bearerFormat": "JWT"
 			}
