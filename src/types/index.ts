@@ -7,11 +7,6 @@ export type PageStatusType =
 	| 'STATUS_SIGN_UP'
 	| 'STATUS_VERIFICATION';
 
-export interface RefreshTokenResponse {
-	accessToken: string;
-	refreshToken: string;
-}
-
 export interface AuthTokens {
 	accessToken: string;
 	refreshToken: string;

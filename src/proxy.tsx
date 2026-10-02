@@ -3,8 +3,12 @@ import Negotiator from 'negotiator';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-import { decodeToken } from '@/lib/api/auth';
-import { API_BASE_PATH } from '@/lib/api/constants';
+import { ACCESS_TOKEN, REFRESH_TOKEN } from '@/data/constants';
+import {
+	buildAuthCookies,
+	requestTokenRefresh,
+	verifyAccessToken,
+} from '@/lib/api/tokens';
 import { LanguageCode } from '@/types';
 
 import { i18n, SUPPORTED_LANGUAGES } from './i18n-config';
@@ -49,90 +53,50 @@ function getLocale(request: NextRequest): string | undefined {
 	return locale || i18n.defaultLocale;
 }
 
-const publicPaths = ['/login', '/register', '/forgot-password', '/', '/about'];
+const protectedPaths = ['/account', '/my-polls', '/notifications'];
 const authPaths = ['/login', '/register'];
 
 export async function proxy(request: NextRequest) {
 	const { pathname } = request.nextUrl;
 
-	const isPublicPath = publicPaths.some(
+	const isProtectedPath = protectedPaths.some(
 		(path) => pathname === path || pathname.startsWith(`${path}/`)
 	);
 	const isAuthPath = authPaths.some((path) => pathname.startsWith(path));
 	const response = NextResponse.next();
 
-	const accessToken = request.cookies.get('accessToken')?.value;
-	const refreshToken = request.cookies.get('refreshToken')?.value;
-	// Verify access token
-	let isValidToken = false;
-	if (accessToken) {
-		try {
-			await decodeToken(accessToken);
+	const accessToken = request.cookies.get(ACCESS_TOKEN)?.value;
+	const refreshToken = request.cookies.get(REFRESH_TOKEN)?.value;
 
-			isValidToken = true;
-		} catch (error) {
-			isValidToken = false;
-		}
-	}
+	let hasValidSession =
+		!!accessToken && (await verifyAccessToken(accessToken)) !== null;
 
 	// If access token is invalid/missing but refresh token exists, try to refresh
 	// proactively so server components see a fresh access token immediately.
-	if (!isValidToken && refreshToken) {
-		try {
-			const refreshUrl = `${process.env.API_URL}${API_BASE_PATH}/auth/refreshToken`;
-			const refreshRes = await fetch(refreshUrl, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ refreshToken }),
-			});
-
-			if (refreshRes.ok) {
-				const data = await refreshRes.json();
-				const newAccessToken: string | undefined =
-					data?.accessToken ?? data?.token;
-				const newRefreshToken: string | undefined = data?.refreshToken;
-
-				if (newAccessToken) {
-					isValidToken = true;
-					const isSecure = process.env.NODE_ENV === 'production';
-
-					response.cookies.set('accessToken', newAccessToken, {
-						httpOnly: true,
-						secure: isSecure,
-						sameSite: 'lax',
-						path: '/',
-						maxAge: 15 * 60, // 15 minutes
-					});
-
-					if (newRefreshToken) {
-						response.cookies.set('refreshToken', newRefreshToken, {
-							httpOnly: true,
-							secure: isSecure,
-							sameSite: 'lax',
-							path: '/',
-							maxAge: 7 * 24 * 60 * 60, // 7 days
-						});
-					}
-				}
+	if (!hasValidSession && refreshToken) {
+		const newTokens = await requestTokenRefresh(refreshToken);
+		if (newTokens) {
+			hasValidSession = true;
+			for (const { name, value, options } of buildAuthCookies(newTokens)) {
+				response.cookies.set(name, value, options);
 			}
-		} catch {
-			// Refresh failed — user will be treated as unauthenticated
 		}
 	}
 
-	const hasValidSession = isValidToken;
-
 	// Redirect authenticated users away from auth pages
 	if (hasValidSession && isAuthPath) {
-		return NextResponse.redirect(new URL('/', request.url));
+		const redirect = NextResponse.redirect(new URL('/', request.url));
+		// Keep any tokens refreshed above; the backend may have rotated them.
+		response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
+		return redirect;
 	}
 
 	// Redirect unauthenticated users to login
-	// if (!hasValidSession && !isPublicPath) {
-	// 	const loginUrl = new URL('/login', request.url);
-	// 	loginUrl.searchParams.set('redirect', pathname);
-	// 	return NextResponse.redirect(loginUrl);
-	// }
+	if (!hasValidSession && isProtectedPath) {
+		const loginUrl = new URL('/login', request.url);
+		loginUrl.searchParams.set('redirect', pathname);
+		return NextResponse.redirect(loginUrl);
+	}
 
 	// Check for language preference in cookie (if you want to set one)
 	const savedLanguage = request.cookies.get('preferred-language')?.value;

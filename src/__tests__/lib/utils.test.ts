@@ -4,6 +4,7 @@ import {
 	formatNumberSuffix,
 	formatNumberWithCommas,
 	formatUrl,
+	getSafeRedirectPath,
 	getUrlBaseAndPath,
 	hasArrayValue,
 	isValidUrl,
@@ -282,4 +283,17 @@ describe('resolveHref', () => {
 	it('returns undefined when documentType is undefined', () => {
 		expect(resolveHref({ documentType: undefined, slug: 'foo' })).toBeUndefined();
 	});
+});
+
+describe('getSafeRedirectPath', () => {
+	it('keeps a same-origin path', () => {
+		expect(getSafeRedirectPath('/my-polls?tab=1')).toBe('/my-polls?tab=1');
+	});
+
+	it.each([null, '', 'https://evil.com', '//evil.com', '/\\evil.com', '/\t/evil.com', '/\n/evil.com'])(
+		'falls back to / for %p',
+		(input) => {
+			expect(getSafeRedirectPath(input)).toBe('/');
+		}
+	);
 });

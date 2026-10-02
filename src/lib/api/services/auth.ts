@@ -99,7 +99,6 @@ export async function signout() {
 }
 
 export async function resendVerification(email: string) {
-	console.log('🚀 ~ :99 ~ resendVerification ~ email:', email);
 	const res = await publicFetch(
 		'/auth/resend-verification',
 		{

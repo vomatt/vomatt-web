@@ -17,11 +17,12 @@ import { Field, FieldError, FieldLabel } from '@/components/ui/Field';
 import { Input } from '@/components/ui/Input';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { SYSTEM_ERROR } from '@/data/constants';
+import { getSafeRedirectPath } from '@/lib/utils';
 
 export function LogIn() {
 	const flow = useAuthFlow();
 	const searchParams = useSearchParams();
-	const redirectTo = searchParams.get('redirect') || '/';
+	const redirectTo = getSafeRedirectPath(searchParams.get('redirect'));
 
 	return (
 		<AuthContainer

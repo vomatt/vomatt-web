@@ -27,6 +27,16 @@ export function formatUrl(url: string) {
 	return `${protocol}://${normalizedRest}`;
 }
 
+// Only same-origin paths; blocks open redirects like `//evil.com`, `/\\evil.com`
+// or `/\t/evil.com` by resolving the path the same way the browser will.
+export function getSafeRedirectPath(path: string | null) {
+	if (!path?.startsWith('/')) return '/';
+	const base = 'http://localhost';
+	const url = new URL(path, base);
+	if (url.origin !== base) return '/';
+	return `${url.pathname}${url.search}${url.hash}`;
+}
+
 export function getUrlBaseAndPath(url: string) {
 	if (url.includes('?')) {
 		return url.split('?')[0];

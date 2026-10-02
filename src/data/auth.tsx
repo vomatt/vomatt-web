@@ -10,8 +10,8 @@ import { MyProfile } from '@/types/user';
 
 export interface Session {
 	sub: string;
-	exp: number;
-	iat: number;
+	exp?: number;
+	iat?: number;
 }
 
 // Cached helper methods makes it easy to get the same value in many places
