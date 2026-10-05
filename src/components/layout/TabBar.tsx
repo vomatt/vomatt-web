@@ -11,7 +11,7 @@ import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const PollCreator = dynamic(
-	() => import('@/components/PollCreator').then((m) => ({ default: m.PollCreator })),
+	() => import('@/features/polls/components/PollCreator').then((m) => ({ default: m.PollCreator })),
 	{ ssr: false }
 );
 type TabBarProps = {

@@ -78,7 +78,10 @@
 		"empty": "No polls here yet.",
 		"actionEdit": "Edit",
 		"actionDelete": "Delete",
-		"actionEnd": "End Poll"
+		"actionEnd": "End Poll",
+		"draftContinue": "Continue",
+		"draftSavedAt": "Saved {date}",
+		"untitledDraft": "Untitled poll"
 	},
 	"explore": {
 		"title": "Explore",
@@ -120,11 +123,6 @@
 		"pollOptionsLabel": "Poll Options",
 		"optionsPlaceholder": "Options",
 		"addOptionLabel": "Add Option",
-		"startDateLabel": "Start Date",
-		"endDateLabel": "End Date",
-		"allowMultipleChoicesLabel": "Allow multiple choices",
-		"anonymousVotingLabel": "Anonymous voting",
-		"createPollLabel": "Create Poll",
 		"saveDraftLabel": "Save Draft",
 		"privacyLabel": "Visibility",
 		"privacyPublic": "Public",
@@ -134,7 +132,44 @@
 		"privacyLinkOnlyHint": "Only people with the link can vote",
 		"privacyInviteOnlyHint": "Only invited users can vote — unregistered emails will receive an invitation",
 		"inviteUsersLabel": "Invite by username or email",
-		"inviteUsersPlaceholder": "Username or email — press Enter to add"
+		"inviteUsersPlaceholder": "Username or email — press Enter to add",
+		"editTitle": "Edit poll",
+		"editSubtitle": "You can edit a poll until it opens.",
+		"stepQuestion": "Question",
+		"stepOptions": "Options",
+		"stepTiming": "Timing & privacy",
+		"removeOption": "Remove option",
+		"opensLabel": "Opens",
+		"opensHint": "Leave empty to open now.",
+		"endsLabel": "Ends and reveals results",
+		"preset1h": "1 hour",
+		"preset24h": "24 hours",
+		"preset3d": "3 days",
+		"preset1w": "1 week",
+		"visibilityLabel": "After it ends, who can see what each person chose?",
+		"visibility": {
+			"nobody": "Nobody",
+			"nobodyHint": "Only totals are shown.",
+			"owner": "Only me",
+			"ownerHint": "You see who chose each option.",
+			"signed-in": "Anyone signed in",
+			"signed-inHint": "Every signed-in user sees who chose what."
+		},
+		"visibilityNote": "You can't change this once the poll opens. Voters see it before they vote.",
+		"next": "Next",
+		"back": "Back",
+		"publish": "Publish poll",
+		"saveChanges": "Save changes",
+		"draftSaved": "Draft saved",
+		"published": "Poll published",
+		"saved": "Changes saved",
+		"errors": {
+			"titleRequired": "Ask a question.",
+			"titleTooLong": "Keep the question to 200 characters.",
+			"optionRequired": "Fill in every option.",
+			"endRequired": "Choose when the poll ends.",
+			"endBeforeStart": "The end must be after the poll opens."
+		}
 	},
 	"homePage": {
 		"feedListNoData": "Start the poll, lead the crowd."
@@ -173,6 +208,12 @@
 			"nobody": "After it ends, no one can see what you chose.",
 			"owner": "After it ends, only the poll owner can see what you chose.",
 			"signed-in": "After it ends, anyone signed in can see what you chose."
-		}
+		},
+		"edit": "Edit",
+		"cancelPoll": "Cancel poll",
+		"cancelPollTitle": "Cancel this poll?",
+		"cancelPollBody": "It won't open, and no one will be notified.",
+		"keepPoll": "Keep poll",
+		"cancelFailed": "Couldn't cancel the poll. Try again."
 	}
 }

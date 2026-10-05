@@ -51,7 +51,7 @@ export default async function PollDetailPage({
 				</Button>
 			</div>
 
-			<PollCard poll={poll} isAuthenticated={!!user} />
+			<PollCard poll={poll} viewerUsername={user?.sub} />
 
 			<div className="mt-6 p-4 rounded-xl border border-border bg-card text-sm text-muted-foreground space-y-1">
 				<div className="flex items-center gap-2">

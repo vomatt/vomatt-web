@@ -14,21 +14,23 @@ import { getPoll } from '../service';
 import { derivePollStatus } from '../status';
 import { Ballot } from './Ballot';
 import { CardComments } from './CardComments';
+import { OwnerActions } from './OwnerActions';
 import { PollFooter } from './PollFooter';
 import { Results } from './Results';
 import { StatusChip } from './StatusChip';
 
 interface PollCardProps {
 	poll: Poll;
-	isAuthenticated?: boolean;
+	/** The signed-in viewer's username (the session `sub`). */
+	viewerUsername?: string;
 }
 
 /** Shows the Ballot until the Poll Ends, then the Results. Whether the viewer voted doesn't matter. */
-export function PollCard({ poll: initialPoll, isAuthenticated = false }: PollCardProps) {
+export function PollCard({ poll: initialPoll, viewerUsername }: PollCardProps) {
 	const [poll, setPoll] = useState(initialPoll);
 	const [showComments, setShowComments] = useState(false);
 	const [comments, setComments] = useState<Comment[]>([]);
-	const { isAuthed, requireAuth, authDialog } = useRequireAuth(isAuthenticated);
+	const { isAuthed, requireAuth, authDialog } = useRequireAuth(!!viewerUsername);
 
 	const refetch = useCallback(async () => {
 		const fresh = await getPoll(poll.id).catch(() => null);
@@ -38,6 +40,7 @@ export function PollCard({ poll: initialPoll, isAuthenticated = false }: PollCar
 	const ballot = useBallot(poll, { isAuthed, onPollEnded: refetch });
 	const status = derivePollStatus(poll);
 	const { id, title, description, creatorUsername, createdAt } = poll;
+	const isOwner = !!viewerUsername && viewerUsername === creatorUsername;
 
 	return (
 		<article className="group bg-card border border-border rounded-xl transition-shadow duration-200 hover:shadow-sm">
@@ -82,7 +85,13 @@ export function PollCard({ poll: initialPoll, isAuthenticated = false }: PollCar
 						onSealed={refetch}
 					/>
 				) : (
-					<Ballot poll={poll} status={status} ballot={ballot} requireAuth={requireAuth} />
+					<Ballot
+						poll={poll}
+						status={status}
+						ballot={ballot}
+						requireAuth={requireAuth}
+						ownerActions={isOwner && <OwnerActions poll={poll} onChanged={refetch} />}
+					/>
 				)}
 			</div>
 

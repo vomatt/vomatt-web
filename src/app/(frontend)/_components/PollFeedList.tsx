@@ -1,6 +1,6 @@
 'use client';
 
-import { PollCreator } from '@/components/PollCreator';
+import { PollCreator } from '@/features/polls/components/PollCreator';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -16,10 +16,10 @@ import { PollCard } from '@/features/polls/components/PollCard';
 
 type PollFeedList = {
 	className?: string;
-	isAuthenticated?: boolean;
+	viewerUsername?: string;
 };
 
-export function PollFeedList({ className, isAuthenticated }: PollFeedList) {
+export function PollFeedList({ className, viewerUsername }: PollFeedList) {
 	const { t } = useLanguage();
 	const [mainData, setMainData] = useState<Poll[]>([]);
 	const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -77,7 +77,7 @@ export function PollFeedList({ className, isAuthenticated }: PollFeedList) {
 				className={cn('relative w-full flex flex-col gap-3 py-4', className)}
 			>
 				{mainData.map((item) => (
-					<PollCard key={item.id} poll={item} isAuthenticated={isAuthenticated} />
+					<PollCard key={item.id} poll={item} viewerUsername={viewerUsername} />
 				))}
 			</div>
 

@@ -17,7 +17,7 @@ import BrandLogo from '@/components/BrandLogo';
 
 const PollCreator = dynamic(
 	() =>
-		import('@/components/PollCreator').then((m) => ({
+		import('@/features/polls/components/PollCreator').then((m) => ({
 			default: m.PollCreator,
 		})),
 	{ ssr: false }

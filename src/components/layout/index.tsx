@@ -11,7 +11,7 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/Sidebar';
 import { getMyProfile, getUserSession } from '@/data/auth';
 
 const PollCreator = dynamic(() =>
-	import('@/components/PollCreator').then((m) => ({
+	import('@/features/polls/components/PollCreator').then((m) => ({
 		default: m.PollCreator,
 	}))
 );

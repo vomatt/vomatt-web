@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
+import { DraftList } from '@/features/polls/components/DraftList';
 import { cn } from '@/lib/utils';
 import { Poll } from '@/features/polls/schema';
 import { getTurnout } from '@/features/polls/status';
@@ -67,7 +68,9 @@ export default function MyPollsTabs({ polls }: { polls: Poll[] }) {
 
 			{(['active', 'drafts', 'ended'] as Tab[]).map((tab) => (
 				<TabsContent key={tab} value={tab} className="space-y-3">
-					{tabContent[tab].length === 0 ? (
+					{tab === 'drafts' ? (
+						<DraftList />
+					) : tabContent[tab].length === 0 ? (
 						<p className="text-muted-foreground text-center py-8">
 							No polls here yet.
 						</p>
