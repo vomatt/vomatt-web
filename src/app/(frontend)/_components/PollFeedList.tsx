@@ -12,7 +12,7 @@ import { mergeById } from '@/lib/api/cursor';
 import { cn, hasArrayValue } from '@/lib/utils';
 
 import { HomepageHeader } from './HomepageHeader';
-import { PollCard } from './PollCard';
+import { PollCard } from '@/features/polls/components/PollCard';
 
 type PollFeedList = {
 	className?: string;
@@ -77,7 +77,7 @@ export function PollFeedList({ className, isAuthenticated }: PollFeedList) {
 				className={cn('relative w-full flex flex-col gap-3 py-4', className)}
 			>
 				{mainData.map((item) => (
-					<PollCard key={item.id} pollData={item} isAuthenticated={isAuthenticated} />
+					<PollCard key={item.id} poll={item} isAuthenticated={isAuthenticated} />
 				))}
 			</div>
 

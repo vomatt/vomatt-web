@@ -138,5 +138,41 @@
 	},
 	"homePage": {
 		"feedListNoData": "Start the poll, lead the crowd."
+	},
+	"poll": {
+		"vote": "Vote",
+		"updateVote": "Update vote",
+		"withdrawVote": "Withdraw vote",
+		"withdrawConfirm": "Withdraw your vote? You won't be counted or notified.",
+		"withdraw": "Withdraw",
+		"keep": "Keep",
+		"yourVote": "Your vote",
+		"yourVoteShort": "your vote",
+		"revealHint": "Results are revealed when the poll ends",
+		"sealed": "Results are sealed until {date}. We'll notify you when they're in.",
+		"opensHint": "Voting opens {distance}",
+		"voted": "{count} voted",
+		"comments": "{count} comments",
+		"comment": "1 comment",
+		"share": "Share",
+		"linkCopied": "Link copied",
+		"justEnded": "This poll just ended.",
+		"voteFailed": "Couldn't save your vote. Try again.",
+		"withdrawFailed": "Couldn't withdraw your vote. Try again.",
+		"resultsFailed": "Couldn't load the results.",
+		"won": "{option} won · Support is the share of {count} participants",
+		"tie": "Tie between {options}",
+		"and": " and ",
+		"noVotes": "No votes were cast",
+		"chipOpens": "Opens {date}",
+		"chipEnds": "Ends {date}",
+		"chipEndsIn": "Ends {distance}",
+		"chipEnded": "Ended {date}",
+		"chipEndedShort": "Ended",
+		"visibility": {
+			"nobody": "After it ends, no one can see what you chose.",
+			"owner": "After it ends, only the poll owner can see what you chose.",
+			"signed-in": "After it ends, anyone signed in can see what you chose."
+		}
 	}
 }

@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 import { getUserSession } from '@/data/auth';
 import { getPoll } from '@/features/polls/service';
-import { PollCard } from '@/app/(frontend)/_components/PollCard';
+import { PollCard } from '@/features/polls/components/PollCard';
 import { Button } from '@/components/ui/Button';
 
 export default async function PollDetailPage({
@@ -51,7 +51,7 @@ export default async function PollDetailPage({
 				</Button>
 			</div>
 
-			<PollCard pollData={poll} isAuthenticated={!!user} />
+			<PollCard poll={poll} isAuthenticated={!!user} />
 
 			<div className="mt-6 p-4 rounded-xl border border-border bg-card text-sm text-muted-foreground space-y-1">
 				<div className="flex items-center gap-2">

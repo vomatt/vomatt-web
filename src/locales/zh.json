@@ -133,5 +133,41 @@
 	},
 	"homePage": {
 		"feedListNoData": "發起投票，引領群眾。"
+	},
+	"poll": {
+		"vote": "投票",
+		"updateVote": "更新投票",
+		"withdrawVote": "撤回投票",
+		"withdrawConfirm": "要撤回你的投票嗎？撤回後不會被計入，也不會收到通知。",
+		"withdraw": "撤回",
+		"keep": "保留",
+		"yourVote": "你的選擇",
+		"yourVoteShort": "你的選擇",
+		"revealHint": "投票結束後才會公開結果",
+		"sealed": "結果將於 {date} 公開，屆時會通知你。",
+		"opensHint": "投票將於{distance}開始",
+		"voted": "{count} 人已投票",
+		"comments": "{count} 則留言",
+		"comment": "1 則留言",
+		"share": "分享",
+		"linkCopied": "已複製連結",
+		"justEnded": "這個投票剛剛結束了。",
+		"voteFailed": "無法儲存你的投票，請再試一次。",
+		"withdrawFailed": "無法撤回你的投票，請再試一次。",
+		"resultsFailed": "無法載入結果。",
+		"won": "「{option}」勝出 · 支持率以 {count} 位參與者計算",
+		"tie": "{options}平手",
+		"and": "與",
+		"noVotes": "沒有人投票",
+		"chipOpens": "{date} 開始",
+		"chipEnds": "{date} 結束",
+		"chipEndsIn": "{distance}結束",
+		"chipEnded": "{date} 結束",
+		"chipEndedShort": "已結束",
+		"visibility": {
+			"nobody": "結束後，沒有人能看到你選了什麼。",
+			"owner": "結束後，只有發起人能看到你選了什麼。",
+			"signed-in": "結束後，所有登入的使用者都能看到你選了什麼。"
+		}
 	}
 }
