@@ -36,7 +36,7 @@ import {
 	PollSchema,
 	SortSchema,
 	TagDtoSchema,
-} from '../src/schemas/poll';
+} from '../src/features/polls/schema';
 import { UpdateProfileRequestSchema, UserProfileSchema } from '../src/schemas/user';
 
 // ---------------------------------------------------------------------------

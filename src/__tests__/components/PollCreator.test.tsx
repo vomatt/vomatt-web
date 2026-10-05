@@ -1,13 +1,13 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import { PollCreator } from '@/components/PollCreator';
-import * as pollsEndpoint from '@/lib/api/services/polls';
+import * as pollsEndpoint from '@/features/polls/service';
 
 jest.mock('@/contexts/LanguageContext', () => ({
 	useLanguage: () => ({ t: (key: string) => key }),
 }));
 
-jest.mock('@/lib/api/services/polls', () => ({
+jest.mock('@/features/polls/service', () => ({
 	createPoll: jest.fn(),
 }));
 
@@ -28,6 +28,9 @@ function fillRequiredFields() {
 	);
 	fireEvent.change(optionInputs[0], { target: { value: 'Option A' } });
 	fireEvent.change(optionInputs[1], { target: { value: 'Option B' } });
+	fireEvent.change(document.getElementById('endTime')!, {
+		target: { value: '2026-10-07T22:00' },
+	});
 }
 
 async function openDialog() {
@@ -41,7 +44,7 @@ async function openDialog() {
 
 beforeEach(() => {
 	localStorage.clear();
-	mockCreatePoll.mockResolvedValue({});
+	mockCreatePoll.mockResolvedValue({ ok: true, data: {} });
 });
 
 describe('PollCreator', () => {
@@ -89,15 +92,15 @@ describe('PollCreator', () => {
 			expect(mockCreatePoll).toHaveBeenCalledWith(
 				expect.objectContaining({
 					title: 'Which is best?',
-					allowMultipleChoices: false,
-					anonymous: false,
+					endTime: new Date('2026-10-07T22:00').toISOString(),
+					voterVisibility: 'owner',
 				})
 			)
 		);
 	});
 
-	it('keeps dialog open when createPoll throws an error', async () => {
-		mockCreatePoll.mockRejectedValue(new Error('Something went wrong'));
+	it('keeps dialog open when createPoll fails', async () => {
+		mockCreatePoll.mockResolvedValue({ ok: false, message: 'Something went wrong' });
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();
 		fillRequiredFields();

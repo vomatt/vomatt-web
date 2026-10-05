@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation';
 
 import { getUserSession } from '@/data/auth';
-import { getMyPolls } from '@/lib/api/services/polls';
-import { Poll } from '@/types/poll';
+import { getMyPolls } from '@/features/polls/service';
+import { Poll } from '@/features/polls/schema';
 
 import MyPollsTabs from './_components/MyPollsTabs';
 

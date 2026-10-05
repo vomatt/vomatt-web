@@ -3,17 +3,16 @@ import { formatDistance } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import { Check, MessageSquare, Users } from '@/components/ui/SvgIcons';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 import { AuthDialog } from '@/components/auth/AuthDialog';
 import { Button } from '@/components/ui/Button';
 import { cn, hasArrayValue } from '@/lib/utils';
-import {
-	vote as castVote,
-	postComment,
-	getMyVoteStatus,
-} from '@/lib/api/services/polls';
-import { Poll } from '@/types/poll';
+import { isPollEnded } from '@/features/polls/errors';
+import { Comment, Poll } from '@/features/polls/schema';
+import { castBallot, getMyBallot, postComment } from '@/features/polls/service';
 
 function getPollStatus(poll: Poll): { label: string; variant: 'ended' | 'closing' } | null {
 	if (!poll.active || !poll.votingActive) {
@@ -49,10 +48,11 @@ export const PollCard = ({ pollData, isAuthenticated = false }: PollCardProps) =
 
 	const [selectedOption, setSelectedOption] = useState<string | null>(null);
 	const [hasVoted, setHasVoted] = useState(false);
-	const [totalVotes, setTotalVotes] = useState(pollData.totalVotes);
+	const router = useRouter();
+	const [totalVotes, setTotalVotes] = useState(pollData.totalVotes ?? 0);
 	const [voteOptions, setVoteOptions] = useState(options);
 	const [showComments, setShowComments] = useState(false);
-	const [comments, setComments] = useState(pollData.comments ?? []);
+	const [comments, setComments] = useState<Comment[]>([]);
 	const [commentText, setCommentText] = useState('');
 	const [isPostingComment, setIsPostingComment] = useState(false);
 
@@ -69,13 +69,10 @@ export const PollCard = ({ pollData, isAuthenticated = false }: PollCardProps) =
 	useEffect(() => {
 		if (!isAuthed) return;
 
-		getMyVoteStatus(pollId)
-			.then((data: any) => {
-				if (data?.optionIds?.length) {
-					setSelectedOption(data.optionIds[0]);
-					setHasVoted(true);
-				} else if (data?.optionId) {
-					setSelectedOption(data.optionId);
+		getMyBallot(pollId)
+			.then((optionId) => {
+				if (optionId) {
+					setSelectedOption(optionId);
 					setHasVoted(true);
 				}
 			})
@@ -93,24 +90,27 @@ export const PollCard = ({ pollData, isAuthenticated = false }: PollCardProps) =
 			setTotalVotes((prev) => prev + 1);
 			setVoteOptions((prev) =>
 				prev.map((o) =>
-					o.id === optionId ? { ...o, votes: o.votes + 1 } : o
+					o.id === optionId ? { ...o, votes: (o.votes ?? 0) + 1 } : o
 				)
 			);
 
-			try {
-				await castVote(pollId, [optionId]);
-			} catch {
+			const result = await castBallot(pollId, optionId);
+			if (!result.ok) {
+				if (isPollEnded(result)) {
+					toast('This poll just ended.');
+					router.refresh();
+				}
 				setSelectedOption(null);
 				setHasVoted(false);
 				setTotalVotes((prev) => prev - 1);
 				setVoteOptions((prev) =>
 					prev.map((o) =>
-						o.id === optionId ? { ...o, votes: o.votes - 1 } : o
+						o.id === optionId ? { ...o, votes: (o.votes ?? 0) - 1 } : o
 					)
 				);
 			}
 		},
-		[hasVoted, pollId]
+		[hasVoted, pollId, router]
 	);
 
 	const handleVote = (optionId: string) => {
@@ -224,7 +224,7 @@ export const PollCard = ({ pollData, isAuthenticated = false }: PollCardProps) =
 				{/* Vote options */}
 				<div className="space-y-1.5">
 					{voteOptions.map((option) => {
-						const percentage = getPercentage(option.votes);
+						const percentage = getPercentage(option.votes ?? 0);
 						const isSelected = selectedOption === option.id;
 
 						if (!hasVoted && !isEnded) {

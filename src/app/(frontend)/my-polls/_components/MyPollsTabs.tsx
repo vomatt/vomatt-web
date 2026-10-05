@@ -6,7 +6,8 @@ import { useState } from 'react';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { cn } from '@/lib/utils';
-import { Poll } from '@/types/poll';
+import { Poll } from '@/features/polls/schema';
+import { getTurnout } from '@/features/polls/status';
 
 type Tab = 'active' | 'drafts' | 'ended';
 
@@ -21,7 +22,7 @@ function PollRow({ poll }: { poll: Poll }) {
 					</p>
 				</Link>
 				<p className="text-xs text-muted-foreground mt-1.5 tabular-nums">
-					{poll.totalVotes.toLocaleString()} votes ·{' '}
+					{(getTurnout(poll) ?? 0).toLocaleString()} votes ·{' '}
 					{formatDistance(new Date(poll.createdAt), new Date(), {
 						locale: enUS,
 					})}{' '}

@@ -27,8 +27,12 @@ import { Label } from '@/components/ui/Label';
 import { Switch } from '@/components/ui/Switch';
 import { Textarea } from '@/components/ui/Textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { createPoll } from '@/lib/api/services/polls';
-import { PollCreateOption } from '@/types/poll';
+import { createPoll } from '@/features/polls/service';
+
+interface PollCreateOption {
+	id: string;
+	text: string;
+}
 
 interface PollCreatorProps {
 	triggerChildren?: ReactNode;
@@ -47,7 +51,6 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 		{ id: 'option-2', text: '' },
 	]);
 
-	const [allowMultipleChoices, setAllowMultipleChoices] = useState(false);
 	const [startTime, setStartTime] = useState('');
 	const [endTime, setEndTime] = useState('');
 	const [anonymous, setAnonymous] = useState(false);
@@ -62,7 +65,6 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 			{ id: 'option-1', text: '' },
 			{ id: 'option-2', text: '' },
 		]);
-		setAllowMultipleChoices(false);
 		setStartTime('');
 		setEndTime('');
 		setAnonymous(false);
@@ -127,7 +129,6 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 			options,
 			startTime,
 			endTime,
-			allowMultipleChoices,
 			anonymous,
 		};
 
@@ -143,27 +144,23 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 
 	const handleCreatePoll = async () => {
 		setIsLoading(true);
-		const now = new Date();
-		const currentTime = now.toISOString().slice(0, 16); // Slice to get YYYY-MM-DDTHH:mm
 
-		const body = {
+		// datetime-local values have no offset; send full ISO strings
+		const result = await createPoll({
 			title,
 			description,
 			options,
-			startTime: startTime || currentTime,
-			endTime,
-			allowMultipleChoices,
-			anonymous,
-		};
+			startTime: (startTime ? new Date(startTime) : new Date()).toISOString(),
+			endTime: new Date(endTime).toISOString(),
+			voterVisibility: anonymous ? 'nobody' : 'owner',
+		});
+		setIsLoading(false);
 
-		try {
-			await createPoll(body);
+		if (result.ok) {
 			resetForm();
 			setOpen(false);
-		} catch (error) {
-			setError(error instanceof Error ? error.message : 'error');
-		} finally {
-			setIsLoading(false);
+		} else {
+			setError(result.message);
 		}
 	};
 
@@ -181,6 +178,7 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 
 	const isValid =
 		title.trim() &&
+		endTime &&
 		options.every((opt) => opt.text.trim()) &&
 		options.length >= 2;
 
@@ -297,7 +295,7 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 								<div className="space-y-2">
 									<Label htmlFor="endTime" className="text-sm font-medium">
 										<Calendar className="w-4 h-4" />
-										{t('pollCreator.endDateLabel')} ({t('common.optional')})
+										{t('pollCreator.endDateLabel')}
 									</Label>
 									<Input
 										id="endTime"
@@ -310,18 +308,6 @@ export function PollCreator({ triggerChildren }: PollCreatorProps) {
 
 							<div className="flex items-center gap-5">
 								<div className="flex items-center space-x-2">
-									<Label
-										htmlFor="allowMultiple"
-										className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-									>
-										{t('pollCreator.allowMultipleChoicesLabel')}
-									</Label>
-									<Switch
-										id="allowMultiple"
-										checked={allowMultipleChoices}
-										onCheckedChange={setAllowMultipleChoices}
-									/>
-
 									<div className="flex items-center space-x-2">
 										<Label
 											htmlFor="anonymous"

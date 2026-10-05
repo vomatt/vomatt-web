@@ -96,7 +96,7 @@ API_URL          # Backend API (e.g. https://vomatt.zeabur.app)
 | Payload config | `src/payload.config.ts` |
 | Generated Payload types | `src/payload-types.ts` |
 | API client + token logic | `src/lib/api/client.ts`, `src/lib/api/auth.ts` |
-| Poll endpoints | `src/lib/api/endpoints/polls.ts` |
+| Poll domain (schema, status, service) | `src/features/polls/` |
 | Sidebar | `src/components/layout/AppSidebar.tsx` |
 | Main layout composition | `src/components/layout/index.tsx` |
 | Root frontend layout | `src/app/(frontend)/layout.tsx` |

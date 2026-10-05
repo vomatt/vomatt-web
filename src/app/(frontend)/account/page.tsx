@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 
 import { getMyProfile, getUserSession } from '@/data/auth';
 import defineMetadata from '@/lib/defineMetadata';
-import { getPollsByCreator } from '@/lib/api/services/polls';
+import { getPollsByCreator } from '@/features/polls/service';
 
 import AccountPage from './_components/AccountPage';
 

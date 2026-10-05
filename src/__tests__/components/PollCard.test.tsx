@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { PollCard } from '@/app/(frontend)/_components/PollCard';
-import { Poll } from '@/types/poll';
+import { Poll } from '@/features/polls/schema';
 
 // Mock next/link
 jest.mock('next/link', () => {
@@ -24,13 +24,15 @@ jest.mock('next/navigation', () => ({
 // Mock poll API services
 const mockCastVote = jest.fn();
 const mockPostComment = jest.fn();
-const mockGetMyVoteStatus = jest.fn();
+const mockGetMyBallot = jest.fn();
 
-jest.mock('@/lib/api/services/polls', () => ({
-	vote: (...args: any[]) => mockCastVote(...args),
+jest.mock('@/features/polls/service', () => ({
+	castBallot: (...args: any[]) => mockCastVote(...args),
 	postComment: (...args: any[]) => mockPostComment(...args),
-	getMyVoteStatus: (...args: any[]) => mockGetMyVoteStatus(...args),
+	getMyBallot: (...args: any[]) => mockGetMyBallot(...args),
 }));
+
+jest.mock('sonner', () => ({ toast: jest.fn() }));
 
 // Mock AuthDialog
 jest.mock('@/components/auth/AuthDialog', () => ({
@@ -50,8 +52,6 @@ const basePoll: Poll = {
 	description: 'Vote for your favourite',
 	active: true,
 	votingActive: true,
-	allowMultipleChoices: false,
-	anonymous: false,
 	creatorId: 'user-1',
 	creatorUsername: 'alice',
 	createdAt: new Date(Date.now() - 60_000).toISOString(),
@@ -59,19 +59,16 @@ const basePoll: Poll = {
 	startTime: new Date().toISOString(),
 	endTime: null,
 	totalVotes: 10,
-	success: true,
-	errorCode: null,
 	options: [
 		{ id: 'opt-1', text: 'TypeScript', votes: 7 },
 		{ id: 'opt-2', text: 'Rust', votes: 3 },
 	],
-	comments: [],
 };
 
 beforeEach(() => {
 	jest.clearAllMocks();
-	mockGetMyVoteStatus.mockRejectedValue(new Error('not authed'));
-	mockCastVote.mockResolvedValue({});
+	mockGetMyBallot.mockResolvedValue(null);
+	mockCastVote.mockResolvedValue({ ok: true });
 	mockPostComment.mockResolvedValue({});
 });
 
@@ -121,7 +118,7 @@ describe('PollCard', () => {
 		fireEvent.click(screen.getByText('Rust'));
 
 		await waitFor(() => {
-			expect(mockCastVote).toHaveBeenCalledWith('poll-1', ['opt-2']);
+			expect(mockCastVote).toHaveBeenCalledWith('poll-1', 'opt-2');
 		});
 	});
 
@@ -139,22 +136,19 @@ describe('PollCard', () => {
 	});
 
 	it('toggles comments section on button click', () => {
-		const pollWithComment: Poll = {
-			...basePoll,
-			comments: [
-				{
-					id: 'c-1',
-					author: 'bob',
-					text: 'Great poll!',
-					createdAt: new Date().toISOString(),
-				},
-			],
-		};
-		render(<PollCard pollData={pollWithComment} />);
+		render(<PollCard pollData={basePoll} />);
 
-		expect(screen.queryByText('Great poll!')).not.toBeInTheDocument();
-		fireEvent.click(screen.getByText('1 comment'));
-		expect(screen.getByText('Great poll!')).toBeInTheDocument();
+		expect(screen.queryByPlaceholderText('Add a comment…')).not.toBeInTheDocument();
+		fireEvent.click(screen.getByText('0 comments'));
+		expect(screen.getByPlaceholderText('Add a comment…')).toBeInTheDocument();
+	});
+
+	it('shows a returning voter their choice', async () => {
+		mockGetMyBallot.mockResolvedValue('opt-2');
+		render(<PollCard pollData={basePoll} isAuthenticated />);
+
+		await waitFor(() => expect(screen.getByText('30%')).toBeInTheDocument());
+		expect(mockGetMyBallot).toHaveBeenCalledWith('poll-1');
 	});
 
 	it('shows Ended badge for inactive polls', () => {
@@ -208,7 +202,7 @@ describe('PollCard auth dialog', () => {
 
 		// Vote should be cast
 		await waitFor(() => {
-			expect(mockCastVote).toHaveBeenCalledWith('poll-1', ['opt-1']);
+			expect(mockCastVote).toHaveBeenCalledWith('poll-1', 'opt-1');
 		});
 	});
 

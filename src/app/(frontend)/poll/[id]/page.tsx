@@ -4,7 +4,7 @@ import { ArrowLeft, Share2, Users } from '@/components/ui/SvgIcons';
 import Link from 'next/link';
 
 import { getUserSession } from '@/data/auth';
-import { getPoll } from '@/lib/api/services/polls';
+import { getPoll } from '@/features/polls/service';
 import { PollCard } from '@/app/(frontend)/_components/PollCard';
 import { Button } from '@/components/ui/Button';
 

@@ -6,27 +6,13 @@ import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
-import { getPolls } from '@/lib/api/services/polls';
+import { Poll } from '@/features/polls/schema';
+import { getFeed } from '@/features/polls/service';
+import { mergeById } from '@/lib/api/cursor';
 import { cn, hasArrayValue } from '@/lib/utils';
-import { Pagination, Sort } from '@/types/page';
-import { Poll } from '@/types/poll';
 
 import { HomepageHeader } from './HomepageHeader';
 import { PollCard } from './PollCard';
-
-type Page = {
-	content: Poll[];
-	empty: boolean;
-	first: boolean;
-	last: boolean;
-	number: number;
-	numberOfElements: number;
-	size: number;
-	totalElements: number;
-	totalPages: number;
-	pageable: Pagination;
-	sort: Sort;
-};
 
 type PollFeedList = {
 	className?: string;
@@ -36,17 +22,15 @@ type PollFeedList = {
 export function PollFeedList({ className, isAuthenticated }: PollFeedList) {
 	const { t } = useLanguage();
 	const [mainData, setMainData] = useState<Poll[]>([]);
-	const [currentPage, setCurrentPage] = useState(0);
-	const [isLast, setIsLast] = useState(false);
+	const [nextCursor, setNextCursor] = useState<string | null>(null);
 	const [isLoading, setIsLoading] = useState(false);
 	const [isInitialLoading, setIsInitialLoading] = useState(true);
 
 	useEffect(() => {
-		getPolls()
-			.then((data) => {
-				setMainData(data?.content ?? []);
-				setCurrentPage(data?.number ?? 0);
-				setIsLast(data?.last ?? true);
+		getFeed()
+			.then((page) => {
+				setMainData(page.items);
+				setNextCursor(page.nextCursor);
 			})
 			.catch(() => {
 				// Feed stays empty — no crash
@@ -72,15 +56,12 @@ export function PollFeedList({ className, isAuthenticated }: PollFeedList) {
 	}
 
 	const loadMore = async () => {
-		if (isLoading || isLast) return;
+		if (isLoading || !nextCursor) return;
 		setIsLoading(true);
 		try {
-			const pageData = await getPolls(currentPage + 1);
-			if (pageData?.content) {
-				setMainData((prev) => [...prev, ...pageData.content]);
-				setCurrentPage(pageData.number);
-				setIsLast(pageData.last);
-			}
+			const page = await getFeed(nextCursor);
+			setMainData((prev) => mergeById(prev, page.items));
+			setNextCursor(page.nextCursor);
 		} catch {
 			toast.error('Failed to load more polls. Please try again.');
 		} finally {
@@ -100,7 +81,7 @@ export function PollFeedList({ className, isAuthenticated }: PollFeedList) {
 				))}
 			</div>
 
-			{!isLast && (
+			{nextCursor && (
 				<div className="flex justify-center py-6">
 					<Button
 						variant="outline"

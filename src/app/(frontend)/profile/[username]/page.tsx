@@ -1,5 +1,5 @@
 import { getUserSession } from '@/data/auth';
-import { getPollsByCreator } from '@/lib/api/services/polls';
+import { getPollsByCreator } from '@/features/polls/service';
 import { getUserProfile } from '@/lib/api/services/users';
 
 import ProfileHeader from './_components/ProfileHeader';
