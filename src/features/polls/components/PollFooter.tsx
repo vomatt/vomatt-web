@@ -5,7 +5,6 @@ import { toast } from 'sonner';
 import { MessageSquare, Share2 } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-import { fill } from '../format';
 
 type PollFooterProps = {
 	pollId: string;
@@ -39,7 +38,7 @@ export function PollFooter({
 		<div className="flex items-center gap-4 border-t border-border/60 px-5 py-3 text-xs text-muted-foreground">
 			{turnout !== undefined && (
 				<span className="font-mono tabular-nums">
-					{fill(t('poll.voted'), { count: turnout.toLocaleString() })}
+					{t('poll.voted', { count: turnout.toLocaleString() })}
 				</span>
 			)}
 			<button
@@ -50,7 +49,7 @@ export function PollFooter({
 				<MessageSquare className="size-3.5" />
 				{commentCount === 1
 					? t('poll.comment')
-					: fill(t('poll.comments'), { count: commentCount })}
+					: t('poll.comments', { count: commentCount })}
 			</button>
 			<button
 				type="button"

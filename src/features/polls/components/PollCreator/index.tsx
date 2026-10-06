@@ -90,8 +90,11 @@ export function PollCreator({
 	const isEdit = !!poll;
 	const [internalOpen, setInternalOpen] = useState(false);
 	const open = openProp ?? internalOpen;
+	// Built once: they read the clock, and useForm only needs the first value
+	const [defaults] = useState(() => initialValues(poll, draft));
+	const initialPreset = isEdit || draft ? null : '3d';
 	const [step, setStep] = useState(0);
-	const [endPreset, setEndPreset] = useState<string | null>(poll || draft ? null : '3d');
+	const [endPreset, setEndPreset] = useState<string | null>(initialPreset);
 	const [showSaveDraftAlert, setShowSaveDraftAlert] = useState(false);
 
 	const {
@@ -106,7 +109,7 @@ export function PollCreator({
 		formState: { errors, isDirty, isSubmitting },
 	} = useForm({
 		resolver: zodResolver(pollFormSchema),
-		defaultValues: initialValues(poll, draft),
+		defaultValues: defaults,
 	});
 	const { fields, append, remove } = useFieldArray({ control, name: 'options' });
 	const title = useWatch({ control, name: 'title' });
@@ -120,7 +123,7 @@ export function PollCreator({
 	const close = () => {
 		reset(initialValues(poll, draft));
 		setStep(0);
-		setEndPreset(poll || draft ? null : '3d');
+		setEndPreset(initialPreset);
 		setOpen(false);
 	};
 
@@ -160,13 +163,13 @@ export function PollCreator({
 	const publish = handleSubmit(
 		async (values: PollFormValues) => {
 			const input = formToInput(values);
-			const result = poll ? await updatePoll(poll.id, input) : await createPoll(input);
+			const result = isEdit ? await updatePoll(poll.id, input) : await createPoll(input);
 			if (!result.ok) {
 				setError('root', { message: result.message });
 				return;
 			}
 			if (draft) deleteDraft(draft.id);
-			toast(t(poll ? 'pollCreator.saved' : 'pollCreator.published'));
+			toast(t(isEdit ? 'pollCreator.saved' : 'pollCreator.published'));
 			close();
 			onSaved?.();
 		},
@@ -192,15 +195,29 @@ export function PollCreator({
 	const errorText = (message?: string) =>
 		message ? <p className="text-xs text-destructive">{t(message)}</p> : null;
 
-	const canAddOption =
-		fields.length < POLL_OPTIONS_LIMIT && options.every((option) => option.text.trim());
+	const canAddOption = options.every((option) => option.text.trim());
+
+	let backAction: ReactNode = <span />;
+	if (step > 0) {
+		backAction = (
+			<Button type="button" variant="ghost" onClick={() => setStep((s) => s - 1)}>
+				{t('pollCreator.back')}
+			</Button>
+		);
+	} else if (!isEdit) {
+		backAction = (
+			<Button type="button" variant="ghost" onClick={handleSaveDraft}>
+				{t('pollCreator.saveDraftLabel')}
+			</Button>
+		);
+	}
 
 	return (
 		<>
 			<Dialog open={open} onOpenChange={handleOpenChange}>
 				{!isEdit && (
 					<DialogTrigger asChild={!!triggerChildren}>
-						{triggerChildren ? triggerChildren : <Plus />}
+						{triggerChildren ?? <Plus />}
 					</DialogTrigger>
 				)}
 				<DialogContent className="sm:max-w-lg overflow-y-scroll max-h-[96vh] no-scrollbar">
@@ -337,18 +354,16 @@ export function PollCreator({
 									/>
 									<div className="flex flex-wrap gap-1.5">
 										{END_PRESETS.map(({ key, label, ms }) => (
-											<button
+											<Button
 												key={key}
 												type="button"
+												size="xs"
+												variant={endPreset === key ? 'default' : 'secondary'}
 												aria-pressed={endPreset === key}
 												onClick={() => applyPreset(key, ms)}
-												className={cn(
-													'rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground',
-													endPreset === key && 'bg-primary text-primary-foreground'
-												)}
 											>
 												{t(label)}
-											</button>
+											</Button>
 										))}
 									</div>
 									{errorText(errors.endTime?.message)}
@@ -391,17 +406,7 @@ export function PollCreator({
 						)}
 
 						<div className="flex items-center justify-between gap-3">
-							{step > 0 ? (
-								<Button type="button" variant="ghost" onClick={() => setStep((s) => s - 1)}>
-									{t('pollCreator.back')}
-								</Button>
-							) : !isEdit ? (
-								<Button type="button" variant="ghost" onClick={handleSaveDraft}>
-									{t('pollCreator.saveDraftLabel')}
-								</Button>
-							) : (
-								<span />
-							)}
+							{backAction}
 							{step < LAST_STEP ? (
 								<Button type="submit">{t('pollCreator.next')}</Button>
 							) : (

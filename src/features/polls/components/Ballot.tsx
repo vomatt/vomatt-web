@@ -4,9 +4,10 @@ import { useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useHydrated } from '@/hooks/useHydrated';
 import { cn } from '@/lib/utils';
 
-import { fill, formatFromNow, formatPollDate } from '../format';
+import { formatFromNow, formatPollDate } from '../format';
 import type { BallotState } from '../hooks/useBallot';
 import type { Poll } from '../schema';
 import type { PollStatus } from '../status';
@@ -23,6 +24,7 @@ type BallotProps = {
 /** Card states A (no Ballot), B (has Ballot) and C (Scheduled). Never shows counts. */
 export function Ballot({ poll, status, ballot, requireAuth, ownerActions }: BallotProps) {
 	const { t, currentLanguage } = useLanguage();
+	const isHydrated = useHydrated();
 	const [confirmingWithdraw, setConfirmingWithdraw] = useState(false);
 	const { myOptionId, selected, setSelected, isPending } = ballot;
 	const isScheduled = status === 'scheduled';
@@ -37,6 +39,64 @@ export function Ballot({ poll, status, ballot, requireAuth, ownerActions }: Ball
 		setConfirmingWithdraw(false);
 		ballot.retract();
 	};
+
+	let actions: React.ReactNode;
+	if (isScheduled) {
+		actions = (
+			<>
+				<span className="text-xs text-muted-foreground">
+					{isHydrated &&
+						t('poll.opensHint', { distance: formatFromNow(poll.startTime, currentLanguage) })}
+				</span>
+				{ownerActions}
+			</>
+		);
+	} else if (confirmingWithdraw) {
+		actions = (
+			<>
+				<span className="text-[13px]">{t('poll.withdrawConfirm')}</span>
+				<div className="flex gap-1.5">
+					<Button size="sm" variant="ghost" onClick={() => setConfirmingWithdraw(false)}>
+						{t('poll.keep')}
+					</Button>
+					<Button size="sm" variant="destructive" onClick={withdraw}>
+						{t('poll.withdraw')}
+					</Button>
+				</div>
+			</>
+		);
+	} else if (hasBallot) {
+		actions = (
+			<>
+				<Button
+					size="sm"
+					variant="ghost"
+					className="text-muted-foreground"
+					disabled={isPending}
+					onClick={() => setConfirmingWithdraw(true)}
+				>
+					{t('poll.withdrawVote')}
+				</Button>
+				<Button
+					size="sm"
+					variant="outline"
+					disabled={isPending || !selected || selected === myOptionId}
+					onClick={castSelected}
+				>
+					{t('poll.updateVote')}
+				</Button>
+			</>
+		);
+	} else {
+		actions = (
+			<>
+				<span className="text-xs text-muted-foreground">{t('poll.revealHint')}</span>
+				<Button size="sm" disabled={isPending || !selected} onClick={castSelected}>
+					{t('poll.vote')}
+				</Button>
+			</>
+		);
+	}
 
 	return (
 		<div className="space-y-3.5">
@@ -81,68 +141,21 @@ export function Ballot({ poll, status, ballot, requireAuth, ownerActions }: Ball
 				</p>
 			)}
 
-			{hasBallot && poll.endTime && (
+			{hasBallot && poll.endTime && isHydrated && (
 				<p
-					suppressHydrationWarning
 					className="rounded-lg border border-dashed border-border px-3 py-2.5 text-[13px] text-muted-foreground"
 				>
-					{fill(t('poll.sealed'), { date: formatPollDate(poll.endTime, currentLanguage) })}
+					{t('poll.sealed', { date: formatPollDate(poll.endTime, currentLanguage) })}
 				</p>
 			)}
 
-			{isScheduled ? (
-				<div className="flex flex-wrap items-center justify-between gap-2.5">
-					<span suppressHydrationWarning className="text-xs text-muted-foreground">
-						{fill(t('poll.opensHint'), {
-							distance: formatFromNow(poll.startTime, currentLanguage),
-						})}
-					</span>
-					{ownerActions}
-				</div>
-			) : confirmingWithdraw ? (
-				<div
-					role="group"
-					aria-label={t('poll.withdrawVote')}
-					className="flex flex-wrap items-center justify-between gap-2.5"
-				>
-					<span className="text-[13px]">{t('poll.withdrawConfirm')}</span>
-					<div className="flex gap-1.5">
-						<Button size="sm" variant="ghost" onClick={() => setConfirmingWithdraw(false)}>
-							{t('poll.keep')}
-						</Button>
-						<Button size="sm" variant="destructive" onClick={withdraw}>
-							{t('poll.withdraw')}
-						</Button>
-					</div>
-				</div>
-			) : hasBallot ? (
-				<div className="flex flex-wrap items-center justify-between gap-2.5">
-					<Button
-						size="sm"
-						variant="ghost"
-						className="text-muted-foreground"
-						disabled={isPending}
-						onClick={() => setConfirmingWithdraw(true)}
-					>
-						{t('poll.withdrawVote')}
-					</Button>
-					<Button
-						size="sm"
-						variant="outline"
-						disabled={isPending || !selected || selected === myOptionId}
-						onClick={castSelected}
-					>
-						{t('poll.updateVote')}
-					</Button>
-				</div>
-			) : (
-				<div className="flex flex-wrap items-center justify-between gap-2.5">
-					<span className="text-xs text-muted-foreground">{t('poll.revealHint')}</span>
-					<Button size="sm" disabled={isPending || !selected} onClick={castSelected}>
-						{t('poll.vote')}
-					</Button>
-				</div>
-			)}
+			<div
+				role={confirmingWithdraw ? 'group' : undefined}
+				aria-label={confirmingWithdraw ? t('poll.withdrawVote') : undefined}
+				className="flex flex-wrap items-center justify-between gap-2.5"
+			>
+				{actions}
+			</div>
 		</div>
 	);
 }

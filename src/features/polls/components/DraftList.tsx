@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 import { deleteDraft, listDrafts, type PollDraft } from '../drafts';
-import { fill, formatPollDate } from '../format';
+import { formatPollDate } from '../format';
 
 const PollCreator = dynamic(() => import('./PollCreator').then((m) => m.PollCreator));
 
@@ -21,8 +21,7 @@ export function DraftList() {
 	useEffect(() => setDrafts(listDrafts()), []);
 
 	const remove = (id: string) => {
-		deleteDraft(id);
-		setDrafts(listDrafts());
+		setDrafts(deleteDraft(id));
 	};
 
 	const stopResuming = () => {
@@ -47,7 +46,7 @@ export function DraftList() {
 								{draft.values.title.trim() || t('myPolls.untitledDraft')}
 							</p>
 							<p className="text-xs text-muted-foreground mt-1">
-								{fill(t('myPolls.draftSavedAt'), {
+								{t('myPolls.draftSavedAt', {
 									date: formatPollDate(draft.savedAt, currentLanguage),
 								})}
 							</p>

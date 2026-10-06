@@ -161,11 +161,10 @@ export const UpdateCommentRequestSchema = z.object({
 export interface PollInput {
 	title: string;
 	description?: string;
-	options: { text: string; description?: string }[];
+	options: { text: string }[];
 	startTime: string;
 	endTime: string;
 	voterVisibility: VoterVisibility;
-	tagIds?: string[];
 }
 
 export type Comment = z.infer<typeof CommentSchema>;

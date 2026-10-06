@@ -1,6 +1,6 @@
 'use client';
 
-import { PollCreator } from '@/features/polls/components/PollCreator';
+import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -13,6 +13,10 @@ import { cn, hasArrayValue } from '@/lib/utils';
 
 import { HomepageHeader } from './HomepageHeader';
 import { PollCard } from '@/features/polls/components/PollCard';
+
+const PollCreator = dynamic(() =>
+	import('@/features/polls/components/PollCreator').then((m) => m.PollCreator)
+);
 
 type PollFeedList = {
 	className?: string;

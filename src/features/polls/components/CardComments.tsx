@@ -1,11 +1,11 @@
 'use client';
 
-import { formatDistance } from 'date-fns';
-import { enUS } from 'date-fns/locale';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
+import { useLanguage } from '@/contexts/LanguageContext';
 
+import { formatFromNow } from '../format';
 import type { Comment } from '../schema';
 import { postComment } from '../service';
 
@@ -18,6 +18,7 @@ type CardCommentsProps = {
 
 /** Inline comments on the card. Stage 4 replaces this with CommentThread. */
 export function CardComments({ pollId, comments, setComments, requireAuth }: CardCommentsProps) {
+	const { currentLanguage } = useLanguage();
 	const [commentText, setCommentText] = useState('');
 	const [isPostingComment, setIsPostingComment] = useState(false);
 
@@ -55,10 +56,7 @@ export function CardComments({ pollId, comments, setComments, requireAuth }: Car
 					<div className="flex items-center gap-2 text-xs mb-0.5">
 						<span className="font-medium text-foreground/70">{comment.author}</span>
 						<span className="text-muted-foreground/40">
-							{formatDistance(new Date(comment.createdAt), new Date(), {
-								locale: enUS,
-							})}{' '}
-							ago
+							{formatFromNow(comment.createdAt, currentLanguage)}
 						</span>
 					</div>
 					<p className="text-sm text-foreground/65">{comment.text}</p>

@@ -1,4 +1,4 @@
-import { derivePollStatus, getTurnout, isVotingOpen } from '@/features/polls/status';
+import { derivePollStatus, getTurnout } from '@/features/polls/status';
 
 const NOW = Date.parse('2026-10-05T12:00:00Z');
 const hours = (h: number) => new Date(NOW + h * 3600_000).toISOString();
@@ -52,15 +52,6 @@ describe('derivePollStatus()', () => {
 
 	it('accepts a Date', () => {
 		expect(derivePollStatus(base, new Date(NOW))).toBe('open');
-	});
-});
-
-describe('isVotingOpen()', () => {
-	it('is true only for open and closing', () => {
-		expect(isVotingOpen('open')).toBe(true);
-		expect(isVotingOpen('closing')).toBe(true);
-		expect(isVotingOpen('scheduled')).toBe(false);
-		expect(isVotingOpen('ended')).toBe(false);
 	});
 });
 

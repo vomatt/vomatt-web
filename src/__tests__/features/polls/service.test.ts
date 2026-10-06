@@ -19,6 +19,7 @@ import {
 
 jest.mock('next/cache', () => ({ updateTag: jest.fn() }));
 jest.mock('next/navigation', () => ({ unstable_rethrow: jest.fn() }));
+jest.mock('@/lib/api/auth', () => ({ getTokens: jest.fn() }));
 
 jest.mock('@/lib/api/client', () => {
 	class ApiError extends Error {
@@ -43,6 +44,7 @@ jest.mock('@/lib/api/client', () => {
 });
 
 const { updateTag } = jest.requireMock('next/cache');
+const { getTokens } = jest.requireMock('@/lib/api/auth');
 const mockApiClient = apiClient as jest.MockedFunction<typeof apiClient>;
 const mockPublicFetch = publicFetch as jest.MockedFunction<typeof publicFetch>;
 
@@ -102,6 +104,7 @@ const input = {
 beforeEach(() => {
 	jest.clearAllMocks();
 	mockApiClient.mockResolvedValue(undefined);
+	getTokens.mockResolvedValue(null);
 });
 
 describe('getPoll()', () => {
@@ -145,6 +148,25 @@ describe('getFeed()', () => {
 		expect(mockPublicFetch).toHaveBeenCalledWith('/votes?page=0&size=10', {
 			next: { tags: ['polls-feed'] },
 		});
+	});
+
+	it('attaches a signed-in viewer\'s Ballots in parallel', async () => {
+		getTokens.mockResolvedValue({ accessToken: 'a', refreshToken: 'r' });
+		mockPublicFetch.mockResolvedValue({ content: [oldPoll, newPoll], last: true, number: 0 });
+		mockApiClient.mockResolvedValue({ hasVoted: true, selectedOptions: ['opt-2'] });
+		const page = await getFeed();
+
+		expect(page.items[0].myOptionId).toBe('opt-2');
+		// newPoll already carries myOptionId, so it is not looked up
+		expect(page.items[1].myOptionId).toBe('opt-sun');
+		expect(mockApiClient).toHaveBeenCalledTimes(1);
+	});
+
+	it('skips Ballot lookups when signed out', async () => {
+		mockPublicFetch.mockResolvedValue({ content: [oldPoll], last: true, number: 0 });
+		const page = await getFeed();
+		expect(page.items[0].myOptionId).toBeUndefined();
+		expect(mockApiClient).not.toHaveBeenCalled();
 	});
 
 	it('reads a cursor page', async () => {
@@ -218,12 +240,10 @@ describe('getResults()', () => {
 		expect(isSealed(await getResults('poll-1'))).toBe(true);
 	});
 
-	it('falls back to the public endpoint when signed out', async () => {
-		mockApiClient.mockRejectedValue(new AuthError('Not authenticated'));
-		mockPublicFetch.mockResolvedValue({ id: 'poll-1', options: [] });
-		const result = await getResults('poll-1');
-		expect(result.ok).toBe(true);
-		expect(mockPublicFetch).toHaveBeenCalledWith('/votes/poll-1/results');
+	it('works for signed-out viewers too', async () => {
+		mockApiClient.mockResolvedValue({ id: 'poll-1', options: [] });
+		await getResults('poll-1');
+		expect(mockApiClient).toHaveBeenCalledWith('/votes/poll-1/results', { auth: 'optional' });
 	});
 });
 

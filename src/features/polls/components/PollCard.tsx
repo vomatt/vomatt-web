@@ -1,12 +1,13 @@
 'use client';
 
-import { formatDistance } from 'date-fns';
-import { enUS } from 'date-fns/locale';
 import Link from 'next/link';
 import { useCallback, useState } from 'react';
 
 import { AuthDialog } from '@/components/auth/AuthDialog';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useHydrated } from '@/hooks/useHydrated';
 
+import { formatFromNow } from '../format';
 import { useBallot } from '../hooks/useBallot';
 import { useRequireAuth } from '../hooks/useRequireAuth';
 import type { Comment, Poll } from '../schema';
@@ -27,6 +28,8 @@ interface PollCardProps {
 
 /** Shows the Ballot until the Poll Ends, then the Results. Whether the viewer voted doesn't matter. */
 export function PollCard({ poll: initialPoll, viewerUsername }: PollCardProps) {
+	const { currentLanguage } = useLanguage();
+	const isHydrated = useHydrated();
 	const [poll, setPoll] = useState(initialPoll);
 	const [showComments, setShowComments] = useState(false);
 	const [comments, setComments] = useState<Comment[]>([]);
@@ -54,11 +57,8 @@ export function PollCard({ poll: initialPoll, viewerUsername }: PollCardProps) {
 							{creatorUsername}
 						</Link>
 						<span>·</span>
-						<time suppressHydrationWarning dateTime={createdAt}>
-							{formatDistance(new Date(createdAt), new Date(), {
-								addSuffix: true,
-								locale: enUS,
-							})}
+						<time dateTime={createdAt}>
+							{isHydrated && formatFromNow(createdAt, currentLanguage)}
 						</time>
 					</div>
 					<StatusChip status={status} poll={poll} />

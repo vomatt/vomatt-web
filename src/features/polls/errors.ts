@@ -1,5 +1,5 @@
 /** Returned by the API when a Ballot arrives after the Poll has Ended. */
-export const POLL_ENDED_ERROR = 'vote.ended';
+const POLL_ENDED_ERROR = 'vote.ended';
 
 export type ActionFailure = {
 	ok: false;

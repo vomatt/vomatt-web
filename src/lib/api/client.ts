@@ -12,6 +12,8 @@ export { API_BASE_PATH } from '@/lib/api/constants';
 
 interface ApiFetchOptions extends RequestInit {
 	isFormData?: boolean;
+	/** 'optional' sends the request without a token when signed out instead of throwing. */
+	auth?: 'required' | 'optional';
 }
 
 export class AuthError extends Error {
@@ -86,6 +88,7 @@ export async function apiClient<T = any>(
 ): Promise<T> {
 	const {
 		isFormData = false,
+		auth = 'required',
 		headers: customHeaders,
 		...fetchOptions
 	} = options;
@@ -98,6 +101,10 @@ export async function apiClient<T = any>(
 	}
 
 	let tokens = await getTokens();
+
+	if (!tokens && auth === 'optional') {
+		return publicFetch<T>(endpoint, { ...fetchOptions, headers });
+	}
 
 	if (!tokens) {
 		throw new AuthError('Not authenticated. Please log in.');

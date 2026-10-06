@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 
 import { SUPPORTED_LANGUAGES } from '@/i18n-config';
+import { interpolate, type TranslationValues } from '@/lib/interpolate';
 import { LanguageCode } from '@/types';
 
 const RTL_LANGUAGES: string[] = ['ar', 'he', 'fa'];
@@ -19,7 +20,7 @@ export interface Translations {
 interface LanguageContextType {
 	currentLanguage: LanguageCode;
 	setLanguage: (language: LanguageCode) => void;
-	t: (key: string, fallback?: string) => string;
+	t: (key: string, fallbackOrValues?: string | TranslationValues) => string;
 	isLoading: boolean;
 	isInitialized: boolean;
 }
@@ -151,8 +152,8 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
 
 	// Set language and persist to localStorage
 
-	// Translation function with nested key support
-	const t = (key: string, fallback?: string): string => {
+	// Translation function with nested key support and `{name}` placeholders
+	const t = (key: string, fallbackOrValues?: string | TranslationValues): string => {
 		const keys = key.split('.');
 		let value: any = translations;
 
@@ -161,7 +162,10 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
 			if (value === undefined) break;
 		}
 
-		return typeof value === 'string' ? value : fallback || key;
+		if (typeof fallbackOrValues !== 'object') {
+			return typeof value === 'string' ? value : fallbackOrValues || key;
+		}
+		return typeof value === 'string' ? interpolate(value, fallbackOrValues) : key;
 	};
 
 	const value: LanguageContextType = {

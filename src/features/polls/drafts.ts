@@ -29,6 +29,9 @@ export function saveDraft(values: PollFormValues, id: string = crypto.randomUUID
 	return draft;
 }
 
+/** Returns the remaining drafts. */
 export function deleteDraft(id: string) {
-	writeDrafts(listDrafts().filter((d) => d.id !== id));
+	const drafts = listDrafts().filter((d) => d.id !== id);
+	writeDrafts(drafts);
+	return drafts;
 }

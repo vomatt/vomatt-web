@@ -6,9 +6,8 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 
-import { isSealed } from '../errors';
-import { fill } from '../format';
-import type { Poll } from '../schema';
+import { type ActionResult, isSealed } from '../errors';
+import type { Poll, PollResults } from '../schema';
 import { getResults } from '../service';
 
 type Row = { id: string; text: string; votes: number };
@@ -29,8 +28,7 @@ function rowsFromPoll(poll: Poll): Row[] | null {
 /** Card state D. Only rendered for Ended Polls, so it never asks for sealed data. */
 export function Results({ poll, myOptionId, turnout, onSealed }: ResultsProps) {
 	const { t } = useLanguage();
-	const [fetched, setFetched] = useState<{ rows: Row[]; participants?: number } | null>(null);
-	const [failed, setFailed] = useState(false);
+	const [fetched, setFetched] = useState<ActionResult<PollResults> | null>(null);
 	const inlineRows = rowsFromPoll(poll);
 	const needsFetch = inlineRows === null;
 
@@ -39,27 +37,19 @@ export function Results({ poll, myOptionId, turnout, onSealed }: ResultsProps) {
 		let ignore = false;
 		getResults(poll.id).then((result) => {
 			if (ignore) return;
-			if (result.ok) {
-				setFetched({
-					rows: result.data.options.map(({ id, text, voteCount }) => ({
-						id,
-						text,
-						votes: voteCount,
-					})),
-					participants: result.data.totalParticipants,
-				});
-			} else if (isSealed(result)) {
-				onSealed();
-			} else {
-				setFailed(true);
-			}
+			if (isSealed(result)) onSealed();
+			else setFetched(result);
 		});
 		return () => {
 			ignore = true;
 		};
 	}, [poll.id, needsFetch, onSealed]);
 
-	const rows = inlineRows ?? fetched?.rows;
+	const results = fetched?.ok ? fetched.data : null;
+	const rows =
+		inlineRows ??
+		results?.options.map(({ id, text, voteCount }) => ({ id, text, votes: voteCount }));
+	const failed = fetched?.ok === false;
 
 	if (!rows) {
 		return failed ? (
@@ -74,7 +64,7 @@ export function Results({ poll, myOptionId, turnout, onSealed }: ResultsProps) {
 	}
 
 	const participants =
-		turnout ?? fetched?.participants ?? rows.reduce((sum, row) => sum + row.votes, 0);
+		turnout ?? results?.totalParticipants ?? rows.reduce((sum, row) => sum + row.votes, 0);
 	const topVotes = Math.max(0, ...rows.map((row) => row.votes));
 	const winners = topVotes > 0 ? rows.filter((row) => row.votes === topVotes) : [];
 	const support = (votes: number) =>
@@ -84,11 +74,11 @@ export function Results({ poll, myOptionId, turnout, onSealed }: ResultsProps) {
 	if (winners.length === 0) {
 		caption = t('poll.noVotes');
 	} else if (winners.length > 1) {
-		caption = fill(t('poll.tie'), {
+		caption = t('poll.tie', {
 			options: winners.map((row) => row.text).join(t('poll.and')),
 		});
 	} else {
-		caption = fill(t('poll.won'), { option: winners[0].text, count: participants });
+		caption = t('poll.won', { option: winners[0].text, count: participants });
 	}
 
 	return (

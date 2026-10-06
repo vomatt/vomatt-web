@@ -4,7 +4,7 @@ import { ArrowLeft, Share2, Users } from '@/components/ui/SvgIcons';
 import Link from 'next/link';
 
 import { getUserSession } from '@/data/auth';
-import { getPoll } from '@/features/polls/service';
+import { getMyBallot, getPoll } from '@/features/polls/service';
 import { PollCard } from '@/features/polls/components/PollCard';
 import { Button } from '@/components/ui/Button';
 
@@ -14,7 +14,12 @@ export default async function PollDetailPage({
 	params: Promise<{ id: string }>;
 }) {
 	const { id } = await params;
-	const [poll, user] = await Promise.all([getPoll(id), getUserSession()]);
+	const [cachedPoll, user, myOptionId] = await Promise.all([
+		getPoll(id),
+		getUserSession(),
+		getMyBallot(id),
+	]);
+	const poll = cachedPoll && { ...cachedPoll, myOptionId: cachedPoll.myOptionId ?? myOptionId };
 
 	if (!poll) {
 		return (

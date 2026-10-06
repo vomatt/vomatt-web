@@ -6,7 +6,7 @@ import type { Poll } from './schema';
  */
 export type PollStatus = 'scheduled' | 'open' | 'closing' | 'ended';
 
-export const CLOSING_WINDOW_MS = 24 * 60 * 60 * 1000;
+const CLOSING_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 type StatusFields = Pick<Poll, 'active' | 'votingActive' | 'startTime' | 'endTime'>;
 
@@ -20,10 +20,6 @@ export function derivePollStatus(poll: StatusFields, now: Date | number = Date.n
 	if (!poll.votingActive) return 'ended';
 	if (end !== null && end - time < CLOSING_WINDOW_MS) return 'closing';
 	return 'open';
-}
-
-export function isVotingOpen(status: PollStatus) {
-	return status === 'open' || status === 'closing';
 }
 
 /** Turnout: how many people hold a Ballot. Visible in every state. */

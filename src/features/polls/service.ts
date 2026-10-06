@@ -3,6 +3,7 @@
 import { updateTag } from 'next/cache';
 import { unstable_rethrow } from 'next/navigation';
 
+import { getTokens } from '@/lib/api/auth';
 import { ApiError, apiClient, AuthError, publicFetch } from '@/lib/api/client';
 import { cursorPageSchema } from '@/lib/api/cursor';
 
@@ -35,34 +36,51 @@ function toFailure(error: unknown): ActionFailure {
 	return { ok: false, message: error instanceof Error ? error.message : 'Request failed' };
 }
 
+/** Runs a request as a Server Action result: never throws, except Next's redirects. */
+async function attempt<T>(request: () => Promise<T>): Promise<ActionResult<T>> {
+	try {
+		return { ok: true, data: await request() };
+	} catch (error) {
+		return toFailure(error);
+	}
+}
+
 function toRequestBody(input: PollInput) {
 	return JSON.stringify({
 		title: input.title,
 		description: input.description,
-		options: input.options.map((option, i) => ({
-			text: option.text,
-			description: option.description,
-			displayOrder: i,
-		})),
+		options: input.options.map((option, i) => ({ text: option.text, displayOrder: i })),
 		startTime: input.startTime,
 		endTime: input.endTime,
 		allowMultipleChoices: false,
 		anonymous: input.voterVisibility === 'nobody',
 		voterVisibility: input.voterVisibility,
-		tagIds: input.tagIds,
 	});
 }
 
 // ── Reads ────────────────────────────────────────────────────────────────────
 
-/** Until backend 3 ships cursors, `cursor` is a Spring page number. */
+/**
+ * Until backend 3 ships cursors, `cursor` is a Spring page number. Until it
+ * returns `myOptionId`, a signed-in viewer's Ballots are looked up here, in
+ * parallel, so the cards don't each make a sequential Server Action call.
+ */
 export async function getFeed(cursor?: string | null, size = 10, tag?: string) {
 	const params = new URLSearchParams({ page: cursor ?? '0', size: String(size) });
 	if (tag) params.set('tag', tag);
-	const data = await publicFetch(`/votes?${params}`, {
-		next: { tags: [FEED_TAG] },
-	} as RequestInit);
-	return PollPage.parse(data);
+	const [data, tokens] = await Promise.all([
+		publicFetch(`/votes?${params}`, { next: { tags: [FEED_TAG] } } as RequestInit),
+		getTokens(),
+	]);
+	const page = PollPage.parse(data);
+	if (!tokens) return page;
+
+	const items = await Promise.all(
+		page.items.map(async (poll) =>
+			poll.myOptionId === undefined ? { ...poll, myOptionId: await getMyBallot(poll.id) } : poll
+		)
+	);
+	return { ...page, items };
 }
 
 export async function getPollsByCreator(username: string): Promise<Poll[]> {
@@ -108,78 +126,62 @@ export async function getMyBallot(pollId: string): Promise<string | null> {
 
 /** Only for Ended Polls. A 403 means the results are still sealed. */
 export async function getResults(pollId: string): Promise<ActionResult<PollResults>> {
-	try {
-		const data = await apiClient(`/votes/${pollId}/results`).catch((error) => {
-			if (error instanceof AuthError) return publicFetch(`/votes/${pollId}/results`);
-			throw error;
-		});
-		return { ok: true, data: PollResultsSchema.parse(data) };
-	} catch (error) {
-		return toFailure(error);
-	}
+	return attempt(async () =>
+		PollResultsSchema.parse(await apiClient(`/votes/${pollId}/results`, { auth: 'optional' }))
+	);
 }
 
 // ── Ballot ───────────────────────────────────────────────────────────────────
 
 /** Casts a Ballot, or replaces the existing one. */
 export async function castBallot(pollId: string, optionId: string): Promise<ActionResult> {
-	try {
+	return attempt(async () => {
 		await apiClient(`/votes/${pollId}/vote`, {
 			method: 'POST',
 			body: JSON.stringify({ optionIds: [optionId] }),
 		});
 		updateTag(pollTag(pollId));
-		return { ok: true, data: undefined };
-	} catch (error) {
-		return toFailure(error);
-	}
+	});
 }
 
 /** Retraction: the voter is no longer a Participant and won't be notified. */
 export async function retractBallot(pollId: string): Promise<ActionResult> {
-	try {
+	return attempt(async () => {
 		await apiClient(`/votes/${pollId}/vote`, { method: 'DELETE' });
 		updateTag(pollTag(pollId));
-		return { ok: true, data: undefined };
-	} catch (error) {
-		return toFailure(error);
-	}
+	});
 }
 
 // ── Owner ────────────────────────────────────────────────────────────────────
 
 export async function createPoll(input: PollInput): Promise<ActionResult<Poll>> {
-	try {
-		const data = await apiClient('/votes', { method: 'POST', body: toRequestBody(input) });
+	return attempt(async () => {
+		const poll = await apiClient<Poll>('/votes', { method: 'POST', body: toRequestBody(input) });
 		updateTag(FEED_TAG);
-		return { ok: true, data };
-	} catch (error) {
-		return toFailure(error);
-	}
+		return poll;
+	});
 }
 
 /** Owner only, and only while the Poll is Scheduled. */
 export async function updatePoll(id: string, input: PollInput): Promise<ActionResult<Poll>> {
-	try {
-		const data = await apiClient(`/votes/${id}`, { method: 'PUT', body: toRequestBody(input) });
+	return attempt(async () => {
+		const poll = await apiClient<Poll>(`/votes/${id}`, {
+			method: 'PUT',
+			body: toRequestBody(input),
+		});
 		updateTag(pollTag(id));
 		updateTag(FEED_TAG);
-		return { ok: true, data };
-	} catch (error) {
-		return toFailure(error);
-	}
+		return poll;
+	});
 }
 
 /** Closes an Open Poll early, or cancels a Scheduled one (no one is notified). */
 export async function closePoll(id: string): Promise<ActionResult> {
-	try {
+	return attempt(async () => {
 		await apiClient(`/votes/${id}/deactivate`, { method: 'PUT' });
 		updateTag(pollTag(id));
 		updateTag(FEED_TAG);
-		return { ok: true, data: undefined };
-	} catch (error) {
-		return toFailure(error);
-	}
+	});
 }
 
 // ── Comments ─────────────────────────────────────────────────────────────────
