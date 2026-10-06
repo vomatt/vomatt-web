@@ -9,6 +9,7 @@ import {
 	getFeed,
 	getMyBallot,
 	getPoll,
+	getPollForViewer,
 	getResults,
 	likeComment,
 	retractBallot,
@@ -19,7 +20,7 @@ import {
 
 jest.mock('next/cache', () => ({ updateTag: jest.fn() }));
 jest.mock('next/navigation', () => ({ unstable_rethrow: jest.fn() }));
-jest.mock('@/lib/api/auth', () => ({ getTokens: jest.fn() }));
+jest.mock('@/data/auth', () => ({ getUserSession: jest.fn() }));
 
 jest.mock('@/lib/api/client', () => {
 	class ApiError extends Error {
@@ -44,7 +45,7 @@ jest.mock('@/lib/api/client', () => {
 });
 
 const { updateTag } = jest.requireMock('next/cache');
-const { getTokens } = jest.requireMock('@/lib/api/auth');
+const { getUserSession } = jest.requireMock('@/data/auth');
 const mockApiClient = apiClient as jest.MockedFunction<typeof apiClient>;
 const mockPublicFetch = publicFetch as jest.MockedFunction<typeof publicFetch>;
 
@@ -104,7 +105,7 @@ const input = {
 beforeEach(() => {
 	jest.clearAllMocks();
 	mockApiClient.mockResolvedValue(undefined);
-	getTokens.mockResolvedValue(null);
+	getUserSession.mockResolvedValue(null);
 });
 
 describe('getPoll()', () => {
@@ -139,6 +140,28 @@ describe('getPoll()', () => {
 	});
 });
 
+describe('getPollForViewer()', () => {
+	it('attaches a signed-in viewer\'s Ballot', async () => {
+		getUserSession.mockResolvedValue({ sub: 'klaus' });
+		mockPublicFetch.mockResolvedValue(oldPoll);
+		mockApiClient.mockResolvedValue({ hasVoted: true, selectedOptions: ['opt-1'] });
+		expect((await getPollForViewer('poll-1'))?.myOptionId).toBe('opt-1');
+	});
+
+	it('skips the Ballot lookup when signed out', async () => {
+		mockPublicFetch.mockResolvedValue(oldPoll);
+		expect((await getPollForViewer('poll-1'))?.myOptionId).toBeUndefined();
+		expect(mockApiClient).not.toHaveBeenCalled();
+	});
+
+	it('skips the Ballot lookup when the Poll is missing', async () => {
+		getUserSession.mockResolvedValue({ sub: 'klaus' });
+		mockPublicFetch.mockRejectedValue(new ApiError('Not found', 404));
+		expect(await getPollForViewer('missing')).toBeNull();
+		expect(mockApiClient).not.toHaveBeenCalled();
+	});
+});
+
 describe('getFeed()', () => {
 	it('reads a Spring page and turns the next page number into a cursor', async () => {
 		mockPublicFetch.mockResolvedValue({ content: [oldPoll], last: false, number: 0 });
@@ -151,7 +174,7 @@ describe('getFeed()', () => {
 	});
 
 	it('attaches a signed-in viewer\'s Ballots in parallel', async () => {
-		getTokens.mockResolvedValue({ accessToken: 'a', refreshToken: 'r' });
+		getUserSession.mockResolvedValue({ sub: 'klaus' });
 		mockPublicFetch.mockResolvedValue({ content: [oldPoll, newPoll], last: true, number: 0 });
 		mockApiClient.mockResolvedValue({ hasVoted: true, selectedOptions: ['opt-2'] });
 		const page = await getFeed();

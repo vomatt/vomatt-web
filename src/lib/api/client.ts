@@ -102,11 +102,8 @@ export async function apiClient<T = any>(
 
 	let tokens = await getTokens();
 
-	if (!tokens && auth === 'optional') {
-		return publicFetch<T>(endpoint, { ...fetchOptions, headers });
-	}
-
 	if (!tokens) {
+		if (auth === 'optional') return publicFetch<T>(endpoint, { ...fetchOptions, headers });
 		throw new AuthError('Not authenticated. Please log in.');
 	}
 

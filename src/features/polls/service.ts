@@ -3,7 +3,7 @@
 import { updateTag } from 'next/cache';
 import { unstable_rethrow } from 'next/navigation';
 
-import { getTokens } from '@/lib/api/auth';
+import { getUserSession } from '@/data/auth';
 import { ApiError, apiClient, AuthError, publicFetch } from '@/lib/api/client';
 import { cursorPageSchema } from '@/lib/api/cursor';
 
@@ -61,26 +61,29 @@ function toRequestBody(input: PollInput) {
 // ── Reads ────────────────────────────────────────────────────────────────────
 
 /**
- * Until backend 3 ships cursors, `cursor` is a Spring page number. Until it
- * returns `myOptionId`, a signed-in viewer's Ballots are looked up here, in
- * parallel, so the cards don't each make a sequential Server Action call.
+ * Fills in a signed-in viewer's Ballot until backend 3 returns `myOptionId`
+ * on the Poll. Delete this, and its two callers' use of it, once it does.
+ */
+async function withMyBallot(poll: Poll): Promise<Poll> {
+	if (poll.myOptionId !== undefined) return poll;
+	return { ...poll, myOptionId: await getMyBallot(poll.id) };
+}
+
+/**
+ * Until backend 3 ships cursors, `cursor` is a Spring page number. Ballots are
+ * looked up here, in parallel, so the cards don't each make a sequential
+ * Server Action call.
  */
 export async function getFeed(cursor?: string | null, size = 10, tag?: string) {
 	const params = new URLSearchParams({ page: cursor ?? '0', size: String(size) });
 	if (tag) params.set('tag', tag);
-	const [data, tokens] = await Promise.all([
+	const [data, session] = await Promise.all([
 		publicFetch(`/votes?${params}`, { next: { tags: [FEED_TAG] } } as RequestInit),
-		getTokens(),
+		getUserSession(),
 	]);
 	const page = PollPage.parse(data);
-	if (!tokens) return page;
-
-	const items = await Promise.all(
-		page.items.map(async (poll) =>
-			poll.myOptionId === undefined ? { ...poll, myOptionId: await getMyBallot(poll.id) } : poll
-		)
-	);
-	return { ...page, items };
+	if (!session) return page;
+	return { ...page, items: await Promise.all(page.items.map(withMyBallot)) };
 }
 
 export async function getPollsByCreator(username: string): Promise<Poll[]> {
@@ -103,6 +106,12 @@ export async function getPoll(id: string): Promise<Poll | null> {
 		if (error instanceof ApiError && error.statusCode === 404) return null;
 		throw error;
 	}
+}
+
+/** The Poll with the signed-in viewer's Ballot, for server-rendered pages. */
+export async function getPollForViewer(id: string): Promise<Poll | null> {
+	const [poll, session] = await Promise.all([getPoll(id), getUserSession()]);
+	return poll && session ? withMyBallot(poll) : poll;
 }
 
 export async function getMyPolls() {

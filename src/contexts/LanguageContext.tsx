@@ -162,10 +162,10 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
 			if (value === undefined) break;
 		}
 
-		if (typeof fallbackOrValues !== 'object') {
-			return typeof value === 'string' ? value : fallbackOrValues || key;
+		if (typeof value !== 'string') {
+			return (typeof fallbackOrValues === 'string' && fallbackOrValues) || key;
 		}
-		return typeof value === 'string' ? interpolate(value, fallbackOrValues) : key;
+		return typeof fallbackOrValues === 'object' ? interpolate(value, fallbackOrValues) : value;
 	};
 
 	const value: LanguageContextType = {
