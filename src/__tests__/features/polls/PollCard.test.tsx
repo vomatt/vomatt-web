@@ -30,7 +30,7 @@ jest.mock('@/features/polls/service', () => ({
 	castBallot: (...args: any[]) => mockCastBallot(...args),
 	retractBallot: (...args: any[]) => mockRetractBallot(...args),
 	getMyBallot: (...args: any[]) => mockGetMyBallot(...args),
-	getPoll: (...args: any[]) => mockGetPoll(...args),
+	getPollForViewer: (...args: any[]) => mockGetPoll(...args),
 	getResults: (...args: any[]) => mockGetResults(...args),
 	postComment: (...args: any[]) => mockPostComment(...args),
 }));
@@ -344,10 +344,11 @@ describe('PollCard state D · Ended', () => {
 		expect(mockGetResults).toHaveBeenCalledWith('poll-1');
 	});
 
-	it('refetches the Poll when results are still sealed', async () => {
+	it('refetches the Poll when results are still sealed, then stops loading', async () => {
 		mockGetResults.mockResolvedValue({ ok: false, status: 403, message: 'sealed' });
 		render(<PollCard poll={{ ...endedPoll, options: openPoll.options }} />);
 		await waitFor(() => expect(mockGetPoll).toHaveBeenCalledWith('poll-1'));
+		expect(await screen.findByText("Couldn't load the results.")).toBeInTheDocument();
 	});
 });
 
@@ -365,6 +366,24 @@ describe('PollCard signed-out visitor', () => {
 
 		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-sun');
 		expect(screen.queryByTestId('auth-dialog')).not.toBeInTheDocument();
+	});
+
+	it('after sign-in, counts Turnout against a Ballot cast elsewhere and keeps the new vote', async () => {
+		let answerLookup: (optionId: string) => void = () => {};
+		mockGetMyBallot.mockReturnValue(new Promise((resolve) => (answerLookup = resolve)));
+		const { myOptionId, ...withoutField } = openPoll;
+		render(<PollCard poll={withoutField} />);
+		vote('Sunday');
+		await act(async () => {
+			fireEvent.click(screen.getByText('Mock Auth Success'));
+		});
+
+		// The viewer had already voted Friday on another device
+		await act(async () => answerLookup('opt-fri'));
+
+		await waitFor(() => expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-sun'));
+		expect(screen.getByText('128 voted')).toBeInTheDocument();
+		expect(screen.getByLabelText(/Sunday/)).toBeChecked();
 	});
 
 	it('does not open sign-in for a signed-in voter', () => {

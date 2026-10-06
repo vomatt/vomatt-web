@@ -19,6 +19,7 @@ import {
 } from './schema';
 
 const PollPage = cursorPageSchema(PollSchema);
+const MAX_FEED_PAGE_SIZE = 50;
 
 function toFailure(error: unknown): ActionFailure {
 	unstable_rethrow(error);
@@ -75,7 +76,9 @@ async function withMyBallot(poll: Poll): Promise<Poll> {
  * Server Action call.
  */
 export async function getFeed(cursor?: string | null, size = 10, tag?: string) {
-	const params = new URLSearchParams({ page: cursor ?? '0', size: String(size) });
+	// Callable from any client, and each item costs a Ballot lookup, so cap the page
+	const pageSize = Math.min(Math.max(1, size), MAX_FEED_PAGE_SIZE);
+	const params = new URLSearchParams({ page: cursor ?? '0', size: String(pageSize) });
 	if (tag) params.set('tag', tag);
 	const [data, session] = await Promise.all([
 		publicFetch(`/votes?${params}`, { next: { tags: [FEED_TAG] } } as RequestInit),

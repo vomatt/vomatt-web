@@ -140,7 +140,7 @@ export function PollCreator({
 
 	const handleOpenChange = (value: boolean) => {
 		if (value) setOpen(true);
-		else if (isDirty && !isEdit) setShowSaveDraftAlert(true);
+		else if (isDirty) setShowSaveDraftAlert(true);
 		else close();
 	};
 
@@ -420,19 +420,34 @@ export function PollCreator({
 			</Dialog>
 
 			<AlertDialog open={showSaveDraftAlert} onOpenChange={setShowSaveDraftAlert}>
-				<AlertDialogContent>
-					<AlertDialogHeader>
-						<AlertDialogTitle>Save to drafts?</AlertDialogTitle>
-						<AlertDialogDescription>
-							You have unsaved changes. Would you like to save this poll as a
-							draft before leaving?
-						</AlertDialogDescription>
-					</AlertDialogHeader>
-					<AlertDialogFooter>
-						<AlertDialogCancel onClick={handleDiscard}>Discard</AlertDialogCancel>
-						<AlertDialogAction onClick={handleSaveDraft}>Save Draft</AlertDialogAction>
-					</AlertDialogFooter>
-				</AlertDialogContent>
+				{isEdit ? (
+					<AlertDialogContent>
+						<AlertDialogHeader>
+							<AlertDialogTitle>{t('pollCreator.discardEditTitle')}</AlertDialogTitle>
+							<AlertDialogDescription>{t('pollCreator.discardEditBody')}</AlertDialogDescription>
+						</AlertDialogHeader>
+						<AlertDialogFooter>
+							<AlertDialogCancel>{t('pollCreator.keepEditing')}</AlertDialogCancel>
+							<AlertDialogAction onClick={handleDiscard}>
+								{t('pollCreator.discardEdit')}
+							</AlertDialogAction>
+						</AlertDialogFooter>
+					</AlertDialogContent>
+				) : (
+					<AlertDialogContent>
+						<AlertDialogHeader>
+							<AlertDialogTitle>Save to drafts?</AlertDialogTitle>
+							<AlertDialogDescription>
+								You have unsaved changes. Would you like to save this poll as a
+								draft before leaving?
+							</AlertDialogDescription>
+						</AlertDialogHeader>
+						<AlertDialogFooter>
+							<AlertDialogCancel onClick={handleDiscard}>Discard</AlertDialogCancel>
+							<AlertDialogAction onClick={handleSaveDraft}>Save Draft</AlertDialogAction>
+						</AlertDialogFooter>
+					</AlertDialogContent>
+				)}
 			</AlertDialog>
 		</>
 	);

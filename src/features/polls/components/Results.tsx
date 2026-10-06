@@ -37,8 +37,9 @@ export function Results({ poll, myOptionId, turnout, onSealed }: ResultsProps) {
 		let ignore = false;
 		getResults(poll.id).then((result) => {
 			if (ignore) return;
+			// Still sealed after the refetch means the card's status is wrong; stop loading
 			if (isSealed(result)) onSealed();
-			else setFetched(result);
+			setFetched(result);
 		});
 		return () => {
 			ignore = true;

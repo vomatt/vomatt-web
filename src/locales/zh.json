@@ -164,7 +164,11 @@
 			"optionRequired": "請填寫每個選項。",
 			"endRequired": "請選擇結束時間。",
 			"endBeforeStart": "結束時間必須晚於開始時間。"
-		}
+		},
+		"discardEditTitle": "要捨棄變更嗎？",
+		"discardEditBody": "你對這個投票的修改不會被儲存。",
+		"keepEditing": "繼續編輯",
+		"discardEdit": "捨棄"
 	},
 	"homePage": {
 		"feedListNoData": "發起投票，引領群眾。"

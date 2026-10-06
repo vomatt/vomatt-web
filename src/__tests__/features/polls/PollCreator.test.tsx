@@ -274,4 +274,38 @@ describe('PollCreator', () => {
 		expect(mockCreatePoll).not.toHaveBeenCalled();
 		expect(onSaved).toHaveBeenCalled();
 	});
+
+	it('asks before discarding unsaved edits', async () => {
+		const poll: Poll = {
+			id: 'poll-9',
+			title: 'Original title',
+			active: true,
+			votingActive: false,
+			creatorId: 'u1',
+			creatorUsername: 'klaus',
+			createdAt: '2030-01-01T00:00:00Z',
+			startTime: '2030-01-05T01:00:00Z',
+			endTime: '2030-01-08T01:00:00Z',
+			options: [
+				{ id: 'a', text: 'Yes' },
+				{ id: 'b', text: 'No' },
+			],
+		};
+		const onOpenChange = jest.fn();
+		render(<PollCreator poll={poll} open onOpenChange={onOpenChange} />);
+		fireEvent.change(screen.getByLabelText('What would you like to ask?'), {
+			target: { value: 'Edited title' },
+		});
+		fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' });
+
+		expect(await screen.findByText('Discard your changes?')).toBeInTheDocument();
+		fireEvent.click(screen.getByRole('button', { name: 'Keep editing' }));
+		expect(onOpenChange).not.toHaveBeenCalledWith(false);
+		expect(screen.getByLabelText('What would you like to ask?')).toHaveValue('Edited title');
+
+		fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' });
+		fireEvent.click(await screen.findByRole('button', { name: 'Discard' }));
+		expect(onOpenChange).toHaveBeenCalledWith(false);
+		expect(listDrafts()).toEqual([]);
+	});
 });

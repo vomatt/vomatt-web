@@ -192,6 +192,12 @@ describe('getFeed()', () => {
 		expect(mockApiClient).not.toHaveBeenCalled();
 	});
 
+	it('caps the page size a client can ask for', async () => {
+		mockPublicFetch.mockResolvedValue({ content: [], last: true, number: 0 });
+		await getFeed(null, 1000);
+		expect(mockPublicFetch).toHaveBeenCalledWith('/votes?page=0&size=50', expect.anything());
+	});
+
 	it('reads a cursor page', async () => {
 		mockPublicFetch.mockResolvedValue({ items: [newPoll], nextCursor: null });
 		const page = await getFeed('abc');

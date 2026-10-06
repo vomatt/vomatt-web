@@ -169,7 +169,11 @@
 			"optionRequired": "Fill in every option.",
 			"endRequired": "Choose when the poll ends.",
 			"endBeforeStart": "The end must be after the poll opens."
-		}
+		},
+		"discardEditTitle": "Discard your changes?",
+		"discardEditBody": "Your edits to this poll won't be saved.",
+		"keepEditing": "Keep editing",
+		"discardEdit": "Discard"
 	},
 	"homePage": {
 		"feedListNoData": "Start the poll, lead the crowd."

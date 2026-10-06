@@ -11,7 +11,7 @@ import { formatFromNow } from '../format';
 import { useBallot } from '../hooks/useBallot';
 import { useRequireAuth } from '../hooks/useRequireAuth';
 import type { Comment, Poll } from '../schema';
-import { getPoll } from '../service';
+import { getPollForViewer } from '../service';
 import { derivePollStatus } from '../status';
 import { Ballot } from './Ballot';
 import { CardComments } from './CardComments';
@@ -36,7 +36,7 @@ export function PollCard({ poll: initialPoll, viewerUsername }: PollCardProps) {
 	const { isAuthed, requireAuth, authDialog } = useRequireAuth(!!viewerUsername);
 
 	const refetch = useCallback(async () => {
-		const fresh = await getPoll(poll.id).catch(() => null);
+		const fresh = await getPollForViewer(poll.id).catch(() => null);
 		if (fresh) setPoll(fresh);
 	}, [poll.id]);
 

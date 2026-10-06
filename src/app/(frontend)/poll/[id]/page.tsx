@@ -5,6 +5,7 @@ import Link from 'next/link';
 
 import { getUserSession } from '@/data/auth';
 import { getPollForViewer } from '@/features/polls/service';
+import { getTurnout } from '@/features/polls/status';
 import { PollCard } from '@/features/polls/components/PollCard';
 import { Button } from '@/components/ui/Button';
 
@@ -56,7 +57,7 @@ export default async function PollDetailPage({
 			<div className="mt-6 p-4 rounded-xl border border-border bg-card text-sm text-muted-foreground space-y-1">
 				<div className="flex items-center gap-2">
 					<Users className="w-4 h-4" />
-					<span>{poll.totalVotes} total votes</span>
+					<span>{getTurnout(poll) ?? 0} total votes</span>
 				</div>
 				<div>
 					Created by{' '}
