@@ -5,12 +5,12 @@ import { toast } from 'sonner';
 import { MessageSquare, Share2 } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-
 type PollFooterProps = {
 	pollId: string;
 	title: string;
 	turnout: number | undefined;
-	commentCount: number;
+	/** Unknown until the discussion has been opened once. */
+	commentCount?: number;
 	onToggleComments: () => void;
 };
 
@@ -47,9 +47,11 @@ export function PollFooter({
 				className="flex items-center gap-1.5 transition-colors hover:text-foreground"
 			>
 				<MessageSquare className="size-3.5" />
-				{commentCount === 1
-					? t('poll.comment')
-					: t('poll.comments', { count: commentCount })}
+				{commentCount === undefined
+					? t('poll.discuss')
+					: commentCount === 1
+						? t('poll.comment')
+						: t('poll.comments', { count: commentCount })}
 			</button>
 			<button
 				type="button"

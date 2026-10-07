@@ -282,6 +282,7 @@ describe('retractBallot()', () => {
 		await retractBallot('poll-1', 'opt-2');
 		expect(mockApiClient).toHaveBeenCalledWith('/votes/poll-1/vote/opt-2', { method: 'DELETE' });
 		expect(updateTag).toHaveBeenCalledWith('poll:poll-1');
+		expect(updateTag).toHaveBeenCalledWith('polls-feed');
 	});
 });
 

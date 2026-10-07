@@ -82,18 +82,33 @@
 	},
 	"explore": {
 		"title": "探索",
-		"searchPlaceholder": "搜尋投票…",
+		"searchPlaceholder": "搜尋投票與選項…",
 		"filterAll": "全部",
 		"filterActive": "進行中",
 		"filterEnded": "已結束",
 		"sortNewest": "最新",
 		"sortMostVotes": "最多票數",
-		"noResults": "找不到投票。"
+		"noResults": "找不到投票。",
+		"topics": "依主題瀏覽",
+		"status": "狀態",
+		"sort": "排序",
+		"sortEnding": "即將結束",
+		"recentOnly": "搜尋範圍為最近 50 個投票。"
 	},
 	"pollDetail": {
 		"backToFeed": "返回",
 		"share": "分享",
-		"notFound": "找不到投票。"
+		"notFound": "找不到投票。",
+		"askedBy": "發起人",
+		"opened": "開始於 {date}",
+		"timeline": "投票期間",
+		"revealsIn": "結果將於{distance}揭曉",
+		"resultsIn": "投票已結束，結果出爐。",
+		"noEnd": "未設定結束時間",
+		"participants": "人已投票",
+		"topics": "主題",
+		"sealedExplainer": "投票結束前結果保持密封，避免大家被即時票數影響。結束前你都可以更改或撤回你的票。",
+		"shareCta": "邀請其他人投票"
 	},
 	"profile": {
 		"polls": "投票",
@@ -168,7 +183,13 @@
 		"discardEdit": "捨棄"
 	},
 	"homePage": {
-		"feedListNoData": "發起投票，引領群眾。"
+		"feedListNoData": "發起投票，引領群眾。",
+		"allTopics": "全部",
+		"topics": "主題",
+		"feedFailed": "目前無法載入投票。",
+		"topicEmpty": "這個主題還沒有投票。",
+		"createFirst": "建立第一個投票",
+		"joinToCreate": "加入後即可發起投票"
 	},
 	"poll": {
 		"vote": "投票",
@@ -211,7 +232,8 @@
 		"cancelPollBody": "投票不會開始，也不會通知任何人。",
 		"keepPoll": "保留投票",
 		"cancelFailed": "無法取消投票，請再試一次。",
-		"stamp": "已投票"
+		"stamp": "已投票",
+		"discuss": "討論"
 	},
 	"auth": {
 		"continueWithEmail": "使用電子郵件繼續",
@@ -236,5 +258,24 @@
 		"displayNameTooLong": "請少於 100 個字元。",
 		"finish": "完成",
 		"skip": "先跳過"
+	},
+	"comments": {
+		"title": "討論",
+		"placeholder": "你為什麼這樣投？說說你的理由",
+		"post": "發佈",
+		"you": "你",
+		"empty": "還沒有留言，來說說你的選擇吧。",
+		"signInToRead": "登入後即可閱讀並參與討論。",
+		"signIn": "登入",
+		"loadFailed": "無法載入留言。",
+		"retry": "重試",
+		"loadMore": "顯示較早的留言",
+		"edited": "已編輯",
+		"edit": "編輯",
+		"like": "喜歡",
+		"deleteConfirm": "要刪除這則留言嗎？",
+		"postFailed": "留言發佈失敗，請再試一次。",
+		"editFailed": "無法儲存編輯。",
+		"deleteFailed": "無法刪除留言。"
 	}
 }

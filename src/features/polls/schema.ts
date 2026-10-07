@@ -9,6 +9,7 @@ export const POLL_TAGS_LIMIT = 5;
 
 const DateTime = z.string().datetime({ offset: true });
 
+/** `author` is the commenter's username. */
 export const CommentSchema = z.object({
 	id: z.string(),
 	voteId: z.string().optional(),
@@ -16,7 +17,7 @@ export const CommentSchema = z.object({
 	author: z.string(),
 	text: z.string(),
 	createdAt: DateTime,
-	updatedAt: DateTime.optional(),
+	updatedAt: DateTime.nullish(),
 	likeCount: z.number().int().optional(),
 	edited: z.boolean().optional(),
 	likedByCurrentUser: z.boolean().optional(),

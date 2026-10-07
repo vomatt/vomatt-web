@@ -32,6 +32,7 @@ describe('cursorPageSchema()', () => {
 		expect(Page.parse({ content: [{ id: 'a' }], total: 45, page: 2, limit: 20 })).toEqual({
 			items: [{ id: 'a' }],
 			nextCursor: '3',
+			total: 45,
 		});
 	});
 

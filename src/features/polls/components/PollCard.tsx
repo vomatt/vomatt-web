@@ -10,12 +10,13 @@ import { useHydrated } from '@/hooks/useHydrated';
 
 import { formatFromNow } from '../format';
 import { useBallot } from '../hooks/useBallot';
+import { useComments } from '../hooks/useComments';
 import { useRequireAuth } from '../hooks/useRequireAuth';
-import type { Comment, Poll } from '../schema';
+import type { Poll } from '../schema';
 import { getPollForViewer } from '../service';
 import { derivePollStatus } from '../status';
 import { Ballot } from './Ballot';
-import { CardComments } from './CardComments';
+import { CommentThread } from './CommentThread';
 import { OwnerActions } from './OwnerActions';
 import { PollFooter } from './PollFooter';
 import { Results } from './Results';
@@ -25,16 +26,18 @@ interface PollCardProps {
 	poll: Poll;
 	/** The signed-in viewer's user id (the session `sub`). */
 	viewerId?: string;
+	/** The detail page opens the discussion right away. */
+	defaultShowComments?: boolean;
 }
 
 /** Shows the Ballot until the Poll Ends, then the Results. Whether the viewer voted doesn't matter. */
-export function PollCard({ poll: initialPoll, viewerId }: PollCardProps) {
+export function PollCard({ poll: initialPoll, viewerId, defaultShowComments = false }: PollCardProps) {
 	const { currentLanguage } = useLanguage();
 	const isHydrated = useHydrated();
 	const [poll, setPoll] = useState(initialPoll);
-	const [showComments, setShowComments] = useState(false);
-	const [comments, setComments] = useState<Comment[]>([]);
+	const [showComments, setShowComments] = useState(defaultShowComments);
 	const { isAuthed, requireAuth, authDialog } = useRequireAuth(!!viewerId);
+	const thread = useComments(initialPoll.id, { enabled: showComments });
 
 	const refetch = useCallback(async () => {
 		const fresh = await getPollForViewer(poll.id).catch(() => null);
@@ -111,17 +114,12 @@ export function PollCard({ poll: initialPoll, viewerId }: PollCardProps) {
 				pollId={id}
 				title={title}
 				turnout={ballot.turnout}
-				commentCount={comments.length}
+				commentCount={thread.total}
 				onToggleComments={() => setShowComments((value) => !value)}
 			/>
 
 			{showComments && (
-				<CardComments
-					pollId={id}
-					comments={comments}
-					setComments={setComments}
-					requireAuth={requireAuth}
-				/>
+				<CommentThread thread={thread} viewerId={viewerId} requireAuth={requireAuth} />
 			)}
 
 			{authDialog.open && <AuthDialog {...authDialog} />}

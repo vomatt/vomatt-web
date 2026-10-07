@@ -26,3 +26,12 @@ export function derivePollStatus(poll: StatusFields, now: Date | number = Date.n
 export function getTurnout(poll: Pick<Poll, 'participantCount' | 'totalVotes'>) {
 	return poll.participantCount ?? poll.totalVotes;
 }
+
+/** How far through its voting window the Poll is, 0–100. */
+export function timelineProgress(poll: Pick<Poll, 'startTime' | 'endTime'>, now = Date.now()) {
+	if (!poll.endTime) return null;
+	const start = Date.parse(poll.startTime);
+	const end = Date.parse(poll.endTime);
+	if (end <= start) return 100;
+	return Math.min(100, Math.max(0, ((now - start) / (end - start)) * 100));
+}

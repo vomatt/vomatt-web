@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
-export type CursorPage<T> = { items: T[]; nextCursor: string | null };
+/** `total` is known only when the API sends it. */
+export type CursorPage<T> = { items: T[]; nextCursor: string | null; total?: number };
 
 /**
  * Parses `{ items, nextCursor }`, and also the page shapes the API returns
@@ -29,6 +30,7 @@ export function cursorPageSchema<T extends z.ZodTypeAny>(item: T) {
 		.transform((page) => ({
 			items: page.content,
 			nextCursor: page.page * page.limit < page.total ? String(page.page + 1) : null,
+			total: page.total,
 		}));
 
 	return z.union([cursorShape, pageResponseShape, springShape]) as unknown as z.ZodType<

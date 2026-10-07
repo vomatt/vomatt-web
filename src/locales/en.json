@@ -81,18 +81,33 @@
 	},
 	"explore": {
 		"title": "Explore",
-		"searchPlaceholder": "Search polls...",
+		"searchPlaceholder": "Search polls and options…",
 		"filterAll": "All",
-		"filterActive": "Active",
+		"filterActive": "Open",
 		"filterEnded": "Ended",
 		"sortNewest": "Newest",
 		"sortMostVotes": "Most Votes",
-		"noResults": "No polls found."
+		"noResults": "No polls found.",
+		"topics": "Browse by topic",
+		"status": "Status",
+		"sort": "Sort",
+		"sortEnding": "Ending soon",
+		"recentOnly": "Search covers the 50 most recent polls."
 	},
 	"pollDetail": {
 		"backToFeed": "Back",
 		"share": "Share",
-		"notFound": "Poll not found."
+		"notFound": "Poll not found.",
+		"askedBy": "Asked by",
+		"opened": "Opened {date}",
+		"timeline": "Voting window",
+		"revealsIn": "Results reveal {distance}",
+		"resultsIn": "Voting has closed. Results are in.",
+		"noEnd": "No end time set",
+		"participants": "people voted",
+		"topics": "Topics",
+		"sealedExplainer": "Votes stay sealed until the poll ends, so no one is swayed by the running count. You can change or withdraw your vote until then.",
+		"shareCta": "Invite others to vote"
 	},
 	"profile": {
 		"polls": "Polls",
@@ -172,7 +187,13 @@
 		"discardEdit": "Discard"
 	},
 	"homePage": {
-		"feedListNoData": "Start the poll, lead the crowd."
+		"feedListNoData": "Start the poll, lead the crowd.",
+		"allTopics": "All",
+		"topics": "Topics",
+		"feedFailed": "Couldn't load polls right now.",
+		"topicEmpty": "No polls on this topic yet.",
+		"createFirst": "Create the first poll",
+		"joinToCreate": "Join to start a poll"
 	},
 	"poll": {
 		"vote": "Vote",
@@ -215,7 +236,8 @@
 		"cancelPollBody": "It won't open, and no one will be notified.",
 		"keepPoll": "Keep poll",
 		"cancelFailed": "Couldn't cancel the poll. Try again.",
-		"stamp": "Voted"
+		"stamp": "Voted",
+		"discuss": "Discuss"
 	},
 	"auth": {
 		"continueWithEmail": "Continue with email",
@@ -240,5 +262,24 @@
 		"displayNameTooLong": "Keep it under 100 characters.",
 		"finish": "Finish",
 		"skip": "Skip for now"
+	},
+	"comments": {
+		"title": "Discussion",
+		"placeholder": "Why did you vote the way you did?",
+		"post": "Post",
+		"you": "You",
+		"empty": "No comments yet. Make the case for your choice.",
+		"signInToRead": "Sign in to read and join the discussion.",
+		"signIn": "Sign in",
+		"loadFailed": "Couldn't load comments.",
+		"retry": "Try again",
+		"loadMore": "Show older comments",
+		"edited": "edited",
+		"edit": "Edit",
+		"like": "Like",
+		"deleteConfirm": "Delete this comment?",
+		"postFailed": "Couldn't post your comment. Try again.",
+		"editFailed": "Couldn't save your edit.",
+		"deleteFailed": "Couldn't delete the comment."
 	}
 }

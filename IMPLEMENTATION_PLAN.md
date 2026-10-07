@@ -31,7 +31,7 @@ The web adapts to that contract; backend gaps are listed in `docs/release/backen
 ## Stage 4: Poll detail + comments
 **Goal**: Detail page that invites participation: context, timeline, turnout, share, threaded comments (post/edit/delete/like).
 **Tests**: comments component tests (post, optimistic like, delete own).
-**Status**: Not Started
+**Status**: Complete
 
 ## Stage 5: Account page
 **Goal**: Profile summary, stats, my polls by status, voting activity, settings (display name/bio/visibility), logout.

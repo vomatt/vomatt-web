@@ -5,16 +5,20 @@ import { unstable_rethrow } from 'next/navigation';
 
 import { getUserSession } from '@/data/auth';
 import { apiClient, ApiError, AuthError, publicFetch } from '@/lib/api/client';
-import { cursorPageSchema } from '@/lib/api/cursor';
+import { type CursorPage, cursorPageSchema } from '@/lib/api/cursor';
 
 import { FEED_TAG, pollTag } from './cache';
 import type { ActionFailure, ActionResult } from './errors';
 import {
+	type Comment,
+	CommentSchema,
 	type Poll,
 	type PollInput,
 	type PollResults,
 	PollResultsSchema,
 	PollSchema,
+	type TagDto,
+	TagDtoSchema,
 	UserVoteStatusSchema,
 } from './schema';
 
@@ -87,6 +91,20 @@ export async function getFeed(cursor?: string | null, size = 10, tag?: string) {
 	const page = PollPage.parse(data);
 	if (!session) return page;
 	return { ...page, items: await Promise.all(page.items.map(withMyBallot)) };
+}
+
+const TagPage = cursorPageSchema(TagDtoSchema);
+
+/** Most-used topics first, for the feed's topic tabs. Empty when the API is down. */
+export async function getPopularTags(size = 12): Promise<TagDto[]> {
+	try {
+		const data = await publicFetch(`/tags/popular?page=1&size=${size}`, {
+			next: { revalidate: 300 },
+		} as RequestInit);
+		return TagPage.parse(data).items;
+	} catch {
+		return [];
+	}
 }
 
 /**
@@ -169,7 +187,9 @@ export async function castBallot(pollId: string, optionId: string): Promise<Acti
 			method: 'POST',
 			body: JSON.stringify({ optionIds: [optionId] }),
 		});
+		// Turnout shows in the feed too
 		updateTag(pollTag(pollId));
+		updateTag(FEED_TAG);
 	});
 }
 
@@ -178,6 +198,7 @@ export async function retractBallot(pollId: string, optionId: string): Promise<A
 	return attempt(async () => {
 		await apiClient(`/votes/${pollId}/vote/${optionId}`, { method: 'DELETE' });
 		updateTag(pollTag(pollId));
+		updateTag(FEED_TAG);
 	});
 }
 
@@ -215,46 +236,74 @@ export async function closePoll(id: string): Promise<ActionResult> {
 
 // ── Comments ─────────────────────────────────────────────────────────────────
 
-export async function getComments(pollId: string, page = 0, size = 20) {
-	const params = new URLSearchParams({
-		page: String(page),
-		size: String(size),
+const CommentPage = cursorPageSchema(CommentSchema);
+const COMMENT_PAGE_SIZE = 20;
+
+/** Newest first. The API only shows comments to signed-in users today: a 401 means "sign in to read". */
+export async function getComments(
+	pollId: string,
+	cursor?: string | null
+): Promise<ActionResult<CursorPage<Comment>>> {
+	return attempt(async () => {
+		const params = new URLSearchParams({
+			page: cursor ?? '1',
+			size: String(COMMENT_PAGE_SIZE),
+			sort: 'createdAt,desc',
+		});
+		const data = await apiClient(`/votes/${pollId}/comments?${params}`, {
+			auth: 'optional',
+			cache: 'no-store',
+		});
+		return CommentPage.parse(data);
 	});
-	return apiClient(`/votes/${pollId}/comments?${params}`);
 }
 
-export async function postComment(pollId: string, text: string) {
-	return apiClient(`/votes/${pollId}/comments`, {
-		method: 'POST',
-		body: JSON.stringify({ text }),
-	});
+export async function postComment(pollId: string, text: string): Promise<ActionResult<Comment>> {
+	return attempt(async () =>
+		CommentSchema.parse(
+			await apiClient(`/votes/${pollId}/comments`, {
+				method: 'POST',
+				body: JSON.stringify({ text }),
+			})
+		)
+	);
 }
 
 export async function updateComment(
 	voteId: string,
 	commentId: string,
 	text: string
-) {
-	return apiClient(`/votes/${voteId}/comments/${commentId}`, {
-		method: 'PUT',
-		body: JSON.stringify({ text }),
+): Promise<ActionResult<Comment>> {
+	return attempt(async () =>
+		CommentSchema.parse(
+			await apiClient(`/votes/${voteId}/comments/${commentId}`, {
+				method: 'PUT',
+				body: JSON.stringify({ text }),
+			})
+		)
+	);
+}
+
+export async function deleteComment(voteId: string, commentId: string): Promise<ActionResult> {
+	return attempt(async () => {
+		await apiClient(`/votes/${voteId}/comments/${commentId}`, {
+			method: 'DELETE',
+		});
 	});
 }
 
-export async function deleteComment(voteId: string, commentId: string) {
-	return apiClient(`/votes/${voteId}/comments/${commentId}`, {
-		method: 'DELETE',
+export async function likeComment(voteId: string, commentId: string): Promise<ActionResult> {
+	return attempt(async () => {
+		await apiClient(`/votes/${voteId}/comments/${commentId}/like`, {
+			method: 'POST',
+		});
 	});
 }
 
-export async function likeComment(voteId: string, commentId: string) {
-	return apiClient(`/votes/${voteId}/comments/${commentId}/like`, {
-		method: 'POST',
-	});
-}
-
-export async function unlikeComment(voteId: string, commentId: string) {
-	return apiClient(`/votes/${voteId}/comments/${commentId}/like`, {
-		method: 'DELETE',
+export async function unlikeComment(voteId: string, commentId: string): Promise<ActionResult> {
+	return attempt(async () => {
+		await apiClient(`/votes/${voteId}/comments/${commentId}/like`, {
+			method: 'DELETE',
+		});
 	});
 }

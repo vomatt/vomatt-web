@@ -23,6 +23,7 @@ const mockGetMyBallot = jest.fn();
 const mockGetPoll = jest.fn();
 const mockGetResults = jest.fn();
 const mockPostComment = jest.fn();
+const mockGetComments = jest.fn();
 const mockClosePoll = jest.fn();
 
 jest.mock('@/features/polls/service', () => ({
@@ -33,6 +34,7 @@ jest.mock('@/features/polls/service', () => ({
 	getPollForViewer: (...args: any[]) => mockGetPoll(...args),
 	getResults: (...args: any[]) => mockGetResults(...args),
 	postComment: (...args: any[]) => mockPostComment(...args),
+	getComments: (...args: any[]) => mockGetComments(...args),
 }));
 
 jest.mock('@/components/auth/AuthDialog', () => ({
@@ -394,12 +396,17 @@ describe('PollCard signed-out visitor', () => {
 	});
 
 	it('opens sign-in on posting a comment, then posts it', async () => {
+		mockGetComments.mockResolvedValue({ ok: true, data: { items: [], nextCursor: null, total: 0 } });
+		mockPostComment.mockResolvedValue({
+			ok: true,
+			data: { id: 'c1', author: 'voter', text: 'Hello', createdAt: '2026-10-05T00:00:00Z' },
+		});
 		render(<PollCard poll={openPoll} />);
-		fireEvent.click(screen.getByText('0 comments'));
-		fireEvent.change(screen.getByPlaceholderText('Add a comment…'), {
+		fireEvent.click(screen.getByText('Discuss'));
+		fireEvent.change(await screen.findByPlaceholderText('Why did you vote the way you did?'), {
 			target: { value: 'Hello' },
 		});
-		fireEvent.click(screen.getByText('Post'));
+		fireEvent.click(screen.getByRole('button', { name: 'Post' }));
 
 		expect(screen.getByTestId('auth-dialog')).toBeInTheDocument();
 		await act(async () => {
@@ -407,5 +414,39 @@ describe('PollCard signed-out visitor', () => {
 		});
 		expect(mockPostComment).toHaveBeenCalledWith('poll-1', 'Hello');
 		expect(screen.queryByTestId('auth-dialog')).not.toBeInTheDocument();
+		expect(await screen.findByText('Hello')).toBeInTheDocument();
+		expect(screen.getByText('1 comment')).toBeInTheDocument();
+	});
+
+	it('asks a guest to sign in when the API keeps comments to members, then loads them', async () => {
+		mockGetComments.mockResolvedValueOnce({ ok: false, status: 401, message: 'Unauthorized' });
+		mockGetComments.mockResolvedValueOnce({
+			ok: true,
+			data: {
+				items: [{ id: 'c1', author: 'mei', text: 'Saturday works', createdAt: '2026-10-05T00:00:00Z' }],
+				nextCursor: null,
+				total: 1,
+			},
+		});
+		render(<PollCard poll={openPoll} />);
+		fireEvent.click(screen.getByText('Discuss'));
+
+		fireEvent.click(await screen.findByRole('button', { name: 'Sign in' }));
+		await act(async () => {
+			fireEvent.click(screen.getByText('Mock Auth Success'));
+		});
+		expect(await screen.findByText('Saturday works')).toBeInTheDocument();
+	});
+
+	it('keeps the comment text when the guest backs out of sign-in', async () => {
+		mockGetComments.mockResolvedValue({ ok: true, data: { items: [], nextCursor: null, total: 0 } });
+		render(<PollCard poll={openPoll} />);
+		fireEvent.click(screen.getByText('Discuss'));
+		const box = await screen.findByPlaceholderText('Why did you vote the way you did?');
+		fireEvent.change(box, { target: { value: 'Draft' } });
+		fireEvent.click(screen.getByRole('button', { name: 'Post' }));
+
+		expect(mockPostComment).not.toHaveBeenCalled();
+		expect(box).toHaveValue('Draft');
 	});
 });
