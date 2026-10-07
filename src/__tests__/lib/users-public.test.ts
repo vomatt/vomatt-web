@@ -19,7 +19,7 @@ describe('getFollowers()', () => {
   it('calls the correct followers URL', async () => {
     await getFollowers('alice');
     expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('/api/v1/users/alice/followers')
+      expect.stringContaining('/api/users/alice/followers')
     );
   });
 
@@ -35,7 +35,7 @@ describe('getFollowing()', () => {
   it('calls the correct following URL', async () => {
     await getFollowing('bob');
     expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('/api/v1/users/bob/following')
+      expect.stringContaining('/api/users/bob/following')
     );
   });
 

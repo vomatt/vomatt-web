@@ -1,5 +1,4 @@
 import { apiClient, publicFetch } from '@/lib/api/client';
-
 import {
   deleteUser,
   followUser,
@@ -12,7 +11,7 @@ import {
 jest.mock('@/lib/api/client', () => ({
   apiClient: jest.fn(),
   publicFetch: jest.fn(),
-  API_BASE_PATH: '/api/v1',
+  API_BASE_PATH: '/api',
 }));
 
 const mockApiClient = apiClient as jest.MockedFunction<typeof apiClient>;

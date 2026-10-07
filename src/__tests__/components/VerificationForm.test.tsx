@@ -1,5 +1,6 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import VerificationForm from '@/components/auth/VerificationForm';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+
+import VerificationForm, { RESEND_COOLDOWN_SECONDS } from '@/components/auth/VerificationForm';
 
 // Polyfill APIs missing in jsdom (used by input-otp)
 global.ResizeObserver = class {
@@ -12,17 +13,8 @@ if (!document.elementFromPoint) {
 	document.elementFromPoint = () => null;
 }
 
-const mockReplace = jest.fn();
-jest.mock('next/navigation', () => ({
-	useRouter: () => ({ replace: mockReplace }),
-}));
-
 jest.mock('@/contexts/LanguageContext', () => ({
 	useLanguage: () => ({ t: (key: string) => key }),
-}));
-
-jest.mock('@/lib/api/services/auth', () => ({
-	resendVerification: jest.fn(),
 }));
 
 beforeEach(() => {
@@ -30,83 +22,61 @@ beforeEach(() => {
 });
 
 function fillOTP(value: string) {
-	const inputs = document.querySelectorAll('input');
-	inputs.forEach((input) => {
-		fireEvent.change(input, { target: { value } });
-	});
+	fireEvent.change(screen.getByLabelText('verificationCode.inputLabel'), { target: { value } });
+}
+
+function renderForm(overrides: Partial<React.ComponentProps<typeof VerificationForm>> = {}) {
+	const props = {
+		email: 'test@example.com',
+		onSubmitCode: jest.fn().mockResolvedValue({ status: 'OK' }),
+		onResend: jest.fn().mockResolvedValue({ status: 'OK' }),
+		onEditEmail: jest.fn(),
+		...overrides,
+	};
+	render(<VerificationForm {...props} />);
+	return props;
 }
 
 describe('VerificationForm', () => {
-	const baseProps = {
-		email: 'test@example.com',
-		backButtonFunc: jest.fn(),
-	};
-
-	it('calls onSuccess instead of router.replace when onSuccess is provided', async () => {
-		const onSuccess = jest.fn();
-		const submitCodeFunc = jest
-			.fn()
-			.mockResolvedValue({ status: 'OK' });
-
-		render(
-			<VerificationForm
-				{...baseProps}
-				submitCodeFunc={submitCodeFunc}
-				onSuccess={onSuccess}
-			/>
-		);
-
+	it('submits the code as soon as six digits are entered', async () => {
+		const { onSubmitCode } = renderForm();
 		fillOTP('123456');
-		fireEvent.submit(screen.getByRole('button', { name: 'common.continue' }));
-
-		await waitFor(() => {
-			expect(onSuccess).toHaveBeenCalled();
-		});
-		expect(mockReplace).not.toHaveBeenCalled();
+		await waitFor(() => expect(onSubmitCode).toHaveBeenCalledWith('123456'));
 	});
 
-	it('calls router.replace(redirectTo) when onSuccess is not provided', async () => {
-		const submitCodeFunc = jest
-			.fn()
-			.mockResolvedValue({ status: 'OK' });
-
-		render(
-			<VerificationForm
-				{...baseProps}
-				submitCodeFunc={submitCodeFunc}
-				redirectTo="/my-polls"
-			/>
-		);
-
-		fillOTP('123456');
-		fireEvent.submit(screen.getByRole('button', { name: 'common.continue' }));
-
-		await waitFor(() => {
-			expect(mockReplace).toHaveBeenCalledWith('/my-polls');
+	it('shows the mapped error and clears the input on a wrong code', async () => {
+		renderForm({
+			onSubmitCode: jest.fn().mockResolvedValue({ status: 'ERROR', error: 'invalidCode' }),
 		});
+		fillOTP('000000');
+		expect(await screen.findByRole('alert')).toHaveTextContent('authError.invalidCode');
+		expect(screen.getByLabelText('verificationCode.inputLabel')).toHaveValue('');
 	});
 
-	it('does not call onSuccess when verification fails', async () => {
-		const onSuccess = jest.fn();
-		const submitCodeFunc = jest
-			.fn()
-			.mockResolvedValue({ status: 'ERROR', message: 'invalidCode' });
+	it('goes back to edit the email', () => {
+		const { onEditEmail } = renderForm();
+		fireEvent.click(screen.getByText('verificationCode.useAnotherEmail'));
+		expect(onEditEmail).toHaveBeenCalled();
+	});
 
-		render(
-			<VerificationForm
-				{...baseProps}
-				submitCodeFunc={submitCodeFunc}
-				onSuccess={onSuccess}
-			/>
-		);
+	it('only offers resend after the cooldown, then restarts it', async () => {
+		jest.useFakeTimers();
+		try {
+			const { onResend } = renderForm();
+			expect(screen.queryByText('verificationCode.resendVerificationCode')).not.toBeInTheDocument();
 
-		fillOTP('123456');
-		fireEvent.submit(screen.getByRole('button', { name: 'common.continue' }));
+			for (let i = 0; i < RESEND_COOLDOWN_SECONDS; i++) {
+				act(() => {
+					jest.advanceTimersByTime(1000);
+				});
+			}
+			fireEvent.click(screen.getByText('verificationCode.resendVerificationCode'));
 
-		await waitFor(() => {
-			expect(submitCodeFunc).toHaveBeenCalledWith('123456');
-		});
-		expect(onSuccess).not.toHaveBeenCalled();
-		expect(mockReplace).not.toHaveBeenCalled();
+			await waitFor(() => expect(onResend).toHaveBeenCalled());
+			expect(await screen.findByText('verificationCode.codeSent')).toBeInTheDocument();
+			expect(screen.queryByText('verificationCode.resendVerificationCode')).not.toBeInTheDocument();
+		} finally {
+			jest.useRealTimers();
+		}
 	});
 });

@@ -8,14 +8,26 @@ const SECRET = 'test-secret-for-proxy-test-0123456789';
 process.env.SESSION_SECRET = SECRET;
 process.env.API_URL = 'https://api.example.test';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+ 
 const { proxy } = require('@/proxy') as typeof import('@/proxy');
 
-function signToken() {
+function signToken(expiresIn = '15m') {
 	return new SignJWT({ sub: 'user-1' })
 		.setProtectedHeader({ alg: 'HS512' })
-		.setExpirationTime('15m')
+		.setExpirationTime(expiresIn)
 		.sign(new TextEncoder().encode(SECRET));
+}
+
+function refreshResponse(accessToken: string, refreshToken = 'r2', status = 200) {
+	return new Response(
+		JSON.stringify({ success: true, data: { token: accessToken, refreshToken } }),
+		{ status, headers: { 'Content-Type': 'application/json' } }
+	);
+}
+
+/** The cookies Server Components will see for this request. */
+function forwardedCookies(res: Response) {
+	return res.headers.get('x-middleware-request-cookie') ?? '';
 }
 
 function requestFor(path: string, cookies: Record<string, string> = {}) {
@@ -60,11 +72,7 @@ describe('proxy auth', () => {
 
 	it('refreshes an invalid access token and sets new cookies', async () => {
 		const fresh = await signToken();
-		fetchMock.mockResolvedValue(
-			new Response(JSON.stringify({ accessToken: fresh, refreshToken: 'r2' }), {
-				status: 200,
-			})
-		);
+		fetchMock.mockResolvedValue(refreshResponse(fresh));
 
 		const res = await proxy(
 			requestFor('/account', { accessToken: 'garbage', refreshToken: 'r1' })
@@ -75,13 +83,57 @@ describe('proxy auth', () => {
 		expect(res.cookies.get('refreshToken')?.value).toBe('r2');
 	});
 
+	it('forwards refreshed tokens to the same request, so rendering does not refresh again', async () => {
+		const fresh = await signToken();
+		fetchMock.mockResolvedValue(refreshResponse(fresh));
+
+		const res = await proxy(requestFor('/', { refreshToken: 'r1' }));
+
+		expect(forwardedCookies(res)).toContain(`accessToken=${fresh}`);
+		expect(forwardedCookies(res)).toContain('refreshToken=r2');
+	});
+
+	it('refreshes an access token that is about to expire', async () => {
+		const fresh = await signToken();
+		fetchMock.mockResolvedValue(refreshResponse(fresh));
+
+		const res = await proxy(
+			requestFor('/', { accessToken: await signToken('30s'), refreshToken: 'r1' })
+		);
+
+		expect(fetchMock).toHaveBeenCalledTimes(1);
+		expect(res.cookies.get('accessToken')?.value).toBe(fresh);
+	});
+
+	it('does not refresh a valid access token', async () => {
+		await proxy(requestFor('/', { accessToken: await signToken(), refreshToken: 'r1' }));
+		expect(fetchMock).not.toHaveBeenCalled();
+	});
+
+	it('clears a refresh token the backend rejects and says the session expired', async () => {
+		fetchMock.mockResolvedValue(new Response('{}', { status: 401 }));
+
+		const res = await proxy(requestFor('/account', { refreshToken: 'dead' }));
+
+		expect(res.headers.get('location')).toBe(
+			'http://localhost:3000/login?redirect=%2Faccount&session_expired=1'
+		);
+		expect(res.cookies.get('refreshToken')?.value).toBe('');
+		expect(res.cookies.get('accessToken')?.value).toBe('');
+	});
+
+	it('keeps the cookies when the backend is unreachable', async () => {
+		jest.spyOn(console, 'error').mockImplementation(() => {});
+		fetchMock.mockRejectedValue(new TypeError('fetch failed'));
+
+		const res = await proxy(requestFor('/', { refreshToken: 'r1' }));
+
+		expect(res.cookies.get('refreshToken')).toBeUndefined();
+	});
+
 	it('keeps refreshed cookies when redirecting away from login', async () => {
 		const fresh = await signToken();
-		fetchMock.mockResolvedValue(
-			new Response(JSON.stringify({ accessToken: fresh, refreshToken: 'r2' }), {
-				status: 200,
-			})
-		);
+		fetchMock.mockResolvedValue(refreshResponse(fresh));
 
 		const res = await proxy(requestFor('/login', { refreshToken: 'r1' }));
 
@@ -91,5 +143,10 @@ describe('proxy auth', () => {
 			value: 'r2',
 			httpOnly: true,
 		});
+	});
+
+	it('redirects a signed-in user away from signup', async () => {
+		const res = await proxy(requestFor('/signup', { accessToken: await signToken() }));
+		expect(res.headers.get('location')).toBe('http://localhost:3000/');
 	});
 });

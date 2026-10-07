@@ -1,4 +1,5 @@
-'use server';
+import 'server-only';
+
 import { cookies } from 'next/headers';
 import { cache } from 'react';
 
@@ -9,7 +10,10 @@ import { getMyProfile as fetchMyProfile } from '@/lib/api/services/users';
 import { MyProfile } from '@/types/user';
 
 export interface Session {
+	/** The user id. */
 	sub: string;
+	email?: string;
+	roles?: string[];
 	exp?: number;
 	iat?: number;
 }
@@ -25,7 +29,8 @@ export const getUserSession = cache(async (): Promise<Session | null> => {
 	if (accessTokenCookie?.value) {
 		const payload = await decodeToken(accessTokenCookie.value);
 		if (payload?.sub) {
-			return { sub: payload.sub, exp: payload.exp, iat: payload.iat };
+			const { sub, email, roles, exp, iat } = payload;
+			return { sub, email, roles, exp, iat };
 		}
 	}
 	return null;

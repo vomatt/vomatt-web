@@ -5,7 +5,7 @@
 	"scripts": {
 		"dev": "next",
 		"build": "next build",
-		"lint": "next lint",
+		"lint": "eslint src",
 		"start": "vercel dev",
 		"start:web": "next start",
 		"test": "jest",

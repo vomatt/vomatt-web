@@ -8,7 +8,9 @@ export const STATUS_LOG_IN = 'STATUS_LOG_IN';
 export const STATUS_SIGN_UP = 'STATUS_SIGN_UP';
 export const STATUS_VERIFICATION = 'STATUS_VERIFICATION';
 
-export const SYSTEM_ERROR = 'SYSTEM_ERROR';
 
-export const ACCESS_TOKEN_EXPIRY = 15 * 60; // 15 minutes
-export const REFRESH_TOKEN_EXPIRY = 7 * 24 * 60 * 60; // 7 days
+// Fallbacks; the access cookie normally follows the token's own `exp`.
+export const ACCESS_TOKEN_EXPIRY = 60 * 60; // 1 hour, the backend default
+export const REFRESH_TOKEN_EXPIRY = 30 * 24 * 60 * 60; // 30 days, the backend default
+/** Refresh this long before the access token expires, so a request never carries a token that dies mid-flight. */
+export const ACCESS_TOKEN_REFRESH_LEEWAY = 60; // seconds

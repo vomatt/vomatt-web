@@ -2,12 +2,12 @@
 
 import { Button } from '@/components/ui/Button';
 import { Separator } from '@/components/ui/Separator';
-import { logout } from '@/lib/api/auth';
+import { Poll } from '@/features/polls/schema';
+import { signout } from '@/lib/api/services/auth';
 import { MyProfile, UserProfile } from '@/types/user';
 
 import ProfileHeader from '../../profile/[username]/_components/ProfileHeader';
 import ProfilePollList from '../../profile/[username]/_components/ProfilePollList';
-import { Poll } from '@/features/polls/schema';
 
 export type AccountPageProps = {
 	profile: MyProfile;
@@ -39,7 +39,7 @@ export default function AccountPage({ profile, polls }: AccountPageProps) {
 			</div>
 			<Separator />
 			<div className="flex justify-end">
-				<Button variant="destructive" onClick={() => logout()}>
+				<Button variant="destructive" onClick={() => signout()}>
 					Log out
 				</Button>
 			</div>

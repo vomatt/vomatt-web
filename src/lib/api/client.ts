@@ -1,11 +1,4 @@
-import { redirect, RedirectType } from 'next/navigation';
-
-import {
-	clearAuthTokens,
-	getTokens,
-	refreshTokens,
-	setAuthTokens,
-} from '@/lib/api/auth';
+import { getTokens } from '@/lib/api/auth';
 import { API_BASE_PATH } from '@/lib/api/constants';
 
 export { API_BASE_PATH } from '@/lib/api/constants';
@@ -82,6 +75,15 @@ export async function publicFetch<T = any>(
 	return parseApiResponseBody<T>(response);
 }
 
+/**
+ * Fetches a backend endpoint as the signed-in user.
+ *
+ * Tokens are refreshed only in the proxy, before the request reaches React:
+ * the backend rotates refresh tokens, and a rotation made here during a
+ * Server Component render could not be saved to the browser, which would sign
+ * the user out everywhere on their next request. A 401 here means the session
+ * is really over.
+ */
 export async function apiClient<T = any>(
 	endpoint: string,
 	options: ApiFetchOptions = {}
@@ -93,61 +95,25 @@ export async function apiClient<T = any>(
 		...fetchOptions
 	} = options;
 
-	const baseUrl = process.env.API_URL;
-
 	const headers = new Headers(customHeaders);
 	if (!isFormData && !headers.has('Content-Type')) {
 		headers.set('Content-Type', 'application/json');
 	}
 
-	let tokens = await getTokens();
-
-	if (!tokens) {
+	const accessToken = (await getTokens())?.accessToken;
+	if (!accessToken) {
 		if (auth === 'optional') return publicFetch<T>(endpoint, { ...fetchOptions, headers });
 		throw new AuthError('Not authenticated. Please log in.');
 	}
 
-	// If access token is missing but refresh token exists, refresh proactively
-	if (!tokens.accessToken && tokens.refreshToken) {
-		const newTokens = await refreshTokens(tokens.refreshToken);
-		if (!newTokens) {
-			await clearAuthTokens();
-			redirect('/login?session_expired=true', RedirectType.replace);
-		}
-		await setAuthTokens(newTokens);
-		tokens = newTokens;
-	}
+	headers.set('Authorization', `Bearer ${accessToken}`);
+	const response = await fetch(`${process.env.API_URL}${API_BASE_PATH}${endpoint}`, {
+		...fetchOptions,
+		headers,
+	});
 
-	// Add authorization header
-	if (tokens?.accessToken) {
-		headers.set('Authorization', `Bearer ${tokens.accessToken}`);
-	}
-
-	async function makeRequest(accessToken?: string): Promise<Response> {
-		const requestHeaders = new Headers(headers);
-		if (accessToken) {
-			requestHeaders.set('Authorization', `Bearer ${accessToken}`);
-		}
-
-		return fetch(`${baseUrl}${API_BASE_PATH}${endpoint}`, {
-			...fetchOptions,
-			headers: requestHeaders,
-			credentials: 'include', // Important for cookies
-		});
-	}
-
-	let response = await makeRequest(tokens?.accessToken);
-
-	if (response.status === 401 && tokens?.refreshToken) {
-		const newTokens = await refreshTokens(tokens.refreshToken);
-		if (!newTokens) {
-			await clearAuthTokens();
-
-			redirect('/login?session_expired=true', RedirectType.replace);
-		}
-
-		await setAuthTokens(newTokens);
-		response = await makeRequest(newTokens.accessToken);
+	if (response.status === 401) {
+		throw new AuthError('Your session has expired. Please log in again.');
 	}
 
 	return parseApiResponseBody<T>(response);

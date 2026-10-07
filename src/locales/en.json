@@ -8,9 +8,6 @@
 		"login": "login",
 		"email": "email",
 		"signUp": "Sign up",
-		"firstName": "first name",
-		"lastName": "last name",
-		"username": "username",
 		"welcome": "Welcome",
 		"loading": "Loading...",
 		"error": "Something went wrong",
@@ -27,9 +24,7 @@
 		"comments": "comments",
 		"active": "Active",
 		"ended": "Ended",
-		"invalidEmailAddress": "Invalid email address",
-		"invalidName": "Invalid name",
-		"invalidUsername": "Usernames can only use letters, numbers, underscores and periods."
+		"invalidEmailAddress": "Invalid email address"
 	},
 	"navigation": {
 		"home": "Home",
@@ -51,24 +46,25 @@
 		"ctaLabel": "Log in"
 	},
 	"login": {
-		"title": "Log in",
-		"submit": "login",
+		"title": "Log in to Vomatt",
 		"footNote": "Don't have an account?",
-		"GENERATE_VERIFICATION_CODE_FAILED": "Fail to send the Verification Code",
-		"SYSTEM_ERROR": "Something went wrong, pleas try again later"
+		"subtitle": "Welcome back. We will email you a sign-in code.",
+		"sessionExpired": "Your session expired. Please log in again.",
+		"dialogDescription": "Log in or sign up with your email to continue"
 	},
 	"signup": {
-		"title": "Sign up to participate the people's voices",
-		"submit": "submit",
-		"alreadyHaveAccount": "Already have a account?"
+		"title": "Join the conversation",
+		"alreadyHaveAccount": "Already have an account?",
+		"subtitle": "Create an account with just your email. No password needed."
 	},
 	"verificationCode": {
-		"title": "We sent you a code",
-		"subtitle": "Enter it below to verify",
+		"title": "Check your email",
+		"subtitle": "Enter the 6-digit code we sent to",
 		"resendVerificationCode": "Resend verification code",
-		"codeSent": "A new code has been sent to your email",
-		"INVALID_VERIFICATION_CODE": "Wrong code",
-		"serverError": "Something went wrong, please try again later"
+		"codeSent": "A new code is on its way.",
+		"useAnotherEmail": "Use a different email",
+		"resendIn": "Resend code in {time}",
+		"inputLabel": "6-digit verification code"
 	},
 	"myPolls": {
 		"title": "My Polls",
@@ -219,5 +215,29 @@
 		"cancelPollBody": "It won't open, and no one will be notified.",
 		"keepPoll": "Keep poll",
 		"cancelFailed": "Couldn't cancel the poll. Try again."
+	},
+	"auth": {
+		"continueWithEmail": "Continue with email",
+		"passwordless": "New here? The same code creates your account."
+	},
+	"authError": {
+		"invalidCode": "That code is not right. Check the email and try again.",
+		"codeExpired": "This code has expired. Request a new one.",
+		"tooManyAttempts": "Too many wrong attempts. Request a new code.",
+		"resendCooldown": "A code was sent recently. Please wait before requesting another.",
+		"emailSendFailed": "We could not send the email. Check the address and try again.",
+		"accountSuspended": "This account has been suspended.",
+		"rateLimited": "Too many requests. Please wait a moment and try again.",
+		"invalidEmail": "Please enter a valid email address.",
+		"serverError": "Something went wrong. Please try again later."
+	},
+	"onboarding": {
+		"title": "What should we call you?",
+		"subtitle": "This is how other voters will see you.",
+		"displayName": "Display name",
+		"displayNameHint": "You can change it later in your account.",
+		"displayNameTooLong": "Keep it under 100 characters.",
+		"finish": "Finish",
+		"skip": "Skip for now"
 	}
 }

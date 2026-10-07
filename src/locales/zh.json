@@ -8,9 +8,6 @@
 		"login": "登入",
 		"email": "信箱",
 		"signUp": "註冊",
-		"firstName": "名字",
-		"lastName": "姓氏",
-		"username": "帳號",
 		"welcome": "歡迎",
 		"loading": "載入中",
 		"error": "發生錯誤",
@@ -27,9 +24,7 @@
 		"comments": "留言",
 		"active": "進行中",
 		"ended": "已結束",
-		"invalidEmailAddress": "信箱格式錯誤",
-		"invalidName": "名字格式錯誤",
-		"invalidUsername": "使用者名稱只能使用字母、數字、底線和句點"
+		"invalidEmailAddress": "信箱格式錯誤"
 	},
 	"navigation": {
 		"home": "首頁",
@@ -51,24 +46,26 @@
 		"ctaLabel": "登入"
 	},
 	"login": {
-		"title": "登入",
-		"submit": "登入",
+		"title": "登入 Vomatt",
 		"footNote": "沒有帳號嗎?",
-		"GENERATE_VERIFICATION_CODE_FAILED": "驗證碼發送失敗",
-		"SYSTEM_ERROR": "系統出現錯誤，請稍後重試"
+		"subtitle": "歡迎回來，我們會寄送登入驗證碼到你的信箱。",
+		"sessionExpired": "登入已過期，請重新登入。",
+		"dialogDescription": "使用電子郵件登入或註冊以繼續"
 	},
 	"signup": {
-		"title": "報名來參與大眾的聲音",
-		"submit": "註冊",
-		"alreadyHaveAccount": "已經有帳號了嗎？"
+		"title": "加入討論",
+		"alreadyHaveAccount": "已經有帳號了？",
+		"subtitle": "只需電子郵件即可建立帳號，不需要密碼。"
 	},
 	"verificationCode": {
-		"title": "我們已寄出驗證碼",
-		"subtitle": "輸入驗證碼來驗證",
+		"title": "請查看你的信箱",
+		"subtitle": "請輸入我們寄送的 6 位數驗證碼至",
 		"resendVerificationCode": "重新發送驗證碼",
-		"codeSent": "新的驗證碼已寄送至您的信箱",
+		"codeSent": "新的驗證碼已寄出。",
 		"invalidVerificationCode": "驗證碼錯誤",
-		"serverError": "系統出現錯誤，請稍後再試"
+		"useAnotherEmail": "使用其他電子郵件",
+		"resendIn": "{time} 後可重新寄送",
+		"inputLabel": "6 位數驗證碼"
 	},
 	"myPolls": {
 		"title": "我的投票",
@@ -214,5 +211,29 @@
 		"cancelPollBody": "投票不會開始，也不會通知任何人。",
 		"keepPoll": "保留投票",
 		"cancelFailed": "無法取消投票，請再試一次。"
+	},
+	"auth": {
+		"continueWithEmail": "使用電子郵件繼續",
+		"passwordless": "第一次使用？同一組驗證碼會為你建立帳號。"
+	},
+	"authError": {
+		"invalidCode": "驗證碼不正確，請確認信件後再試一次。",
+		"codeExpired": "驗證碼已過期，請重新取得。",
+		"tooManyAttempts": "錯誤次數過多，請重新取得驗證碼。",
+		"resendCooldown": "剛剛已寄出驗證碼，請稍候再試。",
+		"emailSendFailed": "無法寄送信件，請確認信箱後再試一次。",
+		"accountSuspended": "此帳號已被停權。",
+		"rateLimited": "請求過於頻繁，請稍後再試。",
+		"invalidEmail": "請輸入有效的電子郵件。",
+		"serverError": "發生錯誤，請稍後再試。"
+	},
+	"onboarding": {
+		"title": "我們該怎麼稱呼你？",
+		"subtitle": "其他投票者會看到這個名字。",
+		"displayName": "顯示名稱",
+		"displayNameHint": "之後可以在帳號頁面修改。",
+		"displayNameTooLong": "請少於 100 個字元。",
+		"finish": "完成",
+		"skip": "先跳過"
 	}
 }

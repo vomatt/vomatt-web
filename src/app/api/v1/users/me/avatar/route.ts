@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { ACCESS_TOKEN } from '@/data/constants';
 import { decodeToken } from '@/lib/api/auth';
+
 import { avatars } from '../../_mock-store';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
@@ -23,7 +24,8 @@ async function getCallerUsername(req: NextRequest): Promise<string | null> {
   const token = headerToken ?? req.cookies.get(ACCESS_TOKEN)?.value ?? null;
   if (!token) return null;
   const payload = await decodeToken(token);
-  return payload?.username ?? null;
+  // Dev mock only: the real backend's token carries no username claim
+  return typeof payload?.username === 'string' ? payload.username : null;
 }
 
 export async function PATCH(req: NextRequest) {

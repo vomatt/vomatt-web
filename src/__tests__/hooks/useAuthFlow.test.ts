@@ -1,223 +1,119 @@
-import { renderHook, act } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
+
 import { useAuthFlow } from '@/components/auth/useAuthFlow';
 
-const mockGetVerifyCode = jest.fn();
-const mockLogin = jest.fn();
-const mockPreSignup = jest.fn();
-const mockSignup = jest.fn();
+const mockRequestOtp = jest.fn();
+const mockVerifyOtp = jest.fn();
+const mockUpdateProfile = jest.fn();
 
 jest.mock('@/lib/api/services/auth', () => ({
-	getVerifyCode: (...args: any[]) => mockGetVerifyCode(...args),
-	login: (...args: any[]) => mockLogin(...args),
-	preSignup: (...args: any[]) => mockPreSignup(...args),
-	signup: (...args: any[]) => mockSignup(...args),
+	requestOtp: (...args: unknown[]) => mockRequestOtp(...args),
+	verifyOtp: (...args: unknown[]) => mockVerifyOtp(...args),
+}));
+
+jest.mock('@/lib/api/services/users', () => ({
+	updateProfile: (...args: unknown[]) => mockUpdateProfile(...args),
 }));
 
 beforeEach(() => {
 	jest.clearAllMocks();
 });
 
+async function atCodeStep(isNewUser: boolean) {
+	mockRequestOtp.mockResolvedValue({ status: 'SUCCESS', isNewUser });
+	const hook = renderHook(() => useAuthFlow());
+	await act(async () => {
+		await hook.result.current.submitEmail('User@Test.com');
+	});
+	return hook;
+}
+
 describe('useAuthFlow', () => {
-	it('starts in login mode at form step', () => {
+	it('starts at the email step', () => {
 		const { result } = renderHook(() => useAuthFlow());
-
-		expect(result.current.mode).toBe('login');
-		expect(result.current.step).toBe('form');
-		expect(result.current.email).toBe('');
+		expect(result.current.step).toBe('email');
 	});
 
-	it('submitLoginEmail transitions to verification on success', async () => {
-		mockGetVerifyCode.mockResolvedValue({ status: 'SUCCESS' });
+	it('moves to the code step once a code is sent', async () => {
+		const { result } = await atCodeStep(false);
 
-		const { result } = renderHook(() => useAuthFlow());
-
-		let res: any;
-		await act(async () => {
-			res = await result.current.submitLoginEmail('user@test.com');
-		});
-
-		expect(mockGetVerifyCode).toHaveBeenCalledWith('user@test.com');
-		expect(result.current.step).toBe('verification');
+		expect(mockRequestOtp).toHaveBeenCalledWith('User@Test.com');
+		expect(result.current.step).toBe('code');
 		expect(result.current.email).toBe('user@test.com');
-		expect(res.status).toBe('SUCCESS');
 	});
 
-	it('submitLoginEmail returns USER_NOT_FOUND without transitioning', async () => {
-		mockGetVerifyCode.mockResolvedValue({
-			status: 'ERROR',
-			errorType: 'USER_NOT_FOUND',
-		});
-
+	it('stays on the email step when sending fails', async () => {
+		mockRequestOtp.mockResolvedValue({ status: 'ERROR', error: 'rateLimited' });
 		const { result } = renderHook(() => useAuthFlow());
 
-		let res: any;
+		let res: unknown;
 		await act(async () => {
-			res = await result.current.submitLoginEmail('new@test.com');
+			res = await result.current.submitEmail('user@test.com');
 		});
 
-		expect(res.status).toBe('ERROR');
-		expect(res.errorType).toBe('USER_NOT_FOUND');
-		expect(result.current.step).toBe('form');
+		expect(res).toEqual({ status: 'ERROR', error: 'rateLimited' });
+		expect(result.current.step).toBe('email');
 	});
 
-	it('submitLoginEmail returns other errors without transitioning', async () => {
-		mockGetVerifyCode.mockResolvedValue({
-			status: 'ERROR',
-			errorType: 'RATE_LIMIT',
-		});
+	it('finishes an existing user right after the code', async () => {
+		const { result } = await atCodeStep(false);
+		mockVerifyOtp.mockResolvedValue({ status: 'SUCCESS' });
 
-		const { result } = renderHook(() => useAuthFlow());
-
-		let res: any;
+		let res: unknown;
 		await act(async () => {
-			res = await result.current.submitLoginEmail('user@test.com');
+			res = await result.current.submitCode('123456');
 		});
 
-		expect(res.status).toBe('ERROR');
-		expect(res.errorType).toBe('RATE_LIMIT');
-		expect(result.current.step).toBe('form');
+		expect(mockVerifyOtp).toHaveBeenCalledWith('user@test.com', '123456');
+		expect(res).toEqual({ status: 'OK', done: true });
 	});
 
-	it('handleLoginVerified calls login and returns result', async () => {
-		mockGetVerifyCode.mockResolvedValue({ status: 'SUCCESS' });
-		mockLogin.mockResolvedValue({ status: 'SUCCESS' });
+	it('asks a new user for a display name after the code', async () => {
+		const { result } = await atCodeStep(true);
+		mockVerifyOtp.mockResolvedValue({ status: 'SUCCESS' });
 
-		const { result } = renderHook(() => useAuthFlow());
-
+		let res: unknown;
 		await act(async () => {
-			await result.current.submitLoginEmail('user@test.com');
+			res = await result.current.submitCode('123456');
 		});
 
-		let res: any;
-		await act(async () => {
-			res = await result.current.handleLoginVerified('123456');
-		});
-
-		expect(mockLogin).toHaveBeenCalledWith('user@test.com', '123456');
-		expect(res.status).toBe('OK');
+		expect(res).toEqual({ status: 'OK' });
+		expect(result.current.step).toBe('profile');
 	});
 
-	it('handleLoginVerified returns error on failure', async () => {
-		mockGetVerifyCode.mockResolvedValue({ status: 'SUCCESS' });
-		mockLogin.mockResolvedValue({ status: 'ERROR', message: 'Invalid code' });
+	it('returns a wrong code error and stays on the code step', async () => {
+		const { result } = await atCodeStep(false);
+		mockVerifyOtp.mockResolvedValue({ status: 'ERROR', error: 'invalidCode' });
 
-		const { result } = renderHook(() => useAuthFlow());
-
+		let res: unknown;
 		await act(async () => {
-			await result.current.submitLoginEmail('user@test.com');
+			res = await result.current.submitCode('000000');
 		});
 
-		let res: any;
-		await act(async () => {
-			res = await result.current.handleLoginVerified('000000');
-		});
-
-		expect(res.status).toBe('ERROR');
+		expect(res).toEqual({ status: 'ERROR', error: 'invalidCode' });
+		expect(result.current.step).toBe('code');
 	});
 
-	it('submitSignupForm transitions to verification on success', async () => {
-		mockPreSignup.mockResolvedValue({ status: 'SUCCESS' });
-
-		const { result } = renderHook(() => useAuthFlow());
-
-		act(() => {
-			result.current.switchToSignup();
-		});
-
-		const formData = {
-			email: 'new@test.com',
-			firstName: 'John',
-			lastName: 'Doe',
-			username: 'johndoe',
-		};
-
-		let res: any;
+	it('resends to the same email', async () => {
+		const { result } = await atCodeStep(false);
 		await act(async () => {
-			res = await result.current.submitSignupForm(formData);
+			await result.current.resendCode();
 		});
-
-		expect(mockPreSignup).toHaveBeenCalledWith('new@test.com', 'johndoe');
-		expect(result.current.step).toBe('verification');
-		expect(result.current.email).toBe('new@test.com');
-		expect(res.status).toBe('SUCCESS');
+		expect(mockRequestOtp).toHaveBeenLastCalledWith('user@test.com');
 	});
 
-	it('handleSignupVerified calls signup and returns result', async () => {
-		mockPreSignup.mockResolvedValue({ status: 'SUCCESS' });
-		mockSignup.mockResolvedValue({ status: 'SUCCESS' });
-
-		const { result } = renderHook(() => useAuthFlow());
-
-		const formData = {
-			email: 'new@test.com',
-			firstName: 'John',
-			lastName: 'Doe',
-			username: 'johndoe',
-		};
-
+	it('saves the trimmed display name', async () => {
+		const { result } = await atCodeStep(true);
+		mockUpdateProfile.mockResolvedValue({});
 		await act(async () => {
-			await result.current.submitSignupForm(formData);
+			await result.current.submitProfile('  Alice ');
 		});
-
-		let res: any;
-		await act(async () => {
-			res = await result.current.handleSignupVerified('654321');
-		});
-
-		expect(mockSignup).toHaveBeenCalledWith({
-			...formData,
-			verificationCode: '654321',
-		});
-		expect(res.status).toBe('OK');
+		expect(mockUpdateProfile).toHaveBeenCalledWith({ displayName: 'Alice' });
 	});
 
-	it('switchToSignup and switchToLogin change mode', () => {
-		const { result } = renderHook(() => useAuthFlow());
-
-		act(() => {
-			result.current.switchToSignup();
-		});
-		expect(result.current.mode).toBe('signup');
-		expect(result.current.step).toBe('form');
-
-		act(() => {
-			result.current.switchToLogin();
-		});
-		expect(result.current.mode).toBe('login');
-		expect(result.current.step).toBe('form');
-	});
-
-	it('goBackToForm returns to form step', async () => {
-		mockGetVerifyCode.mockResolvedValue({ status: 'SUCCESS' });
-
-		const { result } = renderHook(() => useAuthFlow());
-
-		await act(async () => {
-			await result.current.submitLoginEmail('user@test.com');
-		});
-		expect(result.current.step).toBe('verification');
-
-		act(() => {
-			result.current.goBackToForm();
-		});
-		expect(result.current.step).toBe('form');
-	});
-
-	it('reset clears all state', async () => {
-		mockGetVerifyCode.mockResolvedValue({ status: 'SUCCESS' });
-
-		const { result } = renderHook(() => useAuthFlow());
-
-		await act(async () => {
-			await result.current.submitLoginEmail('user@test.com');
-		});
-
-		act(() => {
-			result.current.reset();
-		});
-
-		expect(result.current.mode).toBe('login');
-		expect(result.current.step).toBe('form');
-		expect(result.current.email).toBe('');
+	it('goes back to edit the email', async () => {
+		const { result } = await atCodeStep(false);
+		act(() => result.current.editEmail());
+		expect(result.current.step).toBe('email');
 	});
 });

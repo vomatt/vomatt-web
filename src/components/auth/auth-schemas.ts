@@ -1,27 +1,17 @@
 import { z } from 'zod';
 
-export const nameValidation =
-	/^[\w'\-,.]*[^_!¡?÷?¿/\\+=@#$%ˆ&*(){}|~<>;:[\]]*$/;
-
-export const loginSchema = z.object({
-	email: z.string().email({ message: 'common.invalidEmailAddress' }),
+export const emailSchema = z.object({
+	email: z.string().trim().email({ message: 'common.invalidEmailAddress' }).max(254),
 });
 
-export const signupSchema = z.object({
-	email: z.string().email({ message: 'common.invalidEmailAddress' }).trim(),
-	firstName: z
+/** The backend caps display names at 100 characters. */
+export const profileSchema = z.object({
+	displayName: z
 		.string()
+		.trim()
 		.min(1, { message: 'common.required' })
-		.regex(nameValidation, { message: 'common.invalidName' }),
-	lastName: z
-		.string()
-		.min(1, { message: 'common.required' })
-		.regex(nameValidation, { message: 'common.invalidName' }),
-	username: z
-		.string()
-		.min(3, { message: 'common.required' })
-		.regex(/^[a-zA-Z0-9._]+$/, { message: 'common.invalidUsername' }),
+		.max(100, { message: 'onboarding.displayNameTooLong' }),
 });
 
-export type LoginFormData = z.infer<typeof loginSchema>;
-export type SignupFormData = z.infer<typeof signupSchema>;
+export type EmailFormData = z.infer<typeof emailSchema>;
+export type ProfileFormData = z.infer<typeof profileSchema>;

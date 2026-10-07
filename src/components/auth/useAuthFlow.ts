@@ -1,131 +1,95 @@
 import { useCallback, useState } from 'react';
 
-import {
-	getVerifyCode,
-	login,
-	preSignup,
-	signup,
-} from '@/lib/api/services/auth';
-import type { SignupFormData } from './auth-schemas';
+import type { AuthErrorKey } from '@/lib/api/auth-errors';
+import { requestOtp, verifyOtp } from '@/lib/api/services/auth';
+import { updateProfile } from '@/lib/api/services/users';
 
-type AuthMode = 'login' | 'signup';
-type AuthStep = 'form' | 'verification';
+/** email → code → (new accounts only) profile. */
+export type AuthStep = 'email' | 'code' | 'profile';
 
+export type AuthResult = { status: 'OK' } | { status: 'ERROR'; error: AuthErrorKey };
+
+const OK: AuthResult = { status: 'OK' };
+const SERVER_ERROR: AuthResult = { status: 'ERROR', error: 'serverError' };
+
+/**
+ * One flow for sign-in and sign-up: the backend signs in an existing email
+ * and creates an account for a new one with the same one-time code.
+ */
 export function useAuthFlow() {
-	const [mode, setMode] = useState<AuthMode>('login');
-	const [step, setStep] = useState<AuthStep>('form');
+	const [step, setStep] = useState<AuthStep>('email');
 	const [email, setEmail] = useState('');
-	const [signupData, setSignupData] = useState<SignupFormData | null>(null);
+	const [isNewUser, setIsNewUser] = useState(false);
 
-	const submitLoginEmail = useCallback(async (emailValue: string) => {
-		const res = await getVerifyCode(emailValue);
-
-		if (res.status === 'SUCCESS') {
-			setEmail(emailValue);
-			setStep('verification');
-			return { status: 'SUCCESS' as const };
+	const submitEmail = useCallback(async (value: string): Promise<AuthResult> => {
+		try {
+			const res = await requestOtp(value);
+			if (res.status === 'ERROR') return res;
+			setEmail(value.trim().toLowerCase());
+			setIsNewUser(res.isNewUser);
+			setStep('code');
+			return OK;
+		} catch {
+			return SERVER_ERROR;
 		}
-
-		return {
-			status: 'ERROR' as const,
-			errorType: res.errorType,
-		};
 	}, []);
 
-	const submitSignupForm = useCallback(async (data: SignupFormData) => {
-		const res = await preSignup(data.email, data.username);
-
-		if (res.status === 'SUCCESS') {
-			setEmail(data.email);
-			setSignupData(data);
-			setStep('verification');
-			return { status: 'SUCCESS' as const };
+	const resendCode = useCallback(async (): Promise<AuthResult> => {
+		try {
+			const res = await requestOtp(email);
+			return res.status === 'ERROR' ? res : OK;
+		} catch {
+			return SERVER_ERROR;
 		}
+	}, [email]);
 
-		return {
-			status: 'ERROR' as const,
-			message: res.message,
-		};
-	}, []);
-
-	const handleLoginVerified = useCallback(
-		async (pin: string) => {
+	/** Resolves `done: true` when the user is signed in and nothing else is asked. */
+	const submitCode = useCallback(
+		async (code: string): Promise<AuthResult & { done?: boolean }> => {
 			try {
-				const result = await login(email, pin);
-				if (result.status === 'SUCCESS') return { status: 'OK' as const };
-				return {
-					status: 'ERROR' as const,
-					message: result.message || 'Login failed',
-				};
+				const res = await verifyOtp(email, code);
+				if (res.status === 'ERROR') return res;
+				if (isNewUser) {
+					setStep('profile');
+					return OK;
+				}
+				return { status: 'OK', done: true };
 			} catch {
-				return {
-					status: 'ERROR' as const,
-					message: 'Something went wrong, please try again later',
-				};
+				return SERVER_ERROR;
 			}
 		},
-		[email]
+		[email, isNewUser]
 	);
 
-	const handleSignupVerified = useCallback(
-		async (pin: string) => {
-			if (!signupData) {
-				return { status: 'ERROR' as const, message: 'Missing signup data' };
-			}
-			try {
-				const result = await signup({
-					...signupData,
-					verificationCode: pin,
-				});
-
-				if (result.status === 'SUCCESS') return { status: 'OK' as const };
-				return {
-					status: 'ERROR' as const,
-					message: result.errorType || 'Signup failed',
-				};
-			} catch {
-				return {
-					status: 'ERROR' as const,
-					message: 'Something went wrong, please try again later',
-				};
-			}
-		},
-		[signupData]
-	);
-
-	const switchToSignup = useCallback(() => {
-		setMode('signup');
-		setStep('form');
+	/** Saves the display name for a new account. The account already exists, so failure isn't fatal. */
+	const submitProfile = useCallback(async (displayName: string): Promise<AuthResult> => {
+		try {
+			await updateProfile({ displayName: displayName.trim() });
+			return OK;
+		} catch {
+			return SERVER_ERROR;
+		}
 	}, []);
 
-	const switchToLogin = useCallback(() => {
-		setMode('login');
-		setStep('form');
-	}, []);
-
-	const goBackToForm = useCallback(() => {
-		setStep('form');
-	}, []);
+	const editEmail = useCallback(() => setStep('email'), []);
 
 	const reset = useCallback(() => {
-		setMode('login');
-		setStep('form');
+		setStep('email');
 		setEmail('');
-		setSignupData(null);
+		setIsNewUser(false);
 	}, []);
 
 	return {
-		mode,
 		step,
 		email,
-		signupData,
-		submitLoginEmail,
-		submitSignupForm,
-		handleLoginVerified,
-		handleSignupVerified,
-		switchToSignup,
-		switchToLogin,
-		goBackToForm,
+		isNewUser,
+		submitEmail,
+		resendCode,
+		submitCode,
+		submitProfile,
+		editEmail,
 		reset,
 	};
 }
+
+export type AuthFlowState = ReturnType<typeof useAuthFlow>;
