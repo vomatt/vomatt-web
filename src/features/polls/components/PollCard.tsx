@@ -22,18 +22,18 @@ import { StatusChip } from './StatusChip';
 
 interface PollCardProps {
 	poll: Poll;
-	/** The signed-in viewer's username (the session `sub`). */
-	viewerUsername?: string;
+	/** The signed-in viewer's user id (the session `sub`). */
+	viewerId?: string;
 }
 
 /** Shows the Ballot until the Poll Ends, then the Results. Whether the viewer voted doesn't matter. */
-export function PollCard({ poll: initialPoll, viewerUsername }: PollCardProps) {
+export function PollCard({ poll: initialPoll, viewerId }: PollCardProps) {
 	const { currentLanguage } = useLanguage();
 	const isHydrated = useHydrated();
 	const [poll, setPoll] = useState(initialPoll);
 	const [showComments, setShowComments] = useState(false);
 	const [comments, setComments] = useState<Comment[]>([]);
-	const { isAuthed, requireAuth, authDialog } = useRequireAuth(!!viewerUsername);
+	const { isAuthed, requireAuth, authDialog } = useRequireAuth(!!viewerId);
 
 	const refetch = useCallback(async () => {
 		const fresh = await getPollForViewer(poll.id).catch(() => null);
@@ -42,8 +42,8 @@ export function PollCard({ poll: initialPoll, viewerUsername }: PollCardProps) {
 
 	const ballot = useBallot(poll, { isAuthed, onPollEnded: refetch });
 	const status = derivePollStatus(poll);
-	const { id, title, description, creatorUsername, createdAt } = poll;
-	const isOwner = !!viewerUsername && viewerUsername === creatorUsername;
+	const { id, title, description, creatorId, creatorUsername, createdAt } = poll;
+	const isOwner = !!viewerId && viewerId === creatorId;
 
 	return (
 		<article className="group bg-card border border-border rounded-xl transition-shadow duration-200 hover:shadow-sm">

@@ -4,7 +4,7 @@ import { updateTag } from 'next/cache';
 import { unstable_rethrow } from 'next/navigation';
 
 import { getUserSession } from '@/data/auth';
-import { ApiError, apiClient, AuthError, publicFetch } from '@/lib/api/client';
+import { apiClient, ApiError, AuthError, publicFetch } from '@/lib/api/client';
 import { cursorPageSchema } from '@/lib/api/cursor';
 
 import { FEED_TAG, pollTag } from './cache';
@@ -71,17 +71,17 @@ async function withMyBallot(poll: Poll): Promise<Poll> {
 }
 
 /**
- * Until backend 3 ships cursors, `cursor` is a Spring page number. Ballots are
- * looked up here, in parallel, so the cards don't each make a sequential
+ * Until backend 3 ships cursors, `cursor` is a 1-based page number. Ballots
+ * are looked up here, in parallel, so the cards don't each make a sequential
  * Server Action call.
  */
 export async function getFeed(cursor?: string | null, size = 10, tag?: string) {
 	// Callable from any client, and each item costs a Ballot lookup, so cap the page
 	const pageSize = Math.min(Math.max(1, size), MAX_FEED_PAGE_SIZE);
-	const params = new URLSearchParams({ page: cursor ?? '0', size: String(pageSize) });
+	const params = new URLSearchParams({ page: cursor ?? '1', size: String(pageSize) });
 	if (tag) params.set('tag', tag);
 	const [data, session] = await Promise.all([
-		publicFetch(`/votes?${params}`, { next: { tags: [FEED_TAG] } } as RequestInit),
+		publicFetch(`/votes?${params}`, { next: { revalidate: 30, tags: [FEED_TAG] } } as RequestInit),
 		getUserSession(),
 	]);
 	const page = PollPage.parse(data);
@@ -89,24 +89,39 @@ export async function getFeed(cursor?: string | null, size = 10, tag?: string) {
 	return { ...page, items: await Promise.all(page.items.map(withMyBallot)) };
 }
 
+/**
+ * The API can't filter by creator yet, so this filters the newest polls.
+ * Older polls by the creator are missed until it can.
+ */
 export async function getPollsByCreator(username: string): Promise<Poll[]> {
 	try {
-		const url = `/votes?creatorUsername=${encodeURIComponent(username)}`;
-		const data = await publicFetch(url, { next: { revalidate: 60 } } as RequestInit);
-		return PollPage.parse(data).items;
+		const params = new URLSearchParams({ page: '1', size: String(MAX_FEED_PAGE_SIZE) });
+		const data = await publicFetch(`/votes?${params}`, {
+			next: { revalidate: 60, tags: [FEED_TAG] },
+		} as RequestInit);
+		return PollPage.parse(data).items.filter((poll) => poll.creatorUsername === username);
 	} catch {
 		return [];
 	}
 }
 
+/**
+ * Null when the Poll doesn't exist. The API only serves single Polls to
+ * signed-in users today, so a signed-out request rejects with a 401 ApiError.
+ */
 export async function getPoll(id: string): Promise<Poll | null> {
 	try {
-		const data = await publicFetch(`/votes/${id}`, {
-			next: { revalidate: 30, tags: [pollTag(id)] },
-		} as RequestInit);
+		const session = await getUserSession();
+		const data = session
+			? await apiClient(`/votes/${encodeURIComponent(id)}`, { cache: 'no-store' })
+			: await publicFetch(`/votes/${encodeURIComponent(id)}`, {
+					next: { revalidate: 30, tags: [pollTag(id)] },
+				} as RequestInit);
 		return PollSchema.parse(data);
 	} catch (error) {
-		if (error instanceof ApiError && error.statusCode === 404) return null;
+		if (error instanceof ApiError && (error.statusCode === 404 || error.statusCode === 400)) {
+			return null;
+		}
 		throw error;
 	}
 }
@@ -117,8 +132,10 @@ export async function getPollForViewer(id: string): Promise<Poll | null> {
 	return poll && session ? withMyBallot(poll) : poll;
 }
 
-export async function getMyPolls() {
-	return apiClient('/votes/my');
+/** Polls the signed-in user created, newest first. */
+export async function getMyPolls(): Promise<Poll[]> {
+	const params = new URLSearchParams({ page: '1', size: String(MAX_FEED_PAGE_SIZE) });
+	return PollPage.parse(await apiClient(`/votes/my?${params}`)).items;
 }
 
 /**
@@ -157,9 +174,9 @@ export async function castBallot(pollId: string, optionId: string): Promise<Acti
 }
 
 /** Retraction: the voter is no longer a Participant and won't be notified. */
-export async function retractBallot(pollId: string): Promise<ActionResult> {
+export async function retractBallot(pollId: string, optionId: string): Promise<ActionResult> {
 	return attempt(async () => {
-		await apiClient(`/votes/${pollId}/vote`, { method: 'DELETE' });
+		await apiClient(`/votes/${pollId}/vote/${optionId}`, { method: 'DELETE' });
 		updateTag(pollTag(pollId));
 	});
 }

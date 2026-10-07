@@ -103,10 +103,12 @@ export function useBallot(poll: Poll, { isAuthed, onPollEnded }: Options) {
 		[poll.id, run, t]
 	);
 
-	const retract = useCallback(
-		() => run(() => retractBallot(poll.id), null, t('poll.withdrawFailed')),
-		[poll.id, run, t]
-	);
+	/** Withdraws the current Ballot; the API removes it by option. */
+	const retract = useCallback(() => {
+		if (!myOptionId) return;
+		const optionId = myOptionId;
+		return run(() => retractBallot(poll.id, optionId), null, t('poll.withdrawFailed'));
+	}, [myOptionId, poll.id, run, t]);
 
 	return { myOptionId, selected, setSelected, turnout, isPending, cast, retract };
 }

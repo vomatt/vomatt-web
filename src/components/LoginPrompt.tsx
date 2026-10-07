@@ -7,9 +7,12 @@ import { cn } from '@/lib/utils';
 
 type LoginPromptProps = {
 	className?: string;
+	/** Where to come back to after signing in. */
+	redirectTo?: string;
 };
 
-export function LoginPrompt({ className }: LoginPromptProps) {
+export function LoginPrompt({ className, redirectTo }: LoginPromptProps) {
+	const href = redirectTo ? `/login?redirect=${encodeURIComponent(redirectTo)}` : '/login';
 	const { t } = useLanguage();
 
 	return (
@@ -26,7 +29,7 @@ export function LoginPrompt({ className }: LoginPromptProps) {
 				{t('loginPrompt.subtitle')}
 			</p>
 			<Button asChild size="sm" className="mt-4 w-full">
-				<NextLink href="/login">{t('loginPrompt.ctaLabel')}</NextLink>
+				<NextLink href={href}>{t('loginPrompt.ctaLabel')}</NextLink>
 			</Button>
 		</div>
 	);

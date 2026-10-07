@@ -1,13 +1,16 @@
 import { formatDistance } from 'date-fns';
 import { enUS } from 'date-fns/locale';
-import { ArrowLeft, Share2, Users } from '@/components/ui/SvgIcons';
 import Link from 'next/link';
 
+import { LoginPrompt } from '@/components/LoginPrompt';
+import { Button } from '@/components/ui/Button';
+import { ArrowLeft, Share2, Users } from '@/components/ui/SvgIcons';
 import { getUserSession } from '@/data/auth';
+import { PollCard } from '@/features/polls/components/PollCard';
+import type { Poll } from '@/features/polls/schema';
 import { getPollForViewer } from '@/features/polls/service';
 import { getTurnout } from '@/features/polls/status';
-import { PollCard } from '@/features/polls/components/PollCard';
-import { Button } from '@/components/ui/Button';
+import { ApiError } from '@/lib/api/client';
 
 export default async function PollDetailPage({
 	params,
@@ -15,7 +18,21 @@ export default async function PollDetailPage({
 	params: Promise<{ id: string }>;
 }) {
 	const { id } = await params;
-	const [poll, user] = await Promise.all([getPollForViewer(id), getUserSession()]);
+	const user = await getUserSession();
+	let poll: Poll | null;
+	try {
+		poll = await getPollForViewer(id);
+	} catch (error) {
+		// The API serves single Polls to signed-in users only
+		if (error instanceof ApiError && error.statusCode === 401) {
+			return (
+				<div className="px-contain max-w-2xl mx-auto py-10">
+					<LoginPrompt className="block mx-auto max-w-sm" redirectTo={`/poll/${id}`} />
+				</div>
+			);
+		}
+		throw error;
+	}
 
 	if (!poll) {
 		return (
@@ -52,7 +69,7 @@ export default async function PollDetailPage({
 				</Button>
 			</div>
 
-			<PollCard poll={poll} viewerUsername={user?.sub} />
+			<PollCard poll={poll} viewerId={user?.sub} />
 
 			<div className="mt-6 p-4 rounded-xl border border-border bg-card text-sm text-muted-foreground space-y-1">
 				<div className="flex items-center gap-2">

@@ -20,7 +20,7 @@ The web adapts to that contract; backend gaps are listed in `docs/release/backen
 **Success Criteria**: `/api` prefix; PageResponse parsed; retract uses option id; owner check by user id;
 "ended" error code recognised; poll detail readable when signed in and degrades when the API refuses guests.
 **Tests**: cursor, service, status/errors, PollCard owner actions.
-**Status**: Not Started
+**Status**: Complete
 
 ## Stage 3: Voting UX (motion)
 **Goal**: Voting feels like dropping a ballot in a box: select → cast → sealed confirmation; results animate in.

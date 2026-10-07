@@ -3,16 +3,17 @@
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { useLanguage } from '@/contexts/LanguageContext';
+
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { PollCard } from '@/features/polls/components/PollCard';
 import { Poll } from '@/features/polls/schema';
 import { getFeed } from '@/features/polls/service';
 import { mergeById } from '@/lib/api/cursor';
 import { cn, hasArrayValue } from '@/lib/utils';
 
 import { HomepageHeader } from './HomepageHeader';
-import { PollCard } from '@/features/polls/components/PollCard';
 
 const PollCreator = dynamic(() =>
 	import('@/features/polls/components/PollCreator').then((m) => m.PollCreator)
@@ -20,10 +21,10 @@ const PollCreator = dynamic(() =>
 
 type PollFeedList = {
 	className?: string;
-	viewerUsername?: string;
+	viewerId?: string;
 };
 
-export function PollFeedList({ className, viewerUsername }: PollFeedList) {
+export function PollFeedList({ className, viewerId }: PollFeedList) {
 	const { t } = useLanguage();
 	const [mainData, setMainData] = useState<Poll[]>([]);
 	const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -81,7 +82,7 @@ export function PollFeedList({ className, viewerUsername }: PollFeedList) {
 				className={cn('relative w-full flex flex-col gap-3 py-4', className)}
 			>
 				{mainData.map((item) => (
-					<PollCard key={item.id} poll={item} viewerUsername={viewerUsername} />
+					<PollCard key={item.id} poll={item} viewerId={viewerId} />
 				))}
 			</div>
 

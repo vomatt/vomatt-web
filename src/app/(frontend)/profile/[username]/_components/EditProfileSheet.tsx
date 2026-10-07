@@ -22,7 +22,8 @@ import { updateProfile } from '@/lib/api/services/users';
 interface EditProfileSheetProps {
 	initialDisplayName: string;
 	initialBio: string;
-	initialAvatarUrl: string | null;
+	/** `undefined` when the backend doesn't support avatars; the photo section is hidden then. */
+	initialAvatarUrl?: string | null;
 }
 
 export default function EditProfileSheet({
@@ -35,7 +36,8 @@ export default function EditProfileSheet({
 	const [bio, setBio] = useState(initialBio);
 	const [isPending, setIsPending] = useState(false);
 
-	const { avatarUrl, isUploading, upload, remove } = useAvatarUpload(initialAvatarUrl);
+	const supportsAvatars = initialAvatarUrl !== undefined;
+	const { avatarUrl, isUploading, upload, remove } = useAvatarUpload(initialAvatarUrl ?? null);
 
 	async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
 		const file = e.target.files?.[0];
@@ -73,6 +75,7 @@ export default function EditProfileSheet({
 				</SheetHeader>
 				<form onSubmit={handleSubmit} className="flex flex-col gap-4 px-4">
 					{/* Avatar section */}
+					{supportsAvatars && (
 					<div className="flex flex-col gap-2">
 						<label className="text-sm font-medium text-foreground">Photo</label>
 						<div className="flex items-center gap-4">
@@ -114,6 +117,7 @@ export default function EditProfileSheet({
 							</div>
 						</div>
 					</div>
+					)}
 					<div className="flex flex-col gap-1.5">
 						<label
 							htmlFor="displayName"
@@ -126,7 +130,7 @@ export default function EditProfileSheet({
 							value={displayName}
 							onChange={(e) => setDisplayName(e.target.value)}
 							placeholder="Your display name"
-							maxLength={64}
+							maxLength={100}
 						/>
 					</div>
 					<div className="flex flex-col gap-1.5">

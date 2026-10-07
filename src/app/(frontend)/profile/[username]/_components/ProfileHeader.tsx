@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import { format } from 'date-fns';
+import { useState } from 'react';
 
 import { Card, CardContent } from '@/components/ui/Card';
 import { Separator } from '@/components/ui/Separator';
@@ -27,6 +27,11 @@ export default function ProfileHeader({
 		'followers' | 'following' | null
 	>(null);
 
+	// The backend sends these fields only once it supports avatars and follows
+	const supportsAvatars = profile.avatarUrl !== undefined;
+	const followersCount = profile.followersCount;
+	const followingCount = profile.followingCount;
+
 	const joinedDate = profile.joinedAt
 		? format(new Date(profile.joinedAt), 'MMM yyyy')
 		: null;
@@ -38,8 +43,8 @@ export default function ProfileHeader({
 					{/* Avatar + identity */}
 					<div className="flex items-center gap-4">
 						<AvatarUploader
-							initialAvatarUrl={profile.avatarUrl}
-							isOwner={isOwner}
+							initialAvatarUrl={profile.avatarUrl ?? null}
+							isOwner={isOwner && supportsAvatars}
 						/>
 						<div className="flex-1 min-w-0">
 							<h1 className="text-xl font-bold text-foreground truncate">
@@ -86,32 +91,35 @@ export default function ProfileHeader({
 						</div>
 
 						{/* FollowButton owns followers count + follow toggle */}
-						{!isOwner && isAuthenticated ? (
-							<FollowButton
-								username={profile.username}
-								initialIsFollowing={profile.isFollowing ?? false}
-								initialFollowersCount={profile.followersCount}
-								onOpenFollowers={() => setFollowersSheetType('followers')}
-							/>
-						) : (
+						{followersCount !== undefined &&
+							(!isOwner && isAuthenticated ? (
+								<FollowButton
+									username={profile.username}
+									initialIsFollowing={profile.isFollowing ?? false}
+									initialFollowersCount={followersCount}
+									onOpenFollowers={() => setFollowersSheetType('followers')}
+								/>
+							) : (
+								<button
+									type="button"
+									onClick={() => setFollowersSheetType('followers')}
+									className="flex flex-col items-center cursor-pointer hover:opacity-70 transition-opacity"
+								>
+									<span className="font-semibold text-foreground">{followersCount}</span>
+									<span className="text-muted-foreground text-xs">Followers</span>
+								</button>
+							))}
+
+						{followingCount !== undefined && (
 							<button
 								type="button"
-								onClick={() => setFollowersSheetType('followers')}
+								onClick={() => setFollowersSheetType('following')}
 								className="flex flex-col items-center cursor-pointer hover:opacity-70 transition-opacity"
 							>
-								<span className="font-semibold text-foreground">{profile.followersCount}</span>
-								<span className="text-muted-foreground text-xs">Followers</span>
+								<span className="font-semibold text-foreground">{followingCount}</span>
+								<span className="text-muted-foreground text-xs">Following</span>
 							</button>
 						)}
-
-						<button
-							type="button"
-							onClick={() => setFollowersSheetType('following')}
-							className="flex flex-col items-center cursor-pointer hover:opacity-70 transition-opacity"
-						>
-							<span className="font-semibold text-foreground">{profile.followingCount}</span>
-							<span className="text-muted-foreground text-xs">Following</span>
-						</button>
 					</div>
 				</CardContent>
 			</Card>
