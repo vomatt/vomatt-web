@@ -210,7 +210,8 @@
 		"cancelPollTitle": "要取消這個投票嗎？",
 		"cancelPollBody": "投票不會開始，也不會通知任何人。",
 		"keepPoll": "保留投票",
-		"cancelFailed": "無法取消投票，請再試一次。"
+		"cancelFailed": "無法取消投票，請再試一次。",
+		"stamp": "已投票"
 	},
 	"auth": {
 		"continueWithEmail": "使用電子郵件繼續",

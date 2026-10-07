@@ -214,7 +214,8 @@
 		"cancelPollTitle": "Cancel this poll?",
 		"cancelPollBody": "It won't open, and no one will be notified.",
 		"keepPoll": "Keep poll",
-		"cancelFailed": "Couldn't cancel the poll. Try again."
+		"cancelFailed": "Couldn't cancel the poll. Try again.",
+		"stamp": "Voted"
 	},
 	"auth": {
 		"continueWithEmail": "Continue with email",

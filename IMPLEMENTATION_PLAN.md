@@ -26,7 +26,7 @@ The web adapts to that contract; backend gaps are listed in `docs/release/backen
 **Goal**: Voting feels like dropping a ballot in a box: select → cast → sealed confirmation; results animate in.
 **Success Criteria**: animated selection, cast "stamp" + sealed state, animated result bars, reduced-motion respected.
 **Tests**: Ballot/Results render + interaction tests still pass; reduced-motion path.
-**Status**: Not Started
+**Status**: Complete
 
 ## Stage 4: Poll detail + comments
 **Goal**: Detail page that invites participation: context, timeline, turnout, share, threaded comments (post/edit/delete/like).

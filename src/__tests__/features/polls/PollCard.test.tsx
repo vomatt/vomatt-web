@@ -192,7 +192,8 @@ describe('PollCard state B · Open, has Ballot', () => {
 		await waitFor(() =>
 			expect(screen.getByRole('button', { name: 'Vote' })).toBeInTheDocument()
 		);
-		expect(screen.queryByText('Your vote')).not.toBeInTheDocument();
+		// The stamp lifts off with an exit animation
+		await waitFor(() => expect(screen.queryByText('Your vote')).not.toBeInTheDocument());
 	});
 
 	it('Keep cancels the withdraw confirm', () => {
@@ -210,7 +211,7 @@ describe('PollCard state B · Open, has Ballot', () => {
 
 		await waitFor(() => expect(toast.error).toHaveBeenCalled());
 		expect(screen.getByText('128 voted')).toBeInTheDocument();
-		expect(screen.queryByText('Your vote')).not.toBeInTheDocument();
+		await waitFor(() => expect(screen.queryByText('Your vote')).not.toBeInTheDocument());
 	});
 
 	it('rolls back a failed withdraw', async () => {

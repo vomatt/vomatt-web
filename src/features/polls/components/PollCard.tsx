@@ -1,5 +1,6 @@
 'use client';
 
+import { AnimatePresence, motion } from 'motion/react';
 import Link from 'next/link';
 import { useCallback, useState } from 'react';
 
@@ -77,22 +78,33 @@ export function PollCard({ poll: initialPoll, viewerId }: PollCardProps) {
 					)}
 				</div>
 
-				{status === 'ended' ? (
-					<Results
-						poll={poll}
-						myOptionId={ballot.myOptionId}
-						turnout={ballot.turnout}
-						onSealed={refetch}
-					/>
-				) : (
-					<Ballot
-						poll={poll}
-						status={status}
-						ballot={ballot}
-						requireAuth={requireAuth}
-						ownerActions={isOwner && <OwnerActions poll={poll} onChanged={refetch} />}
-					/>
-				)}
+				{/* When a Poll ends while open on screen, the Ballot gives way to the Results */}
+				<AnimatePresence mode="wait" initial={false}>
+					<motion.div
+						key={status === 'ended' ? 'results' : 'ballot'}
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						transition={{ duration: 0.2 }}
+					>
+						{status === 'ended' ? (
+							<Results
+								poll={poll}
+								myOptionId={ballot.myOptionId}
+								turnout={ballot.turnout}
+								onSealed={refetch}
+							/>
+						) : (
+							<Ballot
+								poll={poll}
+								status={status}
+								ballot={ballot}
+								requireAuth={requireAuth}
+								ownerActions={isOwner && <OwnerActions poll={poll} onChanged={refetch} />}
+							/>
+						)}
+					</motion.div>
+				</AnimatePresence>
 			</div>
 
 			<PollFooter
