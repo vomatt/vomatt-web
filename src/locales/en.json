@@ -281,5 +281,79 @@
 		"postFailed": "Couldn't post your comment. Try again.",
 		"editFailed": "Couldn't save your edit.",
 		"deleteFailed": "Couldn't delete the comment."
+	},
+	"account": {
+		"publicProfile": "Public profile",
+		"stats": "Your numbers",
+		"votesCast": "Votes cast",
+		"pollsCreated": "Polls created",
+		"peopleReached": "People reached",
+		"majorityRate": "With the majority",
+		"majorityHint": "How often your pick won or tied, among decided polls you voted in",
+		"badges": "Badges",
+		"earned": "Earned",
+		"locked": "Locked",
+		"badge": {
+			"firstBallot": {
+				"name": "First ballot",
+				"hint": "Cast your first vote"
+			},
+			"regular": {
+				"name": "Regular",
+				"hint": "Cast 10 votes"
+			},
+			"pillar": {
+				"name": "Civic pillar",
+				"hint": "Cast 50 votes"
+			},
+			"questionAsker": {
+				"name": "Question asker",
+				"hint": "Start your first poll"
+			},
+			"crowdGatherer": {
+				"name": "Crowd gatherer",
+				"hint": "Get 10 people to vote on one of your polls"
+			},
+			"trendReader": {
+				"name": "Trend reader",
+				"hint": "Side with the majority in 60% of at least 3 decided polls"
+			},
+			"contrarian": {
+				"name": "Contrarian",
+				"hint": "Back the losing option 3 times"
+			}
+		},
+		"tabActivity": "Your votes",
+		"tabPolls": "Your polls",
+		"tabSettings": "Settings",
+		"noVotes": "You haven't voted on any recent polls yet.",
+		"findPolls": "Find a poll",
+		"youChose": "You chose",
+		"noPolls": "You haven't started a poll yet.",
+		"outcome": {
+			"pending": "Results pending",
+			"won": "Your pick won",
+			"tied": "Tied for first",
+			"lost": "Outvoted",
+			"unknown": "Ended"
+		},
+		"privacyTitle": "What others can see",
+		"privacyBody": "Choose which profile details appear on your public profile.",
+		"field": {
+			"displayName": "Display name",
+			"bio": "Bio",
+			"location": "Location",
+			"points": "Points",
+			"membershipLevel": "Membership level"
+		},
+		"saveFailed": "Couldn't save. Try again.",
+		"signOutTitle": "Signed in as",
+		"signOut": "Log out",
+		"deleteTitle": "Delete account",
+		"deleteBody": "Removes your account and signs you out everywhere. This cannot be undone.",
+		"deleteCta": "Delete account",
+		"deleteConfirmTitle": "Delete your account?",
+		"deleteConfirmBody": "Type {username} to confirm. Your account will be removed permanently.",
+		"deleteConfirmLabel": "Type your username to confirm"
 	}
 }

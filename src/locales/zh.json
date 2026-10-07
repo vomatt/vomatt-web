@@ -277,5 +277,79 @@
 		"postFailed": "留言發佈失敗，請再試一次。",
 		"editFailed": "無法儲存編輯。",
 		"deleteFailed": "無法刪除留言。"
+	},
+	"account": {
+		"publicProfile": "公開個人頁",
+		"stats": "你的數據",
+		"votesCast": "已投票數",
+		"pollsCreated": "發起的投票",
+		"peopleReached": "觸及人數",
+		"majorityRate": "與多數一致",
+		"majorityHint": "在已結束且你有參與的投票中，你的選擇勝出或並列的比例",
+		"badges": "徽章",
+		"earned": "已獲得",
+		"locked": "未解鎖",
+		"badge": {
+			"firstBallot": {
+				"name": "第一票",
+				"hint": "投下你的第一票"
+			},
+			"regular": {
+				"name": "常客",
+				"hint": "投票 10 次"
+			},
+			"pillar": {
+				"name": "公民支柱",
+				"hint": "投票 50 次"
+			},
+			"questionAsker": {
+				"name": "提問者",
+				"hint": "發起你的第一個投票"
+			},
+			"crowdGatherer": {
+				"name": "號召者",
+				"hint": "你的某個投票有 10 人參與"
+			},
+			"trendReader": {
+				"name": "風向觀察家",
+				"hint": "在至少 3 個已結束投票中，60% 與多數一致"
+			},
+			"contrarian": {
+				"name": "獨排眾議",
+				"hint": "支持落敗選項 3 次"
+			}
+		},
+		"tabActivity": "你的投票",
+		"tabPolls": "你發起的",
+		"tabSettings": "設定",
+		"noVotes": "你還沒有在最近的投票中投票。",
+		"findPolls": "找個投票",
+		"youChose": "你選擇了",
+		"noPolls": "你還沒有發起投票。",
+		"outcome": {
+			"pending": "等待結果",
+			"won": "你的選擇勝出",
+			"tied": "並列第一",
+			"lost": "未獲多數",
+			"unknown": "已結束"
+		},
+		"privacyTitle": "他人可見的資訊",
+		"privacyBody": "選擇哪些個人資料會顯示在你的公開個人頁。",
+		"field": {
+			"displayName": "顯示名稱",
+			"bio": "自我介紹",
+			"location": "地區",
+			"points": "點數",
+			"membershipLevel": "會員等級"
+		},
+		"saveFailed": "儲存失敗，請再試一次。",
+		"signOutTitle": "目前登入",
+		"signOut": "登出",
+		"deleteTitle": "刪除帳號",
+		"deleteBody": "刪除你的帳號並登出所有裝置，此操作無法復原。",
+		"deleteCta": "刪除帳號",
+		"deleteConfirmTitle": "確定要刪除帳號？",
+		"deleteConfirmBody": "請輸入 {username} 以確認，帳號將被永久刪除。",
+		"deleteConfirmLabel": "輸入你的使用者名稱以確認"
 	}
 }

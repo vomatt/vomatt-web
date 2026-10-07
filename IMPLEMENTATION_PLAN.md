@@ -36,7 +36,7 @@ The web adapts to that contract; backend gaps are listed in `docs/release/backen
 ## Stage 5: Account page
 **Goal**: Profile summary, stats, my polls by status, voting activity, settings (display name/bio/visibility), logout.
 **Tests**: account component tests.
-**Status**: Not Started
+**Status**: Complete
 
 ## Stage 6: Release docs
 **Goal**: `docs/release/` — backend requests, release checklist, product brainstorm.

@@ -1,6 +1,9 @@
 'use server';
 
-import { ApiError, apiClient, publicFetch } from '@/lib/api/client';
+import { redirect } from 'next/navigation';
+
+import { clearAuthTokens } from '@/lib/api/auth';
+import { apiClient, ApiError, publicFetch } from '@/lib/api/client';
 import { MyProfile, UserProfile } from '@/types/user';
 
 export async function getUserProfile(username: string): Promise<UserProfile | null> {
@@ -58,4 +61,19 @@ export async function updateVisibility(visibility: Record<string, boolean>) {
     method: 'PATCH',
     body: JSON.stringify({ visibility }),
   });
+}
+
+/**
+ * Permanently deletes the signed-in user's account; the backend also
+ * revokes every session. Resolves only on failure: success redirects home.
+ */
+export async function deleteMyAccount(): Promise<{ ok: false; message: string }> {
+  try {
+    const me = await apiClient<MyProfile>('/users/me');
+    await apiClient(`/users/${encodeURIComponent(me.id)}`, { method: 'DELETE' });
+  } catch (error) {
+    return { ok: false, message: error instanceof Error ? error.message : 'Request failed' };
+  }
+  await clearAuthTokens();
+  redirect('/?account_deleted=1');
 }
