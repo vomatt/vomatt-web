@@ -7,7 +7,7 @@ import { MyProfile, UserProfile } from '@/types/user';
 
 import ProfileHeader from '../../profile/[username]/_components/ProfileHeader';
 import ProfilePollList from '../../profile/[username]/_components/ProfilePollList';
-import { Poll } from '@/types/poll';
+import { Poll } from '@/features/polls/schema';
 
 export type AccountPageProps = {
 	profile: MyProfile;

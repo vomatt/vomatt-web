@@ -6,7 +6,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { cn } from '@/lib/utils';
-import { Poll } from '@/types/poll';
+import { Poll } from '@/features/polls/schema';
+import { getTurnout } from '@/features/polls/status';
 
 type Status = 'all' | 'active' | 'ended';
 type SortBy = 'newest' | 'mostVotes';
@@ -48,7 +49,7 @@ function PollSearchCard({ poll }: { poll: Poll }) {
 					</p>
 				)}
 				<p className="text-xs text-muted-foreground mt-2.5 tabular-nums">
-					{poll.totalVotes.toLocaleString()} votes · {poll.creatorUsername}
+					{(getTurnout(poll) ?? 0).toLocaleString()} votes · {poll.creatorUsername}
 				</p>
 			</div>
 		</Link>

@@ -4,8 +4,9 @@ import { ArrowLeft, Share2, Users } from '@/components/ui/SvgIcons';
 import Link from 'next/link';
 
 import { getUserSession } from '@/data/auth';
-import { getPoll } from '@/lib/api/services/polls';
-import { PollCard } from '@/app/(frontend)/_components/PollCard';
+import { getPollForViewer } from '@/features/polls/service';
+import { getTurnout } from '@/features/polls/status';
+import { PollCard } from '@/features/polls/components/PollCard';
 import { Button } from '@/components/ui/Button';
 
 export default async function PollDetailPage({
@@ -14,7 +15,7 @@ export default async function PollDetailPage({
 	params: Promise<{ id: string }>;
 }) {
 	const { id } = await params;
-	const [poll, user] = await Promise.all([getPoll(id), getUserSession()]);
+	const [poll, user] = await Promise.all([getPollForViewer(id), getUserSession()]);
 
 	if (!poll) {
 		return (
@@ -51,12 +52,12 @@ export default async function PollDetailPage({
 				</Button>
 			</div>
 
-			<PollCard pollData={poll} isAuthenticated={!!user} />
+			<PollCard poll={poll} viewerUsername={user?.sub} />
 
 			<div className="mt-6 p-4 rounded-xl border border-border bg-card text-sm text-muted-foreground space-y-1">
 				<div className="flex items-center gap-2">
 					<Users className="w-4 h-4" />
-					<span>{poll.totalVotes} total votes</span>
+					<span>{getTurnout(poll) ?? 0} total votes</span>
 				</div>
 				<div>
 					Created by{' '}

@@ -8,7 +8,7 @@ export default async function Page() {
 
 	return (
 		<div className="px-contain flex justify-center gap-8 py-0">
-			<PollFeedList isAuthenticated={!!user} />
+			<PollFeedList viewerUsername={user?.sub} />
 			{!user && <LoginPrompt className="sticky top-[calc(var(--header-height)+1rem)]" />}
 		</div>
 	);
