@@ -175,14 +175,16 @@ export async function getResults(pollId: string): Promise<ActionResult<PollResul
 // ── Ballot ───────────────────────────────────────────────────────────────────
 
 /**
- * The Poll's cached copy (what guests see) is fresh on the next view. The
- * shared feed is left to its 30s revalidate: signed-in viewers read it
- * uncached anyway, and expiring it on every ballot would make the next guest
- * wait for a full uncached list. `expire: 0` avoids updateTag's re-render of
- * the current route in the action response.
+ * The Poll's cached copy (what guests see) is fresh on the next view.
+ * `expire: 0` avoids updateTag's re-render of the current route in the action
+ * response. Ballots leave the shared lists to their 30s revalidate (expiring
+ * them on every vote would make the next guest wait for a full uncached list);
+ * owner changes (`lists: true`) also expire them, so an edited or cancelled
+ * poll doesn't linger in Explore, profiles and the guest feed.
  */
-function invalidatePoll(id: string) {
+function invalidatePoll(id: string, { lists = false } = {}) {
 	revalidateTag(pollTag(id), { expire: 0 });
+	if (lists) revalidateTag(FEED_TAG, { expire: 0 });
 }
 
 /** Casts a Ballot, or replaces the existing one. */
@@ -221,7 +223,7 @@ export async function updatePoll(id: string, input: PollInput): Promise<ActionRe
 			method: 'PUT',
 			body: toRequestBody(input),
 		});
-		invalidatePoll(id);
+		invalidatePoll(id, { lists: true });
 		return poll;
 	});
 }
@@ -230,7 +232,7 @@ export async function updatePoll(id: string, input: PollInput): Promise<ActionRe
 export async function closePoll(id: string): Promise<ActionResult> {
 	return attempt(async () => {
 		await apiClient(`/votes/${id}/deactivate`, { method: 'PUT' });
-		invalidatePoll(id);
+		invalidatePoll(id, { lists: true });
 	});
 }
 

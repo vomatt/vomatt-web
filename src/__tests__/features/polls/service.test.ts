@@ -318,6 +318,7 @@ describe('createPoll() and updatePoll()', () => {
 		expect(init!.method).toBe('PUT');
 		expect(JSON.parse(init!.body as string).anonymous).toBe(false);
 		expect(revalidateTag).toHaveBeenCalledWith('poll:poll-1', { expire: 0 });
+		expect(revalidateTag).toHaveBeenCalledWith('polls-feed', { expire: 0 });
 	});
 
 	it('returns the failure message', async () => {
@@ -336,6 +337,7 @@ describe('closePoll()', () => {
 		await closePoll('poll-1');
 		expect(mockApiClient).toHaveBeenCalledWith('/votes/poll-1/deactivate', { method: 'PUT' });
 		expect(revalidateTag).toHaveBeenCalledWith('poll:poll-1', { expire: 0 });
+		expect(revalidateTag).toHaveBeenCalledWith('polls-feed', { expire: 0 });
 	});
 });
 
