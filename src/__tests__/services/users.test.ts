@@ -1,6 +1,6 @@
 import { apiClient, publicFetch } from '@/lib/api/client';
-
 import {
+  deleteMyAccount,
   deleteUser,
   followUser,
   getUserProfile,
@@ -9,10 +9,20 @@ import {
   unfollowUser,
 } from '@/lib/api/services/users';
 
+const mockUpdateTag = jest.fn();
+jest.mock('next/cache', () => ({
+  updateTag: (...a: unknown[]) => mockUpdateTag(...a),
+  revalidateTag: jest.fn(),
+}));
+const mockClearAuthTokens = jest.fn();
+jest.mock('@/lib/api/auth', () => ({ clearAuthTokens: () => mockClearAuthTokens() }));
+const mockRedirect = jest.fn();
+jest.mock('next/navigation', () => ({ redirect: (...a: unknown[]) => mockRedirect(...a) }));
+
 jest.mock('@/lib/api/client', () => ({
   apiClient: jest.fn(),
   publicFetch: jest.fn(),
-  API_BASE_PATH: '/api/v1',
+  API_BASE_PATH: '/api',
 }));
 
 const mockApiClient = apiClient as jest.MockedFunction<typeof apiClient>;
@@ -96,5 +106,23 @@ describe('unfollowUser()', () => {
     expect(mockApiClient).toHaveBeenCalledWith('/users/carol/follow', {
       method: 'DELETE',
     });
+  });
+});
+
+describe('deleteMyAccount()', () => {
+  it('deletes the signed-in user by id, clears cookies and goes home', async () => {
+    mockApiClient.mockResolvedValueOnce({ id: 'user-7' }).mockResolvedValueOnce(undefined);
+    await deleteMyAccount();
+    expect(mockApiClient).toHaveBeenNthCalledWith(1, '/users/me');
+    expect(mockApiClient).toHaveBeenLastCalledWith('/users/user-7', { method: 'DELETE' });
+    expect(mockClearAuthTokens).toHaveBeenCalled();
+    expect(mockRedirect).toHaveBeenCalledWith('/?account_deleted=1');
+  });
+
+  it('keeps the session when the API refuses', async () => {
+    mockClearAuthTokens.mockClear();
+    mockApiClient.mockRejectedValueOnce(new Error('nope'));
+    expect(await deleteMyAccount()).toEqual({ ok: false, message: 'nope' });
+    expect(mockClearAuthTokens).not.toHaveBeenCalled();
   });
 });

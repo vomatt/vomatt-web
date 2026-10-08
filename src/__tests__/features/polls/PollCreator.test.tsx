@@ -6,6 +6,8 @@ import { Poll } from '@/features/polls/schema';
 import { createPoll, updatePoll } from '@/features/polls/service';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
+const mockPush = jest.fn();
+jest.mock('next/navigation', () => ({ useRouter: () => ({ push: mockPush }) }));
 jest.mock('sonner', () => ({ toast: Object.assign(jest.fn(), { error: jest.fn() }) }));
 jest.mock('@/features/polls/service', () => ({
 	createPoll: jest.fn(),
@@ -166,6 +168,16 @@ describe('PollCreator', () => {
 		await waitFor(() =>
 			expect(screen.queryByLabelText('Ends and reveals results')).not.toBeInTheDocument()
 		);
+	});
+
+	it('takes the creator to the new poll after publishing', async () => {
+		mockCreatePoll.mockResolvedValue({ ok: true, data: { id: 'poll-new' } });
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		await fillToTiming();
+		publish();
+
+		await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/poll/poll-new'));
 	});
 
 	it('fills the end time from a preset', async () => {

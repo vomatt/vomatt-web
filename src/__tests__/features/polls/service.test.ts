@@ -1,5 +1,3 @@
-import { ApiError, apiClient, AuthError, publicFetch } from '@/lib/api/client';
-
 import { isPollEnded, isSealed } from '@/features/polls/errors';
 import {
 	castBallot,
@@ -8,8 +6,9 @@ import {
 	deleteComment,
 	getFeed,
 	getMyBallot,
+	getParticipatedPolls,
 	getPoll,
-	getPollForViewer,
+	getPollsByCreator,
 	getResults,
 	likeComment,
 	retractBallot,
@@ -17,10 +16,10 @@ import {
 	updateComment,
 	updatePoll,
 } from '@/features/polls/service';
+import { apiClient, ApiError, AuthError, publicFetch } from '@/lib/api/client';
 
-jest.mock('next/cache', () => ({ updateTag: jest.fn() }));
+jest.mock('next/cache', () => ({ updateTag: jest.fn(), revalidateTag: jest.fn() }));
 jest.mock('next/navigation', () => ({ unstable_rethrow: jest.fn() }));
-jest.mock('@/data/auth', () => ({ getUserSession: jest.fn() }));
 
 jest.mock('@/lib/api/client', () => {
 	class ApiError extends Error {
@@ -44,8 +43,7 @@ jest.mock('@/lib/api/client', () => {
 	};
 });
 
-const { updateTag } = jest.requireMock('next/cache');
-const { getUserSession } = jest.requireMock('@/data/auth');
+const { updateTag, revalidateTag } = jest.requireMock('next/cache');
 const mockApiClient = apiClient as jest.MockedFunction<typeof apiClient>;
 const mockPublicFetch = publicFetch as jest.MockedFunction<typeof publicFetch>;
 
@@ -105,12 +103,11 @@ const input = {
 beforeEach(() => {
 	jest.clearAllMocks();
 	mockApiClient.mockResolvedValue(undefined);
-	getUserSession.mockResolvedValue(null);
 });
 
 describe('getPoll()', () => {
 	it('parses the current Poll shape', async () => {
-		mockPublicFetch.mockResolvedValue(oldPoll);
+		mockApiClient.mockResolvedValue(oldPoll);
 		const poll = await getPoll('poll-1');
 		expect(poll?.options[0].votes).toBe(2);
 		expect(poll?.totalVotes).toBe(3);
@@ -118,7 +115,7 @@ describe('getPoll()', () => {
 	});
 
 	it('parses the sealed Poll shape without counts', async () => {
-		mockPublicFetch.mockResolvedValue(newPoll);
+		mockApiClient.mockResolvedValue(newPoll);
 		const poll = await getPoll('poll-2');
 		expect(poll?.options[0].votes).toBeUndefined();
 		expect(poll?.participantCount).toBe(128);
@@ -126,82 +123,90 @@ describe('getPoll()', () => {
 		expect(poll?.voterVisibility).toBe('owner');
 	});
 
-	it('tags the request with the poll tag', async () => {
-		mockPublicFetch.mockResolvedValue(oldPoll);
+	it('asks with optional auth and the poll tag (apiClient skips the cache when signed in)', async () => {
+		mockApiClient.mockResolvedValue(oldPoll);
 		await getPoll('poll-1');
-		expect(mockPublicFetch).toHaveBeenCalledWith('/votes/poll-1', {
+		expect(mockApiClient).toHaveBeenCalledWith('/votes/poll-1', {
+			auth: 'optional',
 			next: { revalidate: 30, tags: ['poll:poll-1'] },
 		});
 	});
 
 	it('returns null on 404', async () => {
-		mockPublicFetch.mockRejectedValue(new ApiError('Not found', 404));
+		mockApiClient.mockRejectedValue(new ApiError('Not found', 404));
 		expect(await getPoll('missing')).toBeNull();
 	});
-});
 
-describe('getPollForViewer()', () => {
-	it('attaches a signed-in viewer\'s Ballot', async () => {
-		getUserSession.mockResolvedValue({ sub: 'klaus' });
-		mockPublicFetch.mockResolvedValue(oldPoll);
-		mockApiClient.mockResolvedValue({ hasVoted: true, selectedOptions: ['opt-1'] });
-		expect((await getPollForViewer('poll-1'))?.myOptionId).toBe('opt-1');
+	it('accepts the nulls the API sends for empty fields', async () => {
+		mockApiClient.mockResolvedValue({
+			...oldPoll,
+			description: null,
+			updatedAt: null,
+			endTime: null,
+			tags: null,
+			options: oldPoll.options.map((option) => ({ ...option, description: null })),
+		});
+		expect((await getPoll('poll-1'))?.description).toBeNull();
 	});
 
-	it('skips the Ballot lookup when signed out', async () => {
-		mockPublicFetch.mockResolvedValue(oldPoll);
-		expect((await getPollForViewer('poll-1'))?.myOptionId).toBeUndefined();
-		expect(mockApiClient).not.toHaveBeenCalled();
-	});
-
-	it('skips the Ballot lookup when the Poll is missing', async () => {
-		getUserSession.mockResolvedValue({ sub: 'klaus' });
-		mockPublicFetch.mockRejectedValue(new ApiError('Not found', 404));
-		expect(await getPollForViewer('missing')).toBeNull();
-		expect(mockApiClient).not.toHaveBeenCalled();
+	it('rethrows a 401, which the page turns into a sign-in prompt', async () => {
+		mockApiClient.mockRejectedValue(new ApiError('Unauthorized', 401));
+		await expect(getPoll('poll-1')).rejects.toMatchObject({ statusCode: 401 });
 	});
 });
 
 describe('getFeed()', () => {
-	it('reads a Spring page and turns the next page number into a cursor', async () => {
-		mockPublicFetch.mockResolvedValue({ content: [oldPoll], last: false, number: 0 });
+	it('asks as the viewer (optional auth) and turns the next 1-based page into a cursor', async () => {
+		mockApiClient.mockResolvedValue({ content: [oldPoll], total: 25, page: 1, limit: 10 });
 		const page = await getFeed();
 		expect(page.items).toHaveLength(1);
-		expect(page.nextCursor).toBe('1');
-		expect(mockPublicFetch).toHaveBeenCalledWith('/votes?page=0&size=10', {
-			next: { tags: ['polls-feed'] },
+		expect(page.nextCursor).toBe('2');
+		expect(mockApiClient).toHaveBeenCalledWith('/votes?page=1&size=10', {
+			auth: 'optional',
+			next: { revalidate: 30, tags: ['polls-feed'] },
 		});
 	});
 
-	it('attaches a signed-in viewer\'s Ballots in parallel', async () => {
-		getUserSession.mockResolvedValue({ sub: 'klaus' });
-		mockPublicFetch.mockResolvedValue({ content: [oldPoll, newPoll], last: true, number: 0 });
-		mockApiClient.mockResolvedValue({ hasVoted: true, selectedOptions: ['opt-2'] });
+	it('keeps the viewer\'s Ballot the API sends, without extra lookups', async () => {
+		mockApiClient.mockResolvedValue({ content: [newPoll], total: 1, page: 1, limit: 10 });
 		const page = await getFeed();
-
-		expect(page.items[0].myOptionId).toBe('opt-2');
-		// newPoll already carries myOptionId, so it is not looked up
-		expect(page.items[1].myOptionId).toBe('opt-sun');
+		expect(page.items[0].myOptionId).toBe('opt-sun');
 		expect(mockApiClient).toHaveBeenCalledTimes(1);
 	});
 
-	it('skips Ballot lookups when signed out', async () => {
-		mockPublicFetch.mockResolvedValue({ content: [oldPoll], last: true, number: 0 });
-		const page = await getFeed();
-		expect(page.items[0].myOptionId).toBeUndefined();
+	it('caps the page size a client can ask for', async () => {
+		mockApiClient.mockResolvedValue({ content: [], total: 0, page: 1, limit: 50 });
+		await getFeed(null, 1000);
+		expect(mockApiClient).toHaveBeenCalledWith('/votes?page=1&size=50', expect.anything());
+	});
+
+	it('passes the topic', async () => {
+		mockApiClient.mockResolvedValue({ items: [newPoll], nextCursor: null });
+		await getFeed('2', 10, 'work');
+		expect(mockApiClient).toHaveBeenCalledWith('/votes?page=2&size=10&tag=work', expect.anything());
+	});
+});
+
+describe('getPollsByCreator()', () => {
+	it('asks the API for that creator\'s polls, from the shared cache', async () => {
+		mockPublicFetch.mockResolvedValue({ content: [oldPoll], total: 1, page: 1, limit: 50 });
+		expect(await getPollsByCreator('mei')).toHaveLength(1);
+		expect(mockPublicFetch.mock.calls[0][0]).toBe('/votes?page=1&size=50&creatorUsername=mei');
 		expect(mockApiClient).not.toHaveBeenCalled();
 	});
 
-	it('caps the page size a client can ask for', async () => {
-		mockPublicFetch.mockResolvedValue({ content: [], last: true, number: 0 });
-		await getFeed(null, 1000);
-		expect(mockPublicFetch).toHaveBeenCalledWith('/votes?page=0&size=50', expect.anything());
+	it('is empty when the API fails', async () => {
+		mockPublicFetch.mockRejectedValue(new ApiError('down', 503));
+		expect(await getPollsByCreator('mei')).toEqual([]);
 	});
+});
 
-	it('reads a cursor page', async () => {
-		mockPublicFetch.mockResolvedValue({ items: [newPoll], nextCursor: null });
-		const page = await getFeed('abc');
-		expect(page).toEqual({ items: [expect.objectContaining({ id: 'poll-2' })], nextCursor: null });
+describe('getParticipatedPolls()', () => {
+	it('reads the polls the viewer voted in', async () => {
+		mockApiClient.mockResolvedValue({ content: [newPoll], total: 1, page: 1, limit: 50 });
+		const polls = await getParticipatedPolls();
+		expect(polls[0].myOptionId).toBe('opt-sun');
+		expect(mockApiClient).toHaveBeenCalledWith('/votes/participated?page=1&size=50');
 	});
 });
 
@@ -231,7 +236,14 @@ describe('castBallot()', () => {
 			method: 'POST',
 			body: JSON.stringify({ optionIds: ['opt-1'] }),
 		});
-		expect(updateTag).toHaveBeenCalledWith('poll:poll-1');
+		expect(revalidateTag).toHaveBeenCalledWith('poll:poll-1', { expire: 0 });
+	});
+
+	it('reports the API\'s current vote.not_allowed as ended', async () => {
+		mockApiClient.mockRejectedValue(
+			new ApiError('Voting closed', 400, { errorCode: 'vote.not_allowed' })
+		);
+		expect(isPollEnded(await castBallot('poll-1', 'opt-1'))).toBe(true);
 	});
 
 	it('reports vote.ended without throwing', async () => {
@@ -241,15 +253,17 @@ describe('castBallot()', () => {
 		const result = await castBallot('poll-1', 'opt-1');
 		expect(result.ok).toBe(false);
 		expect(isPollEnded(result)).toBe(true);
-		expect(updateTag).not.toHaveBeenCalled();
+		expect(revalidateTag).not.toHaveBeenCalled();
 	});
 });
 
 describe('retractBallot()', () => {
-	it('sends DELETE to /votes/{id}/vote', async () => {
-		await retractBallot('poll-1');
-		expect(mockApiClient).toHaveBeenCalledWith('/votes/poll-1/vote', { method: 'DELETE' });
-		expect(updateTag).toHaveBeenCalledWith('poll:poll-1');
+	it('sends DELETE to /votes/{id}/vote/{optionId}', async () => {
+		await retractBallot('poll-1', 'opt-2');
+		expect(mockApiClient).toHaveBeenCalledWith('/votes/poll-1/vote/opt-2', { method: 'DELETE' });
+		expect(revalidateTag).toHaveBeenCalledWith('poll:poll-1', { expire: 0 });
+		// The shared feed keeps its own revalidate instead of expiring on every ballot
+		expect(revalidateTag).not.toHaveBeenCalledWith('polls-feed', expect.anything());
 	});
 });
 
@@ -303,7 +317,8 @@ describe('createPoll() and updatePoll()', () => {
 		expect(url).toBe('/votes/poll-1');
 		expect(init!.method).toBe('PUT');
 		expect(JSON.parse(init!.body as string).anonymous).toBe(false);
-		expect(updateTag).toHaveBeenCalledWith('poll:poll-1');
+		expect(revalidateTag).toHaveBeenCalledWith('poll:poll-1', { expire: 0 });
+		expect(revalidateTag).toHaveBeenCalledWith('polls-feed', { expire: 0 });
 	});
 
 	it('returns the failure message', async () => {
@@ -321,7 +336,8 @@ describe('closePoll()', () => {
 	it('sends PUT to /votes/{id}/deactivate', async () => {
 		await closePoll('poll-1');
 		expect(mockApiClient).toHaveBeenCalledWith('/votes/poll-1/deactivate', { method: 'PUT' });
-		expect(updateTag).toHaveBeenCalledWith('poll:poll-1');
+		expect(revalidateTag).toHaveBeenCalledWith('poll:poll-1', { expire: 0 });
+		expect(revalidateTag).toHaveBeenCalledWith('polls-feed', { expire: 0 });
 	});
 });
 

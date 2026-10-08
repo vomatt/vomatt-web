@@ -23,6 +23,7 @@ const mockGetMyBallot = jest.fn();
 const mockGetPoll = jest.fn();
 const mockGetResults = jest.fn();
 const mockPostComment = jest.fn();
+const mockGetComments = jest.fn();
 const mockClosePoll = jest.fn();
 
 jest.mock('@/features/polls/service', () => ({
@@ -30,9 +31,10 @@ jest.mock('@/features/polls/service', () => ({
 	castBallot: (...args: any[]) => mockCastBallot(...args),
 	retractBallot: (...args: any[]) => mockRetractBallot(...args),
 	getMyBallot: (...args: any[]) => mockGetMyBallot(...args),
-	getPollForViewer: (...args: any[]) => mockGetPoll(...args),
+	getPoll: (...args: any[]) => mockGetPoll(...args),
 	getResults: (...args: any[]) => mockGetResults(...args),
 	postComment: (...args: any[]) => mockPostComment(...args),
+	getComments: (...args: any[]) => mockGetComments(...args),
 }));
 
 jest.mock('@/components/auth/AuthDialog', () => ({
@@ -124,13 +126,13 @@ describe('PollCard state A · Open, no Ballot', () => {
 			...openPoll,
 			options: openPoll.options.map((o) => ({ ...o, votes: 10 })),
 		};
-		render(<PollCard poll={withCounts} viewerUsername="voter" />);
+		render(<PollCard poll={withCounts} viewerId="user-voter" />);
 		vote('Friday');
 		expect(screen.queryByText(/%/)).not.toBeInTheDocument();
 	});
 
 	it('disables Vote until an option is selected', () => {
-		render(<PollCard poll={openPoll} viewerUsername="voter" />);
+		render(<PollCard poll={openPoll} viewerId="user-voter" />);
 		expect(screen.getByRole('button', { name: 'Vote' })).toBeDisabled();
 		fireEvent.click(screen.getByLabelText('Friday'));
 		expect(screen.getByRole('button', { name: 'Vote' })).toBeEnabled();
@@ -139,7 +141,7 @@ describe('PollCard state A · Open, no Ballot', () => {
 
 describe('PollCard state B · Open, has Ballot', () => {
 	it('casts the selected option and raises Turnout', async () => {
-		render(<PollCard poll={openPoll} viewerUsername="voter" />);
+		render(<PollCard poll={openPoll} viewerId="user-voter" />);
 		vote('Saturday');
 
 		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-sat');
@@ -151,21 +153,21 @@ describe('PollCard state B · Open, has Ballot', () => {
 	it('shows a returning voter their choice from the status call', async () => {
 		mockGetMyBallot.mockResolvedValue('opt-sun');
 		const { myOptionId, ...withoutField } = openPoll;
-		render(<PollCard poll={withoutField} viewerUsername="voter" />);
+		render(<PollCard poll={withoutField} viewerId="user-voter" />);
 
 		await waitFor(() => expect(screen.getByLabelText(/Sunday/)).toBeChecked());
 		expect(mockGetMyBallot).toHaveBeenCalledWith('poll-1');
 	});
 
 	it('uses myOptionId from the Poll without the status call', () => {
-		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerUsername="voter" />);
+		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerId="user-voter" />);
 		expect(screen.getByLabelText(/Sunday/)).toBeChecked();
 		expect(screen.getByText('Your vote')).toBeInTheDocument();
 		expect(mockGetMyBallot).not.toHaveBeenCalled();
 	});
 
 	it('replaces the Ballot without changing Turnout', async () => {
-		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerUsername="voter" />);
+		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerId="user-voter" />);
 		const update = screen.getByRole('button', { name: 'Update vote' });
 		expect(update).toBeDisabled();
 
@@ -177,7 +179,7 @@ describe('PollCard state B · Open, has Ballot', () => {
 	});
 
 	it('asks before withdrawing, then returns to state A and lowers Turnout', async () => {
-		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerUsername="voter" />);
+		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerId="user-voter" />);
 
 		fireEvent.click(screen.getByRole('button', { name: 'Withdraw vote' }));
 		expect(
@@ -187,16 +189,17 @@ describe('PollCard state B · Open, has Ballot', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: 'Withdraw' }));
 
-		expect(mockRetractBallot).toHaveBeenCalledWith('poll-1');
+		expect(mockRetractBallot).toHaveBeenCalledWith('poll-1', 'opt-sun');
 		expect(screen.getByText('127 voted')).toBeInTheDocument();
 		await waitFor(() =>
 			expect(screen.getByRole('button', { name: 'Vote' })).toBeInTheDocument()
 		);
-		expect(screen.queryByText('Your vote')).not.toBeInTheDocument();
+		// The stamp lifts off with an exit animation
+		await waitFor(() => expect(screen.queryByText('Your vote')).not.toBeInTheDocument());
 	});
 
 	it('Keep cancels the withdraw confirm', () => {
-		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerUsername="voter" />);
+		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerId="user-voter" />);
 		fireEvent.click(screen.getByRole('button', { name: 'Withdraw vote' }));
 		fireEvent.click(screen.getByRole('button', { name: 'Keep' }));
 		expect(screen.getByRole('button', { name: 'Update vote' })).toBeInTheDocument();
@@ -205,17 +208,17 @@ describe('PollCard state B · Open, has Ballot', () => {
 
 	it('rolls back a failed cast', async () => {
 		mockCastBallot.mockResolvedValue({ ok: false, status: 500, message: 'boom' });
-		render(<PollCard poll={openPoll} viewerUsername="voter" />);
+		render(<PollCard poll={openPoll} viewerId="user-voter" />);
 		vote('Friday');
 
 		await waitFor(() => expect(toast.error).toHaveBeenCalled());
 		expect(screen.getByText('128 voted')).toBeInTheDocument();
-		expect(screen.queryByText('Your vote')).not.toBeInTheDocument();
+		await waitFor(() => expect(screen.queryByText('Your vote')).not.toBeInTheDocument());
 	});
 
 	it('rolls back a failed withdraw', async () => {
 		mockRetractBallot.mockResolvedValue({ ok: false, status: 500, message: 'boom' });
-		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerUsername="voter" />);
+		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerId="user-voter" />);
 		fireEvent.click(screen.getByRole('button', { name: 'Withdraw vote' }));
 		fireEvent.click(screen.getByRole('button', { name: 'Withdraw' }));
 
@@ -227,7 +230,7 @@ describe('PollCard state B · Open, has Ballot', () => {
 	it('on vote.ended, toasts and refetches so the card flips to state D', async () => {
 		mockCastBallot.mockResolvedValue({ ok: false, errorCode: 'vote.ended', message: 'ended' });
 		mockGetPoll.mockResolvedValue(endedPoll);
-		render(<PollCard poll={openPoll} viewerUsername="voter" />);
+		render(<PollCard poll={openPoll} viewerId="user-voter" />);
 		vote('Friday');
 
 		await waitFor(() => expect(screen.getByText('62')).toBeInTheDocument());
@@ -245,25 +248,25 @@ describe('PollCard state C · Scheduled', () => {
 	};
 
 	it('disables the options and shows when voting opens', () => {
-		render(<PollCard poll={scheduled} viewerUsername="voter" />);
+		render(<PollCard poll={scheduled} viewerId="user-voter" />);
 		screen.getAllByRole('radio').forEach((radio) => expect(radio).toBeDisabled());
 		expect(screen.getByText(/Voting opens in/)).toBeInTheDocument();
 		expect(screen.queryByRole('button', { name: 'Vote' })).not.toBeInTheDocument();
 	});
 
 	it('offers Edit and Cancel poll only to the owner', () => {
-		const { unmount } = render(<PollCard poll={scheduled} viewerUsername="voter" />);
+		const { unmount } = render(<PollCard poll={scheduled} viewerId="user-voter" />);
 		expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument();
 		expect(screen.queryByRole('button', { name: 'Cancel poll' })).not.toBeInTheDocument();
 		unmount();
 
-		render(<PollCard poll={scheduled} viewerUsername="mei.lin" />);
+		render(<PollCard poll={scheduled} viewerId="user-1" />);
 		expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument();
 		expect(screen.getByRole('button', { name: 'Cancel poll' })).toBeInTheDocument();
 	});
 
 	it('does not offer Edit on an Open Poll, even to the owner', () => {
-		render(<PollCard poll={openPoll} viewerUsername="mei.lin" />);
+		render(<PollCard poll={openPoll} viewerId="user-1" />);
 		expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument();
 	});
 
@@ -277,7 +280,7 @@ describe('PollCard state C · Scheduled', () => {
 				options: scheduled.options.map(({ id, text }) => ({ id, text, voteCount: 0 })),
 			},
 		});
-		render(<PollCard poll={scheduled} viewerUsername="mei.lin" />);
+		render(<PollCard poll={scheduled} viewerId="user-1" />);
 
 		fireEvent.click(screen.getByRole('button', { name: 'Cancel poll' }));
 		expect(screen.getByText("It won't open, and no one will be notified.")).toBeInTheDocument();
@@ -290,7 +293,7 @@ describe('PollCard state C · Scheduled', () => {
 
 describe('PollCard state D · Ended', () => {
 	it('shows Support per option, the winner and the viewer’s choice', () => {
-		render(<PollCard poll={{ ...endedPoll, myOptionId: 'opt-sat' }} viewerUsername="voter" />);
+		render(<PollCard poll={{ ...endedPoll, myOptionId: 'opt-sat' }} viewerId="user-voter" />);
 		expect(screen.getByText('29%')).toBeInTheDocument();
 		expect(screen.getByText('22%')).toBeInTheDocument();
 		expect(screen.getByText('48%')).toBeInTheDocument();
@@ -387,18 +390,23 @@ describe('PollCard signed-out visitor', () => {
 	});
 
 	it('does not open sign-in for a signed-in voter', () => {
-		render(<PollCard poll={openPoll} viewerUsername="voter" />);
+		render(<PollCard poll={openPoll} viewerId="user-voter" />);
 		vote('Sunday');
 		expect(screen.queryByTestId('auth-dialog')).not.toBeInTheDocument();
 	});
 
 	it('opens sign-in on posting a comment, then posts it', async () => {
+		mockGetComments.mockResolvedValue({ ok: true, data: { items: [], nextCursor: null, total: 0 } });
+		mockPostComment.mockResolvedValue({
+			ok: true,
+			data: { id: 'c1', author: 'voter', text: 'Hello', createdAt: '2026-10-05T00:00:00Z' },
+		});
 		render(<PollCard poll={openPoll} />);
-		fireEvent.click(screen.getByText('0 comments'));
-		fireEvent.change(screen.getByPlaceholderText('Add a comment…'), {
+		fireEvent.click(screen.getByText('Discuss'));
+		fireEvent.change(await screen.findByPlaceholderText('Why did you vote the way you did?'), {
 			target: { value: 'Hello' },
 		});
-		fireEvent.click(screen.getByText('Post'));
+		fireEvent.click(screen.getByRole('button', { name: 'Post' }));
 
 		expect(screen.getByTestId('auth-dialog')).toBeInTheDocument();
 		await act(async () => {
@@ -406,5 +414,39 @@ describe('PollCard signed-out visitor', () => {
 		});
 		expect(mockPostComment).toHaveBeenCalledWith('poll-1', 'Hello');
 		expect(screen.queryByTestId('auth-dialog')).not.toBeInTheDocument();
+		expect(await screen.findByText('Hello')).toBeInTheDocument();
+		expect(screen.getByText('1 comment')).toBeInTheDocument();
+	});
+
+	it('asks a guest to sign in when the API keeps comments to members, then loads them', async () => {
+		mockGetComments.mockResolvedValueOnce({ ok: false, status: 401, message: 'Unauthorized' });
+		mockGetComments.mockResolvedValueOnce({
+			ok: true,
+			data: {
+				items: [{ id: 'c1', author: 'mei', text: 'Saturday works', createdAt: '2026-10-05T00:00:00Z' }],
+				nextCursor: null,
+				total: 1,
+			},
+		});
+		render(<PollCard poll={openPoll} />);
+		fireEvent.click(screen.getByText('Discuss'));
+
+		fireEvent.click(await screen.findByRole('button', { name: 'Sign in' }));
+		await act(async () => {
+			fireEvent.click(screen.getByText('Mock Auth Success'));
+		});
+		expect(await screen.findByText('Saturday works')).toBeInTheDocument();
+	});
+
+	it('keeps the comment text when the guest backs out of sign-in', async () => {
+		mockGetComments.mockResolvedValue({ ok: true, data: { items: [], nextCursor: null, total: 0 } });
+		render(<PollCard poll={openPoll} />);
+		fireEvent.click(screen.getByText('Discuss'));
+		const box = await screen.findByPlaceholderText('Why did you vote the way you did?');
+		fireEvent.change(box, { target: { value: 'Draft' } });
+		fireEvent.click(screen.getByRole('button', { name: 'Post' }));
+
+		expect(mockPostComment).not.toHaveBeenCalled();
+		expect(box).toHaveValue('Draft');
 	});
 });

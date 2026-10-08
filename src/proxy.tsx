@@ -6,10 +6,12 @@ import { NextResponse } from 'next/server';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from '@/data/constants';
 import {
 	buildAuthCookies,
+	isExpiringSoon,
 	requestTokenRefresh,
 	verifyAccessToken,
 } from '@/lib/api/tokens';
-import { LanguageCode } from '@/types';
+import { getSafeRedirectPath } from '@/lib/routes';
+import { AuthTokens, LanguageCode } from '@/types';
 
 import { i18n, SUPPORTED_LANGUAGES } from './i18n-config';
 
@@ -54,49 +56,106 @@ function getLocale(request: NextRequest): string | undefined {
 }
 
 const protectedPaths = ['/account', '/my-polls', '/notifications'];
-const authPaths = ['/login', '/register'];
+const authPaths = ['/login', '/signup'];
+
+type SessionResult =
+	| { status: 'valid' }
+	| { status: 'refreshed'; tokens: AuthTokens }
+	| { status: 'misconfigured'; tokens: AuthTokens }
+	| { status: 'none' }
+	| { status: 'dead' };
+
+/**
+ * Set when a freshly issued access token still fails verification, i.e.
+ * SESSION_SECRET doesn't match the API's JWT_SECRET. Holds the refresh token
+ * it was learned with, so that pair isn't rotated again on every request.
+ */
+const KEY_MISMATCH = 'auth-key-mismatch';
+
+/**
+ * Valid access token → valid. Missing, invalid or nearly expired → one
+ * refresh attempt. A refresh token the backend refuses is dead and gets
+ * cleared, so later requests don't retry it. When the backend can't be
+ * reached the cookies stay, and the next request tries again.
+ */
+async function resolveSession(request: NextRequest): Promise<SessionResult> {
+	const accessToken = request.cookies.get(ACCESS_TOKEN)?.value;
+	const refreshToken = request.cookies.get(REFRESH_TOKEN)?.value;
+
+	const payload = accessToken ? await verifyAccessToken(accessToken) : null;
+	if (payload && (!refreshToken || !isExpiringSoon(payload))) return { status: 'valid' };
+	if (!refreshToken) return { status: 'none' };
+	// Already known not to verify; refreshing again would only rotate in a loop
+	if (request.cookies.get(KEY_MISMATCH)?.value === refreshToken) return { status: 'none' };
+
+	const result = await requestTokenRefresh(refreshToken);
+	if (result.status === 'ok') {
+		// A token the API just issued that still fails here can't be fixed by refreshing
+		if (await verifyAccessToken(result.tokens.accessToken)) {
+			return { status: 'refreshed', tokens: result.tokens };
+		}
+		console.error('Access token failed verification: check SESSION_SECRET matches the API JWT_SECRET');
+		return { status: 'misconfigured', tokens: result.tokens };
+	}
+	// Keep a still-valid access token for its last seconds rather than signing out early
+	if (payload) return { status: 'valid' };
+	return result.status === 'rejected' ? { status: 'dead' } : { status: 'none' };
+}
 
 export async function proxy(request: NextRequest) {
 	const { pathname } = request.nextUrl;
 
-	const isProtectedPath = protectedPaths.some(
-		(path) => pathname === path || pathname.startsWith(`${path}/`)
-	);
-	const isAuthPath = authPaths.some((path) => pathname.startsWith(path));
-	const response = NextResponse.next();
+	const isUnder = (paths: string[]) =>
+		paths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+	const isProtectedPath = isUnder(protectedPaths);
+	const isAuthPath = isUnder(authPaths);
 
-	const accessToken = request.cookies.get(ACCESS_TOKEN)?.value;
-	const refreshToken = request.cookies.get(REFRESH_TOKEN)?.value;
+	const session = await resolveSession(request);
+	const hasValidSession = session.status === 'valid' || session.status === 'refreshed';
 
-	let hasValidSession =
-		!!accessToken && (await verifyAccessToken(accessToken)) !== null;
-
-	// If access token is invalid/missing but refresh token exists, try to refresh
-	// proactively so server components see a fresh access token immediately.
-	if (!hasValidSession && refreshToken) {
-		const newTokens = await requestTokenRefresh(refreshToken);
-		if (newTokens) {
-			hasValidSession = true;
-			for (const { name, value, options } of buildAuthCookies(newTokens)) {
-				response.cookies.set(name, value, options);
-			}
-		}
+	// Server Components and Server Actions read cookies from the request, so
+	// rotated tokens must be written there too, not only to the browser.
+	// A misconfigured rotation is still saved: the old refresh token is spent.
+	const authCookies =
+		session.status === 'refreshed' || session.status === 'misconfigured'
+			? buildAuthCookies(session.tokens)
+			: [];
+	if (session.status === 'dead') {
+		request.cookies.delete(ACCESS_TOKEN);
+		request.cookies.delete(REFRESH_TOKEN);
 	}
+	for (const { name, value } of authCookies) request.cookies.set(name, value);
 
-	// Redirect authenticated users away from auth pages
-	if (hasValidSession && isAuthPath) {
-		const redirect = NextResponse.redirect(new URL('/', request.url));
-		// Keep any tokens refreshed above; the backend may have rotated them.
-		response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
-		return redirect;
+	const applyAuthCookies = (res: NextResponse) => {
+		for (const { name, value, options } of authCookies) res.cookies.set(name, value, options);
+		if (session.status === 'dead') {
+			res.cookies.delete(ACCESS_TOKEN);
+			res.cookies.delete(REFRESH_TOKEN);
+		}
+		if (session.status === 'misconfigured') {
+			res.cookies.set(KEY_MISMATCH, session.tokens.refreshToken, { httpOnly: true, path: '/' });
+		}
+		return res;
+	};
+
+	// Redirect authenticated users away from auth pages, unless the API rejected
+	// their session and they were sent to sign in again
+	if (hasValidSession && isAuthPath && !request.nextUrl.searchParams.has('session_expired')) {
+		const target = getSafeRedirectPath(request.nextUrl.searchParams.get('redirect'));
+		return applyAuthCookies(NextResponse.redirect(new URL(target, request.url)));
 	}
 
 	// Redirect unauthenticated users to login
 	if (!hasValidSession && isProtectedPath) {
 		const loginUrl = new URL('/login', request.url);
-		loginUrl.searchParams.set('redirect', pathname);
-		return NextResponse.redirect(loginUrl);
+		loginUrl.searchParams.set('redirect', `${pathname}${request.nextUrl.search}`);
+		if (session.status === 'dead') loginUrl.searchParams.set('session_expired', '1');
+		return applyAuthCookies(NextResponse.redirect(loginUrl));
 	}
+
+	const response = applyAuthCookies(
+		NextResponse.next({ request: { headers: request.headers } })
+	);
 
 	// Check for language preference in cookie (if you want to set one)
 	const savedLanguage = request.cookies.get('preferred-language')?.value;

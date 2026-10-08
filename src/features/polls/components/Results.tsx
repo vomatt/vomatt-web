@@ -1,5 +1,6 @@
 'use client';
 
+import { animate, motion, useMotionValue, useReducedMotion, useTransform } from 'motion/react';
 import { useEffect, useState } from 'react';
 
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -9,8 +10,46 @@ import { cn } from '@/lib/utils';
 import { type ActionResult, isSealed } from '../errors';
 import type { Poll, PollResults } from '../schema';
 import { getResults } from '../service';
+import { getWinners } from '../status';
 
 type Row = { id: string; text: string; votes: number };
+
+const BAR_EASE = [0.22, 1, 0.36, 1] as const;
+const BAR_DURATION = 0.8;
+const STAGGER = 0.08;
+
+/** Counts up to `value` alongside its bar. Screen readers get the final value elsewhere. */
+function CountUp({ value, delay }: { value: number; delay: number }) {
+	const reduceMotion = useReducedMotion();
+	const count = useMotionValue(reduceMotion ? value : 0);
+	const label = useTransform(count, (latest) => `${Math.round(latest)}%`);
+
+	useEffect(() => {
+		if (reduceMotion) {
+			count.set(value);
+			return;
+		}
+		const controls = animate(count, value, { duration: BAR_DURATION, delay, ease: BAR_EASE });
+		return () => controls.stop();
+	}, [count, delay, reduceMotion, value]);
+
+	return <motion.span aria-hidden>{label}</motion.span>;
+}
+
+function Crown() {
+	return (
+		<motion.svg
+			viewBox="0 0 16 16"
+			aria-hidden
+			className="mr-1.5 inline size-3.5 -translate-y-px text-emerald-600 dark:text-emerald-400"
+			initial={{ scale: 0, rotate: -30 }}
+			animate={{ scale: 1, rotate: 0 }}
+			transition={{ type: 'spring', stiffness: 500, damping: 14, delay: BAR_DURATION }}
+		>
+			<path fill="currentColor" d="M2 5.5 5 8l3-5 3 5 3-2.5-1.2 7H3.2z" />
+		</motion.svg>
+	);
+}
 
 type ResultsProps = {
 	poll: Poll;
@@ -66,8 +105,7 @@ export function Results({ poll, myOptionId, turnout, onSealed }: ResultsProps) {
 
 	const participants =
 		turnout ?? results?.totalParticipants ?? rows.reduce((sum, row) => sum + row.votes, 0);
-	const topVotes = Math.max(0, ...rows.map((row) => row.votes));
-	const winners = topVotes > 0 ? rows.filter((row) => row.votes === topVotes) : [];
+	const winners = getWinners(rows);
 	const support = (votes: number) =>
 		participants === 0 ? 0 : Math.round((votes / participants) * 100);
 
@@ -85,9 +123,10 @@ export function Results({ poll, myOptionId, turnout, onSealed }: ResultsProps) {
 	return (
 		<div className="space-y-3.5">
 			<ul className="space-y-1.5">
-				{rows.map((row) => {
+				{rows.map((row, index) => {
 					const percent = support(row.votes);
 					const isWinner = winners.includes(row);
+					const delay = index * STAGGER;
 					return (
 						<li
 							key={row.id}
@@ -96,16 +135,19 @@ export function Results({ poll, myOptionId, turnout, onSealed }: ResultsProps) {
 								isWinner ? 'border-emerald-600/60' : 'border-border'
 							)}
 						>
-							<div
+							<motion.div
 								aria-hidden
 								className={cn(
-									'absolute inset-0 origin-left transition-transform duration-500 ease-out motion-reduce:transition-none',
+									'absolute inset-0 origin-left',
 									isWinner ? 'bg-emerald-600/15' : 'bg-foreground/[0.07]'
 								)}
-								style={{ transform: `scaleX(${percent / 100})` }}
+								initial={{ scaleX: 0 }}
+								animate={{ scaleX: percent / 100 }}
+								transition={{ duration: BAR_DURATION, delay, ease: BAR_EASE }}
 							/>
 							<div className="relative flex items-center justify-between gap-2.5 px-3.5 py-2.5">
 								<span className={cn(isWinner && 'font-semibold')}>
+									{isWinner && <Crown />}
 									{row.text}
 									{row.id === myOptionId && (
 										<span className="ml-1.5 text-[11px] font-normal text-muted-foreground">
@@ -114,7 +156,8 @@ export function Results({ poll, myOptionId, turnout, onSealed }: ResultsProps) {
 									)}
 								</span>
 								<span className="shrink-0 font-mono text-[13px] tabular-nums">
-									{percent}%
+									<span className="sr-only">{percent}%</span>
+									<CountUp value={percent} delay={delay} />
 									<span className="ml-1.5 text-xs text-muted-foreground">{row.votes}</span>
 								</span>
 							</div>

@@ -1,4 +1,5 @@
-'use server';
+import 'server-only';
+
 import { cookies } from 'next/headers';
 import { cache } from 'react';
 
@@ -9,6 +10,7 @@ import { getMyProfile as fetchMyProfile } from '@/lib/api/services/users';
 import { MyProfile } from '@/types/user';
 
 export interface Session {
+	/** The user id. */
 	sub: string;
 	exp?: number;
 	iat?: number;

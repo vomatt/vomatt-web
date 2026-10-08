@@ -1,15 +1,17 @@
-'use server';
+import 'server-only';
+
 import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
 
 import { ACCESS_TOKEN, REFRESH_TOKEN } from '@/data/constants';
 import {
 	AccessTokenPayload,
 	buildAuthCookies,
-	requestTokenRefresh,
 	verifyAccessToken,
 } from '@/lib/api/tokens';
 import { AuthTokens } from '@/types';
+
+// Server-only on purpose: as a 'use server' module every export here would be
+// a Server Action, and getTokens() would hand httpOnly tokens to any caller.
 
 export async function decodeToken(
 	token: string
@@ -29,25 +31,12 @@ export async function getTokens(): Promise<{
 	return { accessToken, refreshToken };
 }
 
-// Set tokens in cookies (server-side)
+/** Only works where cookies are writable: Server Actions and Route Handlers. */
 export async function setAuthTokens(tokens: AuthTokens) {
 	const cookieStore = await cookies();
 	for (const { name, value, options } of buildAuthCookies(tokens)) {
 		cookieStore.set(name, value, options);
 	}
-}
-
-export async function refreshTokens(
-	refreshToken: string
-): Promise<AuthTokens | null> {
-	return requestTokenRefresh(refreshToken);
-}
-
-export async function logout() {
-	const cookieStore = await cookies();
-	cookieStore.delete(ACCESS_TOKEN);
-	cookieStore.delete(REFRESH_TOKEN);
-	redirect('/login');
 }
 
 export async function clearAuthTokens() {

@@ -8,16 +8,13 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { type ActionResult, isPollEnded } from '../errors';
 import type { Poll } from '../schema';
 import { castBallot, getMyBallot, retractBallot } from '../service';
-import { getTurnout } from '../status';
+import { getTurnout, shiftCount } from '../status';
 
 type Options = {
 	isAuthed: boolean;
 	/** Called when the API says the Poll has Ended, so the card can refetch it. */
 	onPollEnded: () => void;
 };
-
-const shift = (count: number | undefined, by: number) =>
-	count === undefined ? undefined : Math.max(0, count + by);
 
 /**
  * The viewer's Ballot on one Poll: their choice, the option they have
@@ -77,7 +74,7 @@ export function useBallot(poll: Poll, { isAuthed, onPollEnded }: Options) {
 			const previous = known ? myOptionId : await getMyBallot(poll.id);
 			isBallotKnown.current = true;
 			const turnoutDelta = (next ? 1 : 0) - (previous ? 1 : 0);
-			setTurnout((count) => shift(count, turnoutDelta));
+			setTurnout((count) => shiftCount(count, turnoutDelta));
 
 			const result = await request();
 			setIsPending(false);
@@ -85,7 +82,7 @@ export function useBallot(poll: Poll, { isAuthed, onPollEnded }: Options) {
 
 			setMyOptionId(previous);
 			setSelected(previous);
-			setTurnout((count) => shift(count, -turnoutDelta));
+			setTurnout((count) => shiftCount(count, -turnoutDelta));
 			if (isPollEnded(result)) {
 				toast(t('poll.justEnded'));
 				onPollEnded();
@@ -103,10 +100,12 @@ export function useBallot(poll: Poll, { isAuthed, onPollEnded }: Options) {
 		[poll.id, run, t]
 	);
 
-	const retract = useCallback(
-		() => run(() => retractBallot(poll.id), null, t('poll.withdrawFailed')),
-		[poll.id, run, t]
-	);
+	/** Withdraws the current Ballot; the API removes it by option. */
+	const retract = useCallback(() => {
+		if (!myOptionId) return;
+		const optionId = myOptionId;
+		return run(() => retractBallot(poll.id, optionId), null, t('poll.withdrawFailed'));
+	}, [myOptionId, poll.id, run, t]);
 
 	return { myOptionId, selected, setSelected, turnout, isPending, cast, retract };
 }

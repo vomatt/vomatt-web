@@ -1,23 +1,23 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 
-import { getMyProfile, getUserSession } from '@/data/auth';
-import defineMetadata from '@/lib/defineMetadata';
-import { getPollsByCreator } from '@/features/polls/service';
+import { getMyProfile } from '@/data/auth';
+import { ballotHistory, computeInsights } from '@/features/account/insights';
+import { getMyPolls, getParticipatedPolls } from '@/features/polls/service';
 
 import AccountPage from './_components/AccountPage';
 
-export async function generateMetadata({}) {
-	return defineMetadata({ data: {} });
-}
+export const metadata: Metadata = { title: 'Your account' };
 
 export default async function Page() {
-	const [session, profile] = await Promise.all([
-		getUserSession(),
+	const [profile, myPolls, participated] = await Promise.all([
 		getMyProfile(),
+		getMyPolls().catch(() => []),
+		getParticipatedPolls().catch(() => []),
 	]);
-	if (!session || !profile) redirect('/login');
+	if (!profile) redirect('/login?redirect=/account');
+	const history = ballotHistory(participated);
+	const insights = computeInsights(profile, myPolls, history);
 
-	const polls = await getPollsByCreator(profile.username);
-
-	return <AccountPage profile={profile} polls={polls} />;
+	return <AccountPage profile={profile} myPolls={myPolls} history={history} insights={insights} />;
 }

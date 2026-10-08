@@ -1,5 +1,8 @@
-/** Returned by the API when a Ballot arrives after the Poll has Ended. */
-const POLL_ENDED_ERROR = 'vote.ended';
+/**
+ * Returned by the API when a Ballot arrives after the Poll has Ended:
+ * `vote.not_allowed` today, `vote.ended` once the redesigned backend ships.
+ */
+const POLL_ENDED_ERRORS = ['vote.ended', 'vote.not_allowed'];
 
 export type ActionFailure = {
 	ok: false;
@@ -15,7 +18,7 @@ export type ActionFailure = {
 export type ActionResult<T = void> = { ok: true; data: T } | ActionFailure;
 
 export function isPollEnded(result: ActionResult<unknown>) {
-	return !result.ok && result.errorCode === POLL_ENDED_ERROR;
+	return !result.ok && !!result.errorCode && POLL_ENDED_ERRORS.includes(result.errorCode);
 }
 
 /** Results are sealed while the Poll is Open; `/results` answers 403. */

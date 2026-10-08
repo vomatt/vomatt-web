@@ -8,9 +8,6 @@
 		"login": "登入",
 		"email": "信箱",
 		"signUp": "註冊",
-		"firstName": "名字",
-		"lastName": "姓氏",
-		"username": "帳號",
 		"welcome": "歡迎",
 		"loading": "載入中",
 		"error": "發生錯誤",
@@ -18,7 +15,6 @@
 		"save": "儲存",
 		"delete": "刪除",
 		"edit": "編輯",
-		"back": "返回",
 		"continue": "繼續",
 		"optional": "選填",
 		"required": "必填",
@@ -27,9 +23,7 @@
 		"comments": "留言",
 		"active": "進行中",
 		"ended": "已結束",
-		"invalidEmailAddress": "信箱格式錯誤",
-		"invalidName": "名字格式錯誤",
-		"invalidUsername": "使用者名稱只能使用字母、數字、底線和句點"
+		"invalidEmailAddress": "信箱格式錯誤"
 	},
 	"navigation": {
 		"home": "首頁",
@@ -51,24 +45,26 @@
 		"ctaLabel": "登入"
 	},
 	"login": {
-		"title": "登入",
-		"submit": "登入",
+		"title": "登入 Vomatt",
 		"footNote": "沒有帳號嗎?",
-		"GENERATE_VERIFICATION_CODE_FAILED": "驗證碼發送失敗",
-		"SYSTEM_ERROR": "系統出現錯誤，請稍後重試"
+		"subtitle": "歡迎回來，我們會寄送登入驗證碼到你的信箱。",
+		"sessionExpired": "登入已過期，請重新登入。",
+		"dialogDescription": "使用電子郵件登入或註冊以繼續"
 	},
 	"signup": {
-		"title": "報名來參與大眾的聲音",
-		"submit": "註冊",
-		"alreadyHaveAccount": "已經有帳號了嗎？"
+		"title": "加入討論",
+		"alreadyHaveAccount": "已經有帳號了？",
+		"subtitle": "只需電子郵件即可建立帳號，不需要密碼。"
 	},
 	"verificationCode": {
-		"title": "我們已寄出驗證碼",
-		"subtitle": "輸入驗證碼來驗證",
+		"title": "請查看你的信箱",
+		"subtitle": "請輸入我們寄送的 6 位數驗證碼至",
 		"resendVerificationCode": "重新發送驗證碼",
-		"codeSent": "新的驗證碼已寄送至您的信箱",
+		"codeSent": "新的驗證碼已寄出。",
 		"invalidVerificationCode": "驗證碼錯誤",
-		"serverError": "系統出現錯誤，請稍後再試"
+		"useAnotherEmail": "使用其他電子郵件",
+		"resendIn": "{time} 後可重新寄送",
+		"inputLabel": "6 位數驗證碼"
 	},
 	"myPolls": {
 		"title": "我的投票",
@@ -85,18 +81,33 @@
 	},
 	"explore": {
 		"title": "探索",
-		"searchPlaceholder": "搜尋投票…",
+		"searchPlaceholder": "搜尋投票與選項…",
 		"filterAll": "全部",
 		"filterActive": "進行中",
 		"filterEnded": "已結束",
 		"sortNewest": "最新",
 		"sortMostVotes": "最多票數",
-		"noResults": "找不到投票。"
+		"noResults": "找不到投票。",
+		"topics": "依主題瀏覽",
+		"status": "狀態",
+		"sort": "排序",
+		"sortEnding": "即將結束",
+		"recentOnly": "搜尋範圍為最近 50 個投票。"
 	},
 	"pollDetail": {
 		"backToFeed": "返回",
 		"share": "分享",
-		"notFound": "找不到投票。"
+		"notFound": "找不到投票。",
+		"askedBy": "發起人",
+		"opened": "開始於 {date}",
+		"timeline": "投票期間",
+		"revealsIn": "結果將於{distance}揭曉",
+		"resultsIn": "投票已結束，結果出爐。",
+		"noEnd": "未設定結束時間",
+		"participants": "人已投票",
+		"topics": "主題",
+		"sealedExplainer": "投票結束前結果保持密封，避免大家被即時票數影響。結束前你都可以更改或撤回你的票。",
+		"shareCta": "邀請其他人投票"
 	},
 	"profile": {
 		"polls": "投票",
@@ -171,7 +182,13 @@
 		"discardEdit": "捨棄"
 	},
 	"homePage": {
-		"feedListNoData": "發起投票，引領群眾。"
+		"feedListNoData": "發起投票，引領群眾。",
+		"allTopics": "全部",
+		"topics": "主題",
+		"feedFailed": "目前無法載入投票。",
+		"topicEmpty": "這個主題還沒有投票。",
+		"createFirst": "建立第一個投票",
+		"joinToCreate": "加入後即可發起投票"
 	},
 	"poll": {
 		"vote": "投票",
@@ -213,6 +230,125 @@
 		"cancelPollTitle": "要取消這個投票嗎？",
 		"cancelPollBody": "投票不會開始，也不會通知任何人。",
 		"keepPoll": "保留投票",
-		"cancelFailed": "無法取消投票，請再試一次。"
+		"cancelFailed": "無法取消投票，請再試一次。",
+		"stamp": "已投票",
+		"discuss": "討論"
+	},
+	"auth": {
+		"continueWithEmail": "使用電子郵件繼續",
+		"passwordless": "第一次使用？同一組驗證碼會為你建立帳號。"
+	},
+	"authError": {
+		"invalidCode": "驗證碼不正確，請確認信件後再試一次。",
+		"codeExpired": "驗證碼已過期，請重新取得。",
+		"tooManyAttempts": "錯誤次數過多，請重新取得驗證碼。",
+		"resendCooldown": "剛剛已寄出驗證碼，請稍候再試。",
+		"emailSendFailed": "無法寄送信件，請確認信箱後再試一次。",
+		"accountSuspended": "此帳號已被停權。",
+		"rateLimited": "請求過於頻繁，請稍後再試。",
+		"invalidEmail": "請輸入有效的電子郵件。",
+		"serverError": "發生錯誤，請稍後再試。"
+	},
+	"onboarding": {
+		"title": "我們該怎麼稱呼你？",
+		"subtitle": "其他投票者會看到這個名字。",
+		"displayName": "顯示名稱",
+		"displayNameHint": "之後可以在帳號頁面修改。",
+		"displayNameTooLong": "請少於 100 個字元。",
+		"finish": "完成",
+		"skip": "先跳過"
+	},
+	"comments": {
+		"title": "討論",
+		"placeholder": "你為什麼這樣投？說說你的理由",
+		"post": "發佈",
+		"you": "你",
+		"empty": "還沒有留言，來說說你的選擇吧。",
+		"signInToRead": "登入後即可閱讀並參與討論。",
+		"signIn": "登入",
+		"loadFailed": "無法載入留言。",
+		"retry": "重試",
+		"loadMore": "顯示較早的留言",
+		"edited": "已編輯",
+		"edit": "編輯",
+		"like": "喜歡",
+		"deleteConfirm": "要刪除這則留言嗎？",
+		"postFailed": "留言發佈失敗，請再試一次。",
+		"editFailed": "無法儲存編輯。",
+		"deleteFailed": "無法刪除留言。"
+	},
+	"account": {
+		"publicProfile": "公開個人頁",
+		"stats": "你的數據",
+		"votesCast": "已投票數",
+		"pollsCreated": "發起的投票",
+		"peopleReached": "觸及人數",
+		"majorityRate": "與多數一致",
+		"majorityHint": "在已結束且你有參與的投票中，你的選擇勝出或並列的比例",
+		"badges": "徽章",
+		"earned": "已獲得",
+		"locked": "未解鎖",
+		"badge": {
+			"firstBallot": {
+				"name": "第一票",
+				"hint": "投下你的第一票"
+			},
+			"regular": {
+				"name": "常客",
+				"hint": "投票 10 次"
+			},
+			"pillar": {
+				"name": "公民支柱",
+				"hint": "投票 50 次"
+			},
+			"questionAsker": {
+				"name": "提問者",
+				"hint": "發起你的第一個投票"
+			},
+			"crowdGatherer": {
+				"name": "號召者",
+				"hint": "你的某個投票有 10 人參與"
+			},
+			"trendReader": {
+				"name": "風向觀察家",
+				"hint": "在至少 3 個已結束投票中，60% 與多數一致"
+			},
+			"contrarian": {
+				"name": "獨排眾議",
+				"hint": "支持落敗選項 3 次"
+			}
+		},
+		"tabActivity": "你的投票",
+		"tabPolls": "你發起的",
+		"tabSettings": "設定",
+		"noVotes": "你還沒有在最近的投票中投票。",
+		"findPolls": "找個投票",
+		"youChose": "你選擇了",
+		"noPolls": "你還沒有發起投票。",
+		"outcome": {
+			"pending": "等待結果",
+			"won": "你的選擇勝出",
+			"tied": "並列第一",
+			"lost": "未獲多數",
+			"unknown": "已結束"
+		},
+		"privacyTitle": "他人可見的資訊",
+		"privacyBody": "選擇哪些個人資料會顯示在你的公開個人頁。",
+		"field": {
+			"displayName": "顯示名稱",
+			"bio": "自我介紹",
+			"location": "地區",
+			"points": "點數",
+			"membershipLevel": "會員等級"
+		},
+		"saveFailed": "儲存失敗，請再試一次。",
+		"signOutTitle": "目前登入",
+		"signOut": "登出",
+		"deleteTitle": "刪除帳號",
+		"deleteBody": "刪除你的帳號並登出所有裝置，此操作無法復原。",
+		"deleteCta": "刪除帳號",
+		"deleteConfirmTitle": "確定要刪除帳號？",
+		"deleteConfirmBody": "請輸入 {username} 以確認，帳號將被永久刪除。",
+		"deleteConfirmLabel": "輸入你的使用者名稱以確認"
 	}
 }

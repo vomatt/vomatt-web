@@ -1,16 +1,11 @@
 'use client';
 
 import { cva, type VariantProps } from 'class-variance-authority';
-import { useMemo, useState } from 'react';
-import {
-	Tooltip,
-	TooltipContent,
-	TooltipTrigger,
-} from '@/components/ui/Tooltip';
+import { useMemo } from 'react';
+
 import { Label } from '@/components/ui/Label';
 import { Separator } from '@/components/ui/Separator';
 import { cn } from '@/lib/utils';
-import { InformationCircleOutline } from '@/components/ui/SvgIcons';
 
 function FieldSet({ className, ...props }: React.ComponentProps<'fieldset'>) {
 	return (
@@ -235,45 +230,6 @@ function FieldError({
 	);
 }
 
-function FieldStatus({
-	fieldState = {},
-	isFocused,
-	className,
-}: {
-	fieldState?: any;
-	isFocused?: boolean;
-	className?: string;
-}) {
-	const showError = fieldState.invalid && !!fieldState.error;
-	const [isTooltipTriggered, setIsTooltipTriggered] = useState(false);
-
-	return (
-		<Tooltip open={(!!showError && isFocused) || isTooltipTriggered}>
-			<TooltipTrigger
-				className={cn(
-					'inline-block absolute bottom-0 -translate-y-4 right-2 text-error !size-5',
-					className
-				)}
-				asChild
-			>
-				{showError && (
-					<InformationCircleOutline
-						onMouseEnter={() => setIsTooltipTriggered(true)}
-						onMouseLeave={() => setIsTooltipTriggered(false)}
-					/>
-				)}
-			</TooltipTrigger>
-			<TooltipContent
-				className="pointer-events-none"
-				align="end"
-				sideOffset={-2}
-			>
-				<p>{fieldState.error?.message}</p>
-			</TooltipContent>
-		</Tooltip>
-	);
-}
-
 export {
 	Field,
 	FieldContent,
@@ -284,6 +240,5 @@ export {
 	FieldLegend,
 	FieldSeparator,
 	FieldSet,
-	FieldStatus,
 	FieldTitle,
 };

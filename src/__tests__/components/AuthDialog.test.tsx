@@ -1,4 +1,5 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+
 import { AuthDialog } from '@/components/auth/AuthDialog';
 
 // Polyfill APIs missing in jsdom
@@ -12,192 +13,114 @@ if (!document.elementFromPoint) {
 	document.elementFromPoint = () => null;
 }
 
-const mockReplace = jest.fn();
-jest.mock('next/navigation', () => ({
-	useRouter: () => ({ replace: mockReplace }),
-}));
-
 jest.mock('@/contexts/LanguageContext', () => ({
 	useLanguage: () => ({ t: (key: string) => key }),
 }));
 
-const mockGetVerifyCode = jest.fn();
-const mockLogin = jest.fn();
-const mockPreSignup = jest.fn();
-const mockSignup = jest.fn();
-const mockResendVerification = jest.fn();
+const mockRequestOtp = jest.fn();
+const mockVerifyOtp = jest.fn();
+const mockUpdateProfile = jest.fn();
 
 jest.mock('@/lib/api/services/auth', () => ({
-	getVerifyCode: (...args: any[]) => mockGetVerifyCode(...args),
-	login: (...args: any[]) => mockLogin(...args),
-	preSignup: (...args: any[]) => mockPreSignup(...args),
-	signup: (...args: any[]) => mockSignup(...args),
-	resendVerification: (...args: any[]) => mockResendVerification(...args),
+	requestOtp: (...args: unknown[]) => mockRequestOtp(...args),
+	verifyOtp: (...args: unknown[]) => mockVerifyOtp(...args),
+}));
+
+jest.mock('@/lib/api/services/users', () => ({
+	updateProfile: (...args: unknown[]) => mockUpdateProfile(...args),
 }));
 
 beforeEach(() => {
 	jest.clearAllMocks();
 });
 
+const baseProps = {
+	open: true,
+	onOpenChange: jest.fn(),
+	onAuthSuccess: jest.fn(),
+};
+
+async function submitEmail(email = 'user@test.com') {
+	fireEvent.change(screen.getByLabelText('common.email'), { target: { value: email } });
+	fireEvent.click(screen.getByRole('button', { name: 'auth.continueWithEmail' }));
+	await screen.findByText('verificationCode.title');
+}
+
+function fillOTP(value: string) {
+	fireEvent.change(screen.getByLabelText('verificationCode.inputLabel'), { target: { value } });
+}
+
 describe('AuthDialog', () => {
-	const baseProps = {
-		open: true,
-		onOpenChange: jest.fn(),
-		onAuthSuccess: jest.fn(),
-	};
-
-	it('renders login form when open', () => {
+	it('starts with the email step', () => {
 		render(<AuthDialog {...baseProps} />);
-		expect(screen.getByPlaceholderText('m@example.com')).toBeInTheDocument();
+		expect(screen.getByLabelText('common.email')).toBeInTheDocument();
 	});
 
-	it('does not render when closed', () => {
+	it('renders nothing when closed', () => {
 		render(<AuthDialog {...baseProps} open={false} />);
-		expect(screen.queryByPlaceholderText('m@example.com')).not.toBeInTheDocument();
+		expect(screen.queryByLabelText('common.email')).not.toBeInTheDocument();
 	});
 
-	it('shows sign up link that switches to signup form', async () => {
+	it('validates the email before sending a code', async () => {
+		render(<AuthDialog {...baseProps} />);
+		fireEvent.change(screen.getByLabelText('common.email'), { target: { value: 'nope' } });
+		fireEvent.click(screen.getByRole('button', { name: 'auth.continueWithEmail' }));
+
+		expect(await screen.findByText('common.invalidEmailAddress')).toBeInTheDocument();
+		expect(mockRequestOtp).not.toHaveBeenCalled();
+	});
+
+	it('shows a send error on the email step', async () => {
+		mockRequestOtp.mockResolvedValue({ status: 'ERROR', error: 'rateLimited' });
+		render(<AuthDialog {...baseProps} />);
+		fireEvent.change(screen.getByLabelText('common.email'), { target: { value: 'a@b.co' } });
+		fireEvent.click(screen.getByRole('button', { name: 'auth.continueWithEmail' }));
+
+		expect(await screen.findByRole('alert')).toHaveTextContent('authError.rateLimited');
+	});
+
+	it('signs in an existing user: email → code → success', async () => {
+		mockRequestOtp.mockResolvedValue({ status: 'SUCCESS', isNewUser: false });
+		mockVerifyOtp.mockResolvedValue({ status: 'SUCCESS' });
 		render(<AuthDialog {...baseProps} />);
 
-		fireEvent.click(screen.getByText('common.signUp'));
+		await submitEmail();
+		fillOTP('123456');
 
-		await waitFor(() => {
-			expect(screen.getByLabelText('common.firstName')).toBeInTheDocument();
-			expect(screen.getByLabelText('common.lastName')).toBeInTheDocument();
-			expect(screen.getByLabelText('common.username')).toBeInTheDocument();
-		});
+		await waitFor(() => expect(baseProps.onAuthSuccess).toHaveBeenCalled());
+		expect(mockVerifyOtp).toHaveBeenCalledWith('user@test.com', '123456');
 	});
 
-	it('shows log in link from signup that switches back', async () => {
+	it('asks a new user for a display name before finishing', async () => {
+		mockRequestOtp.mockResolvedValue({ status: 'SUCCESS', isNewUser: true });
+		mockVerifyOtp.mockResolvedValue({ status: 'SUCCESS' });
+		mockUpdateProfile.mockResolvedValue({});
 		render(<AuthDialog {...baseProps} />);
 
-		// Switch to signup
-		fireEvent.click(screen.getByText('common.signUp'));
-		await waitFor(() => {
-			expect(screen.getByLabelText('common.username')).toBeInTheDocument();
-		});
+		await submitEmail('newbie@test.com');
+		fillOTP('123456');
 
-		// Switch back to login
-		fireEvent.click(screen.getByText('common.login'));
-		await waitFor(() => {
-			expect(screen.queryByLabelText('common.username')).not.toBeInTheDocument();
-			expect(screen.getByPlaceholderText('m@example.com')).toBeInTheDocument();
-		});
+		const name = await screen.findByLabelText('onboarding.displayName');
+		expect(name).toHaveValue('newbie');
+		expect(baseProps.onAuthSuccess).not.toHaveBeenCalled();
+
+		fireEvent.change(name, { target: { value: 'New Bie' } });
+		fireEvent.click(screen.getByRole('button', { name: 'onboarding.finish' }));
+
+		await waitFor(() => expect(baseProps.onAuthSuccess).toHaveBeenCalled());
+		expect(mockUpdateProfile).toHaveBeenCalledWith({ displayName: 'New Bie' });
 	});
 
-	it('login flow: email → verification → onAuthSuccess', async () => {
-		mockGetVerifyCode.mockResolvedValue({ status: 'SUCCESS' });
-		mockLogin.mockResolvedValue({ status: 'SUCCESS' });
-
+	it('lets a new user skip the display name', async () => {
+		mockRequestOtp.mockResolvedValue({ status: 'SUCCESS', isNewUser: true });
+		mockVerifyOtp.mockResolvedValue({ status: 'SUCCESS' });
 		render(<AuthDialog {...baseProps} />);
 
-		// Enter email and submit
-		fireEvent.change(screen.getByPlaceholderText('m@example.com'), {
-			target: { value: 'user@test.com' },
-		});
-		fireEvent.submit(screen.getByRole('button', { name: 'common.login' }));
+		await submitEmail();
+		fillOTP('123456');
+		fireEvent.click(await screen.findByRole('button', { name: 'onboarding.skip' }));
 
-		// Should transition to verification
-		await waitFor(() => {
-			expect(mockGetVerifyCode).toHaveBeenCalledWith('user@test.com');
-			expect(screen.getByText('verificationCode.title')).toBeInTheDocument();
-		});
-
-		// Fill OTP and submit
-		const otpInputs = document.querySelectorAll('input');
-		otpInputs.forEach((input) => {
-			fireEvent.change(input, { target: { value: '123456' } });
-		});
-		fireEvent.submit(screen.getByRole('button', { name: 'common.continue' }));
-
-		await waitFor(() => {
-			expect(baseProps.onAuthSuccess).toHaveBeenCalled();
-		});
-		expect(mockReplace).not.toHaveBeenCalled();
-	});
-
-	it('signup flow: form → verification → onAuthSuccess', async () => {
-		mockPreSignup.mockResolvedValue({ status: 'SUCCESS' });
-		mockSignup.mockResolvedValue({ status: 'SUCCESS' });
-
-		render(<AuthDialog {...baseProps} />);
-
-		// Switch to signup
-		fireEvent.click(screen.getByText('common.signUp'));
-		await waitFor(() => {
-			expect(screen.getByLabelText('common.username')).toBeInTheDocument();
-		});
-
-		// Fill signup form
-		fireEvent.change(screen.getByLabelText('common.email'), {
-			target: { value: 'new@test.com' },
-		});
-		fireEvent.change(screen.getByLabelText('common.firstName'), {
-			target: { value: 'John' },
-		});
-		fireEvent.change(screen.getByLabelText('common.lastName'), {
-			target: { value: 'Doe' },
-		});
-		fireEvent.change(screen.getByLabelText('common.username'), {
-			target: { value: 'johndoe' },
-		});
-		fireEvent.submit(screen.getByRole('button', { name: 'signup.submit' }));
-
-		// Should transition to verification
-		await waitFor(() => {
-			expect(mockPreSignup).toHaveBeenCalledWith('new@test.com', 'johndoe');
-			expect(screen.getByText('verificationCode.title')).toBeInTheDocument();
-		});
-
-		// Fill OTP and submit
-		const otpInputs = document.querySelectorAll('input');
-		otpInputs.forEach((input) => {
-			fireEvent.change(input, { target: { value: '654321' } });
-		});
-		fireEvent.submit(screen.getByRole('button', { name: 'common.continue' }));
-
-		await waitFor(() => {
-			expect(baseProps.onAuthSuccess).toHaveBeenCalled();
-		});
-		expect(mockReplace).not.toHaveBeenCalled();
-	});
-
-	it('USER_NOT_FOUND on login switches to signup mode', async () => {
-		mockGetVerifyCode.mockResolvedValue({
-			status: 'ERROR',
-			errorType: 'USER_NOT_FOUND',
-		});
-
-		render(<AuthDialog {...baseProps} />);
-
-		fireEvent.change(screen.getByPlaceholderText('m@example.com'), {
-			target: { value: 'new@test.com' },
-		});
-		fireEvent.submit(screen.getByRole('button', { name: 'common.login' }));
-
-		// Should switch to signup mode
-		await waitFor(() => {
-			expect(screen.getByLabelText('common.username')).toBeInTheDocument();
-		});
-	});
-
-	it('resets state when dialog closes and reopens', async () => {
-		const { rerender } = render(<AuthDialog {...baseProps} />);
-
-		// Switch to signup
-		fireEvent.click(screen.getByText('common.signUp'));
-		await waitFor(() => {
-			expect(screen.getByLabelText('common.username')).toBeInTheDocument();
-		});
-
-		// Close
-		rerender(<AuthDialog {...baseProps} open={false} />);
-
-		// Reopen — should show login again
-		rerender(<AuthDialog {...baseProps} open={true} />);
-		await waitFor(() => {
-			expect(screen.queryByLabelText('common.username')).not.toBeInTheDocument();
-			expect(screen.getByPlaceholderText('m@example.com')).toBeInTheDocument();
-		});
+		expect(baseProps.onAuthSuccess).toHaveBeenCalled();
+		expect(mockUpdateProfile).not.toHaveBeenCalled();
 	});
 });

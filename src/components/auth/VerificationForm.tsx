@@ -1,15 +1,13 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
-import React, { useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { z } from 'zod';
+'use client';
+
+import { useEffect, useState } from 'react';
 
 import { ButtonLoading } from '@/components/ButtonLoading';
 import { MailCheckIcon } from '@/components/ui/animate-icon/MailCheck';
 import { Button } from '@/components/ui/Button';
 import { Field, FieldError } from '@/components/ui/Field';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { getVerifyCode } from '@/lib/api/services/auth';
+import type { AuthErrorKey } from '@/lib/api/auth-errors';
 
 import {
 	InputOTP,
@@ -17,79 +15,73 @@ import {
 	InputOTPSeparator,
 	InputOTPSlot,
 } from './InputOTP';
+import type { AuthResult } from './useAuthFlow';
+
+/** Matches the backend's default OTP resend cooldown. */
+export const RESEND_COOLDOWN_SECONDS = 180;
+const CODE_LENGTH = 6;
 
 interface VerificationFormProps {
 	email: string;
-	submitCodeFunc: (
-		pin: string
-	) => Promise<{ status: 'ERROR' | 'OK'; message?: string }>;
-	backButtonFunc: () => void;
-	redirectTo?: string;
-	onSuccess?: () => void;
+	onSubmitCode: (code: string) => Promise<AuthResult>;
+	onResend: () => Promise<AuthResult>;
+	onEditEmail: () => void;
 }
 
-const FormSchema = z.object({
-	pin: z.string().min(6, {
-		message: 'Your one-time password must be 6 characters.',
-	}),
-});
+function formatCountdown(seconds: number) {
+	const m = Math.floor(seconds / 60);
+	const s = String(seconds % 60).padStart(2, '0');
+	return `${m}:${s}`;
+}
 
 export default function VerificationForm({
 	email,
-	submitCodeFunc,
-	backButtonFunc,
-	redirectTo = '/',
-	onSuccess,
+	onSubmitCode,
+	onResend,
+	onEditEmail,
 }: VerificationFormProps) {
-	const [error, setError] = useState('');
-	const [isLoading, setIsLoading] = useState(false);
-	const [resendMessage, setResendMessage] = useState<{
-		type: 'success' | 'error';
-		key: string;
-	} | null>(null);
-	const [isResending, setIsResending] = useState(false);
-	const form = useForm<z.infer<typeof FormSchema>>({
-		resolver: zodResolver(FormSchema),
-		defaultValues: {
-			pin: '',
-		},
-	});
 	const { t } = useLanguage();
-	const router = useRouter();
+	const [code, setCode] = useState('');
+	const [error, setError] = useState<AuthErrorKey | null>(null);
+	const [isLoading, setIsLoading] = useState(false);
+	const [isResending, setIsResending] = useState(false);
+	const [resent, setResent] = useState(false);
+	const [cooldown, setCooldown] = useState(RESEND_COOLDOWN_SECONDS);
 
-	async function onSubmit(data: z.infer<typeof FormSchema>) {
-		const { pin } = data;
+	useEffect(() => {
+		if (cooldown <= 0) return;
+		const timer = setTimeout(() => setCooldown((value) => value - 1), 1000);
+		return () => clearTimeout(timer);
+	}, [cooldown]);
+
+	async function submit(value: string) {
+		if (value.length !== CODE_LENGTH || isLoading) return;
+		setError(null);
+		setIsLoading(true);
 		try {
-			setError('');
-			setIsLoading(true);
-			const res = await submitCodeFunc(pin);
-
-			const { status, message } = res;
-			if (status === 'ERROR') {
-				setError(message || '');
-				return;
+			const res = await onSubmitCode(value);
+			if (res.status === 'ERROR') {
+				setError(res.error);
+				setCode('');
 			}
-			if (onSuccess) {
-				return onSuccess();
-			}
-			return router.replace(redirectTo);
-		} catch (e) {
-			setError('Something went wrong, pleas try again later');
 		} finally {
 			setIsLoading(false);
 		}
 	}
 
-	async function onResendVerification(email: string) {
-		setResendMessage(null);
+	async function resend() {
+		setError(null);
+		setResent(false);
 		setIsResending(true);
 		try {
-			const res = await getVerifyCode(email);
-			console.log('🚀 ~ :88 ~ onResendVerification ~ res:', res);
-
-			setResendMessage({ type: 'success', key: 'codeSent' });
-		} catch (error) {
-			setResendMessage({ type: 'error', key: 'serverError' });
+			const res = await onResend();
+			if (res.status === 'ERROR') {
+				setError(res.error);
+				return;
+			}
+			setResent(true);
+			setCode('');
+			setCooldown(RESEND_COOLDOWN_SECONDS);
 		} finally {
 			setIsResending(false);
 		}
@@ -99,71 +91,81 @@ export default function VerificationForm({
 		<div className="text-center flex flex-col items-center">
 			<MailCheckIcon className="size-16 md:size-20 mb-3" />
 			<h1 className="text-3xl mb-3">{t('verificationCode.title')}</h1>
-			<h5 className="mb-10">
-				{t('verificationCode.subtitle')} <strong>{email}</strong>
-			</h5>
-			<form onSubmit={form.handleSubmit(onSubmit)} className="w-full mb-12">
-				<Controller
-					control={form.control}
-					name="pin"
-					render={({ field }) => (
-						<Field className="mb-8">
-							<InputOTP
-								maxLength={6}
-								autoFocus
-								{...field}
-								containerClassName="justify-center"
-							>
-								<InputOTPGroup>
-									<InputOTPSlot index={0} />
-									<InputOTPSlot index={1} />
-									<InputOTPSlot index={2} />
-								</InputOTPGroup>
-								<InputOTPSeparator />
-								<InputOTPGroup>
-									<InputOTPSlot index={3} />
-									<InputOTPSlot index={4} />
-									<InputOTPSlot index={5} />
-								</InputOTPGroup>
-							</InputOTP>
-							{error && (
-								<FieldError className="text-center text-destructive">
-									{t(`verificationCode.${error}`)}
-								</FieldError>
-							)}
-						</Field>
+			<p className="mb-8 text-sm text-muted-foreground">
+				{t('verificationCode.subtitle')} <strong className="text-foreground">{email}</strong>
+			</p>
+			<form
+				onSubmit={(event) => {
+					event.preventDefault();
+					submit(code);
+				}}
+				className="w-full mb-8"
+			>
+				<Field className="mb-6">
+					<InputOTP
+						maxLength={CODE_LENGTH}
+						autoFocus
+						value={code}
+						onChange={(value) => {
+							setCode(value.replace(/\D/g, ''));
+							if (error) setError(null);
+						}}
+						onComplete={submit}
+						inputMode="numeric"
+						autoComplete="one-time-code"
+						disabled={isLoading}
+						aria-label={t('verificationCode.inputLabel')}
+						containerClassName="justify-center"
+					>
+						<InputOTPGroup>
+							<InputOTPSlot index={0} />
+							<InputOTPSlot index={1} />
+							<InputOTPSlot index={2} />
+						</InputOTPGroup>
+						<InputOTPSeparator />
+						<InputOTPGroup>
+							<InputOTPSlot index={3} />
+							<InputOTPSlot index={4} />
+							<InputOTPSlot index={5} />
+						</InputOTPGroup>
+					</InputOTP>
+					{error && (
+						<FieldError role="alert" className="text-center text-destructive">
+							{t(`authError.${error}`)}
+						</FieldError>
 					)}
-				/>
+				</Field>
 				<ButtonLoading
 					type="submit"
 					className="w-full mb-3"
 					isLoading={isLoading}
+					disabled={code.length !== CODE_LENGTH}
 				>
 					{t('common.continue')}
 				</ButtonLoading>
-				<Button
-					className="w-full"
-					onClick={() => backButtonFunc()}
-					variant="outline"
-				>
-					{t('common.back')}
+				<Button type="button" className="w-full" onClick={onEditEmail} variant="outline">
+					{t('verificationCode.useAnotherEmail')}
 				</Button>
 			</form>
 
-			<ButtonLoading
-				className="underline mx-auto block"
-				variant="link"
-				isLoading={isResending}
-				disabled={isResending}
-				onClick={() => onResendVerification(email)}
-			>
-				{t('verificationCode.resendVerificationCode')}
-			</ButtonLoading>
-			{resendMessage && (
-				<p
-					className={`text-sm mt-2 text-center ${resendMessage.type === 'success' ? 'text-positive' : 'text-destructive'}`}
+			{cooldown > 0 ? (
+				<p className="text-sm text-muted-foreground" aria-live="polite">
+					{t('verificationCode.resendIn', { time: formatCountdown(cooldown) })}
+				</p>
+			) : (
+				<ButtonLoading
+					className="underline mx-auto block"
+					variant="link"
+					isLoading={isResending}
+					disabled={isResending}
+					onClick={resend}
 				>
-					{t(`verificationCode.${resendMessage.key}`)}
+					{t('verificationCode.resendVerificationCode')}
+				</ButtonLoading>
+			)}
+			{resent && (
+				<p className="text-sm mt-2 text-center text-positive" role="status">
+					{t('verificationCode.codeSent')}
 				</p>
 			)}
 		</div>

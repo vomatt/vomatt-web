@@ -9,6 +9,7 @@ export const POLL_TAGS_LIMIT = 5;
 
 const DateTime = z.string().datetime({ offset: true });
 
+/** `author` is the commenter's username. */
 export const CommentSchema = z.object({
 	id: z.string(),
 	voteId: z.string().optional(),
@@ -16,7 +17,7 @@ export const CommentSchema = z.object({
 	author: z.string(),
 	text: z.string(),
 	createdAt: DateTime,
-	updatedAt: DateTime.optional(),
+	updatedAt: DateTime.nullish(),
 	likeCount: z.number().int().optional(),
 	edited: z.boolean().optional(),
 	likedByCurrentUser: z.boolean().optional(),
@@ -26,7 +27,7 @@ export const CommentSchema = z.object({
 export const PollOptionSchema = z.object({
 	id: z.string(),
 	text: z.string(),
-	description: z.string().optional(),
+	description: z.string().nullish(),
 	displayOrder: z.number().int().optional(),
 	createdAt: DateTime.optional(),
 	votes: z.number().int().optional(),
@@ -36,7 +37,7 @@ export const TagDtoSchema = z.object({
 	id: z.string(),
 	name: z.string(),
 	slug: z.string(),
-	description: z.string().optional(),
+	description: z.string().nullish(),
 	displayOrder: z.number().int().optional(),
 	usageCount: z.number().int().optional(),
 });
@@ -80,7 +81,7 @@ export const UserVoteStatusSchema = z.object({
 export const PollSchema = z.object({
 	id: z.string(),
 	title: z.string(),
-	description: z.string().optional(),
+	description: z.string().nullish(),
 	active: z.boolean(),
 	votingActive: z.boolean(),
 	/** @deprecated Replaced by `voterVisibility`. */
@@ -89,14 +90,15 @@ export const PollSchema = z.object({
 	creatorId: z.string(),
 	creatorUsername: z.string(),
 	createdAt: DateTime,
-	updatedAt: DateTime.optional(),
+	updatedAt: DateTime.nullish(),
 	startTime: DateTime,
 	endTime: DateTime.nullable(),
 	totalVotes: z.number().int().optional(),
 	participantCount: z.number().int().optional(),
+	commentCount: z.number().int().optional(),
 	myOptionId: z.string().nullable().optional(),
 	options: z.array(PollOptionSchema),
-	tags: z.array(TagDtoSchema).optional(),
+	tags: z.array(TagDtoSchema).nullish(),
 });
 
 export const SortSchema = z.object({

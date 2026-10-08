@@ -1,5 +1,10 @@
 'use client';
 
+import dynamic from 'next/dynamic';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+
+import BrandLogo from '@/components/BrandLogo';
 import {
 	ArrowRight,
 	Home,
@@ -9,11 +14,6 @@ import {
 	TrendingUp,
 	User,
 } from '@/components/ui/SvgIcons';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-
-import dynamic from 'next/dynamic';
-import BrandLogo from '@/components/BrandLogo';
 
 const PollCreator = dynamic(
 	() =>
@@ -35,7 +35,7 @@ import {
 	SidebarMenuItem,
 } from '@/components/ui/Sidebar';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { logout } from '@/lib/api/auth';
+import { signout } from '@/lib/api/services/auth';
 import { cn } from '@/lib/utils';
 import { MyProfile } from '@/types/user';
 
@@ -90,7 +90,7 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 	const pathname = usePathname();
 
 	function handleLogout() {
-		logout();
+		signout();
 	}
 
 	if (hideSideBarFromPages.includes(pathname)) return null;

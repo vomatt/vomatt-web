@@ -1,100 +1,112 @@
 'use client';
 
+import { motion } from 'motion/react';
 import dynamic from 'next/dynamic';
-import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import { useLanguage } from '@/contexts/LanguageContext';
+import Link from 'next/link';
+import { useState } from 'react';
+import { useInView } from 'react-intersection-observer';
+
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
-import { Poll } from '@/features/polls/schema';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { PollCard } from '@/features/polls/components/PollCard';
+import type { Poll } from '@/features/polls/schema';
 import { getFeed } from '@/features/polls/service';
 import { mergeById } from '@/lib/api/cursor';
-import { cn, hasArrayValue } from '@/lib/utils';
-
-import { HomepageHeader } from './HomepageHeader';
-import { PollCard } from '@/features/polls/components/PollCard';
+import { cn } from '@/lib/utils';
 
 const PollCreator = dynamic(() =>
 	import('@/features/polls/components/PollCreator').then((m) => m.PollCreator)
 );
 
-type PollFeedList = {
+type PollFeedListProps = {
 	className?: string;
-	viewerUsername?: string;
+	viewerId?: string;
+	/** Server-rendered first page; null when it couldn't be loaded. */
+	initialPage: { items: Poll[]; nextCursor: string | null } | null;
+	tag?: string;
+	header: React.ReactNode;
 };
 
-export function PollFeedList({ className, viewerUsername }: PollFeedList) {
+export function PollFeedList({ className, viewerId, initialPage, tag, header }: PollFeedListProps) {
 	const { t } = useLanguage();
-	const [mainData, setMainData] = useState<Poll[]>([]);
-	const [nextCursor, setNextCursor] = useState<string | null>(null);
+	// Seeded from the server's first page; a new first page remounts the list (see page.tsx)
+	const [polls, setPolls] = useState(initialPage?.items ?? []);
+	const [nextCursor, setNextCursor] = useState(initialPage?.nextCursor ?? null);
 	const [isLoading, setIsLoading] = useState(false);
-	const [isInitialLoading, setIsInitialLoading] = useState(true);
-
-	useEffect(() => {
-		getFeed()
-			.then((page) => {
-				setMainData(page.items);
-				setNextCursor(page.nextCursor);
-			})
-			.catch(() => {
-				// Feed stays empty — no crash
-			})
-			.finally(() => setIsInitialLoading(false));
-	}, []);
-
-	if (isInitialLoading) {
-		return (
-			<div className="flex-1 min-h-[var(--h-main)] flex items-center justify-center">
-				<Spinner />
-			</div>
-		);
-	}
-
-	if (!hasArrayValue(mainData)) {
-		return (
-			<div className="flex flex-col gap-10 justify-center items-center h-svh flex-1">
-				<h2 className="text-3xl">{t('homePage.feedListNoData')}</h2>
-				<PollCreator triggerChildren={<Button>Create a poll</Button>} />
-			</div>
-		);
-	}
+	const [loadFailed, setLoadFailed] = useState(false);
 
 	const loadMore = async () => {
 		if (isLoading || !nextCursor) return;
 		setIsLoading(true);
+		setLoadFailed(false);
 		try {
-			const page = await getFeed(nextCursor);
-			setMainData((prev) => mergeById(prev, page.items));
+			const page = await getFeed(nextCursor, 10, tag);
+			setPolls((prev) => mergeById(prev, page.items));
 			setNextCursor(page.nextCursor);
 		} catch {
-			toast.error('Failed to load more polls. Please try again.');
+			setLoadFailed(true);
 		} finally {
 			setIsLoading(false);
 		}
 	};
 
+	// Load the next page as the reader nears the end; the button stays as a fallback
+	const { ref: sentinelRef } = useInView({
+		rootMargin: '600px',
+		onChange: (inView) => {
+			if (inView && !loadFailed) loadMore();
+		},
+	});
+
 	return (
-		<div className="flex-1 min-h-[var(--h-main)] max-w-[560px]">
-			<HomepageHeader />
-			<div
-				data-testid="cFeedList"
-				className={cn('relative w-full flex flex-col gap-3 py-4', className)}
-			>
-				{mainData.map((item) => (
-					<PollCard key={item.id} poll={item} viewerUsername={viewerUsername} />
+		<div className={cn('flex-1 min-h-[var(--h-main)] max-w-[560px]', className)}>
+			{header}
+
+			{initialPage === null && (
+				<div className="py-16 text-center">
+					<p className="mb-4 text-muted-foreground">{t('homePage.feedFailed')}</p>
+					<Button variant="outline" onClick={() => window.location.reload()}>
+						{t('comments.retry')}
+					</Button>
+				</div>
+			)}
+
+			{initialPage !== null && polls.length === 0 && (
+				<div className="flex flex-col items-center gap-6 py-20 text-center">
+					<h2 className="text-3xl">{t(tag ? 'homePage.topicEmpty' : 'homePage.feedListNoData')}</h2>
+					{viewerId ? (
+						<PollCreator triggerChildren={<Button>{t('homePage.createFirst')}</Button>} />
+					) : (
+						<Button asChild>
+							<Link href="/signup">{t('homePage.joinToCreate')}</Link>
+						</Button>
+					)}
+				</div>
+			)}
+
+			<div data-testid="cFeedList" className="relative flex w-full flex-col gap-3 py-4">
+				{polls.map((poll, index) => (
+					<motion.div
+						key={poll.id}
+						initial={{ opacity: 0, y: 12 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ duration: 0.3, delay: Math.min(index % 10, 5) * 0.04 }}
+					>
+						<PollCard poll={poll} viewerId={viewerId} />
+					</motion.div>
 				))}
 			</div>
 
 			{nextCursor && (
-				<div className="flex justify-center py-6">
-					<Button
-						variant="outline"
-						onClick={loadMore}
-						disabled={isLoading}
-						className="min-w-32"
-					>
-						{isLoading ? <Spinner className="w-4 h-4" /> : 'Load more'}
-					</Button>
+				<div ref={sentinelRef} className="flex justify-center py-6">
+					{isLoading ? (
+						<Spinner />
+					) : (
+						<Button variant="outline" onClick={loadMore} className="min-w-32">
+							{loadFailed ? t('comments.retry') : t('common.loadMore')}
+						</Button>
+					)}
 				</div>
 			)}
 		</div>

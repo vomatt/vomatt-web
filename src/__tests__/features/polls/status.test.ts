@@ -1,4 +1,4 @@
-import { derivePollStatus, getTurnout } from '@/features/polls/status';
+import { derivePollStatus, getTurnout, timelineProgress } from '@/features/polls/status';
 
 const NOW = Date.parse('2026-10-05T12:00:00Z');
 const hours = (h: number) => new Date(NOW + h * 3600_000).toISOString();
@@ -66,5 +66,22 @@ describe('getTurnout()', () => {
 
 	it('is undefined when neither is present', () => {
 		expect(getTurnout({})).toBeUndefined();
+	});
+});
+
+describe('timelineProgress()', () => {
+	const window = { startTime: '2026-10-01T00:00:00Z', endTime: '2026-10-03T00:00:00Z' };
+
+	it('is the share of the voting window that has passed', () => {
+		expect(timelineProgress(window, Date.parse('2026-10-02T00:00:00Z'))).toBe(50);
+	});
+
+	it('clamps before the start and after the end', () => {
+		expect(timelineProgress(window, Date.parse('2026-09-01T00:00:00Z'))).toBe(0);
+		expect(timelineProgress(window, Date.parse('2026-11-01T00:00:00Z'))).toBe(100);
+	});
+
+	it('is null without an end time', () => {
+		expect(timelineProgress({ ...window, endTime: null })).toBeNull();
 	});
 });

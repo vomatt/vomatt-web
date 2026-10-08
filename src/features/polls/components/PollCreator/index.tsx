@@ -1,6 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
 import { ReactNode, useEffect, useState } from 'react';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -45,8 +46,8 @@ import { createPoll, updatePoll } from '../../service';
 import {
 	emptyPollForm,
 	formToInput,
-	type PollFormValues,
 	pollFormSchema,
+	type PollFormValues,
 	pollToForm,
 	STEP_FIELDS,
 	toDateTimeInput,
@@ -87,6 +88,7 @@ export function PollCreator({
 	onSaved,
 }: PollCreatorProps) {
 	const { t } = useLanguage();
+	const router = useRouter();
 	const isEdit = !!poll;
 	const [internalOpen, setInternalOpen] = useState(false);
 	const open = openProp ?? internalOpen;
@@ -172,6 +174,8 @@ export function PollCreator({
 			toast(t(isEdit ? 'pollCreator.saved' : 'pollCreator.published'));
 			close();
 			onSaved?.();
+			// A new poll's first job is collecting votes: land on it, next to the share button
+			if (!isEdit && result.data?.id) router.push(`/poll/${result.data.id}`);
 		},
 		// Jump back to the first step with an error
 		(invalid) => {

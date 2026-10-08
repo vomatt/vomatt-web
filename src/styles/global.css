@@ -3,6 +3,18 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* The ui/ components use Base UI-style state variants, but they wrap Radix,
+   which reports state as data-state="…" and data-orientation="…" (and Sidebar sets
+   data-active="true|false").
+   Map them, or every open/checked/active style silently never applies. */
+@custom-variant data-open (&:where([data-state="open"]));
+@custom-variant data-closed (&:where([data-state="closed"]));
+@custom-variant data-checked (&:where([data-state="checked"]));
+@custom-variant data-unchecked (&:where([data-state="unchecked"]));
+@custom-variant data-active (&:where([data-state="active"], [data-active="true"]));
+@custom-variant data-horizontal (&:where([data-orientation="horizontal"]));
+@custom-variant data-vertical (&:where([data-orientation="vertical"]));
+
 :root {
 	--background: oklch(1 0 0);
 	--foreground: oklch(0.145 0 0);

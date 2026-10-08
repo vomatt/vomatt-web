@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation';
 
 import { getUserSession } from '@/data/auth';
-import { getMyPolls } from '@/features/polls/service';
 import { Poll } from '@/features/polls/schema';
+import { getMyPolls } from '@/features/polls/service';
 
 import MyPollsTabs from './_components/MyPollsTabs';
 
@@ -12,8 +12,7 @@ export default async function MyPollsPage() {
 
 	let polls: Poll[] = [];
 	try {
-		const data = await getMyPolls();
-		polls = data?.content ?? [];
+		polls = await getMyPolls();
 	} catch {
 		// API unavailable — render empty state instead of crashing
 	}

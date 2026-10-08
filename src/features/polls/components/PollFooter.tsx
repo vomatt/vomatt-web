@@ -1,16 +1,16 @@
 'use client';
 
-import { toast } from 'sonner';
-
 import { MessageSquare, Share2 } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 
+import { useSharePoll } from '../hooks/useSharePoll';
 
 type PollFooterProps = {
 	pollId: string;
 	title: string;
 	turnout: number | undefined;
-	commentCount: number;
+	/** Unknown until the discussion has been opened once. */
+	commentCount?: number;
 	onToggleComments: () => void;
 };
 
@@ -24,15 +24,7 @@ export function PollFooter({
 }: PollFooterProps) {
 	const { t } = useLanguage();
 
-	const share = async () => {
-		const url = `${window.location.origin}/poll/${pollId}`;
-		if (navigator.share) {
-			await navigator.share({ title, url }).catch(() => {});
-			return;
-		}
-		await navigator.clipboard.writeText(url);
-		toast(t('poll.linkCopied'));
-	};
+	const share = useSharePoll();
 
 	return (
 		<div className="flex items-center gap-4 border-t border-border/60 px-5 py-3 text-xs text-muted-foreground">
@@ -47,13 +39,15 @@ export function PollFooter({
 				className="flex items-center gap-1.5 transition-colors hover:text-foreground"
 			>
 				<MessageSquare className="size-3.5" />
-				{commentCount === 1
-					? t('poll.comment')
-					: t('poll.comments', { count: commentCount })}
+				{commentCount === undefined
+					? t('poll.discuss')
+					: commentCount === 1
+						? t('poll.comment')
+						: t('poll.comments', { count: commentCount })}
 			</button>
 			<button
 				type="button"
-				onClick={share}
+				onClick={() => share({ id: pollId, title })}
 				className="ml-auto flex items-center gap-1.5 transition-colors hover:text-foreground"
 			>
 				<Share2 className="size-3.5" />

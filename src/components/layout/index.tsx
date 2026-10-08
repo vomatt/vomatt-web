@@ -1,4 +1,3 @@
-import { Plus } from '@/components/ui/SvgIcons';
 import dynamic from 'next/dynamic';
 import React, { ReactNode } from 'react';
 
@@ -6,8 +5,10 @@ import { AdaSkip } from '@/components/layout/AdaSkip';
 import { AppSidebar } from '@/components/layout/AppSidebar';
 import { Main } from '@/components/layout/Main';
 import { TabBar } from '@/components/layout/TabBar';
+import { MotionProvider } from '@/components/MotionProvider';
 import { Button } from '@/components/ui/Button';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/Sidebar';
+import { Plus } from '@/components/ui/SvgIcons';
 import { getMyProfile, getUserSession } from '@/data/auth';
 
 const PollCreator = dynamic(() =>
@@ -30,7 +31,9 @@ export async function Layout({ children }: LayoutProps) {
 		<SidebarProvider>
 			<AdaSkip />
 			<AppSidebar userSession={userSession} profile={profile} />
-			<Main>{children}</Main>
+			<Main>
+				<MotionProvider>{children}</MotionProvider>
+			</Main>
 			<TabBar userSession={userSession} />
 			{userSession && (
 				<PollCreator

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { decodeToken } from '@/lib/api/auth';
+
 import { getEnrichedProfile } from '../_mock-store';
 
 async function getCallerUsername(req: NextRequest): Promise<string | null> {
@@ -8,7 +9,8 @@ async function getCallerUsername(req: NextRequest): Promise<string | null> {
   const token = auth?.startsWith('Bearer ') ? auth.slice(7) : null;
   if (!token) return null;
   const payload = await decodeToken(token);
-  return payload?.username ?? null;
+  // Dev mock only: the real backend's token carries no username claim
+  return typeof payload?.username === 'string' ? payload.username : null;
 }
 
 export async function GET(

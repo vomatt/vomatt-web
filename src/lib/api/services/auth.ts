@@ -1,116 +1,78 @@
 'use server';
 
-import { publicFetch, apiClient, API_BASE_PATH } from '@/lib/api/client';
-import { clearAuthTokens, setAuthTokens } from '@/lib/api/auth';
+import { redirect } from 'next/navigation';
 
-export async function getVerifyCode(email: string) {
+import { clearAuthTokens, getTokens, setAuthTokens } from '@/lib/api/auth';
+import { type AuthErrorKey, toAuthErrorKey } from '@/lib/api/auth-errors';
+import { ApiError, publicFetch } from '@/lib/api/client';
+import { readAuthTokens } from '@/lib/api/tokens';
+
+type AuthFailure = { status: 'ERROR'; error: AuthErrorKey };
+
+function toFailure(error: unknown): AuthFailure {
+	if (error instanceof ApiError) {
+		return { status: 'ERROR', error: toAuthErrorKey(error.data?.errorCode, error.statusCode) };
+	}
+	return { status: 'ERROR', error: 'serverError' };
+}
+
+function postJson(endpoint: string, body: unknown) {
+	return publicFetch(endpoint, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(body),
+		cache: 'no-store',
+	});
+}
+
+/**
+ * Emails a one-time code. The same code signs in an existing account or
+ * creates a new one, so `isNewUser` only changes the wording in the UI.
+ */
+export async function requestOtp(
+	email: string
+): Promise<{ status: 'SUCCESS'; isNewUser: boolean } | AuthFailure> {
+	const normalized = email.trim().toLowerCase();
 	try {
-		const res = await fetch(
-			`${process.env.API_URL}${API_BASE_PATH}/auth/generateVerificationCode`,
-			{
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ email }),
-			}
-		);
-
-		const data = await res.json();
-		const { success, errorType } = data;
-		if (!success) return { status: 'ERROR' as const, errorType };
-		return { status: 'SUCCESS' as const };
-	} catch (error: unknown) {
-		const message = error instanceof Error ? error.message : String(error);
-		return { status: 'ERROR' as const, errorType: message };
+		// In order: a failed check must not leave a sent code and a running resend cooldown
+		const exists = await postJson('/auth/check-email', { email: normalized });
+		await postJson('/auth/send-otp', { email: normalized });
+		return { status: 'SUCCESS', isNewUser: exists?.exists === false };
+	} catch (error) {
+		return toFailure(error);
 	}
 }
 
-export async function login(email: string, verificationCode: string) {
+/** Verifies the code and starts the session. */
+export async function verifyOtp(
+	email: string,
+	code: string
+): Promise<{ status: 'SUCCESS' } | AuthFailure> {
 	try {
-		const data = await publicFetch(
-			'/auth/signin',
-			{
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ email, verificationCode }),
-			}
-		);
-
-		const { success, errorCode, token, refreshToken } = data || {};
-		if (success && token) {
-			await setAuthTokens({ accessToken: token, refreshToken });
-			return { status: 'SUCCESS' as const };
-		}
-		return { status: 'ERROR' as const, message: errorCode };
-	} catch {
-		return { status: 'ERROR' as const, message: 'Something went wrong' };
-	}
-}
-
-export async function preSignup(email: string, username: string) {
-	try {
-		const res = await fetch(`${process.env.API_URL}${API_BASE_PATH}/auth/pre-signup`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ email, username }),
+		const data = await postJson('/auth/verify-otp', {
+			email: email.trim().toLowerCase(),
+			code,
 		});
-		const data = await res.json();
-		const { success, message } = data || {};
-		if (success) return { status: 'SUCCESS' as const };
-		return { status: 'ERROR' as const, message };
-	} catch {
-		return {
-			status: 'ERROR' as const,
-			message: 'Something went wrong, please try again later',
-		};
+		const tokens = readAuthTokens(data);
+		if (!tokens) return { status: 'ERROR', error: 'serverError' };
+		await setAuthTokens(tokens);
+		return { status: 'SUCCESS' };
+	} catch (error) {
+		return toFailure(error);
 	}
 }
 
-export async function signup(data: {
-	email: string;
-	firstName: string;
-	lastName: string;
-	username: string;
-	verificationCode: string;
-}) {
-	try {
-		const res = await fetch(`${process.env.API_URL}${API_BASE_PATH}/auth/signup`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(data),
-		});
-		const resData = await res.json();
-		const { success, errorCode, token, refreshToken } = resData || {};
-		if (success) {
-			await setAuthTokens({ accessToken: token, refreshToken });
-			return { status: 'SUCCESS' as const };
-		}
-		return { status: 'ERROR' as const, errorType: errorCode };
-	} catch {
-		return {
-			status: 'ERROR' as const,
-			errorType: 'serverError',
-		};
-	}
-}
-
+/**
+ * Revokes the refresh token on the backend, then clears the cookies. The
+ * cookies are cleared even when the backend can't be reached.
+ */
 export async function signout() {
-	await apiClient('/auth/signout', { method: 'POST' });
+	const refreshToken = (await getTokens())?.refreshToken;
+	if (refreshToken) {
+		await postJson('/auth/logout', { refreshToken }).catch((error) => {
+			console.error('Logout request failed:', error);
+		});
+	}
 	await clearAuthTokens();
-}
-
-export async function resendVerification(email: string) {
-	const res = await publicFetch(
-		'/auth/resend-verification',
-		{
-			headers: { 'Content-Type': 'application/json' },
-			method: 'POST',
-			body: JSON.stringify({ email }),
-		}
-	);
-
-	return res;
-}
-
-export async function forceExpireToken() {
-	return apiClient('/auth/force-expire-token', { method: 'POST' });
+	redirect('/');
 }

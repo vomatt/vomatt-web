@@ -5,9 +5,10 @@ export interface UserProfile {
 	joinedAt: string; // ISO date string
 	totalPolls: number;
 	totalVotes: number;
-	avatarUrl: string | null;
-	followersCount: number;
-	followingCount: number;
+	// Absent until the backend ships avatars and follows; the UI hides those features then.
+	avatarUrl?: string | null;
+	followersCount?: number;
+	followingCount?: number;
 	isFollowing?: boolean; // only present when request includes Authorization header
 }
 

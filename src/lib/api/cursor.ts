@@ -1,11 +1,12 @@
 import { z } from 'zod';
 
-export type CursorPage<T> = { items: T[]; nextCursor: string | null };
+/** `total` is known only when the API sends it. */
+export type CursorPage<T> = { items: T[]; nextCursor: string | null; total?: number };
 
 /**
- * Parses `{ items, nextCursor }`, and also the Spring page shape the API
- * returns until cursor pagination ships. For a Spring page the cursor is the
- * next page number.
+ * Parses `{ items, nextCursor }`, and also the page shapes the API returns
+ * until cursor pagination ships. For those the cursor is the next page
+ * number, in the numbering the API expects (1-based for PageResponse).
  */
 export function cursorPageSchema<T extends z.ZodTypeAny>(item: T) {
 	const cursorShape = z
@@ -18,7 +19,23 @@ export function cursorPageSchema<T extends z.ZodTypeAny>(item: T) {
 			nextCursor: page.last ? null : String(page.number + 1),
 		}));
 
-	return z.union([cursorShape, springShape]) as unknown as z.ZodType<CursorPage<z.output<T>>>;
+	// vomatt-api PageResponse: 1-based `page`
+	const pageResponseShape = z
+		.object({
+			content: z.array(item),
+			total: z.number().int(),
+			page: z.number().int(),
+			limit: z.number().int(),
+		})
+		.transform((page) => ({
+			items: page.content,
+			nextCursor: page.page * page.limit < page.total ? String(page.page + 1) : null,
+			total: page.total,
+		}));
+
+	return z.union([cursorShape, pageResponseShape, springShape]) as unknown as z.ZodType<
+		CursorPage<z.output<T>>
+	>;
 }
 
 /** Appends `next` to `prev`, dropping items whose id is already present. */

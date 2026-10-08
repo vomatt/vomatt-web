@@ -1,5 +1,6 @@
 'use client';
 
+import { AnimatePresence, motion } from 'motion/react';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
@@ -11,6 +12,7 @@ import { formatFromNow, formatPollDate } from '../format';
 import type { BallotState } from '../hooks/useBallot';
 import type { Poll } from '../schema';
 import type { PollStatus } from '../status';
+import { BallotBoxIcon, BallotMark, SelectionHighlight, VotedStamp } from './BallotMotion';
 
 type BallotProps = {
 	poll: Poll;
@@ -32,7 +34,11 @@ export function Ballot({ poll, status, ballot, requireAuth, ownerActions }: Ball
 
 	const castSelected = () => {
 		if (!selected) return;
-		requireAuth(() => ballot.cast(selected));
+		requireAuth(() => {
+			// A small tap on phones, like the ballot hitting the bottom of the box
+			navigator.vibrate?.(12);
+			ballot.cast(selected);
+		});
 	};
 
 	const withdraw = () => {
@@ -91,7 +97,12 @@ export function Ballot({ poll, status, ballot, requireAuth, ownerActions }: Ball
 		actions = (
 			<>
 				<span className="text-xs text-muted-foreground">{t('poll.revealHint')}</span>
-				<Button size="sm" disabled={isPending || !selected} onClick={castSelected}>
+				<Button
+					size="sm"
+					disabled={isPending || !selected}
+					onClick={castSelected}
+					className="transition-transform active:scale-95"
+				>
 					{t('poll.vote')}
 				</Button>
 			</>
@@ -109,27 +120,32 @@ export function Ballot({ poll, status, ballot, requireAuth, ownerActions }: Ball
 						<label
 							key={option.id}
 							className={cn(
-								'flex cursor-pointer items-center gap-2.5 rounded-lg border border-border bg-card px-3.5 py-2.5 text-sm transition-colors',
+								'relative flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-card px-3.5 py-2.5 text-sm transition-colors',
 								'has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring',
-								isSelected ? 'border-primary font-medium' : 'hover:border-primary/30',
+								isSelected ? 'border-transparent font-medium' : 'hover:border-primary/30',
 								((hasBallot && !isSelected) || isScheduled) && 'text-muted-foreground',
 								isScheduled && 'cursor-not-allowed'
 							)}
 						>
+							{isSelected && <SelectionHighlight layoutId={`ballot-${poll.id}`} />}
 							<input
 								type="radio"
 								name={`ballot-${poll.id}`}
 								value={option.id}
 								checked={isSelected}
 								onChange={() => setSelected(option.id)}
-								className="size-3.5 accent-primary"
+								className="peer sr-only"
 							/>
-							<span className="flex-1">{option.text}</span>
-							{isMine && (
-								<span className="text-[11px] font-normal text-muted-foreground">
-									{t('poll.yourVote')}
-								</span>
-							)}
+							<BallotMark checked={isSelected} />
+							<span className="relative flex-1">{option.text}</span>
+							<AnimatePresence>
+								{isMine && (
+									<span key="stamp" className="relative" title={t('poll.yourVote')}>
+										<VotedStamp label={t('poll.stamp')} />
+										<span className="sr-only">{t('poll.yourVote')}</span>
+									</span>
+								)}
+							</AnimatePresence>
 						</label>
 					);
 				})}
@@ -141,13 +157,21 @@ export function Ballot({ poll, status, ballot, requireAuth, ownerActions }: Ball
 				</p>
 			)}
 
-			{hasBallot && poll.endTime && isHydrated && (
-				<p
-					className="rounded-lg border border-dashed border-border px-3 py-2.5 text-[13px] text-muted-foreground"
-				>
-					{t('poll.sealed', { date: formatPollDate(poll.endTime, currentLanguage) })}
-				</p>
-			)}
+			<AnimatePresence initial={false}>
+				{hasBallot && poll.endTime && isHydrated && (
+					<motion.p
+						key="sealed"
+						initial={{ opacity: 0, y: -6 }}
+						animate={{ opacity: 1, y: 0 }}
+						exit={{ opacity: 0, y: -6, transition: { duration: 0.15 } }}
+						transition={{ duration: 0.25, ease: 'easeOut' }}
+						className="flex items-center gap-2.5 rounded-lg border border-dashed border-border px-3 py-2.5 text-[13px] text-muted-foreground"
+					>
+						<BallotBoxIcon className="text-primary" />
+						{t('poll.sealed', { date: formatPollDate(poll.endTime, currentLanguage) })}
+					</motion.p>
+				)}
+			</AnimatePresence>
 
 			<div
 				role={confirmingWithdraw ? 'group' : undefined}

@@ -1,28 +1,27 @@
-import { formatDistance } from 'date-fns';
-import { enUS } from 'date-fns/locale';
-import Link from 'next/link';
+'use client';
 
+import { useLanguage } from '@/contexts/LanguageContext';
+import { PollListItem } from '@/features/polls/components/PollListItem';
+import { StatusChip } from '@/features/polls/components/StatusChip';
 import { Poll } from '@/features/polls/schema';
-import { getTurnout } from '@/features/polls/status';
+import { derivePollStatus, getTurnout } from '@/features/polls/status';
 
 export default function ProfilePollList({ polls }: { polls: Poll[] }) {
+	const { t } = useLanguage();
 	if (polls.length === 0) {
-		return <p className="text-muted-foreground">No polls yet.</p>;
+		return <p className="text-muted-foreground">{t('profile.noPollsYet')}</p>;
 	}
 
 	return (
-		<div className="space-y-3">
+		<ul className="space-y-3">
 			{polls.map((poll) => (
-				<Link key={poll.id} href={`/poll/${poll.id}`}>
-					<div className="p-4 rounded-xl border border-border bg-card hover:shadow-sm transition-shadow">
-						<p className="font-semibold text-foreground hover:underline">{poll.title}</p>
-						<p className="text-xs text-muted-foreground mt-1">
-							{getTurnout(poll) ?? 0} votes ·{' '}
-							{formatDistance(new Date(poll.createdAt), new Date(), { locale: enUS })} ago
-						</p>
-					</div>
-				</Link>
+				<PollListItem
+					key={poll.id}
+					poll={poll}
+					meta={t('poll.voted', { count: (getTurnout(poll) ?? 0).toLocaleString() })}
+					aside={<StatusChip status={derivePollStatus(poll)} poll={poll} />}
+				/>
 			))}
-		</div>
+		</ul>
 	);
 }

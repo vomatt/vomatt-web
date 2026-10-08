@@ -1,20 +1,23 @@
 'use server';
 
-import { updateTag } from 'next/cache';
+import { revalidateTag, updateTag } from 'next/cache';
 import { unstable_rethrow } from 'next/navigation';
 
-import { getUserSession } from '@/data/auth';
-import { ApiError, apiClient, AuthError, publicFetch } from '@/lib/api/client';
-import { cursorPageSchema } from '@/lib/api/cursor';
+import { apiClient, ApiError, AuthError, publicFetch } from '@/lib/api/client';
+import { type CursorPage, cursorPageSchema } from '@/lib/api/cursor';
 
 import { FEED_TAG, pollTag } from './cache';
 import type { ActionFailure, ActionResult } from './errors';
 import {
+	type Comment,
+	CommentSchema,
 	type Poll,
 	type PollInput,
 	type PollResults,
 	PollResultsSchema,
 	PollSchema,
+	type TagDto,
+	TagDtoSchema,
 	UserVoteStatusSchema,
 } from './schema';
 
@@ -61,69 +64,95 @@ function toRequestBody(input: PollInput) {
 
 // ── Reads ────────────────────────────────────────────────────────────────────
 
-/**
- * Fills in a signed-in viewer's Ballot until backend 3 returns `myOptionId`
- * on the Poll. Delete this, and its two callers' use of it, once it does.
- */
-async function withMyBallot(poll: Poll): Promise<Poll> {
-	if (poll.myOptionId !== undefined) return poll;
-	return { ...poll, myOptionId: await getMyBallot(poll.id) };
-}
+const CACHED_LIST = { next: { revalidate: 30, tags: [FEED_TAG] } } as RequestInit;
+const FIRST_FULL_PAGE = () => new URLSearchParams({ page: '1', size: String(MAX_FEED_PAGE_SIZE) });
 
 /**
- * Until backend 3 ships cursors, `cursor` is a Spring page number. Ballots are
- * looked up here, in parallel, so the cards don't each make a sequential
- * Server Action call.
+ * As the viewer when signed in, so each Poll carries `myOptionId` (apiClient
+ * keeps those out of the shared cache). `publicList` is the cached, shared
+ * page for lists that never show the viewer's Ballot.
  */
+function fetchPollPage(params: URLSearchParams, { publicList = false } = {}) {
+	const path = `/votes?${params}`;
+	const request = publicList
+		? publicFetch(path, CACHED_LIST)
+		: apiClient(path, { auth: 'optional', ...CACHED_LIST });
+	return request.then((data) => PollPage.parse(data));
+}
+
+/** Pages only the signed-in user can see (their polls, their ballots). */
+async function fetchMyPolls(path: string): Promise<Poll[]> {
+	return PollPage.parse(await apiClient(`${path}?${FIRST_FULL_PAGE()}`)).items;
+}
+
+/** Until backend 3 ships cursors, `cursor` is a 1-based page number. */
 export async function getFeed(cursor?: string | null, size = 10, tag?: string) {
-	// Callable from any client, and each item costs a Ballot lookup, so cap the page
+	// Callable from any client, so cap the page
 	const pageSize = Math.min(Math.max(1, size), MAX_FEED_PAGE_SIZE);
-	const params = new URLSearchParams({ page: cursor ?? '0', size: String(pageSize) });
+	const params = new URLSearchParams({ page: cursor ?? '1', size: String(pageSize) });
 	if (tag) params.set('tag', tag);
-	const [data, session] = await Promise.all([
-		publicFetch(`/votes?${params}`, { next: { tags: [FEED_TAG] } } as RequestInit),
-		getUserSession(),
-	]);
-	const page = PollPage.parse(data);
-	if (!session) return page;
-	return { ...page, items: await Promise.all(page.items.map(withMyBallot)) };
+	return fetchPollPage(params);
 }
 
-export async function getPollsByCreator(username: string): Promise<Poll[]> {
+/** The newest open polls, for lists that filter and sort them client-side. */
+export async function getRecentPolls(): Promise<Poll[]> {
+	return (await fetchPollPage(FIRST_FULL_PAGE(), { publicList: true })).items;
+}
+
+const TagPage = cursorPageSchema(TagDtoSchema);
+
+/** Most-used topics first, for the feed's topic tabs. Empty when the API is down. */
+export async function getPopularTags(size = 12): Promise<TagDto[]> {
 	try {
-		const url = `/votes?creatorUsername=${encodeURIComponent(username)}`;
-		const data = await publicFetch(url, { next: { revalidate: 60 } } as RequestInit);
-		return PollPage.parse(data).items;
+		const data = await publicFetch(`/tags/popular?page=1&size=${size}`, {
+			next: { revalidate: 300 },
+		} as RequestInit);
+		return TagPage.parse(data).items;
 	} catch {
 		return [];
 	}
 }
 
+/** A user's polls, ended ones included, newest first. */
+export async function getPollsByCreator(username: string): Promise<Poll[]> {
+	try {
+		const params = FIRST_FULL_PAGE();
+		params.set('creatorUsername', username);
+		return (await fetchPollPage(params, { publicList: true })).items;
+	} catch {
+		return [];
+	}
+}
+
+/** Polls the signed-in user voted in, each with their `myOptionId`. */
+export async function getParticipatedPolls(): Promise<Poll[]> {
+	return fetchMyPolls('/votes/participated');
+}
+
+/** Null when the Poll doesn't exist. Signed-in viewers get their `myOptionId`. */
 export async function getPoll(id: string): Promise<Poll | null> {
 	try {
-		const data = await publicFetch(`/votes/${id}`, {
+		const data = await apiClient(`/votes/${encodeURIComponent(id)}`, {
+			auth: 'optional',
 			next: { revalidate: 30, tags: [pollTag(id)] },
 		} as RequestInit);
 		return PollSchema.parse(data);
 	} catch (error) {
-		if (error instanceof ApiError && error.statusCode === 404) return null;
+		if (error instanceof ApiError && (error.statusCode === 404 || error.statusCode === 400)) {
+			return null;
+		}
 		throw error;
 	}
 }
 
-/** The Poll with the signed-in viewer's Ballot, for server-rendered pages. */
-export async function getPollForViewer(id: string): Promise<Poll | null> {
-	const [poll, session] = await Promise.all([getPoll(id), getUserSession()]);
-	return poll && session ? withMyBallot(poll) : poll;
-}
-
-export async function getMyPolls() {
-	return apiClient('/votes/my');
+/** Polls the signed-in user created, newest first. */
+export async function getMyPolls(): Promise<Poll[]> {
+	return fetchMyPolls('/votes/my');
 }
 
 /**
- * The signed-in user's Ballot, or null. Remove once backend 3 returns
- * `myOptionId` on the Poll.
+ * The signed-in user's Ballot, or null. Only needed for a Poll loaded before
+ * sign-in, which has no `myOptionId`.
  */
 export async function getMyBallot(pollId: string): Promise<string | null> {
 	try {
@@ -145,6 +174,19 @@ export async function getResults(pollId: string): Promise<ActionResult<PollResul
 
 // ── Ballot ───────────────────────────────────────────────────────────────────
 
+/**
+ * The Poll's cached copy (what guests see) is fresh on the next view.
+ * `expire: 0` avoids updateTag's re-render of the current route in the action
+ * response. Ballots leave the shared lists to their 30s revalidate (expiring
+ * them on every vote would make the next guest wait for a full uncached list);
+ * owner changes (`lists: true`) also expire them, so an edited or cancelled
+ * poll doesn't linger in Explore, profiles and the guest feed.
+ */
+function invalidatePoll(id: string, { lists = false } = {}) {
+	revalidateTag(pollTag(id), { expire: 0 });
+	if (lists) revalidateTag(FEED_TAG, { expire: 0 });
+}
+
 /** Casts a Ballot, or replaces the existing one. */
 export async function castBallot(pollId: string, optionId: string): Promise<ActionResult> {
 	return attempt(async () => {
@@ -152,15 +194,15 @@ export async function castBallot(pollId: string, optionId: string): Promise<Acti
 			method: 'POST',
 			body: JSON.stringify({ optionIds: [optionId] }),
 		});
-		updateTag(pollTag(pollId));
+		invalidatePoll(pollId);
 	});
 }
 
 /** Retraction: the voter is no longer a Participant and won't be notified. */
-export async function retractBallot(pollId: string): Promise<ActionResult> {
+export async function retractBallot(pollId: string, optionId: string): Promise<ActionResult> {
 	return attempt(async () => {
-		await apiClient(`/votes/${pollId}/vote`, { method: 'DELETE' });
-		updateTag(pollTag(pollId));
+		await apiClient(`/votes/${pollId}/vote/${optionId}`, { method: 'DELETE' });
+		invalidatePoll(pollId);
 	});
 }
 
@@ -181,8 +223,7 @@ export async function updatePoll(id: string, input: PollInput): Promise<ActionRe
 			method: 'PUT',
 			body: toRequestBody(input),
 		});
-		updateTag(pollTag(id));
-		updateTag(FEED_TAG);
+		invalidatePoll(id, { lists: true });
 		return poll;
 	});
 }
@@ -191,53 +232,77 @@ export async function updatePoll(id: string, input: PollInput): Promise<ActionRe
 export async function closePoll(id: string): Promise<ActionResult> {
 	return attempt(async () => {
 		await apiClient(`/votes/${id}/deactivate`, { method: 'PUT' });
-		updateTag(pollTag(id));
-		updateTag(FEED_TAG);
+		invalidatePoll(id, { lists: true });
 	});
 }
 
 // ── Comments ─────────────────────────────────────────────────────────────────
 
-export async function getComments(pollId: string, page = 0, size = 20) {
-	const params = new URLSearchParams({
-		page: String(page),
-		size: String(size),
+const CommentPage = cursorPageSchema(CommentSchema);
+const COMMENT_PAGE_SIZE = 20;
+
+/** Newest first. The API only shows comments to signed-in users today: a 401 means "sign in to read". */
+export async function getComments(
+	pollId: string,
+	cursor?: string | null
+): Promise<ActionResult<CursorPage<Comment>>> {
+	return attempt(async () => {
+		const params = new URLSearchParams({
+			page: cursor ?? '1',
+			size: String(COMMENT_PAGE_SIZE),
+			sort: 'createdAt,desc',
+		});
+		const data = await apiClient(`/votes/${pollId}/comments?${params}`, { auth: 'optional' });
+		return CommentPage.parse(data);
 	});
-	return apiClient(`/votes/${pollId}/comments?${params}`);
 }
 
-export async function postComment(pollId: string, text: string) {
-	return apiClient(`/votes/${pollId}/comments`, {
-		method: 'POST',
-		body: JSON.stringify({ text }),
-	});
+export async function postComment(pollId: string, text: string): Promise<ActionResult<Comment>> {
+	return attempt(async () =>
+		CommentSchema.parse(
+			await apiClient(`/votes/${pollId}/comments`, {
+				method: 'POST',
+				body: JSON.stringify({ text }),
+			})
+		)
+	);
 }
 
 export async function updateComment(
 	voteId: string,
 	commentId: string,
 	text: string
-) {
-	return apiClient(`/votes/${voteId}/comments/${commentId}`, {
-		method: 'PUT',
-		body: JSON.stringify({ text }),
+): Promise<ActionResult<Comment>> {
+	return attempt(async () =>
+		CommentSchema.parse(
+			await apiClient(`/votes/${voteId}/comments/${commentId}`, {
+				method: 'PUT',
+				body: JSON.stringify({ text }),
+			})
+		)
+	);
+}
+
+export async function deleteComment(voteId: string, commentId: string): Promise<ActionResult> {
+	return attempt(async () => {
+		await apiClient(`/votes/${voteId}/comments/${commentId}`, {
+			method: 'DELETE',
+		});
 	});
 }
 
-export async function deleteComment(voteId: string, commentId: string) {
-	return apiClient(`/votes/${voteId}/comments/${commentId}`, {
-		method: 'DELETE',
+export async function likeComment(voteId: string, commentId: string): Promise<ActionResult> {
+	return attempt(async () => {
+		await apiClient(`/votes/${voteId}/comments/${commentId}/like`, {
+			method: 'POST',
+		});
 	});
 }
 
-export async function likeComment(voteId: string, commentId: string) {
-	return apiClient(`/votes/${voteId}/comments/${commentId}/like`, {
-		method: 'POST',
-	});
-}
-
-export async function unlikeComment(voteId: string, commentId: string) {
-	return apiClient(`/votes/${voteId}/comments/${commentId}/like`, {
-		method: 'DELETE',
+export async function unlikeComment(voteId: string, commentId: string): Promise<ActionResult> {
+	return attempt(async () => {
+		await apiClient(`/votes/${voteId}/comments/${commentId}/like`, {
+			method: 'DELETE',
+		});
 	});
 }

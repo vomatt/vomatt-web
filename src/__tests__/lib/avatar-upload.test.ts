@@ -9,7 +9,7 @@ beforeEach(() => {
 });
 
 describe('uploadAvatar()', () => {
-  it('calls PATCH /api/v1/users/me/avatar with FormData', async () => {
+  it('calls PATCH /api/users/me/avatar with FormData', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ success: true, data: { avatarUrl: 'http://example.com/a.jpg' } }),
@@ -19,7 +19,7 @@ describe('uploadAvatar()', () => {
     const result = await uploadAvatar(file);
 
     expect(mockFetch).toHaveBeenCalledWith(
-      'http://localhost:3000/api/v1/users/me/avatar',
+      'http://localhost:3000/api/users/me/avatar',
       expect.objectContaining({
         method: 'PATCH',
         credentials: 'include',

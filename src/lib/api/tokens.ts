@@ -3,21 +3,26 @@ import { decodeJwt, JWTPayload, jwtVerify } from 'jose';
 import {
 	ACCESS_TOKEN,
 	ACCESS_TOKEN_EXPIRY,
+	ACCESS_TOKEN_REFRESH_LEEWAY,
 	REFRESH_TOKEN,
 	REFRESH_TOKEN_EXPIRY,
 } from '@/data/constants';
 import { API_BASE_PATH } from '@/lib/api/constants';
-import { RefreshTokenResponse } from '@/schemas/auth';
 import { AuthTokens } from '@/types';
 
 // Shared by the proxy (middleware) and server code, so it must not use
 // next/headers or carry a 'use server' directive.
 
+/** Claims the backend puts in the access token. `sub` is the user id. */
 export interface AccessTokenPayload extends JWTPayload {
-	username?: string;
+	email?: string;
+	roles?: string[];
 }
 
 const encodedKey = new TextEncoder().encode(process.env.SESSION_SECRET);
+
+// The backend signs with HMAC-SHA and JJWT picks the hash from the secret's length.
+const HMAC_ALGORITHMS = ['HS256', 'HS384', 'HS512'];
 
 /** Returns the verified payload, or null if the token is invalid or expired. */
 export async function verifyAccessToken(
@@ -25,7 +30,7 @@ export async function verifyAccessToken(
 ): Promise<AccessTokenPayload | null> {
 	try {
 		const { payload } = await jwtVerify(token, encodedKey, {
-			algorithms: ['HS512'],
+			algorithms: HMAC_ALGORITHMS,
 		});
 		return payload as AccessTokenPayload;
 	} catch {
@@ -33,13 +38,26 @@ export async function verifyAccessToken(
 	}
 }
 
-// Concurrent callers holding the same refresh token share one request, so
-// parallel 401s don't race to use a token the backend may rotate.
-const inFlightRefreshes = new Map<string, Promise<AuthTokens | null>>();
+/** True when the payload expires within the refresh leeway. */
+export function isExpiringSoon(payload: AccessTokenPayload, now = Date.now()) {
+	return !!payload.exp && payload.exp * 1000 - now < ACCESS_TOKEN_REFRESH_LEEWAY * 1000;
+}
 
-export function requestTokenRefresh(
-	refreshToken: string
-): Promise<AuthTokens | null> {
+/**
+ * `rejected`: the backend refused the refresh token, so the session is over.
+ * `unavailable`: the backend couldn't be asked; the session may still be fine.
+ */
+export type RefreshResult =
+	| { status: 'ok'; tokens: AuthTokens }
+	| { status: 'rejected' }
+	| { status: 'unavailable' };
+
+// Concurrent callers holding the same refresh token share one request. The
+// backend rotates refresh tokens and revokes every session when a used token
+// comes back after its grace window, so never send the same token twice.
+const inFlightRefreshes = new Map<string, Promise<RefreshResult>>();
+
+export function requestTokenRefresh(refreshToken: string): Promise<RefreshResult> {
 	const pending = inFlightRefreshes.get(refreshToken);
 	if (pending) return pending;
 
@@ -50,33 +68,35 @@ export function requestTokenRefresh(
 	return request;
 }
 
-async function fetchRefreshedTokens(
-	refreshToken: string
-): Promise<AuthTokens | null> {
+/** Reads `{ token, refreshToken }` from the ApiResponse envelope or a bare body. */
+export function readAuthTokens(body: unknown): AuthTokens | null {
+	const record = (body ?? {}) as Record<string, any>;
+	const data = record.data && typeof record.data === 'object' ? record.data : record;
+	const accessToken = data.token ?? data.accessToken;
+	if (typeof accessToken !== 'string' || typeof data.refreshToken !== 'string') {
+		return null;
+	}
+	return { accessToken, refreshToken: data.refreshToken };
+}
+
+async function fetchRefreshedTokens(refreshToken: string): Promise<RefreshResult> {
 	try {
 		const response = await fetch(
-			`${process.env.API_URL}${API_BASE_PATH}/auth/refreshToken`,
+			`${process.env.API_URL}${API_BASE_PATH}/auth/refresh`,
 			{
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ refreshToken }),
+				cache: 'no-store',
 			}
 		);
-		if (!response.ok) return null;
-
-		// signin/signup return `token`; accept it here too until the backend unifies.
-		const data: RefreshTokenResponse & { token?: string } = await response.json();
-		const accessToken = data?.accessToken ?? data?.token;
-		if (!accessToken) return null;
-
-		return {
-			accessToken,
-			// Backend may not rotate the refresh token; keep the current one.
-			refreshToken: data?.refreshToken ?? refreshToken,
-		};
+		if (response.status >= 500 || response.status === 429) return { status: 'unavailable' };
+		if (!response.ok) return { status: 'rejected' };
+		const tokens = readAuthTokens(await response.json());
+		return tokens ? { status: 'ok', tokens } : { status: 'rejected' };
 	} catch (error) {
 		console.error('Token refresh failed:', error);
-		return null;
+		return { status: 'unavailable' };
 	}
 }
 
