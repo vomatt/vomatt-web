@@ -2,19 +2,23 @@
 
 import { AnimatePresence, motion } from 'motion/react';
 
+import { FieldError } from '@/components/ui/Field';
+import { useLanguage } from '@/contexts/LanguageContext';
+import type { AuthErrorKey } from '@/lib/api/auth-errors';
 import { cn } from '@/lib/utils';
 
 type AuthErrorProps = {
-	/** The message to show; nothing renders while it is null. */
-	message: string | null;
+	/** Nothing renders while it is null. */
+	error: AuthErrorKey | null;
 	className?: string;
 };
 
-/** A form-level error that slides down into place and folds away when cleared. */
-export function AuthError({ message, className }: AuthErrorProps) {
+/** A form-level auth error that slides down into place and folds away when cleared. */
+export function AuthError({ error, className }: AuthErrorProps) {
+	const { t } = useLanguage();
 	return (
 		<AnimatePresence initial={false}>
-			{message && (
+			{error && (
 				<motion.div
 					key="error"
 					initial={{ height: 0, opacity: 0 }}
@@ -23,9 +27,7 @@ export function AuthError({ message, className }: AuthErrorProps) {
 					transition={{ duration: 0.2, ease: 'easeOut' }}
 					className="overflow-hidden"
 				>
-					<p role="alert" className={cn('text-destructive text-center text-sm', className)}>
-						{message}
-					</p>
+					<FieldError className={cn('text-center', className)}>{t(`authError.${error}`)}</FieldError>
 				</motion.div>
 			)}
 		</AnimatePresence>

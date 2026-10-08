@@ -27,10 +27,10 @@ export function PollCardSkeleton({ options = 3 }: { options?: number }) {
 	);
 }
 
-export function PollListSkeleton({ count = 3 }: { count?: number }) {
+export function PollListSkeleton() {
 	return (
-		<div role="status" aria-busy aria-label="Loading" className="flex flex-col gap-3">
-			{Array.from({ length: count }, (_, i) => (
+		<div role="status" aria-busy className="flex flex-col gap-3">
+			{Array.from({ length: 3 }, (_, i) => (
 				<PollCardSkeleton key={i} options={3 + (i % 2)} />
 			))}
 		</div>

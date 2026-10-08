@@ -63,7 +63,7 @@ export function ExploreView({ polls, tags }: { polls: Poll[]; tags: TagDto[] }) 
 	const results = useMemo(() => filterPolls(polls, query, filter, sort), [polls, query, filter, sort]);
 
 	return (
-		<div className="px-contain mx-auto max-w-2xl space-y-8 py-6">
+		<div className="space-y-8">
 			<h1 className="text-4xl text-foreground">{t('explore.title')}</h1>
 
 			{tags.length > 0 && (

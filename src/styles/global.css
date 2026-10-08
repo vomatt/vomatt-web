@@ -3,22 +3,31 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Skeleton shimmer: a soft highlight sweeping across the muted block. */
+/* Skeleton shimmer: a highlight stripe sweeping across the block, animated with
+   transform so it stays on the compositor. */
 @keyframes shimmer {
-	from { background-position: 200% 0; }
-	to { background-position: -200% 0; }
+	from { transform: translateX(-100%); }
+	to { transform: translateX(100%); }
 }
 @utility animate-shimmer {
-	background-image: linear-gradient(
-		90deg,
-		var(--muted) 0%,
-		color-mix(in oklch, var(--muted), var(--foreground) 6%) 50%,
-		var(--muted) 100%
-	);
-	background-size: 200% 100%;
-	animation: shimmer 1.6s ease-in-out infinite;
+	position: relative;
+	overflow: hidden;
+	&::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background-image: linear-gradient(
+			90deg,
+			transparent,
+			color-mix(in oklch, var(--foreground) 6%, transparent),
+			transparent
+		);
+		animation: shimmer 1.6s ease-in-out infinite;
+	}
 	@media (prefers-reduced-motion: reduce) {
-		animation: none;
+		&::after {
+			animation: none;
+		}
 	}
 }
 

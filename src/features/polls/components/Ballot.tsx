@@ -1,7 +1,8 @@
 'use client';
 
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, motion, useAnimate } from 'motion/react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/Button';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -28,22 +29,32 @@ export function Ballot({ poll, status, ballot, requireAuth, ownerActions }: Ball
 	const { t, currentLanguage } = useLanguage();
 	const isHydrated = useHydrated();
 	const [confirmingWithdraw, setConfirmingWithdraw] = useState(false);
-	const { myOptionId, selected, setSelected, isPending, failures } = ballot;
+	const { myOptionId, selected, setSelected, isPending } = ballot;
 	const isScheduled = status === 'scheduled';
 	const hasBallot = myOptionId !== null;
 
+	const [optionsRef, animateOptions] = useAnimate();
+	/** The options recoil when a request is rolled back. */
+	const shake = () =>
+		animateOptions(optionsRef.current, { x: [0, -6, 6, -4, 4, 0] }, { duration: 0.4 });
+
 	const castSelected = () => {
 		if (!selected) return;
-		requireAuth(() => {
+		requireAuth(async () => {
 			// A small tap on phones, like the ballot hitting the bottom of the box
 			navigator.vibrate?.(12);
-			ballot.cast(selected);
+			const outcome = await ballot.cast(selected);
+			if (outcome === 'saved') {
+				toast.success(t('poll.voteCast'), { icon: <VotedStamp label={t('poll.stamp')} /> });
+			} else if (outcome === 'failed') {
+				shake();
+			}
 		});
 	};
 
-	const withdraw = () => {
+	const withdraw = async () => {
 		setConfirmingWithdraw(false);
-		ballot.retract();
+		if ((await ballot.retract()) === 'failed') shake();
 	};
 
 	let actions: React.ReactNode;
@@ -89,6 +100,7 @@ export function Ballot({ poll, status, ballot, requireAuth, ownerActions }: Ball
 					disabled={isPending || !selected || selected === myOptionId}
 					onClick={castSelected}
 				>
+					{isPending && <BallotBoxIcon className="size-4" />}
 					{t('poll.updateVote')}
 				</Button>
 			</>
@@ -112,14 +124,7 @@ export function Ballot({ poll, status, ballot, requireAuth, ownerActions }: Ball
 
 	return (
 		<div className="space-y-3.5">
-			<motion.fieldset
-				// Remounts on each rolled-back request so the shake replays
-				key={failures}
-				animate={failures > 0 ? { x: [0, -6, 6, -4, 4, 0] } : undefined}
-				transition={{ duration: 0.4, ease: 'easeInOut' }}
-				disabled={isScheduled || isPending}
-				className="space-y-1.5"
-			>
+			<fieldset ref={optionsRef} disabled={isScheduled || isPending} className="space-y-1.5">
 				<legend className="sr-only">{poll.title}</legend>
 				{poll.options.map((option) => {
 					const isSelected = selected === option.id;
@@ -159,7 +164,7 @@ export function Ballot({ poll, status, ballot, requireAuth, ownerActions }: Ball
 						</label>
 					);
 				})}
-			</motion.fieldset>
+			</fieldset>
 
 			{!hasBallot && !isScheduled && poll.voterVisibility && (
 				<p className="text-xs text-muted-foreground">

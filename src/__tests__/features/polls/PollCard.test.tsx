@@ -220,6 +220,7 @@ describe('PollCard state B · Open, has Ballot', () => {
 		vote('Friday');
 
 		await waitFor(() => expect(toast.error).toHaveBeenCalled());
+		expect(toast.success).not.toHaveBeenCalled();
 		expect(screen.getByText('128 voted')).toBeInTheDocument();
 		await waitFor(() => expect(screen.queryByText('Your vote')).not.toBeInTheDocument());
 	});

@@ -111,7 +111,7 @@ function EmailStep({
 				<ButtonLoading className="w-full" type="submit" isLoading={form.formState.isSubmitting}>
 					{t('auth.continueWithEmail')}
 				</ButtonLoading>
-				<AuthError message={error ? t(`authError.${error}`) : null} className="mt-3" />
+				<AuthError error={error} className="mt-3" />
 				<p className="text-center text-xs text-muted-foreground mt-4">{t('auth.passwordless')}</p>
 			</form>
 		</>
@@ -176,7 +176,7 @@ function ProfileStep({
 				<Button type="button" variant="ghost" className="w-full" onClick={onDone}>
 					{t('onboarding.skip')}
 				</Button>
-				<AuthError message={error ? t(`authError.${error}`) : null} className="mt-3" />
+				<AuthError error={error} className="mt-3" />
 			</form>
 		</>
 	);

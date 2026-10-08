@@ -130,8 +130,8 @@ export default function VerificationForm({
 							<InputOTPSlot index={5} />
 						</InputOTPGroup>
 					</InputOTP>
-					<AuthError message={error ? t(`authError.${error}`) : null} />
 				</Field>
+				<AuthError error={error} className="-mt-3 mb-6" />
 				<ButtonLoading
 					type="submit"
 					className="w-full mb-3"
