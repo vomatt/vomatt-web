@@ -1,5 +1,7 @@
 import { type ClassValue, clsx } from 'clsx';
 import type { NextRequest } from 'next/server';
+import { twMerge } from 'tailwind-merge';
+
 import {
 	Facebook,
 	Github,
@@ -9,7 +11,6 @@ import {
 	XTwitter,
 	Youtube,
 } from '@/components/ui/SvgIcons';
-import { twMerge } from 'tailwind-merge';
 
 // ***UTILITIES / GET***
 
@@ -29,13 +30,6 @@ export function formatUrl(url: string) {
 
 // Only same-origin paths; blocks open redirects like `//evil.com`, `/\\evil.com`
 // or `/\t/evil.com` by resolving the path the same way the browser will.
-export function getSafeRedirectPath(path: string | null) {
-	if (!path?.startsWith('/')) return '/';
-	const base = 'http://localhost';
-	const url = new URL(path, base);
-	if (url.origin !== base) return '/';
-	return `${url.pathname}${url.search}${url.hash}`;
-}
 
 export function getUrlBaseAndPath(url: string) {
 	if (url.includes('?')) {

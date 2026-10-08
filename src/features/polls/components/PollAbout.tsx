@@ -1,14 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/Button';
+import { InitialAvatar } from '@/components/ui/InitialAvatar';
 import { Share2 } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useHydrated } from '@/hooks/useHydrated';
+import { topicHref } from '@/lib/routes';
 
 import { formatFromNow, formatPollDate } from '../format';
+import { useSharePoll } from '../hooks/useSharePoll';
 import type { Poll } from '../schema';
 import { derivePollStatus, getTurnout, timelineProgress } from '../status';
 
@@ -20,25 +22,21 @@ export function PollAbout({ poll }: { poll: Poll }) {
 	const turnout = getTurnout(poll);
 	const progress = isHydrated ? timelineProgress(poll) : null;
 
-	const share = async () => {
-		const url = window.location.href;
-		if (navigator.share) {
-			await navigator.share({ title: poll.title, url }).catch(() => {});
-			return;
+	const share = useSharePoll();
+
+	const statusLine = () => {
+		if (status === 'ended') return t('pollDetail.resultsIn');
+		if (status === 'scheduled') {
+			return t('poll.opensHint', { distance: formatFromNow(poll.startTime, currentLanguage) });
 		}
-		await navigator.clipboard.writeText(url);
-		toast(t('poll.linkCopied'));
+		if (!poll.endTime) return t('pollDetail.noEnd');
+		return t('pollDetail.revealsIn', { distance: formatFromNow(poll.endTime, currentLanguage) });
 	};
 
 	return (
 		<aside className="space-y-5 rounded-xl border border-border bg-card p-5 text-sm">
 			<div className="flex items-center gap-3">
-				<div
-					aria-hidden
-					className="grid size-9 place-items-center rounded-full bg-muted text-sm font-semibold uppercase text-muted-foreground"
-				>
-					{poll.creatorUsername.slice(0, 1)}
-				</div>
+				<InitialAvatar name={poll.creatorUsername} className="size-9 text-sm" />
 				<div className="min-w-0">
 					<p className="text-xs text-muted-foreground">{t('pollDetail.askedBy')}</p>
 					<Link href={`/profile/${poll.creatorUsername}`} className="font-medium hover:underline">
@@ -68,15 +66,7 @@ export function PollAbout({ poll }: { poll: Poll }) {
 							/>
 						</div>
 					)}
-					<p className="font-medium">
-						{status === 'ended'
-							? t('pollDetail.resultsIn')
-							: status === 'scheduled'
-								? t('poll.opensHint', { distance: formatFromNow(poll.startTime, currentLanguage) })
-								: poll.endTime
-									? t('pollDetail.revealsIn', { distance: formatFromNow(poll.endTime, currentLanguage) })
-									: t('pollDetail.noEnd')}
-					</p>
+					<p className="font-medium">{statusLine()}</p>
 				</div>
 			)}
 
@@ -92,7 +82,7 @@ export function PollAbout({ poll }: { poll: Poll }) {
 					{poll.tags.map((tag) => (
 						<li key={tag.id}>
 							<Link
-								href={`/?tag=${encodeURIComponent(tag.slug)}`}
+								href={topicHref(tag.slug)}
 								className="rounded-full border border-border px-2.5 py-0.5 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
 							>
 								#{tag.name}
@@ -106,7 +96,7 @@ export function PollAbout({ poll }: { poll: Poll }) {
 				<p className="text-xs leading-relaxed text-muted-foreground">{t('pollDetail.sealedExplainer')}</p>
 			)}
 
-			<Button variant="outline" size="sm" className="w-full gap-2" onClick={share}>
+			<Button variant="outline" size="sm" className="w-full gap-2" onClick={() => share(poll)}>
 				<Share2 className="size-4" />
 				{t('pollDetail.shareCta')}
 			</Button>

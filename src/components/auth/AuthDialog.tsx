@@ -1,7 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-
 import {
 	Dialog,
 	DialogContent,
@@ -22,7 +20,6 @@ interface AuthDialogProps {
 /** Sign-in without leaving the page; the started action resumes after it. */
 export function AuthDialog({ open, onOpenChange, onAuthSuccess }: AuthDialogProps) {
 	const { t } = useLanguage();
-	const router = useRouter();
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -35,11 +32,8 @@ export function AuthDialog({ open, onOpenChange, onAuthSuccess }: AuthDialogProp
 				{open && (
 					<AuthFlow
 						variant="login"
-						onDone={() => {
-							onAuthSuccess();
-							// Server-rendered parts (sidebar, viewer state) pick up the new session
-							router.refresh();
-						}}
+						// Setting the session cookies re-renders the page, so the sidebar updates on its own
+						onDone={onAuthSuccess}
 					/>
 				)}
 			</DialogContent>

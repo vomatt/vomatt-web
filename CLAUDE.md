@@ -85,9 +85,9 @@ Pages collection fires `revalidatePath` + `updateTag('pages-sitemap')` via `src/
 ```
 DATABASE_URL     # PostgreSQL connection string
 PAYLOAD_SECRET   # Payload CMS secret
-SESSION_SECRET   # JWT signing secret (HS512)
+SESSION_SECRET   # Must equal the API's JWT_SECRET (HMAC-SHA)
 SITE_URL         # Frontend URL (e.g. http://localhost:3000)
-API_URL          # Backend API (e.g. https://vomatt.zeabur.app)
+API_URL          # vomatt-api origin, no path (e.g. http://localhost:8080)
 ```
 
 ## Key Paths Quick Reference

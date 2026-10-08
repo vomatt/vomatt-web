@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import AuthContainer from '@/components/auth/AuthContainer';
 import { AuthFlow } from '@/components/auth/AuthFlow';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { getSafeRedirectPath } from '@/lib/utils';
+import { getSafeRedirectPath } from '@/lib/routes';
 
 export function LogIn() {
 	const { t } = useLanguage();
@@ -23,10 +23,7 @@ export function LogIn() {
 			)}
 			<AuthFlow
 				variant="login"
-				onDone={() => {
-					router.replace(redirectTo);
-					router.refresh();
-				}}
+				onDone={() => router.replace(redirectTo)}
 				footer={
 					<p className="mt-6 text-center text-sm">
 						{t('login.footNote')}&nbsp;

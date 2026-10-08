@@ -55,9 +55,10 @@ describe('requestOtp()', () => {
 		expect(await requestOtp('a@example.com')).toEqual({ status: 'ERROR', error: 'resendCooldown' });
 	});
 
-	it('maps rate limiting', async () => {
+	it('maps rate limiting, without sending a code', async () => {
 		mockPublicFetch.mockRejectedValueOnce(new ApiError('slow down', 429));
 		expect(await requestOtp('a@example.com')).toEqual({ status: 'ERROR', error: 'rateLimited' });
+		expect(mockPublicFetch).toHaveBeenCalledTimes(1);
 	});
 });
 

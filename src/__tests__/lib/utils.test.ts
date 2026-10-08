@@ -1,10 +1,10 @@
+import { getSafeRedirectPath } from '@/lib/routes';
 import {
 	cn,
 	formatHandleize,
 	formatNumberSuffix,
 	formatNumberWithCommas,
 	formatUrl,
-	getSafeRedirectPath,
 	getUrlBaseAndPath,
 	hasArrayValue,
 	isValidUrl,

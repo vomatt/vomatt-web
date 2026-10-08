@@ -22,6 +22,12 @@ export function derivePollStatus(poll: StatusFields, now: Date | number = Date.n
 	return 'open';
 }
 
+/** The options with the most votes; none when nobody voted. */
+export function getWinners<T extends { votes: number }>(rows: T[]): T[] {
+	const top = Math.max(0, ...rows.map((row) => row.votes));
+	return top > 0 ? rows.filter((row) => row.votes === top) : [];
+}
+
 /** Turnout: how many people hold a Ballot. Visible in every state. */
 export function getTurnout(poll: Pick<Poll, 'participantCount' | 'totalVotes'>) {
 	return poll.participantCount ?? poll.totalVotes;

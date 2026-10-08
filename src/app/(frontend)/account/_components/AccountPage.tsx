@@ -15,15 +15,16 @@ import {
 	AlertDialogTitle,
 } from '@/components/ui/AlertDialog';
 import { Button } from '@/components/ui/Button';
+import { InitialAvatar } from '@/components/ui/InitialAvatar';
 import { Input } from '@/components/ui/Input';
 import { Switch } from '@/components/ui/Switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { BadgeId, BallotRecord, Insights } from '@/features/account/insights';
+import { PollListItem } from '@/features/polls/components/PollListItem';
 import { StatusChip } from '@/features/polls/components/StatusChip';
 import type { Poll } from '@/features/polls/schema';
 import { derivePollStatus, getTurnout } from '@/features/polls/status';
-import { useHydrated } from '@/hooks/useHydrated';
 import { signout } from '@/lib/api/services/auth';
 import { deleteMyAccount, updateVisibility } from '@/lib/api/services/users';
 import { cn } from '@/lib/utils';
@@ -58,12 +59,7 @@ export default function AccountPage({ profile, myPolls, history, insights }: Acc
 	return (
 		<div className="px-contain mx-auto max-w-3xl space-y-6 py-6">
 			<header className="flex flex-wrap items-center gap-4">
-				<div
-					aria-hidden
-					className="grid size-16 place-items-center rounded-full bg-primary text-2xl font-semibold uppercase text-primary-foreground"
-				>
-					{name.slice(0, 1)}
-				</div>
+				<InitialAvatar name={name} className="size-16 bg-primary text-2xl text-primary-foreground" />
 				<div className="min-w-0 flex-1">
 					<h1 className="truncate text-2xl font-semibold">{name}</h1>
 					<p className="text-sm text-muted-foreground">
@@ -181,22 +177,20 @@ function Activity({ history }: { history: BallotRecord[] }) {
 	return (
 		<ul className="space-y-2.5">
 			{history.map(({ poll, choice, outcome }) => (
-				<li key={poll.id}>
-					<Link
-						href={`/poll/${poll.id}`}
-						className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary/30"
-					>
-						<div className="min-w-0 flex-1">
-							<p className="truncate">{poll.title}</p>
-							<p className="mt-1 text-xs text-muted-foreground">
-								{t('account.youChose')} <strong className="font-medium text-foreground">{choice}</strong>
-							</p>
-						</div>
-						<span className={cn('shrink-0 text-xs font-medium', OUTCOME_STYLES[outcome])}>
+				<PollListItem
+					key={poll.id}
+					poll={poll}
+					meta={
+						<>
+							{t('account.youChose')} <strong className="font-medium text-foreground">{choice}</strong>
+						</>
+					}
+					aside={
+						<span className={cn('text-xs font-medium', OUTCOME_STYLES[outcome])}>
 							{t(`account.outcome.${outcome}`)}
 						</span>
-					</Link>
-				</li>
+					}
+				/>
 			))}
 		</ul>
 	);
@@ -204,27 +198,18 @@ function Activity({ history }: { history: BallotRecord[] }) {
 
 function MyPolls({ polls }: { polls: Poll[] }) {
 	const { t } = useLanguage();
-	const isHydrated = useHydrated();
 	if (polls.length === 0) {
 		return <p className="py-10 text-center text-sm text-muted-foreground">{t('account.noPolls')}</p>;
 	}
 	return (
 		<ul className="space-y-2.5">
 			{polls.map((poll) => (
-				<li key={poll.id}>
-					<Link
-						href={`/poll/${poll.id}`}
-						className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary/30"
-					>
-						<div className="min-w-0 flex-1">
-							<p className="truncate">{poll.title}</p>
-							<p className="mt-1 text-xs tabular-nums text-muted-foreground">
-								{t('poll.voted', { count: (getTurnout(poll) ?? 0).toLocaleString() })}
-							</p>
-						</div>
-						{isHydrated && <StatusChip status={derivePollStatus(poll)} poll={poll} />}
-					</Link>
-				</li>
+				<PollListItem
+					key={poll.id}
+					poll={poll}
+					meta={t('poll.voted', { count: (getTurnout(poll) ?? 0).toLocaleString() })}
+					aside={<StatusChip status={derivePollStatus(poll)} poll={poll} />}
+				/>
 			))}
 		</ul>
 	);
@@ -294,7 +279,7 @@ function DeleteAccount({ username }: { username: string }) {
 		// Only returns on failure; success redirects
 		const result = await deleteMyAccount();
 		setIsDeleting(false);
-		toast.error(result.message);
+		if (result) toast.error(result.message);
 	};
 
 	return (

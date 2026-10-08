@@ -5,10 +5,12 @@ import { getFeed, getPopularTags } from '@/features/polls/service';
 import { HomepageHeader } from './_components/HomepageHeader';
 import { PollFeedList } from './_components/PollFeedList';
 
-type Props = { searchParams: Promise<{ tag?: string }> };
+type Props = { searchParams: Promise<{ tag?: string | string[] }> };
 
 export default async function Page({ searchParams }: Props) {
-	const { tag } = await searchParams;
+	const { tag: tagParam } = await searchParams;
+	// Repeated ?tag= arrives as an array; the feed filters by one topic
+	const tag = Array.isArray(tagParam) ? tagParam[0] : tagParam;
 	const [user, firstPage, tags] = await Promise.all([
 		getUserSession(),
 		getFeed(null, 10, tag).catch(() => null),
@@ -18,8 +20,8 @@ export default async function Page({ searchParams }: Props) {
 	return (
 		<div className="px-contain flex justify-center gap-8 py-0">
 			<PollFeedList
-				// A new topic, or a new poll at the top after publishing, starts a fresh list
-				key={`${tag ?? ''}:${firstPage?.items[0]?.id ?? ''}`}
+				// Another topic starts a fresh list
+				key={tag ?? ''}
 				viewerId={user?.sub}
 				initialPage={firstPage}
 				tag={tag}

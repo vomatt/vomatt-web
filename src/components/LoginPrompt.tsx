@@ -9,10 +9,15 @@ type LoginPromptProps = {
 	className?: string;
 	/** Where to come back to after signing in. */
 	redirectTo?: string;
+	/** The API rejected the current session; lets the login page open despite the cookies. */
+	sessionExpired?: boolean;
 };
 
-export function LoginPrompt({ className, redirectTo }: LoginPromptProps) {
-	const href = redirectTo ? `/login?redirect=${encodeURIComponent(redirectTo)}` : '/login';
+export function LoginPrompt({ className, redirectTo, sessionExpired }: LoginPromptProps) {
+	const params = new URLSearchParams();
+	if (redirectTo) params.set('redirect', redirectTo);
+	if (sessionExpired) params.set('session_expired', '1');
+	const href = params.size ? `/login?${params}` : '/login';
 	const { t } = useLanguage();
 
 	return (

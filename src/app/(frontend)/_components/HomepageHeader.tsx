@@ -3,6 +3,7 @@ import Link from 'next/link';
 
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { TagDto } from '@/features/polls/schema';
+import { topicHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
 type HomepageHeaderProps = {
@@ -30,7 +31,7 @@ export function HomepageHeader({ tags, activeTag }: HomepageHeaderProps) {
 					return (
 						<li key={slug ?? 'all'} className="shrink-0">
 							<Link
-								href={slug ? `/?tag=${encodeURIComponent(slug)}` : '/'}
+								href={slug ? topicHref(slug) : '/'}
 								scroll={false}
 								aria-current={isActive ? 'page' : undefined}
 								className={cn(

@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/Button';
+import { InitialAvatar } from '@/components/ui/InitialAvatar';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Heart } from '@/components/ui/SvgIcons';
 import { Textarea } from '@/components/ui/Textarea';
@@ -213,12 +214,7 @@ function CommentItem({
 
 	return (
 		<article className={cn('flex gap-3', isPending && 'opacity-60')}>
-			<div
-				aria-hidden
-				className="grid size-8 shrink-0 place-items-center rounded-full bg-muted text-xs font-semibold uppercase text-muted-foreground"
-			>
-				{comment.author.slice(0, 1)}
-			</div>
+			<InitialAvatar name={comment.author} />
 			<div className="min-w-0 flex-1">
 				<div className="flex flex-wrap items-baseline gap-x-2 text-xs">
 					{isPending ? (

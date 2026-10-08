@@ -1,9 +1,9 @@
 'use client';
 
-import { toast } from 'sonner';
-
 import { MessageSquare, Share2 } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
+
+import { useSharePoll } from '../hooks/useSharePoll';
 
 type PollFooterProps = {
 	pollId: string;
@@ -24,15 +24,7 @@ export function PollFooter({
 }: PollFooterProps) {
 	const { t } = useLanguage();
 
-	const share = async () => {
-		const url = `${window.location.origin}/poll/${pollId}`;
-		if (navigator.share) {
-			await navigator.share({ title, url }).catch(() => {});
-			return;
-		}
-		await navigator.clipboard.writeText(url);
-		toast(t('poll.linkCopied'));
-	};
+	const share = useSharePoll();
 
 	return (
 		<div className="flex items-center gap-4 border-t border-border/60 px-5 py-3 text-xs text-muted-foreground">
@@ -55,7 +47,7 @@ export function PollFooter({
 			</button>
 			<button
 				type="button"
-				onClick={share}
+				onClick={() => share({ id: pollId, title })}
 				className="ml-auto flex items-center gap-1.5 transition-colors hover:text-foreground"
 			>
 				<Share2 className="size-3.5" />

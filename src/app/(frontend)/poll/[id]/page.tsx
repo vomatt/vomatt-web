@@ -9,21 +9,25 @@ import { getUserSession } from '@/data/auth';
 import { PollAbout } from '@/features/polls/components/PollAbout';
 import { PollCard } from '@/features/polls/components/PollCard';
 import type { Poll } from '@/features/polls/schema';
-import { getPollForViewer } from '@/features/polls/service';
-import { ApiError } from '@/lib/api/client';
+import { getPoll } from '@/features/polls/service';
+import { ApiError, AuthError } from '@/lib/api/client';
 
-type Lookup = { poll: Poll } | { poll: null; reason: 'not-found' | 'sign-in' };
+type Lookup =
+	| { poll: Poll }
+	| { poll: null; reason: 'not-found' | 'sign-in' | 'session-rejected' };
 
 // Metadata and the page share one lookup per request
 const lookupPoll = cache(async (id: string): Promise<Lookup> => {
 	try {
-		const poll = await getPollForViewer(id);
+		const poll = await getPoll(id);
 		return poll ? { poll } : { poll: null, reason: 'not-found' };
 	} catch (error) {
 		// The API serves single Polls to signed-in users only
 		if (error instanceof ApiError && error.statusCode === 401) {
 			return { poll: null, reason: 'sign-in' };
 		}
+		// Signed in here, but the API refused the token
+		if (error instanceof AuthError) return { poll: null, reason: 'session-rejected' };
 		throw error;
 	}
 });
@@ -64,8 +68,12 @@ export default async function PollDetailPage({ params }: Props) {
 		return (
 			<div className="px-contain max-w-2xl mx-auto py-10">
 				<BackLink />
-				{lookup.reason === 'sign-in' ? (
-					<LoginPrompt className="block mx-auto max-w-sm" redirectTo={`/poll/${id}`} />
+				{lookup.reason !== 'not-found' ? (
+					<LoginPrompt
+						className="block mx-auto max-w-sm"
+						redirectTo={`/poll/${id}`}
+						sessionExpired={lookup.reason === 'session-rejected'}
+					/>
 				) : (
 					<p className="text-muted-foreground">Poll not found.</p>
 				)}

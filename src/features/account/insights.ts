@@ -1,5 +1,5 @@
 import type { Poll } from '@/features/polls/schema';
-import { derivePollStatus, getTurnout } from '@/features/polls/status';
+import { derivePollStatus, getTurnout, getWinners } from '@/features/polls/status';
 
 export type BallotOutcome = 'pending' | 'won' | 'tied' | 'lost' | 'unknown';
 
@@ -13,8 +13,7 @@ export type BallotRecord = {
 export function ballotOutcome(poll: Poll, optionId: string, now = Date.now()): BallotOutcome {
 	if (derivePollStatus(poll, now) !== 'ended') return 'pending';
 	if (poll.options.some((option) => option.votes === undefined)) return 'unknown';
-	const top = Math.max(...poll.options.map((option) => option.votes ?? 0));
-	const winners = poll.options.filter((option) => (option.votes ?? 0) === top);
+	const winners = getWinners(poll.options.map((option) => ({ id: option.id, votes: option.votes ?? 0 })));
 	if (!winners.some((option) => option.id === optionId)) return 'lost';
 	return winners.length > 1 ? 'tied' : 'won';
 }

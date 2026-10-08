@@ -39,7 +39,7 @@ describe('useAuthFlow', () => {
 
 		expect(mockRequestOtp).toHaveBeenCalledWith('User@Test.com');
 		expect(result.current.step).toBe('code');
-		expect(result.current.email).toBe('user@test.com');
+		expect(result.current.email).toBe('User@Test.com');
 	});
 
 	it('stays on the email step when sending fails', async () => {
@@ -64,7 +64,8 @@ describe('useAuthFlow', () => {
 			res = await result.current.submitCode('123456');
 		});
 
-		expect(mockVerifyOtp).toHaveBeenCalledWith('user@test.com', '123456');
+		// The server actions normalise the email
+		expect(mockVerifyOtp).toHaveBeenCalledWith('User@Test.com', '123456');
 		expect(res).toEqual({ status: 'OK', done: true });
 	});
 
@@ -99,7 +100,7 @@ describe('useAuthFlow', () => {
 		await act(async () => {
 			await result.current.resendCode();
 		});
-		expect(mockRequestOtp).toHaveBeenLastCalledWith('user@test.com');
+		expect(mockRequestOtp).toHaveBeenLastCalledWith('User@Test.com');
 	});
 
 	it('saves the trimmed display name', async () => {

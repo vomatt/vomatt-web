@@ -3,7 +3,7 @@
 import { motion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { useInView } from 'react-intersection-observer';
 
 import { Button } from '@/components/ui/Button';
@@ -30,25 +30,37 @@ type PollFeedListProps = {
 
 export function PollFeedList({ className, viewerId, initialPage, tag, header }: PollFeedListProps) {
 	const { t } = useLanguage();
-	const [polls, setPolls] = useState(initialPage?.items ?? []);
-	const [nextCursor, setNextCursor] = useState(initialPage?.nextCursor ?? null);
+	// A fresh first page from the server shows at once. Polls shown before stay only if
+	// they're older than that page (pushed to a later page); newer ones missing from it
+	// were cancelled or removed.
+	const [shownPolls, setShownPolls] = useState<Poll[]>(initialPage?.items ?? []);
+	const [loadedCursor, setLoadedCursor] = useState<string | null | undefined>(undefined);
 	const [isLoading, setIsLoading] = useState(false);
 	const [loadFailed, setLoadFailed] = useState(false);
+	const firstPage = initialPage?.items ?? [];
+	const cutoff = initialPage?.nextCursor
+		? Math.min(...firstPage.map((poll) => Date.parse(poll.createdAt)))
+		: -Infinity;
+	const polls = mergeById(
+		firstPage,
+		shownPolls.filter((poll) => Date.parse(poll.createdAt) < cutoff)
+	);
+	const nextCursor = loadedCursor === undefined ? (initialPage?.nextCursor ?? null) : loadedCursor;
 
-	const loadMore = useCallback(async () => {
+	const loadMore = async () => {
 		if (isLoading || !nextCursor) return;
 		setIsLoading(true);
 		setLoadFailed(false);
 		try {
 			const page = await getFeed(nextCursor, 10, tag);
-			setPolls((prev) => mergeById(prev, page.items));
-			setNextCursor(page.nextCursor);
+			setShownPolls((prev) => mergeById(mergeById(prev, initialPage?.items ?? []), page.items));
+			setLoadedCursor(page.nextCursor);
 		} catch {
 			setLoadFailed(true);
 		} finally {
 			setIsLoading(false);
 		}
-	}, [isLoading, nextCursor, tag]);
+	};
 
 	// Load the next page as the reader nears the end; the button stays as a fallback
 	const { ref: sentinelRef } = useInView({

@@ -17,7 +17,7 @@ import {
 	type ProfileFormData,
 	profileSchema,
 } from './auth-schemas';
-import { useAuthFlow } from './useAuthFlow';
+import { type AuthResult, useAuthFlow } from './useAuthFlow';
 import VerificationForm from './VerificationForm';
 
 type AuthFlowProps = {
@@ -66,7 +66,7 @@ function EmailStep({
 }: {
 	variant: AuthFlowProps['variant'];
 	defaultEmail: string;
-	onSubmit: (email: string) => Promise<{ status: 'OK' } | { status: 'ERROR'; error: AuthErrorKey }>;
+	onSubmit: (email: string) => Promise<AuthResult>;
 }) {
 	const { t } = useLanguage();
 	const [error, setError] = useState<AuthErrorKey | null>(null);
@@ -127,7 +127,7 @@ function ProfileStep({
 	onDone,
 }: {
 	email: string;
-	onSave: (displayName: string) => Promise<{ status: 'OK' } | { status: 'ERROR'; error: AuthErrorKey }>;
+	onSave: (displayName: string) => Promise<AuthResult>;
 	onDone: () => void;
 }) {
 	const { t } = useLanguage();

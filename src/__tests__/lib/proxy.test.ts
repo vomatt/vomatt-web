@@ -145,6 +145,52 @@ describe('proxy auth', () => {
 		});
 	});
 
+	it('sends a signed-in user on /login to the redirect target', async () => {
+		const res = await proxy(
+			requestFor('/login?redirect=%2Fpoll%2Fp1', { accessToken: await signToken() })
+		);
+		expect(res.headers.get('location')).toBe('http://localhost:3000/poll/p1');
+	});
+
+	it('refreshes an old-secret token after the API secret rotates', async () => {
+		const oldSecretToken = await new SignJWT({ sub: 'user-1' })
+			.setProtectedHeader({ alg: 'HS512' })
+			.setExpirationTime('15m')
+			.sign(new TextEncoder().encode('the-previous-secret-0123456789abcdef'));
+		const fresh = await signToken();
+		fetchMock.mockResolvedValue(refreshResponse(fresh));
+
+		const res = await proxy(requestFor('/account', { accessToken: oldSecretToken, refreshToken: 'r1' }));
+
+		expect(res.headers.get('location')).toBeNull();
+		expect(res.cookies.get('accessToken')?.value).toBe(fresh);
+	});
+
+	it('stops rotating once a freshly issued token fails verification (secret mismatch)', async () => {
+		jest.spyOn(console, 'error').mockImplementation(() => {});
+		const foreign = await new SignJWT({ sub: 'user-1' })
+			.setProtectedHeader({ alg: 'HS512' })
+			.setExpirationTime('15m')
+			.sign(new TextEncoder().encode('a-different-secret-0123456789abcdef'));
+		fetchMock.mockResolvedValue(refreshResponse(foreign));
+
+		const first = await proxy(requestFor('/', { refreshToken: 'r1' }));
+		expect(first.cookies.get('refreshToken')?.value).toBe('r2');
+		expect(first.cookies.get('auth-key-mismatch')?.value).toBe('r2');
+
+		await proxy(
+			requestFor('/', { accessToken: foreign, refreshToken: 'r2', 'auth-key-mismatch': 'r2' })
+		);
+		expect(fetchMock).toHaveBeenCalledTimes(1);
+	});
+
+	it('lets a session the API rejected open the login page', async () => {
+		const res = await proxy(
+			requestFor('/login?redirect=%2Fpoll%2Fp1&session_expired=1', { accessToken: await signToken() })
+		);
+		expect(res.headers.get('location')).toBeNull();
+	});
+
 	it('redirects a signed-in user away from signup', async () => {
 		const res = await proxy(requestFor('/signup', { accessToken: await signToken() }));
 		expect(res.headers.get('location')).toBe('http://localhost:3000/');

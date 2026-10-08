@@ -5,9 +5,11 @@ import { useMemo, useState } from 'react';
 
 import { Search } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { PollListItem } from '@/features/polls/components/PollListItem';
 import { StatusChip } from '@/features/polls/components/StatusChip';
 import type { Poll, TagDto } from '@/features/polls/schema';
 import { derivePollStatus, getTurnout } from '@/features/polls/status';
+import { topicHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
 type Filter = 'all' | 'open' | 'ended';
@@ -73,7 +75,7 @@ export function ExploreView({ polls, tags }: { polls: Poll[]; tags: TagDto[] }) 
 						{tags.map((tag) => (
 							<li key={tag.id}>
 								<Link
-									href={`/?tag=${encodeURIComponent(tag.slug)}`}
+									href={topicHref(tag.slug)}
 									className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm transition-colors hover:border-primary/40"
 								>
 									#{tag.name}
@@ -118,20 +120,17 @@ export function ExploreView({ polls, tags }: { polls: Poll[]; tags: TagDto[] }) 
 				) : (
 					<ul className="space-y-2.5">
 						{results.map((poll) => (
-							<li key={poll.id}>
-								<Link
-									href={`/poll/${poll.id}`}
-									className="block rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary/30"
-								>
-									<div className="flex items-start justify-between gap-3">
-										<p className="flex-1 leading-snug text-foreground">{poll.title}</p>
-										<StatusChip status={derivePollStatus(poll)} poll={poll} />
-									</div>
-									<p className="mt-2 text-xs tabular-nums text-muted-foreground">
-										{t('poll.voted', { count: (getTurnout(poll) ?? 0).toLocaleString() })} · {poll.creatorUsername}
-									</p>
-								</Link>
-							</li>
+							<PollListItem
+								key={poll.id}
+								poll={poll}
+								meta={
+									<>
+										{t('poll.voted', { count: (getTurnout(poll) ?? 0).toLocaleString() })} ·{' '}
+										{poll.creatorUsername}
+									</>
+								}
+								aside={<StatusChip status={derivePollStatus(poll)} poll={poll} />}
+							/>
 						))}
 					</ul>
 				)}

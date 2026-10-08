@@ -31,6 +31,16 @@ describe('apiClient', () => {
 		expect(new Headers(init.headers).get('Authorization')).toBe('Bearer a1');
 	});
 
+	it('keeps a signed-in response out of the shared cache', async () => {
+		mockGetTokens.mockResolvedValue({ accessToken: 'a1', refreshToken: 'r1' });
+		fetchMock.mockResolvedValue(json({ success: true, data: {} }));
+
+		await apiClient('/votes/1', { auth: 'optional', next: { tags: ['poll:1'] } } as RequestInit);
+		const init = fetchMock.mock.calls[0][1];
+		expect(init.cache).toBe('no-store');
+		expect(init).not.toHaveProperty('next');
+	});
+
 	it('throws AuthError on 401 without trying to refresh (only the proxy rotates tokens)', async () => {
 		mockGetTokens.mockResolvedValue({ accessToken: 'a1', refreshToken: 'r1' });
 		fetchMock.mockResolvedValue(json({ success: false }, 401));

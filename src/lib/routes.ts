@@ -43,3 +43,14 @@ export const getWindowURl = (windowUrl: string) => {
 	}
 	return `https://${windowUrl}`;
 };
+
+/** The home feed filtered to one topic. */
+export const topicHref = (slug: string) => `/?tag=${encodeURIComponent(slug)}`;
+
+export function getSafeRedirectPath(path: string | null) {
+	if (!path?.startsWith('/')) return '/';
+	const base = 'http://localhost';
+	const url = new URL(path, base);
+	if (url.origin !== base) return '/';
+	return `${url.pathname}${url.search}${url.hash}`;
+}

@@ -34,6 +34,7 @@ export async function requestOtp(
 ): Promise<{ status: 'SUCCESS'; isNewUser: boolean } | AuthFailure> {
 	const normalized = email.trim().toLowerCase();
 	try {
+		// In order: a failed check must not leave a sent code and a running resend cooldown
 		const exists = await postJson('/auth/check-email', { email: normalized });
 		await postJson('/auth/send-otp', { email: normalized });
 		return { status: 'SUCCESS', isNewUser: exists?.exists === false };

@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { type ActionResult, isSealed } from '../errors';
 import type { Poll, PollResults } from '../schema';
 import { getResults } from '../service';
+import { getWinners } from '../status';
 
 type Row = { id: string; text: string; votes: number };
 
@@ -104,8 +105,7 @@ export function Results({ poll, myOptionId, turnout, onSealed }: ResultsProps) {
 
 	const participants =
 		turnout ?? results?.totalParticipants ?? rows.reduce((sum, row) => sum + row.votes, 0);
-	const topVotes = Math.max(0, ...rows.map((row) => row.votes));
-	const winners = topVotes > 0 ? rows.filter((row) => row.votes === topVotes) : [];
+	const winners = getWinners(rows);
 	const support = (votes: number) =>
 		participants === 0 ? 0 : Math.round((votes / participants) * 100);
 

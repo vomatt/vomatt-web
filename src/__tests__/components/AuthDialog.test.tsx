@@ -13,11 +13,6 @@ if (!document.elementFromPoint) {
 	document.elementFromPoint = () => null;
 }
 
-const mockRefresh = jest.fn();
-jest.mock('next/navigation', () => ({
-	useRouter: () => ({ refresh: mockRefresh }),
-}));
-
 jest.mock('@/contexts/LanguageContext', () => ({
 	useLanguage: () => ({ t: (key: string) => key }),
 }));
@@ -84,7 +79,7 @@ describe('AuthDialog', () => {
 		expect(await screen.findByRole('alert')).toHaveTextContent('authError.rateLimited');
 	});
 
-	it('signs in an existing user: email → code → success, then refreshes server data', async () => {
+	it('signs in an existing user: email → code → success', async () => {
 		mockRequestOtp.mockResolvedValue({ status: 'SUCCESS', isNewUser: false });
 		mockVerifyOtp.mockResolvedValue({ status: 'SUCCESS' });
 		render(<AuthDialog {...baseProps} />);
@@ -94,7 +89,6 @@ describe('AuthDialog', () => {
 
 		await waitFor(() => expect(baseProps.onAuthSuccess).toHaveBeenCalled());
 		expect(mockVerifyOtp).toHaveBeenCalledWith('user@test.com', '123456');
-		expect(mockRefresh).toHaveBeenCalled();
 	});
 
 	it('asks a new user for a display name before finishing', async () => {

@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -32,7 +31,6 @@ export default function EditProfileSheet({
 	initialBio,
 	initialAvatarUrl,
 }: EditProfileSheetProps) {
-	const router = useRouter();
 	const [open, setOpen] = useState(false);
 	const [displayName, setDisplayName] = useState(initialDisplayName);
 	const [bio, setBio] = useState(initialBio);
@@ -57,7 +55,6 @@ export default function EditProfileSheet({
 			await updateProfile({ displayName, bio });
 			toast.success('Profile updated');
 			setOpen(false);
-			router.refresh();
 		} catch {
 			toast.error('Something went wrong. Please try again.');
 		} finally {

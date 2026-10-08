@@ -5,7 +5,7 @@ import { requestOtp, verifyOtp } from '@/lib/api/services/auth';
 import { updateProfile } from '@/lib/api/services/users';
 
 /** email → code → (new accounts only) profile. */
-export type AuthStep = 'email' | 'code' | 'profile';
+type AuthStep = 'email' | 'code' | 'profile';
 
 export type AuthResult = { status: 'OK' } | { status: 'ERROR'; error: AuthErrorKey };
 
@@ -25,7 +25,7 @@ export function useAuthFlow() {
 		try {
 			const res = await requestOtp(value);
 			if (res.status === 'ERROR') return res;
-			setEmail(value.trim().toLowerCase());
+			setEmail(value.trim());
 			setIsNewUser(res.isNewUser);
 			setStep('code');
 			return OK;
@@ -73,23 +73,13 @@ export function useAuthFlow() {
 
 	const editEmail = useCallback(() => setStep('email'), []);
 
-	const reset = useCallback(() => {
-		setStep('email');
-		setEmail('');
-		setIsNewUser(false);
-	}, []);
-
 	return {
 		step,
 		email,
-		isNewUser,
 		submitEmail,
 		resendCode,
 		submitCode,
 		submitProfile,
 		editEmail,
-		reset,
 	};
 }
-
-export type AuthFlowState = ReturnType<typeof useAuthFlow>;

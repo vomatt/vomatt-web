@@ -9,6 +9,11 @@ import {
   unfollowUser,
 } from '@/lib/api/services/users';
 
+const mockUpdateTag = jest.fn();
+jest.mock('next/cache', () => ({
+  updateTag: (...a: unknown[]) => mockUpdateTag(...a),
+  revalidateTag: jest.fn(),
+}));
 const mockClearAuthTokens = jest.fn();
 jest.mock('@/lib/api/auth', () => ({ clearAuthTokens: () => mockClearAuthTokens() }));
 const mockRedirect = jest.fn();
@@ -108,6 +113,7 @@ describe('deleteMyAccount()', () => {
   it('deletes the signed-in user by id, clears cookies and goes home', async () => {
     mockApiClient.mockResolvedValueOnce({ id: 'user-7' }).mockResolvedValueOnce(undefined);
     await deleteMyAccount();
+    expect(mockApiClient).toHaveBeenNthCalledWith(1, '/users/me');
     expect(mockApiClient).toHaveBeenLastCalledWith('/users/user-7', { method: 'DELETE' });
     expect(mockClearAuthTokens).toHaveBeenCalled();
     expect(mockRedirect).toHaveBeenCalledWith('/?account_deleted=1');

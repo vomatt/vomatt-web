@@ -13,7 +13,7 @@ import { useBallot } from '../hooks/useBallot';
 import { useComments } from '../hooks/useComments';
 import { useRequireAuth } from '../hooks/useRequireAuth';
 import type { Poll } from '../schema';
-import { getPollForViewer } from '../service';
+import { getPoll } from '../service';
 import { derivePollStatus } from '../status';
 import { Ballot } from './Ballot';
 import { CommentThread } from './CommentThread';
@@ -40,7 +40,7 @@ export function PollCard({ poll: initialPoll, viewerId, defaultShowComments = fa
 	const thread = useComments(initialPoll.id, { enabled: showComments });
 
 	const refetch = useCallback(async () => {
-		const fresh = await getPollForViewer(poll.id).catch(() => null);
+		const fresh = await getPoll(poll.id).catch(() => null);
 		if (fresh) setPoll(fresh);
 	}, [poll.id]);
 
@@ -114,7 +114,7 @@ export function PollCard({ poll: initialPoll, viewerId, defaultShowComments = fa
 				pollId={id}
 				title={title}
 				turnout={ballot.turnout}
-				commentCount={thread.total}
+				commentCount={thread.total ?? poll.commentCount}
 				onToggleComments={() => setShowComments((value) => !value)}
 			/>
 

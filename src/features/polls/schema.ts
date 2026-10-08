@@ -95,6 +95,7 @@ export const PollSchema = z.object({
 	endTime: DateTime.nullable(),
 	totalVotes: z.number().int().optional(),
 	participantCount: z.number().int().optional(),
+	commentCount: z.number().int().optional(),
 	myOptionId: z.string().nullable().optional(),
 	options: z.array(PollOptionSchema),
 	tags: z.array(TagDtoSchema).nullish(),

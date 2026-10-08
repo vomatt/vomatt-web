@@ -16,7 +16,7 @@ On the API: `CORS_ALLOWED_ORIGINS` must include the web origin, and email must b
 
 ## Before launch
 
-- [ ] Backend P0 items 1–5 in `backend-requests.md`
+- [ ] Deploy vomatt-api `release-readiness` (backend P0 1–4) and configure email (P0 5)
 - [ ] Seed topics (tags) so the feed has tabs and Explore has a directory
 - [ ] Payload: publish Settings General (site title, description, share image) and the Sign-up
       page policy text (terms + privacy links); the signup page shows it under the form
@@ -42,6 +42,8 @@ On the API: `CORS_ALLOWED_ORIGINS` must include the web origin, and email must b
 - Access token expiry → the proxy rotates once per navigation, no reuse alarm, user stays signed in
 - Logout revokes the refresh token; protected pages then redirect to login
 - Create poll → lands on the poll; vote, stamp, sealed notice; feed turnout updates
-- Comments list, like (persists), own-comment controls; posting blocked by backend #1
+- Comments list, like (persists), own-comment controls; posting works with the updated API
+- Updated API: guest reads, sealed counts and 403 results while open, `myOptionId`,
+  `/participated`, `?creatorUsername=`, public display name
 - Topic tabs, Explore filters, account stats/badges/activity, visibility toggle persists
 - `next build` succeeds

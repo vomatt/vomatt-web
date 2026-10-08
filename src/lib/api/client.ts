@@ -107,9 +107,12 @@ export async function apiClient<T = any>(
 	}
 
 	headers.set('Authorization', `Bearer ${accessToken}`);
+	// A response for one user must never land in the shared data cache
+	const { next: _next, ...uncached } = fetchOptions as RequestInit & { next?: unknown };
 	const response = await fetch(`${process.env.API_URL}${API_BASE_PATH}${endpoint}`, {
-		...fetchOptions,
+		...uncached,
 		headers,
+		cache: 'no-store',
 	});
 
 	if (response.status === 401) {

@@ -20,10 +20,7 @@ export default function SignUp({ signUpInfoData }: SignUpType) {
 		<AuthContainer type="STATUS_SIGN_UP">
 			<AuthFlow
 				variant="signup"
-				onDone={() => {
-					router.replace('/');
-					router.refresh();
-				}}
+				onDone={() => router.replace('/')}
 				footer={
 					<>
 						{policyMessage && (
