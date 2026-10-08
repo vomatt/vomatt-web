@@ -1,10 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { createElement, useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useLanguage } from '@/contexts/LanguageContext';
 
+import { VotedStamp } from '../components/BallotMotion';
 import { type ActionResult, isPollEnded } from '../errors';
 import type { Poll } from '../schema';
 import { castBallot, getMyBallot, retractBallot } from '../service';
@@ -27,6 +28,8 @@ export function useBallot(poll: Poll, { isAuthed, onPollEnded }: Options) {
 	const [selected, setSelected] = useState(poll.myOptionId ?? null);
 	const [turnout, setTurnout] = useState(getTurnout(poll));
 	const [isPending, setIsPending] = useState(false);
+	// Bumped on every rolled-back request so the Ballot can shake
+	const [failures, setFailures] = useState(0);
 	// Whether myOptionId reflects the server, and whether the viewer has voted or withdrawn here
 	const isBallotKnown = useRef(poll.myOptionId !== undefined);
 	const hasActed = useRef(false);
@@ -78,11 +81,19 @@ export function useBallot(poll: Poll, { isAuthed, onPollEnded }: Options) {
 
 			const result = await request();
 			setIsPending(false);
-			if (result.ok) return;
+			if (result.ok) {
+				if (next) {
+					toast.success(t('poll.voteCast'), {
+						icon: createElement(VotedStamp, { label: t('poll.stamp') }),
+					});
+				}
+				return;
+			}
 
 			setMyOptionId(previous);
 			setSelected(previous);
 			setTurnout((count) => shiftCount(count, -turnoutDelta));
+			setFailures((count) => count + 1);
 			if (isPollEnded(result)) {
 				toast(t('poll.justEnded'));
 				onPollEnded();
@@ -107,7 +118,7 @@ export function useBallot(poll: Poll, { isAuthed, onPollEnded }: Options) {
 		return run(() => retractBallot(poll.id, optionId), null, t('poll.withdrawFailed'));
 	}, [myOptionId, poll.id, run, t]);
 
-	return { myOptionId, selected, setSelected, turnout, isPending, cast, retract };
+	return { myOptionId, selected, setSelected, turnout, isPending, failures, cast, retract };
 }
 
 export type BallotState = ReturnType<typeof useBallot>;

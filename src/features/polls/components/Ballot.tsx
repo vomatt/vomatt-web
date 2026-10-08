@@ -28,7 +28,7 @@ export function Ballot({ poll, status, ballot, requireAuth, ownerActions }: Ball
 	const { t, currentLanguage } = useLanguage();
 	const isHydrated = useHydrated();
 	const [confirmingWithdraw, setConfirmingWithdraw] = useState(false);
-	const { myOptionId, selected, setSelected, isPending } = ballot;
+	const { myOptionId, selected, setSelected, isPending, failures } = ballot;
 	const isScheduled = status === 'scheduled';
 	const hasBallot = myOptionId !== null;
 
@@ -103,6 +103,7 @@ export function Ballot({ poll, status, ballot, requireAuth, ownerActions }: Ball
 					onClick={castSelected}
 					className="transition-transform active:scale-95"
 				>
+					{isPending && <BallotBoxIcon className="size-4" />}
 					{t('poll.vote')}
 				</Button>
 			</>
@@ -111,7 +112,14 @@ export function Ballot({ poll, status, ballot, requireAuth, ownerActions }: Ball
 
 	return (
 		<div className="space-y-3.5">
-			<fieldset disabled={isScheduled || isPending} className="space-y-1.5">
+			<motion.fieldset
+				// Remounts on each rolled-back request so the shake replays
+				key={failures}
+				animate={failures > 0 ? { x: [0, -6, 6, -4, 4, 0] } : undefined}
+				transition={{ duration: 0.4, ease: 'easeInOut' }}
+				disabled={isScheduled || isPending}
+				className="space-y-1.5"
+			>
 				<legend className="sr-only">{poll.title}</legend>
 				{poll.options.map((option) => {
 					const isSelected = selected === option.id;
@@ -127,7 +135,9 @@ export function Ballot({ poll, status, ballot, requireAuth, ownerActions }: Ball
 								isScheduled && 'cursor-not-allowed'
 							)}
 						>
-							{isSelected && <SelectionHighlight layoutId={`ballot-${poll.id}`} />}
+							{isSelected && (
+								<SelectionHighlight layoutId={`ballot-${poll.id}`} inTransit={isPending} />
+							)}
 							<input
 								type="radio"
 								name={`ballot-${poll.id}`}
@@ -149,7 +159,7 @@ export function Ballot({ poll, status, ballot, requireAuth, ownerActions }: Ball
 						</label>
 					);
 				})}
-			</fieldset>
+			</motion.fieldset>
 
 			{!hasBallot && !isScheduled && poll.voterVisibility && (
 				<p className="text-xs text-muted-foreground">

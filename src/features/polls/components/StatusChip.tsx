@@ -47,7 +47,15 @@ export function StatusChip({ status, poll }: StatusChipProps) {
 			)}
 		>
 			{(status === 'open' || status === 'closing') && (
-				<span aria-hidden className="size-1.5 rounded-full bg-current" />
+				<span aria-hidden className="relative grid size-1.5 place-items-center">
+					<span
+						className={cn(
+							'absolute inset-0 rounded-full bg-current opacity-60 motion-safe:animate-ping',
+							status === 'closing' ? '[animation-duration:1.2s]' : '[animation-duration:2.4s]'
+						)}
+					/>
+					<span className="relative size-1.5 rounded-full bg-current" />
+				</span>
 			)}
 			{label}
 		</span>

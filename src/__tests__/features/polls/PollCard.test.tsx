@@ -13,7 +13,7 @@ jest.mock('next/link', () => {
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 
 jest.mock('sonner', () => {
-	const toast = Object.assign(jest.fn(), { error: jest.fn() });
+	const toast = Object.assign(jest.fn(), { error: jest.fn(), success: jest.fn() });
 	return { toast };
 });
 
@@ -204,6 +204,14 @@ describe('PollCard state B · Open, has Ballot', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Keep' }));
 		expect(screen.getByRole('button', { name: 'Update vote' })).toBeInTheDocument();
 		expect(mockRetractBallot).not.toHaveBeenCalled();
+	});
+
+	it('toasts a success once the cast is saved', async () => {
+		mockCastBallot.mockResolvedValue({ ok: true });
+		render(<PollCard poll={openPoll} viewerId="user-voter" />);
+		vote('Friday');
+
+		await waitFor(() => expect(toast.success).toHaveBeenCalledWith('Vote cast.', expect.anything()));
 	});
 
 	it('rolls back a failed cast', async () => {

@@ -3,6 +3,25 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Skeleton shimmer: a soft highlight sweeping across the muted block. */
+@keyframes shimmer {
+	from { background-position: 200% 0; }
+	to { background-position: -200% 0; }
+}
+@utility animate-shimmer {
+	background-image: linear-gradient(
+		90deg,
+		var(--muted) 0%,
+		color-mix(in oklch, var(--muted), var(--foreground) 6%) 50%,
+		var(--muted) 100%
+	);
+	background-size: 200% 100%;
+	animation: shimmer 1.6s ease-in-out infinite;
+	@media (prefers-reduced-motion: reduce) {
+		animation: none;
+	}
+}
+
 /* The ui/ components use Base UI-style state variants, but they wrap Radix,
    which reports state as data-state="…" and data-orientation="…" (and Sidebar sets
    data-active="true|false").
