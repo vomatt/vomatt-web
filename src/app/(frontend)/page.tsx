@@ -20,8 +20,8 @@ export default async function Page({ searchParams }: Props) {
 	return (
 		<div className="px-contain flex justify-center gap-8 py-0">
 			<PollFeedList
-				// Another topic starts a fresh list
-				key={tag ?? ''}
+				// Another topic, or a new poll at the top, starts a fresh list
+				key={`${tag ?? ''}:${firstPage?.items[0]?.id ?? ''}`}
 				viewerId={user?.sub}
 				initialPage={firstPage}
 				tag={tag}

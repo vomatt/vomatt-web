@@ -30,22 +30,11 @@ type PollFeedListProps = {
 
 export function PollFeedList({ className, viewerId, initialPage, tag, header }: PollFeedListProps) {
 	const { t } = useLanguage();
-	// A fresh first page from the server shows at once. Polls shown before stay only if
-	// they're older than that page (pushed to a later page); newer ones missing from it
-	// were cancelled or removed.
-	const [shownPolls, setShownPolls] = useState<Poll[]>(initialPage?.items ?? []);
-	const [loadedCursor, setLoadedCursor] = useState<string | null | undefined>(undefined);
+	// Seeded from the server's first page; a new first page remounts the list (see page.tsx)
+	const [polls, setPolls] = useState(initialPage?.items ?? []);
+	const [nextCursor, setNextCursor] = useState(initialPage?.nextCursor ?? null);
 	const [isLoading, setIsLoading] = useState(false);
 	const [loadFailed, setLoadFailed] = useState(false);
-	const firstPage = initialPage?.items ?? [];
-	const cutoff = initialPage?.nextCursor
-		? Math.min(...firstPage.map((poll) => Date.parse(poll.createdAt)))
-		: -Infinity;
-	const polls = mergeById(
-		firstPage,
-		shownPolls.filter((poll) => Date.parse(poll.createdAt) < cutoff)
-	);
-	const nextCursor = loadedCursor === undefined ? (initialPage?.nextCursor ?? null) : loadedCursor;
 
 	const loadMore = async () => {
 		if (isLoading || !nextCursor) return;
@@ -53,8 +42,8 @@ export function PollFeedList({ className, viewerId, initialPage, tag, header }: 
 		setLoadFailed(false);
 		try {
 			const page = await getFeed(nextCursor, 10, tag);
-			setShownPolls((prev) => mergeById(mergeById(prev, initialPage?.items ?? []), page.items));
-			setLoadedCursor(page.nextCursor);
+			setPolls((prev) => mergeById(prev, page.items));
+			setNextCursor(page.nextCursor);
 		} catch {
 			setLoadFailed(true);
 		} finally {

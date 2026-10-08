@@ -28,9 +28,6 @@ export function formatUrl(url: string) {
 	return `${protocol}://${normalizedRest}`;
 }
 
-// Only same-origin paths; blocks open redirects like `//evil.com`, `/\\evil.com`
-// or `/\t/evil.com` by resolving the path the same way the browser will.
-
 export function getUrlBaseAndPath(url: string) {
 	if (url.includes('?')) {
 		return url.split('?')[0];

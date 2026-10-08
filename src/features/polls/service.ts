@@ -64,15 +64,25 @@ function toRequestBody(input: PollInput) {
 
 // ── Reads ────────────────────────────────────────────────────────────────────
 
+const CACHED_LIST = { next: { revalidate: 30, tags: [FEED_TAG] } } as RequestInit;
+const FIRST_FULL_PAGE = () => new URLSearchParams({ page: '1', size: String(MAX_FEED_PAGE_SIZE) });
+
 /**
- * Fetched as the viewer when signed in, so each Poll carries `myOptionId`;
- * apiClient keeps those responses out of the shared cache.
+ * As the viewer when signed in, so each Poll carries `myOptionId` (apiClient
+ * keeps those out of the shared cache). `publicList` is the cached, shared
+ * page for lists that never show the viewer's Ballot.
  */
-function fetchPollPage(params: URLSearchParams) {
-	return apiClient(`/votes?${params}`, {
-		auth: 'optional',
-		next: { revalidate: 30, tags: [FEED_TAG] },
-	} as RequestInit).then((data) => PollPage.parse(data));
+function fetchPollPage(params: URLSearchParams, { publicList = false } = {}) {
+	const path = `/votes?${params}`;
+	const request = publicList
+		? publicFetch(path, CACHED_LIST)
+		: apiClient(path, { auth: 'optional', ...CACHED_LIST });
+	return request.then((data) => PollPage.parse(data));
+}
+
+/** Pages only the signed-in user can see (their polls, their ballots). */
+async function fetchMyPolls(path: string): Promise<Poll[]> {
+	return PollPage.parse(await apiClient(`${path}?${FIRST_FULL_PAGE()}`)).items;
 }
 
 /** Until backend 3 ships cursors, `cursor` is a 1-based page number. */
@@ -86,8 +96,7 @@ export async function getFeed(cursor?: string | null, size = 10, tag?: string) {
 
 /** The newest open polls, for lists that filter and sort them client-side. */
 export async function getRecentPolls(): Promise<Poll[]> {
-	const params = new URLSearchParams({ page: '1', size: String(MAX_FEED_PAGE_SIZE) });
-	return (await fetchPollPage(params)).items;
+	return (await fetchPollPage(FIRST_FULL_PAGE(), { publicList: true })).items;
 }
 
 const TagPage = cursorPageSchema(TagDtoSchema);
@@ -107,12 +116,9 @@ export async function getPopularTags(size = 12): Promise<TagDto[]> {
 /** A user's polls, ended ones included, newest first. */
 export async function getPollsByCreator(username: string): Promise<Poll[]> {
 	try {
-		const params = new URLSearchParams({
-			creatorUsername: username,
-			page: '1',
-			size: String(MAX_FEED_PAGE_SIZE),
-		});
-		return (await fetchPollPage(params)).items;
+		const params = FIRST_FULL_PAGE();
+		params.set('creatorUsername', username);
+		return (await fetchPollPage(params, { publicList: true })).items;
 	} catch {
 		return [];
 	}
@@ -120,8 +126,7 @@ export async function getPollsByCreator(username: string): Promise<Poll[]> {
 
 /** Polls the signed-in user voted in, each with their `myOptionId`. */
 export async function getParticipatedPolls(): Promise<Poll[]> {
-	const params = new URLSearchParams({ page: '1', size: String(MAX_FEED_PAGE_SIZE) });
-	return PollPage.parse(await apiClient(`/votes/participated?${params}`)).items;
+	return fetchMyPolls('/votes/participated');
 }
 
 /** Null when the Poll doesn't exist. Signed-in viewers get their `myOptionId`. */
@@ -142,8 +147,7 @@ export async function getPoll(id: string): Promise<Poll | null> {
 
 /** Polls the signed-in user created, newest first. */
 export async function getMyPolls(): Promise<Poll[]> {
-	const params = new URLSearchParams({ page: '1', size: String(MAX_FEED_PAGE_SIZE) });
-	return PollPage.parse(await apiClient(`/votes/my?${params}`)).items;
+	return fetchMyPolls('/votes/my');
 }
 
 /**
@@ -171,13 +175,14 @@ export async function getResults(pollId: string): Promise<ActionResult<PollResul
 // ── Ballot ───────────────────────────────────────────────────────────────────
 
 /**
- * The Poll and the feed (which shows its turnout) are fresh on the next view.
- * `expire: 0` blocks that view on fresh data instead of serving stale, without
- * re-rendering the current route in the action response as updateTag would.
+ * The Poll's cached copy (what guests see) is fresh on the next view. The
+ * shared feed is left to its 30s revalidate: signed-in viewers read it
+ * uncached anyway, and expiring it on every ballot would make the next guest
+ * wait for a full uncached list. `expire: 0` avoids updateTag's re-render of
+ * the current route in the action response.
  */
 function invalidatePoll(id: string) {
 	revalidateTag(pollTag(id), { expire: 0 });
-	revalidateTag(FEED_TAG, { expire: 0 });
 }
 
 /** Casts a Ballot, or replaces the existing one. */

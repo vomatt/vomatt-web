@@ -47,6 +47,8 @@ export const getWindowURl = (windowUrl: string) => {
 /** The home feed filtered to one topic. */
 export const topicHref = (slug: string) => `/?tag=${encodeURIComponent(slug)}`;
 
+// Only same-origin paths; blocks open redirects like `//evil.com`, `/\\evil.com`
+// or `/\t/evil.com` by resolving the path the same way the browser will.
 export function getSafeRedirectPath(path: string | null) {
 	if (!path?.startsWith('/')) return '/';
 	const base = 'http://localhost';

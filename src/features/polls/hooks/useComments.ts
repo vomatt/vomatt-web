@@ -13,12 +13,9 @@ import {
 	unlikeComment,
 	updateComment,
 } from '../service';
+import { shiftCount } from '../status';
 
 type Status = 'loading' | 'ready' | 'signed-out' | 'error';
-
-/** Adjusts a known total; an unknown one stays unknown. */
-const shiftTotal = (delta: number) => (count: number | undefined) =>
-	count === undefined ? count : count + delta;
 
 /**
  * Comments on one Poll, newest first, with optimistic posting and likes.
@@ -77,7 +74,7 @@ export function useComments(pollId: string, { enabled }: { enabled: boolean }) {
 			const tempId = `pending-${Date.now()}`;
 			const pending: Comment = { id: tempId, author, text, createdAt: new Date().toISOString() };
 			setComments((prev) => [pending, ...prev]);
-			setTotal(shiftTotal(1));
+			setTotal((count) => shiftCount(count, 1));
 
 			const result = await postComment(pollId, text);
 			if (result.ok) {
@@ -85,7 +82,7 @@ export function useComments(pollId: string, { enabled }: { enabled: boolean }) {
 				return true;
 			}
 			setComments((prev) => prev.filter((c) => c.id !== tempId));
-			setTotal(shiftTotal(-1));
+			setTotal((count) => shiftCount(count, -1));
 			return false;
 		},
 		[pollId]
@@ -106,7 +103,7 @@ export function useComments(pollId: string, { enabled }: { enabled: boolean }) {
 			const result = await deleteComment(pollId, commentId);
 			if (!result.ok) return false;
 			setComments((prev) => prev.filter((c) => c.id !== commentId));
-			setTotal(shiftTotal(-1));
+			setTotal((count) => shiftCount(count, -1));
 			return true;
 		},
 		[pollId]

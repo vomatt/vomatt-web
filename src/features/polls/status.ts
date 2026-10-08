@@ -41,3 +41,8 @@ export function timelineProgress(poll: Pick<Poll, 'startTime' | 'endTime'>, now 
 	if (end <= start) return 100;
 	return Math.min(100, Math.max(0, ((now - start) / (end - start)) * 100));
 }
+
+/** Moves an optimistic count, never below 0; an unknown count stays unknown. */
+export function shiftCount(count: number | undefined, by: number) {
+	return count === undefined ? undefined : Math.max(0, count + by);
+}

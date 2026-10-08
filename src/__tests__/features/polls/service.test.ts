@@ -188,14 +188,15 @@ describe('getFeed()', () => {
 });
 
 describe('getPollsByCreator()', () => {
-	it('asks the API for that creator\'s polls', async () => {
-		mockApiClient.mockResolvedValue({ content: [oldPoll], total: 1, page: 1, limit: 50 });
+	it('asks the API for that creator\'s polls, from the shared cache', async () => {
+		mockPublicFetch.mockResolvedValue({ content: [oldPoll], total: 1, page: 1, limit: 50 });
 		expect(await getPollsByCreator('mei')).toHaveLength(1);
-		expect(mockApiClient.mock.calls[0][0]).toBe('/votes?creatorUsername=mei&page=1&size=50');
+		expect(mockPublicFetch.mock.calls[0][0]).toBe('/votes?page=1&size=50&creatorUsername=mei');
+		expect(mockApiClient).not.toHaveBeenCalled();
 	});
 
 	it('is empty when the API fails', async () => {
-		mockApiClient.mockRejectedValue(new ApiError('down', 503));
+		mockPublicFetch.mockRejectedValue(new ApiError('down', 503));
 		expect(await getPollsByCreator('mei')).toEqual([]);
 	});
 });
@@ -261,7 +262,8 @@ describe('retractBallot()', () => {
 		await retractBallot('poll-1', 'opt-2');
 		expect(mockApiClient).toHaveBeenCalledWith('/votes/poll-1/vote/opt-2', { method: 'DELETE' });
 		expect(revalidateTag).toHaveBeenCalledWith('poll:poll-1', { expire: 0 });
-		expect(revalidateTag).toHaveBeenCalledWith('polls-feed', { expire: 0 });
+		// The shared feed keeps its own revalidate instead of expiring on every ballot
+		expect(revalidateTag).not.toHaveBeenCalledWith('polls-feed', expect.anything());
 	});
 });
 
