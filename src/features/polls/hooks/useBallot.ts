@@ -10,6 +10,8 @@ import type { Poll } from '../schema';
 import { castBallot, getMyBallot, retractBallot } from '../service';
 import { getTurnout, shiftCount } from '../status';
 
+export type BallotOutcome = 'saved' | 'failed' | 'ended';
+
 type Options = {
 	isAuthed: boolean;
 	/** Called when the API says the Poll has Ended, so the card can refetch it. */
@@ -63,7 +65,7 @@ export function useBallot(poll: Poll, { isAuthed, onPollEnded }: Options) {
 			request: () => Promise<ActionResult>,
 			next: string | null,
 			failureMessage: string
-		) => {
+		): Promise<BallotOutcome> => {
 			hasActed.current = true;
 			setIsPending(true);
 			setMyOptionId(next);
@@ -78,7 +80,7 @@ export function useBallot(poll: Poll, { isAuthed, onPollEnded }: Options) {
 
 			const result = await request();
 			setIsPending(false);
-			if (result.ok) return;
+			if (result.ok) return 'saved';
 
 			setMyOptionId(previous);
 			setSelected(previous);
@@ -86,23 +88,24 @@ export function useBallot(poll: Poll, { isAuthed, onPollEnded }: Options) {
 			if (isPollEnded(result)) {
 				toast(t('poll.justEnded'));
 				onPollEnded();
-			} else {
-				toast.error(failureMessage);
+				return 'ended';
 			}
+			toast.error(failureMessage);
+			return 'failed';
 		},
 		[myOptionId, onPollEnded, poll.id, poll.myOptionId, t]
 	);
 
-	/** Casts a first Ballot or replaces the current one. */
+	/** Casts a first Ballot or replaces the current one. Resolves to the outcome. */
 	const cast = useCallback(
 		(optionId: string) =>
 			run(() => castBallot(poll.id, optionId), optionId, t('poll.voteFailed')),
 		[poll.id, run, t]
 	);
 
-	/** Withdraws the current Ballot; the API removes it by option. */
-	const retract = useCallback(() => {
-		if (!myOptionId) return;
+	/** Withdraws the current Ballot; the API removes it by option. Resolves to the outcome. */
+	const retract = useCallback(async (): Promise<BallotOutcome> => {
+		if (!myOptionId) return 'failed';
 		const optionId = myOptionId;
 		return run(() => retractBallot(poll.id, optionId), null, t('poll.withdrawFailed'));
 	}, [myOptionId, poll.id, run, t]);

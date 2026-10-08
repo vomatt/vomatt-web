@@ -81,14 +81,18 @@ export function BallotBoxIcon({ className }: { className?: string }) {
 	);
 }
 
-/** Highlight behind the selected option; slides between options. */
-export function SelectionHighlight({ layoutId }: { layoutId: string }) {
+/** Highlight behind the selected option; slides between options and breathes while a request is out. */
+export function SelectionHighlight({ layoutId, inTransit = false }: { layoutId: string; inTransit?: boolean }) {
 	return (
 		<motion.span
 			layoutId={layoutId}
 			aria-hidden
 			className="absolute inset-0 rounded-lg border border-primary bg-primary/[0.06]"
-			transition={INK}
+			animate={{ opacity: inTransit ? [1, 0.45, 1] : 1 }}
+			transition={{
+				layout: INK,
+				opacity: inTransit ? { duration: 1.1, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.15 },
+			}}
 		/>
 	);
 }
