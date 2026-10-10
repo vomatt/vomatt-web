@@ -1,7 +1,7 @@
 'use client';
 import NextLink from 'next/link';
 
-import { Button } from '@/components/ui/Button';
+import { buttonVariants } from '@/components/ui/Button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 
@@ -33,9 +33,12 @@ export function LoginPrompt({ className, redirectTo, sessionExpired }: LoginProm
 			<p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
 				{t('loginPrompt.subtitle')}
 			</p>
-			<Button asChild size="sm" className="mt-4 w-full">
-				<NextLink href={href}>{t('loginPrompt.ctaLabel')}</NextLink>
-			</Button>
+			<NextLink
+				href={href}
+				className={buttonVariants({ size: 'sm', className: 'mt-4 w-full' })}
+			>
+				{t('loginPrompt.ctaLabel')}
+			</NextLink>
 		</div>
 	);
 }

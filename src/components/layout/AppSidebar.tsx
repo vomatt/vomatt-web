@@ -124,72 +124,76 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 										? pathname === '/'
 										: pathname.startsWith(item.url));
 
+								const buttonClassName = cn(
+									'group h-9 rounded-lg px-3 cursor-pointer transition-all duration-150',
+									'text-sidebar-foreground/55 hover:text-sidebar-foreground hover:bg-sidebar-accent/50',
+									isActive &&
+										'bg-sidebar-accent text-sidebar-accent-foreground font-medium hover:bg-sidebar-accent'
+								);
+								const linkClassName = 'flex items-center gap-3 w-full';
+
 								return (
 									<SidebarMenuItem key={item.title}>
-										<SidebarMenuButton
-											asChild={item.id !== 'actionCreatePoll' || !userSession}
-											className={cn(
-												'group h-9 rounded-lg px-3 cursor-pointer transition-all duration-150',
-												'text-sidebar-foreground/55 hover:text-sidebar-foreground hover:bg-sidebar-accent/50',
-												isActive &&
-													'bg-sidebar-accent text-sidebar-accent-foreground font-medium hover:bg-sidebar-accent'
-											)}
-										>
-											{item.id === 'actionCreatePoll' ? (
-												userSession ? (
-													<PollCreator
-														triggerChildren={
-															<div className="flex items-center gap-3 w-full">
-																<item.icon
-																	className={cn(
-																		'size-4 transition-colors',
-																		'text-sidebar-foreground/50 group-hover:text-sidebar-foreground/80'
-																	)}
-																/>
-																<span className="text-sm font-medium">
-																	{t(item.title)}
-																</span>
-															</div>
-														}
-													/>
-												) : (
-													<Link
-														href="/login"
-														className="flex items-center gap-3 w-full"
-													>
-														<item.icon
-															className={cn(
-																'size-4 transition-colors',
-																'text-sidebar-foreground/50 group-hover:text-sidebar-foreground/80'
-															)}
-														/>
-														<span className="text-sm font-medium">
-															{t(item.title)}
-														</span>
-													</Link>
-												)
+										{item.id === 'actionCreatePoll' ? (
+											userSession ? (
+												<PollCreator
+													triggerChildren={
+														<SidebarMenuButton
+															className={cn(buttonClassName, 'gap-3')}
+														>
+															<item.icon
+																className={cn(
+																	'size-4 transition-colors',
+																	'text-sidebar-foreground/50 group-hover:text-sidebar-foreground/80'
+																)}
+															/>
+															<span className="text-sm font-medium">
+																{t(item.title)}
+															</span>
+														</SidebarMenuButton>
+													}
+												/>
 											) : (
-												<Link
-													href={item.url}
-													className="flex items-center gap-3 w-full"
+												<SidebarMenuButton
+													render={
+														<Link href="/login" className={linkClassName} />
+													}
+													className={buttonClassName}
 												>
 													<item.icon
 														className={cn(
-															'size-4 shrink-0 transition-colors',
-															isActive
-																? 'text-sidebar-primary'
-																: 'text-sidebar-foreground/50 group-hover:text-sidebar-foreground/80'
+															'size-4 transition-colors',
+															'text-sidebar-foreground/50 group-hover:text-sidebar-foreground/80'
 														)}
 													/>
-													<span className="text-sm font-medium capitalize">
+													<span className="text-sm font-medium">
 														{t(item.title)}
 													</span>
-													{isActive && (
-														<span className="ml-auto w-1.5 h-1.5 rounded-full bg-sidebar-primary shrink-0" />
+												</SidebarMenuButton>
+											)
+										) : (
+											<SidebarMenuButton
+												render={
+													<Link href={item.url} className={linkClassName} />
+												}
+												className={buttonClassName}
+											>
+												<item.icon
+													className={cn(
+														'size-4 shrink-0 transition-colors',
+														isActive
+															? 'text-sidebar-primary'
+															: 'text-sidebar-foreground/50 group-hover:text-sidebar-foreground/80'
 													)}
-												</Link>
-											)}
-										</SidebarMenuButton>
+												/>
+												<span className="text-sm font-medium capitalize">
+													{t(item.title)}
+												</span>
+												{isActive && (
+													<span className="ml-auto w-1.5 h-1.5 rounded-full bg-sidebar-primary shrink-0" />
+												)}
+											</SidebarMenuButton>
+										)}
 									</SidebarMenuItem>
 								);
 							})}

@@ -66,7 +66,12 @@ export function OwnerActions({ poll, onChanged }: OwnerActionsProps) {
 					</AlertDialogHeader>
 					<AlertDialogFooter>
 						<AlertDialogCancel>{t('poll.keepPoll')}</AlertDialogCancel>
-						<AlertDialogAction onClick={cancelPoll}>{t('poll.cancelPoll')}</AlertDialogAction>
+						<AlertDialogAction
+							onClick={() => {
+								setIsCancelling(false);
+								cancelPoll();
+							}}
+						>{t('poll.cancelPoll')}</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>

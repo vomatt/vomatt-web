@@ -14,7 +14,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from '@/components/ui/AlertDialog';
-import { Button } from '@/components/ui/Button';
+import { Button, buttonVariants } from '@/components/ui/Button';
 import { InitialAvatar } from '@/components/ui/InitialAvatar';
 import { Input } from '@/components/ui/Input';
 import { Switch } from '@/components/ui/Switch';
@@ -69,9 +69,12 @@ export default function AccountPage({ profile, myPolls, history, insights }: Acc
 					{profile.bio && <p className="mt-1 text-sm">{profile.bio}</p>}
 				</div>
 				<div className="flex gap-2">
-					<Button asChild variant="outline" size="sm">
-						<Link href={`/profile/${profile.username}`}>{t('account.publicProfile')}</Link>
-					</Button>
+					<Link
+						href={`/profile/${profile.username}`}
+						className={buttonVariants({ variant: 'outline', size: 'sm' })}
+					>
+						{t('account.publicProfile')}
+					</Link>
 					<EditProfileSheet
 						initialDisplayName={profile.displayName ?? ''}
 						initialBio={profile.bio ?? ''}
@@ -168,9 +171,9 @@ function Activity({ history }: { history: BallotRecord[] }) {
 		return (
 			<div className="py-10 text-center text-sm text-muted-foreground">
 				<p className="mb-4">{t('account.noVotes')}</p>
-				<Button asChild size="sm">
-					<Link href="/">{t('account.findPolls')}</Link>
-				</Button>
+				<Link href="/" className={buttonVariants({ size: 'sm' })}>
+					{t('account.findPolls')}
+				</Link>
 			</div>
 		);
 	}
@@ -308,10 +311,7 @@ function DeleteAccount({ username }: { username: string }) {
 						<AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
 						<AlertDialogAction
 							disabled={confirmation !== username || isDeleting}
-							onClick={(event) => {
-								event.preventDefault();
-								remove();
-							}}
+							onClick={remove}
 							className="bg-destructive text-white hover:bg-destructive/90"
 						>
 							{t('account.deleteCta')}

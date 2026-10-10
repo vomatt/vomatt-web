@@ -64,10 +64,8 @@ export default function EditProfileSheet({
 
 	return (
 		<Sheet open={open} onOpenChange={setOpen}>
-			<SheetTrigger asChild>
-				<Button variant="outline" size="sm">
-					Edit Profile
-				</Button>
+			<SheetTrigger render={<Button variant="outline" size="sm" />}>
+				Edit Profile
 			</SheetTrigger>
 			<SheetContent side="right">
 				<SheetHeader>

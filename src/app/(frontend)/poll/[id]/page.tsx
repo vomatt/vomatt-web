@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { cache } from 'react';
 
 import { LoginPrompt } from '@/components/LoginPrompt';
-import { Button } from '@/components/ui/Button';
+import { buttonVariants } from '@/components/ui/Button';
 import { ArrowLeft } from '@/components/ui/SvgIcons';
 import { getUserSession } from '@/data/auth';
 import { PollAbout } from '@/features/polls/components/PollAbout';
@@ -51,12 +51,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 function BackLink() {
 	return (
-		<Button asChild variant="ghost" size="sm" className="mb-4">
-			<Link href="/">
-				<ArrowLeft className="mr-2 size-4" />
-				Back
-			</Link>
-		</Button>
+		<Link
+			href="/"
+			className={buttonVariants({ variant: 'ghost', size: 'sm', className: 'mb-4' })}
+		>
+			<ArrowLeft className="mr-2 size-4" />
+			Back
+		</Link>
 	);
 }
 
