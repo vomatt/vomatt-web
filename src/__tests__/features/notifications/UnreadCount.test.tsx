@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
+import { MarkNotificationRead } from '@/features/notifications/MarkNotificationRead';
 import { NotificationList } from '@/features/notifications/NotificationList';
 import {
 	UNREAD_POLL_MS,
@@ -82,6 +83,50 @@ describe('UnreadCountProvider', () => {
 		await act(async () => setVisibility('visible'));
 		expect(mockGetUnreadCount).toHaveBeenCalledTimes(3);
 		jest.useRealTimers();
+	});
+});
+
+describe('UnreadCountProvider when the session ends', () => {
+	it('stops polling and hides the badge', async () => {
+		jest.useFakeTimers();
+		mockGetUnreadCount.mockResolvedValueOnce(2).mockResolvedValue(null);
+		render(
+			<UnreadCountProvider signedIn>
+				<Count />
+			</UnreadCountProvider>
+		);
+		await act(async () => {});
+		expect(screen.getByTestId('count')).toHaveTextContent('2');
+
+		await act(async () => jest.advanceTimersByTime(UNREAD_POLL_MS));
+		expect(screen.getByTestId('count')).toHaveTextContent('0');
+		await act(async () => jest.advanceTimersByTime(UNREAD_POLL_MS * 3));
+		expect(mockGetUnreadCount).toHaveBeenCalledTimes(2);
+		jest.useRealTimers();
+	});
+});
+
+describe('MarkNotificationRead', () => {
+	it('marks the poll read once the count shows something unread', async () => {
+		render(
+			<UnreadCountProvider signedIn>
+				<MarkNotificationRead pollId="p1" />
+			</UnreadCountProvider>
+		);
+		await waitFor(() => expect(mockMarkRead).toHaveBeenCalledWith('p1'));
+		expect(mockMarkRead).toHaveBeenCalledTimes(1);
+	});
+
+	it('skips the request when nothing is unread', async () => {
+		mockGetUnreadCount.mockResolvedValue(0);
+		render(
+			<UnreadCountProvider signedIn>
+				<MarkNotificationRead pollId="p1" />
+			</UnreadCountProvider>
+		);
+		await waitFor(() => expect(mockGetUnreadCount).toHaveBeenCalled());
+		await act(async () => {});
+		expect(mockMarkRead).not.toHaveBeenCalled();
 	});
 });
 

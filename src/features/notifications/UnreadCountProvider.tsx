@@ -10,10 +10,16 @@ export const UNREAD_POLL_MS = 60_000;
 type UnreadCount = {
 	/** Unread Ended Notifications; 0 when signed out or not loaded yet. */
 	count: number;
+	/** Whether `count` came from the API. */
+	isLoaded: boolean;
 	refresh: () => void;
 };
 
-const UnreadCountContext = createContext<UnreadCount>({ count: 0, refresh: () => {} });
+const UnreadCountContext = createContext<UnreadCount>({
+	count: 0,
+	isLoaded: false,
+	refresh: () => {},
+});
 
 export function useUnreadCount() {
 	return useContext(UnreadCountContext);
@@ -27,15 +33,21 @@ export function UnreadCountProvider({
 	signedIn: boolean;
 	children: React.ReactNode;
 }) {
-	const [count, setCount] = useState(0);
+	const [count, setCount] = useState<number | null>(null);
+	// The session ended since the page loaded: stop asking
+	const [sessionEnded, setSessionEnded] = useState(false);
+	const isActive = signedIn && !sessionEnded;
 
 	const refresh = useCallback(() => {
-		// A failed check keeps the last count rather than flashing it away
-		getUnreadCount().then(setCount, () => {});
+		getUnreadCount().then(
+			(next) => (next === null ? setSessionEnded(true) : setCount(next)),
+			// A failed check keeps the last count rather than flashing it away
+			() => {}
+		);
 	}, []);
 
 	useEffect(() => {
-		if (!signedIn) return;
+		if (!isActive) return;
 		let timer: ReturnType<typeof setInterval> | undefined;
 		const start = () => {
 			refresh();
@@ -53,10 +65,12 @@ export function UnreadCountProvider({
 			stop();
 			document.removeEventListener('visibilitychange', onVisibilityChange);
 		};
-	}, [refresh, signedIn]);
+	}, [isActive, refresh]);
 
 	return (
-		<UnreadCountContext.Provider value={{ count: signedIn ? count : 0, refresh }}>
+		<UnreadCountContext.Provider
+			value={{ count: isActive ? (count ?? 0) : 0, isLoaded: isActive && count !== null, refresh }}
+		>
 			{children}
 		</UnreadCountContext.Provider>
 	);

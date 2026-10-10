@@ -427,24 +427,19 @@ describe('PollCard signed-out visitor', () => {
 		expect(screen.getByText('1 comment')).toBeInTheDocument();
 	});
 
-	it('asks a guest to sign in when the API keeps comments to members, then loads them', async () => {
-		mockGetComments.mockResolvedValueOnce({ ok: false, status: 401, message: 'Unauthorized' });
-		mockGetComments.mockResolvedValueOnce({
+	it('shows comments to a guest without asking to sign in', async () => {
+		mockGetComments.mockResolvedValue({
 			ok: true,
 			data: {
 				items: [{ id: 'c1', author: 'mei', text: 'Saturday works', createdAt: '2026-10-05T00:00:00Z' }],
 				nextCursor: null,
-				total: 1,
 			},
 		});
 		render(<PollCard poll={openPoll} />);
 		fireEvent.click(screen.getByText('Discuss'));
 
-		fireEvent.click(await screen.findByRole('button', { name: 'Sign in' }));
-		await act(async () => {
-			fireEvent.click(screen.getByText('Mock Auth Success'));
-		});
 		expect(await screen.findByText('Saturday works')).toBeInTheDocument();
+		expect(screen.queryByTestId('auth-dialog')).not.toBeInTheDocument();
 	});
 
 	it('keeps the comment text when the guest backs out of sign-in', async () => {

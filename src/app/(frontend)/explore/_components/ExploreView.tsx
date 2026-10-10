@@ -77,13 +77,11 @@ export function ExploreView({
 	const list = useCursorList(initialPage, fetchPage);
 	const { reset } = list;
 
-	// A new query starts from its own first page; typing waits for a pause
-	const isFirstQuery = useRef(true);
+	// A new query starts from its own first page; typing waits for a pause.
+	// The server already rendered the first page of the initial query.
+	const initialQuery = useRef(apiQuery);
 	useEffect(() => {
-		if (isFirstQuery.current) {
-			isFirstQuery.current = false;
-			return;
-		}
+		if (apiQuery === initialQuery.current) return;
 		let ignore = false;
 		const timer = setTimeout(async () => {
 			setIsSearching(true);

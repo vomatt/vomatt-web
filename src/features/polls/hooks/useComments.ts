@@ -16,7 +16,7 @@ import {
 } from '../service';
 import { shiftCount } from '../status';
 
-type Status = 'loading' | 'ready' | 'signed-out' | 'error';
+type Status = 'loading' | 'ready' | 'error';
 
 /** The loaded Replies of one top-level Comment, oldest first. */
 export type ReplyList = {
@@ -53,7 +53,7 @@ export function useComments(
 
 	const applyFirstPage = useCallback((result: Awaited<ReturnType<typeof getComments>>) => {
 		if (!result.ok) {
-			setStatus(result.status === 401 ? 'signed-out' : 'error');
+			setStatus('error');
 			return;
 		}
 		hasLoaded.current = true;
@@ -94,7 +94,8 @@ export function useComments(
 		async (rootId: string) => {
 			const current = replies[rootId];
 			if (current?.status === 'loading') return;
-			if (current && !current.nextCursor) return;
+			// Loaded to the end; a failed page is retried from where it stopped
+			if (current && current.status !== 'error' && !current.nextCursor) return;
 			const setList = (change: (list: ReplyList) => ReplyList) =>
 				setReplies((prev) => ({ ...prev, [rootId]: change(prev[rootId] ?? NO_REPLIES) }));
 			setList((list) => ({ ...list, status: 'loading' }));

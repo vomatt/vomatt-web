@@ -1,7 +1,8 @@
 import { getUnreadCount, markNotificationRead } from '@/features/notifications/service';
-import { apiClient, ApiError } from '@/lib/api/client';
+import { apiClient, ApiError, AuthError } from '@/lib/api/client';
 
 jest.mock('@/lib/api/client', () => {
+	class AuthError extends Error {}
 	class ApiError extends Error {
 		constructor(
 			message: string,
@@ -11,7 +12,7 @@ jest.mock('@/lib/api/client', () => {
 			super(message);
 		}
 	}
-	return { apiClient: jest.fn(), ApiError };
+	return { apiClient: jest.fn(), ApiError, AuthError };
 });
 
 const mockApiClient = apiClient as jest.MockedFunction<typeof apiClient>;
@@ -23,6 +24,13 @@ describe('getUnreadCount()', () => {
 		mockApiClient.mockResolvedValue({ count: 3 });
 		expect(await getUnreadCount()).toBe(3);
 		expect(mockApiClient).toHaveBeenCalledWith('/notifications/unread-count');
+	});
+});
+
+describe('getUnreadCount() when signed out', () => {
+	it('returns null instead of throwing', async () => {
+		mockApiClient.mockRejectedValue(new AuthError('expired'));
+		expect(await getUnreadCount()).toBeNull();
 	});
 });
 

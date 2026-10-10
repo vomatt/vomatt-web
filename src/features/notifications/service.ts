@@ -2,16 +2,21 @@
 
 import { z } from 'zod';
 
-import { apiClient, ApiError } from '@/lib/api/client';
+import { apiClient, ApiError, AuthError } from '@/lib/api/client';
 
 const UnreadCountSchema = z.object({ count: z.number().int() });
 
 /**
- * Ended Notifications the signed-in user hasn't read. The list itself is
- * `getMyPolls('ended')`, where each Poll carries `unread`.
+ * Ended Notifications the signed-in user hasn't read; null once the session
+ * is gone. The list itself is `getMyPolls('ended')`, where each Poll carries `unread`.
  */
-export async function getUnreadCount(): Promise<number> {
-	return UnreadCountSchema.parse(await apiClient('/notifications/unread-count')).count;
+export async function getUnreadCount(): Promise<number | null> {
+	try {
+		return UnreadCountSchema.parse(await apiClient('/notifications/unread-count')).count;
+	} catch (error) {
+		if (error instanceof AuthError) return null;
+		throw error;
+	}
 }
 
 /**

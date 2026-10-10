@@ -33,17 +33,6 @@ type CommentThreadProps = {
 export function CommentThread({ thread, viewerId, requireAuth }: CommentThreadProps) {
 	const { t } = useLanguage();
 
-	if (thread.status === 'signed-out') {
-		return (
-			<div className="border-t border-border/60 px-5 py-4 text-center">
-				<p className="mb-3 text-sm text-muted-foreground">{t('comments.signInToRead')}</p>
-				<Button size="sm" variant="outline" onClick={() => requireAuth(() => thread.reload())}>
-					{t('comments.signIn')}
-				</Button>
-			</div>
-		);
-	}
-
 	return (
 		<section aria-label={t('comments.title')} className="space-y-4 border-t border-border/60 px-5 py-4">
 			<Composer
@@ -263,7 +252,7 @@ function CommentItem(props: Omit<CommentItemProps, 'onReply'>) {
 							onCancel={() => setReplyPrefix(null)}
 							onPost={async (text) => {
 								// Show the thread the Reply lands in
-								if (!replyList && replyCount > 0) thread.loadReplies(comment.id);
+								if (!replyList && replyCount > 0) await thread.loadReplies(comment.id);
 								const ok = await thread.add(text, t('comments.you'), comment.id);
 								if (ok) setReplyPrefix(null);
 								else toast.error(t('comments.postFailed'));

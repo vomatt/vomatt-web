@@ -44,7 +44,7 @@ export function NotificationList({ initialPage }: { initialPage: CursorPage<Poll
 							key={poll.id}
 							poll={poll}
 							onClick={() => open(poll)}
-							className={poll.unread ? 'border-primary/40 font-semibold' : undefined}
+							className={poll.unread ? 'border-primary/40' : undefined}
 							meta={
 								<>
 									{poll.unread && (

@@ -279,8 +279,6 @@
 		"post": "Post",
 		"you": "You",
 		"empty": "No comments yet. Make the case for your choice.",
-		"signInToRead": "Sign in to read and join the discussion.",
-		"signIn": "Sign in",
 		"loadFailed": "Couldn't load comments.",
 		"retry": "Try again",
 		"loadMore": "Show older comments",

@@ -120,6 +120,25 @@ describe('CommentThread', () => {
 		expect(await screen.findByText('@mei agreed')).toBeInTheDocument();
 	});
 
+	it('lists a new reply after the older ones it loads first', async () => {
+		service.getComments.mockResolvedValue({
+			ok: true,
+			data: { items: [{ ...mine, replyCount: 1 }], nextCursor: null },
+		});
+		service.getReplies.mockResolvedValue({ ok: true, data: { items: [reply], nextCursor: null } });
+		service.postComment.mockResolvedValue({ ok: true, data: { ...reply, id: 'r2', text: 'Newest' } });
+		render(<Harness />);
+
+		fireEvent.click((await screen.findAllByRole('button', { name: 'Reply' }))[0]);
+		const box = screen.getByRole('textbox', { name: 'Write a reply…' });
+		fireEvent.change(box, { target: { value: 'Newest' } });
+		fireEvent.submit(box.closest('form')!);
+
+		const newest = await screen.findByText('Newest');
+		const older = screen.getByText('A reply');
+		expect(older.compareDocumentPosition(newest) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+	});
+
 	it('shows a placeholder for a deleted comment that has replies', async () => {
 		service.getComments.mockResolvedValue({
 			ok: true,
@@ -176,6 +195,24 @@ describe('useComments', () => {
 		});
 		expect(result.current.comments).toEqual([]);
 		expect(result.current.total).toBe(0);
+	});
+
+	it('retries a reply page that failed to load', async () => {
+		service.getReplies
+			.mockResolvedValueOnce({ ok: false, message: 'down' })
+			.mockResolvedValueOnce({ ok: true, data: { items: [reply], nextCursor: null } });
+		const { result } = renderHook(() => useComments('poll-1', { enabled: true }));
+		await waitFor(() => expect(result.current.status).toBe('ready'));
+
+		await act(async () => {
+			await result.current.loadReplies('c1');
+		});
+		expect(result.current.replies.c1.status).toBe('error');
+
+		await act(async () => {
+			await result.current.loadReplies('c1');
+		});
+		expect(result.current.replies.c1).toMatchObject({ status: 'ready', items: [reply] });
 	});
 
 	it('files a reply under its top-level comment and counts it', async () => {

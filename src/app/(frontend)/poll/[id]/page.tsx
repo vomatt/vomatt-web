@@ -14,11 +14,11 @@ import { PollCardSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import type { Poll } from '@/features/polls/schema';
 import { getPoll } from '@/features/polls/service';
 import { derivePollStatus, isCancelled } from '@/features/polls/status';
-import { ApiError, AuthError } from '@/lib/api/client';
+import { AuthError } from '@/lib/api/client';
 
 type Lookup =
 	| { poll: Poll }
-	| { poll: null; reason: 'not-found' | 'sign-in' | 'session-rejected' };
+	| { poll: null; reason: 'not-found' | 'session-rejected' };
 
 // Metadata and the page share one lookup per request
 const lookupPoll = cache(async (id: string): Promise<Lookup> => {
@@ -26,11 +26,7 @@ const lookupPoll = cache(async (id: string): Promise<Lookup> => {
 		const poll = await getPoll(id);
 		return poll ? { poll } : { poll: null, reason: 'not-found' };
 	} catch (error) {
-		// The API serves single Polls to signed-in users only
-		if (error instanceof ApiError && error.statusCode === 401) {
-			return { poll: null, reason: 'sign-in' };
-		}
-		// Signed in here, but the API refused the token
+		// Polls are public; a 401 means the API refused this viewer's token
 		if (error instanceof AuthError) return { poll: null, reason: 'session-rejected' };
 		throw error;
 	}
