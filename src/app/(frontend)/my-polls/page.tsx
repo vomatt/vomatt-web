@@ -9,7 +9,11 @@ import { getMyPolls } from '@/features/polls/service';
 
 import MyPollsTabs from './_components/MyPollsTabs';
 
-export default function MyPollsPage() {
+export default async function MyPollsPage() {
+	// Check auth before streaming the shell, so signed-out users get a real 307
+	const user = await getUserSession();
+	if (!user) redirect('/login');
+
 	return (
 		<div className="px-contain max-w-2xl mx-auto py-6">
 			<h1 className="text-4xl text-foreground mb-6">My Polls</h1>
@@ -28,9 +32,6 @@ export default function MyPollsPage() {
 }
 
 async function MyPolls() {
-	const user = await getUserSession();
-	if (!user) redirect('/login');
-
 	let polls: Poll[] = [];
 	try {
 		polls = await getMyPolls();

@@ -105,7 +105,8 @@ export function useBallot(poll: Poll, { isAuthed, onPollEnded }: Options) {
 
 	/** Withdraws the current Ballot; the API removes it by option. Resolves to the outcome. */
 	const retract = useCallback(async (): Promise<BallotOutcome> => {
-		if (!myOptionId) return 'failed';
+		// Nothing to withdraw is already the desired state, not a failure
+		if (!myOptionId) return 'saved';
 		const optionId = myOptionId;
 		return run(() => retractBallot(poll.id, optionId), null, t('poll.withdrawFailed'));
 	}, [myOptionId, poll.id, run, t]);

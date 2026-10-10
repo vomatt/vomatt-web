@@ -69,3 +69,6 @@ yarn.lock
 # Secrets
 .env*
 .worktrees/
+
+# TypeScript incremental build cache
+*.tsbuildinfo

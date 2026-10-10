@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactElement, ReactNode, useEffect, useState } from 'react';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -64,7 +64,8 @@ const STEP_LABELS = ['pollCreator.stepQuestion', 'pollCreator.stepOptions', 'pol
 const LAST_STEP = STEP_LABELS.length - 1;
 
 export interface PollCreatorProps {
-	triggerChildren?: ReactNode;
+	/** A single button element; it becomes the dialog trigger. */
+	triggerChildren?: ReactElement;
 	/** Edit this Scheduled Poll and save it with PUT. */
 	poll?: Poll;
 	/** Resume a saved draft. */
@@ -220,8 +221,8 @@ export function PollCreator({
 		<>
 			<Dialog open={open} onOpenChange={handleOpenChange}>
 				{!isEdit && (
-					<DialogTrigger asChild={!!triggerChildren}>
-						{triggerChildren ?? <Plus />}
+					<DialogTrigger render={triggerChildren}>
+						{!triggerChildren && <Plus />}
 					</DialogTrigger>
 				)}
 				<DialogContent className="sm:max-w-lg overflow-y-scroll max-h-[96vh] no-scrollbar">

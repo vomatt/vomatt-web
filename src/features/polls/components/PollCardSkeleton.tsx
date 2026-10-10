@@ -1,4 +1,7 @@
+'use client';
+
 import { Skeleton } from '@/components/ui/Skeleton';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 /** Placeholder with the PollCard's shape, shown while a page's data loads. */
 export function PollCardSkeleton({ options = 3 }: { options?: number }) {
@@ -28,8 +31,10 @@ export function PollCardSkeleton({ options = 3 }: { options?: number }) {
 }
 
 export function PollListSkeleton() {
+	const { t } = useLanguage();
 	return (
 		<div role="status" aria-busy className="flex flex-col gap-3">
+			<span className="sr-only">{t('common.loading')}</span>
 			{Array.from({ length: 3 }, (_, i) => (
 				<PollCardSkeleton key={i} options={3 + (i % 2)} />
 			))}

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useInView } from 'react-intersection-observer';
 
-import { Button } from '@/components/ui/Button';
+import { Button, buttonVariants } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PollCard } from '@/features/polls/components/PollCard';
@@ -78,9 +78,9 @@ export function PollFeedList({ className, viewerId, initialPage, tag, header }: 
 					{viewerId ? (
 						<PollCreator triggerChildren={<Button>{t('homePage.createFirst')}</Button>} />
 					) : (
-						<Button asChild>
-							<Link href="/signup">{t('homePage.joinToCreate')}</Link>
-						</Button>
+						<Link href="/signup" className={buttonVariants()}>
+							{t('homePage.joinToCreate')}
+						</Link>
 					)}
 				</div>
 			)}
