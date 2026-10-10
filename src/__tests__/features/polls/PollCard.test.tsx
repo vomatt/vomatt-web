@@ -13,7 +13,7 @@ jest.mock('next/link', () => {
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 
 jest.mock('sonner', () => {
-	const toast = Object.assign(jest.fn(), { error: jest.fn() });
+	const toast = Object.assign(jest.fn(), { error: jest.fn(), success: jest.fn() });
 	return { toast };
 });
 
@@ -206,12 +206,21 @@ describe('PollCard state B · Open, has Ballot', () => {
 		expect(mockRetractBallot).not.toHaveBeenCalled();
 	});
 
+	it('toasts a success once the cast is saved', async () => {
+		mockCastBallot.mockResolvedValue({ ok: true });
+		render(<PollCard poll={openPoll} viewerId="user-voter" />);
+		vote('Friday');
+
+		await waitFor(() => expect(toast.success).toHaveBeenCalledWith('Vote cast.', expect.anything()));
+	});
+
 	it('rolls back a failed cast', async () => {
 		mockCastBallot.mockResolvedValue({ ok: false, status: 500, message: 'boom' });
 		render(<PollCard poll={openPoll} viewerId="user-voter" />);
 		vote('Friday');
 
 		await waitFor(() => expect(toast.error).toHaveBeenCalled());
+		expect(toast.success).not.toHaveBeenCalled();
 		expect(screen.getByText('128 voted')).toBeInTheDocument();
 		await waitFor(() => expect(screen.queryByText('Your vote')).not.toBeInTheDocument());
 	});

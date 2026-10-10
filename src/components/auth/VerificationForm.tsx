@@ -5,10 +5,11 @@ import { useEffect, useState } from 'react';
 import { ButtonLoading } from '@/components/ButtonLoading';
 import { MailCheckIcon } from '@/components/ui/animate-icon/MailCheck';
 import { Button } from '@/components/ui/Button';
-import { Field, FieldError } from '@/components/ui/Field';
+import { Field } from '@/components/ui/Field';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { AuthErrorKey } from '@/lib/api/auth-errors';
 
+import { AuthError } from './AuthError';
 import {
 	InputOTP,
 	InputOTPGroup,
@@ -129,11 +130,7 @@ export default function VerificationForm({
 							<InputOTPSlot index={5} />
 						</InputOTPGroup>
 					</InputOTP>
-					{error && (
-						<FieldError role="alert" className="text-center text-destructive">
-							{t(`authError.${error}`)}
-						</FieldError>
-					)}
+					<AuthError error={error} />
 				</Field>
 				<ButtonLoading
 					type="submit"

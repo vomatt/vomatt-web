@@ -208,6 +208,7 @@
 		"share": "分享",
 		"linkCopied": "已複製連結",
 		"justEnded": "這個投票剛剛結束了。",
+		"voteCast": "已完成投票。",
 		"voteFailed": "無法儲存你的投票，請再試一次。",
 		"withdrawFailed": "無法撤回你的投票，請再試一次。",
 		"resultsFailed": "無法載入結果。",

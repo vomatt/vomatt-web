@@ -1,13 +1,15 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { cache } from 'react';
+import { cache, Suspense } from 'react';
 
 import { LoginPrompt } from '@/components/LoginPrompt';
 import { buttonVariants } from '@/components/ui/Button';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { ArrowLeft } from '@/components/ui/SvgIcons';
 import { getUserSession } from '@/data/auth';
 import { PollAbout } from '@/features/polls/components/PollAbout';
 import { PollCard } from '@/features/polls/components/PollCard';
+import { PollCardSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import type { Poll } from '@/features/polls/schema';
 import { getPoll } from '@/features/polls/service';
 import { ApiError, AuthError } from '@/lib/api/client';
@@ -63,33 +65,52 @@ function BackLink() {
 
 export default async function PollDetailPage({ params }: Props) {
 	const { id } = await params;
+	return (
+		<div className="px-contain mx-auto max-w-5xl py-6">
+			<BackLink />
+			<Suspense fallback={<PollDetailSkeleton />}>
+				<PollDetail id={id} />
+			</Suspense>
+		</div>
+	);
+}
+
+async function PollDetail({ id }: { id: string }) {
 	const [lookup, user] = await Promise.all([lookupPoll(id), getUserSession()]);
 
 	if (!lookup.poll) {
-		return (
-			<div className="px-contain max-w-2xl mx-auto py-10">
-				<BackLink />
-				{lookup.reason !== 'not-found' ? (
-					<LoginPrompt
-						className="block mx-auto max-w-sm"
-						redirectTo={`/poll/${id}`}
-						sessionExpired={lookup.reason === 'session-rejected'}
-					/>
-				) : (
-					<p className="text-muted-foreground">Poll not found.</p>
-				)}
-			</div>
+		return lookup.reason !== 'not-found' ? (
+			<LoginPrompt
+				className="block mx-auto max-w-sm"
+				redirectTo={`/poll/${id}`}
+				sessionExpired={lookup.reason === 'session-rejected'}
+			/>
+		) : (
+			<p className="text-muted-foreground">Poll not found.</p>
 		);
 	}
 
 	return (
-		<div className="px-contain mx-auto max-w-5xl py-6">
-			<BackLink />
-			<div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
-				<PollCard poll={lookup.poll} viewerId={user?.sub} defaultShowComments />
-				<div className="lg:sticky lg:top-6">
-					<PollAbout poll={lookup.poll} />
+		<div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
+			<PollCard poll={lookup.poll} viewerId={user?.sub} defaultShowComments />
+			<div className="lg:sticky lg:top-6">
+				<PollAbout poll={lookup.poll} />
+			</div>
+		</div>
+	);
+}
+
+function PollDetailSkeleton() {
+	return (
+		<div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
+			<PollCardSkeleton options={4} />
+			<div className="space-y-5 rounded-xl border border-border bg-card p-5 lg:sticky lg:top-6">
+				<div className="flex items-center gap-3">
+					<Skeleton className="size-9 rounded-full" />
+					<Skeleton className="h-4 w-24" />
 				</div>
+				<Skeleton className="h-3.5 w-full" />
+				<Skeleton className="h-3.5 w-5/6" />
 			</div>
 		</div>
 	);

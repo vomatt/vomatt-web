@@ -104,7 +104,7 @@ export default async function RootLayout({
 						<TooltipProvider>
 							<Layout>{children}</Layout>
 						</TooltipProvider>
-						<Toaster />
+						<Toaster richColors closeButton position="bottom-center" />
 					</LanguageProvider>
 				)}
 			</body>

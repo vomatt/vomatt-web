@@ -114,30 +114,19 @@ function AlertDialogDescription({
 
 // Base UI has no Action part: this is a plain button and does not close the
 // dialog on its own. Close it from the click handler (or the open state).
-function AlertDialogAction({
-	className,
-	...props
-}: React.ComponentProps<typeof Button>) {
-	return (
-		<Button
-			data-slot="alert-dialog-action"
-			className={cn(className)}
-			{...props}
-		/>
-	);
+function AlertDialogAction(props: React.ComponentProps<typeof Button>) {
+	return <Button data-slot="alert-dialog-action" {...props} />;
 }
 
 function AlertDialogCancel({
-	className,
 	variant = 'outline',
-	size = 'default',
+	size,
 	...props
 }: AlertDialogPrimitive.Close.Props &
 	Pick<React.ComponentProps<typeof Button>, 'variant' | 'size'>) {
 	return (
 		<AlertDialogPrimitive.Close
 			data-slot="alert-dialog-cancel"
-			className={cn(className)}
 			render={<Button variant={variant} size={size} />}
 			{...props}
 		/>

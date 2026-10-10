@@ -6,7 +6,15 @@ import * as React from 'react';
 import { Check, ChevronDown, ChevronUp } from '@/components/ui/SvgIcons';
 import { cn } from '@/lib/utils';
 
-const Select = SelectPrimitive.Root;
+// Base UI's SelectValue reads labels only from `items`; without it the trigger
+// shows the raw value, so it is required here.
+function Select<Value, Multiple extends boolean | undefined = false>(
+	props: SelectPrimitive.Root.Props<Value, Multiple> & {
+		items: NonNullable<SelectPrimitive.Root.Props<Value, Multiple>['items']>;
+	}
+) {
+	return <SelectPrimitive.Root {...props} />;
+}
 
 function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
 	return (

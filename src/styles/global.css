@@ -3,6 +3,34 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Skeleton shimmer: a highlight stripe sweeping across the block, animated with
+   transform so it stays on the compositor. */
+@keyframes shimmer {
+	from { transform: translateX(-100%); }
+	to { transform: translateX(100%); }
+}
+@utility animate-shimmer {
+	position: relative;
+	overflow: hidden;
+	&::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background-image: linear-gradient(
+			90deg,
+			transparent,
+			color-mix(in oklch, var(--foreground) 6%, transparent),
+			transparent
+		);
+		animation: shimmer 1.6s ease-in-out infinite;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		&::after {
+			animation: none;
+		}
+	}
+}
+
 /* The ui/ components are Base UI, which reports state as presence attributes
    (data-open, data-checked, data-active…). Drawer still wraps vaul, which reports
    data-state="open|closed", so the open/closed variants match both. data-active
