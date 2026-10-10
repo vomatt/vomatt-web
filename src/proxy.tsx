@@ -63,7 +63,7 @@ type SessionResult =
 	| { status: 'refreshed'; tokens: AuthTokens }
 	| { status: 'misconfigured'; tokens: AuthTokens }
 	| { status: 'none' }
-	| { status: 'dead' };
+	| { status: 'dead'; suspicious?: true };
 
 /**
  * Set when a freshly issued access token still fails verification, i.e.
@@ -99,7 +99,8 @@ async function resolveSession(request: NextRequest): Promise<SessionResult> {
 	}
 	// Keep a still-valid access token for its last seconds rather than signing out early
 	if (payload) return { status: 'valid' };
-	return result.status === 'rejected' ? { status: 'dead' } : { status: 'none' };
+	if (result.status === 'unavailable') return { status: 'none' };
+	return result.suspicious ? { status: 'dead', suspicious: true } : { status: 'dead' };
 }
 
 export async function proxy(request: NextRequest) {
@@ -149,7 +150,10 @@ export async function proxy(request: NextRequest) {
 	if (!hasValidSession && isProtectedPath) {
 		const loginUrl = new URL('/login', request.url);
 		loginUrl.searchParams.set('redirect', `${pathname}${request.nextUrl.search}`);
-		if (session.status === 'dead') loginUrl.searchParams.set('session_expired', '1');
+		// `security`: the API signed this user out everywhere after seeing a reused token
+		if (session.status === 'dead') {
+			loginUrl.searchParams.set('session_expired', session.suspicious ? 'security' : '1');
+		}
 		return applyAuthCookies(NextResponse.redirect(loginUrl));
 	}
 

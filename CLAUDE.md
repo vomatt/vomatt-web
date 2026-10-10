@@ -61,7 +61,7 @@ import { RichText } from '@payloadcms/richtext-lexical/react'
 - **`client.ts`** — `apiClient<T>()` (authenticated; throws `AuthError` on 401, `ApiError` with `data.errorCode` otherwise; `auth: 'optional'` falls back to `publicFetch`) and `publicFetch<T>()`. Both unwrap the `ApiResponse` envelope.
 - **`services/`** — `auth.ts` (`requestOtp`, `verifyOtp`, `signout`) and `users.ts` are Server Actions (`'use server'`). Poll, ballot and comment actions live in `src/features/polls/service.ts` and return `ActionResult` instead of throwing.
 
-The backend is `vomatt-api` (sibling repo): prefix `/api`, `PageResponse { content, total, page, limit }` with 1-based pages (parsed by `lib/api/cursor.ts`). Backend gaps the web works around are listed in `docs/release/backend-requests.md`.
+The backend is `vomatt-api` (sibling repo): prefix `/api`; contract in `vomatt-api/docs/frontend/` (`openapi.json` + flow docs). Lists are cursor-paged: `{ items, nextCursor }` with `limit`/`cursor` params (`lib/api/cursor.ts`). Open questions from the integration are in `docs/release/api-integration-notes.md`; older backend gaps in `docs/release/backend-requests.md`.
 
 ### Internationalization
 

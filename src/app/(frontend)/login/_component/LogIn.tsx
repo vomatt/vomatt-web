@@ -12,13 +12,13 @@ export function LogIn() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const redirectTo = getSafeRedirectPath(searchParams.get('redirect'));
-	const sessionExpired = searchParams.has('session_expired');
+	const sessionExpired = searchParams.get('session_expired');
 
 	return (
 		<AuthContainer type="STATUS_LOG_IN">
 			{sessionExpired && (
 				<p role="status" className="mb-6 rounded-lg border border-border px-3 py-2.5 text-center text-sm text-muted-foreground">
-					{t('login.sessionExpired')}
+					{t(sessionExpired === 'security' ? 'login.sessionRevoked' : 'login.sessionExpired')}
 				</p>
 			)}
 			<AuthFlow

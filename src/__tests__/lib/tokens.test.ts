@@ -104,6 +104,11 @@ describe('requestTokenRefresh', () => {
 		expect(await tokens.requestTokenRefresh('r1')).toEqual({ status: 'rejected' });
 	});
 
+	it('says when the backend saw a reused token and ended every session', async () => {
+		fetchMock.mockResolvedValue(jsonResponse({ success: false, errorCode: 'auth.suspicious_login' }, 401));
+		expect(await tokens.requestTokenRefresh('r1')).toEqual({ status: 'rejected', suspicious: true });
+	});
+
 	it('is unavailable when the backend errors, so the session is kept', async () => {
 		fetchMock.mockResolvedValue(jsonResponse({ success: false }, 503));
 		expect(await tokens.requestTokenRefresh('r1')).toEqual({ status: 'unavailable' });

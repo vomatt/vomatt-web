@@ -45,11 +45,13 @@ export function isExpiringSoon(payload: AccessTokenPayload, now = Date.now()) {
 
 /**
  * `rejected`: the backend refused the refresh token, so the session is over.
- * `unavailable`: the backend couldn't be asked; the session may still be fine.
+ * `suspicious` means it saw a used token come back and signed the user out
+ * on every device. `unavailable`: the backend couldn't be asked; the session
+ * may still be fine.
  */
 export type RefreshResult =
 	| { status: 'ok'; tokens: AuthTokens }
-	| { status: 'rejected' }
+	| { status: 'rejected'; suspicious?: true }
 	| { status: 'unavailable' };
 
 // Concurrent callers holding the same refresh token share one request. The
@@ -91,7 +93,12 @@ async function fetchRefreshedTokens(refreshToken: string): Promise<RefreshResult
 			}
 		);
 		if (response.status >= 500 || response.status === 429) return { status: 'unavailable' };
-		if (!response.ok) return { status: 'rejected' };
+		if (!response.ok) {
+			const body = await response.json().catch(() => null);
+			return body?.errorCode === 'auth.suspicious_login'
+				? { status: 'rejected', suspicious: true }
+				: { status: 'rejected' };
+		}
 		const tokens = readAuthTokens(await response.json());
 		return tokens ? { status: 'ok', tokens } : { status: 'rejected' };
 	} catch (error) {

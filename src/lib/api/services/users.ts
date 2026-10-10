@@ -22,10 +22,11 @@ export async function getUserProfile(username: string): Promise<UserProfile | nu
   }
 }
 
-export async function searchUsers(username: string, page?: number, size?: number) {
+/** Signed-in only; returns `{ items, nextCursor }`. Show usernames only: results skip visibility settings. */
+export async function searchUsers(username: string, cursor?: string, limit?: number) {
   const params = new URLSearchParams({ username });
-  if (page !== undefined) params.set('page', String(page));
-  if (size !== undefined) params.set('size', String(size));
+  if (cursor) params.set('cursor', cursor);
+  if (limit !== undefined) params.set('limit', String(limit));
   return apiClient(`/users/search?${params}`);
 }
 

@@ -122,6 +122,19 @@ describe('proxy auth', () => {
 		expect(res.cookies.get('accessToken')?.value).toBe('');
 	});
 
+	it('tells a user signed out everywhere for security why', async () => {
+		fetchMock.mockResolvedValue(
+			new Response(JSON.stringify({ success: false, errorCode: 'auth.suspicious_login' }), { status: 401 })
+		);
+
+		const res = await proxy(requestFor('/account', { refreshToken: 'reused' }));
+
+		expect(res.headers.get('location')).toBe(
+			'http://localhost:3000/login?redirect=%2Faccount&session_expired=security'
+		);
+		expect(res.cookies.get('refreshToken')?.value).toBe('');
+	});
+
 	it('keeps the cookies when the backend is unreachable', async () => {
 		jest.spyOn(console, 'error').mockImplementation(() => {});
 		fetchMock.mockRejectedValue(new TypeError('fetch failed'));

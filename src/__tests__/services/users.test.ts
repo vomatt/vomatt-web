@@ -58,17 +58,17 @@ describe('searchUsers()', () => {
     );
   });
 
-  it('includes page param when provided', async () => {
-    await searchUsers('bob', 2);
+  it('passes the cursor back', async () => {
+    await searchUsers('bob', 'c2');
     expect(mockApiClient).toHaveBeenCalledWith(
-      '/users/search?username=bob&page=2'
+      '/users/search?username=bob&cursor=c2'
     );
   });
 
-  it('includes size param when provided', async () => {
-    await searchUsers('bob', 0, 20);
+  it('includes limit when provided', async () => {
+    await searchUsers('bob', undefined, 20);
     expect(mockApiClient).toHaveBeenCalledWith(
-      '/users/search?username=bob&page=0&size=20'
+      '/users/search?username=bob&limit=20'
     );
   });
 });

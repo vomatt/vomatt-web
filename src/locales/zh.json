@@ -49,7 +49,8 @@
 		"footNote": "沒有帳號嗎?",
 		"subtitle": "歡迎回來，我們會寄送登入驗證碼到你的信箱。",
 		"sessionExpired": "登入已過期，請重新登入。",
-		"dialogDescription": "使用電子郵件登入或註冊以繼續"
+		"dialogDescription": "使用電子郵件登入或註冊以繼續",
+		"sessionRevoked": "為了你的帳號安全，已登出所有裝置，請重新登入。"
 	},
 	"signup": {
 		"title": "加入討論",
