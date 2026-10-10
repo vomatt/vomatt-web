@@ -107,12 +107,6 @@ export async function apiClient<T = any>(
 	if (!isFormData && !headers.has('Content-Type')) {
 		headers.set('Content-Type', 'application/json');
 	}
-	// Error messages the UI shows as-is come back in the viewer's language
-	if (!headers.has('Accept-Language')) {
-		const { language } = await getServerLocale();
-		headers.set('Accept-Language', language === 'zh' ? 'zh-TW' : 'en');
-	}
-
 	const accessToken = (await getTokens())?.accessToken;
 	if (!accessToken) {
 		if (auth === 'optional') return publicFetch<T>(endpoint, { ...fetchOptions, headers });
@@ -120,6 +114,11 @@ export async function apiClient<T = any>(
 	}
 
 	headers.set('Authorization', `Bearer ${accessToken}`);
+	// Error messages the UI shows as-is come back in the viewer's language. Only
+	// here: on cached public requests the header would split the cache by language.
+	if (!headers.has('Accept-Language')) {
+		headers.set('Accept-Language', (await getServerLocale()).payloadLocale);
+	}
 	// A response for one user must never land in the shared data cache
 	const { next: _next, ...uncached } = fetchOptions as RequestInit & { next?: unknown };
 	const response = await fetch(`${process.env.API_URL}${API_BASE_PATH}${endpoint}`, {

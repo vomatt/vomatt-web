@@ -196,31 +196,31 @@ describe('getFeed()', () => {
 
 describe('getPolls()', () => {
 	it('sends status, sort and search', async () => {
-		mockApiClient.mockResolvedValue(page([]));
+		mockPublicFetch.mockResolvedValue(page([]));
 		await getPolls({ status: 'open', sort: 'closing', q: ' side project ' }, null, 20);
-		expect(mockApiClient.mock.calls[0][0]).toBe('/votes?limit=20&sort=closing&q=side+project');
+		expect(mockPublicFetch.mock.calls[0][0]).toBe('/votes?limit=20&sort=closing&q=side+project');
 	});
 
 	it('never sends sort with ended (the API rejects it)', async () => {
-		mockApiClient.mockResolvedValue(page([]));
+		mockPublicFetch.mockResolvedValue(page([]));
 		await getPolls({ status: 'ended', sort: 'closing' });
-		expect(mockApiClient.mock.calls[0][0]).toBe('/votes?limit=10&status=ended');
+		expect(mockPublicFetch.mock.calls[0][0]).toBe('/votes?limit=10&status=ended');
 	});
 
 	it('leaves out a search shorter than 2 characters', async () => {
-		mockApiClient.mockResolvedValue(page([]));
+		mockPublicFetch.mockResolvedValue(page([]));
 		await getPolls({ q: 'a' });
-		expect(mockApiClient.mock.calls[0][0]).toBe('/votes?limit=10');
+		expect(mockPublicFetch.mock.calls[0][0]).toBe('/votes?limit=10');
 	});
 });
 
 describe('getUserPolls()', () => {
-	it('reads the user\'s opened polls as the viewer', async () => {
-		mockApiClient.mockResolvedValue(page([oldPoll], 'n'));
+	it('reads the user\'s opened polls from the shared cache', async () => {
+		mockPublicFetch.mockResolvedValue(page([oldPoll], 'n'));
 		const result = await getUserPolls('mei lin');
 		expect(result.items).toHaveLength(1);
-		expect(mockApiClient.mock.calls[0][0]).toBe('/users/mei%20lin/votes?limit=20');
-		expect(mockApiClient.mock.calls[0][1]).toMatchObject({ auth: 'optional' });
+		expect(mockPublicFetch.mock.calls[0][0]).toBe('/users/mei%20lin/votes?limit=20');
+		expect(mockApiClient).not.toHaveBeenCalled();
 	});
 });
 

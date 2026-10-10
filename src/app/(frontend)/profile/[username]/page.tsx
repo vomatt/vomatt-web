@@ -4,6 +4,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { getMyProfile } from '@/data/auth';
 import { PollListSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import { getUserPolls } from '@/features/polls/service';
+import { EMPTY_PAGE } from '@/lib/api/cursor';
 import { getUserProfile } from '@/lib/api/services/users';
 
 import ProfileHeader from './_components/ProfileHeader';
@@ -27,7 +28,7 @@ export default async function ProfilePage({
 async function Profile({ username }: { username: string }) {
 	const [profile, polls, me] = await Promise.all([
 		getUserProfile(username),
-		getUserPolls(username).catch(() => ({ items: [], nextCursor: null })),
+		getUserPolls(username).catch(() => EMPTY_PAGE),
 		getMyProfile(),
 	]);
 

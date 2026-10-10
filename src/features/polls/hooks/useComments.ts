@@ -25,6 +25,8 @@ export type ReplyList = {
 	status: 'loading' | 'ready' | 'error';
 };
 
+const NO_REPLIES: ReplyList = { items: [], nextCursor: null, status: 'ready' };
+
 /** A deleted Comment that still has Replies stays as a placeholder. */
 function toPlaceholder(comment: Comment): Comment {
 	return { ...comment, deleted: true, author: null, text: null, userId: null };
@@ -93,20 +95,15 @@ export function useComments(
 			const current = replies[rootId];
 			if (current?.status === 'loading') return;
 			if (current && !current.nextCursor) return;
-			setReplies((prev) => ({
-				...prev,
-				[rootId]: { items: prev[rootId]?.items ?? [], nextCursor: prev[rootId]?.nextCursor ?? null, status: 'loading' },
-			}));
+			const setList = (change: (list: ReplyList) => ReplyList) =>
+				setReplies((prev) => ({ ...prev, [rootId]: change(prev[rootId] ?? NO_REPLIES) }));
+			setList((list) => ({ ...list, status: 'loading' }));
 			const result = await getReplies(pollId, rootId, current?.nextCursor);
-			setReplies((prev) => {
-				const items = prev[rootId]?.items ?? [];
-				return {
-					...prev,
-					[rootId]: result.ok
-						? { items: mergeById(items, result.data.items), nextCursor: result.data.nextCursor, status: 'ready' }
-						: { items, nextCursor: current?.nextCursor ?? null, status: 'error' },
-				};
-			});
+			setList((list) =>
+				result.ok
+					? { items: mergeById(list.items, result.data.items), nextCursor: result.data.nextCursor, status: 'ready' }
+					: { ...list, status: 'error' }
+			);
 		},
 		[pollId, replies]
 	);
@@ -142,27 +139,26 @@ export function useComments(
 				createdAt: new Date().toISOString(),
 				parentId: rootId ?? null,
 			};
-			const replace = (list: Comment[], saved: Comment | null) =>
-				saved ? list.map((c) => (c.id === tempId ? saved : c)) : list.filter((c) => c.id !== tempId);
-			const updateReplies = (saved: Comment | null | 'add') =>
-				setReplies((prev) => {
-					const list = prev[rootId!] ?? { items: [], nextCursor: null, status: 'ready' as const };
-					const items = saved === 'add' ? [...list.items, pending] : replace(list.items, saved);
-					return { ...prev, [rootId!]: { ...list, items } };
-				});
+			// The list the new Comment goes into: its thread's Replies, or the top level
+			const setList = (change: (list: Comment[]) => Comment[]) =>
+				rootId
+					? setReplies((prev) => {
+							const list = prev[rootId] ?? NO_REPLIES;
+							return { ...prev, [rootId]: { ...list, items: change(list.items) } };
+						})
+					: setComments(change);
 
-			if (rootId) {
-				updateReplies('add');
-				shiftReplyCount(rootId, 1);
-			} else {
-				setComments((prev) => [pending, ...prev]);
-			}
+			// Replies read oldest first, top-level Comments newest first
+			setList((list) => (rootId ? [...list, pending] : [pending, ...list]));
+			if (rootId) shiftReplyCount(rootId, 1);
 			setTotal((count) => shiftCount(count, 1));
 
 			const result = await postComment(pollId, text, rootId);
-			const saved = result.ok ? result.data : null;
-			if (rootId) updateReplies(saved);
-			else setComments((prev) => replace(prev, saved));
+			setList((list) =>
+				result.ok
+					? list.map((c) => (c.id === tempId ? result.data : c))
+					: list.filter((c) => c.id !== tempId)
+			);
 			if (result.ok) return true;
 
 			if (rootId) shiftReplyCount(rootId, -1);
@@ -205,16 +201,12 @@ export function useComments(
 				const list = prev[rootId];
 				return list ? { ...prev, [rootId]: { ...list, items: list.items.filter((c) => c.id !== comment.id) } } : prev;
 			});
-			setComments((prev) =>
-				prev.flatMap((c) => {
-					if (c.id !== rootId) return [c];
-					const replyCount = Math.max(0, (c.replyCount ?? 0) - 1);
-					return c.deleted && replyCount === 0 ? [] : [{ ...c, replyCount }];
-				})
-			);
+			shiftReplyCount(rootId, -1);
+			// A placeholder with no Replies left isn't listed by the API either
+			setComments((prev) => prev.filter((c) => !(c.id === rootId && c.deleted && !c.replyCount)));
 			return true;
 		},
-		[pollId]
+		[pollId, shiftReplyCount]
 	);
 
 	const toggleLike = useCallback(

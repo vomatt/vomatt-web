@@ -13,9 +13,16 @@ export function cursorPageSchema<T extends z.ZodTypeAny>(item: T) {
 		})) as unknown as z.ZodType<CursorPage<z.output<T>>>;
 }
 
+/** An empty page, e.g. a fallback when a list can't be loaded. */
+export const EMPTY_PAGE: CursorPage<never> = { items: [], nextCursor: null };
+
+/** The API clamps `limit` to 1–50; clamp here too so callers can't ask for more. */
+export const MAX_PAGE_SIZE = 50;
+
 /** Query string for a list request; the first page sends no cursor. */
 export function pageParams(cursor: string | null | undefined, limit: number) {
-	const params = new URLSearchParams({ limit: String(limit) });
+	const clamped = Math.min(Math.max(1, Math.floor(limit) || 1), MAX_PAGE_SIZE);
+	const params = new URLSearchParams({ limit: String(clamped) });
 	if (cursor) params.set('cursor', cursor);
 	return params;
 }

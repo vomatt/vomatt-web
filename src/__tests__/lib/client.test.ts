@@ -38,7 +38,7 @@ describe('apiClient', () => {
 
 	it('asks for messages in the viewer\'s language', async () => {
 		mockGetTokens.mockResolvedValue({ accessToken: 'a1', refreshToken: 'r1' });
-		mockLocale.mockResolvedValue({ language: 'zh', payloadLocale: 'zh' });
+		mockLocale.mockResolvedValue({ language: 'zh', payloadLocale: 'zh-TW' });
 		fetchMock.mockResolvedValue(json({ success: true, data: {} }));
 
 		await apiClient('/votes', { method: 'POST' });

@@ -1,32 +1,26 @@
 'use client';
 
-import Link from 'next/link';
-
 import { LoadMore } from '@/components/LoadMore';
 import { Bell } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { PollListItem } from '@/features/polls/components/PollListItem';
+import { NOTIFICATIONS_PAGE_SIZE } from '@/features/polls/constants';
 import type { Poll } from '@/features/polls/schema';
 import { getMyPolls } from '@/features/polls/service';
 import { isCancelled } from '@/features/polls/status';
 import { useCursorList } from '@/hooks/useCursorList';
 import type { CursorPage } from '@/lib/api/cursor';
-import { cn } from '@/lib/utils';
 
-import { markNotificationRead } from './service';
-import { useUnreadCount } from './UnreadCountProvider';
-
-const fetchPage = (cursor: string) => getMyPolls('ended', cursor, 20);
+const fetchPage = (cursor: string) => getMyPolls('ended', cursor, NOTIFICATIONS_PAGE_SIZE);
 
 export function NotificationList({ initialPage }: { initialPage: CursorPage<Poll> | null }) {
 	const { t } = useLanguage();
-	const { refresh } = useUnreadCount();
 	const list = useCursorList(initialPage, fetchPage);
 
-	// Opening a Poll reads its notification; the list and badge update at once
+	// The Poll's page marks it read; clear the dot here at once
 	const open = (poll: Poll) => {
 		if (!poll.unread) return;
 		list.setItems((items) => items.map((p) => (p.id === poll.id ? { ...p, unread: false } : p)));
-		markNotificationRead(poll.id).then(refresh);
 	};
 
 	return (
@@ -46,27 +40,23 @@ export function NotificationList({ initialPage }: { initialPage: CursorPage<Poll
 			) : (
 				<ul className="space-y-2.5">
 					{list.items.map((poll) => (
-						<li key={poll.id}>
-							<Link
-								href={`/poll/${poll.id}`}
-								onClick={() => open(poll)}
-								className={cn(
-									'flex items-center gap-3 rounded-xl border bg-card p-4 transition-colors hover:border-primary/30',
-									poll.unread ? 'border-primary/40' : 'border-border'
-								)}
-							>
-								<span
-									aria-label={poll.unread ? t('notifications.unread') : undefined}
-									className={cn('size-2 shrink-0 rounded-full', poll.unread ? 'bg-primary' : 'bg-transparent')}
-								/>
-								<div className="min-w-0 flex-1">
-									<p className={cn('truncate leading-snug', poll.unread && 'font-semibold')}>{poll.title}</p>
-									<p className="mt-1 text-xs text-muted-foreground">
-										{t(isCancelled(poll) ? 'notifications.cancelled' : 'notifications.ended')}
-									</p>
-								</div>
-							</Link>
-						</li>
+						<PollListItem
+							key={poll.id}
+							poll={poll}
+							onClick={() => open(poll)}
+							className={poll.unread ? 'border-primary/40 font-semibold' : undefined}
+							meta={
+								<>
+									{poll.unread && (
+										<span
+											aria-label={t('notifications.unread')}
+											className="mr-1.5 inline-block size-2 rounded-full bg-primary align-middle"
+										/>
+									)}
+									{t(isCancelled(poll) ? 'notifications.cancelled' : 'notifications.ended')}
+								</>
+							}
+						/>
 					))}
 				</ul>
 			)}

@@ -4,18 +4,18 @@ import { redirect } from 'next/navigation';
 import { getMyProfile } from '@/data/auth';
 import { ballotHistory, computeInsights } from '@/features/account/insights';
 import { getMyPolls } from '@/features/polls/service';
+import { EMPTY_PAGE } from '@/lib/api/cursor';
 
 import AccountPage from './_components/AccountPage';
 
 export const metadata: Metadata = { title: 'Your account' };
 
 export default async function Page() {
-	const empty = { items: [], nextCursor: null };
 	// The latest 50 of each: Polls the user created or holds a Ballot in
 	const [profile, open, ended] = await Promise.all([
 		getMyProfile(),
-		getMyPolls('open').catch(() => empty),
-		getMyPolls('ended').catch(() => empty),
+		getMyPolls('open').catch(() => EMPTY_PAGE),
+		getMyPolls('ended').catch(() => EMPTY_PAGE),
 	]);
 	if (!profile) redirect('/login?redirect=/account');
 	const polls = [...open.items, ...ended.items];

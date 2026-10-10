@@ -197,12 +197,12 @@ type CommentItemProps = {
 	viewerId?: string;
 	thread: CommentsState;
 	requireAuth: (action: () => void) => void;
-	/** On a Reply: opens the top-level Comment's composer, addressed to this author. */
+	/** Opens the top-level Comment's Reply composer, addressed to this author. */
 	onReply?: (author: string) => void;
 };
 
 /** A top-level Comment and its Replies. Replies are one level deep. */
-function CommentItem(props: CommentItemProps) {
+function CommentItem(props: Omit<CommentItemProps, 'onReply'>) {
 	const { comment, viewerId, thread, requireAuth } = props;
 	const { t } = useLanguage();
 	// Replying to a Reply addresses its author; the API files it under this Comment
@@ -212,27 +212,28 @@ function CommentItem(props: CommentItemProps) {
 	const openComposer = (author?: string | null) =>
 		requireAuth(() => setReplyPrefix(author ? `@${author} ` : ''));
 
-	if (comment.parentId) return <CommentBody {...props} />;
+	// One button walks the Replies: view them, retry a failed page, or load more
+	let repliesAction: string | null = null;
+	if (!replyList) {
+		if (replyCount > 0) {
+			repliesAction = t(replyCount === 1 ? 'comments.viewReply' : 'comments.viewReplies', { count: replyCount });
+		}
+	} else if (replyList.status === 'error') {
+		repliesAction = t('comments.retry');
+	} else if (replyList.status === 'ready' && replyList.nextCursor) {
+		repliesAction = t('comments.moreReplies');
+	}
 
 	return (
 		<div className="space-y-3">
 			<CommentBody {...props} onReply={() => openComposer()} />
 			{(replyCount > 0 || replyList || replyPrefix !== null) && (
 				<div className="ml-11 space-y-3 border-l border-border/60 pl-3">
-					{!replyList && replyCount > 0 && (
-						<button
-							type="button"
-							className="text-xs font-medium text-muted-foreground hover:text-foreground"
-							onClick={() => thread.loadReplies(comment.id)}
-						>
-							{t(replyCount === 1 ? 'comments.viewReply' : 'comments.viewReplies', { count: replyCount })}
-						</button>
-					)}
 					{replyList && (
 						<ul className="space-y-3">
 							{replyList.items.map((reply) => (
 								<li key={reply.id}>
-									<CommentItem
+									<CommentBody
 										comment={reply}
 										viewerId={viewerId}
 										thread={thread}
@@ -244,18 +245,13 @@ function CommentItem(props: CommentItemProps) {
 						</ul>
 					)}
 					{replyList?.status === 'loading' && <Skeleton className="h-10 rounded-lg" />}
-					{replyList?.status === 'error' && (
-						<button type="button" className="text-xs underline" onClick={() => thread.loadReplies(comment.id)}>
-							{t('comments.retry')}
-						</button>
-					)}
-					{replyList?.status === 'ready' && replyList.nextCursor && (
+					{repliesAction && (
 						<button
 							type="button"
 							className="text-xs font-medium text-muted-foreground hover:text-foreground"
 							onClick={() => thread.loadReplies(comment.id)}
 						>
-							{t('comments.moreReplies')}
+							{repliesAction}
 						</button>
 					)}
 					{replyPrefix !== null && (

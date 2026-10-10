@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { LoadMore } from '@/components/LoadMore';
 import { Spinner } from '@/components/ui/Spinner';
@@ -67,11 +67,12 @@ export function ExploreView({
 	const [isSearching, setIsSearching] = useState(false);
 	const [searchFailed, setSearchFailed] = useState(initialPage === null);
 
-	// Keyed by its JSON, so keystrokes that don't change the query don't refetch
-	const queryKey = JSON.stringify(toExploreQuery(query, status, sort));
+	// Memoized on its fields, so keystrokes that don't change the query don't refetch
+	const { sort: apiSort, q } = toExploreQuery(query, status, sort);
+	const apiQuery = useMemo(() => ({ status, sort: apiSort, q }), [status, apiSort, q]);
 	const fetchPage = useCallback(
-		(cursor: string) => getPolls(JSON.parse(queryKey), cursor, EXPLORE_PAGE_SIZE),
-		[queryKey]
+		(cursor: string) => getPolls(apiQuery, cursor, EXPLORE_PAGE_SIZE),
+		[apiQuery]
 	);
 	const list = useCursorList(initialPage, fetchPage);
 	const { reset } = list;
@@ -87,7 +88,7 @@ export function ExploreView({
 		const timer = setTimeout(async () => {
 			setIsSearching(true);
 			try {
-				const page = await getPolls(JSON.parse(queryKey), null, EXPLORE_PAGE_SIZE);
+				const page = await getPolls(apiQuery, null, EXPLORE_PAGE_SIZE);
 				if (ignore) return;
 				reset(page);
 				setSearchFailed(false);
@@ -101,7 +102,7 @@ export function ExploreView({
 			ignore = true;
 			clearTimeout(timer);
 		};
-	}, [queryKey, reset]);
+	}, [apiQuery, reset]);
 
 	return (
 		<div className="space-y-8">

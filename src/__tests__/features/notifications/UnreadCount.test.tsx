@@ -94,18 +94,13 @@ describe('NotificationList', () => {
 		unread: true,
 	} as Poll;
 
-	it('marks a notification read when it is opened, and refreshes the badge', async () => {
-		render(
-			<UnreadCountProvider signedIn>
-				<NotificationList initialPage={{ items: [poll], nextCursor: null }} />
-			</UnreadCountProvider>
-		);
+	it('clears the dot when opened, leaving the marking to the poll page', () => {
+		render(<NotificationList initialPage={{ items: [poll], nextCursor: null }} />);
 		expect(screen.getByLabelText('Unread')).toBeInTheDocument();
 
 		fireEvent.click(screen.getByText('Lunch?'));
-		expect(mockMarkRead).toHaveBeenCalledWith('p1');
 		expect(screen.queryByLabelText('Unread')).not.toBeInTheDocument();
-		await waitFor(() => expect(mockGetUnreadCount).toHaveBeenCalledTimes(2));
+		expect(mockMarkRead).not.toHaveBeenCalled();
 	});
 
 	it('labels a cancelled poll', () => {

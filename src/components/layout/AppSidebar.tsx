@@ -71,6 +71,8 @@ const navigationItems = [
 		id: 'linkNotifications',
 		url: '/notifications',
 		icon: Bell,
+		requiresAuth: true,
+		showsUnreadCount: true,
 	},
 ];
 
@@ -127,8 +129,8 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 					<SidebarGroupContent>
 						<SidebarMenu className="gap-0.5">
 							{navigationItems.map((item) => {
-								if (item.id === 'linkNotifications' && !userSession) return null;
-								const badge = item.id === 'linkNotifications' ? unreadCount : 0;
+								if (item.requiresAuth && !userSession) return null;
+								const badge = item.showsUnreadCount ? unreadCount : 0;
 								const isActive =
 									item.id !== 'actionCreatePoll' &&
 									(item.url === '/'

@@ -1,5 +1,7 @@
 import Link from 'next/link';
 
+import { cn } from '@/lib/utils';
+
 import type { Poll } from '../schema';
 
 type PollListItemProps = {
@@ -8,15 +10,21 @@ type PollListItemProps = {
 	meta: React.ReactNode;
 	/** Shown at the right, e.g. a status chip or outcome. */
 	aside?: React.ReactNode;
+	onClick?: () => void;
+	className?: string;
 };
 
 /** A compact, linked poll row for lists (account, explore). */
-export function PollListItem({ poll, meta, aside }: PollListItemProps) {
+export function PollListItem({ poll, meta, aside, onClick, className }: PollListItemProps) {
 	return (
 		<li>
 			<Link
 				href={`/poll/${poll.id}`}
-				className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary/30"
+				onClick={onClick}
+				className={cn(
+					'flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary/30',
+					className
+				)}
 			>
 				<div className="min-w-0 flex-1">
 					<p className="truncate leading-snug text-foreground">{poll.title}</p>

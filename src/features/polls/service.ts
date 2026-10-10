@@ -4,7 +4,7 @@ import { revalidateTag, updateTag } from 'next/cache';
 import { unstable_rethrow } from 'next/navigation';
 
 import { apiClient, ApiError, AuthError, publicFetch } from '@/lib/api/client';
-import { type CursorPage, cursorPageSchema, pageParams } from '@/lib/api/cursor';
+import { type CursorPage, cursorPageSchema, MAX_PAGE_SIZE, pageParams } from '@/lib/api/cursor';
 
 import { FEED_TAG, pollTag } from './cache';
 import { SEARCH_MIN_LENGTH } from './constants';
@@ -26,12 +26,6 @@ import {
 } from './schema';
 
 const PollPage = cursorPageSchema(PollSchema);
-/** The API clamps `limit` to 1–50; clamp here too so the cursor stays meaningful. */
-const MAX_PAGE_SIZE = 50;
-
-function clampLimit(limit: number) {
-	return Math.min(Math.max(1, Math.floor(limit) || 1), MAX_PAGE_SIZE);
-}
 
 function toFailure(error: unknown): ActionFailure {
 	unstable_rethrow(error);
@@ -76,11 +70,15 @@ function toRequestBody(input: PollInput) {
 const CACHED_LIST = { next: { revalidate: 30, tags: [FEED_TAG] } } as RequestInit;
 
 /**
- * As the viewer when signed in, so each Poll carries `myOptionId` (apiClient
- * keeps those out of the shared cache); guests share the cached page.
+ * `asViewer`: signed-in viewers get each Poll's `myOptionId` (apiClient keeps
+ * those out of the shared cache). Lists that never show the viewer's Ballot
+ * read the shared cached page.
  */
-async function fetchPollPage(path: string, params: URLSearchParams) {
-	const data = await apiClient(`${path}?${params}`, { auth: 'optional', ...CACHED_LIST });
+async function fetchPollPage(path: string, params: URLSearchParams, { asViewer = false } = {}) {
+	const url = `${path}?${params}`;
+	const data = asViewer
+		? await apiClient(url, { auth: 'optional', ...CACHED_LIST })
+		: await publicFetch(url, CACHED_LIST);
 	return PollPage.parse(data);
 }
 
@@ -94,24 +92,28 @@ export type PollListQuery = {
 	q?: string;
 };
 
-/** Feed, Explore and Search. Only Open or Ended Polls; Scheduled ones are never listed. */
+/**
+ * Explore and Search, from the shared cache. Only Open or Ended Polls;
+ * Scheduled ones are never listed.
+ */
 export async function getPolls(
 	query: PollListQuery = {},
 	cursor?: string | null,
-	limit = 10
+	limit = 10,
+	{ asViewer = false } = {}
 ): Promise<CursorPage<Poll>> {
-	const params = pageParams(cursor, clampLimit(limit));
+	const params = pageParams(cursor, limit);
 	if (query.status === 'ended') params.set('status', 'ended');
 	else if (query.sort) params.set('sort', query.sort);
 	if (query.tag) params.set('tag', query.tag);
 	const q = query.q?.trim();
 	if (q && q.length >= SEARCH_MIN_LENGTH) params.set('q', q);
-	return fetchPollPage('/votes', params);
+	return fetchPollPage('/votes', params, { asViewer });
 }
 
-/** The home feed: Open Polls, most recently opened first. */
+/** The home feed: Open Polls, most recently opened first, with the viewer's Ballots. */
 export async function getFeed(cursor?: string | null, size = 10, tag?: string) {
-	return getPolls({ tag }, cursor, size);
+	return getPolls({ tag }, cursor, size, { asViewer: true });
 }
 
 const TagPage = cursorPageSchema(TagDtoSchema);
@@ -119,7 +121,7 @@ const TagPage = cursorPageSchema(TagDtoSchema);
 /** Most-used topics first, for the feed's topic tabs. Empty when the API is down. */
 export async function getPopularTags(size = 12): Promise<TagDto[]> {
 	try {
-		const data = await publicFetch(`/tags/popular?${pageParams(null, clampLimit(size))}`, {
+		const data = await publicFetch(`/tags/popular?${pageParams(null, size)}`, {
 			next: { revalidate: 300 },
 		} as RequestInit);
 		return TagPage.parse(data).items;
@@ -136,7 +138,7 @@ export async function getUserPolls(
 ): Promise<CursorPage<Poll>> {
 	return fetchPollPage(
 		`/users/${encodeURIComponent(username)}/votes`,
-		pageParams(cursor, clampLimit(limit))
+		pageParams(cursor, limit)
 	);
 }
 
@@ -150,7 +152,7 @@ export async function getMyPolls(
 	cursor?: string | null,
 	limit = MAX_PAGE_SIZE
 ): Promise<CursorPage<Poll>> {
-	const params = pageParams(cursor, clampLimit(limit));
+	const params = pageParams(cursor, limit);
 	if (status === 'ended') params.set('status', 'ended');
 	return PollPage.parse(await apiClient(`/votes/my?${params}`));
 }
@@ -314,7 +316,8 @@ export async function postComment(
 		CommentSchema.parse(
 			await apiClient(`/votes/${pollId}/comments`, {
 				method: 'POST',
-				body: JSON.stringify(parentId ? { text, parentId } : { text }),
+				// JSON leaves out an undefined parentId
+				body: JSON.stringify({ text, parentId }),
 			})
 		)
 	);

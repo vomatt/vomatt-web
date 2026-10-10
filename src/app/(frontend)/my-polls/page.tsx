@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { getUserSession } from '@/data/auth';
 import { PollListSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import { getMyPolls } from '@/features/polls/service';
+import { EMPTY_PAGE } from '@/lib/api/cursor';
 
 import MyPollsTabs from './_components/MyPollsTabs';
 
@@ -32,10 +33,9 @@ export default async function MyPollsPage() {
 
 async function MyPolls() {
 	// API unavailable — render empty lists instead of crashing
-	const empty = { items: [], nextCursor: null };
 	const [open, ended] = await Promise.all([
-		getMyPolls('open').catch(() => empty),
-		getMyPolls('ended').catch(() => empty),
+		getMyPolls('open').catch(() => EMPTY_PAGE),
+		getMyPolls('ended').catch(() => EMPTY_PAGE),
 	]);
 
 	return <MyPollsTabs open={open} ended={ended} />;
