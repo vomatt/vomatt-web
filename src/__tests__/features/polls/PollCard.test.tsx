@@ -189,7 +189,7 @@ describe('PollCard state B · Open, has Ballot', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: 'Withdraw' }));
 
-		expect(mockRetractBallot).toHaveBeenCalledWith('poll-1', 'opt-sun');
+		expect(mockRetractBallot).toHaveBeenCalledWith('poll-1');
 		expect(screen.getByText('127 voted')).toBeInTheDocument();
 		await waitFor(() =>
 			expect(screen.getByRole('button', { name: 'Vote' })).toBeInTheDocument()
@@ -405,13 +405,13 @@ describe('PollCard signed-out visitor', () => {
 	});
 
 	it('opens sign-in on posting a comment, then posts it', async () => {
-		mockGetComments.mockResolvedValue({ ok: true, data: { items: [], nextCursor: null, total: 0 } });
+		mockGetComments.mockResolvedValue({ ok: true, data: { items: [], nextCursor: null } });
 		mockPostComment.mockResolvedValue({
 			ok: true,
 			data: { id: 'c1', author: 'voter', text: 'Hello', createdAt: '2026-10-05T00:00:00Z' },
 		});
-		render(<PollCard poll={openPoll} />);
-		fireEvent.click(screen.getByText('Discuss'));
+		render(<PollCard poll={{ ...openPoll, commentCount: 0 }} />);
+		fireEvent.click(screen.getByText('0 comments'));
 		fireEvent.change(await screen.findByPlaceholderText('Why did you vote the way you did?'), {
 			target: { value: 'Hello' },
 		});
@@ -421,7 +421,7 @@ describe('PollCard signed-out visitor', () => {
 		await act(async () => {
 			fireEvent.click(screen.getByText('Mock Auth Success'));
 		});
-		expect(mockPostComment).toHaveBeenCalledWith('poll-1', 'Hello');
+		expect(mockPostComment).toHaveBeenCalledWith('poll-1', 'Hello', undefined);
 		expect(screen.queryByTestId('auth-dialog')).not.toBeInTheDocument();
 		expect(await screen.findByText('Hello')).toBeInTheDocument();
 		expect(screen.getByText('1 comment')).toBeInTheDocument();
@@ -448,7 +448,7 @@ describe('PollCard signed-out visitor', () => {
 	});
 
 	it('keeps the comment text when the guest backs out of sign-in', async () => {
-		mockGetComments.mockResolvedValue({ ok: true, data: { items: [], nextCursor: null, total: 0 } });
+		mockGetComments.mockResolvedValue({ ok: true, data: { items: [], nextCursor: null } });
 		render(<PollCard poll={openPoll} />);
 		fireEvent.click(screen.getByText('Discuss'));
 		const box = await screen.findByPlaceholderText('Why did you vote the way you did?');

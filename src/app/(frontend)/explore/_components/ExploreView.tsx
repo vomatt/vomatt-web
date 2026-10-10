@@ -1,40 +1,37 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { LoadMore } from '@/components/LoadMore';
+import { Spinner } from '@/components/ui/Spinner';
 import { Search } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PollListItem } from '@/features/polls/components/PollListItem';
 import { StatusChip } from '@/features/polls/components/StatusChip';
+import { EXPLORE_PAGE_SIZE, SEARCH_MIN_LENGTH } from '@/features/polls/constants';
 import type { Poll, TagDto } from '@/features/polls/schema';
+import { getPolls, type PollListQuery } from '@/features/polls/service';
 import { derivePollStatus, getTurnout } from '@/features/polls/status';
+import { useCursorList } from '@/hooks/useCursorList';
+import type { CursorPage } from '@/lib/api/cursor';
 import { topicHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
-type Filter = 'all' | 'open' | 'ended';
-type Sort = 'newest' | 'popular' | 'ending';
+type Status = 'open' | 'ended';
+type Sort = 'newest' | 'closing';
 
-/** Filters, sorts and searches the polls the server loaded; the API has no search yet. */
-export function filterPolls(polls: Poll[], query: string, filter: Filter, sort: Sort, now = Date.now()) {
-	const needle = query.trim().toLowerCase();
-	const matches = polls.filter((poll) => {
-		const status = derivePollStatus(poll, now);
-		if (filter === 'open' && (status === 'ended' || status === 'scheduled')) return false;
-		if (filter === 'ended' && status !== 'ended') return false;
-		if (!needle) return true;
-		return [poll.title, poll.description ?? '', ...poll.options.map((o) => o.text)]
-			.join(' ')
-			.toLowerCase()
-			.includes(needle);
-	});
+const SEARCH_DEBOUNCE_MS = 300;
 
-	const endsAt = (poll: Poll) => (poll.endTime ? Date.parse(poll.endTime) : Infinity);
-	return [...matches].sort((a, b) => {
-		if (sort === 'popular') return (getTurnout(b) ?? 0) - (getTurnout(a) ?? 0);
-		if (sort === 'ending') return endsAt(a) - endsAt(b);
-		return Date.parse(b.createdAt) - Date.parse(a.createdAt);
-	});
+/** The query sent to the API; a search under the minimum length is no search. */
+export function toExploreQuery(query: string, status: Status, sort: Sort): PollListQuery {
+	const q = query.trim();
+	return {
+		status,
+		// Ended Polls have a fixed order; the API rejects a sort for them
+		sort: status === 'open' ? sort : undefined,
+		q: q.length >= SEARCH_MIN_LENGTH ? q : undefined,
+	};
 }
 
 function Pill({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
@@ -55,12 +52,56 @@ function Pill({ active, onClick, children }: { active: boolean; onClick: () => v
 	);
 }
 
-export function ExploreView({ polls, tags }: { polls: Poll[]; tags: TagDto[] }) {
+export function ExploreView({
+	initialPage,
+	tags,
+}: {
+	/** Open Polls, newest first; null when the API couldn't be reached. */
+	initialPage: CursorPage<Poll> | null;
+	tags: TagDto[];
+}) {
 	const { t } = useLanguage();
 	const [query, setQuery] = useState('');
-	const [filter, setFilter] = useState<Filter>('all');
+	const [status, setStatus] = useState<Status>('open');
 	const [sort, setSort] = useState<Sort>('newest');
-	const results = useMemo(() => filterPolls(polls, query, filter, sort), [polls, query, filter, sort]);
+	const [isSearching, setIsSearching] = useState(false);
+	const [searchFailed, setSearchFailed] = useState(initialPage === null);
+
+	// Keyed by its JSON, so keystrokes that don't change the query don't refetch
+	const queryKey = JSON.stringify(toExploreQuery(query, status, sort));
+	const fetchPage = useCallback(
+		(cursor: string) => getPolls(JSON.parse(queryKey), cursor, EXPLORE_PAGE_SIZE),
+		[queryKey]
+	);
+	const list = useCursorList(initialPage, fetchPage);
+	const { reset } = list;
+
+	// A new query starts from its own first page; typing waits for a pause
+	const isFirstQuery = useRef(true);
+	useEffect(() => {
+		if (isFirstQuery.current) {
+			isFirstQuery.current = false;
+			return;
+		}
+		let ignore = false;
+		const timer = setTimeout(async () => {
+			setIsSearching(true);
+			try {
+				const page = await getPolls(JSON.parse(queryKey), null, EXPLORE_PAGE_SIZE);
+				if (ignore) return;
+				reset(page);
+				setSearchFailed(false);
+			} catch {
+				if (!ignore) setSearchFailed(true);
+			} finally {
+				if (!ignore) setIsSearching(false);
+			}
+		}, SEARCH_DEBOUNCE_MS);
+		return () => {
+			ignore = true;
+			clearTimeout(timer);
+		};
+	}, [queryKey, reset]);
 
 	return (
 		<div className="space-y-8">
@@ -104,22 +145,28 @@ export function ExploreView({ polls, tags }: { polls: Poll[]; tags: TagDto[] }) 
 
 				<div className="flex flex-wrap items-center justify-between gap-3">
 					<div className="flex gap-1.5" role="group" aria-label={t('explore.status')}>
-						<Pill active={filter === 'all'} onClick={() => setFilter('all')}>{t('explore.filterAll')}</Pill>
-						<Pill active={filter === 'open'} onClick={() => setFilter('open')}>{t('explore.filterActive')}</Pill>
-						<Pill active={filter === 'ended'} onClick={() => setFilter('ended')}>{t('explore.filterEnded')}</Pill>
+						<Pill active={status === 'open'} onClick={() => setStatus('open')}>{t('explore.filterActive')}</Pill>
+						<Pill active={status === 'ended'} onClick={() => setStatus('ended')}>{t('explore.filterEnded')}</Pill>
 					</div>
-					<div className="flex gap-1.5" role="group" aria-label={t('explore.sort')}>
-						<Pill active={sort === 'newest'} onClick={() => setSort('newest')}>{t('explore.sortNewest')}</Pill>
-						<Pill active={sort === 'popular'} onClick={() => setSort('popular')}>{t('explore.sortMostVotes')}</Pill>
-						<Pill active={sort === 'ending'} onClick={() => setSort('ending')}>{t('explore.sortEnding')}</Pill>
-					</div>
+					{status === 'open' && (
+						<div className="flex gap-1.5" role="group" aria-label={t('explore.sort')}>
+							<Pill active={sort === 'newest'} onClick={() => setSort('newest')}>{t('explore.sortNewest')}</Pill>
+							<Pill active={sort === 'closing'} onClick={() => setSort('closing')}>{t('explore.sortEnding')}</Pill>
+						</div>
+					)}
 				</div>
 
-				{results.length === 0 ? (
+				{isSearching ? (
+					<div className="flex justify-center py-12">
+						<Spinner />
+					</div>
+				) : searchFailed ? (
+					<p className="py-12 text-center text-sm text-muted-foreground">{t('explore.loadFailed')}</p>
+				) : list.items.length === 0 ? (
 					<p className="py-12 text-center text-sm text-muted-foreground">{t('explore.noResults')}</p>
 				) : (
 					<ul className="space-y-2.5">
-						{results.map((poll) => (
+						{list.items.map((poll) => (
 							<PollListItem
 								key={poll.id}
 								poll={poll}
@@ -134,7 +181,10 @@ export function ExploreView({ polls, tags }: { polls: Poll[]; tags: TagDto[] }) 
 						))}
 					</ul>
 				)}
-				<p className="text-center text-xs text-muted-foreground">{t('explore.recentOnly')}</p>
+				{!isSearching && !searchFailed && <LoadMore list={list} />}
+				{query.trim().length > 0 && query.trim().length < SEARCH_MIN_LENGTH && (
+					<p className="text-center text-xs text-muted-foreground">{t('explore.searchTooShort')}</p>
+				)}
 			</section>
 		</div>
 	);

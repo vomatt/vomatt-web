@@ -1,5 +1,6 @@
 import { getTokens } from '@/lib/api/auth';
 import { API_BASE_PATH } from '@/lib/api/constants';
+import { getServerLocale } from '@/lib/getServerLocale';
 
 export { API_BASE_PATH } from '@/lib/api/constants';
 
@@ -23,11 +24,18 @@ export class ApiError extends Error {
 	constructor(
 		message: string,
 		public statusCode: number,
-		public data?: any
+		public data?: any,
+		/** Seconds to wait before retrying, from a 429's `Retry-After`. */
+		public retryAfter?: number
 	) {
 		super(message);
 		this.name = 'ApiError';
 	}
+}
+
+function readRetryAfter(response: Response) {
+	const seconds = Number(response.headers.get('Retry-After'));
+	return Number.isFinite(seconds) && seconds > 0 ? seconds : undefined;
 }
 
 /**
@@ -44,7 +52,7 @@ async function parseApiResponseBody<T>(response: Response): Promise<T> {
 			errorData = text ? JSON.parse(text) : undefined;
 			errorMessage = errorData?.message ?? errorData?.errorCode ?? errorMessage;
 		} catch {}
-		throw new ApiError(errorMessage, response.status, errorData);
+		throw new ApiError(errorMessage, response.status, errorData, readRetryAfter(response));
 	}
 
 	const contentType = response.headers.get('content-type');
@@ -98,6 +106,11 @@ export async function apiClient<T = any>(
 	const headers = new Headers(customHeaders);
 	if (!isFormData && !headers.has('Content-Type')) {
 		headers.set('Content-Type', 'application/json');
+	}
+	// Error messages the UI shows as-is come back in the viewer's language
+	if (!headers.has('Accept-Language')) {
+		const { language } = await getServerLocale();
+		headers.set('Accept-Language', language === 'zh' ? 'zh-TW' : 'en');
 	}
 
 	const accessToken = (await getTokens())?.accessToken;

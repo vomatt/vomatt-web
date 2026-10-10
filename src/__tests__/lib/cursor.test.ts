@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { cursorPageSchema, mergeById } from '@/lib/api/cursor';
+import { cursorPageSchema, mergeById, pageParams } from '@/lib/api/cursor';
 
 const Item = z.object({ id: z.string() });
 const Page = cursorPageSchema(Item);
@@ -17,31 +17,20 @@ describe('cursorPageSchema()', () => {
 		expect(Page.parse({ items: [] }).nextCursor).toBeNull();
 	});
 
-	it('parses a Spring page, using the next page number as the cursor', () => {
-		expect(Page.parse({ content: [{ id: 'a' }], last: false, number: 2 })).toEqual({
-			items: [{ id: 'a' }],
-			nextCursor: '3',
-		});
-	});
-
-	it('returns no cursor on the last Spring page', () => {
-		expect(Page.parse({ content: [], last: true, number: 4 }).nextCursor).toBeNull();
-	});
-
-	it('parses a vomatt-api PageResponse (1-based), using the next page as the cursor', () => {
-		expect(Page.parse({ content: [{ id: 'a' }], total: 45, page: 2, limit: 20 })).toEqual({
-			items: [{ id: 'a' }],
-			nextCursor: '3',
-			total: 45,
-		});
-	});
-
-	it('returns no cursor on the last PageResponse page', () => {
-		expect(Page.parse({ content: [], total: 40, page: 2, limit: 20 }).nextCursor).toBeNull();
-	});
-
 	it('rejects other shapes', () => {
 		expect(() => Page.parse({ data: [] })).toThrow();
+		// The old offset page is gone from the API
+		expect(() => Page.parse({ content: [], total: 0, page: 1, limit: 20 })).toThrow();
+	});
+});
+
+describe('pageParams()', () => {
+	it('sends only the limit on the first page', () => {
+		expect(pageParams(null, 20).toString()).toBe('limit=20');
+	});
+
+	it('passes the cursor back as given', () => {
+		expect(pageParams('abc=', 10).get('cursor')).toBe('abc=');
 	});
 });
 

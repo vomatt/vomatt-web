@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { getMyProfile } from '@/data/auth';
 import { PollListSkeleton } from '@/features/polls/components/PollCardSkeleton';
-import { getPollsByCreator } from '@/features/polls/service';
+import { getUserPolls } from '@/features/polls/service';
 import { getUserProfile } from '@/lib/api/services/users';
 
 import ProfileHeader from './_components/ProfileHeader';
@@ -27,7 +27,7 @@ export default async function ProfilePage({
 async function Profile({ username }: { username: string }) {
 	const [profile, polls, me] = await Promise.all([
 		getUserProfile(username),
-		getPollsByCreator(username),
+		getUserPolls(username).catch(() => ({ items: [], nextCursor: null })),
 		getMyProfile(),
 	]);
 
@@ -48,7 +48,7 @@ async function Profile({ username }: { username: string }) {
 			/>
 			<div>
 				<h2 className="text-lg font-semibold mb-4">Polls</h2>
-				<ProfilePollList polls={polls} />
+				<ProfilePollList username={username} initialPage={polls} />
 			</div>
 		</>
 	);

@@ -29,8 +29,11 @@ export function useBallot(poll: Poll, { isAuthed, onPollEnded }: Options) {
 	const [selected, setSelected] = useState(poll.myOptionId ?? null);
 	const [turnout, setTurnout] = useState(getTurnout(poll));
 	const [isPending, setIsPending] = useState(false);
+	// A guest's Poll says null for "no Ballot", which means nothing once they sign in here
+	const [loadedSignedIn] = useState(isAuthed);
+	const hasServerBallot = loadedSignedIn && poll.myOptionId !== undefined;
 	// Whether myOptionId reflects the server, and whether the viewer has voted or withdrawn here
-	const isBallotKnown = useRef(poll.myOptionId !== undefined);
+	const isBallotKnown = useRef(hasServerBallot);
 	const hasActed = useRef(false);
 
 	// A refetched Poll carries fresh counts, and a fresh myOptionId once the API sends it
@@ -43,8 +46,8 @@ export function useBallot(poll: Poll, { isAuthed, onPollEnded }: Options) {
 		}
 	}
 
-	// Until backend 3 returns myOptionId on the Poll, ask for it separately
-	const needsBallot = isAuthed && poll.myOptionId === undefined;
+	// Signed in after the Poll loaded: ask for the Ballot separately
+	const needsBallot = isAuthed && !hasServerBallot;
 	useEffect(() => {
 		if (!needsBallot) return;
 		let ignore = false;
@@ -72,7 +75,7 @@ export function useBallot(poll: Poll, { isAuthed, onPollEnded }: Options) {
 			setSelected(next);
 
 			// Right after sign-in the existing Ballot isn't loaded yet; Turnout depends on it
-			const known = isBallotKnown.current || poll.myOptionId !== undefined;
+			const known = isBallotKnown.current || hasServerBallot;
 			const previous = known ? myOptionId : await getMyBallot(poll.id);
 			isBallotKnown.current = true;
 			const turnoutDelta = (next ? 1 : 0) - (previous ? 1 : 0);
@@ -93,7 +96,7 @@ export function useBallot(poll: Poll, { isAuthed, onPollEnded }: Options) {
 			toast.error(failureMessage);
 			return 'failed';
 		},
-		[myOptionId, onPollEnded, poll.id, poll.myOptionId, t]
+		[hasServerBallot, myOptionId, onPollEnded, poll.id, t]
 	);
 
 	/** Casts a first Ballot or replaces the current one. Resolves to the outcome. */
@@ -103,12 +106,11 @@ export function useBallot(poll: Poll, { isAuthed, onPollEnded }: Options) {
 		[poll.id, run, t]
 	);
 
-	/** Withdraws the current Ballot; the API removes it by option. Resolves to the outcome. */
+	/** Withdraws the current Ballot. Resolves to the outcome. */
 	const retract = useCallback(async (): Promise<BallotOutcome> => {
 		// Nothing to withdraw is already the desired state, not a failure
 		if (!myOptionId) return 'saved';
-		const optionId = myOptionId;
-		return run(() => retractBallot(poll.id, optionId), null, t('poll.withdrawFailed'));
+		return run(() => retractBallot(poll.id), null, t('poll.withdrawFailed'));
 	}, [myOptionId, poll.id, run, t]);
 
 	return { myOptionId, selected, setSelected, turnout, isPending, cast, retract };

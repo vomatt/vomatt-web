@@ -81,18 +81,17 @@
 	},
 	"explore": {
 		"title": "探索",
-		"searchPlaceholder": "搜尋投票與選項…",
-		"filterAll": "全部",
+		"searchPlaceholder": "搜尋投票標題與說明…",
 		"filterActive": "進行中",
 		"filterEnded": "已結束",
 		"sortNewest": "最新",
-		"sortMostVotes": "最多票數",
 		"noResults": "找不到投票。",
 		"topics": "依主題瀏覽",
 		"status": "狀態",
 		"sort": "排序",
 		"sortEnding": "即將結束",
-		"recentOnly": "搜尋範圍為最近 50 個投票。"
+		"searchTooShort": "請至少輸入 2 個字再搜尋。",
+		"loadFailed": "無法載入投票。"
 	},
 	"pollDetail": {
 		"backToFeed": "返回",
@@ -116,7 +115,13 @@
 	},
 	"notifications": {
 		"title": "通知",
-		"empty": "目前沒有通知。"
+		"empty": "目前沒有通知。",
+		"unread": "未讀",
+		"intro": "你建立或參與、且已結束的投票。",
+		"markAllHint": "打開投票即標為已讀。",
+		"loadFailed": "無法載入通知。",
+		"ended": "結果出爐",
+		"cancelled": "已取消"
 	},
 	"pollCreator": {
 		"title": "創建新投票",
@@ -233,7 +238,11 @@
 		"keepPoll": "保留投票",
 		"cancelFailed": "無法取消投票，請再試一次。",
 		"stamp": "已投票",
-		"discuss": "討論"
+		"discuss": "討論",
+		"showVoters": "查看誰投了什麼",
+		"voters": "投票者",
+		"votersHidden": "你無法查看此投票的投票者。",
+		"votersFailed": "無法載入投票者。"
 	},
 	"auth": {
 		"continueWithEmail": "使用電子郵件繼續",
@@ -276,7 +285,13 @@
 		"deleteConfirm": "要刪除這則留言嗎？",
 		"postFailed": "留言發佈失敗，請再試一次。",
 		"editFailed": "無法儲存編輯。",
-		"deleteFailed": "無法刪除留言。"
+		"deleteFailed": "無法刪除留言。",
+		"reply": "回覆",
+		"replyPlaceholder": "寫下你的回覆…",
+		"viewReply": "查看 1 則回覆",
+		"viewReplies": "查看 {count} 則回覆",
+		"moreReplies": "顯示更多回覆",
+		"deleted": "此留言已刪除。"
 	},
 	"account": {
 		"publicProfile": "公開個人頁",

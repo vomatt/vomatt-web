@@ -2,7 +2,8 @@ import { Suspense } from 'react';
 
 import { Skeleton } from '@/components/ui/Skeleton';
 import { PollListSkeleton } from '@/features/polls/components/PollCardSkeleton';
-import { getPopularTags, getRecentPolls } from '@/features/polls/service';
+import { EXPLORE_PAGE_SIZE } from '@/features/polls/constants';
+import { getPolls, getPopularTags } from '@/features/polls/service';
 
 import { ExploreView } from './_components/ExploreView';
 
@@ -17,11 +18,11 @@ export default async function ExplorePage() {
 }
 
 async function ExploreContent() {
-	const [polls, tags] = await Promise.all([
-		getRecentPolls().catch(() => []),
+	const [firstPage, tags] = await Promise.all([
+		getPolls({ status: 'open' }, null, EXPLORE_PAGE_SIZE).catch(() => null),
 		getPopularTags(30),
 	]);
-	return <ExploreView polls={polls} tags={tags} />;
+	return <ExploreView initialPage={firstPage} tags={tags} />;
 }
 
 function ExploreSkeleton() {

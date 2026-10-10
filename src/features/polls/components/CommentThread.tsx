@@ -47,6 +47,7 @@ export function CommentThread({ thread, viewerId, requireAuth }: CommentThreadPr
 	return (
 		<section aria-label={t('comments.title')} className="space-y-4 border-t border-border/60 px-5 py-4">
 			<Composer
+				placeholder={t('comments.placeholder')}
 				requireAuth={requireAuth}
 				onPost={async (text) => {
 					const ok = await thread.add(text, t('comments.you'));
@@ -88,7 +89,7 @@ export function CommentThread({ thread, viewerId, requireAuth }: CommentThreadPr
 						>
 							<CommentItem
 								comment={comment}
-								isOwn={!!viewerId && comment.userId === viewerId}
+								viewerId={viewerId}
 								thread={thread}
 								requireAuth={requireAuth}
 							/>
@@ -115,12 +116,19 @@ export function CommentThread({ thread, viewerId, requireAuth }: CommentThreadPr
 function Composer({
 	onPost,
 	requireAuth,
+	placeholder,
+	initialText = '',
+	onCancel,
 }: {
 	onPost: (text: string) => Promise<boolean>;
 	requireAuth: (action: () => void) => void;
+	placeholder: string;
+	initialText?: string;
+	/** Shown for an inline Reply composer. */
+	onCancel?: () => void;
 }) {
 	const { t } = useLanguage();
-	const [text, setText] = useState('');
+	const [text, setText] = useState(initialText);
 	const [isPosting, setIsPosting] = useState(false);
 	const trimmed = text.trim();
 	const tooLong = text.length > COMMENT_MAX;
@@ -154,9 +162,10 @@ function Composer({
 						submit();
 					}
 				}}
-				placeholder={t('comments.placeholder')}
-				aria-label={t('comments.placeholder')}
+				placeholder={placeholder}
+				aria-label={placeholder}
 				rows={2}
+				autoFocus={!!onCancel}
 				className="min-h-[60px] resize-none text-sm"
 			/>
 			<div className="flex items-center justify-end gap-3">
@@ -170,32 +179,127 @@ function Composer({
 						{text.length}/{COMMENT_MAX}
 					</span>
 				)}
+				{onCancel && (
+					<Button type="button" size="sm" variant="ghost" onClick={onCancel}>
+						{t('common.cancel')}
+					</Button>
+				)}
 				<Button type="submit" size="sm" disabled={!trimmed || tooLong || isPosting}>
-					{t('comments.post')}
+					{onCancel ? t('comments.reply') : t('comments.post')}
 				</Button>
 			</div>
 		</form>
 	);
 }
 
-function CommentItem({
-	comment,
-	isOwn,
-	thread,
-	requireAuth,
-}: {
+type CommentItemProps = {
 	comment: Comment;
-	isOwn: boolean;
+	viewerId?: string;
 	thread: CommentsState;
 	requireAuth: (action: () => void) => void;
-}) {
+	/** On a Reply: opens the top-level Comment's composer, addressed to this author. */
+	onReply?: (author: string) => void;
+};
+
+/** A top-level Comment and its Replies. Replies are one level deep. */
+function CommentItem(props: CommentItemProps) {
+	const { comment, viewerId, thread, requireAuth } = props;
+	const { t } = useLanguage();
+	// Replying to a Reply addresses its author; the API files it under this Comment
+	const [replyPrefix, setReplyPrefix] = useState<string | null>(null);
+	const replyList = thread.replies[comment.id];
+	const replyCount = comment.replyCount ?? 0;
+	const openComposer = (author?: string | null) =>
+		requireAuth(() => setReplyPrefix(author ? `@${author} ` : ''));
+
+	if (comment.parentId) return <CommentBody {...props} />;
+
+	return (
+		<div className="space-y-3">
+			<CommentBody {...props} onReply={() => openComposer()} />
+			{(replyCount > 0 || replyList || replyPrefix !== null) && (
+				<div className="ml-11 space-y-3 border-l border-border/60 pl-3">
+					{!replyList && replyCount > 0 && (
+						<button
+							type="button"
+							className="text-xs font-medium text-muted-foreground hover:text-foreground"
+							onClick={() => thread.loadReplies(comment.id)}
+						>
+							{t(replyCount === 1 ? 'comments.viewReply' : 'comments.viewReplies', { count: replyCount })}
+						</button>
+					)}
+					{replyList && (
+						<ul className="space-y-3">
+							{replyList.items.map((reply) => (
+								<li key={reply.id}>
+									<CommentItem
+										comment={reply}
+										viewerId={viewerId}
+										thread={thread}
+										requireAuth={requireAuth}
+										onReply={(author) => openComposer(author)}
+									/>
+								</li>
+							))}
+						</ul>
+					)}
+					{replyList?.status === 'loading' && <Skeleton className="h-10 rounded-lg" />}
+					{replyList?.status === 'error' && (
+						<button type="button" className="text-xs underline" onClick={() => thread.loadReplies(comment.id)}>
+							{t('comments.retry')}
+						</button>
+					)}
+					{replyList?.status === 'ready' && replyList.nextCursor && (
+						<button
+							type="button"
+							className="text-xs font-medium text-muted-foreground hover:text-foreground"
+							onClick={() => thread.loadReplies(comment.id)}
+						>
+							{t('comments.moreReplies')}
+						</button>
+					)}
+					{replyPrefix !== null && (
+						<Composer
+							key={replyPrefix}
+							placeholder={t('comments.replyPlaceholder')}
+							initialText={replyPrefix}
+							requireAuth={requireAuth}
+							onCancel={() => setReplyPrefix(null)}
+							onPost={async (text) => {
+								// Show the thread the Reply lands in
+								if (!replyList && replyCount > 0) thread.loadReplies(comment.id);
+								const ok = await thread.add(text, t('comments.you'), comment.id);
+								if (ok) setReplyPrefix(null);
+								else toast.error(t('comments.postFailed'));
+								return ok;
+							}}
+						/>
+					)}
+				</div>
+			)}
+		</div>
+	);
+}
+
+function CommentBody({ comment, viewerId, thread, requireAuth, onReply }: CommentItemProps) {
 	const { t, currentLanguage } = useLanguage();
 	const isHydrated = useHydrated();
 	const [isEditing, setIsEditing] = useState(false);
-	const [draft, setDraft] = useState(comment.text);
+	const [draft, setDraft] = useState(comment.text ?? '');
 	const [confirmingDelete, setConfirmingDelete] = useState(false);
 	const isPending = comment.id.startsWith('pending-');
+	const isOwn = !!viewerId && comment.userId === viewerId;
 	const likes = comment.likeCount ?? 0;
+
+	if (comment.deleted || !comment.author) {
+		return (
+			<article className="flex gap-3">
+				<div aria-hidden className="size-8 shrink-0 rounded-full border border-dashed border-border" />
+				<p className="pt-1.5 text-sm italic text-muted-foreground">{t('comments.deleted')}</p>
+			</article>
+		);
+	}
+	const author = comment.author;
 
 	const saveEdit = async () => {
 		const text = draft.trim();
@@ -209,19 +313,19 @@ function CommentItem({
 
 	const confirmDelete = async () => {
 		setConfirmingDelete(false);
-		if (!(await thread.remove(comment.id))) toast.error(t('comments.deleteFailed'));
+		if (!(await thread.remove(comment))) toast.error(t('comments.deleteFailed'));
 	};
 
 	return (
 		<article className={cn('flex gap-3', isPending && 'opacity-60')}>
-			<InitialAvatar name={comment.author} />
+			<InitialAvatar name={author} />
 			<div className="min-w-0 flex-1">
 				<div className="flex flex-wrap items-baseline gap-x-2 text-xs">
 					{isPending ? (
-						<span className="font-medium text-foreground">{comment.author}</span>
+						<span className="font-medium text-foreground">{author}</span>
 					) : (
-						<Link href={`/profile/${comment.author}`} className="font-medium text-foreground hover:underline">
-							{comment.author}
+						<Link href={`/profile/${author}`} className="font-medium text-foreground hover:underline">
+							{author}
 						</Link>
 					)}
 					<time dateTime={comment.createdAt} className="text-muted-foreground">
@@ -280,6 +384,11 @@ function CommentItem({
 							{likes > 0 && <span className="tabular-nums">{likes}</span>}
 						</button>
 
+						{onReply && (
+							<button type="button" className="hover:text-foreground" onClick={() => onReply(author)}>
+								{t('comments.reply')}
+							</button>
+						)}
 						{isOwn && !confirmingDelete && (
 							<>
 								<button type="button" className="hover:text-foreground" onClick={() => setIsEditing(true)}>

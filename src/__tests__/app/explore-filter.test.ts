@@ -1,44 +1,18 @@
-import { filterPolls } from '@/app/(frontend)/explore/_components/ExploreView';
-import type { Poll } from '@/features/polls/schema';
+import { toExploreQuery } from '@/app/(frontend)/explore/_components/ExploreView';
 
-const NOW = Date.parse('2026-10-05T12:00:00Z');
+jest.mock('@/features/polls/service', () => ({ getPolls: jest.fn() }));
 
-function poll(overrides: Partial<Poll>): Poll {
-	return {
-		id: 'p',
-		title: 'Untitled',
-		active: true,
-		votingActive: true,
-		creatorId: 'u',
-		creatorUsername: 'u',
-		createdAt: '2026-10-01T00:00:00Z',
-		startTime: '2026-10-01T00:00:00Z',
-		endTime: '2026-10-10T00:00:00Z',
-		options: [{ id: 'o', text: 'Pizza' }],
-		...overrides,
-	};
-}
-
-const open = poll({ id: 'open', title: 'Lunch?', totalVotes: 3, endTime: '2026-10-06T00:00:00Z' });
-const later = poll({ id: 'later', title: 'Dinner?', totalVotes: 9, createdAt: '2026-10-03T00:00:00Z' });
-const ended = poll({ id: 'ended', title: 'Breakfast?', endTime: '2026-10-02T00:00:00Z' });
-const all = [open, later, ended];
-
-const ids = (polls: Poll[]) => polls.map((p) => p.id);
-
-describe('filterPolls()', () => {
-	it('searches titles and options, case-insensitively', () => {
-		expect(ids(filterPolls(all, 'LUNCH', 'all', 'newest', NOW))).toEqual(['open']);
-		expect(ids(filterPolls(all, 'pizza', 'all', 'newest', NOW))).toHaveLength(3);
+describe('toExploreQuery()', () => {
+	it('sends the sort with open polls', () => {
+		expect(toExploreQuery('', 'open', 'closing')).toEqual({ status: 'open', sort: 'closing', q: undefined });
 	});
 
-	it('filters by status', () => {
-		expect(ids(filterPolls(all, '', 'ended', 'newest', NOW))).toEqual(['ended']);
-		expect(ids(filterPolls(all, '', 'open', 'newest', NOW)).sort()).toEqual(['later', 'open']);
+	it('drops the sort for ended polls, which the API rejects', () => {
+		expect(toExploreQuery('', 'ended', 'closing').sort).toBeUndefined();
 	});
 
-	it('sorts by turnout and by end time', () => {
-		expect(ids(filterPolls(all, '', 'open', 'popular', NOW))).toEqual(['later', 'open']);
-		expect(ids(filterPolls(all, '', 'open', 'ending', NOW))).toEqual(['open', 'later']);
+	it('trims the search and skips one shorter than 2 characters', () => {
+		expect(toExploreQuery('  side project ', 'open', 'newest').q).toBe('side project');
+		expect(toExploreQuery(' a ', 'open', 'newest').q).toBeUndefined();
 	});
 });

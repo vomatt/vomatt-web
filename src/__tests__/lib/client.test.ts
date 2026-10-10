@@ -7,6 +7,10 @@ const mockGetTokens = jest.fn();
 jest.mock('@/lib/api/auth', () => ({
 	getTokens: () => mockGetTokens(),
 }));
+const mockLocale = jest.fn();
+jest.mock('@/lib/getServerLocale', () => ({
+	getServerLocale: () => mockLocale(),
+}));
 
  
 const { apiClient, ApiError, AuthError } = require('@/lib/api/client') as typeof import('@/lib/api/client');
@@ -14,6 +18,7 @@ const { apiClient, ApiError, AuthError } = require('@/lib/api/client') as typeof
 const fetchMock = jest.fn();
 beforeEach(() => {
 	jest.clearAllMocks();
+	mockLocale.mockResolvedValue({ language: 'en', payloadLocale: 'en' });
 	global.fetch = fetchMock;
 });
 
@@ -29,6 +34,27 @@ describe('apiClient', () => {
 		const [url, init] = fetchMock.mock.calls[0];
 		expect(url).toBe('https://api.example.test/api/users/me');
 		expect(new Headers(init.headers).get('Authorization')).toBe('Bearer a1');
+	});
+
+	it('asks for messages in the viewer\'s language', async () => {
+		mockGetTokens.mockResolvedValue({ accessToken: 'a1', refreshToken: 'r1' });
+		mockLocale.mockResolvedValue({ language: 'zh', payloadLocale: 'zh' });
+		fetchMock.mockResolvedValue(json({ success: true, data: {} }));
+
+		await apiClient('/votes', { method: 'POST' });
+		expect(new Headers(fetchMock.mock.calls[0][1].headers).get('Accept-Language')).toBe('zh-TW');
+	});
+
+	it('reads Retry-After from a 429', async () => {
+		mockGetTokens.mockResolvedValue({ accessToken: 'a1', refreshToken: 'r1' });
+		fetchMock.mockResolvedValue(
+			new Response(JSON.stringify({ success: false, errorCode: 'common.rate_limited' }), {
+				status: 429,
+				headers: { 'Content-Type': 'application/json', 'Retry-After': '42' },
+			})
+		);
+
+		await expect(apiClient('/votes')).rejects.toMatchObject({ statusCode: 429, retryAfter: 42 });
 	});
 
 	it('keeps a signed-in response out of the shared cache', async () => {

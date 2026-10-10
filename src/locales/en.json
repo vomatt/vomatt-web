@@ -80,18 +80,17 @@
 	},
 	"explore": {
 		"title": "Explore",
-		"searchPlaceholder": "Search polls and options…",
-		"filterAll": "All",
+		"searchPlaceholder": "Search poll titles and descriptions…",
 		"filterActive": "Open",
 		"filterEnded": "Ended",
 		"sortNewest": "Newest",
-		"sortMostVotes": "Most Votes",
 		"noResults": "No polls found.",
 		"topics": "Browse by topic",
 		"status": "Status",
 		"sort": "Sort",
 		"sortEnding": "Ending soon",
-		"recentOnly": "Search covers the 50 most recent polls."
+		"searchTooShort": "Type at least 2 characters to search.",
+		"loadFailed": "Couldn't load polls."
 	},
 	"pollDetail": {
 		"backToFeed": "Back",
@@ -120,7 +119,13 @@
 	},
 	"notifications": {
 		"title": "Notifications",
-		"empty": "No notifications yet."
+		"empty": "No notifications yet.",
+		"unread": "Unread",
+		"intro": "Polls you created or voted in that have ended.",
+		"markAllHint": "Opening a poll marks it read.",
+		"loadFailed": "Couldn't load notifications.",
+		"ended": "Results are in",
+		"cancelled": "Cancelled"
 	},
 	"pollCreator": {
 		"title": "Create a New Poll",
@@ -237,7 +242,11 @@
 		"keepPoll": "Keep poll",
 		"cancelFailed": "Couldn't cancel the poll. Try again.",
 		"stamp": "Voted",
-		"discuss": "Discuss"
+		"discuss": "Discuss",
+		"showVoters": "See who voted",
+		"voters": "Who voted",
+		"votersHidden": "You can't see who voted in this poll.",
+		"votersFailed": "Couldn't load who voted."
 	},
 	"auth": {
 		"continueWithEmail": "Continue with email",
@@ -280,7 +289,13 @@
 		"deleteConfirm": "Delete this comment?",
 		"postFailed": "Couldn't post your comment. Try again.",
 		"editFailed": "Couldn't save your edit.",
-		"deleteFailed": "Couldn't delete the comment."
+		"deleteFailed": "Couldn't delete the comment.",
+		"reply": "Reply",
+		"replyPlaceholder": "Write a reply…",
+		"viewReply": "View 1 reply",
+		"viewReplies": "View {count} replies",
+		"moreReplies": "Show more replies",
+		"deleted": "This comment was deleted."
 	},
 	"account": {
 		"publicProfile": "Public profile",

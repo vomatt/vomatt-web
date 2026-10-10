@@ -21,6 +21,7 @@ import { OwnerActions } from './OwnerActions';
 import { PollFooter } from './PollFooter';
 import { Results } from './Results';
 import { StatusChip } from './StatusChip';
+import { VoterList } from './VoterList';
 
 interface PollCardProps {
 	poll: Poll;
@@ -37,7 +38,10 @@ export function PollCard({ poll: initialPoll, viewerId, defaultShowComments = fa
 	const [poll, setPoll] = useState(initialPoll);
 	const [showComments, setShowComments] = useState(defaultShowComments);
 	const { isAuthed, requireAuth, authDialog } = useRequireAuth(!!viewerId);
-	const thread = useComments(initialPoll.id, { enabled: showComments });
+	const thread = useComments(initialPoll.id, {
+		enabled: showComments,
+		initialTotal: initialPoll.commentCount,
+	});
 
 	const refetch = useCallback(async () => {
 		const fresh = await getPoll(poll.id).catch(() => null);
@@ -48,6 +52,8 @@ export function PollCard({ poll: initialPoll, viewerId, defaultShowComments = fa
 	const status = derivePollStatus(poll);
 	const { id, title, description, creatorId, creatorUsername, createdAt } = poll;
 	const isOwner = !!viewerId && viewerId === creatorId;
+	const canSeeVoters =
+		poll.voterVisibility === 'signed-in' ? isAuthed : poll.voterVisibility === 'owner' && isOwner;
 
 	return (
 		<article className="group bg-card border border-border rounded-xl transition-shadow duration-200 hover:shadow-sm">
@@ -91,12 +97,15 @@ export function PollCard({ poll: initialPoll, viewerId, defaultShowComments = fa
 						transition={{ duration: 0.2 }}
 					>
 						{status === 'ended' ? (
-							<Results
-								poll={poll}
-								myOptionId={ballot.myOptionId}
-								turnout={ballot.turnout}
-								onSealed={refetch}
-							/>
+							<div className="space-y-2">
+								<Results
+									poll={poll}
+									myOptionId={ballot.myOptionId}
+									turnout={ballot.turnout}
+									onSealed={refetch}
+								/>
+								{canSeeVoters && <VoterList poll={poll} />}
+							</div>
 						) : (
 							<Ballot
 								poll={poll}
@@ -114,7 +123,7 @@ export function PollCard({ poll: initialPoll, viewerId, defaultShowComments = fa
 				pollId={id}
 				title={title}
 				turnout={ballot.turnout}
-				commentCount={thread.total ?? poll.commentCount}
+				commentCount={thread.total}
 				onToggleComments={() => setShowComments((value) => !value)}
 			/>
 

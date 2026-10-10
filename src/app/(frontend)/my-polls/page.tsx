@@ -4,7 +4,6 @@ import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { getUserSession } from '@/data/auth';
 import { PollListSkeleton } from '@/features/polls/components/PollCardSkeleton';
-import { Poll } from '@/features/polls/schema';
 import { getMyPolls } from '@/features/polls/service';
 
 import MyPollsTabs from './_components/MyPollsTabs';
@@ -32,12 +31,12 @@ export default async function MyPollsPage() {
 }
 
 async function MyPolls() {
-	let polls: Poll[] = [];
-	try {
-		polls = await getMyPolls();
-	} catch {
-		// API unavailable — render empty state instead of crashing
-	}
+	// API unavailable — render empty lists instead of crashing
+	const empty = { items: [], nextCursor: null };
+	const [open, ended] = await Promise.all([
+		getMyPolls('open').catch(() => empty),
+		getMyPolls('ended').catch(() => empty),
+	]);
 
-	return <MyPollsTabs polls={polls} />;
+	return <MyPollsTabs open={open} ended={ended} />;
 }

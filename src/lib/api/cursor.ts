@@ -1,41 +1,23 @@
 import { z } from 'zod';
 
-/** `total` is known only when the API sends it. */
-export type CursorPage<T> = { items: T[]; nextCursor: string | null; total?: number };
+/** One page of a list endpoint. A null `nextCursor` means the last page. */
+export type CursorPage<T> = { items: T[]; nextCursor: string | null };
 
-/**
- * Parses `{ items, nextCursor }`, and also the page shapes the API returns
- * until cursor pagination ships. For those the cursor is the next page
- * number, in the numbering the API expects (1-based for PageResponse).
- */
+/** The API's `CursorResponse<T>`: `{ items, nextCursor }`, no totals, no page jumps. */
 export function cursorPageSchema<T extends z.ZodTypeAny>(item: T) {
-	const cursorShape = z
+	return z
 		.object({ items: z.array(item), nextCursor: z.string().nullish() })
-		.transform((page) => ({ items: page.items, nextCursor: page.nextCursor ?? null }));
-	const springShape = z
-		.object({ content: z.array(item), last: z.boolean(), number: z.number().int() })
 		.transform((page) => ({
-			items: page.content,
-			nextCursor: page.last ? null : String(page.number + 1),
-		}));
+			items: page.items,
+			nextCursor: page.nextCursor ?? null,
+		})) as unknown as z.ZodType<CursorPage<z.output<T>>>;
+}
 
-	// vomatt-api PageResponse: 1-based `page`
-	const pageResponseShape = z
-		.object({
-			content: z.array(item),
-			total: z.number().int(),
-			page: z.number().int(),
-			limit: z.number().int(),
-		})
-		.transform((page) => ({
-			items: page.content,
-			nextCursor: page.page * page.limit < page.total ? String(page.page + 1) : null,
-			total: page.total,
-		}));
-
-	return z.union([cursorShape, pageResponseShape, springShape]) as unknown as z.ZodType<
-		CursorPage<z.output<T>>
-	>;
+/** Query string for a list request; the first page sends no cursor. */
+export function pageParams(cursor: string | null | undefined, limit: number) {
+	const params = new URLSearchParams({ limit: String(limit) });
+	if (cursor) params.set('cursor', cursor);
+	return params;
 }
 
 /** Appends `next` to `prev`, dropping items whose id is already present. */

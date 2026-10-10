@@ -9,28 +9,39 @@ export const POLL_TAGS_LIMIT = 5;
 
 const DateTime = z.string().datetime({ offset: true });
 
-/** `author` is the commenter's username. */
+/**
+ * `author` is the commenter's username. A deleted Comment that still has
+ * Replies stays as a placeholder: `deleted`, with no author or text.
+ * Replies (`parentId` set) always hang off a top-level Comment.
+ */
 export const CommentSchema = z.object({
 	id: z.string(),
 	voteId: z.string().optional(),
-	userId: z.string().optional(),
-	author: z.string(),
-	text: z.string(),
+	userId: z.string().nullish(),
+	author: z.string().nullable(),
+	text: z.string().nullable(),
 	createdAt: DateTime,
 	updatedAt: DateTime.nullish(),
 	likeCount: z.number().int().optional(),
 	edited: z.boolean().optional(),
 	likedByCurrentUser: z.boolean().optional(),
+	parentId: z.string().nullish(),
+	replyCount: z.number().int().optional(),
+	deleted: z.boolean().optional(),
 });
 
-/** Counts are withheld while a Poll is Open, so `votes` is optional. */
+/** Counts are withheld (null) until a Poll has Ended; read as undefined. */
 export const PollOptionSchema = z.object({
 	id: z.string(),
 	text: z.string(),
 	description: z.string().nullish(),
 	displayOrder: z.number().int().optional(),
 	createdAt: DateTime.optional(),
-	votes: z.number().int().optional(),
+	votes: z
+		.number()
+		.int()
+		.nullish()
+		.transform((votes) => votes ?? undefined),
 });
 
 export const TagDtoSchema = z.object({
@@ -46,18 +57,41 @@ export const TagDtoSchema = z.object({
 export const VoterVisibilitySchema = z.enum(['nobody', 'owner', 'signed-in']);
 export const DEFAULT_VOTER_VISIBILITY: VoterVisibility = 'owner';
 
+/** The API spells the levels in upper case; the UI keeps its own keys. */
+const API_VOTER_VISIBILITY = {
+	nobody: 'NOBODY',
+	owner: 'OWNER',
+	'signed-in': 'SIGNED_IN',
+} as const satisfies Record<VoterVisibility, string>;
+
+export function toApiVoterVisibility(level: VoterVisibility) {
+	return API_VOTER_VISIBILITY[level];
+}
+
+const FROM_API_VOTER_VISIBILITY = {
+	NOBODY: 'nobody',
+	OWNER: 'owner',
+	SIGNED_IN: 'signed-in',
+} as const satisfies Record<string, VoterVisibility>;
+
+const ApiVoterVisibilitySchema = z
+	.enum(['NOBODY', 'OWNER', 'SIGNED_IN'])
+	.transform((level) => FROM_API_VOTER_VISIBILITY[level]);
+
+/** One Participant's Ballot, from GET /votes/{id}/voters (Ended Polls only). */
 export const VoterSchema = z.object({
-	userId: z.string().optional(),
+	userId: z.string(),
 	username: z.string(),
-	votedAt: DateTime.optional(),
+	optionId: z.string(),
+	votedAt: DateTime,
 });
 
 export const PollResultOptionSchema = z.object({
 	id: z.string(),
 	text: z.string(),
 	voteCount: z.number().int(),
+	/** Support: share of Participants, 0–100, not rounded. */
 	percentage: z.number().optional(),
-	voters: z.array(VoterSchema).optional(),
 });
 
 /** GET /votes/{id}/results — only available once the Poll has Ended. */
@@ -73,11 +107,7 @@ export const UserVoteStatusSchema = z.object({
 	selectedOptions: z.array(z.string()).optional(),
 });
 
-/**
- * Accepts both the current API shape and the sealed-ballot shape: counts,
- * `participantCount`, `myOptionId` and `voterVisibility` are all optional
- * until the backend ships them.
- */
+/** The API's `VoteResponse`. Option counts are null (Sealed) until the Poll Ends. */
 export const PollSchema = z.object({
 	id: z.string(),
 	title: z.string(),
@@ -86,7 +116,7 @@ export const PollSchema = z.object({
 	votingActive: z.boolean(),
 	/** @deprecated Replaced by `voterVisibility`. */
 	anonymous: z.boolean().optional(),
-	voterVisibility: VoterVisibilitySchema.optional(),
+	voterVisibility: ApiVoterVisibilitySchema.optional(),
 	creatorId: z.string(),
 	creatorUsername: z.string(),
 	createdAt: DateTime,
@@ -97,6 +127,8 @@ export const PollSchema = z.object({
 	participantCount: z.number().int().optional(),
 	commentCount: z.number().int().optional(),
 	myOptionId: z.string().nullable().optional(),
+	/** Ended Notification not yet read; only set on `/votes/my?status=ended`. */
+	unread: z.boolean().nullish(),
 	options: z.array(PollOptionSchema),
 	tags: z.array(TagDtoSchema).nullish(),
 });

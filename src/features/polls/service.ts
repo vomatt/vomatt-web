@@ -4,9 +4,10 @@ import { revalidateTag, updateTag } from 'next/cache';
 import { unstable_rethrow } from 'next/navigation';
 
 import { apiClient, ApiError, AuthError, publicFetch } from '@/lib/api/client';
-import { type CursorPage, cursorPageSchema } from '@/lib/api/cursor';
+import { type CursorPage, cursorPageSchema, pageParams } from '@/lib/api/cursor';
 
 import { FEED_TAG, pollTag } from './cache';
+import { SEARCH_MIN_LENGTH } from './constants';
 import type { ActionFailure, ActionResult } from './errors';
 import {
 	type Comment,
@@ -18,11 +19,19 @@ import {
 	PollSchema,
 	type TagDto,
 	TagDtoSchema,
+	toApiVoterVisibility,
 	UserVoteStatusSchema,
+	type Voter,
+	VoterSchema,
 } from './schema';
 
 const PollPage = cursorPageSchema(PollSchema);
-const MAX_FEED_PAGE_SIZE = 50;
+/** The API clamps `limit` to 1–50; clamp here too so the cursor stays meaningful. */
+const MAX_PAGE_SIZE = 50;
+
+function clampLimit(limit: number) {
+	return Math.min(Math.max(1, Math.floor(limit) || 1), MAX_PAGE_SIZE);
+}
 
 function toFailure(error: unknown): ActionFailure {
 	unstable_rethrow(error);
@@ -58,45 +67,51 @@ function toRequestBody(input: PollInput) {
 		endTime: input.endTime,
 		allowMultipleChoices: false,
 		anonymous: input.voterVisibility === 'nobody',
-		voterVisibility: input.voterVisibility,
+		voterVisibility: toApiVoterVisibility(input.voterVisibility),
 	});
 }
 
 // ── Reads ────────────────────────────────────────────────────────────────────
 
 const CACHED_LIST = { next: { revalidate: 30, tags: [FEED_TAG] } } as RequestInit;
-const FIRST_FULL_PAGE = () => new URLSearchParams({ page: '1', size: String(MAX_FEED_PAGE_SIZE) });
 
 /**
  * As the viewer when signed in, so each Poll carries `myOptionId` (apiClient
- * keeps those out of the shared cache). `publicList` is the cached, shared
- * page for lists that never show the viewer's Ballot.
+ * keeps those out of the shared cache); guests share the cached page.
  */
-function fetchPollPage(params: URLSearchParams, { publicList = false } = {}) {
-	const path = `/votes?${params}`;
-	const request = publicList
-		? publicFetch(path, CACHED_LIST)
-		: apiClient(path, { auth: 'optional', ...CACHED_LIST });
-	return request.then((data) => PollPage.parse(data));
+async function fetchPollPage(path: string, params: URLSearchParams) {
+	const data = await apiClient(`${path}?${params}`, { auth: 'optional', ...CACHED_LIST });
+	return PollPage.parse(data);
 }
 
-/** Pages only the signed-in user can see (their polls, their ballots). */
-async function fetchMyPolls(path: string): Promise<Poll[]> {
-	return PollPage.parse(await apiClient(`${path}?${FIRST_FULL_PAGE()}`)).items;
+/** `sort` applies to Open Polls only; Ended ones are always latest-ended first. */
+export type PollListQuery = {
+	status?: 'open' | 'ended';
+	sort?: 'newest' | 'closing';
+	/** Tag slug. */
+	tag?: string;
+	/** Matches titles and descriptions; ignored under 2 characters. */
+	q?: string;
+};
+
+/** Feed, Explore and Search. Only Open or Ended Polls; Scheduled ones are never listed. */
+export async function getPolls(
+	query: PollListQuery = {},
+	cursor?: string | null,
+	limit = 10
+): Promise<CursorPage<Poll>> {
+	const params = pageParams(cursor, clampLimit(limit));
+	if (query.status === 'ended') params.set('status', 'ended');
+	else if (query.sort) params.set('sort', query.sort);
+	if (query.tag) params.set('tag', query.tag);
+	const q = query.q?.trim();
+	if (q && q.length >= SEARCH_MIN_LENGTH) params.set('q', q);
+	return fetchPollPage('/votes', params);
 }
 
-/** Until backend 3 ships cursors, `cursor` is a 1-based page number. */
+/** The home feed: Open Polls, most recently opened first. */
 export async function getFeed(cursor?: string | null, size = 10, tag?: string) {
-	// Callable from any client, so cap the page
-	const pageSize = Math.min(Math.max(1, size), MAX_FEED_PAGE_SIZE);
-	const params = new URLSearchParams({ page: cursor ?? '1', size: String(pageSize) });
-	if (tag) params.set('tag', tag);
-	return fetchPollPage(params);
-}
-
-/** The newest open polls, for lists that filter and sort them client-side. */
-export async function getRecentPolls(): Promise<Poll[]> {
-	return (await fetchPollPage(FIRST_FULL_PAGE(), { publicList: true })).items;
+	return getPolls({ tag }, cursor, size);
 }
 
 const TagPage = cursorPageSchema(TagDtoSchema);
@@ -104,7 +119,7 @@ const TagPage = cursorPageSchema(TagDtoSchema);
 /** Most-used topics first, for the feed's topic tabs. Empty when the API is down. */
 export async function getPopularTags(size = 12): Promise<TagDto[]> {
 	try {
-		const data = await publicFetch(`/tags/popular?page=1&size=${size}`, {
+		const data = await publicFetch(`/tags/popular?${pageParams(null, clampLimit(size))}`, {
 			next: { revalidate: 300 },
 		} as RequestInit);
 		return TagPage.parse(data).items;
@@ -113,20 +128,31 @@ export async function getPopularTags(size = 12): Promise<TagDto[]> {
 	}
 }
 
-/** A user's polls, ended ones included, newest first. */
-export async function getPollsByCreator(username: string): Promise<Poll[]> {
-	try {
-		const params = FIRST_FULL_PAGE();
-		params.set('creatorUsername', username);
-		return (await fetchPollPage(params, { publicList: true })).items;
-	} catch {
-		return [];
-	}
+/** A user's opened Polls (Open and Ended), most recently opened first. */
+export async function getUserPolls(
+	username: string,
+	cursor?: string | null,
+	limit = 20
+): Promise<CursorPage<Poll>> {
+	return fetchPollPage(
+		`/users/${encodeURIComponent(username)}/votes`,
+		pageParams(cursor, clampLimit(limit))
+	);
 }
 
-/** Polls the signed-in user voted in, each with their `myOptionId`. */
-export async function getParticipatedPolls(): Promise<Poll[]> {
-	return fetchMyPolls('/votes/participated');
+/**
+ * The signed-in user's Polls. `open`: Scheduled and Open ones they created
+ * plus Open ones they hold a Ballot in, closing soonest first. `ended`: Ended
+ * and Cancelled ones of either kind, latest first, each with `unread`.
+ */
+export async function getMyPolls(
+	status: 'open' | 'ended' = 'open',
+	cursor?: string | null,
+	limit = MAX_PAGE_SIZE
+): Promise<CursorPage<Poll>> {
+	const params = pageParams(cursor, clampLimit(limit));
+	if (status === 'ended') params.set('status', 'ended');
+	return PollPage.parse(await apiClient(`/votes/my?${params}`));
 }
 
 /** Null when the Poll doesn't exist. Signed-in viewers get their `myOptionId`. */
@@ -145,11 +171,6 @@ export async function getPoll(id: string): Promise<Poll | null> {
 	}
 }
 
-/** Polls the signed-in user created, newest first. */
-export async function getMyPolls(): Promise<Poll[]> {
-	return fetchMyPolls('/votes/my');
-}
-
 /**
  * The signed-in user's Ballot, or null. Only needed for a Poll loaded before
  * sign-in, which has no `myOptionId`.
@@ -163,6 +184,21 @@ export async function getMyBallot(pollId: string): Promise<string | null> {
 		unstable_rethrow(error);
 		return null;
 	}
+}
+
+const VoterPage = cursorPageSchema(VoterSchema);
+
+/**
+ * Who chose what, oldest Ballot first. Ended Polls only, and only as far as
+ * the Poll's Voter Visibility allows: 403 `vote.voters.hidden` otherwise.
+ */
+export async function getVoters(
+	pollId: string,
+	cursor?: string | null
+): Promise<ActionResult<CursorPage<Voter>>> {
+	return attempt(async () =>
+		VoterPage.parse(await apiClient(`/votes/${pollId}/voters?${pageParams(cursor, MAX_PAGE_SIZE)}`))
+	);
 }
 
 /** Only for Ended Polls. A 403 means the results are still sealed. */
@@ -198,10 +234,10 @@ export async function castBallot(pollId: string, optionId: string): Promise<Acti
 	});
 }
 
-/** Retraction: the voter is no longer a Participant and won't be notified. */
-export async function retractBallot(pollId: string, optionId: string): Promise<ActionResult> {
+/** Retraction: the voter is no longer a Participant and won't be notified. Idempotent. */
+export async function retractBallot(pollId: string): Promise<ActionResult> {
 	return attempt(async () => {
-		await apiClient(`/votes/${pollId}/vote/${optionId}`, { method: 'DELETE' });
+		await apiClient(`/votes/${pollId}/vote`, { method: 'DELETE' });
 		invalidatePoll(pollId);
 	});
 }
@@ -241,28 +277,44 @@ export async function closePoll(id: string): Promise<ActionResult> {
 const CommentPage = cursorPageSchema(CommentSchema);
 const COMMENT_PAGE_SIZE = 20;
 
-/** Newest first. The API only shows comments to signed-in users today: a 401 means "sign in to read". */
+/** Top-level Comments, newest first. Public; signed in, `likedByCurrentUser` is set. */
 export async function getComments(
 	pollId: string,
 	cursor?: string | null
 ): Promise<ActionResult<CursorPage<Comment>>> {
 	return attempt(async () => {
-		const params = new URLSearchParams({
-			page: cursor ?? '1',
-			size: String(COMMENT_PAGE_SIZE),
-			sort: 'createdAt,desc',
-		});
+		const params = pageParams(cursor, COMMENT_PAGE_SIZE);
 		const data = await apiClient(`/votes/${pollId}/comments?${params}`, { auth: 'optional' });
 		return CommentPage.parse(data);
 	});
 }
 
-export async function postComment(pollId: string, text: string): Promise<ActionResult<Comment>> {
+/** Replies to one top-level Comment, oldest first. */
+export async function getReplies(
+	pollId: string,
+	commentId: string,
+	cursor?: string | null
+): Promise<ActionResult<CursorPage<Comment>>> {
+	return attempt(async () => {
+		const params = pageParams(cursor, COMMENT_PAGE_SIZE);
+		const data = await apiClient(`/votes/${pollId}/comments/${commentId}/replies?${params}`, {
+			auth: 'optional',
+		});
+		return CommentPage.parse(data);
+	});
+}
+
+/** A top-level Comment, or a Reply when `parentId` is set (the API files it under the top-level one). */
+export async function postComment(
+	pollId: string,
+	text: string,
+	parentId?: string
+): Promise<ActionResult<Comment>> {
 	return attempt(async () =>
 		CommentSchema.parse(
 			await apiClient(`/votes/${pollId}/comments`, {
 				method: 'POST',
-				body: JSON.stringify({ text }),
+				body: JSON.stringify(parentId ? { text, parentId } : { text }),
 			})
 		)
 	);

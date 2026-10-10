@@ -1,8 +1,5 @@
-/**
- * Returned by the API when a Ballot arrives after the Poll has Ended:
- * `vote.not_allowed` today, `vote.ended` once the redesigned backend ships.
- */
-const POLL_ENDED_ERRORS = ['vote.ended', 'vote.not_allowed'];
+/** Returned by the API when a Ballot arrives after the Poll has Ended. */
+const POLL_ENDED_ERRORS = ['vote.ended'];
 
 export type ActionFailure = {
 	ok: false;

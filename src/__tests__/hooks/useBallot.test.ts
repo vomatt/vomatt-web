@@ -11,8 +11,9 @@ const mockRetractBallot = jest.fn();
 jest.mock('@/features/polls/service', () => ({
 	castBallot: (...args: unknown[]) => mockCastBallot(...args),
 	retractBallot: (...args: unknown[]) => mockRetractBallot(...args),
-	getMyBallot: jest.fn().mockResolvedValue(null),
+	getMyBallot: (...args: unknown[]) => mockGetMyBallot(...args),
 }));
+const mockGetMyBallot = jest.fn().mockResolvedValue(null);
 
 const poll = {
 	id: 'poll-1',
@@ -56,5 +57,21 @@ describe('useBallot outcomes', () => {
 			outcome = await result.current.cast('opt-a');
 		});
 		expect(outcome).toBe('ended');
+	});
+
+	it('looks up the Ballot when a guest signs in on the card', async () => {
+		mockGetMyBallot.mockResolvedValue('opt-a');
+		const { result, rerender } = renderHook(
+			({ isAuthed }) => useBallot(poll, { isAuthed, onPollEnded: jest.fn() }),
+			{ initialProps: { isAuthed: false } }
+		);
+		expect(mockGetMyBallot).not.toHaveBeenCalled();
+		rerender({ isAuthed: true });
+		await waitFor(() => expect(result.current.myOptionId).toBe('opt-a'));
+	});
+
+	it('trusts the Ballot on a Poll loaded signed in', () => {
+		setup();
+		expect(mockGetMyBallot).not.toHaveBeenCalled();
 	});
 });
