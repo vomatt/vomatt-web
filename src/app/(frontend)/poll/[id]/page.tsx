@@ -7,11 +7,13 @@ import { buttonVariants } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { ArrowLeft } from '@/components/ui/SvgIcons';
 import { getUserSession } from '@/data/auth';
+import { MarkNotificationRead } from '@/features/notifications/MarkNotificationRead';
 import { PollAbout } from '@/features/polls/components/PollAbout';
 import { PollCard } from '@/features/polls/components/PollCard';
 import { PollCardSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import type { Poll } from '@/features/polls/schema';
 import { getPoll } from '@/features/polls/service';
+import { derivePollStatus, isCancelled } from '@/features/polls/status';
 import { ApiError, AuthError } from '@/lib/api/client';
 
 type Lookup =
@@ -90,8 +92,17 @@ async function PollDetail({ id }: { id: string }) {
 		);
 	}
 
+	const { poll } = lookup;
+	// Only owners and Participants of an Ended (not Cancelled) Poll get its notification
+	const hasNotification =
+		!!user &&
+		derivePollStatus(poll) === 'ended' &&
+		!isCancelled(poll) &&
+		(poll.creatorId === user.sub || !!poll.myOptionId);
+
 	return (
 		<div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
+			{hasNotification && <MarkNotificationRead pollId={poll.id} />}
 			<PollCard poll={lookup.poll} viewerId={user?.sub} defaultShowComments />
 			<div className="lg:sticky lg:top-6">
 				<PollAbout poll={lookup.poll} />

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/Sidebar';
 import { Plus } from '@/components/ui/SvgIcons';
 import { getMyProfile, getUserSession } from '@/data/auth';
+import { UnreadCountProvider } from '@/features/notifications/UnreadCountProvider';
 
 const PollCreator = dynamic(() =>
 	import('@/features/polls/components/PollCreator').then((m) => ({
@@ -29,21 +30,23 @@ export async function Layout({ children }: LayoutProps) {
 
 	return (
 		<SidebarProvider>
-			<AdaSkip />
-			<AppSidebar userSession={userSession} profile={profile} />
-			<Main>
-				<MotionProvider>{children}</MotionProvider>
-			</Main>
-			<TabBar userSession={userSession} />
-			{userSession && (
-				<PollCreator
-					triggerChildren={
-						<Button className="fixed bottom-contain right-contain size-14 flex justify-center items-center bg-secondary rounded-xl cursor-pointer hover:scale-120 transition-all hover:bg-secondary/90">
-							<Plus className="size-5 text-white" />
-						</Button>
-					}
-				/>
-			)}
+			<UnreadCountProvider signedIn={!!userSession}>
+				<AdaSkip />
+				<AppSidebar userSession={userSession} profile={profile} />
+				<Main>
+					<MotionProvider>{children}</MotionProvider>
+				</Main>
+				<TabBar userSession={userSession} />
+				{userSession && (
+					<PollCreator
+						triggerChildren={
+							<Button className="fixed bottom-contain right-contain size-14 flex justify-center items-center bg-secondary rounded-xl cursor-pointer hover:scale-120 transition-all hover:bg-secondary/90">
+								<Plus className="size-5 text-white" />
+							</Button>
+						}
+					/>
+				)}
+			</UnreadCountProvider>
 		</SidebarProvider>
 	);
 }

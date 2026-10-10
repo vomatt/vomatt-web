@@ -1,4 +1,8 @@
 'use client';
+import dynamic from 'next/dynamic';
+import NextLink from 'next/link';
+import { usePathname } from 'next/navigation';
+
 import {
 	CirclePlus,
 	CircleUser,
@@ -6,9 +10,7 @@ import {
 	Search,
 	Star,
 } from '@/components/ui/SvgIcons';
-import dynamic from 'next/dynamic';
-import NextLink from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useUnreadCount } from '@/features/notifications/UnreadCountProvider';
 
 const PollCreator = dynamic(
 	() => import('@/features/polls/components/PollCreator').then((m) => ({ default: m.PollCreator })),
@@ -21,6 +23,7 @@ type TabBarProps = {
 
 export function TabBar({ className, userSession }: TabBarProps) {
 	const pathname = usePathname();
+	const { count: unreadCount } = useUnreadCount();
 	const linkList = [
 		{
 			title: 'Home',
@@ -39,8 +42,16 @@ export function TabBar({ className, userSession }: TabBarProps) {
 		},
 		{
 			title: 'My Polls',
+			// Unread results are marked in My Polls' Ended tab
 			href: '/my-polls',
-			icon: <Star />,
+			icon: (
+				<span className="relative">
+					<Star />
+					{unreadCount > 0 && (
+						<span aria-label={`${unreadCount}`} className="absolute -right-1 -top-1 size-2 rounded-full bg-primary" />
+					)}
+				</span>
+			),
 		},
 		{
 			title: 'Account',

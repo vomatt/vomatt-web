@@ -1,13 +1,28 @@
-import { Bell } from '@/components/ui/SvgIcons';
+import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
 
-export default function NotificationsPage() {
+import { getUserSession } from '@/data/auth';
+import { NotificationList } from '@/features/notifications/NotificationList';
+import { PollListSkeleton } from '@/features/polls/components/PollCardSkeleton';
+import { getMyPolls } from '@/features/polls/service';
+
+export const metadata: Metadata = { title: 'Notifications' };
+
+export default async function NotificationsPage() {
+	if (!(await getUserSession())) redirect('/login?redirect=/notifications');
+
 	return (
 		<div className="px-contain max-w-2xl mx-auto py-6">
-			<h1 className="text-2xl font-bold mb-6">Notifications</h1>
-			<div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
-				<Bell className="w-12 h-12 opacity-30" />
-				<p>No notifications yet.</p>
-			</div>
+			<Suspense fallback={<PollListSkeleton />}>
+				<Notifications />
+			</Suspense>
 		</div>
 	);
+}
+
+/** Ended Notifications are the user's Ended Polls; each says whether it's unread. */
+async function Notifications() {
+	const firstPage = await getMyPolls('ended', null, 20).catch(() => null);
+	return <NotificationList initialPage={firstPage} />;
 }

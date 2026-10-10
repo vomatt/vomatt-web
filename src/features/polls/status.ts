@@ -22,6 +22,11 @@ export function derivePollStatus(poll: StatusFields, now: Date | number = Date.n
 	return 'open';
 }
 
+/** Cancelled: closed before it opened, so it never took a Ballot or sends a notification. */
+export function isCancelled(poll: Pick<Poll, 'startTime' | 'endTime'>) {
+	return !!poll.endTime && Date.parse(poll.endTime) <= Date.parse(poll.startTime);
+}
+
 /** The options with the most votes; none when nobody voted. */
 export function getWinners<T extends { votes: number }>(rows: T[]): T[] {
 	const top = Math.max(0, ...rows.map((row) => row.votes));

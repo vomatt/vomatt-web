@@ -1,4 +1,4 @@
-import { derivePollStatus, getTurnout, timelineProgress } from '@/features/polls/status';
+import { derivePollStatus, getTurnout, isCancelled, timelineProgress } from '@/features/polls/status';
 
 const NOW = Date.parse('2026-10-05T12:00:00Z');
 const hours = (h: number) => new Date(NOW + h * 3600_000).toISOString();
@@ -83,5 +83,15 @@ describe('timelineProgress()', () => {
 
 	it('is null without an end time', () => {
 		expect(timelineProgress({ ...window, endTime: null })).toBeNull();
+	});
+});
+
+describe('isCancelled()', () => {
+	it('is true when the poll closed before it opened', () => {
+		expect(isCancelled({ startTime: hours(5), endTime: hours(-1) })).toBe(true);
+	});
+
+	it('is false for a poll that ran', () => {
+		expect(isCancelled(base)).toBe(false);
 	});
 });

@@ -1,0 +1,119 @@
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+
+import { NotificationList } from '@/features/notifications/NotificationList';
+import {
+	UNREAD_POLL_MS,
+	UnreadCountProvider,
+	useUnreadCount,
+} from '@/features/notifications/UnreadCountProvider';
+import type { Poll } from '@/features/polls/schema';
+
+jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
+jest.mock('next/link', () => {
+	const Link = ({ children, href, onClick, className }: any) => (
+		<a
+			href={href}
+			className={className}
+			onClick={(event) => {
+				event.preventDefault();
+				onClick?.(event);
+			}}
+		>
+			{children}
+		</a>
+	);
+	return Link;
+});
+
+const mockGetUnreadCount = jest.fn();
+const mockMarkRead = jest.fn();
+jest.mock('@/features/notifications/service', () => ({
+	getUnreadCount: () => mockGetUnreadCount(),
+	markNotificationRead: (id: string) => mockMarkRead(id),
+}));
+jest.mock('@/features/polls/service', () => ({ getMyPolls: jest.fn() }));
+
+function Count() {
+	return <span data-testid="count">{useUnreadCount().count}</span>;
+}
+
+function setVisibility(state: 'visible' | 'hidden') {
+	Object.defineProperty(document, 'visibilityState', { value: state, configurable: true });
+	document.dispatchEvent(new Event('visibilitychange'));
+}
+
+beforeEach(() => {
+	jest.clearAllMocks();
+	mockGetUnreadCount.mockResolvedValue(2);
+	mockMarkRead.mockResolvedValue(undefined);
+	Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true });
+});
+
+describe('UnreadCountProvider', () => {
+	it('never asks when signed out', () => {
+		render(
+			<UnreadCountProvider signedIn={false}>
+				<Count />
+			</UnreadCountProvider>
+		);
+		expect(mockGetUnreadCount).not.toHaveBeenCalled();
+		expect(screen.getByTestId('count')).toHaveTextContent('0');
+	});
+
+	it('polls while visible and pauses while hidden', async () => {
+		jest.useFakeTimers();
+		render(
+			<UnreadCountProvider signedIn>
+				<Count />
+			</UnreadCountProvider>
+		);
+		await act(async () => {});
+		expect(screen.getByTestId('count')).toHaveTextContent('2');
+		expect(mockGetUnreadCount).toHaveBeenCalledTimes(1);
+
+		await act(async () => jest.advanceTimersByTime(UNREAD_POLL_MS));
+		expect(mockGetUnreadCount).toHaveBeenCalledTimes(2);
+
+		act(() => setVisibility('hidden'));
+		await act(async () => jest.advanceTimersByTime(UNREAD_POLL_MS * 3));
+		expect(mockGetUnreadCount).toHaveBeenCalledTimes(2);
+
+		// Coming back checks at once
+		await act(async () => setVisibility('visible'));
+		expect(mockGetUnreadCount).toHaveBeenCalledTimes(3);
+		jest.useRealTimers();
+	});
+});
+
+describe('NotificationList', () => {
+	const poll = {
+		id: 'p1',
+		title: 'Lunch?',
+		startTime: '2026-10-01T00:00:00Z',
+		endTime: '2026-10-02T00:00:00Z',
+		unread: true,
+	} as Poll;
+
+	it('marks a notification read when it is opened, and refreshes the badge', async () => {
+		render(
+			<UnreadCountProvider signedIn>
+				<NotificationList initialPage={{ items: [poll], nextCursor: null }} />
+			</UnreadCountProvider>
+		);
+		expect(screen.getByLabelText('Unread')).toBeInTheDocument();
+
+		fireEvent.click(screen.getByText('Lunch?'));
+		expect(mockMarkRead).toHaveBeenCalledWith('p1');
+		expect(screen.queryByLabelText('Unread')).not.toBeInTheDocument();
+		await waitFor(() => expect(mockGetUnreadCount).toHaveBeenCalledTimes(2));
+	});
+
+	it('labels a cancelled poll', () => {
+		render(
+			<NotificationList
+				initialPage={{ items: [{ ...poll, endTime: poll.startTime, unread: false }], nextCursor: null }}
+			/>
+		);
+		expect(screen.getByText('Cancelled')).toBeInTheDocument();
+	});
+});

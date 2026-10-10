@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import BrandLogo from '@/components/BrandLogo';
 import {
 	ArrowRight,
+	Bell,
 	Home,
 	LogOut,
 	PlusCircle,
@@ -35,6 +36,7 @@ import {
 	SidebarMenuItem,
 } from '@/components/ui/Sidebar';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useUnreadCount } from '@/features/notifications/UnreadCountProvider';
 import { signout } from '@/lib/api/services/auth';
 import { cn } from '@/lib/utils';
 import { MyProfile } from '@/types/user';
@@ -64,6 +66,12 @@ const navigationItems = [
 		url: '/explore',
 		icon: Search,
 	},
+	{
+		title: 'common.notifications',
+		id: 'linkNotifications',
+		url: '/notifications',
+		icon: Bell,
+	},
 ];
 
 interface AppSidebarProps {
@@ -88,6 +96,7 @@ function getUserInitials(fullName?: string, email?: string): string {
 export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 	const { t } = useLanguage();
 	const pathname = usePathname();
+	const { count: unreadCount } = useUnreadCount();
 
 	function handleLogout() {
 		signout();
@@ -118,6 +127,8 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 					<SidebarGroupContent>
 						<SidebarMenu className="gap-0.5">
 							{navigationItems.map((item) => {
+								if (item.id === 'linkNotifications' && !userSession) return null;
+								const badge = item.id === 'linkNotifications' ? unreadCount : 0;
 								const isActive =
 									item.id !== 'actionCreatePoll' &&
 									(item.url === '/'
@@ -189,7 +200,12 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 												<span className="text-sm font-medium capitalize">
 													{t(item.title)}
 												</span>
-												{isActive && (
+												{badge > 0 && (
+													<span className="ml-auto min-w-5 rounded-full bg-primary px-1.5 text-center font-mono text-[11px] leading-5 text-primary-foreground tabular-nums">
+														{badge > 99 ? '99+' : badge}
+													</span>
+												)}
+												{isActive && badge === 0 && (
 													<span className="ml-auto w-1.5 h-1.5 rounded-full bg-sidebar-primary shrink-0" />
 												)}
 											</SidebarMenuButton>
