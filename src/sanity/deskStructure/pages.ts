@@ -23,11 +23,11 @@ const pageHome = (S: StructureBuilder) => {
 
 const pageSignUp = (S: StructureBuilder) => {
 	return S.listItem()
-		.title('Sign Up')
+		.title('Log In')
 		.child(
 			S.editor()
 				.id('pSignUp')
-				.title('Sign Up')
+				.title('Log In')
 				.schemaType('pSignUp')
 				.documentId('pSignUp')
 		)

@@ -30,9 +30,9 @@ never calls the API directly, so its CORS list doesn't need the web origin.
 
 - [ ] Deploy vomatt-api `release-readiness` (backend P0 1–4) and configure email (P0 5)
 - [ ] Seed topics (tags) so the feed has tabs and Explore has a directory
-- [ ] Sanity: publish Settings → General (site title, share image, favicon) and the Sign-up
-      page policy text (terms + privacy links); the signup page shows it under the form
-- [ ] Terms of service and privacy policy pages (Sanity pages), linked from signup and footer
+- [ ] Sanity: publish Settings → General (site title, share image, favicon) and the Log-in
+      page policy text (terms + privacy links); the login page shows it under the form
+- [ ] Terms of service and privacy policy pages (Sanity pages), linked from login and footer
 - [ ] Last step: Settings → General → Coming soon → off → Publish (live within ~1 minute)
 - [ ] Smoke test on the deployed pair: sign up, sign out, sign in, vote, change vote, withdraw,
       comment, like, edit profile, toggle visibility, delete a throwaway account

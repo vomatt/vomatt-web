@@ -352,10 +352,8 @@ export const pageBlogSingleQuery = defineQuery(`
 
 export const pSignUpDataQuery = defineQuery(`
 	*[_type == "pSignUp"][0]{
-		title,
 		policyMessage[]{
 			${portableTextContentFields}
 		},
-		${baseFields},
 	}
 `);

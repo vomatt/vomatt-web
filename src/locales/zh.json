@@ -7,7 +7,6 @@
 		"notifications": "通知",
 		"login": "登入",
 		"email": "信箱",
-		"signUp": "註冊",
 		"welcome": "歡迎",
 		"loading": "載入中",
 		"error": "發生錯誤",
@@ -45,17 +44,11 @@
 		"ctaLabel": "登入"
 	},
 	"login": {
-		"title": "登入 Vomatt",
-		"footNote": "沒有帳號嗎?",
-		"subtitle": "歡迎回來，我們會寄送登入驗證碼到你的信箱。",
+		"title": "登入或註冊",
+		"subtitle": "輸入電子郵件，我們會寄送驗證碼給你。第一次使用？我們會自動為你建立帳號。",
 		"sessionExpired": "登入已過期，請重新登入。",
 		"dialogDescription": "使用電子郵件登入或註冊以繼續",
 		"sessionRevoked": "為了你的帳號安全，已登出所有裝置，請重新登入。"
-	},
-	"signup": {
-		"title": "加入討論",
-		"alreadyHaveAccount": "已經有帳號了？",
-		"subtitle": "只需電子郵件即可建立帳號，不需要密碼。"
 	},
 	"verificationCode": {
 		"title": "請查看你的信箱",
@@ -246,8 +239,7 @@
 		"votersFailed": "無法載入投票者。"
 	},
 	"auth": {
-		"continueWithEmail": "使用電子郵件繼續",
-		"passwordless": "第一次使用？同一組驗證碼會為你建立帳號。"
+		"continueWithEmail": "使用電子郵件繼續"
 	},
 	"authError": {
 		"invalidCode": "驗證碼不正確，請確認信件後再試一次。",

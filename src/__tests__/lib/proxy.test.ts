@@ -204,8 +204,8 @@ describe('proxy auth', () => {
 		expect(res.headers.get('location')).toBeNull();
 	});
 
-	it('redirects a signed-in user away from signup', async () => {
-		const res = await proxy(requestFor('/signup', { accessToken: await signToken() }));
+	it('redirects a signed-in user away from login', async () => {
+		const res = await proxy(requestFor('/login', { accessToken: await signToken() }));
 		expect(res.headers.get('location')).toBe('http://localhost:3000/');
 	});
 });

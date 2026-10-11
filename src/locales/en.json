@@ -7,7 +7,6 @@
 		"notifications": "Notifications",
 		"login": "login",
 		"email": "email",
-		"signUp": "Sign up",
 		"welcome": "Welcome",
 		"loading": "Loading...",
 		"error": "Something went wrong",
@@ -45,17 +44,11 @@
 		"ctaLabel": "Log in"
 	},
 	"login": {
-		"title": "Log in to Vomatt",
-		"footNote": "Don't have an account?",
-		"subtitle": "Welcome back. We will email you a sign-in code.",
+		"title": "Log in or sign up",
+		"subtitle": "Enter your email and we'll send you a code. New here? We'll create your account.",
 		"sessionExpired": "Your session expired. Please log in again.",
 		"dialogDescription": "Log in or sign up with your email to continue",
 		"sessionRevoked": "For your security, you were signed out on all devices. Please sign in again."
-	},
-	"signup": {
-		"title": "Join the conversation",
-		"alreadyHaveAccount": "Already have an account?",
-		"subtitle": "Create an account with just your email. No password needed."
 	},
 	"verificationCode": {
 		"title": "Check your email",
@@ -250,8 +243,7 @@
 		"votersFailed": "Couldn't load who voted."
 	},
 	"auth": {
-		"continueWithEmail": "Continue with email",
-		"passwordless": "New here? The same code creates your account."
+		"continueWithEmail": "Continue with email"
 	},
 	"authError": {
 		"invalidCode": "That code is not right. Check the email and try again.",

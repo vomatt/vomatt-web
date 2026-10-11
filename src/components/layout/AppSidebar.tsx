@@ -81,7 +81,7 @@ interface AppSidebarProps {
 	profile: MyProfile | null;
 }
 
-const hideSideBarFromPages = ['/login', '/signup'];
+const hideSideBarFromPages = ['/login'];
 
 function getUserInitials(fullName?: string, email?: string): string {
 	if (fullName) {

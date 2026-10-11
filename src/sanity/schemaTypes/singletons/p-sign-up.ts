@@ -5,13 +5,13 @@ import slug from '@/sanity/schemaTypes/objects/slug';
 import title from '@/sanity/schemaTypes/objects/title';
 
 export const pSignUp = defineType({
-	title: 'Sign up page',
+	title: 'Login page',
 	name: 'pSignUp',
 	type: 'document',
 	fields: [
-		title({ initialValue: 'Sign up' }),
+		title({ initialValue: 'Log in' }),
 		slug({
-			initialValue: { _type: 'slug', current: '/signup' },
+			initialValue: { _type: 'slug', current: '/login' },
 			readOnly: true,
 		}),
 		{

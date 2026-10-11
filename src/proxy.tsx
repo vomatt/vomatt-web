@@ -56,7 +56,7 @@ function getLocale(request: NextRequest): string | undefined {
 }
 
 const protectedPaths = ['/account', '/my-polls', '/notifications'];
-const authPaths = ['/login', '/signup'];
+const authPaths = ['/login'];
 
 type SessionResult =
 	| { status: 'valid' }

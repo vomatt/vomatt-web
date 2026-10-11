@@ -60,7 +60,7 @@ export function TabBar({ className, userSession }: TabBarProps) {
 		},
 	];
 
-	const routeToHide = ['/signup', '/login'];
+	const routeToHide = ['/login'];
 	if (routeToHide.includes(pathname)) return null;
 
 	return (

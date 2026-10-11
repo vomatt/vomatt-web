@@ -1,13 +1,14 @@
 'use client';
-import NextLink from 'next/link';
+import type { PortableTextBlock } from '@portabletext/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import AuthContainer from '@/components/auth/AuthContainer';
 import { AuthFlow } from '@/components/auth/AuthFlow';
+import CustomPortableText from '@/components/CustomPortableText';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getSafeRedirectPath } from '@/lib/routes';
 
-export function LogIn() {
+export function LogIn({ policyMessage }: { policyMessage?: PortableTextBlock[] | null }) {
 	const { t } = useLanguage();
 	const router = useRouter();
 	const searchParams = useSearchParams();
@@ -22,15 +23,13 @@ export function LogIn() {
 				</p>
 			)}
 			<AuthFlow
-				variant="login"
 				onDone={() => router.replace(redirectTo)}
 				footer={
-					<p className="mt-6 text-center text-sm">
-						{t('login.footNote')}&nbsp;
-						<NextLink href="/signup" className="text-foreground underline underline-offset-4">
-							{t('common.signUp')}
-						</NextLink>
-					</p>
+					policyMessage && (
+						<div className="mt-8 text-xs text-muted-foreground">
+							<CustomPortableText blocks={policyMessage} />
+						</div>
+					)
 				}
 			/>
 		</AuthContainer>

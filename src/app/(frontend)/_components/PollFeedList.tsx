@@ -78,7 +78,7 @@ export function PollFeedList({ className, viewerId, initialPage, tag, header }: 
 					{viewerId ? (
 						<PollCreator triggerChildren={<Button>{t('homePage.createFirst')}</Button>} />
 					) : (
-						<Link href="/signup" className={buttonVariants()}>
+						<Link href="/login" className={buttonVariants()}>
 							{t('homePage.joinToCreate')}
 						</Link>
 					)}

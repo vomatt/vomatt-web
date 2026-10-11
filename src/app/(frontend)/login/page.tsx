@@ -1,4 +1,6 @@
 import defineMetadata from '@/lib/defineMetadata';
+import { sanityFetch } from '@/sanity/lib/live';
+import { pSignUpDataQuery } from '@/sanity/lib/queries';
 
 import { LogIn } from './_component/LogIn';
 
@@ -7,5 +9,7 @@ export function generateMetadata() {
 }
 
 export default async function Page() {
-	return <LogIn />;
+	const { data } = await sanityFetch({ query: pSignUpDataQuery });
+
+	return <LogIn policyMessage={data?.policyMessage} />;
 }

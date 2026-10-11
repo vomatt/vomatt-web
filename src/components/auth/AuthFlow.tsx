@@ -22,15 +22,13 @@ import { type AuthResult, useAuthFlow } from './useAuthFlow';
 import VerificationForm from './VerificationForm';
 
 type AuthFlowProps = {
-	/** Only changes the wording of the first step; both create or sign in. */
-	variant: 'login' | 'signup';
 	/** Called once the user is signed in (and, for a new account, past the profile step). */
 	onDone: () => void;
-	/** Rendered under the email step, e.g. a link to the other page or the terms. */
+	/** Rendered under the email step, e.g. the terms. */
 	footer?: React.ReactNode;
 };
 
-export function AuthFlow({ variant, onDone, footer }: AuthFlowProps) {
+export function AuthFlow({ onDone, footer }: AuthFlowProps) {
 	const flow = useAuthFlow();
 
 	if (flow.step === 'code') {
@@ -54,18 +52,16 @@ export function AuthFlow({ variant, onDone, footer }: AuthFlowProps) {
 
 	return (
 		<>
-			<EmailStep variant={variant} defaultEmail={flow.email} onSubmit={flow.submitEmail} />
+			<EmailStep defaultEmail={flow.email} onSubmit={flow.submitEmail} />
 			{footer}
 		</>
 	);
 }
 
 function EmailStep({
-	variant,
 	defaultEmail,
 	onSubmit,
 }: {
-	variant: AuthFlowProps['variant'];
 	defaultEmail: string;
 	onSubmit: (email: string) => Promise<AuthResult>;
 }) {
@@ -84,8 +80,8 @@ function EmailStep({
 
 	return (
 		<>
-			<h1 className="font-medium text-3xl text-center mb-3">{t(`${variant}.title`)}</h1>
-			<p className="text-center text-sm text-muted-foreground mb-8">{t(`${variant}.subtitle`)}</p>
+			<h1 className="font-medium text-3xl text-center mb-3">{t('login.title')}</h1>
+			<p className="text-center text-sm text-muted-foreground mb-8">{t('login.subtitle')}</p>
 			<form onSubmit={form.handleSubmit(submit)} noValidate>
 				<Controller
 					control={form.control}
@@ -112,7 +108,6 @@ function EmailStep({
 					{t('auth.continueWithEmail')}
 				</ButtonLoading>
 				<AuthError error={error} className="mt-3" />
-				<p className="text-center text-xs text-muted-foreground mt-4">{t('auth.passwordless')}</p>
 			</form>
 		</>
 	);

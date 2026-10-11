@@ -4,7 +4,6 @@ export type Language = 'en' | 'zh';
 export type LanguageCode = keyof typeof SUPPORTED_LANGUAGES;
 export type PageStatusType =
 	| 'STATUS_LOG_IN'
-	| 'STATUS_SIGN_UP'
 	| 'STATUS_VERIFICATION';
 
 export interface AuthTokens {

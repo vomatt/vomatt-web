@@ -31,7 +31,6 @@ export function AuthDialog({ open, onOpenChange, onAuthSuccess }: AuthDialogProp
 				{/* Unmounted on close, so reopening starts from the email step */}
 				{open && (
 					<AuthFlow
-						variant="login"
 						// Setting the session cookies re-renders the page, so the sidebar updates on its own
 						onDone={onAuthSuccess}
 					/>

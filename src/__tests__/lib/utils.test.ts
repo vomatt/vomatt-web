@@ -268,9 +268,9 @@ describe('resolveHref', () => {
 		);
 	});
 
-	it('returns /signup for pSignUp', () => {
+	it('returns /login for pSignUp', () => {
 		expect(resolveHref({ documentType: 'pSignUp', slug: undefined })).toBe(
-			'/signup'
+			'/login'
 		);
 	});
 

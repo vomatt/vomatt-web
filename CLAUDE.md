@@ -63,7 +63,7 @@ Locales: `en`, `zh-TW` (default `en`). Config at `src/i18n-config.ts`. Language 
 
 - **Server Components** for data fetching; **Client Components** (`'use client'`) for interaction.
 - UI primitives are shadcn/ui (new-york style, zinc base) in `src/components/ui/`.
-- Layout uses a collapsible sidebar (`SidebarProvider` + `AppSidebar`) visible on all routes except `/login` and `/signup`. Mobile gets a `TabBar` instead.
+- Layout uses a collapsible sidebar (`SidebarProvider` + `AppSidebar`) visible on all routes except `/login`. Mobile gets a `TabBar` instead.
 - Fonts: Geist (sans), Geist Mono, Instrument Serif (display), DM Mono (data/numbers).
 - Design tokens in `src/styles/global.css` use OKLCh color space with Tailwind CSS v4.
 - Tailwind v4: `revalidatePath(path, 'page')` requires the second arg; use `updateTag(tag)` for single-tag revalidation.

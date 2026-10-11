@@ -16,6 +16,10 @@ const nextConfig: NextConfig = {
 		],
 	},
 	poweredByHeader: false,
+	async redirects() {
+		// Sign-up and log-in are one form now
+		return [{ source: '/signup', destination: '/login', permanent: true }];
+	},
 	async headers() {
 		return [
 			{
