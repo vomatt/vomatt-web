@@ -2,9 +2,11 @@
 
 import { revalidateTag, updateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { z } from 'zod';
 
 import { clearAuthTokens } from '@/lib/api/auth';
 import { apiClient, ApiError, publicFetch } from '@/lib/api/client';
+import { cursorPageSchema, pageParams } from '@/lib/api/cursor';
 import { MyProfile, UserProfile } from '@/types/user';
 
 // Public profiles are cached; a profile edit refreshes them and re-renders the page
@@ -22,12 +24,14 @@ export async function getUserProfile(username: string): Promise<UserProfile | nu
   }
 }
 
-/** Signed-in only; returns `{ items, nextCursor }`. Show usernames only: results skip visibility settings. */
-export async function searchUsers(username: string, cursor?: string, limit?: number) {
-  const params = new URLSearchParams({ username });
-  if (cursor) params.set('cursor', cursor);
-  if (limit !== undefined) params.set('limit', String(limit));
-  return apiClient(`/users/search?${params}`);
+// Results skip visibility settings, so keep only what may be shown
+const UserSearchPage = cursorPageSchema(z.object({ id: z.string(), username: z.string() }));
+
+/** Signed-in only; returns `{ items, nextCursor }` with usernames only. */
+export async function searchUsers(username: string, cursor?: string, limit = 20) {
+  const params = pageParams(cursor, limit);
+  params.set('username', username);
+  return UserSearchPage.parse(await apiClient(`/users/search?${params}`));
 }
 
 export async function deleteUser(userId: string) {

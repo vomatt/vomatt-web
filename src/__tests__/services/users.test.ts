@@ -51,25 +51,34 @@ describe('getUserProfile()', () => {
 });
 
 describe('searchUsers()', () => {
-  it('sends GET with username query param', async () => {
+  beforeEach(() => {
+    mockApiClient.mockResolvedValue({
+      content: [{ id: 'u1', username: 'bob', email: 'bob@example.com' }],
+      total: 21,
+      page: 1,
+      limit: 20,
+    });
+  });
+
+  it('asks for the first page by username', async () => {
     await searchUsers('bob');
     expect(mockApiClient).toHaveBeenCalledWith(
-      '/users/search?username=bob'
+      '/users/search?page=1&size=20&username=bob'
     );
   });
 
-  it('passes the cursor back', async () => {
-    await searchUsers('bob', 'c2');
+  it('passes the cursor back as the page', async () => {
+    await searchUsers('bob', '2', 10);
     expect(mockApiClient).toHaveBeenCalledWith(
-      '/users/search?username=bob&cursor=c2'
+      '/users/search?page=2&size=10&username=bob'
     );
   });
 
-  it('includes limit when provided', async () => {
-    await searchUsers('bob', undefined, 20);
-    expect(mockApiClient).toHaveBeenCalledWith(
-      '/users/search?username=bob&limit=20'
-    );
+  it('returns usernames only, with the next page', async () => {
+    expect(await searchUsers('bob')).toEqual({
+      items: [{ id: 'u1', username: 'bob' }],
+      nextCursor: '2',
+    });
   });
 });
 

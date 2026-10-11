@@ -6,31 +6,39 @@ const Item = z.object({ id: z.string() });
 const Page = cursorPageSchema(Item);
 
 describe('cursorPageSchema()', () => {
-	it('parses { items, nextCursor }', () => {
-		expect(Page.parse({ items: [{ id: 'a' }], nextCursor: 'xyz' })).toEqual({
+	it('reads the API page { content, total, page, limit }', () => {
+		expect(Page.parse({ content: [{ id: 'a' }], total: 45, page: 1, limit: 20 })).toEqual({
 			items: [{ id: 'a' }],
-			nextCursor: 'xyz',
+			nextCursor: '2',
 		});
 	});
 
-	it('treats a missing nextCursor as the last page', () => {
-		expect(Page.parse({ items: [] }).nextCursor).toBeNull();
+	it('has no next page once the last item is in', () => {
+		expect(Page.parse({ content: [], total: 40, page: 2, limit: 20 }).nextCursor).toBeNull();
+		expect(Page.parse({ content: [], total: 0, page: 1, limit: 20 }).nextCursor).toBeNull();
+	});
+
+	it('stops at an empty page size rather than paging forever', () => {
+		expect(Page.parse({ content: [], total: 5, page: 1, limit: 0 }).nextCursor).toBeNull();
 	});
 
 	it('rejects other shapes', () => {
 		expect(() => Page.parse({ data: [] })).toThrow();
-		// The old offset page is gone from the API
-		expect(() => Page.parse({ content: [], total: 0, page: 1, limit: 20 })).toThrow();
+		expect(() => Page.parse({ items: [], nextCursor: null })).toThrow();
 	});
 });
 
 describe('pageParams()', () => {
-	it('sends only the limit on the first page', () => {
-		expect(pageParams(null, 20).toString()).toBe('limit=20');
+	it('asks for the first page without a cursor', () => {
+		expect(pageParams(null, 20).toString()).toBe('page=1&size=20');
 	});
 
-	it('passes the cursor back as given', () => {
-		expect(pageParams('abc=', 10).get('cursor')).toBe('abc=');
+	it('sends the cursor as the page number', () => {
+		expect(pageParams('3', 10).get('page')).toBe('3');
+	});
+
+	it('clamps the size', () => {
+		expect(pageParams(null, 500).get('size')).toBe('50');
 	});
 });
 

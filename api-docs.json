@@ -1,0 +1,2903 @@
+{
+	"openapi": "3.1.0",
+	"info": {
+		"title": "Vomatt REST API",
+		"description": "Vomatt API",
+		"contact": { "name": "Vomatt", "email": "yi-hsien@vomatt.com" },
+		"license": {
+			"name": "MIT License",
+			"url": "https://opensource.org/licenses/MIT"
+		},
+		"version": "1.0"
+	},
+	"servers": [
+		{ "url": "http://localhost:8080", "description": "Development" },
+		{ "url": "https://localhost:8080", "description": "Production" }
+	],
+	"security": [{ "bearerAuth": [] }],
+	"tags": [
+		{ "name": "Vote", "description": "Vote management APIs" },
+		{
+			"name": "Admin - Lookup",
+			"description": "Dictionary management APIs (Admin)"
+		},
+		{ "name": "Lookup", "description": "Dictionary lookup APIs" },
+		{ "name": "User", "description": "User management APIs" },
+		{ "name": "Vote Comment", "description": "Vote comment management APIs" },
+		{ "name": "Admin Tag", "description": "Admin-only tag management APIs" },
+		{ "name": "Tag", "description": "Tag management public APIs" },
+		{
+			"name": "Auth - 認證",
+			"description": "使用者認證相關操作，支援 Email OTP、手機 OTP、Google、LINE、Apple 等登入方式，以及 token 刷新與登出"
+		}
+	],
+	"paths": {
+		"/api/votes/{voteId}/deactivate": {
+			"put": {
+				"tags": ["Vote"],
+				"summary": "Deactivate vote",
+				"description": "Deactivate a vote (only by creator)",
+				"operationId": "deactivateVote",
+				"parameters": [
+					{
+						"name": "voteId",
+						"in": "path",
+						"description": "Vote ID",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseSimpleResultResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseSimpleResultResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "權限不足",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseSimpleResultResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/votes/{voteId}/comments/{commentId}": {
+			"put": {
+				"tags": ["Vote Comment"],
+				"summary": "Update a comment",
+				"description": "Update comment content (only by comment owner)",
+				"operationId": "updateComment",
+				"parameters": [
+					{
+						"name": "voteId",
+						"in": "path",
+						"description": "Vote ID",
+						"required": true,
+						"schema": { "type": "string" }
+					},
+					{
+						"name": "commentId",
+						"in": "path",
+						"description": "Comment ID",
+						"required": true,
+						"schema": { "type": "string", "format": "uuid" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/UpdateCommentRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseCommentDto"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseCommentDto"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "權限不足",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseCommentDto"
+								}
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"tags": ["Vote Comment"],
+				"summary": "Delete a comment",
+				"description": "Delete a comment (soft delete, only by comment owner)",
+				"operationId": "deleteComment",
+				"parameters": [
+					{
+						"name": "voteId",
+						"in": "path",
+						"description": "Vote ID",
+						"required": true,
+						"schema": { "type": "string" }
+					},
+					{
+						"name": "commentId",
+						"in": "path",
+						"description": "Comment ID",
+						"required": true,
+						"schema": { "type": "string", "format": "uuid" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseSimpleResultResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseSimpleResultResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "權限不足",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseSimpleResultResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/admin/tags/{tagId}": {
+			"put": {
+				"tags": ["Admin Tag"],
+				"summary": "Update Tag",
+				"description": "Admin updates an existing tag",
+				"operationId": "updateTag",
+				"parameters": [
+					{
+						"name": "tagId",
+						"in": "path",
+						"description": "Tag ID",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/UpdateTagRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseTagDto" }
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"application/json": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseTagDto" }
+							}
+						}
+					},
+					"403": {
+						"description": "權限不足",
+						"content": {
+							"application/json": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseTagDto" }
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"tags": ["Admin Tag"],
+				"summary": "Delete Tag",
+				"description": "Admin deletes a tag",
+				"operationId": "deleteTag",
+				"parameters": [
+					{
+						"name": "tagId",
+						"in": "path",
+						"description": "Tag ID",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseSimpleResultResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseSimpleResultResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "權限不足",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseSimpleResultResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/admin/lookups/{id}": {
+			"put": {
+				"tags": ["Admin - Lookup"],
+				"summary": "Update Dictionary Item",
+				"operationId": "update",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"description": "Dictionary ID",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/UpdateLookupRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseLookupDto"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseLookupDto"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "權限不足",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseLookupDto"
+								}
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"tags": ["Admin - Lookup"],
+				"summary": "Delete Dictionary Item (Hard Delete)",
+				"operationId": "delete",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"description": "Dictionary ID",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseSimpleResultResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseSimpleResultResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "權限不足",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseSimpleResultResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/votes": {
+			"get": {
+				"tags": ["Vote"],
+				"summary": "Get active votes",
+				"description": "Retrieve all active votes with pagination",
+				"operationId": "getActiveVotes",
+				"parameters": [
+					{
+						"name": "pageable",
+						"in": "query",
+						"required": true,
+						"schema": { "$ref": "#/components/schemas/Pageable" }
+					},
+					{
+						"name": "tag",
+						"in": "query",
+						"required": false,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponsePageResponseVoteResponse"
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"tags": ["Vote"],
+				"summary": "Create a new vote",
+				"description": "Create a new vote with multiple options",
+				"operationId": "createVote",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/CreateVoteRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseVoteResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseVoteResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "權限不足",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseVoteResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/votes/{voteId}/vote": {
+			"post": {
+				"tags": ["Vote"],
+				"summary": "Vote on a poll",
+				"description": "Cast vote(s) on the specified vote",
+				"operationId": "vote",
+				"parameters": [
+					{
+						"name": "voteId",
+						"in": "path",
+						"description": "Vote ID",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/VoteRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseVoteResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseVoteResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "權限不足",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseVoteResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/votes/{voteId}/comments": {
+			"get": {
+				"tags": ["Vote Comment"],
+				"summary": "Get comments for a vote",
+				"description": "Retrieve all comments for a vote (paginated)",
+				"operationId": "getComments",
+				"parameters": [
+					{
+						"name": "voteId",
+						"in": "path",
+						"description": "Vote ID",
+						"required": true,
+						"schema": { "type": "string" }
+					},
+					{
+						"name": "pageable",
+						"in": "query",
+						"required": true,
+						"schema": { "$ref": "#/components/schemas/Pageable" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponsePageResponseCommentDto"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponsePageResponseCommentDto"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "權限不足",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponsePageResponseCommentDto"
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"tags": ["Vote Comment"],
+				"summary": "Create a comment",
+				"description": "Add a comment to a vote",
+				"operationId": "createComment",
+				"parameters": [
+					{
+						"name": "voteId",
+						"in": "path",
+						"description": "Vote ID",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/CreateCommentRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseCommentDto"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseCommentDto"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "權限不足",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseCommentDto"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/votes/{voteId}/comments/{commentId}/like": {
+			"post": {
+				"tags": ["Vote Comment"],
+				"summary": "Like a comment",
+				"description": "Add a like to a comment",
+				"operationId": "likeComment",
+				"parameters": [
+					{
+						"name": "voteId",
+						"in": "path",
+						"description": "Vote ID",
+						"required": true,
+						"schema": { "type": "string" }
+					},
+					{
+						"name": "commentId",
+						"in": "path",
+						"description": "Comment ID",
+						"required": true,
+						"schema": { "type": "string", "format": "uuid" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseSimpleResultResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseSimpleResultResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "權限不足",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseSimpleResultResponse"
+								}
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"tags": ["Vote Comment"],
+				"summary": "Unlike a comment",
+				"description": "Remove a like from a comment",
+				"operationId": "unlikeComment",
+				"parameters": [
+					{
+						"name": "voteId",
+						"in": "path",
+						"description": "Vote ID",
+						"required": true,
+						"schema": { "type": "string" }
+					},
+					{
+						"name": "commentId",
+						"in": "path",
+						"description": "Comment ID",
+						"required": true,
+						"schema": { "type": "string", "format": "uuid" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseSimpleResultResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseSimpleResultResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "權限不足",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseSimpleResultResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/auth/verify-otp": {
+			"post": {
+				"tags": ["Auth - 認證"],
+				"summary": "驗證 Email OTP 碼並取得 JWT",
+				"operationId": "verifyOtp",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/VerifyOtpRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseAuthResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/auth/send-otp": {
+			"post": {
+				"tags": ["Auth - 認證"],
+				"summary": "發送 Email OTP 驗證碼",
+				"operationId": "sendOtp",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/SendOtpRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseSimpleResultResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/auth/refresh": {
+			"post": {
+				"tags": ["Auth - 認證"],
+				"summary": "使用 Refresh Token 換發新 Access Token",
+				"operationId": "refresh",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/RefreshRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseAuthResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/auth/phone/verify-otp": {
+			"post": {
+				"tags": ["Auth - 認證"],
+				"summary": "驗證手機 OTP 碼並取得 JWT",
+				"operationId": "phoneVerifyOtp",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/PhoneVerifyOtpRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseAuthResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/auth/phone/send-otp": {
+			"post": {
+				"tags": ["Auth - 認證"],
+				"summary": "發送手機 OTP 驗證碼",
+				"description": "type: signup | login",
+				"operationId": "phoneSendOtp",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/PhoneSendOtpRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseSimpleResultResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/auth/logout": {
+			"post": {
+				"tags": ["Auth - 認證"],
+				"summary": "登出，使 Refresh Token 失效",
+				"operationId": "logout",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/RefreshRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseSimpleResultResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/auth/line": {
+			"post": {
+				"tags": ["Auth - 認證"],
+				"summary": "LINE 登入",
+				"operationId": "lineLogin",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/LineAuthRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseAuthResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/auth/google": {
+			"post": {
+				"tags": ["Auth - 認證"],
+				"summary": "Google 登入",
+				"operationId": "googleLogin",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/GoogleAuthRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseAuthResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/auth/check-email": {
+			"post": {
+				"tags": ["Auth - 認證"],
+				"summary": "檢查 Email 是否已註冊",
+				"operationId": "checkEmail",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/CheckEmailRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseAuthEmailExistsResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/auth/apple": {
+			"post": {
+				"tags": ["Auth - 認證"],
+				"summary": "Apple 登入",
+				"operationId": "appleLogin",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/AppleAuthRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseAuthResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/admin/tags": {
+			"post": {
+				"tags": ["Admin Tag"],
+				"summary": "Create Tag",
+				"description": "Admin creates a new tag",
+				"operationId": "createTag",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/CreateTagRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseTagDto" }
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"application/json": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseTagDto" }
+							}
+						}
+					},
+					"403": {
+						"description": "權限不足",
+						"content": {
+							"application/json": {
+								"schema": { "$ref": "#/components/schemas/ApiResponseTagDto" }
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/admin/lookups": {
+			"post": {
+				"tags": ["Admin - Lookup"],
+				"summary": "Create Dictionary Item",
+				"operationId": "create",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/CreateLookupRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseLookupDto"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseLookupDto"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "權限不足",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseLookupDto"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/users/me": {
+			"get": {
+				"tags": ["User"],
+				"summary": "Get my profile",
+				"description": "Get the complete profile of the authenticated user",
+				"operationId": "getMyProfile",
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseMyProfileResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseMyProfileResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "權限不足",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseMyProfileResponse"
+								}
+							}
+						}
+					}
+				}
+			},
+			"patch": {
+				"tags": ["User"],
+				"summary": "Update my profile",
+				"description": "Update the authenticated user's display name and bio",
+				"operationId": "updateMyProfile",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/UpdateProfileRequest" }
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseUserProfileResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseUserProfileResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "權限不足",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseUserProfileResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/users/me/visibility": {
+			"patch": {
+				"tags": ["User"],
+				"summary": "Update profile visibility",
+				"description": "Update field visibility settings for public profile",
+				"operationId": "updateVisibility",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateVisibilityRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseMapStringBoolean"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseMapStringBoolean"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "權限不足",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseMapStringBoolean"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/admin/lookups/{id}/deactivate": {
+			"patch": {
+				"tags": ["Admin - Lookup"],
+				"summary": "Deactivate Dictionary Item (Soft Delete)",
+				"operationId": "deactivate",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"description": "Dictionary ID",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseSimpleResultResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseSimpleResultResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "權限不足",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseSimpleResultResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/admin/lookups/{id}/activate": {
+			"patch": {
+				"tags": ["Admin - Lookup"],
+				"summary": "Activate Dictionary Item",
+				"operationId": "activate",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"description": "Dictionary ID",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseSimpleResultResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseSimpleResultResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "權限不足",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseSimpleResultResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/votes/{voteId}": {
+			"get": {
+				"tags": ["Vote"],
+				"summary": "Get vote by ID",
+				"description": "Retrieve vote details by vote ID",
+				"operationId": "getVote",
+				"parameters": [
+					{
+						"name": "voteId",
+						"in": "path",
+						"description": "Vote ID",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseVoteResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseVoteResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "權限不足",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseVoteResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/votes/{voteId}/results": {
+			"get": {
+				"tags": ["Vote"],
+				"summary": "Get vote results",
+				"description": "Retrieve detailed vote results including voter information (if not anonymous)",
+				"operationId": "getVoteResults",
+				"parameters": [
+					{
+						"name": "voteId",
+						"in": "path",
+						"description": "Vote ID",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseVoteResultResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseVoteResultResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "權限不足",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseVoteResultResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/votes/{voteId}/my-vote-status": {
+			"get": {
+				"tags": ["Vote"],
+				"summary": "Check user vote status",
+				"description": "Check if the authenticated user has voted and which options they selected",
+				"operationId": "getMyVoteStatus",
+				"parameters": [
+					{
+						"name": "voteId",
+						"in": "path",
+						"description": "Vote ID",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseUserVoteStatusResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseUserVoteStatusResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "權限不足",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseUserVoteStatusResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/votes/my": {
+			"get": {
+				"tags": ["Vote"],
+				"summary": "Get user's votes",
+				"description": "Retrieve votes created by the authenticated user (paginated)",
+				"operationId": "getMyVotes",
+				"parameters": [
+					{
+						"name": "pageable",
+						"in": "query",
+						"required": true,
+						"schema": { "$ref": "#/components/schemas/Pageable" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponsePageResponseVoteResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponsePageResponseVoteResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "權限不足",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponsePageResponseVoteResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/users/{username}": {
+			"get": {
+				"tags": ["User"],
+				"summary": "Get user public profile",
+				"description": "Get a user's public profile by username",
+				"operationId": "getUserProfile",
+				"parameters": [
+					{
+						"name": "username",
+						"in": "path",
+						"description": "Username",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseUserProfileResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/users/search": {
+			"get": {
+				"tags": ["User"],
+				"summary": "Search users by username",
+				"description": "Search for users by username (case-insensitive, partial match)",
+				"operationId": "searchUsers",
+				"parameters": [
+					{
+						"name": "username",
+						"in": "query",
+						"description": "Username to search for",
+						"required": true,
+						"schema": { "type": "string" }
+					},
+					{
+						"name": "pageable",
+						"in": "query",
+						"required": true,
+						"schema": { "$ref": "#/components/schemas/Pageable" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponsePageResponseUserDto"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponsePageResponseUserDto"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "權限不足",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponsePageResponseUserDto"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/tags": {
+			"get": {
+				"tags": ["Tag"],
+				"summary": "Get All Tags",
+				"description": "Get a list of all available tags in the system",
+				"operationId": "getAllTags",
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseListTagDto"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/tags/popular": {
+			"get": {
+				"tags": ["Tag"],
+				"summary": "Get Popular Tags",
+				"description": "Get popular tags sorted by usage count (paginated)",
+				"operationId": "getPopularTags",
+				"parameters": [
+					{
+						"name": "pageable",
+						"in": "query",
+						"required": true,
+						"schema": { "$ref": "#/components/schemas/Pageable" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponsePageResponseTagDto"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/lookups/{lookupType}": {
+			"get": {
+				"tags": ["Lookup"],
+				"summary": "Get all active dictionary items of a type",
+				"operationId": "getActiveByType",
+				"parameters": [
+					{
+						"name": "lookupType",
+						"in": "path",
+						"description": "Dictionary type",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseListLookupDto"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseListLookupDto"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "權限不足",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseListLookupDto"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/lookups/{lookupType}/{lookupKey}": {
+			"get": {
+				"tags": ["Lookup"],
+				"summary": "Get a single dictionary item",
+				"operationId": "getByTypeAndKey",
+				"parameters": [
+					{
+						"name": "lookupType",
+						"in": "path",
+						"description": "Dictionary type",
+						"required": true,
+						"schema": { "type": "string" }
+					},
+					{
+						"name": "lookupKey",
+						"in": "path",
+						"description": "Dictionary key",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseLookupDto"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseLookupDto"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "權限不足",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseLookupDto"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/lookups/{lookupType}/children": {
+			"get": {
+				"tags": ["Lookup"],
+				"summary": "Get child dictionary items",
+				"description": "Query child items of a type by parent node",
+				"operationId": "getChildren",
+				"parameters": [
+					{
+						"name": "lookupType",
+						"in": "path",
+						"description": "Dictionary type",
+						"required": true,
+						"schema": { "type": "string" }
+					},
+					{
+						"name": "parentType",
+						"in": "query",
+						"description": "Parent node type",
+						"required": true,
+						"schema": { "type": "string" }
+					},
+					{
+						"name": "parentKey",
+						"in": "query",
+						"description": "Parent node key",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseListLookupDto"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseListLookupDto"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "權限不足",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseListLookupDto"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/lookups/frontend": {
+			"get": {
+				"tags": ["Lookup"],
+				"summary": "Get frontend dictionary",
+				"description": "Return all active dictionaries marked as frontendUsing, grouped by type",
+				"operationId": "getFrontendLookups",
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseMapStringListLookupDto"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseMapStringListLookupDto"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "權限不足",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseMapStringListLookupDto"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/votes/{voteId}/vote/{optionId}": {
+			"delete": {
+				"tags": ["Vote"],
+				"summary": "Remove vote",
+				"description": "Remove vote from a specific option",
+				"operationId": "removeVote",
+				"parameters": [
+					{
+						"name": "voteId",
+						"in": "path",
+						"description": "Vote ID",
+						"required": true,
+						"schema": { "type": "string" }
+					},
+					{
+						"name": "optionId",
+						"in": "path",
+						"description": "Option ID",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseVoteResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseVoteResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "權限不足",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseVoteResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/users/{userId}": {
+			"delete": {
+				"tags": ["User"],
+				"summary": "Delete user account",
+				"description": "Delete a user account (users can only delete their own account, admins can delete any account)",
+				"operationId": "deleteUser",
+				"parameters": [
+					{
+						"name": "userId",
+						"in": "path",
+						"description": "User ID",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseSimpleResultResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未認證",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseSimpleResultResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "權限不足",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseSimpleResultResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"ApiResponseSimpleResultResponse": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"data": { "$ref": "#/components/schemas/SimpleResultResponse" },
+					"message": { "type": "string" },
+					"errorCode": { "type": "string" },
+					"error": { "type": "string" }
+				}
+			},
+			"SimpleResultResponse": {
+				"type": "object",
+				"description": "通用動作回應；用於不需特定欄位的成功回應或簡單的 id/status 回傳",
+				"properties": {
+					"success": {
+						"type": "boolean",
+						"description": "操作是否成功",
+						"example": true
+					},
+					"id": {
+						"type": "string",
+						"format": "uuid",
+						"description": "受影響資源 ID（可為 null）"
+					},
+					"status": {
+						"type": "string",
+						"description": "受影響資源狀態（可為 null）",
+						"example": "approved"
+					},
+					"message": {
+						"type": "string",
+						"description": "附加訊息（可為 null）"
+					}
+				}
+			},
+			"UpdateCommentRequest": {
+				"type": "object",
+				"properties": {
+					"text": { "type": "string", "maxLength": 2000, "minLength": 0 }
+				},
+				"required": ["text"]
+			},
+			"ApiResponseCommentDto": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"data": { "$ref": "#/components/schemas/CommentDto" },
+					"message": { "type": "string" },
+					"errorCode": { "type": "string" },
+					"error": { "type": "string" }
+				}
+			},
+			"CommentDto": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "string" },
+					"voteId": { "type": "string" },
+					"userId": { "type": "string" },
+					"author": { "type": "string" },
+					"text": { "type": "string" },
+					"createdAt": { "type": "string", "format": "date-time" },
+					"updatedAt": { "type": "string", "format": "date-time" },
+					"likeCount": { "type": "integer", "format": "int64" },
+					"edited": { "type": "boolean" },
+					"likedByCurrentUser": { "type": "boolean" }
+				}
+			},
+			"UpdateTagRequest": {
+				"type": "object",
+				"properties": {
+					"name": { "type": "string", "maxLength": 30, "minLength": 0 },
+					"slug": {
+						"type": "string",
+						"maxLength": 50,
+						"minLength": 0,
+						"pattern": "^[a-z0-9\\-\\u4e00-\\u9fff\\u3040-\\u309f\\u30a0-\\u30ff]*$"
+					},
+					"description": { "type": "string", "maxLength": 200, "minLength": 0 },
+					"displayOrder": { "type": "integer", "format": "int32" }
+				},
+				"required": ["name"]
+			},
+			"ApiResponseTagDto": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"data": { "$ref": "#/components/schemas/TagDto" },
+					"message": { "type": "string" },
+					"errorCode": { "type": "string" },
+					"error": { "type": "string" }
+				}
+			},
+			"TagDto": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "string" },
+					"name": { "type": "string" },
+					"slug": { "type": "string" },
+					"description": { "type": "string" },
+					"displayOrder": { "type": "integer", "format": "int32" },
+					"usageCount": { "type": "integer", "format": "int32" }
+				}
+			},
+			"UpdateLookupRequest": {
+				"type": "object",
+				"properties": {
+					"lookupType": { "type": "string", "maxLength": 50, "minLength": 0 },
+					"lookupKey": { "type": "string", "maxLength": 50, "minLength": 0 },
+					"lookupValue": {},
+					"seq": { "type": "integer", "format": "int32" },
+					"parentType": { "type": "string", "maxLength": 50, "minLength": 0 },
+					"parentKey": { "type": "string", "maxLength": 50, "minLength": 0 },
+					"description": { "type": "string", "maxLength": 100, "minLength": 0 },
+					"frontendUsing": { "type": "boolean" }
+				}
+			},
+			"ApiResponseLookupDto": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"data": { "$ref": "#/components/schemas/LookupDto" },
+					"message": { "type": "string" },
+					"errorCode": { "type": "string" },
+					"error": { "type": "string" }
+				}
+			},
+			"LookupDto": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "string" },
+					"lookupType": { "type": "string" },
+					"lookupKey": { "type": "string" },
+					"lookupValue": {},
+					"seq": { "type": "integer", "format": "int32" },
+					"parentType": { "type": "string" },
+					"parentKey": { "type": "string" },
+					"isActive": { "type": "boolean" },
+					"description": { "type": "string" },
+					"frontendUsing": { "type": "boolean" }
+				}
+			},
+			"CreateVoteRequest": {
+				"type": "object",
+				"properties": {
+					"title": { "type": "string", "maxLength": 200, "minLength": 0 },
+					"description": {
+						"type": "string",
+						"maxLength": 1000,
+						"minLength": 0
+					},
+					"options": {
+						"type": "array",
+						"items": { "$ref": "#/components/schemas/VoteOptionRequest" },
+						"minItems": 1
+					},
+					"startTime": { "type": "string", "format": "date-time" },
+					"endTime": { "type": "string", "format": "date-time" },
+					"allowMultipleChoices": { "type": "boolean" },
+					"tagIds": {
+						"type": "array",
+						"items": { "type": "string", "format": "uuid" },
+						"maxItems": 5,
+						"minItems": 0
+					},
+					"anonymous": { "type": "boolean" }
+				},
+				"required": ["options", "title"]
+			},
+			"VoteOptionRequest": {
+				"type": "object",
+				"properties": {
+					"text": { "type": "string", "maxLength": 200, "minLength": 0 },
+					"description": { "type": "string", "maxLength": 500, "minLength": 0 },
+					"displayOrder": { "type": "integer", "format": "int32" }
+				},
+				"required": ["text"]
+			},
+			"ApiResponseVoteResponse": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"data": { "$ref": "#/components/schemas/VoteResponse" },
+					"message": { "type": "string" },
+					"errorCode": { "type": "string" },
+					"error": { "type": "string" }
+				}
+			},
+			"VoteOptionResponse": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "string" },
+					"text": { "type": "string" },
+					"description": { "type": "string" },
+					"displayOrder": { "type": "integer", "format": "int32" },
+					"createdAt": { "type": "string", "format": "date-time" },
+					"votes": { "type": "integer", "format": "int64" }
+				}
+			},
+			"VoteResponse": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "string" },
+					"title": { "type": "string" },
+					"description": { "type": "string" },
+					"creatorId": { "type": "string" },
+					"creatorUsername": { "type": "string" },
+					"startTime": { "type": "string", "format": "date-time" },
+					"endTime": { "type": "string", "format": "date-time" },
+					"allowMultipleChoices": { "type": "boolean" },
+					"createdAt": { "type": "string", "format": "date-time" },
+					"updatedAt": { "type": "string", "format": "date-time" },
+					"totalVotes": { "type": "integer", "format": "int64" },
+					"options": {
+						"type": "array",
+						"items": { "$ref": "#/components/schemas/VoteOptionResponse" }
+					},
+					"tags": {
+						"type": "array",
+						"items": { "$ref": "#/components/schemas/TagDto" }
+					},
+					"active": { "type": "boolean" },
+					"anonymous": { "type": "boolean" },
+					"votingActive": { "type": "boolean" }
+				}
+			},
+			"VoteRequest": {
+				"type": "object",
+				"properties": {
+					"optionIds": {
+						"type": "array",
+						"items": { "type": "string" },
+						"minItems": 1
+					}
+				},
+				"required": ["optionIds"]
+			},
+			"CreateCommentRequest": {
+				"type": "object",
+				"properties": {
+					"text": { "type": "string", "maxLength": 2000, "minLength": 0 }
+				},
+				"required": ["text"]
+			},
+			"VerifyOtpRequest": {
+				"type": "object",
+				"description": "驗證 email OTP 的請求",
+				"properties": {
+					"email": {
+						"type": "string",
+						"format": "email",
+						"description": "電子郵件",
+						"example": "user@example.com"
+					},
+					"code": {
+						"type": "string",
+						"description": "信件收到的 OTP 驗證碼",
+						"example": 123456
+					},
+					"checkRole": {
+						"type": "string",
+						"description": "是否限制管理員才可登入；填 \"true\" 僅 admin 帳號驗證通過",
+						"enum": ["true", "false"],
+						"example": false
+					}
+				},
+				"required": ["code"]
+			},
+			"ApiResponseAuthResponse": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"data": { "$ref": "#/components/schemas/AuthResponse" },
+					"message": { "type": "string" },
+					"errorCode": { "type": "string" },
+					"error": { "type": "string" }
+				}
+			},
+			"AuthResponse": {
+				"type": "object",
+				"description": "登入/註冊成功的回應",
+				"properties": {
+					"token": {
+						"type": "string",
+						"description": "JWT access token（請放在 Authorization: Bearer 標頭）",
+						"example": "eyJhbGciOiJIUzI1NiJ9..."
+					},
+					"refreshToken": {
+						"type": "string",
+						"description": "刷新用 refresh token；access token 過期時用此換新",
+						"example": "8c7e3f4a-1234-5678-90ab-cdef12345678"
+					},
+					"user": {
+						"$ref": "#/components/schemas/UserInfo",
+						"description": "使用者基本資訊"
+					}
+				}
+			},
+			"UserInfo": {
+				"type": "object",
+				"description": "登入回應中的使用者基本資訊",
+				"properties": {
+					"id": {
+						"type": "string",
+						"description": "使用者 ID（UUID v7）",
+						"example": "0190a8b2-1234-7890-abcd-ef0123456789"
+					},
+					"email": {
+						"type": "string",
+						"description": "電子郵件；OAuth 登入若 provider 未提供 email 可能為 null",
+						"example": "user@example.com"
+					},
+					"username": {
+						"type": "string",
+						"description": "使用者名稱（公開個人頁路徑用，註冊時自動產生）",
+						"example": "john_0427"
+					},
+					"displayName": {
+						"type": "string",
+						"description": "顯示名稱",
+						"example": "王小明"
+					},
+					"roles": {
+						"type": "array",
+						"description": "使用者角色清單",
+						"enum": ["user", "moderator", "admin"],
+						"example": ["user"],
+						"items": { "type": "string" }
+					},
+					"avatarUrl": {
+						"type": "string",
+						"description": "頭像 URL",
+						"example": "https://cdn.example.com/avatar/abc.jpg"
+					},
+					"phoneNumber": {
+						"type": "string",
+						"description": "手機號碼",
+						"example": "0912345678"
+					}
+				}
+			},
+			"SendOtpRequest": {
+				"type": "object",
+				"description": "發送 email OTP 的請求",
+				"properties": {
+					"email": {
+						"type": "string",
+						"format": "email",
+						"description": "電子郵件",
+						"example": "user@example.com"
+					},
+					"checkRole": {
+						"type": "string",
+						"description": "是否限制管理員才可登入；填 \"true\" 只允許 admin 取得 OTP",
+						"enum": ["true", "false"],
+						"example": false
+					}
+				}
+			},
+			"RefreshRequest": {
+				"type": "object",
+				"description": "刷新 access token 的請求",
+				"properties": {
+					"refreshToken": {
+						"type": "string",
+						"description": "登入時取得的 refresh token",
+						"example": "8c7e3f4a-1234-5678-90ab-cdef12345678"
+					}
+				},
+				"required": ["refreshToken"]
+			},
+			"PhoneVerifyOtpRequest": {
+				"type": "object",
+				"description": "驗證手機 OTP 的請求",
+				"properties": {
+					"phone": {
+						"type": "string",
+						"description": "手機號碼",
+						"example": "0912345678"
+					},
+					"code": {
+						"type": "string",
+						"description": "簡訊收到的 OTP 驗證碼",
+						"example": 123456
+					}
+				},
+				"required": ["code", "phone"]
+			},
+			"PhoneSendOtpRequest": {
+				"type": "object",
+				"description": "發送手機 OTP 簡訊的請求",
+				"properties": {
+					"phone": {
+						"type": "string",
+						"description": "手機號碼",
+						"example": "0912345678"
+					},
+					"type": {
+						"type": "string",
+						"description": "OTP 用途；預設 login。signup 用於註冊流程",
+						"enum": ["login", "signup"],
+						"example": "login"
+					}
+				},
+				"required": ["phone"]
+			},
+			"LineAuthRequest": {
+				"type": "object",
+				"description": "LINE 登入請求",
+				"properties": {
+					"code": {
+						"type": "string",
+						"description": "LINE OAuth 授權後拿到的 code",
+						"example": "abc123def456"
+					},
+					"redirectUri": {
+						"type": "string",
+						"description": "與 LINE 端設定一致的 redirect URI",
+						"example": "https://app.example.com/auth/line/callback"
+					}
+				},
+				"required": ["code", "redirectUri"]
+			},
+			"GoogleAuthRequest": {
+				"type": "object",
+				"description": "Google 登入請求",
+				"properties": {
+					"idToken": {
+						"type": "string",
+						"description": "Google 簽發的 ID token (JWT)",
+						"example": "eyJhbGciOiJSUzI1NiIsImtpZCI6Ij..."
+					}
+				},
+				"required": ["idToken"]
+			},
+			"CheckEmailRequest": {
+				"type": "object",
+				"description": "檢查 email 是否已註冊的請求",
+				"properties": {
+					"email": {
+						"type": "string",
+						"format": "email",
+						"description": "要檢查的電子郵件",
+						"example": "user@example.com"
+					}
+				},
+				"required": ["email"]
+			},
+			"ApiResponseAuthEmailExistsResponse": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"data": { "$ref": "#/components/schemas/AuthEmailExistsResponse" },
+					"message": { "type": "string" },
+					"errorCode": { "type": "string" },
+					"error": { "type": "string" }
+				}
+			},
+			"AuthEmailExistsResponse": {
+				"type": "object",
+				"description": "Email 註冊狀態檢查結果",
+				"properties": {
+					"exists": {
+						"type": "boolean",
+						"description": "Email 是否已註冊",
+						"example": true
+					}
+				}
+			},
+			"AppleAuthRequest": {
+				"type": "object",
+				"description": "Apple Sign-In 登入請求",
+				"properties": {
+					"idToken": {
+						"type": "string",
+						"description": "Apple 簽發的 identity token (JWT)",
+						"example": "eyJraWQiOiJZdXl1eVoxIiwiYWxnIjoiUlMyNTYifQ..."
+					},
+					"fullName": {
+						"type": "string",
+						"description": "首次登入時 Apple 提供的姓名（之後不會再帶）",
+						"example": "王小明"
+					}
+				},
+				"required": ["idToken"]
+			},
+			"CreateTagRequest": {
+				"type": "object",
+				"properties": {
+					"name": { "type": "string", "maxLength": 30, "minLength": 0 },
+					"slug": {
+						"type": "string",
+						"maxLength": 50,
+						"minLength": 0,
+						"pattern": "^[a-z0-9\\-\\u4e00-\\u9fff\\u3040-\\u309f\\u30a0-\\u30ff]*$"
+					},
+					"description": { "type": "string", "maxLength": 200, "minLength": 0 },
+					"displayOrder": { "type": "integer", "format": "int32" }
+				},
+				"required": ["name"]
+			},
+			"CreateLookupRequest": {
+				"type": "object",
+				"properties": {
+					"lookupType": { "type": "string", "maxLength": 50, "minLength": 0 },
+					"lookupKey": { "type": "string", "maxLength": 50, "minLength": 0 },
+					"lookupValue": {},
+					"seq": { "type": "integer", "format": "int32" },
+					"parentType": { "type": "string", "maxLength": 50, "minLength": 0 },
+					"parentKey": { "type": "string", "maxLength": 50, "minLength": 0 },
+					"description": { "type": "string", "maxLength": 100, "minLength": 0 },
+					"frontendUsing": { "type": "boolean" }
+				},
+				"required": ["lookupKey", "lookupType", "lookupValue"]
+			},
+			"UpdateProfileRequest": {
+				"type": "object",
+				"properties": {
+					"displayName": { "type": "string", "maxLength": 100, "minLength": 0 },
+					"bio": { "type": "string", "maxLength": 500, "minLength": 0 }
+				}
+			},
+			"ApiResponseUserProfileResponse": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"data": { "$ref": "#/components/schemas/UserProfileResponse" },
+					"message": { "type": "string" },
+					"errorCode": { "type": "string" },
+					"error": { "type": "string" }
+				}
+			},
+			"UserProfileResponse": {
+				"type": "object",
+				"properties": {
+					"username": { "type": "string" },
+					"displayName": { "type": "string" },
+					"bio": { "type": "string" },
+					"joinedAt": { "type": "string", "format": "date-time" },
+					"totalPolls": { "type": "integer", "format": "int32" },
+					"totalVotes": { "type": "integer", "format": "int32" },
+					"email": { "type": "string" },
+					"firstName": { "type": "string" },
+					"lastName": { "type": "string" },
+					"location": { "type": "string" },
+					"points": { "type": "integer", "format": "int32" },
+					"membershipLevel": { "type": "string" }
+				}
+			},
+			"UpdateVisibilityRequest": {
+				"type": "object",
+				"properties": {
+					"visibility": {
+						"type": "object",
+						"additionalProperties": { "type": "boolean" }
+					}
+				},
+				"required": ["visibility"]
+			},
+			"ApiResponseMapStringBoolean": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"data": {
+						"type": "object",
+						"additionalProperties": { "type": "boolean" }
+					},
+					"message": { "type": "string" },
+					"errorCode": { "type": "string" },
+					"error": { "type": "string" }
+				}
+			},
+			"Pageable": {
+				"type": "object",
+				"properties": {
+					"page": { "type": "integer", "format": "int32", "minimum": 0 },
+					"size": { "type": "integer", "format": "int32", "minimum": 1 },
+					"sort": { "type": "array", "items": { "type": "string" } }
+				}
+			},
+			"ApiResponsePageResponseVoteResponse": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"data": { "$ref": "#/components/schemas/PageResponseVoteResponse" },
+					"message": { "type": "string" },
+					"errorCode": { "type": "string" },
+					"error": { "type": "string" }
+				}
+			},
+			"PageResponseVoteResponse": {
+				"type": "object",
+				"description": "分頁回應容器",
+				"properties": {
+					"content": {
+						"type": "array",
+						"description": "本頁資料",
+						"items": { "$ref": "#/components/schemas/VoteResponse" }
+					},
+					"total": {
+						"type": "integer",
+						"format": "int64",
+						"description": "資料總筆數",
+						"example": 123
+					},
+					"page": {
+						"type": "integer",
+						"format": "int32",
+						"description": "目前頁碼（1-based）",
+						"example": 1
+					},
+					"limit": {
+						"type": "integer",
+						"format": "int32",
+						"description": "每頁筆數",
+						"example": 20
+					}
+				}
+			},
+			"ApiResponseVoteResultResponse": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"data": { "$ref": "#/components/schemas/VoteResultResponse" },
+					"message": { "type": "string" },
+					"errorCode": { "type": "string" },
+					"error": { "type": "string" }
+				}
+			},
+			"VoteOptionResultResponse": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "string" },
+					"text": { "type": "string" },
+					"description": { "type": "string" },
+					"displayOrder": { "type": "integer", "format": "int32" },
+					"voteCount": { "type": "integer", "format": "int64" },
+					"percentage": { "type": "number", "format": "double" },
+					"voters": {
+						"type": "array",
+						"items": { "$ref": "#/components/schemas/VoterResponse" }
+					}
+				}
+			},
+			"VoteResultResponse": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "string" },
+					"title": { "type": "string" },
+					"description": { "type": "string" },
+					"creatorId": { "type": "string" },
+					"creatorUsername": { "type": "string" },
+					"startTime": { "type": "string", "format": "date-time" },
+					"endTime": { "type": "string", "format": "date-time" },
+					"allowMultipleChoices": { "type": "boolean" },
+					"createdAt": { "type": "string", "format": "date-time" },
+					"totalVotes": { "type": "integer", "format": "int64" },
+					"totalParticipants": { "type": "integer", "format": "int64" },
+					"options": {
+						"type": "array",
+						"items": { "$ref": "#/components/schemas/VoteOptionResultResponse" }
+					},
+					"active": { "type": "boolean" },
+					"anonymous": { "type": "boolean" },
+					"votingActive": { "type": "boolean" }
+				}
+			},
+			"VoterResponse": {
+				"type": "object",
+				"properties": {
+					"userId": { "type": "string" },
+					"username": { "type": "string" },
+					"votedAt": { "type": "string", "format": "date-time" }
+				}
+			},
+			"ApiResponseUserVoteStatusResponse": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"data": { "$ref": "#/components/schemas/UserVoteStatusResponse" },
+					"message": { "type": "string" },
+					"errorCode": { "type": "string" },
+					"error": { "type": "string" }
+				}
+			},
+			"UserVoteStatusResponse": {
+				"type": "object",
+				"properties": {
+					"hasVoted": { "type": "boolean" },
+					"selectedOptions": { "type": "array", "items": { "type": "string" } }
+				}
+			},
+			"ApiResponsePageResponseCommentDto": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"data": { "$ref": "#/components/schemas/PageResponseCommentDto" },
+					"message": { "type": "string" },
+					"errorCode": { "type": "string" },
+					"error": { "type": "string" }
+				}
+			},
+			"PageResponseCommentDto": {
+				"type": "object",
+				"description": "分頁回應容器",
+				"properties": {
+					"content": {
+						"type": "array",
+						"description": "本頁資料",
+						"items": { "$ref": "#/components/schemas/CommentDto" }
+					},
+					"total": {
+						"type": "integer",
+						"format": "int64",
+						"description": "資料總筆數",
+						"example": 123
+					},
+					"page": {
+						"type": "integer",
+						"format": "int32",
+						"description": "目前頁碼（1-based）",
+						"example": 1
+					},
+					"limit": {
+						"type": "integer",
+						"format": "int32",
+						"description": "每頁筆數",
+						"example": 20
+					}
+				}
+			},
+			"ApiResponsePageResponseUserDto": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"data": { "$ref": "#/components/schemas/PageResponseUserDto" },
+					"message": { "type": "string" },
+					"errorCode": { "type": "string" },
+					"error": { "type": "string" }
+				}
+			},
+			"PageResponseUserDto": {
+				"type": "object",
+				"description": "分頁回應容器",
+				"properties": {
+					"content": {
+						"type": "array",
+						"description": "本頁資料",
+						"items": { "$ref": "#/components/schemas/UserDto" }
+					},
+					"total": {
+						"type": "integer",
+						"format": "int64",
+						"description": "資料總筆數",
+						"example": 123
+					},
+					"page": {
+						"type": "integer",
+						"format": "int32",
+						"description": "目前頁碼（1-based）",
+						"example": 1
+					},
+					"limit": {
+						"type": "integer",
+						"format": "int32",
+						"description": "每頁筆數",
+						"example": 20
+					}
+				}
+			},
+			"UserDto": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "string" },
+					"username": { "type": "string" },
+					"email": { "type": "string" },
+					"phoneNumber": { "type": "string" },
+					"firstName": { "type": "string" },
+					"lastName": { "type": "string" },
+					"location": { "type": "string" },
+					"points": { "type": "integer", "format": "int32" },
+					"membershipLevel": { "type": "string" },
+					"active": { "type": "boolean" },
+					"createdAt": { "type": "string", "format": "date-time" },
+					"lastLoginAt": { "type": "string", "format": "date-time" }
+				}
+			},
+			"ApiResponseMyProfileResponse": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"data": { "$ref": "#/components/schemas/MyProfileResponse" },
+					"message": { "type": "string" },
+					"errorCode": { "type": "string" },
+					"error": { "type": "string" }
+				}
+			},
+			"MyProfileResponse": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "string" },
+					"username": { "type": "string" },
+					"email": { "type": "string" },
+					"phoneNumber": { "type": "string" },
+					"firstName": { "type": "string" },
+					"lastName": { "type": "string" },
+					"displayName": { "type": "string" },
+					"bio": { "type": "string" },
+					"location": { "type": "string" },
+					"points": { "type": "integer", "format": "int32" },
+					"membershipLevel": { "type": "string" },
+					"active": { "type": "boolean" },
+					"lastLoginAt": { "type": "string", "format": "date-time" },
+					"joinedAt": { "type": "string", "format": "date-time" },
+					"totalPolls": { "type": "integer", "format": "int32" },
+					"totalVotes": { "type": "integer", "format": "int32" },
+					"visibilitySettings": {
+						"type": "object",
+						"additionalProperties": { "type": "boolean" }
+					}
+				}
+			},
+			"ApiResponseListTagDto": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"data": {
+						"type": "array",
+						"items": { "$ref": "#/components/schemas/TagDto" }
+					},
+					"message": { "type": "string" },
+					"errorCode": { "type": "string" },
+					"error": { "type": "string" }
+				}
+			},
+			"ApiResponsePageResponseTagDto": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"data": { "$ref": "#/components/schemas/PageResponseTagDto" },
+					"message": { "type": "string" },
+					"errorCode": { "type": "string" },
+					"error": { "type": "string" }
+				}
+			},
+			"PageResponseTagDto": {
+				"type": "object",
+				"description": "分頁回應容器",
+				"properties": {
+					"content": {
+						"type": "array",
+						"description": "本頁資料",
+						"items": { "$ref": "#/components/schemas/TagDto" }
+					},
+					"total": {
+						"type": "integer",
+						"format": "int64",
+						"description": "資料總筆數",
+						"example": 123
+					},
+					"page": {
+						"type": "integer",
+						"format": "int32",
+						"description": "目前頁碼（1-based）",
+						"example": 1
+					},
+					"limit": {
+						"type": "integer",
+						"format": "int32",
+						"description": "每頁筆數",
+						"example": 20
+					}
+				}
+			},
+			"ApiResponseListLookupDto": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"data": {
+						"type": "array",
+						"items": { "$ref": "#/components/schemas/LookupDto" }
+					},
+					"message": { "type": "string" },
+					"errorCode": { "type": "string" },
+					"error": { "type": "string" }
+				}
+			},
+			"ApiResponseMapStringListLookupDto": {
+				"type": "object",
+				"properties": {
+					"success": { "type": "boolean" },
+					"data": {
+						"type": "object",
+						"additionalProperties": {
+							"type": "array",
+							"items": { "$ref": "#/components/schemas/LookupDto" }
+						}
+					},
+					"message": { "type": "string" },
+					"errorCode": { "type": "string" },
+					"error": { "type": "string" }
+				}
+			}
+		},
+		"securitySchemes": {
+			"bearerAuth": {
+				"type": "http",
+				"scheme": "bearer",
+				"bearerFormat": "JWT"
+			}
+		}
+	}
+}

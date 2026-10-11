@@ -19,7 +19,7 @@ export default async function ExplorePage() {
 
 async function ExploreContent() {
 	const [firstPage, tags] = await Promise.all([
-		getPolls({ status: 'open' }, null, EXPLORE_PAGE_SIZE).catch(() => null),
+		getPolls({ status: 'open', sort: 'newest' }, null, EXPLORE_PAGE_SIZE).catch(() => null),
 		getPopularTags(30),
 	]);
 	return <ExploreView initialPage={firstPage} tags={tags} />;

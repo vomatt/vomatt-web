@@ -9,6 +9,15 @@ jest.mock('next/link', () => {
 	return Link;
 });
 
+// Search and the Ended filter wait on the API; the tests below cover them switched on
+let mockFiltersAvailable = true;
+jest.mock('@/features/polls/constants', () => ({
+	...jest.requireActual('@/features/polls/constants'),
+	get EXPLORE_FILTERS_AVAILABLE() {
+		return mockFiltersAvailable;
+	},
+}));
+
 const mockGetPolls = jest.fn();
 jest.mock('@/features/polls/service', () => ({
 	getPolls: (...args: unknown[]) => mockGetPolls(...args),
@@ -31,6 +40,7 @@ const poll = (id: string, title: string) =>
 beforeEach(() => {
 	jest.useFakeTimers();
 	jest.clearAllMocks();
+	mockFiltersAvailable = true;
 });
 afterEach(() => jest.useRealTimers());
 
@@ -40,6 +50,14 @@ describe('ExploreView', () => {
 		await act(async () => jest.advanceTimersByTime(1000));
 		expect(screen.getByText('Lunch?')).toBeInTheDocument();
 		expect(mockGetPolls).not.toHaveBeenCalled();
+	});
+
+	it('hides search and the Ended filter while the API lacks them', () => {
+		mockFiltersAvailable = false;
+		render(<ExploreView initialPage={{ items: [], nextCursor: null }} tags={[]} />);
+		expect(screen.queryByRole('searchbox')).not.toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Ended' })).not.toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Newest' })).toBeInTheDocument();
 	});
 
 	it('refetches from the first page when the filter changes', async () => {

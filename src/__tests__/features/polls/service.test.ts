@@ -97,7 +97,13 @@ const newPoll = {
 	unread: null,
 };
 
-const page = (items: unknown[], nextCursor: string | null = null) => ({ items, nextCursor });
+/** The API's PageResponse; `hasMore` puts one more item on a later page. */
+const page = (items: unknown[], hasMore = false, pageNo = 1) => ({
+	content: items,
+	total: (pageNo - 1) * Math.max(items.length, 1) + items.length + (hasMore ? 1 : 0),
+	page: pageNo,
+	limit: Math.max(items.length, 1),
+});
 
 const input = {
 	title: 'Which day?',
@@ -164,11 +170,11 @@ describe('getPoll()', () => {
 });
 
 describe('getFeed()', () => {
-	it('asks as the viewer (optional auth) for the first page by limit', async () => {
-		mockApiClient.mockResolvedValue(page([oldPoll], 'c2'));
+	it('asks as the viewer (optional auth) for the first page', async () => {
+		mockApiClient.mockResolvedValue(page([oldPoll], true));
 		const result = await getFeed();
-		expect(result).toEqual({ items: [expect.objectContaining({ id: 'poll-1' })], nextCursor: 'c2' });
-		expect(mockApiClient).toHaveBeenCalledWith('/votes?limit=10', {
+		expect(result).toEqual({ items: [expect.objectContaining({ id: 'poll-1' })], nextCursor: '2' });
+		expect(mockApiClient).toHaveBeenCalledWith('/votes?page=1&size=10', {
 			auth: 'optional',
 			next: { revalidate: 30, tags: ['polls-feed'] },
 		});
@@ -184,13 +190,13 @@ describe('getFeed()', () => {
 	it('caps the page size a client can ask for', async () => {
 		mockApiClient.mockResolvedValue(page([]));
 		await getFeed(null, 1000);
-		expect(mockApiClient).toHaveBeenCalledWith('/votes?limit=50', expect.anything());
+		expect(mockApiClient).toHaveBeenCalledWith('/votes?page=1&size=50', expect.anything());
 	});
 
 	it('passes the cursor back and the topic', async () => {
 		mockApiClient.mockResolvedValue(page([newPoll]));
-		await getFeed('c2', 10, 'work');
-		expect(mockApiClient).toHaveBeenCalledWith('/votes?limit=10&cursor=c2&tag=work', expect.anything());
+		await getFeed('2', 10, 'work');
+		expect(mockApiClient).toHaveBeenCalledWith('/votes?page=2&size=10&tag=work', expect.anything());
 	});
 });
 
@@ -198,45 +204,65 @@ describe('getPolls()', () => {
 	it('sends status, sort and search', async () => {
 		mockPublicFetch.mockResolvedValue(page([]));
 		await getPolls({ status: 'open', sort: 'closing', q: ' side project ' }, null, 20);
-		expect(mockPublicFetch.mock.calls[0][0]).toBe('/votes?limit=20&sort=closing&q=side+project');
+		expect(mockPublicFetch.mock.calls[0][0]).toBe('/votes?page=1&size=20&sort=endTime%2Casc&q=side+project');
+	});
+
+	it('sorts newest by start time, latest first', async () => {
+		mockPublicFetch.mockResolvedValue(page([]));
+		await getPolls({ sort: 'newest' });
+		expect(mockPublicFetch.mock.calls[0][0]).toBe('/votes?page=1&size=10&sort=startTime%2Cdesc');
 	});
 
 	it('never sends sort with ended (the API rejects it)', async () => {
 		mockPublicFetch.mockResolvedValue(page([]));
 		await getPolls({ status: 'ended', sort: 'closing' });
-		expect(mockPublicFetch.mock.calls[0][0]).toBe('/votes?limit=10&status=ended');
+		expect(mockPublicFetch.mock.calls[0][0]).toBe('/votes?page=1&size=10&status=ended');
 	});
 
 	it('leaves out a search shorter than 2 characters', async () => {
 		mockPublicFetch.mockResolvedValue(page([]));
 		await getPolls({ q: 'a' });
-		expect(mockPublicFetch.mock.calls[0][0]).toBe('/votes?limit=10');
+		expect(mockPublicFetch.mock.calls[0][0]).toBe('/votes?page=1&size=10');
 	});
 });
 
 describe('getUserPolls()', () => {
 	it('reads the user\'s opened polls from the shared cache', async () => {
-		mockPublicFetch.mockResolvedValue(page([oldPoll], 'n'));
+		mockPublicFetch.mockResolvedValue(page([oldPoll], true));
 		const result = await getUserPolls('mei lin');
 		expect(result.items).toHaveLength(1);
-		expect(mockPublicFetch.mock.calls[0][0]).toBe('/users/mei%20lin/votes?limit=20');
+		expect(mockPublicFetch.mock.calls[0][0]).toBe('/users/mei%20lin/votes?page=1&size=20');
 		expect(mockApiClient).not.toHaveBeenCalled();
 	});
 });
 
 describe('getMyPolls()', () => {
-	it('reads open polls by default', async () => {
-		mockApiClient.mockResolvedValue(page([newPoll]));
+	// The API returns every poll of the user, unsorted; the split and order happen here
+	const soon = { ...newPoll, id: 'soon', endTime: '2099-01-01T00:00:00Z' };
+	const later = { ...newPoll, id: 'later', endTime: '2099-06-01T00:00:00Z' };
+	const endedEarly = { ...oldPoll, id: 'ended-early', active: false, endTime: '2026-01-01T00:00:00Z' };
+	const endedLate = { ...oldPoll, id: 'ended-late', active: false, endTime: '2026-03-01T00:00:00Z' };
+
+	it('keeps open polls, closing soonest first, with nothing left to load', async () => {
+		mockApiClient.mockResolvedValue(page([later, endedEarly, soon]));
 		const result = await getMyPolls();
-		expect(result.items[0].myOptionId).toBe('opt-sun');
-		expect(mockApiClient).toHaveBeenCalledWith('/votes/my?limit=50');
+		expect(result).toEqual({ items: [expect.objectContaining({ id: 'soon' }), expect.objectContaining({ id: 'later' })], nextCursor: null });
+		expect(mockApiClient).toHaveBeenCalledWith('/votes/my?page=1&size=50');
 	});
 
-	it('reads ended polls with their unread flag', async () => {
-		mockApiClient.mockResolvedValue(page([{ ...oldPoll, unread: true }]));
-		const result = await getMyPolls('ended', 'c1', 20);
-		expect(result.items[0].unread).toBe(true);
-		expect(mockApiClient).toHaveBeenCalledWith('/votes/my?limit=20&cursor=c1&status=ended');
+	it('keeps ended polls, latest ended first', async () => {
+		mockApiClient.mockResolvedValue(page([endedEarly, soon, endedLate]));
+		const result = await getMyPolls('ended');
+		expect(result.items.map((p) => p.id)).toEqual(['ended-late', 'ended-early']);
+	});
+
+	it('reads every page, so an ended poll on page 2 is not missed', async () => {
+		mockApiClient
+			.mockResolvedValueOnce({ content: [soon], total: 2, page: 1, limit: 1 })
+			.mockResolvedValueOnce({ content: [endedLate], total: 2, page: 2, limit: 1 });
+		const result = await getMyPolls('ended');
+		expect(result.items.map((p) => p.id)).toEqual(['ended-late']);
+		expect(mockApiClient).toHaveBeenLastCalledWith('/votes/my?page=2&size=50');
 	});
 });
 
@@ -247,7 +273,7 @@ describe('getVoters()', () => {
 		);
 		const result = await getVoters('poll-1');
 		expect(result.ok && result.data.items[0].username).toBe('mei');
-		expect(mockApiClient).toHaveBeenCalledWith('/votes/poll-1/voters?limit=50');
+		expect(mockApiClient).toHaveBeenCalledWith('/votes/poll-1/voters?page=1&size=50');
 	});
 
 	it('returns the hidden errorCode without throwing', async () => {
@@ -447,11 +473,11 @@ describe('getComments() and getReplies()', () => {
 		replyCount: 2,
 	};
 
-	it('reads top-level comments by cursor', async () => {
-		mockApiClient.mockResolvedValue(page([comment], 'n1'));
-		const result = await getComments('poll-1', 'c0');
-		expect(result).toEqual({ ok: true, data: { items: [comment], nextCursor: 'n1' } });
-		expect(mockApiClient).toHaveBeenCalledWith('/votes/poll-1/comments?limit=20&cursor=c0', {
+	it('reads top-level comments by page', async () => {
+		mockApiClient.mockResolvedValue(page([comment], true, 3));
+		const result = await getComments('poll-1', '3');
+		expect(result).toEqual({ ok: true, data: { items: [comment], nextCursor: '4' } });
+		expect(mockApiClient).toHaveBeenCalledWith('/votes/poll-1/comments?page=3&size=20', {
 			auth: 'optional',
 		});
 	});
@@ -467,7 +493,7 @@ describe('getComments() and getReplies()', () => {
 	it('reads replies of one comment', async () => {
 		mockApiClient.mockResolvedValue(page([{ ...comment, id: 'r1', parentId: 'c1', replyCount: 0 }]));
 		await getReplies('poll-1', 'c1');
-		expect(mockApiClient).toHaveBeenCalledWith('/votes/poll-1/comments/c1/replies?limit=20', {
+		expect(mockApiClient).toHaveBeenCalledWith('/votes/poll-1/comments/c1/replies?page=1&size=20', {
 			auth: 'optional',
 		});
 	});
