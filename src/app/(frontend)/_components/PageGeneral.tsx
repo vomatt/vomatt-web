@@ -1,11 +1,15 @@
-import { RichText } from '@payloadcms/richtext-lexical/react';
+'use client';
+
+import PageModules from '@/components/PageModules';
 
 export default function PageGeneral({ data }: { data: any }) {
-	const { content } = data;
+	const { pageModules: modules } = data;
 
 	return (
 		<div className="page-general">
-			{content && <RichText data={content} />}
+			{modules?.map((module: any, i: number) => (
+				<PageModules key={i} module={module} />
+			))}
 		</div>
 	);
 }

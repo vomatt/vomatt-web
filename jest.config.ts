@@ -9,17 +9,26 @@ const config: Config = {
 	setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
 	moduleNameMapper: {
 		'^@/(.*)$': '<rootDir>/src/$1',
-		'^@payload-config$': '<rootDir>/src/__mocks__/payload-config.ts',
 	},
 	testMatch: ['<rootDir>/src/**/__tests__/**/*.test.{ts,tsx}'],
 	collectCoverageFrom: [
 		'src/**/*.{ts,tsx}',
 		'!src/**/*.d.ts',
-		'!src/payload-types.ts',
-		'!src/payload.config.ts',
-		'!src/app/(payload)/**',
+		'!src/sanity/schemaTypes/**',
+		'!src/sanity/deskStructure/**',
 		'!src/__mocks__/**',
 	],
 };
 
-export default createJestConfig(config);
+// @sanity/image-url ships ESM only, so let next/jest transform it
+const jestConfig = async () => {
+	const resolved = await createJestConfig(config)();
+	return {
+		...resolved,
+		transformIgnorePatterns: (resolved.transformIgnorePatterns ?? []).map(
+			(pattern) => pattern.replace('(?!(geist|', '(?!(@sanity/image-url|geist|')
+		),
+	};
+};
+
+export default jestConfig;

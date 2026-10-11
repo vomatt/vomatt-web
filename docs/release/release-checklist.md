@@ -2,25 +2,38 @@
 
 ## Environment
 
-| Variable | Value | Note |
-|----------|-------|------|
-| `API_URL` | Deployed vomatt-api origin, no path | `https://vomatt.zeabur.app` is gone (404 on every path) |
-| `SESSION_SECRET` | **Same value as the API's `JWT_SECRET`** | The proxy verifies access tokens with it; a mismatch signs everyone out |
-| `DATABASE_URL` | Payload CMS Postgres | The configured Supabase tenant no longer exists; the layout can't load site settings |
-| `PAYLOAD_SECRET` | Random, ≥32 chars | |
-| `SITE_URL` | Public web origin | |
-| `NEXT_PUBLIC_API_URL` | Leave unset in production | Only used by the dev-only follow/avatar mocks |
+Full list and Vercel steps: [README → Environment variables](../../README.md#environment-variables).
 
-On the API: `CORS_ALLOWED_ORIGINS` must include the web origin, and email must be enabled
-(see backend-requests.md #5).
+| Variable | Production value | Note |
+|----------|------------------|------|
+| `NEXT_PUBLIC_SANITY_PROJECT_ID` | Sanity project ID | Dataset must be **public** |
+| `NEXT_PUBLIC_SANITY_DATASET` | `production` | |
+| `API_URL` | Deployed vomatt-api origin | No path, **no trailing slash** (see api-integration-notes E2) |
+| `SESSION_SECRET` | **Same value as the API's `JWT_SECRET`** | A mismatch signs everyone out; mark Sensitive on Vercel |
+| `SITE_URL` | `https://<production domain>` | Required; pages error without it |
+
+Remove from Vercel if present: `DATABASE_URL`, `PAYLOAD_SECRET` (Payload is gone),
+`NEXT_PUBLIC_API_URL`.
+
+On the API: `JWT_SECRET`, database, Redis, and email (`EMAIL_ENABLED=true` + SMTP). The browser
+never calls the API directly, so its CORS list doesn't need the web origin.
+
+## Deployment blockers
+
+- [x] **Delete `pnpm-lock.yaml` and `pnpm-workspace.yaml`** (or regenerate them). The pnpm lockfile
+      still lists Payload and has no Sanity packages; Vercel prefers it over `package-lock.json`, so
+      the install fails or installs the wrong dependencies.
+- [ ] The deployed API must run current vomatt-api `main` (api-integration-notes E1).
+- [ ] Sanity → API → CORS origins: add the production domain (with credentials) so `/sanity` works.
 
 ## Before launch
 
 - [ ] Deploy vomatt-api `release-readiness` (backend P0 1–4) and configure email (P0 5)
 - [ ] Seed topics (tags) so the feed has tabs and Explore has a directory
-- [ ] Payload: publish Settings General (site title, description, share image) and the Sign-up
+- [ ] Sanity: publish Settings → General (site title, share image, favicon) and the Sign-up
       page policy text (terms + privacy links); the signup page shows it under the form
-- [ ] Terms of service and privacy policy pages (Payload `Pages`), linked from signup and footer
+- [ ] Terms of service and privacy policy pages (Sanity pages), linked from signup and footer
+- [ ] Last step: Settings → General → Coming soon → off → Publish (live within ~1 minute)
 - [ ] Smoke test on the deployed pair: sign up, sign out, sign in, vote, change vote, withdraw,
       comment, like, edit profile, toggle visibility, delete a throwaway account
 - [ ] Error monitoring (e.g. Sentry) and uptime check on the API's `/actuator/health`
@@ -30,7 +43,8 @@ On the API: `CORS_ALLOWED_ORIGINS` must include the web origin, and email must b
 
 - `npm run lint` reports 12 errors from the React Compiler rules in files this release didn't
   touch (LanguageContext, DraftList, PollCreator, hooks/*). They predate the release work.
-- `src/app/my-route/route.ts` is the Payload template's example route; harmless, safe to delete.
+- Sanity Presentation (visual editing) has no `/api/draft-mode/enable` route yet, so its preview
+  pane won't load. Editing and publishing in the Studio work.
 - `src/lib/session.ts` is unused.
 - Follow, followers and avatar upload are hidden until the API supports them; their dev-only mock
   routes under `/api/v1/users/*` answer 404 in production.

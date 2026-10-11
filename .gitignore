@@ -68,6 +68,7 @@ yarn.lock
 
 # Secrets
 .env*
+!.env.example
 .worktrees/
 
 # TypeScript incremental build cache

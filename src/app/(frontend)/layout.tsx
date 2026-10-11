@@ -1,51 +1,48 @@
 import '@/styles/global.css';
 
+import type { SanityImageSource } from '@sanity/image-url';
 import clsx from 'clsx';
-import { getPayload } from 'payload';
-import { ReactNode } from 'react';
+import { cache, ReactNode } from 'react';
 import { Toaster } from 'sonner';
-import { TooltipProvider } from '@/components/ui/Tooltip';
-import config from '@payload-config';
+
 import BrandLogo from '@/components/BrandLogo';
+import CustomPortableText from '@/components/CustomPortableText';
 import { Layout } from '@/components/layout';
+import { TooltipProvider } from '@/components/ui/Tooltip';
 import { LanguageProvider } from '@/contexts/LanguageContext';
-import { buildMediaUrl } from '@/lib/defineMetadata';
+import { isComingSoon } from '@/lib/comingSoon';
 import { getServerLocale } from '@/lib/getServerLocale';
 import enTranslations from '@/locales/en.json';
 import zhTranslations from '@/locales/zh.json';
+import { buildShareImageUrl, imageBuilder } from '@/sanity/lib/image';
+import { sanityFetch } from '@/sanity/lib/live';
+import { siteSharingQuery } from '@/sanity/lib/queries';
+
+// Shared by generateMetadata and the layout within one request
+const getSiteSettings = cache(() =>
+	sanityFetch({ query: siteSharingQuery })
+		.then(({ data }) => data)
+		.catch((error) => {
+			console.error('Failed to load site settings from Sanity', error);
+			return null;
+		})
+);
 
 export async function generateMetadata() {
-	const [{ payloadLocale }, payload] = await Promise.all([
-		getServerLocale(),
-		getPayload({ config }),
-	]);
-	const settings = await payload.findGlobal({
-		slug: 'settings-general',
-		locale: payloadLocale as 'en' | 'zh-TW',
-	});
+	const [{ language }, data] = await Promise.all([getServerLocale(), getSiteSettings()]);
+	const { siteTitle = '', favicon, faviconLight, shareGraphic, shareVideo } =
+		data || {};
 
-	const siteTitle = settings.siteTitle ?? '';
-	const favicon = settings.favicon as
-		| { url?: string | null; filename?: string | null }
-		| null
-		| undefined;
-	const faviconLight = settings.faviconLight as
-		| { url?: string | null; filename?: string | null }
-		| null
-		| undefined;
-	const shareGraphic = settings.shareGraphic as
-		| { url?: string | null; filename?: string | null }
-		| null
-		| undefined;
-	const shareVideo = settings.shareVideo as
-		| { url?: string | null; filename?: string | null }
-		| null
-		| undefined;
-
-	const siteFaviconUrl = buildMediaUrl(favicon) ?? '/favicon.ico';
-	const siteFaviconLightUrl = buildMediaUrl(faviconLight) ?? siteFaviconUrl;
-	const shareGraphicUrl = buildMediaUrl(shareGraphic);
-	const shareVideoUrl = buildMediaUrl(shareVideo);
+	const faviconUrl = (icon: SanityImageSource) =>
+		imageBuilder.image(icon).width(256).height(256).url();
+	const siteFaviconUrl = favicon ? faviconUrl(favicon) : '/favicon.ico';
+	const siteFaviconLightUrl = faviconLight
+		? faviconUrl(faviconLight)
+		: siteFaviconUrl;
+	const shareGraphicUrl = shareGraphic?.asset
+		? buildShareImageUrl(shareGraphic.asset)
+		: null;
+	const shareVideoUrl = shareVideo || null;
 
 	return {
 		metadataBase: new URL(process.env.SITE_URL || ''),
@@ -66,9 +63,11 @@ export async function generateMetadata() {
 				: [],
 			url: process.env.SITE_URL,
 			siteName: siteTitle,
-			locale: payloadLocale === 'zh-TW' ? 'zh_TW' : 'en_US',
+			locale: language === 'zh' ? 'zh_TW' : 'en_US',
 			type: 'website',
 		},
+		// Keep search engines from indexing the placeholder
+		robots: isComingSoon(data) ? { index: false, follow: false } : undefined,
 		icons: {
 			icon: [
 				{ url: siteFaviconUrl, media: '(prefers-color-scheme: light)' },
@@ -83,19 +82,25 @@ export default async function RootLayout({
 }: {
 	children: ReactNode;
 }) {
-	const { language } = await getServerLocale();
+	const [{ language }, settings] = await Promise.all([getServerLocale(), getSiteSettings()]);
 	const translations = language === 'zh' ? zhTranslations : enTranslations;
+	const comingSoon = settings?.comingSoon;
 
 	return (
 		<html lang={language === 'zh' ? 'zh-TW' : 'en'} className={clsx()}>
 			<body className="text-foreground font-family-system">
-				{process.env.NODE_ENV === 'production' ? (
-					<div className="h-screen flex flex-col justify-center items-center gap-5">
+				{isComingSoon(settings) ? (
+					<main className="h-screen flex flex-col justify-center items-center gap-5 px-contain text-center">
 						<div className="md:w-40 text-secondary-foreground w-28">
 							<BrandLogo />
 						</div>
-						<h2>Coming soon</h2>
-					</div>
+						<h1 className="text-2xl">{comingSoon?.heading || 'Coming soon'}</h1>
+						{comingSoon?.message && (
+							<div className="max-w-md text-sm text-muted-foreground">
+								<CustomPortableText blocks={comingSoon.message} />
+							</div>
+						)}
+					</main>
 				) : (
 					<LanguageProvider
 						initialLanguage={language}

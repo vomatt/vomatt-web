@@ -12,7 +12,6 @@ npm run test          # Jest (jsdom)
 npm run test:watch    # Jest watch mode
 npm run test:coverage # Jest with coverage
 npx tsc --noEmit      # Type-check without emitting
-npm run generate:types    # Regenerate src/payload-types.ts (requires live DB)
 npm run generate:openapi  # Regenerate OpenAPI schema
 ```
 
@@ -23,33 +22,26 @@ npx jest src/__tests__/components/PollCard.test.tsx
 
 ## Architecture
 
-**vomatt** is a public voting/poll platform built on Next.js 16 App Router + Payload CMS 3.x + PostgreSQL.
+**vomatt** is a public voting/poll platform built on Next.js 16 App Router + Sanity (CMS content) + vomatt-api (app data).
 
 ### Route Groups
 
-- `src/app/(frontend)/` — customer-facing UI. `layout.tsx` fetches the `SettingsGeneral` Payload global for site-wide metadata and applies language detection from cookies/headers.
-- `src/app/(payload)/` — auto-generated Payload CMS admin at `/admin`.
+- `src/app/(frontend)/` — customer-facing UI. `layout.tsx` fetches the `settingsGeneral` Sanity singleton for site-wide metadata and applies language detection from cookies/headers.
+- `src/app/(sanity)/` — embedded Sanity Studio at `/sanity` (`sanity.config.ts`).
 - `src/app/api/` — thin API route handlers (user-related endpoints).
 
-### Payload CMS
+### Sanity CMS
 
-Config at `src/payload.config.ts`. All types are auto-generated into `src/payload-types.ts` — re-run `npm run generate:types` after schema changes with a live DB connection.
+Studio config in `sanity.config.ts`; schemas in `src/sanity/schemaTypes/` (singletons like `settingsGeneral`, `pSignUp`, `pHome`; documents like `pGeneral`). Content is not localized.
 
-**Collections:** `Users` (with auth), `Media` (publicly readable uploads), `Pages` (drafts + autosave + ISR revalidation on publish).
-
-**Globals:** `SettingsGeneral`, `Home`, `SignUpPage`, `Contact` — all in `src/globals/`.
-
-Fetch patterns:
+Fetch pattern (published content, revalidated every 60s — no read token or webhook):
 ```ts
-// Global
-await payload.findGlobal({ slug: 'settings-general' })
+import { sanityFetch } from '@/sanity/lib/live'
+import { pageGeneralQuery } from '@/sanity/lib/queries'
 
-// Collection
-await payload.find({ collection: 'pages', where: { slug: { equals: slug } } })
-
-// Rich text rendering (Lexical)
-import { RichText } from '@payloadcms/richtext-lexical/react'
+const { data } = await sanityFetch({ query: pageGeneralQuery, params: { slug } })
 ```
+Render Portable Text with `@/components/CustomPortableText`; build image URLs with `@/sanity/lib/image`.
 
 ### API / Data Layer
 
@@ -78,25 +70,27 @@ Locales: `en`, `zh-TW` (default `en`). Config at `src/i18n-config.ts`. Language 
 
 ### ISR Revalidation
 
-Pages collection fires `revalidatePath` + `updateTag('pages-sitemap')` via `src/collections/Pages/hooks/revalidatePage.ts` on publish.
+Sanity fetches revalidate every 60s (`src/sanity/lib/live.ts`); there is no publish webhook yet.
 
 ## Environment Variables
 
 ```
-DATABASE_URL     # PostgreSQL connection string
-PAYLOAD_SECRET   # Payload CMS secret
+NEXT_PUBLIC_SANITY_PROJECT_ID  # Sanity project
+NEXT_PUBLIC_SANITY_DATASET     # Sanity dataset
 SESSION_SECRET   # Must equal the API's JWT_SECRET (HMAC-SHA)
-SITE_URL         # Frontend URL (e.g. http://localhost:3000)
+SITE_URL         # Frontend URL, no trailing slash; required (metadataBase)
 API_URL          # vomatt-api origin, no path (e.g. http://localhost:8080)
 ```
+
+Template and Vercel setup: `.env.example`, `README.md`. The production site shows only the coming-soon page until Sanity's Settings → General → Coming soon is turned off (`src/lib/comingSoon.ts`).
 
 ## Key Paths Quick Reference
 
 | What | Where |
 |------|-------|
 | Global CSS / design tokens | `src/styles/global.css` |
-| Payload config | `src/payload.config.ts` |
-| Generated Payload types | `src/payload-types.ts` |
+| Sanity Studio config | `sanity.config.ts` |
+| Sanity schemas / queries | `src/sanity/schemaTypes/`, `src/sanity/lib/queries.js` |
 | API client + token logic | `src/lib/api/client.ts`, `src/lib/api/auth.ts` |
 | Poll domain (schema, status, service) | `src/features/polls/` |
 | Sidebar | `src/components/layout/AppSidebar.tsx` |

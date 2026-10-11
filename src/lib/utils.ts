@@ -450,6 +450,8 @@ export const resolveHref = ({
 			return `/${slug}`;
 		case 'pBlogIndex':
 			return '/blog';
+		case 'pSignUp':
+			return '/signup';
 		case 'pBlog':
 			return `/blog/${slug}`;
 		case 'externalUrl':

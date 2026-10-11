@@ -1,10 +1,11 @@
 'use client';
-import { RichText } from '@payloadcms/richtext-lexical/react';
+
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 
 import AuthContainer from '@/components/auth/AuthContainer';
 import { AuthFlow } from '@/components/auth/AuthFlow';
+import CustomPortableText from '@/components/CustomPortableText';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 type SignUpType = {
@@ -25,7 +26,7 @@ export default function SignUp({ signUpInfoData }: SignUpType) {
 					<>
 						{policyMessage && (
 							<div className="mt-8 text-xs text-muted-foreground">
-								<RichText data={policyMessage} />
+								<CustomPortableText blocks={policyMessage} />
 							</div>
 						)}
 						<hr className="w-full h-px my-8 bg-border border-0" />

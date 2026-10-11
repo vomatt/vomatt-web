@@ -1,227 +1,118 @@
-# Sanity + Next.js + Vercel Starter Template
+# Vomatt — web
 
-> A example of a Vercel-deployable project with a [Next.js](https://nextjs.org/) frontend and a [Sanity Studio](https://www.sanity.io) on /sanity
-
-## ⚙️ Set Up
-
-Clone this repository from your GitHub or Click [Use this template](https://github.com/View-Source-Dev/starter-next-js-sanity/generate).
-
-### 1. Sanity
-
-1. `npm install && npm create sanity@latest init --env`
-2. During Sanity's initialization, it will prompt you with a warning. Type Y or n and hit enter.
+Public voting platform. This repo is the Next.js 16 front end with an embedded Sanity Studio at
+`/sanity`. App data (polls, ballots, comments, accounts) comes from
+[vomatt-api](../vomatt-api); site content (settings, pages, the coming-soon switch) comes from Sanity.
 
 ```
-? Select project to use... (Create new project)
-? Select organization to attach project to... (None)
-? Use the default dataset configuration? (Y)
-? Would you like to add configuration files for a Sanity project in this Next.js folder? (Y)
-? Do you want to use TypeScript? (n)
-? Would you like an embedded Sanity Studio? (Y)
-? What route do you want to use for the Studio? (/sanity)
-? File /src/app/sanity/[[...tool]]/page.jsx already exists. Do you want to overwrite it? (N)
-? File /sanity.config.js already exists. Do you want to overwrite it? (N)
-? File /sanity.cli.js already exists. Do you want to overwrite it? (N)
-? Select project template to use (Clean project with no predefined schemas)
-? File /src/sanity/env.js already exists. Do you want to overwrite it? (N)
-? File /src/sanity/lib/client.js already exists. Do you want to overwrite it? (N)
-? File /src/sanity/lib/live.js already exists. Do you want to overwrite it? (y/N)
-? File /src/sanity/lib/image.js already exists. Do you want to overwrite it? (N)
-? File /src/sanity/schemaTypes/index.js already exists. Do you want to overwrite it? (N)
-? File /src/sanity/structure.js already exists. Do you want to overwrite it? (N)
-? Would you like to add the project ID and dataset to your .env file? (Y)
+Browser ──► vomatt-web (Vercel) ──► vomatt-api   (server-side only, Bearer token from httpOnly cookies)
+                     │
+                     └────────────► Sanity       (published content, cached 60s)
 ```
 
-3. Add CORS Origins to your newly created Sanity project by visiting manage.sanity.io and navigating to Settings → API. Then, add your Studio URLs with credentials, such as http://localhost:3000.
+## Requirements
 
-### 2. NextJS (App Router)
+- Node.js 20.9 or later (Vercel's default, 24, is fine)
+- npm (the lockfile is `package-lock.json`)
+- A running vomatt-api (local Docker or deployed) and a Sanity project
 
-1. Update or add the following variables in the `.env` file within the project folder:
+## Local setup
 
-   ```
-    NEXT_PUBLIC_SANITY_PROJECT_ID="XXXXXX"
-   	NEXT_PUBLIC_SANITY_DATASET="production"
-   	NEXT_PUBLIC_SANITY_STUDIO_URL="http://localhost:3000/sanity"
-
-   	SITE_URL="http://localhost:3000"
-   	SANITY_STUDIO_PREVIEW_ORIGIN="http://localhost:3000"
-   	SANITY_API_READ_TOKEN="XXXXXX"
-   	SANITY_REVALIDATE_SECRET="XXXXXX"
-
-   	// Required for email sending:
-   	EMAIL_DISPLAY_NAME="Client Name"
-   	EMAIL_SERVER_USER="xxx@clientwebsite.com"
-   	EMAIL_SERVER_PASSWORD="****************"
-   	EMAIL_SERVER_HOST="smtp.gmail.com"
-   	EMAIL_SERVER_PORT="465"
-   	VS_API_URL="https://view-source-api.vercel.app"
-   ```
-
-2. Here's where to find each value:
-
-- `NEXT_PUBLIC_SANITY_PROJECT_ID`: You can find this after initializing Sanity, either from the `studio/sanity.json` file or from your Sanity dashboard.
-- `SANITY_API_READ_TOKEN`: Generate an API token for your Sanity project. Access your project from the Sanity Manage dashboard and navigate to "Settings" → "API" → "Add New Token" button. Make sure to give it `read + write` access!
-
-- `EMAIL_SERVER_PASSWORD`: Set up the password here: https://security.google.com/settings/security/apppasswords. If the link leads to a 404 page, you need to enable 2-Step Verification first. Once you've set up 2-Step Verification, you can then create an app password.
-
-- `KLAVIYO_API_KEY`: Create a Private API Key from your Klaviyo Account "Settings" → "API Keys"
-- `MAILCHIMP_API_KEY`: Create an API key from "Account → "Extras" → API Keys"
-- `MAILCHIMP_SERVER`: This is the server your account is from. It's in the URL when logged in and at the end of your API Key.
-
-## 🛠️ Development
-
-`npm run dev` in the project folder to start the front end locally.
-
-- Your front end will be running on [http://localhost:3000](http://localhost:3000)
-- Your Sanity Studio will be running on [http://localhost:3000/sanity](http://localhost:3000/sanity)
-
-## 🚀 Deployment
-
-### Vercel
-
-This setup seamlessly integrates with Vercel, which I highly recommend as your preferred hosting provider. Follow the on-screen instructions to set up your new project. Be sure to **add the same `.env.local` variables to your Vercel Project.**
-
-For further details, refer to our [Next.js deployment documentation](https://nextjs.org/docs/deployment).
-
-## 💡 Extras/Tips
-
-### Accessibility
-
-- Use [`react-remove-scroll`](https://github.com/theKashey/react-remove-scroll) to disable scrolling wherever applicable
-- Use [`react-modal`](https://github.com/reactjs/react-modal) for modal and pop-up alike components
-- For scenario that `react-modal` is not applicable, like mega menu or contact form that needs to keep user inputs when closing, use the following custom hooks to manually set up `aria-hidden` and `tabindex`
-
-<details>
-<summary><code>useAriaFocusManager()</code></summary>
-
-The `useAriaFocusManager` hook helps manage the focusability of elements based on their `aria-hidden` attribute, ensuring accessibility in scenarios like tab panels, modals, or other components with dynamic visibility. It adjusts the `tabindex` of focusable elements, ensuring that hidden elements are not focusable.
-
-### 1. Import the `useAriaFocusManager` hook in components which ever needed
-
-```js
-import useAriaFocusManager from '@/hooks/useAriaFocusManager';
+```bash
+npm install
+cp .env.example .env.local   # then fill in the values, see below
+npm run dev
 ```
 
-### 2. Create a Container Reference
+- Site: http://localhost:3000
+- Studio: http://localhost:3000/sanity (log in with your Sanity account)
 
-Set up a `ref` for the container element that includes the focusable elements.
-**This container will be observed for changes to the `aria-hidden` attribute.**
+Local development always shows the full site; the coming-soon page only applies in production.
 
-```js
-const ariaRef = useRef(null);
+### Sanity
+
+1. Use the existing project, or create one at [sanity.io/manage](https://www.sanity.io/manage).
+2. Put its project ID and dataset in `NEXT_PUBLIC_SANITY_PROJECT_ID` / `NEXT_PUBLIC_SANITY_DATASET`.
+3. **Dataset visibility must be Public** (manage → Datasets). The site reads published content
+   without a token.
+4. **API → CORS origins**: add every origin the Studio runs on, with *Allow credentials*:
+   `http://localhost:3000`, your production domain, and your Vercel preview domain pattern if
+   editors use previews.
+5. Open `/sanity` and publish **Settings → General** (site title, share image, favicon, coming soon).
+
+### vomatt-api
+
+Run it locally (see its README; Postgres + Redis via `docker compose up -d`), then set
+`API_URL=http://localhost:8080` and `SESSION_SECRET` to the API's `JWT_SECRET`.
+Sign-in codes are emailed; with email disabled locally, read the code from Redis
+(`otp:email:<address>`).
+
+## Environment variables
+
+| Variable | Required | Example | What it's for |
+|----------|----------|---------|---------------|
+| `NEXT_PUBLIC_SANITY_PROJECT_ID` | Yes | `abc123de` | Sanity project. Also used to allow Sanity CDN images. |
+| `NEXT_PUBLIC_SANITY_DATASET` | Yes | `production` | Sanity dataset. |
+| `API_URL` | Yes | `https://api.vomatt.com` | vomatt-api **origin only** — no path, **no trailing slash**. Called from the server only. |
+| `SESSION_SECRET` | Yes | 64 random chars | **Must equal the API's `JWT_SECRET`.** Used to verify access tokens. A mismatch signs everyone out on every request. Server-only; never prefix with `NEXT_PUBLIC_`. |
+| `SITE_URL` | Yes | `https://vomatt.com` | Public origin, no trailing slash. Used for metadata, Open Graph and canonical URLs; the site errors if it is missing. |
+| `NEXT_PUBLIC_SANITY_API_VERSION` | No | `2025-08-08` | Sanity API version; defaults to `2025-08-08`. |
+
+Not needed (leave unset): `DATABASE_URL`, `PAYLOAD_SECRET` (Payload was removed);
+`SANITY_API_READ_TOKEN`, `SANITY_REVALIDATE_SECRET`, `NEXT_PUBLIC_SANITY_STUDIO_URL`,
+`SANITY_STUDIO_PREVIEW_ORIGIN` (read in code but nothing depends on them yet);
+`NEXT_PUBLIC_API_URL` (only the dev mocks for follows/avatars use it).
+
+On **vomatt-api**, set at least `JWT_SECRET` (same value as `SESSION_SECRET`), the database and
+Redis settings, and email (`EMAIL_ENABLED=true` + SMTP) — sign-in is email-code only.
+The browser never calls the API directly, so its `CORS_ALLOWED_ORIGINS` doesn't need this site.
+
+## Deploy to Vercel
+
+1. **Import** the repo in Vercel. Framework preset: Next.js. Leave the build command
+   (`next build`), output directory and install command at their defaults.
+2. **Package manager:** keep only `package-lock.json` in the repo. If `pnpm-lock.yaml` exists,
+   Vercel installs with pnpm from that file instead (see the release checklist).
+3. **Environment variables** (Project → Settings → Environment Variables): add every *Required*
+   variable above.
+   - Production: `SITE_URL` = your production domain, `API_URL` = production API.
+   - Preview: same keys; `SITE_URL` can be the preview's domain, `API_URL` a staging API.
+   - Mark `SESSION_SECRET` as **Sensitive**.
+   - Variables are read at build time too, so **redeploy** after changing them.
+4. **Domain:** add it under Project → Domains, then add it to the Sanity CORS origins.
+5. **Deploy**, then open `https://<domain>/sanity`, sign in, and check that
+   **Settings → General → Coming soon** is set the way you want (it is on until you turn it off).
+
+### Going live
+
+The production site shows only the coming-soon page until it is turned off in Sanity:
+**Settings → General → Coming soon → Show coming soon page** → off → **Publish**.
+Changes appear within about a minute (Sanity content is cached for 60s). Turn it back on the same
+way. If Sanity can't be reached, the coming-soon page stays up. While it is on, search engines are
+told not to index the site.
+
+Before switching it off, run through [docs/release/release-checklist.md](docs/release/release-checklist.md).
+
+## Scripts
+
+```bash
+npm run dev           # dev server
+npm run build         # production build
+npm run start:web     # serve the production build locally
+npm run lint          # ESLint
+npm test              # Jest
+npx tsc --noEmit      # type-check
 ```
 
-### 3. Use useAriaFocusManager
+## Troubleshooting
 
-Pass the `ariaRef`, any state dependencies, and an optional default `tabindex` (default is 1) to the hook.
-
-```js
-useAriaFocusManager(containerRef, [activeTab], 0);
-```
-
-- `containerRef` (required): The container that holds the focusable elements.
-- `dependencies` (optional): Array of values (state/props) that will trigger re-evaluation of focusable elements when they change.
-- `tabindex` (optional): The default `tabindex` value for focusable elements when they are not hidden. Default is `1`.
-  - Adjust it if you need to control sequence of keyboard navigation, see [MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/tabindex) for more information
-
-### 4. Apply aria-hidden Attribute
-
-Ensure the container dynamically applies the aria-hidden attribute to control visibility and focusability.
-
-```jsx
-<div
-	ref={ariaRef}
-	aria-hidden={activeTab !== index} // Dynamically set aria-hidden
->
-	{/* Focusable elements go here */}
-</div>
-```
-
-### FAQ
-
-#### Q1: Can I use this hook in multiple components on the same page?
-
-Yes, each instance of `useAriaFocusManager` is independent and works with its own `ref`, allowing it to be used in different components without conflict.
-
-#### Q2: What happens when dependencies change?
-
-When a dependency changes, the focusable elements within the container are re-evaluated. This ensures that dynamic updates, such as tab switching or modal visibility, adjust focusability correctly.
-
-#### Q3: Does this hook work with dynamically added components?
-
-Yes, you can use `useAriaFocusManager` inside the components that are dynamically rendered in other components, such as in `Accordion.js`. Alternatively, pass the relevant dependencies to `useAriaFocusManager` to ensure it re-evaluates the focusable elements when state changes occur.
-
-</details>
-
-<details>
-<summary><code>useAriaFocusNavigation()</code></summary>
-
-The `useAriaFocusNavigation` hook manages keyboard navigation within a container, restricting focus to the elements within the component when active. This is particularly useful for modals, sidebars, or other UI components that need focus to remain contained while open.
-
-### 1. Import the `useAriaFocusNavigation` Hook
-
-```js
-import useAriaFocusNavigation from '@/hooks/useAriaFocusNavigation';
-```
-
-### 2. Create a Container Reference
-
-Set up a `ref` for the container element that holds the focusable elements. This is the element the hook will target.
-
-```js
-const modalRef = useRef(null);
-```
-
-### 3. Use `useAriaFocusNavigation`
-
-Pass the container `ref`, an `isActive` boolean to toggle focus containment, and an optional `onExit` callback (to perform any cleanup or state updates when the component closes).
-
-```js
-useAriaFocusNavigation(modalRef, isModalOpen, handleModalClose);
-```
-
-- `containerRef` (required): Reference to the container holding the focusable elements.
-- `isActive` (required): A boolean that determines if focus trapping is active (usually tied to the component’s visibility).
-- `onExit` (optional): Callback function triggered when the focus navigation deactivates, often used to restore state or focus.
-
-### 4. Apply `tabindex` and `aria-hidden` as Needed
-
-Ensure that elements within the container are set up for focus management and are optionally hidden when inactive.
-
-```jsx
-<div ref={modalRef} aria-hidden={!isModalOpen}>
-	{/* Focusable elements go here */}
-</div>
-```
-
-### FAQ
-
-#### Q1: Can I use `useAriaFocusNavigation` with multiple components?
-
-Yes, each instance operates independently using its own `ref` and `isActive` state, making it suitable for multiple components within the same page.
-
-#### Q2: How does `useAriaFocusNavigation` handle tab key behavior?
-
-The hook traps tab key navigation within the focusable elements inside the container, cycling back to the first element when the last one is reached and vice versa. This ensures that users cannot tab outside the modal or component while it is open.
-
-#### Q3: What happens to focus when the component deactivates?
-
-When `isActive` becomes `false`, the hook restores focus to the last focused element before the component was activated. The optional `onExit` callback also allows additional cleanup if needed.
-
-</details>
-
-## ❓ FAQ
-
-<details>
-<summary>Q: I encounter <code>Error: Failed to communicate with the Sanity API</code></summary>
-
-If you encounter this error, log out and log back in again. Run `sanity logout` and then `sanity login` to resolve it.
-
-</details>
-
-<details>
-<summary>Q: How can I see the bundle size of my website?</summary>
-
-Run `npm run analyze` from your project folder. This will build your site and automatically display the [Webpack Bundle Analyzer](https://github.com/webpack-contrib/webpack-bundle-analyzer) for your site's build files.
-
-</details>
+- **Everyone gets signed out / sign-in loops** — `SESSION_SECRET` doesn't match the API's
+  `JWT_SECRET`.
+- **Feed is empty, requests go to `//api/...`** — `API_URL` has a trailing slash or a path.
+- **Site errors on every page with "Invalid URL"** — `SITE_URL` is missing.
+- **Studio says "CORS origin not allowed"** — add the domain in Sanity manage → API → CORS
+  origins, with credentials.
+- **Sanity content doesn't appear** — the dataset is private, or the project ID/dataset are wrong.
+- **`Failed to communicate with the Sanity API`** in the CLI — run `npx sanity logout` then
+  `npx sanity login`.
+- **Can't sign in on production** — the API's email isn't configured, so codes are never sent.

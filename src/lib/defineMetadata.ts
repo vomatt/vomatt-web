@@ -1,40 +1,36 @@
 // https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadata-fields
 import type { Metadata } from 'next';
 
-import { formatUrl } from '@/lib/utils';
-
-type MetaGroup = {
-	metaTitle?: string | null;
-	metaDescription?: string | null;
-	shareImage?: { url?: string | null; filename?: string | null } | null;
-};
+import { formatUrl, resolveHref } from '@/lib/utils';
+import { buildShareImageUrl } from '@/sanity/lib/image';
 
 type Props = {
 	data: {
-		meta?: MetaGroup | null;
-		title?: string | null;
-		slug?: string | null;
+		sharing?: any;
+		title?: string;
+		isHomepage?: boolean;
+		_type?: string;
+		slug?: string;
 	};
 };
 
-export function buildMediaUrl(doc: { url?: string | null; filename?: string | null } | null | undefined): string | null {
-	if (!doc) return null;
-	if (doc.url) return doc.url;
-	if (doc.filename) return `${process.env.SITE_URL ?? ''}/api/media/file/${doc.filename}`;
-	return null;
-}
-
 export default function defineMetadata({ data }: Props): Metadata {
-	const { meta, title, slug } = data || {};
+	const { sharing, title, isHomepage, _type, slug } = data || {};
 
-	const metaTitle = meta?.metaTitle ?? title ?? 'Page not found';
-	const metaDesc = meta?.metaDescription ?? '';
-	const shareGraphicUrl = buildMediaUrl(meta?.shareImage) ?? '';
+	const siteTitle = sharing?.siteTitle || '';
+	const metaDesc = sharing?.metaDesc || '';
+	const metaTitle = sharing?.metaTitle || title || `Page not found`;
+	const shareGraphic = sharing?.shareGraphic?.asset;
+	const shareGraphicUrl = shareGraphic ? buildShareImageUrl(shareGraphic) : '';
 
-	const pageRoute = slug ? `/${slug}` : null;
+	const disableIndex = sharing?.disableIndex;
+	const pageRoute = resolveHref({
+		documentType: _type,
+		slug: slug,
+	});
 
 	return {
-		title: metaTitle,
+		...(isHomepage ? null : { title: metaTitle }),
 		description: metaDesc,
 		openGraph: {
 			title: metaTitle,
@@ -43,10 +39,16 @@ export default function defineMetadata({ data }: Props): Metadata {
 				? [{ url: shareGraphicUrl, width: 1200, height: 630 }]
 				: [],
 		},
+
 		alternates: {
 			...(pageRoute && {
 				canonical: formatUrl(`${process.env.SITE_URL}${pageRoute}`),
 			}),
+		},
+		robots: {
+			index: !disableIndex,
+			follow: !disableIndex,
+			nocache: true,
 		},
 	};
 }

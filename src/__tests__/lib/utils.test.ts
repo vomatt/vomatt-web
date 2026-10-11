@@ -268,6 +268,12 @@ describe('resolveHref', () => {
 		);
 	});
 
+	it('returns /signup for pSignUp', () => {
+		expect(resolveHref({ documentType: 'pSignUp', slug: undefined })).toBe(
+			'/signup'
+		);
+	});
+
 	it('returns /blog/slug for pBlog', () => {
 		expect(resolveHref({ documentType: 'pBlog', slug: 'my-post' })).toBe(
 			'/blog/my-post'

@@ -1,0 +1,54 @@
+import clsx from 'clsx';
+import NextLink from 'next/link';
+import React from 'react';
+
+type CMSLinkType = {
+	link?: {
+		_type: string;
+		href?: string;
+		isNewTab: boolean;
+	};
+	title?: string;
+	ariaLabel?: string;
+	children?: React.ReactNode;
+	className?: string;
+	isNewTab?: boolean;
+	isButton?: boolean;
+	tabIndex?: number;
+	onClick?: () => void;
+};
+
+const CMSLink: React.FC<CMSLinkType> = ({
+	link,
+	title,
+	children,
+	className,
+	ariaLabel,
+	isNewTab,
+	isButton,
+	...props
+}) => {
+	if (!link?.href) {
+		return null;
+	}
+
+	const { href: route } = link;
+	const isOpenNewTab = isNewTab ?? link.isNewTab;
+
+	return (
+		<NextLink
+			href={route}
+			target={route?.match('^mailto:') || isOpenNewTab ? '_blank' : ''}
+			rel={isOpenNewTab ? 'noopener noreferrer' : ''}
+			aria-label={ariaLabel || `${title || `Go to ${route}`}`}
+			className={clsx(className, {
+				btn: isButton,
+			})}
+			{...props}
+		>
+			{title || children}
+		</NextLink>
+	);
+};
+
+export default CMSLink;

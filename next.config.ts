@@ -1,4 +1,3 @@
-import { withPayload } from "@payloadcms/next/withPayload";
 import type { NextConfig } from 'next';
 import * as path from 'path';
 
@@ -8,7 +7,13 @@ const nextConfig: NextConfig = {
 		includePaths: [path.join(__dirname, 'styles')],
 	},
 	images: {
-		remotePatterns: [],
+		remotePatterns: [
+			{
+				protocol: 'https',
+				hostname: 'cdn.sanity.io',
+				pathname: `/images/${process.env.NEXT_PUBLIC_SANITY_PROJECT_ID}/${process.env.NEXT_PUBLIC_SANITY_DATASET}/**`,
+			},
+		],
 	},
 	poweredByHeader: false,
 	async headers() {
@@ -27,4 +32,4 @@ const nextConfig: NextConfig = {
 	},
 };
 
-export default withPayload(nextConfig);
+export default nextConfig;
