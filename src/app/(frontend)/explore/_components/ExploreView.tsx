@@ -41,10 +41,10 @@ function Pill({ active, onClick, children }: { active: boolean; onClick: () => v
 			aria-pressed={active}
 			onClick={onClick}
 			className={cn(
-				'rounded-full border px-3 py-1 text-xs font-medium transition-colors',
+				'inline-flex min-h-11 items-center rounded-full border px-4 text-sm font-medium transition-colors md:min-h-9',
 				active
-					? 'border-foreground/40 bg-foreground/10 text-foreground'
-					: 'border-border text-muted-foreground hover:text-foreground'
+					? 'border-foreground bg-foreground text-background'
+					: 'border-border-strong bg-card text-foreground hover:border-input'
 			)}
 		>
 			{children}
@@ -104,7 +104,7 @@ export function ExploreView({
 
 	return (
 		<div className="space-y-8">
-			<h1 className="text-4xl text-foreground">{t('explore.title')}</h1>
+			<h1 className="text-[32px] font-normal leading-tight tracking-[-0.03em] text-foreground md:text-[44px]">{t('explore.title')}</h1>
 
 			{tags.length > 0 && (
 				<section aria-labelledby="explore-topics" className="space-y-3">
@@ -116,7 +116,7 @@ export function ExploreView({
 							<li key={tag.id}>
 								<Link
 									href={topicHref(tag.slug)}
-									className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm transition-colors hover:border-primary/40"
+									className="flex min-h-10 items-center gap-2 rounded-full bg-secondary px-3.5 text-sm transition-colors hover:bg-border-strong"
 								>
 									#{tag.name}
 									{tag.usageCount !== undefined && (
@@ -139,7 +139,7 @@ export function ExploreView({
 							onChange={(e) => setQuery(e.target.value)}
 							placeholder={t('explore.searchPlaceholder')}
 							aria-label={t('explore.searchPlaceholder')}
-							className="w-full rounded-xl border border-border bg-card py-2.5 pl-10 pr-4 text-sm text-foreground transition-colors placeholder:text-muted-foreground/60 focus:border-primary/40 focus:outline-none"
+							className="h-12 w-full rounded-lg border border-input bg-card pl-10 pr-4 text-base text-foreground transition-colors placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring md:text-[15px]"
 						/>
 					</div>
 				)}
@@ -168,7 +168,7 @@ export function ExploreView({
 				) : list.items.length === 0 ? (
 					<p className="py-12 text-center text-sm text-muted-foreground">{t('explore.noResults')}</p>
 				) : (
-					<ul className="space-y-2.5">
+					<ul className="space-y-2">
 						{list.items.map((poll) => (
 							<PollListItem
 								key={poll.id}

@@ -28,7 +28,7 @@ function PollRow({ poll }: { poll: Poll }) {
 					{poll.unread && (
 						<span
 							aria-label={t('notifications.unread')}
-							className="mr-1.5 inline-block size-2 rounded-full bg-primary align-middle"
+							className="mr-1.5 inline-block size-2.5 rounded-full bg-volt align-middle ring-1 ring-foreground/40"
 						/>
 					)}
 					{t('poll.voted', { count: (getTurnout(poll) ?? 0).toLocaleString() })}
@@ -63,12 +63,12 @@ export default function MyPollsTabs({
 
 	return (
 		<Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as Tab)}>
-			<TabsList className="mb-4">
-				<TabsTrigger value="active">
+			<TabsList variant="line" className="mb-4 h-11! w-full gap-0 border-b border-border p-0">
+				<TabsTrigger value="active" className="h-full text-[15px] after:bottom-[-1px]!">
 					{t('myPolls.tabActive')} ({countLabel(openList)})
 				</TabsTrigger>
-				<TabsTrigger value="drafts">{t('myPolls.tabDrafts')}</TabsTrigger>
-				<TabsTrigger value="ended">
+				<TabsTrigger value="drafts" className="h-full text-[15px] after:bottom-[-1px]!">{t('myPolls.tabDrafts')}</TabsTrigger>
+				<TabsTrigger value="ended" className="h-full text-[15px] after:bottom-[-1px]!">
 					{t('myPolls.tabEnded')} ({countLabel(endedList)})
 				</TabsTrigger>
 			</TabsList>
@@ -79,9 +79,9 @@ export default function MyPollsTabs({
 			{(['active', 'ended'] as const).map((tab) => (
 				<TabsContent key={tab} value={tab} className="space-y-3">
 					{lists[tab].items.length === 0 ? (
-						<p className="text-muted-foreground text-center py-8">{t('myPolls.empty')}</p>
+						<p className="rounded-xl border border-dashed border-border-strong bg-surface-soft px-5 py-8 text-center text-[15px] text-muted-foreground">{t('myPolls.empty')}</p>
 					) : (
-						<ul className="space-y-3">
+						<ul className="space-y-2">
 							{lists[tab].items.map((poll) => (
 								<PollRow key={poll.id} poll={poll} />
 							))}

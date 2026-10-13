@@ -25,31 +25,33 @@ export function NotificationList({ initialPage }: { initialPage: CursorPage<Poll
 	return (
 		<div className="space-y-4">
 			<div>
-				<h1 className="text-2xl font-bold">{t('notifications.title')}</h1>
-				<p className="mt-1 text-sm text-muted-foreground">{t('notifications.intro')}</p>
+				<h1 className="text-[32px] font-normal leading-tight tracking-[-0.03em] text-foreground md:text-[44px]">{t('notifications.title')}</h1>
+				<p className="mt-2 text-[15px] text-muted-foreground">{t('notifications.intro')}</p>
 			</div>
 
 			{initialPage === null ? (
 				<p className="py-16 text-center text-muted-foreground">{t('notifications.loadFailed')}</p>
 			) : list.items.length === 0 ? (
-				<div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
-					<Bell className="h-12 w-12 opacity-30" />
-					<p>{t('notifications.empty')}</p>
+				<div className="flex flex-col items-start gap-3 rounded-xl border border-dashed border-border-strong bg-surface-soft px-5 py-8 text-muted-foreground">
+					<span className="grid size-11 place-items-center rounded-full bg-secondary text-foreground">
+						<Bell className="size-5" />
+					</span>
+					<p className="text-[15px]">{t('notifications.empty')}</p>
 				</div>
 			) : (
-				<ul className="space-y-2.5">
+				<ul className="space-y-2">
 					{list.items.map((poll) => (
 						<PollListItem
 							key={poll.id}
 							poll={poll}
 							onClick={() => open(poll)}
-							className={poll.unread ? 'border-primary/40' : undefined}
+							className={poll.unread ? 'border-foreground/40' : undefined}
 							meta={
 								<>
 									{poll.unread && (
 										<span
 											aria-label={t('notifications.unread')}
-											className="mr-1.5 inline-block size-2 rounded-full bg-primary align-middle"
+											className="mr-1.5 inline-block size-2.5 rounded-full bg-volt align-middle ring-1 ring-foreground/40"
 										/>
 									)}
 									{t(isCancelled(poll) ? 'notifications.cancelled' : 'notifications.ended')}
