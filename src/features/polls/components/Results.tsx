@@ -12,7 +12,7 @@ import type { Poll, PollResults } from '../schema';
 import { getResults } from '../service';
 import { getWinners } from '../status';
 
-type Row = { id: string; text: string; votes: number };
+export type ResultRow = { id: string; text: string; votes: number };
 
 const BAR_EASE = [0.22, 1, 0.36, 1] as const;
 const BAR_DURATION = 0.8;
@@ -51,21 +51,40 @@ function Crown() {
 	);
 }
 
+const ROW_CLASS = 'relative flex min-h-12 w-full items-center justify-between gap-2.5 px-4 py-3 text-left';
+
+/** A plain row, or a button that opens who chose it. */
+function RowContent({ onClick, children }: { onClick?: () => void; children: React.ReactNode }) {
+	if (!onClick) return <div className={ROW_CLASS}>{children}</div>;
+	return (
+		<button
+			type="button"
+			onClick={onClick}
+			aria-haspopup="dialog"
+			className={cn(ROW_CLASS, 'cursor-pointer rounded-xl outline-none transition-colors hover:bg-foreground/[0.03] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring')}
+		>
+			{children}
+		</button>
+	);
+}
+
 type ResultsProps = {
 	poll: Poll;
 	myOptionId: string | null;
 	turnout: number | undefined;
 	/** `/results` answered 403: the Poll is still sealed, so refetch it. */
 	onSealed: () => void;
+	/** Set when the viewer may see who voted: options with votes become buttons. */
+	onSelectOption?: (row: ResultRow) => void;
 };
 
-function rowsFromPoll(poll: Poll): Row[] | null {
+function rowsFromPoll(poll: Poll): ResultRow[] | null {
 	if (poll.options.some((option) => option.votes === undefined)) return null;
 	return poll.options.map(({ id, text, votes }) => ({ id, text, votes: votes ?? 0 }));
 }
 
 /** Card state D. Only rendered for Ended Polls, so it never asks for sealed data. */
-export function Results({ poll, myOptionId, turnout, onSealed }: ResultsProps) {
+export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }: ResultsProps) {
 	const { t } = useLanguage();
 	const [fetched, setFetched] = useState<ActionResult<PollResults> | null>(null);
 	const inlineRows = rowsFromPoll(poll);
@@ -145,7 +164,9 @@ export function Results({ poll, myOptionId, turnout, onSealed }: ResultsProps) {
 								animate={{ scaleX: percent / 100 }}
 								transition={{ duration: BAR_DURATION, delay, ease: BAR_EASE }}
 							/>
-							<div className="relative flex min-h-12 items-center justify-between gap-2.5 px-4 py-3">
+							<RowContent
+								onClick={onSelectOption && row.votes > 0 ? () => onSelectOption(row) : undefined}
+							>
 								<span className={cn(isWinner && 'font-semibold')}>
 									{isWinner && <Crown />}
 									{row.text}
@@ -160,12 +181,15 @@ export function Results({ poll, myOptionId, turnout, onSealed }: ResultsProps) {
 									<CountUp value={percent} delay={delay} />
 									<span className="ml-1.5 text-xs text-muted-foreground">{row.votes}</span>
 								</span>
-							</div>
+							</RowContent>
 						</li>
 					);
 				})}
 			</ul>
-			<p className="text-[13px] text-muted-foreground">{caption}</p>
+			<p className="text-[13px] text-muted-foreground">
+				{caption}
+				{onSelectOption && winners.length > 0 && <> · {t('poll.votersHint')}</>}
+			</p>
 		</div>
 	);
 }

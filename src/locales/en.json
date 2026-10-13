@@ -260,9 +260,11 @@
 		"cancelFailed": "Couldn't cancel the poll. Try again.",
 		"stamp": "Voted",
 		"discuss": "Discuss",
-		"showVoters": "See who voted",
+		"votersHint": "Select an option to see who chose it",
 		"voters": "Who voted",
 		"votersHidden": "You can't see who voted in this poll.",
+		"votersTruncated": "Only the first {count} voters can be listed here.",
+		"votersNone": "No one to show.",
 		"votersFailed": "Couldn't load who voted."
 	},
 	"auth": {

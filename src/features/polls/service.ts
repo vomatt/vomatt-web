@@ -4,7 +4,13 @@ import { revalidateTag, updateTag } from 'next/cache';
 import { unstable_rethrow } from 'next/navigation';
 
 import { apiClient, ApiError, AuthError, publicFetch } from '@/lib/api/client';
-import { type CursorPage, cursorPageSchema, MAX_PAGE_SIZE, pageParams } from '@/lib/api/cursor';
+import {
+	collectPages,
+	type CursorPage,
+	cursorPageSchema,
+	MAX_PAGE_SIZE,
+	pageParams,
+} from '@/lib/api/cursor';
 
 import { FEED_TAG, pollTag } from './cache';
 import { SEARCH_MIN_LENGTH } from './constants';
@@ -162,15 +168,10 @@ const MY_POLLS_MAX_PAGES = 10;
 
 /** Every page of getMyPolls, for account insights that need the whole set. */
 export async function getAllMyPolls(status: 'open' | 'ended'): Promise<Poll[]> {
-	const polls: Poll[] = [];
-	let cursor: string | null = null;
-	for (let i = 0; i < MY_POLLS_MAX_PAGES; i++) {
-		const page: CursorPage<Poll> = await getMyPolls(status, cursor);
-		polls.push(...page.items);
-		cursor = page.nextCursor;
-		if (!cursor) break;
-	}
-	return polls;
+	const { items } = await collectPages((cursor) => getMyPolls(status, cursor), {
+		maxPages: MY_POLLS_MAX_PAGES,
+	});
+	return items;
 }
 
 /** Null when the Poll doesn't exist. Signed-in viewers get their `myOptionId`. */

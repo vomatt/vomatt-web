@@ -256,9 +256,11 @@
 		"cancelFailed": "無法取消投票，請再試一次。",
 		"stamp": "已投票",
 		"discuss": "討論",
-		"showVoters": "查看誰投了什麼",
+		"votersHint": "點選選項查看誰投了它",
 		"voters": "投票者",
 		"votersHidden": "你無法查看此投票的投票者。",
+		"votersTruncated": "這裡只能列出前 {count} 位投票者。",
+		"votersNone": "沒有可顯示的投票者。",
 		"votersFailed": "無法載入投票者。"
 	},
 	"auth": {

@@ -25,6 +25,7 @@ const mockGetResults = jest.fn();
 const mockPostComment = jest.fn();
 const mockGetComments = jest.fn();
 const mockClosePoll = jest.fn();
+const mockGetVoters = jest.fn();
 
 jest.mock('@/features/polls/service', () => ({
 	closePoll: (...args: any[]) => mockClosePoll(...args),
@@ -35,6 +36,7 @@ jest.mock('@/features/polls/service', () => ({
 	getResults: (...args: any[]) => mockGetResults(...args),
 	postComment: (...args: any[]) => mockPostComment(...args),
 	getComments: (...args: any[]) => mockGetComments(...args),
+	getVoters: (...args: any[]) => mockGetVoters(...args),
 }));
 
 jest.mock('@/components/auth/AuthDialog', () => ({
@@ -327,6 +329,26 @@ describe('PollCard state D · Ended', () => {
 		};
 		render(<PollCard poll={tied} />);
 		expect(screen.getByText('Tie between Tabs and Spaces')).toBeInTheDocument();
+	});
+
+	it('lets the owner open who chose an option', async () => {
+		mockGetVoters.mockResolvedValue({
+			ok: true,
+			data: {
+				items: [{ userId: 'u2', username: 'klaus', optionId: 'opt-sun', votedAt: iso(-2 * HOUR) }],
+				nextCursor: null,
+			},
+		});
+		render(<PollCard poll={endedPoll} viewerId="user-1" />);
+		fireEvent.click(screen.getByRole('button', { name: /Sunday/ }));
+		const dialog = await screen.findByRole('dialog');
+		expect(within(dialog).getByText('62 voted')).toBeInTheDocument();
+		expect(await within(dialog).findByRole('link', { name: /klaus/ })).toBeInTheDocument();
+	});
+
+	it('keeps options plain when Voter Visibility hides voters from the viewer', () => {
+		render(<PollCard poll={endedPoll} viewerId="user-voter" />);
+		expect(screen.queryByRole('button', { name: /Sunday/ })).not.toBeInTheDocument();
 	});
 
 	it('says when no votes were cast', () => {

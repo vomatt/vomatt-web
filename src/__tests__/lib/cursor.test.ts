@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { cursorPageSchema, mergeById, pageParams } from '@/lib/api/cursor';
+import { collectPages, cursorPageSchema, mergeById, pageParams } from '@/lib/api/cursor';
 
 const Item = z.object({ id: z.string() });
 const Page = cursorPageSchema(Item);
@@ -41,5 +41,34 @@ describe('mergeById()', () => {
 			{ id: 'b' },
 			{ id: 'c' },
 		]);
+	});
+});
+
+describe('collectPages()', () => {
+	const pages: Record<string, { items: number[]; nextCursor: string | null }> = {
+		start: { items: [1], nextCursor: 'b' },
+		b: { items: [2], nextCursor: 'c' },
+		c: { items: [3], nextCursor: null },
+	};
+	const fetchPage = jest.fn(async (cursor: string | null) => pages[cursor ?? 'start']);
+
+	beforeEach(() => fetchPage.mockClear());
+
+	it('reads to the last page', async () => {
+		expect(await collectPages(fetchPage, { maxPages: 10 })).toEqual({
+			items: [1, 2, 3],
+			nextCursor: null,
+			pages: 3,
+		});
+	});
+
+	it('stops early when `until` holds, and resumes from a cursor', async () => {
+		const first = await collectPages(fetchPage, { maxPages: 10, until: (items) => items.length >= 1 });
+		expect(first).toEqual({ items: [1], nextCursor: 'b', pages: 1 });
+		expect(await collectPages(fetchPage, { cursor: 'b', maxPages: 1 })).toEqual({
+			items: [2],
+			nextCursor: 'c',
+			pages: 1,
+		});
 	});
 });

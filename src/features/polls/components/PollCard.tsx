@@ -20,9 +20,9 @@ import { Ballot } from './Ballot';
 import { CommentThread } from './CommentThread';
 import { OwnerActions } from './OwnerActions';
 import { PollFooter } from './PollFooter';
-import { Results } from './Results';
+import { type ResultRow, Results } from './Results';
 import { StatusChip } from './StatusChip';
-import { VoterList } from './VoterList';
+import { useVoters, VotersDialog } from './VoterList';
 
 interface PollCardProps {
 	poll: Poll;
@@ -55,6 +55,12 @@ export function PollCard({ poll: initialPoll, viewerId, defaultShowComments = fa
 	const isOwner = !!viewerId && viewerId === creatorId;
 	const canSeeVoters =
 		poll.voterVisibility === 'signed-in' ? isAuthed : poll.voterVisibility === 'owner' && isOwner;
+	const voters = useVoters(id, isAuthed ? (viewerId ?? 'signed-in') : 'guest');
+	const [votersOption, setVotersOption] = useState<ResultRow | null>(null);
+	const showVoters = (row: ResultRow) => {
+		setVotersOption(row);
+		voters.load(row);
+	};
 
 	return (
 		<article className="group bg-card border border-border rounded-xl">
@@ -97,15 +103,13 @@ export function PollCard({ poll: initialPoll, viewerId, defaultShowComments = fa
 						transition={{ duration: 0.2 }}
 					>
 						{status === 'ended' ? (
-							<div className="space-y-2">
-								<Results
-									poll={poll}
-									myOptionId={ballot.myOptionId}
-									turnout={ballot.turnout}
-									onSealed={refetch}
-								/>
-								{canSeeVoters && <VoterList poll={poll} />}
-							</div>
+							<Results
+								poll={poll}
+								myOptionId={ballot.myOptionId}
+								turnout={ballot.turnout}
+								onSealed={refetch}
+								onSelectOption={canSeeVoters ? showVoters : undefined}
+							/>
 						) : (
 							<Ballot
 								poll={poll}
@@ -129,6 +133,10 @@ export function PollCard({ poll: initialPoll, viewerId, defaultShowComments = fa
 
 			{showComments && (
 				<CommentThread thread={thread} viewerId={viewerId} requireAuth={requireAuth} />
+			)}
+
+			{canSeeVoters && (
+				<VotersDialog option={votersOption} voters={voters} onClose={() => setVotersOption(null)} />
 			)}
 
 			{authDialog.open && <AuthDialog {...authDialog} />}

@@ -27,8 +27,41 @@ export function pageParams(cursor: string | null | undefined, limit: number) {
 	return params;
 }
 
-/** Appends `next` to `prev`, dropping items whose id is already present. */
+/** Appends `next` to `prev`, dropping items whose id is already present (in either). */
 export function mergeById<T extends { id: string }>(prev: T[], next: T[]): T[] {
 	const seen = new Set(prev.map((item) => item.id));
-	return [...prev, ...next.filter((item) => !seen.has(item.id))];
+	return [
+		...prev,
+		...next.filter((item) => {
+			if (seen.has(item.id)) return false;
+			seen.add(item.id);
+			return true;
+		}),
+	];
+}
+
+/**
+ * Reads pages from `cursor` (null: the first page) until the last page,
+ * `until(items)` holds, or `maxPages` were read. A non-null `nextCursor`
+ * in the result means more pages remain.
+ */
+export async function collectPages<T>(
+	fetchPage: (cursor: string | null) => Promise<CursorPage<T>>,
+	{
+		cursor = null,
+		maxPages,
+		until,
+	}: { cursor?: string | null; maxPages: number; until?: (items: T[]) => boolean }
+): Promise<CursorPage<T> & { pages: number }> {
+	const items: T[] = [];
+	let next = cursor;
+	let pages = 0;
+	while (pages < maxPages) {
+		const page = await fetchPage(next);
+		items.push(...page.items);
+		next = page.nextCursor;
+		pages++;
+		if (!next || until?.(items)) break;
+	}
+	return { items, nextCursor: next, pages };
 }
