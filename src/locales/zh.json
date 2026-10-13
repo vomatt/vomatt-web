@@ -310,6 +310,7 @@
 		"pollsCreated": "發起的投票",
 		"peopleReached": "觸及人數",
 		"majorityRate": "與多數一致",
+		"majorityNone": "尚無",
 		"majorityHint": "在已結束且你有參與的投票中，你的選擇勝出或並列的比例",
 		"badges": "徽章",
 		"earned": "已獲得",

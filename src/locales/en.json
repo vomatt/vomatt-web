@@ -314,6 +314,7 @@
 		"pollsCreated": "Polls created",
 		"peopleReached": "People reached",
 		"majorityRate": "With the majority",
+		"majorityNone": "n/a",
 		"majorityHint": "How often your pick won or tied, among decided polls you voted in",
 		"badges": "Badges",
 		"earned": "Earned",

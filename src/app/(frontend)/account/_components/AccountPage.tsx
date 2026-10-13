@@ -17,10 +17,11 @@ import {
 import { Button, buttonVariants } from '@/components/ui/Button';
 import { InitialAvatar } from '@/components/ui/InitialAvatar';
 import { Input } from '@/components/ui/Input';
+import { Check } from '@/components/ui/SvgIcons';
 import { Switch } from '@/components/ui/Switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
-import type { BadgeId, BallotRecord, Insights } from '@/features/account/insights';
+import type { BallotRecord, Insights } from '@/features/account/insights';
 import { PollListItem } from '@/features/polls/components/PollListItem';
 import { StatusChip } from '@/features/polls/components/StatusChip';
 import type { Poll } from '@/features/polls/schema';
@@ -39,16 +40,6 @@ export type AccountPageProps = {
 	insights: Insights;
 };
 
-const BADGE_ICONS: Record<BadgeId, string> = {
-	firstBallot: '🗳️',
-	regular: '📅',
-	pillar: '🏛️',
-	questionAsker: '❓',
-	crowdGatherer: '📣',
-	trendReader: '🧭',
-	contrarian: '🦉',
-};
-
 /** Profile fields other people can see, in the order shown. */
 const VISIBILITY_FIELDS = ['displayName', 'bio', 'location', 'points', 'membershipLevel'] as const;
 
@@ -57,14 +48,18 @@ export default function AccountPage({ profile, myPolls, history, insights }: Acc
 	const name = profile.displayName || profile.username;
 
 	return (
-		<div className="px-contain mx-auto max-w-3xl space-y-6 py-6">
+		<div className="px-contain mx-auto max-w-3xl space-y-8 py-6 md:py-10">
 			<header className="flex flex-wrap items-center gap-4">
-				<InitialAvatar name={name} className="size-16 bg-primary text-2xl text-primary-foreground" />
+				<InitialAvatar name={name} className="size-16 bg-primary text-xl font-medium text-primary-foreground" />
 				<div className="min-w-0 flex-1">
-					<h1 className="truncate text-2xl font-semibold">{name}</h1>
-					<p className="text-sm text-muted-foreground">
-						@{profile.username}
-						{profile.membershipLevel && <> · {profile.membershipLevel}</>}
+					<h1 className="truncate text-[28px] font-normal leading-tight tracking-[-0.03em] md:text-4xl">{name}</h1>
+					<p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+						<span className="font-mono">@{profile.username}</span>
+						{profile.membershipLevel && (
+							<span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-foreground">
+								{profile.membershipLevel}
+							</span>
+						)}
 					</p>
 					{profile.bio && <p className="mt-1 text-sm">{profile.bio}</p>}
 				</div>
@@ -82,19 +77,22 @@ export default function AccountPage({ profile, myPolls, history, insights }: Acc
 				</div>
 			</header>
 
-			<section aria-label={t('account.stats')} className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+			<section
+				aria-label={t('account.stats')}
+				className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-4"
+			>
 				<Stat label={t('account.votesCast')} value={insights.votesCast} />
 				<Stat label={t('account.pollsCreated')} value={insights.pollsCreated} />
 				<Stat label={t('account.peopleReached')} value={insights.peopleReached} />
 				<Stat
 					label={t('account.majorityRate')}
-					value={insights.majorityRate === null ? '—' : `${insights.majorityRate}%`}
+					value={insights.majorityRate === null ? t('account.majorityNone') : `${insights.majorityRate}%`}
 					hint={t('account.majorityHint')}
 				/>
 			</section>
 
 			<section aria-labelledby="badges-title" className="space-y-3">
-				<h2 id="badges-title" className="text-sm font-semibold">
+				<h2 id="badges-title" className="text-base font-semibold">
 					{t('account.badges')}
 				</h2>
 				<ul className="flex flex-wrap gap-2">
@@ -103,14 +101,14 @@ export default function AccountPage({ profile, myPolls, history, insights }: Acc
 							key={id}
 							title={t(`account.badge.${id}.hint`)}
 							className={cn(
-								'flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs',
-								earned ? 'border-primary/30 bg-primary/5' : 'border-dashed border-border text-muted-foreground opacity-60'
+								'flex min-h-9 items-center gap-1.5 rounded-full border px-3.5 text-sm',
+								earned
+									? 'border-foreground/25 bg-volt-tint font-medium text-foreground'
+									: 'border-dashed border-border-strong text-muted-foreground'
 							)}
 						>
-							<span aria-hidden className={cn(!earned && 'grayscale')}>
-								{BADGE_ICONS[id]}
-							</span>
-							<span className="font-medium">{t(`account.badge.${id}.name`)}</span>
+							{earned && <Check aria-hidden className="size-3.5" />}
+							<span>{t(`account.badge.${id}.name`)}</span>
 							<span className="sr-only">
 								{earned ? t('account.earned') : t('account.locked')}: {t(`account.badge.${id}.hint`)}
 							</span>
@@ -120,17 +118,17 @@ export default function AccountPage({ profile, myPolls, history, insights }: Acc
 			</section>
 
 			<Tabs defaultValue="activity">
-				<TabsList>
-					<TabsTrigger value="activity">
+				<TabsList variant="line" className="h-11! w-full gap-0 border-b border-border p-0">
+					<TabsTrigger value="activity" className="h-full text-[15px] after:bottom-[-1px]!">
 						{t('account.tabActivity')}
 						{insights.awaitingResults > 0 && (
-							<span className="ml-1.5 rounded-full bg-primary px-1.5 text-[10px] text-primary-foreground">
+							<span className="ml-1.5 rounded-full bg-volt px-1.5 font-mono text-[11px] text-foreground ring-1 ring-foreground/30">
 								{insights.awaitingResults}
 							</span>
 						)}
 					</TabsTrigger>
-					<TabsTrigger value="polls">{t('account.tabPolls')}</TabsTrigger>
-					<TabsTrigger value="settings">{t('account.tabSettings')}</TabsTrigger>
+					<TabsTrigger value="polls" className="h-full text-[15px] after:bottom-[-1px]!">{t('account.tabPolls')}</TabsTrigger>
+					<TabsTrigger value="settings" className="h-full text-[15px] after:bottom-[-1px]!">{t('account.tabSettings')}</TabsTrigger>
 				</TabsList>
 				<TabsContent value="activity" className="pt-4">
 					<Activity history={history} />
@@ -148,37 +146,37 @@ export default function AccountPage({ profile, myPolls, history, insights }: Acc
 
 function Stat({ label, value, hint }: { label: string; value: number | string; hint?: string }) {
 	return (
-		<div className="rounded-xl border border-border bg-card p-4" title={hint}>
-			<p className="font-mono text-2xl font-semibold tabular-nums">
+		<div className="bg-card p-4" title={hint}>
+			<p className="font-mono text-[28px] leading-none tracking-tight tabular-nums">
 				{typeof value === 'number' ? value.toLocaleString() : value}
 			</p>
-			<p className="mt-1 text-xs text-muted-foreground">{label}</p>
+			<p className="mt-2 text-[13px] text-muted-foreground">{label}</p>
 		</div>
 	);
 }
 
 const OUTCOME_STYLES = {
-	pending: 'text-sky-600 dark:text-sky-400',
-	won: 'text-emerald-600 dark:text-emerald-400',
-	tied: 'text-amber-600 dark:text-amber-400',
-	lost: 'text-muted-foreground',
-	unknown: 'text-muted-foreground',
+	pending: 'bg-status-scheduled',
+	won: 'bg-status-open',
+	tied: 'bg-status-closing',
+	lost: 'bg-secondary',
+	unknown: 'bg-secondary',
 } as const;
 
 function Activity({ history }: { history: BallotRecord[] }) {
 	const { t } = useLanguage();
 	if (history.length === 0) {
 		return (
-			<div className="py-10 text-center text-sm text-muted-foreground">
-				<p className="mb-4">{t('account.noVotes')}</p>
-				<Link href="/" className={buttonVariants({ size: 'sm' })}>
+			<div className="rounded-xl border border-dashed border-border-strong bg-surface-soft px-5 py-8">
+				<p className="mb-4 text-[15px] text-muted-foreground">{t('account.noVotes')}</p>
+				<Link href="/" className={buttonVariants()}>
 					{t('account.findPolls')}
 				</Link>
 			</div>
 		);
 	}
 	return (
-		<ul className="space-y-2.5">
+		<ul className="space-y-2">
 			{history.map(({ poll, choice, outcome }) => (
 				<PollListItem
 					key={poll.id}
@@ -189,7 +187,12 @@ function Activity({ history }: { history: BallotRecord[] }) {
 						</>
 					}
 					aside={
-						<span className={cn('text-xs font-medium', OUTCOME_STYLES[outcome])}>
+						<span
+							className={cn(
+								'rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.05em] text-foreground',
+								OUTCOME_STYLES[outcome]
+							)}
+						>
 							{t(`account.outcome.${outcome}`)}
 						</span>
 					}
@@ -202,10 +205,14 @@ function Activity({ history }: { history: BallotRecord[] }) {
 function MyPolls({ polls }: { polls: Poll[] }) {
 	const { t } = useLanguage();
 	if (polls.length === 0) {
-		return <p className="py-10 text-center text-sm text-muted-foreground">{t('account.noPolls')}</p>;
+		return (
+			<p className="rounded-xl border border-dashed border-border-strong bg-surface-soft px-5 py-8 text-[15px] text-muted-foreground">
+				{t('account.noPolls')}
+			</p>
+		);
 	}
 	return (
-		<ul className="space-y-2.5">
+		<ul className="space-y-2">
 			{polls.map((poll) => (
 				<PollListItem
 					key={poll.id}
@@ -240,7 +247,7 @@ function Settings({ profile }: { profile: MyProfile }) {
 					<h3 className="font-medium">{t('account.privacyTitle')}</h3>
 					<p className="text-sm text-muted-foreground">{t('account.privacyBody')}</p>
 				</div>
-				<ul className="divide-y divide-border rounded-xl border border-border">
+				<ul className="divide-y divide-border rounded-xl border border-border bg-card">
 					{VISIBILITY_FIELDS.map((field) => (
 						<li key={field} className="flex items-center justify-between gap-4 px-4 py-3">
 							<label htmlFor={`visibility-${field}`} className="text-sm">
@@ -256,7 +263,7 @@ function Settings({ profile }: { profile: MyProfile }) {
 				</ul>
 			</section>
 
-			<section className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border p-4">
+			<section className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4">
 				<div>
 					<h3 className="font-medium">{t('account.signOutTitle')}</h3>
 					<p className="text-sm text-muted-foreground">{profile.email}</p>
@@ -286,7 +293,7 @@ function DeleteAccount({ username }: { username: string }) {
 	};
 
 	return (
-		<section className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-destructive/30 p-4">
+		<section className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-destructive/30 bg-card p-4">
 			<div>
 				<h3 className="font-medium text-destructive">{t('account.deleteTitle')}</h3>
 				<p className="text-sm text-muted-foreground">{t('account.deleteBody')}</p>
