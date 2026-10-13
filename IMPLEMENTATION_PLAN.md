@@ -19,7 +19,7 @@ Mobile first: design and verify at 390px, then desktop.
 **Goal**: AppSidebar and mobile TabBar follow the Home and mobile boards (Ask a question as the primary action, current page marked).
 **Success Criteria**: Navigation works at 390px and desktop; `aria-current` on the active item.
 **Tests**: Layout tests pass; manual check in the browser at both widths.
-**Status**: In Progress
+**Status**: Complete
 
 ## Stage 4: Poll surfaces
 **Goal**: PollCard, Ballot, Results, PollAbout and the feed follow the Poll, Results and Home boards.

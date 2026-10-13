@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import BrandLogo from '@/components/BrandLogo';
+import { Button, buttonVariants } from '@/components/ui/Button';
 import {
 	ArrowRight,
 	Bell,
@@ -47,12 +48,6 @@ const navigationItems = [
 		id: 'linkHome',
 		url: '/',
 		icon: Home,
-	},
-	{
-		title: 'common.createPoll',
-		id: 'actionCreatePoll',
-		url: '/',
-		icon: PlusCircle,
 	},
 	{
 		title: 'common.myPolls',
@@ -112,7 +107,7 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 	);
 
 	return (
-		<Sidebar className="border-none" variant="floating">
+		<Sidebar className="border-none">
 			{/* Header */}
 			<SidebarHeader className="px-5 pt-5 pb-5">
 				<Link
@@ -123,6 +118,25 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 				</Link>
 			</SidebarHeader>
 
+			{/* Primary action */}
+			<div className="px-4 pb-4">
+				{userSession ? (
+					<PollCreator
+						triggerChildren={
+							<Button className="w-full">
+								<PlusCircle />
+								{t('common.askQuestion')}
+							</Button>
+						}
+					/>
+				) : (
+					<Link href="/login" className={cn(buttonVariants(), 'w-full')}>
+						<PlusCircle />
+						{t('common.askQuestion')}
+					</Link>
+				)}
+			</div>
+
 			{/* Nav */}
 			<SidebarContent className="px-2">
 				<SidebarGroup className="p-0">
@@ -132,86 +146,33 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 								if (item.requiresAuth && !userSession) return null;
 								const badge = item.showsUnreadCount ? unreadCount : 0;
 								const isActive =
-									item.id !== 'actionCreatePoll' &&
-									(item.url === '/'
-										? pathname === '/'
-										: pathname.startsWith(item.url));
-
-								const buttonClassName = cn(
-									'group h-9 rounded-lg px-3 cursor-pointer transition-all duration-150',
-									'text-sidebar-foreground/55 hover:text-sidebar-foreground hover:bg-sidebar-accent/50',
-									isActive &&
-										'bg-sidebar-accent text-sidebar-accent-foreground font-medium hover:bg-sidebar-accent'
-								);
-								const linkClassName = 'flex items-center gap-3 w-full';
+									item.url === '/' ? pathname === '/' : pathname.startsWith(item.url);
 
 								return (
 									<SidebarMenuItem key={item.title}>
-										{item.id === 'actionCreatePoll' ? (
-											userSession ? (
-												<PollCreator
-													triggerChildren={
-														<SidebarMenuButton
-															className={cn(buttonClassName, 'gap-3')}
-														>
-															<item.icon
-																className={cn(
-																	'size-4 transition-colors',
-																	'text-sidebar-foreground/50 group-hover:text-sidebar-foreground/80'
-																)}
-															/>
-															<span className="text-sm font-medium">
-																{t(item.title)}
-															</span>
-														</SidebarMenuButton>
-													}
+										<SidebarMenuButton
+											render={
+												<Link
+													href={item.url}
+													aria-current={isActive ? 'page' : undefined}
+													className="flex items-center gap-3 w-full"
 												/>
-											) : (
-												<SidebarMenuButton
-													render={
-														<Link href="/login" className={linkClassName} />
-													}
-													className={buttonClassName}
-												>
-													<item.icon
-														className={cn(
-															'size-4 transition-colors',
-															'text-sidebar-foreground/50 group-hover:text-sidebar-foreground/80'
-														)}
-													/>
-													<span className="text-sm font-medium">
-														{t(item.title)}
-													</span>
-												</SidebarMenuButton>
-											)
-										) : (
-											<SidebarMenuButton
-												render={
-													<Link href={item.url} className={linkClassName} />
-												}
-												className={buttonClassName}
-											>
-												<item.icon
-													className={cn(
-														'size-4 shrink-0 transition-colors',
-														isActive
-															? 'text-sidebar-primary'
-															: 'text-sidebar-foreground/50 group-hover:text-sidebar-foreground/80'
-													)}
-												/>
-												<span className="text-sm font-medium capitalize">
-													{t(item.title)}
+											}
+											className={cn(
+												'group h-11 rounded-lg border border-transparent px-3 cursor-pointer transition-colors duration-150',
+												'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/60',
+												isActive &&
+													'border-sidebar-border bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent'
+											)}
+										>
+											<item.icon className="size-5 shrink-0" />
+											<span className="text-[15px] font-medium capitalize">{t(item.title)}</span>
+											{badge > 0 && (
+												<span className="ml-auto min-w-6 rounded-full bg-secondary px-1.5 text-center font-mono text-xs leading-6 text-foreground tabular-nums">
+													{badge > 99 ? '99+' : badge}
 												</span>
-												{badge > 0 && (
-													<span className="ml-auto min-w-5 rounded-full bg-primary px-1.5 text-center font-mono text-[11px] leading-5 text-primary-foreground tabular-nums">
-														{badge > 99 ? '99+' : badge}
-													</span>
-												)}
-												{isActive && badge === 0 && (
-													<span className="ml-auto w-1.5 h-1.5 rounded-full bg-sidebar-primary shrink-0" />
-												)}
-											</SidebarMenuButton>
-										)}
+											)}
+										</SidebarMenuButton>
 									</SidebarMenuItem>
 								);
 							})}
@@ -223,16 +184,16 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 			{/* Footer */}
 			<SidebarFooter className="px-3 py-10">
 				{userSession ? (
-					<div className="rounded-xl border border-sidebar-border/60 bg-sidebar-accent/20 overflow-hidden">
+					<div className="rounded-xl border border-sidebar-border bg-card overflow-hidden">
 						<Link
 							href="/account"
 							className={cn(
 								'group flex items-center gap-3 p-3 transition-colors',
-								'hover:bg-sidebar-accent/40',
-								pathname === '/account' && 'bg-sidebar-accent/40'
+								'hover:bg-surface-soft',
+								pathname === '/account' && 'bg-surface-soft'
 							)}
 						>
-							<div className="w-8 h-8 rounded-lg bg-sidebar-primary flex items-center justify-center shrink-0 shadow-sm">
+							<div className="size-9 rounded-full bg-sidebar-primary flex items-center justify-center shrink-0">
 								<span className="text-sidebar-primary-foreground text-xs font-bold tracking-wide">
 									{initials}
 								</span>
@@ -244,7 +205,7 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 								</p>
 								{profile?.displayName &&
 									profile.displayName !== profile.username && (
-										<p className="text-[11px] text-sidebar-foreground/50 leading-tight truncate mt-0.5">
+										<p className="text-xs text-muted-foreground leading-tight truncate mt-0.5 font-mono">
 											@{profile.username}
 										</p>
 									)}
@@ -254,10 +215,10 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 						</Link>
 					</div>
 				) : (
-					<div className="rounded-xl border border-sidebar-border/60 bg-sidebar-accent/20 p-3">
+					<div className="rounded-xl border border-sidebar-border bg-card p-1">
 						<Link
 							href="/login"
-							className="flex items-center gap-2.5 w-full text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors text-sm"
+							className="flex items-center gap-2.5 w-full min-h-11 px-3 rounded-lg text-muted-foreground hover:text-sidebar-foreground hover:bg-surface-soft transition-colors text-sm"
 						>
 							<User className="size-4 shrink-0" />
 							<span className="font-medium">Sign in</span>

@@ -2,6 +2,7 @@
 	"common": {
 		"home": "首頁",
 		"createPoll": "建立投票",
+		"askQuestion": "提出問題",
 		"myPolls": "我的投票",
 		"explore": "探索",
 		"notifications": "通知",

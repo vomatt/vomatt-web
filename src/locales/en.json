@@ -2,6 +2,7 @@
 	"common": {
 		"home": "home",
 		"createPoll": "Create Poll",
+		"askQuestion": "Ask a question",
 		"myPolls": "My Polls",
 		"explore": "Explore",
 		"notifications": "Notifications",
