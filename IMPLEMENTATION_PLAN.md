@@ -13,13 +13,13 @@ Mobile first: design and verify at 390px, then desktop.
 **Goal**: Button, Input, Textarea, Tabs and StatusChip match the design (44px targets, 8px controls, 12px surfaces, ink focus ring, pastel status pills with text).
 **Success Criteria**: Primitives look like the "Brand foundations" board; every status still has a text label.
 **Tests**: StatusChip tests updated for the new markup; existing component tests pass.
-**Status**: In Progress
+**Status**: Complete
 
 ## Stage 3: App shell
 **Goal**: AppSidebar and mobile TabBar follow the Home and mobile boards (Ask a question as the primary action, current page marked).
 **Success Criteria**: Navigation works at 390px and desktop; `aria-current` on the active item.
 **Tests**: Layout tests pass; manual check in the browser at both widths.
-**Status**: Not Started
+**Status**: In Progress
 
 ## Stage 4: Poll surfaces
 **Goal**: PollCard, Ballot, Results, PollAbout and the feed follow the Poll, Results and Home boards.

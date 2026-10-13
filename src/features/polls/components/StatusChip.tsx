@@ -8,6 +8,13 @@ import { formatFromNow, formatPollDate } from '../format';
 import type { Poll } from '../schema';
 import type { PollStatus } from '../status';
 
+const STATUS_TINT: Record<PollStatus, string> = {
+	scheduled: 'bg-status-scheduled',
+	open: 'bg-status-open',
+	closing: 'bg-status-closing',
+	ended: 'bg-status-ended',
+};
+
 type StatusChipProps = {
 	status: PollStatus;
 	poll: Pick<Poll, 'startTime' | 'endTime'>;
@@ -39,21 +46,10 @@ export function StatusChip({ status, poll }: StatusChipProps) {
 	return (
 		<span
 			className={cn(
-				'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium',
-				status === 'open' && 'text-emerald-600 dark:text-emerald-400',
-				status === 'closing' && 'text-amber-600 dark:text-amber-400',
-				status === 'scheduled' && 'text-sky-600 dark:text-sky-400',
-				status === 'ended' && 'text-muted-foreground'
+				'inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.05em] text-foreground',
+				STATUS_TINT[status]
 			)}
 		>
-			{(status === 'open' || status === 'closing') && (
-				<span aria-hidden className="relative size-1.5">
-					{status === 'closing' && (
-						<span className="absolute inset-0 rounded-full bg-current opacity-60 motion-safe:animate-ping motion-safe:[animation-duration:1.2s]" />
-					)}
-					<span className="relative block size-1.5 rounded-full bg-current" />
-				</span>
-			)}
 			{label}
 		</span>
 	);
