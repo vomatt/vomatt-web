@@ -50,11 +50,8 @@ export const pollFormSchema = z
 
 export type PollFormValues = z.input<typeof pollFormSchema>;
 
-export const STEP_FIELDS = [
-	['title', 'description'],
-	['options'],
-	['startTime', 'endTime', 'voterVisibility'],
-] as const;
+/** Fields in the folded "Timing & privacy" section of the write screen. */
+export const TIMING_FIELDS = ['startTime', 'endTime', 'voterVisibility'] as const;
 
 /** A Date as a `datetime-local` value in the browser's time zone. */
 export function toDateTimeInput(date: Date) {
