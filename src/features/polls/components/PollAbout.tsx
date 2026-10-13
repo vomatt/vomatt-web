@@ -34,7 +34,7 @@ export function PollAbout({ poll }: { poll: Poll }) {
 	};
 
 	return (
-		<aside className="space-y-5 rounded-xl border border-border bg-card p-5 text-sm">
+		<aside className="space-y-5 rounded-xl border border-border bg-card p-5 text-sm md:p-6">
 			<div className="flex items-center gap-3">
 				<InitialAvatar name={poll.creatorUsername} className="size-9 text-sm" />
 				<div className="min-w-0">
@@ -61,7 +61,7 @@ export function PollAbout({ poll }: { poll: Poll }) {
 							className="h-1.5 overflow-hidden rounded-full bg-muted"
 						>
 							<div
-								className={status === 'closing' ? 'h-full bg-amber-500' : 'h-full bg-primary'}
+								className="h-full bg-primary"
 								style={{ width: `${progress}%` }}
 							/>
 						</div>
@@ -72,7 +72,7 @@ export function PollAbout({ poll }: { poll: Poll }) {
 
 			{turnout !== undefined && (
 				<p>
-					<span className="font-mono text-2xl font-semibold tabular-nums">{turnout.toLocaleString()}</span>{' '}
+					<span className="font-mono text-3xl tracking-tight tabular-nums">{turnout.toLocaleString()}</span>{' '}
 					<span className="text-muted-foreground">{t('pollDetail.participants')}</span>
 				</p>
 			)}
@@ -83,7 +83,7 @@ export function PollAbout({ poll }: { poll: Poll }) {
 						<li key={tag.id}>
 							<Link
 								href={topicHref(tag.slug)}
-								className="rounded-full border border-border px-2.5 py-0.5 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+								className="inline-flex min-h-8 items-center rounded-full bg-secondary px-3 text-[13px] text-foreground transition-colors hover:bg-border-strong"
 							>
 								#{tag.name}
 							</Link>

@@ -23,9 +23,9 @@ Mobile first: design and verify at 390px, then desktop.
 
 ## Stage 4: Poll surfaces
 **Goal**: PollCard, Ballot, Results, PollAbout and the feed follow the Poll, Results and Home boards.
-**Success Criteria**: Sealed-until-close messaging, sending state on vote, results bars without tracks.
-**Tests**: Poll component tests pass and cover the sending state.
-**Status**: Not Started
+**Success Criteria**: Sealed-until-close messaging, Volt selection, ink top answer, 44px targets; existing vote, change and withdraw behavior unchanged.
+**Tests**: Poll component tests pass (styling only, no behavior change).
+**Status**: Complete
 
 ## Stage 5: Pages and flows
 **Goal**: Login (email code), New poll (write then review), Profile, Explore, My polls, Notifications.

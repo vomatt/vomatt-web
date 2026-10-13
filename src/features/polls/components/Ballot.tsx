@@ -108,12 +108,11 @@ export function Ballot({ poll, status, ballot, requireAuth, ownerActions }: Ball
 	} else {
 		actions = (
 			<>
-				<span className="text-xs text-muted-foreground">{t('poll.revealHint')}</span>
+				<span className="text-[13px] text-muted-foreground">{t('poll.revealHint')}</span>
 				<Button
-					size="sm"
 					disabled={isPending || !selected}
 					onClick={castSelected}
-					className="transition-transform active:scale-95"
+					className="w-full transition-transform active:scale-95 sm:w-auto sm:min-w-32"
 				>
 					{isPending && <BallotBoxIcon className="size-4" />}
 					{t('poll.vote')}
@@ -124,7 +123,7 @@ export function Ballot({ poll, status, ballot, requireAuth, ownerActions }: Ball
 
 	return (
 		<div className="space-y-3.5">
-			<fieldset ref={optionsRef} disabled={isScheduled || isPending} className="space-y-1.5">
+			<fieldset ref={optionsRef} disabled={isScheduled || isPending} className="space-y-2">
 				<legend className="sr-only">{poll.title}</legend>
 				{poll.options.map((option) => {
 					const isSelected = selected === option.id;
@@ -133,9 +132,9 @@ export function Ballot({ poll, status, ballot, requireAuth, ownerActions }: Ball
 						<label
 							key={option.id}
 							className={cn(
-								'relative flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-card px-3.5 py-2.5 text-sm transition-colors',
+								'relative flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border-[1.5px] border-border bg-card px-4 py-3 text-base transition-colors',
 								'has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring',
-								isSelected ? 'border-transparent font-medium' : 'hover:border-primary/30',
+								isSelected ? 'border-transparent font-medium' : 'hover:border-border-strong',
 								((hasBallot && !isSelected) || isScheduled) && 'text-muted-foreground',
 								isScheduled && 'cursor-not-allowed'
 							)}
@@ -167,7 +166,7 @@ export function Ballot({ poll, status, ballot, requireAuth, ownerActions }: Ball
 			</fieldset>
 
 			{!hasBallot && !isScheduled && poll.voterVisibility && (
-				<p className="text-xs text-muted-foreground">
+				<p className="text-[13px] text-muted-foreground">
 					{t(`poll.visibility.${poll.voterVisibility}`)}
 				</p>
 			)}
@@ -180,9 +179,9 @@ export function Ballot({ poll, status, ballot, requireAuth, ownerActions }: Ball
 						animate={{ opacity: 1, y: 0 }}
 						exit={{ opacity: 0, y: -6, transition: { duration: 0.15 } }}
 						transition={{ duration: 0.25, ease: 'easeOut' }}
-						className="flex items-center gap-2.5 rounded-lg border border-dashed border-border px-3 py-2.5 text-[13px] text-muted-foreground"
+						className="flex items-center gap-2.5 rounded-lg border border-border bg-surface-soft px-3.5 py-3 text-[13px] text-muted-foreground"
 					>
-						<BallotBoxIcon className="text-primary" />
+						<BallotBoxIcon className="text-foreground" />
 						{t('poll.sealed', { date: formatPollDate(poll.endTime, currentLanguage) })}
 					</motion.p>
 				)}

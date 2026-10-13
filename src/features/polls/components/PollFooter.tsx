@@ -27,7 +27,7 @@ export function PollFooter({
 	const share = useSharePoll();
 
 	return (
-		<div className="flex items-center gap-4 border-t border-border/60 px-5 py-3 text-xs text-muted-foreground">
+		<div className="flex items-center gap-4 border-t border-border px-4 py-1 text-[13px] text-muted-foreground md:px-6">
 			{turnout !== undefined && (
 				<span className="font-mono tabular-nums">
 					{t('poll.voted', { count: turnout.toLocaleString() })}
@@ -36,9 +36,9 @@ export function PollFooter({
 			<button
 				type="button"
 				onClick={onToggleComments}
-				className="flex items-center gap-1.5 transition-colors hover:text-foreground"
+				className="flex min-h-11 items-center gap-1.5 transition-colors hover:text-foreground"
 			>
-				<MessageSquare className="size-3.5" />
+				<MessageSquare className="size-4" />
 				{commentCount === undefined
 					? t('poll.discuss')
 					: commentCount === 1
@@ -48,9 +48,9 @@ export function PollFooter({
 			<button
 				type="button"
 				onClick={() => share({ id: pollId, title })}
-				className="ml-auto flex items-center gap-1.5 transition-colors hover:text-foreground"
+				className="ml-auto flex min-h-11 items-center gap-1.5 transition-colors hover:text-foreground"
 			>
-				<Share2 className="size-3.5" />
+				<Share2 className="size-4" />
 				{t('poll.share')}
 			</button>
 		</div>

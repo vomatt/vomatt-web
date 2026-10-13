@@ -56,18 +56,18 @@ export function PollCard({ poll: initialPoll, viewerId, defaultShowComments = fa
 		poll.voterVisibility === 'signed-in' ? isAuthed : poll.voterVisibility === 'owner' && isOwner;
 
 	return (
-		<article className="group bg-card border border-border rounded-xl transition-shadow duration-200 hover:shadow-sm">
-			<div className="p-5 space-y-4">
+		<article className="group bg-card border border-border rounded-xl">
+			<div className="p-4 space-y-4 md:p-6">
 				<div className="flex items-center justify-between gap-3">
-					<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+					<div className="flex min-w-0 items-center gap-1.5 text-[13px] text-muted-foreground">
 						<Link
 							href={`/profile/${creatorUsername}`}
-							className="font-medium text-foreground/60 hover:text-foreground transition-colors"
+							className="truncate font-medium hover:text-foreground transition-colors"
 						>
 							{creatorUsername}
 						</Link>
 						<span>·</span>
-						<time dateTime={createdAt}>
+						<time dateTime={createdAt} className="shrink-0 whitespace-nowrap">
 							{isHydrated && formatFromNow(createdAt, currentLanguage)}
 						</time>
 					</div>
@@ -76,12 +76,12 @@ export function PollCard({ poll: initialPoll, viewerId, defaultShowComments = fa
 
 				<div>
 					<Link href={`/poll/${id}`}>
-						<h3 className="text-[17px] font-semibold leading-snug text-foreground hover:text-foreground/75 transition-colors">
+						<h3 className="text-[22px] font-normal leading-tight tracking-[-0.02em] text-foreground hover:text-muted-foreground transition-colors md:text-2xl">
 							{title}
 						</h3>
 					</Link>
 					{description && (
-						<p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">
+						<p className="mt-2 max-w-[65ch] text-[15px] text-muted-foreground leading-relaxed">
 							{description}
 						</p>
 					)}

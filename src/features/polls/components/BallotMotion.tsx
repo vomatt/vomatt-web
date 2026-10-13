@@ -17,7 +17,7 @@ export function BallotMark({ checked }: { checked: boolean }) {
 			aria-hidden
 			className={cn(
 				'relative grid size-[18px] shrink-0 place-items-center rounded-[4px] border-[1.5px] transition-colors duration-150',
-				checked ? 'border-primary bg-primary text-primary-foreground' : 'border-muted-foreground/40 bg-card'
+				checked ? 'border-primary bg-primary text-volt' : 'border-input bg-card'
 			)}
 		>
 			<svg viewBox="0 0 16 16" className="size-3" fill="none">
@@ -44,7 +44,7 @@ export function VotedStamp({ label }: { label: string }) {
 			animate={{ opacity: 1, scale: 1, rotate: -8 }}
 			exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.15 } }}
 			transition={{ type: 'spring', stiffness: 600, damping: 18, mass: 0.6 }}
-			className="inline-flex shrink-0 select-none items-center rounded-[5px] border-2 border-primary/80 px-1.5 py-px font-mono text-[10px] font-bold uppercase tracking-wider text-primary/90"
+			className="inline-flex shrink-0 select-none items-center rounded-[5px] border-[1.5px] border-foreground/70 bg-volt px-1.5 py-px font-mono text-[10px] font-bold uppercase tracking-wider text-foreground"
 		>
 			{label}
 		</motion.span>
@@ -87,7 +87,7 @@ export function SelectionHighlight({ layoutId, inTransit = false }: { layoutId: 
 		<motion.span
 			layoutId={layoutId}
 			aria-hidden
-			className="absolute inset-0 rounded-lg border border-primary bg-primary/[0.06]"
+			className="absolute inset-0 rounded-xl border-[1.5px] border-primary bg-volt-tint"
 			animate={{ opacity: inTransit ? [1, 0.45, 1] : 1 }}
 			transition={{
 				layout: INK,

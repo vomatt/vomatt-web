@@ -41,7 +41,7 @@ function Crown() {
 		<motion.svg
 			viewBox="0 0 16 16"
 			aria-hidden
-			className="mr-1.5 inline size-3.5 -translate-y-px text-emerald-600 dark:text-emerald-400"
+			className="mr-1.5 inline size-3.5 -translate-y-px text-foreground"
 			initial={{ scale: 0, rotate: -30 }}
 			animate={{ scale: 1, rotate: 0 }}
 			transition={{ type: 'spring', stiffness: 500, damping: 14, delay: BAR_DURATION }}
@@ -97,7 +97,7 @@ export function Results({ poll, myOptionId, turnout, onSealed }: ResultsProps) {
 		) : (
 			<div className="space-y-1.5" aria-busy>
 				{poll.options.map((option) => (
-					<Skeleton key={option.id} className="h-10 rounded-lg" />
+					<Skeleton key={option.id} className="h-12 rounded-xl" />
 				))}
 			</div>
 		);
@@ -122,7 +122,7 @@ export function Results({ poll, myOptionId, turnout, onSealed }: ResultsProps) {
 
 	return (
 		<div className="space-y-3.5">
-			<ul className="space-y-1.5">
+			<ul className="space-y-2">
 				{rows.map((row, index) => {
 					const percent = support(row.votes);
 					const isWinner = winners.includes(row);
@@ -131,26 +131,26 @@ export function Results({ poll, myOptionId, turnout, onSealed }: ResultsProps) {
 						<li
 							key={row.id}
 							className={cn(
-								'relative overflow-hidden rounded-lg border text-sm',
-								isWinner ? 'border-emerald-600/60' : 'border-border'
+								'relative overflow-hidden rounded-xl border-[1.5px] text-[15px]',
+								isWinner ? 'border-foreground' : 'border-border'
 							)}
 						>
 							<motion.div
 								aria-hidden
 								className={cn(
 									'absolute inset-0 origin-left',
-									isWinner ? 'bg-emerald-600/15' : 'bg-foreground/[0.07]'
+									isWinner ? 'bg-foreground/[0.09]' : 'bg-foreground/[0.04]'
 								)}
 								initial={{ scaleX: 0 }}
 								animate={{ scaleX: percent / 100 }}
 								transition={{ duration: BAR_DURATION, delay, ease: BAR_EASE }}
 							/>
-							<div className="relative flex items-center justify-between gap-2.5 px-3.5 py-2.5">
+							<div className="relative flex min-h-12 items-center justify-between gap-2.5 px-4 py-3">
 								<span className={cn(isWinner && 'font-semibold')}>
 									{isWinner && <Crown />}
 									{row.text}
 									{row.id === myOptionId && (
-										<span className="ml-1.5 text-[11px] font-normal text-muted-foreground">
+										<span className="ml-2 rounded-full border border-foreground/20 bg-volt px-2 py-px align-[1px] text-[11px] font-semibold text-foreground">
 											{t('poll.yourVoteShort')}
 										</span>
 									)}
@@ -165,7 +165,7 @@ export function Results({ poll, myOptionId, turnout, onSealed }: ResultsProps) {
 					);
 				})}
 			</ul>
-			<p className="text-xs text-muted-foreground">{caption}</p>
+			<p className="text-[13px] text-muted-foreground">{caption}</p>
 		</div>
 	);
 }
