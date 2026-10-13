@@ -27,7 +27,7 @@ export function AuthError({ error, className }: AuthErrorProps) {
 					transition={{ duration: 0.2, ease: 'easeOut' }}
 					className="overflow-hidden"
 				>
-					<FieldError className={cn('text-center', className)}>{t(`authError.${error}`)}</FieldError>
+					<FieldError className={cn(className)}>{t(`authError.${error}`)}</FieldError>
 				</motion.div>
 			)}
 		</AnimatePresence>

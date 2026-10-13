@@ -80,8 +80,8 @@ function EmailStep({
 
 	return (
 		<>
-			<h1 className="font-medium text-3xl text-center mb-3">{t('login.title')}</h1>
-			<p className="text-center text-sm text-muted-foreground mb-8">{t('login.subtitle')}</p>
+			<h1 className="mb-3 text-[32px] font-normal leading-tight tracking-[-0.03em]">{t('login.title')}</h1>
+			<p className="mb-8 text-base leading-relaxed text-muted-foreground">{t('login.subtitle')}</p>
 			<form onSubmit={form.handleSubmit(submit)} noValidate>
 				<Controller
 					control={form.control}
@@ -141,8 +141,8 @@ function ProfileStep({
 
 	return (
 		<>
-			<h1 className="font-medium text-3xl text-center mb-3">{t('onboarding.title')}</h1>
-			<p className="text-center text-sm text-muted-foreground mb-8">{t('onboarding.subtitle')}</p>
+			<h1 className="mb-3 text-[32px] font-normal leading-tight tracking-[-0.03em]">{t('onboarding.title')}</h1>
+			<p className="mb-8 text-base leading-relaxed text-muted-foreground">{t('onboarding.subtitle')}</p>
 			<form onSubmit={form.handleSubmit(submit)} noValidate>
 				<Controller
 					control={form.control}

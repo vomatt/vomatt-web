@@ -27,7 +27,7 @@ const InputOTPGroup = React.forwardRef<
 >(({ className, ...props }, ref) => (
 	<div
 		ref={ref}
-		className={cn('flex items-center', className || '')}
+		className={cn('flex flex-1 items-center gap-2', className || '')}
 		{...props}
 	/>
 ));
@@ -35,8 +35,8 @@ InputOTPGroup.displayName = 'InputOTPGroup';
 
 const InputOTPSlot = React.forwardRef<
 	React.ElementRef<'div'>,
-	React.ComponentPropsWithoutRef<'div'> & { index: number }
->(({ index, className, ...props }, ref) => {
+	React.ComponentPropsWithoutRef<'div'> & { index: number; invalid?: boolean }
+>(({ index, invalid = false, className, ...props }, ref) => {
 	const inputOTPContext = React.useContext(OTPInputContext);
 	const { char, hasFakeCaret, isActive } = inputOTPContext.slots[index];
 
@@ -44,8 +44,9 @@ const InputOTPSlot = React.forwardRef<
 		<div
 			ref={ref}
 			className={cn(
-				'relative flex items-center justify-center border-y border-r border-input text-sm transition-all first:rounded-l-md first:border-l last:rounded-r-md flex-1 h-10 min-w-10',
-				isActive ? 'z-10 ring-2 ring-ring ring-offset-background' : '',
+				'relative flex h-14 min-w-0 flex-1 items-center justify-center rounded-lg border bg-card font-mono text-xl transition-[border-color,box-shadow]',
+				invalid ? 'border-destructive' : 'border-input',
+				isActive && !invalid && 'z-10 border-foreground shadow-[0_0_0_3px_var(--volt-tint)]',
 				className || ''
 			)}
 			{...props}

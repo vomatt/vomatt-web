@@ -89,11 +89,13 @@ export default function VerificationForm({
 	}
 
 	return (
-		<div className="text-center flex flex-col items-center">
-			<MailCheckIcon className="size-16 md:size-20 mb-3" />
-			<h1 className="text-3xl mb-3">{t('verificationCode.title')}</h1>
-			<p className="mb-8 text-sm text-muted-foreground">
-				{t('verificationCode.subtitle')} <strong className="text-foreground">{email}</strong>
+		<div className="flex flex-col">
+			<span className="mb-5 grid size-12 place-items-center rounded-full border border-foreground/20 bg-volt text-foreground">
+				<MailCheckIcon className="size-6" />
+			</span>
+			<h1 className="mb-3 text-[32px] font-normal leading-tight tracking-[-0.03em]">{t('verificationCode.title')}</h1>
+			<p className="mb-8 text-base leading-relaxed text-muted-foreground">
+				{t('verificationCode.subtitle')} <strong className="break-all font-medium text-foreground">{email}</strong>
 			</p>
 			<form
 				onSubmit={(event) => {
@@ -116,18 +118,18 @@ export default function VerificationForm({
 						autoComplete="one-time-code"
 						disabled={isLoading}
 						aria-label={t('verificationCode.inputLabel')}
-						containerClassName="justify-center"
+						containerClassName="w-full"
 					>
 						<InputOTPGroup>
-							<InputOTPSlot index={0} />
-							<InputOTPSlot index={1} />
-							<InputOTPSlot index={2} />
+							{[0, 1, 2].map((index) => (
+								<InputOTPSlot key={index} index={index} invalid={!!error} />
+							))}
 						</InputOTPGroup>
-						<InputOTPSeparator />
+						<InputOTPSeparator className="text-muted-foreground" />
 						<InputOTPGroup>
-							<InputOTPSlot index={3} />
-							<InputOTPSlot index={4} />
-							<InputOTPSlot index={5} />
+							{[3, 4, 5].map((index) => (
+								<InputOTPSlot key={index} index={index} invalid={!!error} />
+							))}
 						</InputOTPGroup>
 					</InputOTP>
 					<AuthError error={error} />
@@ -146,12 +148,12 @@ export default function VerificationForm({
 			</form>
 
 			{cooldown > 0 ? (
-				<p className="text-sm text-muted-foreground" aria-live="polite">
+				<p className="text-sm text-muted-foreground tabular-nums" aria-live="polite">
 					{t('verificationCode.resendIn', { time: formatCountdown(cooldown) })}
 				</p>
 			) : (
 				<ButtonLoading
-					className="underline mx-auto block"
+					className="h-11 justify-start px-0 underline"
 					variant="link"
 					isLoading={isResending}
 					disabled={isResending}
@@ -161,7 +163,7 @@ export default function VerificationForm({
 				</ButtonLoading>
 			)}
 			{resent && (
-				<p className="text-sm mt-2 text-center text-positive" role="status">
+				<p className="text-sm mt-2 text-positive" role="status">
 					{t('verificationCode.codeSent')}
 				</p>
 			)}
