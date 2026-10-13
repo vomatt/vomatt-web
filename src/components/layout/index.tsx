@@ -27,7 +27,7 @@ export async function Layout({ children }: LayoutProps) {
 				<Main>
 					<MotionProvider>{children}</MotionProvider>
 				</Main>
-				<TabBar userSession={userSession} />
+				<TabBar userSession={userSession} username={profile?.username} />
 			</UnreadCountProvider>
 		</SidebarProvider>
 	);

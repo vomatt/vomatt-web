@@ -39,10 +39,9 @@ export async function generateMetadata() {
 
 	const faviconUrl = (icon: SanityImageSource) =>
 		imageBuilder.image(icon).width(256).height(256).url();
-	const siteFaviconUrl = favicon ? faviconUrl(favicon) : '/favicon.ico';
-	const siteFaviconLightUrl = faviconLight
-		? faviconUrl(faviconLight)
-		: siteFaviconUrl;
+	// A favicon set in Sanity wins; without one, the icon files in app/ apply
+	const siteFaviconUrl = favicon ? faviconUrl(favicon) : null;
+	const siteFaviconLightUrl = faviconLight ? faviconUrl(faviconLight) : siteFaviconUrl;
 	const shareGraphicUrl = shareGraphic?.asset
 		? buildShareImageUrl(shareGraphic.asset)
 		: null;
@@ -72,12 +71,14 @@ export async function generateMetadata() {
 		},
 		// Keep search engines from indexing the placeholder
 		robots: isComingSoon(data) ? { index: false, follow: false } : undefined,
-		icons: {
-			icon: [
-				{ url: siteFaviconUrl, media: '(prefers-color-scheme: light)' },
-				{ url: siteFaviconLightUrl, media: '(prefers-color-scheme: dark)' },
-			],
-		},
+		icons: siteFaviconUrl
+			? {
+					icon: [
+						{ url: siteFaviconUrl, media: '(prefers-color-scheme: light)' },
+						{ url: siteFaviconLightUrl ?? siteFaviconUrl, media: '(prefers-color-scheme: dark)' },
+					],
+				}
+			: undefined,
 	};
 }
 

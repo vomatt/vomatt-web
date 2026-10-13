@@ -1,37 +1,46 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
 import {
-	Sheet,
-	SheetContent,
-	SheetFooter,
-	SheetHeader,
-	SheetTitle,
-	SheetTrigger,
-} from '@/components/ui/Sheet';
+	Dialog,
+	DialogContent,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from '@/components/ui/Dialog';
+import { Input } from '@/components/ui/Input';
 import { Spinner } from '@/components/ui/Spinner';
 import { User as UserIcon } from '@/components/ui/SvgIcons';
 import { Textarea } from '@/components/ui/Textarea';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { isValidUsername } from '@/features/account/username';
 import { useAvatarUpload } from '@/hooks/useAvatarUpload';
-import { updateProfile } from '@/lib/api/services/users';
+import { updateProfile, updateUsername } from '@/lib/api/services/users';
+import { profileHref } from '@/lib/routes';
 
-interface EditProfileSheetProps {
+interface EditProfileDialogProps {
+	initialUsername: string;
 	initialDisplayName: string;
 	initialBio: string;
 	/** `undefined` when the backend doesn't support avatars; the photo section is hidden then. */
 	initialAvatarUrl?: string | null;
 }
 
-export default function EditProfileSheet({
+export default function EditProfileDialog({
+	initialUsername,
 	initialDisplayName,
 	initialBio,
 	initialAvatarUrl,
-}: EditProfileSheetProps) {
+}: EditProfileDialogProps) {
+	const { t } = useLanguage();
+	const router = useRouter();
 	const [open, setOpen] = useState(false);
+	const [username, setUsername] = useState(initialUsername);
 	const [displayName, setDisplayName] = useState(initialDisplayName);
 	const [bio, setBio] = useState(initialBio);
 	const [isPending, setIsPending] = useState(false);
@@ -50,9 +59,26 @@ export default function EditProfileSheet({
 
 	async function handleSubmit(e?: React.FormEvent) {
 		e?.preventDefault();
+		const usernameChanged = username !== initialUsername;
+		if (usernameChanged && !isValidUsername(username)) {
+			toast.error(t('account.usernameInvalid'));
+			return;
+		}
 		setIsPending(true);
 		try {
-			await updateProfile({ displayName, bio });
+			const detailsChanged = displayName !== initialDisplayName || bio !== initialBio;
+			if (detailsChanged) await updateProfile({ displayName, bio });
+			// The profile lives at /[username], so a new username moves the page
+			if (usernameChanged) {
+				const result = await updateUsername(username);
+				if (!result.ok) {
+					toast.error(result.message, {
+						description: detailsChanged ? t('account.usernameFailedRestSaved') : undefined,
+					});
+					return;
+				}
+				router.replace(profileHref(username));
+			}
 			toast.success('Profile updated');
 			setOpen(false);
 		} catch {
@@ -63,15 +89,15 @@ export default function EditProfileSheet({
 	}
 
 	return (
-		<Sheet open={open} onOpenChange={setOpen}>
-			<SheetTrigger render={<Button variant="outline" size="sm" />}>
+		<Dialog open={open} onOpenChange={setOpen}>
+			<DialogTrigger render={<Button variant="outline" size="sm" />}>
 				Edit Profile
-			</SheetTrigger>
-			<SheetContent side="right">
-				<SheetHeader>
-					<SheetTitle>Edit Profile</SheetTitle>
-				</SheetHeader>
-				<form onSubmit={handleSubmit} className="flex flex-col gap-4 px-4">
+			</DialogTrigger>
+			<DialogContent className="sm:max-w-md">
+				<DialogHeader>
+					<DialogTitle>Edit Profile</DialogTitle>
+				</DialogHeader>
+				<form id="edit-profile" onSubmit={handleSubmit} className="flex flex-col gap-4">
 					{/* Avatar section */}
 					{supportsAvatars && (
 					<div className="flex flex-col gap-2">
@@ -118,6 +144,27 @@ export default function EditProfileSheet({
 					)}
 					<div className="flex flex-col gap-1.5">
 						<label
+							htmlFor="username"
+							className="text-sm font-medium text-foreground"
+						>
+							{t('account.usernameLabel')}
+						</label>
+						<Input
+							id="username"
+							value={username}
+							onChange={(e) => setUsername(e.target.value.trim())}
+							autoComplete="username"
+							autoCapitalize="none"
+							spellCheck={false}
+							maxLength={30}
+							aria-describedby="username-hint"
+						/>
+						<p id="username-hint" className="text-xs text-muted-foreground">
+							{t('account.usernameHint', { path: `/${username || initialUsername}` })}
+						</p>
+					</div>
+					<div className="flex flex-col gap-1.5">
+						<label
 							htmlFor="displayName"
 							className="text-sm font-medium text-foreground"
 						>
@@ -148,18 +195,17 @@ export default function EditProfileSheet({
 						/>
 					</div>
 				</form>
-				<SheetFooter>
+				<DialogFooter showCloseButton>
 					<Button
 						type="submit"
+						form="edit-profile"
 						disabled={isPending || isUploading}
-						onClick={handleSubmit}
-						className="w-full"
 					>
 						{isPending ? <Spinner className="mr-2" /> : null}
 						Save Changes
 					</Button>
-				</SheetFooter>
-			</SheetContent>
-		</Sheet>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
 	);
 }

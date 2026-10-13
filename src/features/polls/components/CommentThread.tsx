@@ -12,6 +12,7 @@ import { Heart } from '@/components/ui/SvgIcons';
 import { Textarea } from '@/components/ui/Textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useHydrated } from '@/hooks/useHydrated';
+import { profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
 import { formatFromNow } from '../format';
@@ -309,7 +310,7 @@ function CommentBody({ comment, viewerId, thread, requireAuth, onReply }: Commen
 					{isPending ? (
 						<span className="font-medium text-foreground">{author}</span>
 					) : (
-						<Link href={`/profile/${author}`} className="font-medium text-foreground hover:underline">
+						<Link href={profileHref(author)} className="font-medium text-foreground hover:underline">
 							{author}
 						</Link>
 					)}

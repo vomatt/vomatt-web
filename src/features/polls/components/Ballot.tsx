@@ -132,7 +132,7 @@ export function Ballot({ poll, status, ballot, requireAuth, ownerActions }: Ball
 						<label
 							key={option.id}
 							className={cn(
-								'relative flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border-[1.5px] border-border bg-card px-4 py-3 text-base transition-colors',
+								'relative flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-base transition-colors',
 								'has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring',
 								isSelected ? 'border-transparent font-medium' : 'hover:border-border-strong',
 								((hasBallot && !isSelected) || isScheduled) && 'text-muted-foreground',

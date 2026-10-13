@@ -7,8 +7,8 @@ import {
 	POLL_OPTION_MAX,
 	POLL_OPTIONS_LIMIT,
 	POLL_OPTIONS_MIN,
-	type PollInput,
 	POLL_TITLE_MAX,
+	type PollInput,
 	VoterVisibilitySchema,
 } from '../../schema';
 

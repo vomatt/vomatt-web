@@ -17,7 +17,6 @@ import {
 import { Button, buttonVariants } from '@/components/ui/Button';
 import { InitialAvatar } from '@/components/ui/InitialAvatar';
 import { Input } from '@/components/ui/Input';
-import { Check } from '@/components/ui/SvgIcons';
 import { Switch } from '@/components/ui/Switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -32,7 +31,7 @@ import { deleteMyAccount, updateVisibility } from '@/lib/api/services/users';
 import { cn } from '@/lib/utils';
 import type { MyProfile } from '@/types/user';
 
-import EditProfileSheet from '../../profile/[username]/_components/EditProfileSheet';
+import EditProfileDialog from './EditProfileDialog';
 
 export type AccountPageProps = {
 	profile: MyProfile;
@@ -54,28 +53,15 @@ export default function AccountPage({ profile, myPolls, history, insights }: Acc
 				<InitialAvatar name={name} className="size-16 bg-primary text-xl font-medium text-primary-foreground" />
 				<div className="min-w-0 flex-1">
 					<h1 className="truncate display-heading text-[28px] md:text-4xl/tight">{name}</h1>
-					<p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-						<span className="font-mono">@{profile.username}</span>
-						{profile.membershipLevel && (
-							<span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-foreground">
-								{profile.membershipLevel}
-							</span>
-						)}
-					</p>
+					<p className="mt-1 font-mono text-sm text-muted-foreground">@{profile.username}</p>
 					{profile.bio && <p className="mt-1 text-sm">{profile.bio}</p>}
 				</div>
-				<div className="flex gap-2">
-					<Link
-						href={`/profile/${profile.username}`}
-						className={buttonVariants({ variant: 'outline', size: 'sm' })}
-					>
-						{t('account.publicProfile')}
-					</Link>
-					<EditProfileSheet
-						initialDisplayName={profile.displayName ?? ''}
-						initialBio={profile.bio ?? ''}
-					/>
-				</div>
+				<EditProfileDialog
+					initialUsername={profile.username}
+					initialDisplayName={profile.displayName ?? ''}
+					initialBio={profile.bio ?? ''}
+					initialAvatarUrl={profile.avatarUrl}
+				/>
 			</header>
 
 			<section
@@ -90,32 +76,6 @@ export default function AccountPage({ profile, myPolls, history, insights }: Acc
 					value={insights.majorityRate === null ? t('account.majorityNone') : `${insights.majorityRate}%`}
 					hint={t('account.majorityHint')}
 				/>
-			</section>
-
-			<section aria-labelledby="badges-title" className="space-y-3">
-				<h2 id="badges-title" className="text-base font-semibold">
-					{t('account.badges')}
-				</h2>
-				<ul className="flex flex-wrap gap-2">
-					{insights.badges.map(({ id, earned }) => (
-						<li
-							key={id}
-							title={t(`account.badge.${id}.hint`)}
-							className={cn(
-								'flex min-h-9 items-center gap-1.5 rounded-full border px-3.5 text-sm',
-								earned
-									? 'border-foreground/25 bg-volt-tint font-medium text-foreground'
-									: 'border-dashed border-border-strong text-muted-foreground'
-							)}
-						>
-							{earned && <Check aria-hidden className="size-3.5" />}
-							<span>{t(`account.badge.${id}.name`)}</span>
-							<span className="sr-only">
-								{earned ? t('account.earned') : t('account.locked')}: {t(`account.badge.${id}.hint`)}
-							</span>
-						</li>
-					))}
-				</ul>
 			</section>
 
 			<Tabs defaultValue="activity">

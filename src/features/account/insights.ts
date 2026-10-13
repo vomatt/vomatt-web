@@ -29,15 +29,6 @@ export function ballotHistory(polls: Poll[], now = Date.now()): BallotRecord[] {
 		}));
 }
 
-export type BadgeId =
-	| 'firstBallot'
-	| 'regular'
-	| 'pillar'
-	| 'questionAsker'
-	| 'crowdGatherer'
-	| 'trendReader'
-	| 'contrarian';
-
 export type Insights = {
 	votesCast: number;
 	pollsCreated: number;
@@ -46,7 +37,6 @@ export type Insights = {
 	/** Share of decided Ballots where the pick won or tied, 0–100; null before any are decided. */
 	majorityRate: number | null;
 	awaitingResults: number;
-	badges: { id: BadgeId; earned: boolean }[];
 };
 
 export function computeInsights(
@@ -59,22 +49,11 @@ export function computeInsights(
 	const turnouts = myPolls.map((poll) => getTurnout(poll) ?? 0);
 	const majorityRate = decided.length ? Math.round((withMajority / decided.length) * 100) : null;
 
-	const earned: Record<BadgeId, boolean> = {
-		firstBallot: totalVotes >= 1,
-		regular: totalVotes >= 10,
-		pillar: totalVotes >= 50,
-		questionAsker: totalPolls >= 1,
-		crowdGatherer: turnouts.some((count) => count >= 10),
-		trendReader: decided.length >= 3 && (majorityRate ?? 0) >= 60,
-		contrarian: decided.length - withMajority >= 3,
-	};
-
 	return {
 		votesCast: totalVotes,
 		pollsCreated: totalPolls,
 		peopleReached: turnouts.reduce((sum, count) => sum + count, 0),
 		majorityRate,
 		awaitingResults: history.filter((record) => record.outcome === 'pending').length,
-		badges: (Object.keys(earned) as BadgeId[]).map((id) => ({ id, earned: earned[id] })),
 	};
 }

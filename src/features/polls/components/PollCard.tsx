@@ -7,6 +7,7 @@ import { useCallback, useState } from 'react';
 import { AuthDialog } from '@/components/auth/AuthDialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useHydrated } from '@/hooks/useHydrated';
+import { profileHref } from '@/lib/routes';
 
 import { formatFromNow } from '../format';
 import { useBallot } from '../hooks/useBallot';
@@ -61,7 +62,7 @@ export function PollCard({ poll: initialPoll, viewerId, defaultShowComments = fa
 				<div className="flex items-center justify-between gap-3">
 					<div className="flex min-w-0 items-center gap-1.5 text-[13px] text-muted-foreground">
 						<Link
-							href={`/profile/${creatorUsername}`}
+							href={profileHref(creatorUsername)}
 							className="truncate font-medium hover:text-foreground transition-colors"
 						>
 							{creatorUsername}

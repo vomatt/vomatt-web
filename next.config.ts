@@ -18,7 +18,11 @@ const nextConfig: NextConfig = {
 	poweredByHeader: false,
 	async redirects() {
 		// Sign-up and log-in are one form now
-		return [{ source: '/signup', destination: '/login', permanent: true }];
+		return [
+			{ source: '/signup', destination: '/login', permanent: true },
+			// Profiles moved to the root, next to Sanity pages
+			{ source: '/profile/:username', destination: '/:username', permanent: true },
+		];
 	},
 	async headers() {
 		return [

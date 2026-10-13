@@ -28,7 +28,13 @@ type PollFeedListProps = {
 	header: React.ReactNode;
 };
 
-export function PollFeedList({ className, viewerId, initialPage, tag, header }: PollFeedListProps) {
+export function PollFeedList({
+	className,
+	viewerId,
+	initialPage,
+	tag,
+	header,
+}: PollFeedListProps) {
 	const { t } = useLanguage();
 	// Seeded from the server's first page; a new first page remounts the list (see page.tsx)
 	const [polls, setPolls] = useState(initialPage?.items ?? []);
@@ -60,12 +66,16 @@ export function PollFeedList({ className, viewerId, initialPage, tag, header }: 
 	});
 
 	return (
-		<div className={cn('flex-1 min-h-[var(--h-main)] max-w-[560px]', className)}>
+		<div
+			className={cn('flex-1 min-h-[var(--h-main)] max-w-[560px]', className)}
+		>
 			{header}
 
 			{initialPage === null && (
 				<div className="py-16 text-center">
-					<p className="mb-4 text-muted-foreground">{t('homePage.feedFailed')}</p>
+					<p className="mb-4 text-muted-foreground">
+						{t('homePage.feedFailed')}
+					</p>
 					<Button variant="outline" onClick={() => window.location.reload()}>
 						{t('comments.retry')}
 					</Button>
@@ -74,9 +84,13 @@ export function PollFeedList({ className, viewerId, initialPage, tag, header }: 
 
 			{initialPage !== null && polls.length === 0 && (
 				<div className="flex flex-col items-center gap-6 py-20 text-center">
-					<h2 className="text-3xl">{t(tag ? 'homePage.topicEmpty' : 'homePage.feedListNoData')}</h2>
+					<h2 className="text-3xl">
+						{t(tag ? 'homePage.topicEmpty' : 'homePage.feedListNoData')}
+					</h2>
 					{viewerId ? (
-						<PollCreator triggerChildren={<Button>{t('homePage.createFirst')}</Button>} />
+						<PollCreator
+							triggerChildren={<Button>{t('homePage.createFirst')}</Button>}
+						/>
 					) : (
 						<Link href="/login" className={buttonVariants()}>
 							{t('homePage.joinToCreate')}
@@ -85,13 +99,19 @@ export function PollFeedList({ className, viewerId, initialPage, tag, header }: 
 				</div>
 			)}
 
-			<div data-testid="cFeedList" className="relative flex w-full flex-col gap-3 py-4">
+			<div
+				data-testid="cFeedList"
+				className="relative flex w-full flex-col gap-3 py-4"
+			>
 				{polls.map((poll, index) => (
 					<motion.div
 						key={poll.id}
 						initial={{ opacity: 0, y: 12 }}
 						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.3, delay: Math.min(index % 10, 5) * 0.04 }}
+						transition={{
+							duration: 0.3,
+							delay: Math.min(index % 10, 5) * 0.04,
+						}}
 					>
 						<PollCard poll={poll} viewerId={viewerId} />
 					</motion.div>

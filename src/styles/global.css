@@ -67,6 +67,7 @@
 	--input: oklch(0.640 0.014 91.6);
 	--ring: oklch(0.251 0.009 97.7);
 	--surface-soft: oklch(0.984 0.004 106.5);
+	--field: oklch(0.948 0.008 98.9);
 	--volt: oklch(0.946 0.153 118);
 	--volt-tint: oklch(0.982 0.040 116.3);
 	--status-scheduled: oklch(0.914 0.017 304.8);
@@ -119,6 +120,7 @@
 	--input: oklch(0.55 0.012 95);
 	--ring: oklch(0.942 0.008 98.9);
 	--surface-soft: oklch(0.22 0.007 100);
+	--field: oklch(0.280 0.009 97.7);
 	--volt: oklch(0.946 0.153 118);
 	--volt-tint: oklch(0.32 0.05 118);
 	--status-scheduled: oklch(0.36 0.04 304.8);
@@ -186,6 +188,7 @@
 	--color-primary-hover: var(--primary-hover);
 	--color-border-strong: var(--border-strong);
 	--color-surface-soft: var(--surface-soft);
+	--color-field: var(--field);
 	--color-volt: var(--volt);
 	--color-volt-tint: var(--volt-tint);
 	--color-status-scheduled: var(--status-scheduled);

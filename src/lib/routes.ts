@@ -16,7 +16,7 @@ export const checkIfActive = ({
 
 /** A nav link is active on its own page and every page below it; home only on itself. */
 export const isActivePath = (pathname: string, href: string) =>
-	href === '/' ? pathname === '/' : pathname.startsWith(href);
+	href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`);
 
 export const resolveHref = ({
 	documentType,
@@ -47,6 +47,9 @@ export const getWindowURl = (windowUrl: string) => {
 	}
 	return `https://${windowUrl}`;
 };
+
+/** A user's profile; it shares the root with Sanity pages. */
+export const profileHref = (username: string) => `/${encodeURIComponent(username)}`;
 
 /** The home feed filtered to one topic. */
 export const topicHref = (slug: string) => `/?tag=${encodeURIComponent(slug)}`;

@@ -31,6 +31,7 @@ export interface MyProfile {
 	totalPolls: number;
 	totalVotes: number;
 	visibilitySettings: Record<string, boolean>;
+	avatarUrl?: string | null; // absent until the backend ships avatars
 }
 
 export interface UserSummary {

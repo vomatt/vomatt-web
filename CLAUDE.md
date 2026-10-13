@@ -61,6 +61,7 @@ Locales: `en`, `zh-TW` (default `en`). Config at `src/i18n-config.ts`. Language 
 
 ### State & UI Conventions
 
+- **Before any UI work, read `DESIGN.md`** (tokens, type, building blocks, don'ts) and `PRODUCT.md` (users, brand, principles).
 - **Server Components** for data fetching; **Client Components** (`'use client'`) for interaction.
 - UI primitives are shadcn/ui (new-york style, zinc base) in `src/components/ui/`.
 - Layout uses a collapsible sidebar (`SidebarProvider` + `AppSidebar`) visible on all routes except `/login`. Mobile gets a `TabBar` instead.

@@ -9,7 +9,7 @@ jest.mock('next/link', () => ({
   default: ({ children, href }: any) => <a href={href}>{children}</a>,
 }));
 
-import FollowersSheet from '@/app/(frontend)/profile/[username]/_components/FollowersSheet';
+import FollowersSheet from '@/app/(frontend)/[slug]/_components/FollowersSheet';
 const { getFollowers, getFollowing } = require('@/lib/api/users-public');
 
 const mockPage = {

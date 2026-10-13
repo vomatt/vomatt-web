@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 import {
   Sheet,
@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/Sheet';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { getFollowers, getFollowing } from '@/lib/api/users-public';
+import { profileHref } from '@/lib/routes';
 import type { UserSummary } from '@/types/user';
 
 interface FollowersSheetProps {
@@ -83,7 +84,7 @@ export default function FollowersSheet({
             users.map((user) => (
               <Link
                 key={user.username}
-                href={`/profile/${user.username}`}
+                href={profileHref(user.username)}
                 onClick={() => onOpenChange(false)}
                 className="flex items-center gap-3 py-2 rounded-lg hover:bg-accent/50 transition-colors px-2 -mx-2"
               >

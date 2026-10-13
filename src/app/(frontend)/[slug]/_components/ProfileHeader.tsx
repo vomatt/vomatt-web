@@ -5,30 +5,26 @@ import { useState } from 'react';
 
 import { Card, CardContent } from '@/components/ui/Card';
 import { Separator } from '@/components/ui/Separator';
+import { User } from '@/components/ui/SvgIcons';
 import { UserProfile } from '@/types/user';
 
-import AvatarUploader from './AvatarUploader';
-import EditProfileSheet from './EditProfileSheet';
 import FollowButton from './FollowButton';
 import FollowersSheet from './FollowersSheet';
 
 interface ProfileHeaderProps {
 	profile: UserProfile;
-	isOwner: boolean;
 	isAuthenticated: boolean;
 }
 
 export default function ProfileHeader({
 	profile,
-	isOwner,
 	isAuthenticated,
 }: ProfileHeaderProps) {
 	const [followersSheetType, setFollowersSheetType] = useState<
 		'followers' | 'following' | null
 	>(null);
 
-	// The backend sends these fields only once it supports avatars and follows
-	const supportsAvatars = profile.avatarUrl !== undefined;
+	// The backend sends these only once it supports follows
 	const followersCount = profile.followersCount;
 	const followingCount = profile.followingCount;
 
@@ -42,10 +38,13 @@ export default function ProfileHeader({
 				<CardContent className="flex flex-col gap-4">
 					{/* Avatar + identity */}
 					<div className="flex items-center gap-4">
-						<AvatarUploader
-							initialAvatarUrl={profile.avatarUrl ?? null}
-							isOwner={isOwner && supportsAvatars}
-						/>
+						<div className="size-16 shrink-0 overflow-hidden rounded-full bg-primary flex items-center justify-center text-white">
+							{profile.avatarUrl ? (
+								<img src={profile.avatarUrl} alt="" className="size-full object-cover" />
+							) : (
+								<User size="2em" />
+							)}
+						</div>
 						<div className="flex-1 min-w-0">
 							<h1 className="truncate display-heading text-[28px] text-foreground">
 								{profile.displayName ?? profile.username}
@@ -61,13 +60,6 @@ export default function ProfileHeader({
 								</p>
 							)}
 						</div>
-						{isOwner && (
-							<EditProfileSheet
-								initialDisplayName={profile.displayName ?? ''}
-								initialBio={profile.bio ?? ''}
-								initialAvatarUrl={profile.avatarUrl}
-							/>
-						)}
 					</div>
 
 					{/* Bio */}
@@ -92,7 +84,7 @@ export default function ProfileHeader({
 
 						{/* FollowButton owns followers count + follow toggle */}
 						{followersCount !== undefined &&
-							(!isOwner && isAuthenticated ? (
+							(isAuthenticated ? (
 								<FollowButton
 									username={profile.username}
 									initialIsFollowing={profile.isFollowing ?? false}

@@ -39,7 +39,7 @@ import {
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUnreadCount } from '@/features/notifications/UnreadCountProvider';
 import { signout } from '@/lib/api/services/auth';
-import { isActivePath } from '@/lib/routes';
+import { isActivePath, profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 import { MyProfile } from '@/types/user';
 
@@ -102,6 +102,8 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 		profile?.displayName ?? undefined,
 		profile?.username
 	);
+	// /account redirects to the profile; link there directly so the card shows as active
+	const accountHref = profile ? profileHref(profile.username) : '/account';
 
 	return (
 		<Sidebar className="border-none">
@@ -122,14 +124,14 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 						triggerChildren={
 							<Button className="w-full">
 								<PlusCircle />
-								{t('common.askQuestion')}
+								{t('common.createPoll')}
 							</Button>
 						}
 					/>
 				) : (
 					<Link href="/login" className={cn(buttonVariants(), 'w-full')}>
 						<PlusCircle />
-						{t('common.askQuestion')}
+						{t('common.createPoll')}
 					</Link>
 				)}
 			</div>
@@ -182,11 +184,11 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 				{userSession ? (
 					<div className="rounded-xl border border-sidebar-border bg-card overflow-hidden">
 						<Link
-							href="/account"
+							href={accountHref}
 							className={cn(
 								'group flex items-center gap-3 p-3 transition-colors',
 								'hover:bg-surface-soft',
-								pathname === '/account' && 'bg-surface-soft'
+								pathname === accountHref && 'bg-surface-soft'
 							)}
 						>
 							<div className="size-9 rounded-full bg-sidebar-primary flex items-center justify-center shrink-0">

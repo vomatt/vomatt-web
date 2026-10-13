@@ -9,6 +9,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCursorList } from '@/hooks/useCursorList';
 import type { CursorPage } from '@/lib/api/cursor';
+import { profileHref } from '@/lib/routes';
 
 import type { Poll, Voter } from '../schema';
 import { getVoters } from '../service';
@@ -79,7 +80,7 @@ function VoterPages({ poll, firstPage }: { poll: VoterPoll; firstPage: CursorPag
 							{chose.map((voter, index) => (
 								<span key={voter.id}>
 									{index > 0 && ', '}
-									<Link href={`/profile/${voter.username}`} className="hover:underline">
+									<Link href={profileHref(voter.username)} className="hover:underline">
 										{voter.username}
 									</Link>
 								</span>

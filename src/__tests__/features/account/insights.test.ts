@@ -66,8 +66,6 @@ describe('computeInsights()', () => {
 			majorityRate: 67,
 			awaitingResults: 1,
 		});
-		const earned = insights.badges.filter((b) => b.earned).map((b) => b.id);
-		expect(earned).toEqual(['firstBallot', 'regular', 'questionAsker', 'crowdGatherer', 'trendReader']);
 	});
 
 	it('has no majority rate before anything is decided', () => {

@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/SvgIcons';
 import { useUnreadCount } from '@/features/notifications/UnreadCountProvider';
 import { UnreadDot } from '@/features/notifications/UnreadDot';
-import { isActivePath } from '@/lib/routes';
+import { isActivePath, profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
 const PollCreator = dynamic(
@@ -23,13 +23,14 @@ const PollCreator = dynamic(
 type TabBarProps = {
 	className?: string;
 	userSession?: any;
+	username?: string;
 };
 
-// The center tab is the primary action: an ink square, like the design's "Ask a question"
+// The center tab is the primary action: an ink square, the "Create a poll" action
 const createClassName = cn(buttonVariants(), 'w-13 px-0');
 const cellClassName = 'flex-1 h-full flex justify-center items-center';
 
-export function TabBar({ className, userSession }: TabBarProps) {
+export function TabBar({ className, userSession, username }: TabBarProps) {
 	const pathname = usePathname();
 	const { count: unreadCount } = useUnreadCount();
 	// The create action sits between these two halves
@@ -59,7 +60,8 @@ export function TabBar({ className, userSession }: TabBarProps) {
 		},
 		{
 			title: 'Account',
-			href: '/account',
+			// /account redirects to the profile; link there directly so the tab shows as active
+			href: username ? profileHref(username) : '/account',
 			icon: <CircleUser />,
 		},
 	];

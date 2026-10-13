@@ -131,7 +131,7 @@ export function Results({ poll, myOptionId, turnout, onSealed }: ResultsProps) {
 						<li
 							key={row.id}
 							className={cn(
-								'relative overflow-hidden rounded-xl border-[1.5px] text-[15px]',
+								'relative overflow-hidden rounded-xl border text-[15px]',
 								isWinner ? 'border-foreground' : 'border-border'
 							)}
 						>

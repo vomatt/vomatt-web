@@ -5,7 +5,7 @@ jest.mock('@/lib/api/services/users', () => ({
   unfollowUser: jest.fn(),
 }));
 
-import FollowButton from '@/app/(frontend)/profile/[username]/_components/FollowButton';
+import FollowButton from '@/app/(frontend)/[slug]/_components/FollowButton';
 const { followUser, unfollowUser } = require('@/lib/api/services/users');
 
 beforeEach(() => {

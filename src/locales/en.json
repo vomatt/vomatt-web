@@ -1,7 +1,7 @@
 {
 	"common": {
 		"home": "home",
-		"askQuestion": "Ask a question",
+		"createPoll": "Create a poll",
 		"myPolls": "My Polls",
 		"explore": "Explore",
 		"notifications": "Notifications",
@@ -203,7 +203,7 @@
 	},
 	"homePage": {
 		"feedListNoData": "Start the poll, lead the crowd.",
-		"allTopics": "All",
+		"allTopics": "For you",
 		"topics": "Topics",
 		"feedFailed": "Couldn't load polls right now.",
 		"topicEmpty": "No polls on this topic yet.",
@@ -306,7 +306,10 @@
 		"deleted": "This comment was deleted."
 	},
 	"account": {
-		"publicProfile": "Public profile",
+		"usernameLabel": "Username",
+		"usernameHint": "Your profile lives at {path}. Old links stop working after a change.",
+		"usernameInvalid": "Usernames are 3–30 letters, numbers or underscores.",
+		"usernameFailedRestSaved": "Your name and bio were saved.",
 		"stats": "Your numbers",
 		"votesCast": "Votes cast",
 		"pollsCreated": "Polls created",
@@ -314,39 +317,6 @@
 		"majorityRate": "With the majority",
 		"majorityNone": "n/a",
 		"majorityHint": "How often your pick won or tied, among decided polls you voted in",
-		"badges": "Badges",
-		"earned": "Earned",
-		"locked": "Locked",
-		"badge": {
-			"firstBallot": {
-				"name": "First ballot",
-				"hint": "Cast your first vote"
-			},
-			"regular": {
-				"name": "Regular",
-				"hint": "Cast 10 votes"
-			},
-			"pillar": {
-				"name": "Civic pillar",
-				"hint": "Cast 50 votes"
-			},
-			"questionAsker": {
-				"name": "Question asker",
-				"hint": "Start your first poll"
-			},
-			"crowdGatherer": {
-				"name": "Crowd gatherer",
-				"hint": "Get 10 people to vote on one of your polls"
-			},
-			"trendReader": {
-				"name": "Trend reader",
-				"hint": "Side with the majority in 60% of at least 3 decided polls"
-			},
-			"contrarian": {
-				"name": "Contrarian",
-				"hint": "Back the losing option 3 times"
-			}
-		},
 		"tabActivity": "Your votes",
 		"tabPolls": "Your polls",
 		"tabSettings": "Settings",

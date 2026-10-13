@@ -7,7 +7,7 @@ import { InitialAvatar } from '@/components/ui/InitialAvatar';
 import { Share2 } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useHydrated } from '@/hooks/useHydrated';
-import { topicHref } from '@/lib/routes';
+import { profileHref, topicHref } from '@/lib/routes';
 
 import { formatFromNow, formatPollDate } from '../format';
 import { useSharePoll } from '../hooks/useSharePoll';
@@ -39,7 +39,7 @@ export function PollAbout({ poll }: { poll: Poll }) {
 				<InitialAvatar name={poll.creatorUsername} className="size-9 text-sm" />
 				<div className="min-w-0">
 					<p className="text-xs text-muted-foreground">{t('pollDetail.askedBy')}</p>
-					<Link href={`/profile/${poll.creatorUsername}`} className="font-medium hover:underline">
+					<Link href={profileHref(poll.creatorUsername)} className="font-medium hover:underline">
 						{poll.creatorUsername}
 					</Link>
 				</div>

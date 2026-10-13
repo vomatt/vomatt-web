@@ -317,7 +317,7 @@ export function PollCreator({
 												{options.map((option, index) => (
 													<li
 														key={fields[index]?.id ?? index}
-														className="flex min-h-12 items-center gap-3 rounded-xl border-[1.5px] border-border px-4 py-2.5 text-base"
+														className="flex min-h-12 items-center gap-3 rounded-xl border border-border px-4 py-2.5 text-base"
 													>
 														<BallotMark checked={false} />
 														{option.text.trim()}
@@ -499,7 +499,7 @@ export function PollCreator({
 													{VoterVisibilitySchema.options.map((level) => (
 														<label
 															key={level}
-															className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border-[1.5px] border-border bg-card px-4 py-3 text-[15px] transition-colors hover:border-border-strong has-[:checked]:border-foreground has-[:checked]:bg-volt-tint has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring"
+															className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-[15px] transition-colors hover:border-border-strong has-[:checked]:border-foreground has-[:checked]:bg-volt-tint has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring"
 														>
 															<input
 																type="radio"

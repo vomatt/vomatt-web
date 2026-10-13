@@ -1,7 +1,7 @@
 {
 	"common": {
 		"home": "首頁",
-		"askQuestion": "提出問題",
+		"createPoll": "建立投票",
 		"myPolls": "我的投票",
 		"explore": "探索",
 		"notifications": "通知",
@@ -199,7 +199,7 @@
 	},
 	"homePage": {
 		"feedListNoData": "發起投票，引領群眾。",
-		"allTopics": "全部",
+		"allTopics": "為你推薦",
 		"topics": "主題",
 		"feedFailed": "目前無法載入投票。",
 		"topicEmpty": "這個主題還沒有投票。",
@@ -302,7 +302,10 @@
 		"deleted": "此留言已刪除。"
 	},
 	"account": {
-		"publicProfile": "公開個人頁",
+		"usernameLabel": "使用者名稱",
+		"usernameHint": "你的個人頁位於 {path}。變更後，舊連結將失效。",
+		"usernameInvalid": "使用者名稱需為 3–30 個英文字母、數字或底線。",
+		"usernameFailedRestSaved": "你的名稱和自我介紹已儲存。",
 		"stats": "你的數據",
 		"votesCast": "已投票數",
 		"pollsCreated": "發起的投票",
@@ -310,39 +313,6 @@
 		"majorityRate": "與多數一致",
 		"majorityNone": "尚無",
 		"majorityHint": "在已結束且你有參與的投票中，你的選擇勝出或並列的比例",
-		"badges": "徽章",
-		"earned": "已獲得",
-		"locked": "未解鎖",
-		"badge": {
-			"firstBallot": {
-				"name": "第一票",
-				"hint": "投下你的第一票"
-			},
-			"regular": {
-				"name": "常客",
-				"hint": "投票 10 次"
-			},
-			"pillar": {
-				"name": "公民支柱",
-				"hint": "投票 50 次"
-			},
-			"questionAsker": {
-				"name": "提問者",
-				"hint": "發起你的第一個投票"
-			},
-			"crowdGatherer": {
-				"name": "號召者",
-				"hint": "你的某個投票有 10 人參與"
-			},
-			"trendReader": {
-				"name": "風向觀察家",
-				"hint": "在至少 3 個已結束投票中，60% 與多數一致"
-			},
-			"contrarian": {
-				"name": "獨排眾議",
-				"hint": "支持落敗選項 3 次"
-			}
-		},
 		"tabActivity": "你的投票",
 		"tabPolls": "你發起的",
 		"tabSettings": "設定",

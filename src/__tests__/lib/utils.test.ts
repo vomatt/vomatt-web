@@ -1,4 +1,4 @@
-import { getSafeRedirectPath, isActivePath } from '@/lib/routes';
+import { getSafeRedirectPath, isActivePath, profileHref } from '@/lib/routes';
 import {
 	cn,
 	formatHandleize,
@@ -301,6 +301,21 @@ describe('isActivePath', () => {
 		expect(isActivePath('/my-polls', '/my-polls')).toBe(true);
 		expect(isActivePath('/my-polls/drafts', '/my-polls')).toBe(true);
 		expect(isActivePath('/explore', '/my-polls')).toBe(false);
+	});
+
+	it('does not mark a section active on a sibling that shares its prefix', () => {
+		expect(isActivePath('/abc', '/ab')).toBe(false);
+		expect(isActivePath('/about', '/a')).toBe(false);
+	});
+});
+
+describe('profileHref', () => {
+	it('puts the profile at the root', () => {
+		expect(profileHref('klaus')).toBe('/klaus');
+	});
+
+	it('encodes characters that are not safe in a path', () => {
+		expect(profileHref('a/b')).toBe('/a%2Fb');
 	});
 });
 
