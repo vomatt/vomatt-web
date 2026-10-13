@@ -386,7 +386,6 @@ export function PollCreator({
 										{fields.map((field, index) => (
 											<div key={field.id} className="space-y-1">
 												<div className="flex items-center gap-2">
-													<BallotMark checked={false} />
 													<Input
 														aria-label={`${t('pollCreator.optionsPlaceholder')} ${index + 1}`}
 														placeholder={`${t('pollCreator.optionsPlaceholder')} ${index + 1}`}
