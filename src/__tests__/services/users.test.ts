@@ -2,6 +2,7 @@ import { apiClient, publicFetch } from '@/lib/api/client';
 import {
   deleteMyAccount,
   deleteUser,
+  editProfile,
   followUser,
   getUserProfile,
   removeAvatar,
@@ -10,9 +11,10 @@ import {
 } from '@/lib/api/services/users';
 
 const mockUpdateTag = jest.fn();
+const mockRevalidateTag = jest.fn();
 jest.mock('next/cache', () => ({
   updateTag: (...a: unknown[]) => mockUpdateTag(...a),
-  revalidateTag: jest.fn(),
+  revalidateTag: (...a: unknown[]) => mockRevalidateTag(...a),
 }));
 const mockClearAuthTokens = jest.fn();
 jest.mock('@/lib/api/auth', () => ({ clearAuthTokens: () => mockClearAuthTokens() }));
@@ -22,6 +24,7 @@ jest.mock('next/navigation', () => ({ redirect: (...a: unknown[]) => mockRedirec
 jest.mock('@/lib/api/client', () => ({
   apiClient: jest.fn(),
   publicFetch: jest.fn(),
+  ApiError: class ApiError extends Error {},
   API_BASE_PATH: '/api',
 }));
 
@@ -53,32 +56,61 @@ describe('getUserProfile()', () => {
 describe('searchUsers()', () => {
   beforeEach(() => {
     mockApiClient.mockResolvedValue({
-      content: [{ id: 'u1', username: 'bob', email: 'bob@example.com' }],
-      total: 21,
-      page: 1,
-      limit: 20,
+      items: [{ id: 'u1', username: 'bob', email: 'bob@example.com' }],
+      nextCursor: 'abc',
     });
   });
 
   it('asks for the first page by username', async () => {
     await searchUsers('bob');
+    expect(mockApiClient).toHaveBeenCalledWith('/users/search?limit=20&username=bob');
+  });
+
+  it('passes the cursor back unchanged', async () => {
+    await searchUsers('bob', 'abc', 10);
     expect(mockApiClient).toHaveBeenCalledWith(
-      '/users/search?page=1&size=20&username=bob'
+      '/users/search?limit=10&cursor=abc&username=bob'
     );
   });
 
-  it('passes the cursor back as the page', async () => {
-    await searchUsers('bob', '2', 10);
-    expect(mockApiClient).toHaveBeenCalledWith(
-      '/users/search?page=2&size=10&username=bob'
-    );
-  });
-
-  it('returns usernames only, with the next page', async () => {
+  it('returns usernames only, with the next cursor', async () => {
     expect(await searchUsers('bob')).toEqual({
       items: [{ id: 'u1', username: 'bob' }],
-      nextCursor: '2',
+      nextCursor: 'abc',
     });
+  });
+});
+
+describe('editProfile()', () => {
+  beforeEach(() => {
+    mockUpdateTag.mockClear();
+    mockRevalidateTag.mockClear();
+  });
+
+  it('sends every field in one PATCH to /users/me', async () => {
+    await editProfile({ username: 'alice_c', displayName: 'Alice', bio: 'hi' });
+    expect(mockApiClient).toHaveBeenCalledWith('/users/me', {
+      method: 'PATCH',
+      body: JSON.stringify({ username: 'alice_c', displayName: 'Alice', bio: 'hi' }),
+    });
+  });
+
+  it('re-renders cached profiles when the username stays', async () => {
+    expect(await editProfile({ displayName: 'Alice' })).toEqual({ ok: true });
+    expect(mockUpdateTag).toHaveBeenCalledWith('profiles');
+    expect(mockRevalidateTag).not.toHaveBeenCalled();
+  });
+
+  it('only expires cached profiles when the username changes', async () => {
+    expect(await editProfile({ username: 'alice_c' })).toEqual({ ok: true });
+    expect(mockRevalidateTag).toHaveBeenCalledWith('profiles', { expire: 0 });
+    expect(mockUpdateTag).not.toHaveBeenCalled();
+  });
+
+  it("returns the API's message instead of throwing", async () => {
+    mockApiClient.mockRejectedValueOnce(new Error('Username taken'));
+    expect(await editProfile({ username: 'bob' })).toEqual({ ok: false, message: 'Username taken' });
+    expect(mockRevalidateTag).not.toHaveBeenCalled();
   });
 });
 

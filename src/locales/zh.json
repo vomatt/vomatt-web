@@ -105,6 +105,12 @@
 		"shareCta": "邀請其他人投票"
 	},
 	"profile": {
+		"notFoundTitle": "找不到這個個人頁",
+		"notFoundBody": "目前沒有人使用這個使用者名稱。對方可能已更改名稱，或帳號已刪除。",
+		"pageNotFoundTitle": "找不到這個頁面",
+		"pageNotFoundBody": "連結可能有誤，或頁面已移除。",
+		"notFoundExplore": "探索投票",
+		"notFoundHome": "回首頁",
 		"polls": "投票",
 		"noPollsYet": "還沒有投票。",
 		"editProfile": "編輯個人資料"
@@ -304,8 +310,7 @@
 	"account": {
 		"usernameLabel": "使用者名稱",
 		"usernameHint": "你的個人頁位於 {path}。變更後，舊連結將失效。",
-		"usernameInvalid": "使用者名稱需為 3–30 個英文字母、數字或底線。",
-		"usernameFailedRestSaved": "你的名稱和自我介紹已儲存。",
+		"usernameInvalid": "使用者名稱需為 3–50 個小寫英文字母、數字或底線。",
 		"stats": "你的數據",
 		"votesCast": "已投票數",
 		"pollsCreated": "發起的投票",

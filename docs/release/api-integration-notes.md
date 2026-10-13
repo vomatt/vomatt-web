@@ -10,11 +10,11 @@ Status: **B** = blocks or breaks something now · **Q** = question / decision ne
 
 | # | Item | Status |
 |---|------|--------|
-| E1 | The deployed API at `API_URL=https://vomatt-api.vercel.app/` still runs the **old** contract: `GET /api/votes` returns `{ content, total, page, limit }`, and 401s have an empty body. The web now only reads `{ items, nextCursor }`, so lists stay empty or fail until that deployment runs current vomatt-api `main`. | **B** |
+| E1 | ~~The deployed API still ran the old page-based contract.~~ Resolved 2026-10-13: the deployed `api-docs.json` is cursor-paged with status/sort/search on `/votes` and `status` on `/votes/my`; the web's temporary page-based adapter (1f5dad1) is undone. | Done |
 | E2 | `API_URL` in `.env` ends with `/`, so requests go to `https://…app//api/...`. Remove the trailing slash (CLAUDE.md says "origin, no path"). | **B** |
 | E3 | `next build` compiles, then fails while collecting page data: Payload can't reach its Postgres (`tenant/user postgres.bbgszmcihpyhptivpdmm not found`). This is a Supabase/`DATABASE_URL` problem, not related to the API work, but it also blocks `next dev`. | **B** |
 | E4 | No end-to-end run against a live API this round: the deployed API is outdated (E1), and this machine has no Java runtime to run vomatt-api locally. Coverage is unit and component tests (344 passing). First check once E1–E3 are fixed: sign in, vote, retract, comment and reply, end a poll, see the badge, open the notification. | **N** |
-| E5 | The `api-docs.json` attached to the request (in `~/.Trash`) couldn't be read: macOS blocks access to the Trash. The work follows `docs/frontend/openapi.json` in vomatt-api, which the docs call the single source of truth. If the attached file is newer, it should replace that snapshot. | **Q** |
+| E5 | ~~Which contract snapshot is current?~~ `api-docs.json` at the repo root, refreshed 2026-10-13 from the deployed API. | Done |
 
 ## Contract gaps and questions for the backend
 
@@ -23,7 +23,7 @@ Status: **B** = blocks or breaks something now · **Q** = question / decision ne
 | A1 | `GET /api/votes` has no "all statuses" option and no "most votes" sort. | Explore lost its **All** filter and **Most votes** sort. It offers Open (Newest / Ending soon) and Ended. | **Q** |
 | A2 | Search (`q`) matches titles and descriptions, not option text. | Placeholder now reads "Search poll titles and descriptions…". | **Q** — should options be searched? |
 | A3 | `/votes/my` mixes polls the user **created** with polls they **voted in**, and has no filter for either. | My Polls shows both, as the docs describe. The account page finds "created" by `creatorId === me` itself. | **Q** — add `?role=created\|participated`? |
-| A4 | There's no aggregate stats endpoint. | Account insights (people reached, majority rate, badges) are computed from the first 50 open plus 50 ended polls in `/votes/my`, so heavy users see partial numbers. `totalVotes` and `totalPolls` come from `/users/me` and are exact. | **Q** |
+| A4 | There's no aggregate stats endpoint. | Account insights (people reached, majority rate, badges) are computed from every page of `/votes/my` (open and ended, up to 500 each), one request per page. `totalVotes` and `totalPolls` come from `/users/me` and are exact. | **Q** |
 | A5 | Notifications have no push and no list endpoint of their own. | The web polls `unread-count` every 60s while the tab is visible, and again when the user comes back to it. The list is `/votes/my?status=ended`. Opening a poll from the list or its page calls `POST /notifications/{id}/read`. | OK; add push (SSE) later? |
 | A6 | `commentCount` counts Comments **and** Replies that aren't deleted (`VoteCommentRepository.countVisibleByVoteIds`). | The footer shows it as "N comments", replies included. | **Q** — is that the wording we want? |
 | A7 | A Reply to a Reply is moved under the top-level Comment, and nobody is notified. | The reply box starts with `@author `. Mentions aren't linked and don't notify anyone. | **Q** |
@@ -45,7 +45,7 @@ Status: **B** = blocks or breaks something now · **Q** = question / decision ne
 | W5 | Tokens are refreshed ahead of expiry, only in `proxy.tsx`. A 401 during a Server Action always becomes `AuthError` (sign in again), even with `auth.token.expired`. It's rare because the proxy refreshes early, but it isn't retried. | OK for now |
 | W6 | Mobile has no notifications entry. The My Polls tab shows a dot when anything is unread, and its Ended tab marks unread polls. `/notifications` is linked from the desktop sidebar only. | **Q** (UX) |
 | W7 | Leftover dead schemas from the old contract in `features/polls/schema.ts`: `PollPageSchema`, `PageableSchema`, `SortSchema`, `CreatePollRequestSchema`. Left alone because nothing uses them. | Cleanup |
-| W8 | Changing username isn't possible (no endpoint). | **Q** (carried over) |
+| W8 | Username changes go through `PATCH /users/me` `{ username }` (3–50 of `[a-z0-9_]`, not `search`; 409 `user.username.taken`). The profile dialog saves username, name and bio in one request. The API doesn't reserve app routes (`explore`, `login`, `account`, …), so such a username would make that profile unreachable at `/{username}`. | **Q** — reserve route names in the API? |
 
 ## What changed in the web (for review)
 

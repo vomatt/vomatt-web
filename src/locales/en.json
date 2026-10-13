@@ -104,6 +104,12 @@
 		"shareCta": "Invite others to vote"
 	},
 	"profile": {
+		"notFoundTitle": "This profile doesn't exist",
+		"notFoundBody": "No one uses this username. It may have changed, or the account was deleted.",
+		"pageNotFoundTitle": "This page doesn't exist",
+		"pageNotFoundBody": "The link may be broken, or the page was removed.",
+		"notFoundExplore": "Explore polls",
+		"notFoundHome": "Go home",
 		"polls": "Polls",
 		"noPollsYet": "No polls yet.",
 		"editProfile": "Edit Profile",
@@ -308,8 +314,7 @@
 	"account": {
 		"usernameLabel": "Username",
 		"usernameHint": "Your profile lives at {path}. Old links stop working after a change.",
-		"usernameInvalid": "Usernames are 3–30 letters, numbers or underscores.",
-		"usernameFailedRestSaved": "Your name and bio were saved.",
+		"usernameInvalid": "Usernames are 3–50 lowercase letters, numbers or underscores.",
 		"stats": "Your numbers",
 		"votesCast": "Votes cast",
 		"pollsCreated": "Polls created",

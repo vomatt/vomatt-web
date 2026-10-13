@@ -2,7 +2,6 @@
 
 import { revalidateTag, updateTag } from 'next/cache';
 import { unstable_rethrow } from 'next/navigation';
-import { cache } from 'react';
 
 import { apiClient, ApiError, AuthError, publicFetch } from '@/lib/api/client';
 import { type CursorPage, cursorPageSchema, MAX_PAGE_SIZE, pageParams } from '@/lib/api/cursor';
@@ -25,7 +24,6 @@ import {
 	type Voter,
 	VoterSchema,
 } from './schema';
-import { derivePollStatus } from './status';
 
 const PollPage = cursorPageSchema(PollSchema);
 
@@ -84,9 +82,6 @@ async function fetchPollPage(path: string, params: URLSearchParams, { asViewer =
 	return PollPage.parse(data);
 }
 
-/** The API sorts by Spring `Pageable` property; an unknown property is a 500. */
-const API_SORT = { newest: 'startTime,desc', closing: 'endTime,asc' } as const;
-
 /** `sort` applies to Open Polls only; Ended ones are always latest-ended first. */
 export type PollListQuery = {
 	status?: 'open' | 'ended';
@@ -109,7 +104,7 @@ export async function getPolls(
 ): Promise<CursorPage<Poll>> {
 	const params = pageParams(cursor, limit);
 	if (query.status === 'ended') params.set('status', 'ended');
-	else if (query.sort) params.set('sort', API_SORT[query.sort]);
+	else if (query.sort) params.set('sort', query.sort);
 	if (query.tag) params.set('tag', query.tag);
 	const q = query.q?.trim();
 	if (q && q.length >= SEARCH_MIN_LENGTH) params.set('q', q);
@@ -147,41 +142,35 @@ export async function getUserPolls(
 	);
 }
 
-/** Enough for any real user; a cap so a runaway total can't loop forever. */
+/**
+ * The signed-in user's Polls. `open`: Scheduled and Open ones they created
+ * plus Open ones they hold a Ballot in, closing soonest first. `ended`: Ended
+ * and Cancelled ones of either kind, latest first, each with `unread`.
+ */
+export async function getMyPolls(
+	status: 'open' | 'ended' = 'open',
+	cursor?: string | null,
+	limit = MAX_PAGE_SIZE
+): Promise<CursorPage<Poll>> {
+	const params = pageParams(cursor, limit);
+	if (status === 'ended') params.set('status', 'ended');
+	return PollPage.parse(await apiClient(`/votes/my?${params}`));
+}
+
+/** Enough for any real user; a cap so a runaway cursor can't loop forever. */
 const MY_POLLS_MAX_PAGES = 10;
 
-/**
- * Every Poll the signed-in user created, fetched once per request. The API
- * has no status filter or order for `/votes/my`, so getMyPolls splits and
- * sorts the whole set instead of paging through it.
- */
-const fetchAllMyPolls = cache(async (): Promise<Poll[]> => {
+/** Every page of getMyPolls, for account insights that need the whole set. */
+export async function getAllMyPolls(status: 'open' | 'ended'): Promise<Poll[]> {
 	const polls: Poll[] = [];
 	let cursor: string | null = null;
 	for (let i = 0; i < MY_POLLS_MAX_PAGES; i++) {
-		const page: CursorPage<Poll> = PollPage.parse(
-			await apiClient(`/votes/my?${pageParams(cursor, MAX_PAGE_SIZE)}`)
-		);
+		const page: CursorPage<Poll> = await getMyPolls(status, cursor);
 		polls.push(...page.items);
 		cursor = page.nextCursor;
 		if (!cursor) break;
 	}
 	return polls;
-});
-
-const endsAt = (poll: Poll) => (poll.endTime ? Date.parse(poll.endTime) : Number.MAX_SAFE_INTEGER);
-
-/**
- * The signed-in user's Polls, all in one page. `open`: Scheduled and Open
- * ones, closing soonest first. `ended`: Ended and Cancelled ones, latest first.
- */
-export async function getMyPolls(status: 'open' | 'ended' = 'open'): Promise<CursorPage<Poll>> {
-	const now = Date.now();
-	const wantEnded = status === 'ended';
-	const items = (await fetchAllMyPolls())
-		.filter((poll) => (derivePollStatus(poll, now) === 'ended') === wantEnded)
-		.sort((a, b) => (wantEnded ? endsAt(b) - endsAt(a) : endsAt(a) - endsAt(b)));
-	return { items, nextCursor: null };
 }
 
 /** Null when the Poll doesn't exist. Signed-in viewers get their `myOptionId`. */

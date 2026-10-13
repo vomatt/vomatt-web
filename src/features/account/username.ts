@@ -1,5 +1,7 @@
-// Provisional until the backend publishes its username rules
-const USERNAME_PATTERN = /^[A-Za-z0-9_]{3,30}$/;
+// The API's rule (UpdateProfileRequest.username); `search` is reserved there
+export const USERNAME_MAX_LENGTH = 50;
+
+const USERNAME_PATTERN = new RegExp(`^(?!search$)[a-z0-9_]{3,${USERNAME_MAX_LENGTH}}$`);
 
 export const isValidUsername = (username: string) => USERNAME_PATTERN.test(username);
 

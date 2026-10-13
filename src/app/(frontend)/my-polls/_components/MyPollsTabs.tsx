@@ -16,8 +16,8 @@ import type { CursorPage } from '@/lib/api/cursor';
 
 type Tab = 'active' | 'drafts' | 'ended';
 
-const fetchOpen = () => getMyPolls('open');
-const fetchEnded = () => getMyPolls('ended');
+const fetchOpen = (cursor: string) => getMyPolls('open', cursor);
+const fetchEnded = (cursor: string) => getMyPolls('ended', cursor);
 
 function PollRow({ poll }: { poll: Poll }) {
 	const { t } = useLanguage();

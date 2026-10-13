@@ -18,9 +18,9 @@ import { Spinner } from '@/components/ui/Spinner';
 import { User as UserIcon } from '@/components/ui/SvgIcons';
 import { Textarea } from '@/components/ui/Textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { isValidUsername } from '@/features/account/username';
+import { isValidUsername, USERNAME_MAX_LENGTH } from '@/features/account/username';
 import { useAvatarUpload } from '@/hooks/useAvatarUpload';
-import { updateProfile, updateUsername } from '@/lib/api/services/users';
+import { editProfile } from '@/lib/api/services/users';
 import { profileHref } from '@/lib/routes';
 
 interface EditProfileDialogProps {
@@ -59,26 +59,29 @@ export default function EditProfileDialog({
 
 	async function handleSubmit(e?: React.FormEvent) {
 		e?.preventDefault();
-		const usernameChanged = username !== initialUsername;
+		// The input lowercases, so a legacy mixed-case username isn't renamed by a case-only edit
+		const usernameChanged = username.toLowerCase() !== initialUsername.toLowerCase();
 		if (usernameChanged && !isValidUsername(username)) {
 			toast.error(t('account.usernameInvalid'));
 			return;
 		}
+		if (!usernameChanged && displayName === initialDisplayName && bio === initialBio) {
+			setOpen(false);
+			return;
+		}
 		setIsPending(true);
 		try {
-			const detailsChanged = displayName !== initialDisplayName || bio !== initialBio;
-			if (detailsChanged) await updateProfile({ displayName, bio });
-			// The profile lives at /[username], so a new username moves the page
-			if (usernameChanged) {
-				const result = await updateUsername(username);
-				if (!result.ok) {
-					toast.error(result.message, {
-						description: detailsChanged ? t('account.usernameFailedRestSaved') : undefined,
-					});
-					return;
-				}
-				router.replace(profileHref(username));
+			const result = await editProfile({
+				username: usernameChanged ? username : undefined,
+				displayName,
+				bio,
+			});
+			if (!result.ok) {
+				toast.error(result.message);
+				return;
 			}
+			// The profile lives at /[username], so a new username moves the page
+			if (usernameChanged) router.replace(profileHref(username));
 			toast.success('Profile updated');
 			setOpen(false);
 		} catch {
@@ -152,11 +155,11 @@ export default function EditProfileDialog({
 						<Input
 							id="username"
 							value={username}
-							onChange={(e) => setUsername(e.target.value.trim())}
+							onChange={(e) => setUsername(e.target.value.trim().toLowerCase())}
 							autoComplete="username"
 							autoCapitalize="none"
 							spellCheck={false}
-							maxLength={30}
+							maxLength={USERNAME_MAX_LENGTH}
 							aria-describedby="username-hint"
 						/>
 						<p id="username-hint" className="text-xs text-muted-foreground">
@@ -190,7 +193,7 @@ export default function EditProfileDialog({
 							value={bio}
 							onChange={(e) => setBio(e.target.value)}
 							placeholder="Tell people about yourself"
-							maxLength={280}
+							maxLength={500}
 							rows={4}
 						/>
 					</div>

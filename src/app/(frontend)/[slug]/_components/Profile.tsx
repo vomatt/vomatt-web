@@ -2,8 +2,8 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { ballotHistory, computeInsights } from '@/features/account/insights';
 import { PollListSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import type { Poll } from '@/features/polls/schema';
-import { getMyPolls } from '@/features/polls/service';
-import { type CursorPage, EMPTY_PAGE } from '@/lib/api/cursor';
+import { getAllMyPolls } from '@/features/polls/service';
+import type { CursorPage } from '@/lib/api/cursor';
 import { getUserProfile } from '@/lib/api/services/users';
 import type { MyProfile, UserProfile } from '@/types/user';
 
@@ -36,14 +36,14 @@ export async function PublicProfile({
 
 /** The signed-in user's own profile: their account page. */
 export async function OwnProfile({ profile }: { profile: MyProfile }) {
-	// The latest 50 of each: Polls the user created or holds a Ballot in
+	// Every Poll the user created or holds a Ballot in, so insights cover them all
 	// The public profile is read too: avatars may ship there before /users/me carries them
 	const [open, ended, publicProfile] = await Promise.all([
-		getMyPolls('open').catch(() => EMPTY_PAGE),
-		getMyPolls('ended').catch(() => EMPTY_PAGE),
+		getAllMyPolls('open').catch(() => []),
+		getAllMyPolls('ended').catch(() => []),
 		getUserProfile(profile.username).catch(() => null),
 	]);
-	const polls = [...open.items, ...ended.items];
+	const polls = [...open, ...ended];
 	const myPolls = polls.filter((poll) => poll.creatorId === profile.id);
 	const history = ballotHistory(polls);
 	const insights = computeInsights(profile, myPolls, history);

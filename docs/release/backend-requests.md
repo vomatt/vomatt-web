@@ -27,7 +27,7 @@ Found while moving vomatt-web onto the live `vomatt-api` contract and testing bo
 | 12 | Display name and bio public by default | **Done** |
 | 13 | Notify voters when results are revealed | Open (needs a notifications table and a job) |
 | 14 | Avatars and follows | Open (schema); UI stays hidden until profiles send the fields |
-| 15 | Change username | Open. The web already calls `PATCH /api/users/me/username` `{ username }` (provisional, `updateUsername` in `lib/api/services/users.ts`). Profiles live at `/{username}`, so usernames must not match app routes (`explore`, `login`, `account`, …) or Sanity page slugs |
+| 15 | Change username | Done: `PATCH /api/users/me` `{ username }` (`editProfile` in `lib/api/services/users.ts`). Still open: Profiles live at `/{username}`, so usernames must not match app routes (`explore`, `login`, `account`, …) or Sanity page slugs |
 
 ## Notes
 

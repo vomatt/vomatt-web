@@ -11,7 +11,7 @@ import { Search } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PollListItem } from '@/features/polls/components/PollListItem';
 import { StatusChip } from '@/features/polls/components/StatusChip';
-import { EXPLORE_FILTERS_AVAILABLE, EXPLORE_PAGE_SIZE, SEARCH_MIN_LENGTH } from '@/features/polls/constants';
+import { EXPLORE_PAGE_SIZE, SEARCH_MIN_LENGTH } from '@/features/polls/constants';
 import type { Poll, TagDto } from '@/features/polls/schema';
 import { getPolls, type PollListQuery } from '@/features/polls/service';
 import { derivePollStatus, getTurnout } from '@/features/polls/status';
@@ -128,27 +128,23 @@ export function ExploreView({
 			)}
 
 			<section className="space-y-4">
-				{EXPLORE_FILTERS_AVAILABLE && (
-					<div className="relative">
-						<Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-						<Input
-							type="search"
-							value={query}
-							onChange={(e) => setQuery(e.target.value)}
-							placeholder={t('explore.searchPlaceholder')}
-							aria-label={t('explore.searchPlaceholder')}
-							className="pl-10 pr-4 md:text-[15px]"
-						/>
-					</div>
-				)}
+				<div className="relative">
+					<Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+					<Input
+						type="search"
+						value={query}
+						onChange={(e) => setQuery(e.target.value)}
+						placeholder={t('explore.searchPlaceholder')}
+						aria-label={t('explore.searchPlaceholder')}
+						className="pl-10 pr-4 md:text-[15px]"
+					/>
+				</div>
 
 				<div className="flex flex-wrap items-center justify-between gap-3">
-					{EXPLORE_FILTERS_AVAILABLE && (
-						<div className="flex gap-1.5" role="group" aria-label={t('explore.status')}>
-							<Pill active={status === 'open'} onClick={() => setStatus('open')}>{t('explore.filterActive')}</Pill>
-							<Pill active={status === 'ended'} onClick={() => setStatus('ended')}>{t('explore.filterEnded')}</Pill>
-						</div>
-					)}
+					<div className="flex gap-1.5" role="group" aria-label={t('explore.status')}>
+						<Pill active={status === 'open'} onClick={() => setStatus('open')}>{t('explore.filterActive')}</Pill>
+						<Pill active={status === 'ended'} onClick={() => setStatus('ended')}>{t('explore.filterEnded')}</Pill>
+					</div>
 					{status === 'open' && (
 						<div className="flex gap-1.5" role="group" aria-label={t('explore.sort')}>
 							<Pill active={sort === 'newest'} onClick={() => setSort('newest')}>{t('explore.sortNewest')}</Pill>

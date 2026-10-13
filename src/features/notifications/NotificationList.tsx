@@ -4,6 +4,7 @@ import { LoadMore } from '@/components/LoadMore';
 import { Bell } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PollListItem } from '@/features/polls/components/PollListItem';
+import { NOTIFICATIONS_PAGE_SIZE } from '@/features/polls/constants';
 import type { Poll } from '@/features/polls/schema';
 import { getMyPolls } from '@/features/polls/service';
 import { isCancelled } from '@/features/polls/status';
@@ -12,7 +13,7 @@ import type { CursorPage } from '@/lib/api/cursor';
 
 import { UnreadDot } from './UnreadDot';
 
-const fetchPage = () => getMyPolls('ended');
+const fetchPage = (cursor: string) => getMyPolls('ended', cursor, NOTIFICATIONS_PAGE_SIZE);
 
 export function NotificationList({ initialPage }: { initialPage: CursorPage<Poll> | null }) {
 	const { t } = useLanguage();

@@ -5,6 +5,7 @@ import { Suspense } from 'react';
 import { getUserSession } from '@/data/auth';
 import { NotificationList } from '@/features/notifications/NotificationList';
 import { PollListSkeleton } from '@/features/polls/components/PollCardSkeleton';
+import { NOTIFICATIONS_PAGE_SIZE } from '@/features/polls/constants';
 import { getMyPolls } from '@/features/polls/service';
 
 export const metadata: Metadata = { title: 'Notifications' };
@@ -23,6 +24,6 @@ export default async function NotificationsPage() {
 
 /** Ended Notifications are the user's Ended Polls; each says whether it's unread. */
 async function Notifications() {
-	const firstPage = await getMyPolls('ended').catch(() => null);
+	const firstPage = await getMyPolls('ended', null, NOTIFICATIONS_PAGE_SIZE).catch(() => null);
 	return <NotificationList initialPage={firstPage} />;
 }

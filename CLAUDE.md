@@ -53,7 +53,7 @@ Render Portable Text with `@/components/CustomPortableText`; build image URLs wi
 - **`client.ts`** — `apiClient<T>()` (authenticated; throws `AuthError` on 401, `ApiError` with `data.errorCode` otherwise; `auth: 'optional'` falls back to `publicFetch`) and `publicFetch<T>()`. Both unwrap the `ApiResponse` envelope.
 - **`services/`** — `auth.ts` (`requestOtp`, `verifyOtp`, `signout`) and `users.ts` are Server Actions (`'use server'`). Poll, ballot and comment actions live in `src/features/polls/service.ts` and return `ActionResult` instead of throwing.
 
-The backend is `vomatt-api` (sibling repo): prefix `/api`; the contract is `api-docs.json` at the repo root (what the deployed API at `API_URL` serves from `/v3/api-docs`; flow docs in `vomatt-api/docs/frontend/` describe a newer backend). Lists are page-based: `{ content, total, page, limit }` with 1-based `page`/`size` params; `lib/api/cursor.ts` maps them onto `{ items, nextCursor }`, with the next page number as the cursor. Open questions from the integration are in `docs/release/api-integration-notes.md`; older backend gaps in `docs/release/backend-requests.md`.
+The backend is `vomatt-api` (sibling repo): prefix `/api`; the contract is `api-docs.json` at the repo root (what the deployed API at `API_URL` serves from `/v3/api-docs`; flow docs in `vomatt-api/docs/frontend/`). Lists are cursor-paged: `{ items, nextCursor }` with `limit`/`cursor` params (`lib/api/cursor.ts`). Open questions from the integration are in `docs/release/api-integration-notes.md`; older backend gaps in `docs/release/backend-requests.md`.
 
 ### Internationalization
 

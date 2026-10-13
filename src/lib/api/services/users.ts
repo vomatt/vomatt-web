@@ -58,32 +58,32 @@ export async function getMyProfile(): Promise<MyProfile> {
   return apiClient<MyProfile>('/users/me');
 }
 
-export async function updateProfile(data: { displayName?: string; bio?: string }) {
+/** Omitted fields stay as they are. */
+export async function updateProfile(data: { username?: string; displayName?: string; bio?: string }) {
   const profile = await apiClient<UserProfile>('/users/me', {
     method: 'PATCH',
     body: JSON.stringify(data),
   });
-  updateTag(PROFILES_TAG);
+  if (data.username) {
+    // Expire without re-rendering: this page's URL is the old username, which now 404s.
+    // The caller navigates to the new URL instead.
+    revalidateTag(PROFILES_TAG, { expire: 0 });
+  } else {
+    updateTag(PROFILES_TAG);
+  }
   return profile;
 }
 
-/**
- * Provisional: the backend has no username endpoint yet (backend-requests #15),
- * so this shape is a guess to confirm when it ships.
- */
-export async function updateUsername(username: string): Promise<{ ok: true } | { ok: false; message: string }> {
+/** updateProfile for forms that show the API's (localized) error message. */
+export async function editProfile(
+  data: Parameters<typeof updateProfile>[0]
+): Promise<{ ok: true } | { ok: false; message: string }> {
   try {
-    await apiClient('/users/me/username', {
-      method: 'PATCH',
-      body: JSON.stringify({ username }),
-    });
+    await updateProfile(data);
   } catch (error) {
     // Returned, not thrown: production hides thrown Server Action messages
     return { ok: false, message: error instanceof Error ? error.message : 'Request failed' };
   }
-  // Expire without re-rendering: this page's URL is the old username, which now 404s.
-  // The caller navigates to the new URL instead.
-  revalidateTag(PROFILES_TAG, { expire: 0 });
   return { ok: true };
 }
 
