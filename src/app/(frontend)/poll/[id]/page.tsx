@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 	if (!poll) return { title: 'Vomatt' };
 
 	const description =
-		poll.description || poll.options.map((option) => option.text).join(' · ');
+		poll.description || poll.options.map((option) => option.text).join(' / ');
 	return {
 		title: poll.title,
 		description,

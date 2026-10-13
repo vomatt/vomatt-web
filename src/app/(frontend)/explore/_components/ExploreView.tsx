@@ -168,10 +168,10 @@ export function ExploreView({
 								key={poll.id}
 								poll={poll}
 								meta={
-									<>
-										{t('poll.voted', { count: (getTurnout(poll) ?? 0).toLocaleString() })} ·{' '}
-										{poll.creatorUsername}
-									</>
+									<span className="inline-flex gap-1.5">
+										<span>{t('poll.voted', { count: (getTurnout(poll) ?? 0).toLocaleString() })}</span>
+										<span>{poll.creatorUsername}</span>
+									</span>
 								}
 								aside={<StatusChip status={derivePollStatus(poll)} poll={poll} />}
 							/>

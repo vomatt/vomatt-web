@@ -238,7 +238,7 @@
 		"voteFailed": "Couldn't save your vote. Try again.",
 		"withdrawFailed": "Couldn't withdraw your vote. Try again.",
 		"resultsFailed": "Couldn't load the results.",
-		"won": "{option} won · Support is the share of {count} participants",
+		"won": "{option} won. Support is the share of {count} participants",
 		"tie": "Tie between {options}",
 		"and": " and ",
 		"noVotes": "No votes were cast",

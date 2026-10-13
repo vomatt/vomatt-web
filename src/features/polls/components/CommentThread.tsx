@@ -317,7 +317,7 @@ function CommentBody({ comment, viewerId, thread, requireAuth, onReply }: Commen
 					<time dateTime={comment.createdAt} className="text-muted-foreground">
 						{isHydrated && formatFromNow(comment.createdAt, currentLanguage)}
 					</time>
-					{comment.edited && <span className="text-muted-foreground">· {t('comments.edited')}</span>}
+					{comment.edited && <span className="text-muted-foreground">{t('comments.edited')}</span>}
 				</div>
 
 				{isEditing ? (

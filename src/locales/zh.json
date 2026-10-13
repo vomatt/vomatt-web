@@ -234,7 +234,7 @@
 		"voteFailed": "無法儲存你的投票，請再試一次。",
 		"withdrawFailed": "無法撤回你的投票，請再試一次。",
 		"resultsFailed": "無法載入結果。",
-		"won": "「{option}」勝出 · 支持率以 {count} 位參與者計算",
+		"won": "「{option}」勝出，支持率以 {count} 位參與者計算",
 		"tie": "{options}平手",
 		"and": "與",
 		"noVotes": "沒有人投票",

@@ -308,7 +308,7 @@ describe('PollCard state D · Ended', () => {
 		expect(screen.getByText('48%')).toBeInTheDocument();
 		expect(screen.getByText('your vote')).toBeInTheDocument();
 		expect(
-			screen.getByText('Sunday won · Support is the share of 129 participants')
+			screen.getByText('Sunday won. Support is the share of 129 participants')
 		).toBeInTheDocument();
 		expect(screen.queryByRole('radio')).not.toBeInTheDocument();
 	});

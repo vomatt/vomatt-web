@@ -67,7 +67,6 @@ export function PollCard({ poll: initialPoll, viewerId, defaultShowComments = fa
 						>
 							{creatorUsername}
 						</Link>
-						<span>·</span>
 						<time dateTime={createdAt} className="shrink-0 whitespace-nowrap">
 							{isHydrated && formatFromNow(createdAt, currentLanguage)}
 						</time>
