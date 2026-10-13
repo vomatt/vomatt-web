@@ -2,6 +2,7 @@ import '@/styles/global.css';
 
 import type { SanityImageSource } from '@sanity/image-url';
 import clsx from 'clsx';
+import { Geist, Geist_Mono } from 'next/font/google';
 import { cache, ReactNode } from 'react';
 import { Toaster } from 'sonner';
 
@@ -17,6 +18,9 @@ import zhTranslations from '@/locales/zh.json';
 import { buildShareImageUrl, imageBuilder } from '@/sanity/lib/image';
 import { sanityFetch } from '@/sanity/lib/live';
 import { siteSharingQuery } from '@/sanity/lib/queries';
+
+const geistSans = Geist({ subsets: ['latin'], variable: '--font-geist-sans' });
+const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono' });
 
 // Shared by generateMetadata and the layout within one request
 const getSiteSettings = cache(() =>
@@ -87,8 +91,8 @@ export default async function RootLayout({
 	const comingSoon = settings?.comingSoon;
 
 	return (
-		<html lang={language === 'zh' ? 'zh-TW' : 'en'} className={clsx()}>
-			<body className="text-foreground font-family-system">
+		<html lang={language === 'zh' ? 'zh-TW' : 'en'} className={clsx(geistSans.variable, geistMono.variable)}>
+			<body className="text-foreground font-sans">
 				{isComingSoon(settings) ? (
 					<main className="h-screen flex flex-col justify-center items-center gap-5 px-contain text-center">
 						<div className="md:w-40 text-secondary-foreground w-28">
