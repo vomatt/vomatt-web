@@ -1,4 +1,5 @@
 import { getTokens } from '@/lib/api/auth';
+import { backendFetch } from '@/lib/api/backend-fetch';
 import { API_BASE_PATH } from '@/lib/api/constants';
 import { getServerLocale } from '@/lib/getServerLocale';
 
@@ -78,7 +79,7 @@ export async function publicFetch<T = any>(
 	options?: RequestInit
 ): Promise<T> {
 	const baseUrl = process.env.API_URL;
-	const response = await fetch(`${baseUrl}${API_BASE_PATH}${endpoint}`, options);
+	const response = await backendFetch(`${baseUrl}${API_BASE_PATH}${endpoint}`, options);
 
 	return parseApiResponseBody<T>(response);
 }
@@ -121,7 +122,7 @@ export async function apiClient<T = any>(
 	}
 	// A response for one user must never land in the shared data cache
 	const { next: _next, ...uncached } = fetchOptions as RequestInit & { next?: unknown };
-	const response = await fetch(`${process.env.API_URL}${API_BASE_PATH}${endpoint}`, {
+	const response = await backendFetch(`${process.env.API_URL}${API_BASE_PATH}${endpoint}`, {
 		...uncached,
 		headers,
 		cache: 'no-store',

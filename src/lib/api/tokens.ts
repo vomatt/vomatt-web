@@ -7,6 +7,7 @@ import {
 	REFRESH_TOKEN,
 	REFRESH_TOKEN_EXPIRY,
 } from '@/data/constants';
+import { backendFetch } from '@/lib/api/backend-fetch';
 import { API_BASE_PATH } from '@/lib/api/constants';
 import { AuthTokens } from '@/types';
 
@@ -83,7 +84,7 @@ export function readAuthTokens(body: unknown): AuthTokens | null {
 
 async function fetchRefreshedTokens(refreshToken: string): Promise<RefreshResult> {
 	try {
-		const response = await fetch(
+		const response = await backendFetch(
 			`${process.env.API_URL}${API_BASE_PATH}/auth/refresh`,
 			{
 				method: 'POST',
