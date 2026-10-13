@@ -1,6 +1,8 @@
 /**
  * @jest-environment node
  */
+import { json } from '@/__tests__/helpers/jsonResponse';
+
 process.env.API_URL = 'https://api.example.test';
 
 const mockGetTokens = jest.fn();
@@ -21,9 +23,6 @@ beforeEach(() => {
 	mockLocale.mockResolvedValue({ language: 'en', payloadLocale: 'en' });
 	global.fetch = fetchMock;
 });
-
-const json = (body: unknown, status = 200) =>
-	new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
 describe('apiClient', () => {
 	it('sends the access token and unwraps the envelope', async () => {
