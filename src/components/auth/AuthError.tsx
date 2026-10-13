@@ -5,7 +5,6 @@ import { AnimatePresence, motion } from 'motion/react';
 import { FieldError } from '@/components/ui/Field';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { AuthErrorKey } from '@/lib/api/auth-errors';
-import { cn } from '@/lib/utils';
 
 type AuthErrorProps = {
 	/** Nothing renders while it is null. */
@@ -27,7 +26,7 @@ export function AuthError({ error, className }: AuthErrorProps) {
 					transition={{ duration: 0.2, ease: 'easeOut' }}
 					className="overflow-hidden"
 				>
-					<FieldError className={cn(className)}>{t(`authError.${error}`)}</FieldError>
+					<FieldError className={className}>{t(`authError.${error}`)}</FieldError>
 				</motion.div>
 			)}
 		</AnimatePresence>

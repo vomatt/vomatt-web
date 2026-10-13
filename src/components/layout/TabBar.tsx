@@ -3,6 +3,7 @@ import dynamic from 'next/dynamic';
 import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 
+import { buttonVariants } from '@/components/ui/Button';
 import {
 	CircleUser,
 	Home,
@@ -11,6 +12,8 @@ import {
 	Star,
 } from '@/components/ui/SvgIcons';
 import { useUnreadCount } from '@/features/notifications/UnreadCountProvider';
+import { UnreadDot } from '@/features/notifications/UnreadDot';
+import { isActivePath } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
 const PollCreator = dynamic(
@@ -23,13 +26,14 @@ type TabBarProps = {
 };
 
 // The center tab is the primary action: an ink square, like the design's "Ask a question"
-const createClassName =
-	'flex h-11 w-13 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-colors hover:bg-primary-hover [&_svg]:size-5.5';
+const createClassName = cn(buttonVariants(), 'w-13 px-0');
+const cellClassName = 'flex-1 h-full flex justify-center items-center';
 
 export function TabBar({ className, userSession }: TabBarProps) {
 	const pathname = usePathname();
 	const { count: unreadCount } = useUnreadCount();
-	const linkList = [
+	// The create action sits between these two halves
+	const leftLinks = [
 		{
 			title: 'Home',
 			href: '/',
@@ -40,22 +44,8 @@ export function TabBar({ className, userSession }: TabBarProps) {
 			href: '/explore',
 			icon: <Search />,
 		},
-		{
-			title: 'Create Vote',
-			href: userSession ? null : '/login',
-			icon: userSession ? (
-				<PollCreator
-					triggerChildren={
-						<button type="button" aria-label="Create Vote" className={createClassName}>
-							<Plus />
-						</button>
-					}
-				/>
-			) : (
-				<Plus />
-			),
-			primary: true,
-		},
+	];
+	const rightLinks = [
 		{
 			title: 'My Polls',
 			// Unread results are marked in My Polls' Ended tab
@@ -63,12 +53,7 @@ export function TabBar({ className, userSession }: TabBarProps) {
 			icon: (
 				<span className="relative">
 					<Star />
-					{unreadCount > 0 && (
-						<span
-							aria-label={`${unreadCount}`}
-							className="absolute -right-1 -top-1 size-2.5 rounded-full bg-volt ring-1 ring-foreground/40"
-						/>
-					)}
+					{unreadCount > 0 && <UnreadDot label={`${unreadCount}`} className="absolute -right-1 -top-1" />}
 				</span>
 			),
 		},
@@ -82,6 +67,31 @@ export function TabBar({ className, userSession }: TabBarProps) {
 	const routeToHide = ['/login'];
 	if (routeToHide.includes(pathname)) return null;
 
+	const renderLink = ({ href, title, icon }: (typeof leftLinks)[number]) => {
+		const isActive = isActivePath(pathname, href);
+		return (
+			<NextLink
+				key={href}
+				href={href}
+				aria-label={title}
+				aria-current={isActive ? 'page' : undefined}
+				className={cellClassName}
+				title={title}
+			>
+				<span
+					className={cn(
+						'flex size-12 items-center justify-center [&_svg]:size-6',
+						isActive
+							? 'text-foreground shadow-[inset_0_-2px_0_var(--foreground)]'
+							: 'text-muted-foreground'
+					)}
+				>
+					{icon}
+				</span>
+			</NextLink>
+		);
+	};
+
 	return (
 		<nav
 			className={cn(
@@ -89,42 +99,25 @@ export function TabBar({ className, userSession }: TabBarProps) {
 				className
 			)}
 		>
-			{linkList.map(({ href, title, icon, primary }, index) => {
-				const isActive = !!href && (href === '/' ? pathname === '/' : pathname.startsWith(href));
-				return href ? (
-					<NextLink
-						key={index}
-						href={href}
-						aria-label={title}
-						aria-current={isActive ? 'page' : undefined}
-						className="flex-1 h-full flex justify-center items-center"
-						title={title}
-					>
-						{primary ? (
-							<span className={createClassName}>{icon}</span>
-						) : (
-							<span
-								className={cn(
-									'flex size-12 items-center justify-center [&_svg]:size-6',
-									isActive
-										? 'text-foreground shadow-[inset_0_-2px_0_var(--foreground)]'
-										: 'text-muted-foreground'
-								)}
-							>
-								{icon}
-							</span>
-						)}
-					</NextLink>
-				) : (
-					<div
-						key={index}
-						className="flex-1 h-full flex justify-center items-center"
-						title={title}
-					>
-						{icon}
-					</div>
-				);
-			})}
+			{leftLinks.map(renderLink)}
+			{userSession ? (
+				<div className={cellClassName} title="Create Vote">
+					<PollCreator
+						triggerChildren={
+							<button type="button" aria-label="Create Vote" className={createClassName}>
+								<Plus className="size-5.5" />
+							</button>
+						}
+					/>
+				</div>
+			) : (
+				<NextLink href="/login" aria-label="Create Vote" className={cellClassName} title="Create Vote">
+					<span className={createClassName}>
+						<Plus className="size-5.5" />
+					</span>
+				</NextLink>
+			)}
+			{rightLinks.map(renderLink)}
 		</nav>
 	);
 }

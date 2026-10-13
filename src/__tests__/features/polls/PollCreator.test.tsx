@@ -179,6 +179,31 @@ describe('PollCreator', () => {
 		expect(screen.getByText(/Only you will see who chose what once it ends\./)).toBeInTheDocument();
 	});
 
+	it('previews a poll ending within a day with the Closing chip', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		fillPoll();
+		openSettings();
+		fireEvent.click(screen.getByRole('button', { name: '24 hours' }));
+		await toReview();
+		expect(await screen.findByText(/^Ends in /)).toBeInTheDocument();
+	});
+
+	it('reviews a draft with an unreadable start time instead of throwing', async () => {
+		const draft = saveDraft({
+			title: 'Which is best?',
+			description: '',
+			options: [{ text: 'Option A' }, { text: 'Option B' }],
+			startTime: 'not a date',
+			endTime: '2030-01-01T22:00',
+			voterVisibility: 'owner',
+		});
+		render(<PollCreator triggerChildren={TRIGGER} draft={draft} />);
+		await openDialog();
+		await toReview();
+		expect(screen.getByText('Which is best?')).toBeInTheDocument();
+	});
+
 	it('goes back to editing with everything kept', async () => {
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();

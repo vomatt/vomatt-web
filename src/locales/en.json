@@ -1,7 +1,6 @@
 {
 	"common": {
 		"home": "home",
-		"createPoll": "Create Poll",
 		"askQuestion": "Ask a question",
 		"myPolls": "My Polls",
 		"explore": "Explore",
@@ -193,7 +192,6 @@
 		"review": "Review",
 		"reviewTitle": "Review your poll",
 		"reviewPreview": "How voters will see it",
-		"edit": "Edit",
 		"ruleSealed": "Counts stay hidden until it closes. Voters only see how many people took part.",
 		"ruleVisibility": {
 			"nobody": "Nobody will see who chose what.",

@@ -10,6 +10,8 @@ import { isCancelled } from '@/features/polls/status';
 import { useCursorList } from '@/hooks/useCursorList';
 import type { CursorPage } from '@/lib/api/cursor';
 
+import { UnreadDot } from './UnreadDot';
+
 const fetchPage = () => getMyPolls('ended');
 
 export function NotificationList({ initialPage }: { initialPage: CursorPage<Poll> | null }) {
@@ -25,18 +27,18 @@ export function NotificationList({ initialPage }: { initialPage: CursorPage<Poll
 	return (
 		<div className="space-y-4">
 			<div>
-				<h1 className="text-[32px] font-normal leading-tight tracking-[-0.03em] text-foreground md:text-[44px]">{t('notifications.title')}</h1>
+				<h1 className="display-heading text-[32px] text-foreground md:text-[44px]">{t('notifications.title')}</h1>
 				<p className="mt-2 text-[15px] text-muted-foreground">{t('notifications.intro')}</p>
 			</div>
 
 			{initialPage === null ? (
 				<p className="py-16 text-center text-muted-foreground">{t('notifications.loadFailed')}</p>
 			) : list.items.length === 0 ? (
-				<div className="flex flex-col items-start gap-3 rounded-xl border border-dashed border-border-strong bg-surface-soft px-5 py-8 text-muted-foreground">
+				<div className="empty-state flex flex-col items-start gap-3">
 					<span className="grid size-11 place-items-center rounded-full bg-secondary text-foreground">
 						<Bell className="size-5" />
 					</span>
-					<p className="text-[15px]">{t('notifications.empty')}</p>
+					<p>{t('notifications.empty')}</p>
 				</div>
 			) : (
 				<ul className="space-y-2">
@@ -49,10 +51,7 @@ export function NotificationList({ initialPage }: { initialPage: CursorPage<Poll
 							meta={
 								<>
 									{poll.unread && (
-										<span
-											aria-label={t('notifications.unread')}
-											className="mr-1.5 inline-block size-2.5 rounded-full bg-volt align-middle ring-1 ring-foreground/40"
-										/>
+										<UnreadDot label={t('notifications.unread')} className="mr-1.5 align-middle" />
 									)}
 									{t(isCancelled(poll) ? 'notifications.cancelled' : 'notifications.ended')}
 								</>

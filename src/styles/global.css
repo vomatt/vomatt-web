@@ -79,14 +79,14 @@
 	--chart-4: oklch(0.828 0.189 84.429);
 	--chart-5: oklch(0.769 0.188 70.08);
 	--radius: 0.5rem;
-	--sidebar: oklch(0.969 0.007 106.5);
-	--sidebar-foreground: oklch(0.251 0.009 97.7);
-	--sidebar-primary: oklch(0.251 0.009 97.7);
-	--sidebar-primary-foreground: oklch(0.969 0.007 106.5);
-	--sidebar-accent: oklch(1 0 0);
-	--sidebar-accent-foreground: oklch(0.251 0.009 97.7);
-	--sidebar-border: oklch(0.915 0.009 100);
-	--sidebar-ring: oklch(0.251 0.009 97.7);
+	--sidebar: var(--background);
+	--sidebar-foreground: var(--foreground);
+	--sidebar-primary: var(--primary);
+	--sidebar-primary-foreground: var(--primary-foreground);
+	--sidebar-accent: var(--card);
+	--sidebar-accent-foreground: var(--foreground);
+	--sidebar-border: var(--border);
+	--sidebar-ring: var(--ring);
 
 	--positive: oklch(0.55 0.17 145);
 	--negative: oklch(0.55 0.20 25);
@@ -130,14 +130,14 @@
 	--chart-3: oklch(0.769 0.188 70.08);
 	--chart-4: oklch(0.627 0.265 303.9);
 	--chart-5: oklch(0.645 0.246 16.439);
-	--sidebar: oklch(0.199 0.006 106.9);
-	--sidebar-foreground: oklch(0.942 0.008 98.9);
-	--sidebar-primary: oklch(0.942 0.008 98.9);
-	--sidebar-primary-foreground: oklch(0.199 0.006 106.9);
-	--sidebar-accent: oklch(0.235 0.008 95.4);
-	--sidebar-accent-foreground: oklch(0.942 0.008 98.9);
-	--sidebar-border: oklch(0.296 0.009 97.6);
-	--sidebar-ring: oklch(0.942 0.008 98.9);
+	--sidebar: var(--background);
+	--sidebar-foreground: var(--foreground);
+	--sidebar-primary: var(--primary);
+	--sidebar-primary-foreground: var(--primary-foreground);
+	--sidebar-accent: var(--card);
+	--sidebar-accent-foreground: var(--foreground);
+	--sidebar-border: var(--border);
+	--sidebar-ring: var(--ring);
 
 	--positive: oklch(0.65 0.17 145);
 	--negative: oklch(0.62 0.20 25);
@@ -148,7 +148,6 @@
 
 	--font-sans: var(--font-geist-sans), 'PingFang TC', 'Microsoft JhengHei', 'Noto Sans TC', system-ui, sans-serif;
 	--font-mono: var(--font-geist-mono), ui-monospace, Menlo, monospace;
-	--font-family-system: system-ui, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
 	--font-family-monospace: Menlo, Monaco, Consolas, Courier New, monospace;
 	--font-family-default: Helvetica, Arial, sans-serif;
 	--font-family-serif: ui-serif, New York Small, New York, Georgia, Times New Roman, Times, serif;
@@ -259,6 +258,17 @@
 @utility no-text-space {
 	font-size: 0;
 	line-height: 0;
+}
+
+/* The redesign's display type: Geist 400, tight tracking */
+@utility display-heading {
+	font-weight: 400;
+	line-height: 1.25;
+	letter-spacing: -0.03em;
+}
+
+@utility empty-state {
+	@apply rounded-xl border border-dashed border-border-strong bg-surface-soft px-5 py-8 text-[15px] text-muted-foreground;
 }
 
 @layer utilities {

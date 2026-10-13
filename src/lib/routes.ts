@@ -14,6 +14,10 @@ export const checkIfActive = ({
 	}
 };
 
+/** A nav link is active on its own page and every page below it; home only on itself. */
+export const isActivePath = (pathname: string, href: string) =>
+	href === '/' ? pathname === '/' : pathname.startsWith(href);
+
 export const resolveHref = ({
 	documentType,
 	slug,

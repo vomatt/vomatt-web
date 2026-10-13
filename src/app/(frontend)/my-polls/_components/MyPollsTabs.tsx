@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { LoadMore } from '@/components/LoadMore';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { UnreadDot } from '@/features/notifications/UnreadDot';
 import { DraftList } from '@/features/polls/components/DraftList';
 import { PollListItem } from '@/features/polls/components/PollListItem';
 import { StatusChip } from '@/features/polls/components/StatusChip';
@@ -26,10 +27,7 @@ function PollRow({ poll }: { poll: Poll }) {
 			meta={
 				<>
 					{poll.unread && (
-						<span
-							aria-label={t('notifications.unread')}
-							className="mr-1.5 inline-block size-2.5 rounded-full bg-volt align-middle ring-1 ring-foreground/40"
-						/>
+						<UnreadDot label={t('notifications.unread')} className="mr-1.5 align-middle" />
 					)}
 					{t('poll.voted', { count: (getTurnout(poll) ?? 0).toLocaleString() })}
 				</>
@@ -63,12 +61,12 @@ export default function MyPollsTabs({
 
 	return (
 		<Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as Tab)}>
-			<TabsList variant="line" className="mb-4 h-11! w-full gap-0 border-b border-border p-0">
-				<TabsTrigger value="active" className="h-full text-[15px] after:bottom-[-1px]!">
+			<TabsList variant="line" className="mb-4">
+				<TabsTrigger value="active">
 					{t('myPolls.tabActive')} ({countLabel(openList)})
 				</TabsTrigger>
-				<TabsTrigger value="drafts" className="h-full text-[15px] after:bottom-[-1px]!">{t('myPolls.tabDrafts')}</TabsTrigger>
-				<TabsTrigger value="ended" className="h-full text-[15px] after:bottom-[-1px]!">
+				<TabsTrigger value="drafts">{t('myPolls.tabDrafts')}</TabsTrigger>
+				<TabsTrigger value="ended">
 					{t('myPolls.tabEnded')} ({countLabel(endedList)})
 				</TabsTrigger>
 			</TabsList>
@@ -79,7 +77,7 @@ export default function MyPollsTabs({
 			{(['active', 'ended'] as const).map((tab) => (
 				<TabsContent key={tab} value={tab} className="space-y-3">
 					{lists[tab].items.length === 0 ? (
-						<p className="rounded-xl border border-dashed border-border-strong bg-surface-soft px-5 py-8 text-center text-[15px] text-muted-foreground">{t('myPolls.empty')}</p>
+						<p className="empty-state text-center">{t('myPolls.empty')}</p>
 					) : (
 						<ul className="space-y-2">
 							{lists[tab].items.map((poll) => (

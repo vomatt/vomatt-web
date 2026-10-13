@@ -93,7 +93,7 @@ export default function VerificationForm({
 			<span className="mb-5 grid size-12 place-items-center rounded-full border border-foreground/20 bg-volt text-foreground">
 				<MailCheckIcon className="size-6" />
 			</span>
-			<h1 className="mb-3 text-[32px] font-normal leading-tight tracking-[-0.03em]">{t('verificationCode.title')}</h1>
+			<h1 className="mb-3 display-heading text-[32px]">{t('verificationCode.title')}</h1>
 			<p className="mb-8 text-base leading-relaxed text-muted-foreground">
 				{t('verificationCode.subtitle')} <strong className="break-all font-medium text-foreground">{email}</strong>
 			</p>

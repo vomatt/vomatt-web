@@ -4,6 +4,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useHydrated } from '@/hooks/useHydrated';
 import { cn } from '@/lib/utils';
 
+import { chipClassName } from '../chip';
 import { formatFromNow, formatPollDate } from '../format';
 import type { Poll } from '../schema';
 import type { PollStatus } from '../status';
@@ -44,13 +45,6 @@ export function StatusChip({ status, poll }: StatusChipProps) {
 	}
 
 	return (
-		<span
-			className={cn(
-				'inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.05em] text-foreground',
-				STATUS_TINT[status]
-			)}
-		>
-			{label}
-		</span>
+		<span className={cn(chipClassName, STATUS_TINT[status])}>{label}</span>
 	);
 }

@@ -30,7 +30,6 @@ import { Label } from '@/components/ui/Label';
 import { ArrowLeft, Plus, X } from '@/components/ui/SvgIcons';
 import { Textarea } from '@/components/ui/Textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { cn } from '@/lib/utils';
 
 import { deleteDraft, type PollDraft, saveDraft } from '../../drafts';
 import { formatPollDate } from '../../format';
@@ -43,6 +42,7 @@ import {
 	VoterVisibilitySchema,
 } from '../../schema';
 import { createPoll, updatePoll } from '../../service';
+import { derivePollStatus, type PollStatus } from '../../status';
 import { BallotMark } from '../BallotMotion';
 import { StatusChip } from '../StatusChip';
 import {
@@ -63,10 +63,11 @@ const END_PRESETS = [
 	{ key: '1w', label: 'pollCreator.preset1w', ms: 7 * 24 * HOUR },
 ] as const;
 
-/** Write everything on one screen, then review it the way voters will see it. */
-type Screen = 'write' | 'review';
-/** Fixed when entering review, so the preview does not read the clock while rendering. */
-type ReviewSnapshot = { status: 'open' | 'scheduled'; startTime: string; endTime: string };
+/**
+ * Write everything on one screen, then review it the way voters will see it.
+ * Status and times are fixed when entering review; a Closing chip still counts down.
+ */
+type ReviewSnapshot = { status: PollStatus; startTime: string; endTime: string };
 
 export interface PollCreatorProps {
 	/** A single button element; it becomes the dialog trigger. */
@@ -107,7 +108,7 @@ export function PollCreator({
 	// Built once: they read the clock, and useForm only needs the first value
 	const [defaults] = useState(() => initialValues(poll, draft));
 	const initialPreset = isEdit || draft ? null : '3d';
-	const [screen, setScreen] = useState<Screen>('write');
+	// null while writing
 	const [review, setReview] = useState<ReviewSnapshot | null>(null);
 	const [showSettings, setShowSettings] = useState(false);
 	const [showContext, setShowContext] = useState(!!defaults.description);
@@ -143,7 +144,7 @@ export function PollCreator({
 	const close = () => {
 		const values = initialValues(poll, draft);
 		reset(values);
-		setScreen('write');
+		setReview(null);
 		setShowSettings(false);
 		setShowContext(!!values.description);
 		setEndPreset(initialPreset);
@@ -191,13 +192,11 @@ export function PollCreator({
 		}
 		const values = getValues();
 		const now = Date.now();
-		const start = localToIso(values.startTime ?? '');
-		setReview({
-			status: start && Date.parse(start) > now ? 'scheduled' : 'open',
-			startTime: start ?? new Date(now).toISOString(),
-			endTime: localToIso(values.endTime) ?? new Date(now).toISOString(),
-		});
-		setScreen('review');
+		// localToIso, not formToInput: a corrupt draft time must not throw here
+		const startTime = localToIso(values.startTime) ?? new Date(now).toISOString();
+		const endTime = localToIso(values.endTime) ?? startTime;
+		const status = derivePollStatus({ active: true, votingActive: true, startTime, endTime }, now);
+		setReview({ status, startTime, endTime });
 	};
 
 	const publish = handleSubmit(
@@ -217,7 +216,7 @@ export function PollCreator({
 		},
 		// Something changed since review (e.g. the end passed): back to writing, errors visible
 		() => {
-			setScreen('write');
+			setReview(null);
 			revealTimingErrors();
 		}
 	);
@@ -238,8 +237,8 @@ export function PollCreator({
 	const canAddOption =
 		fields.length < POLL_OPTIONS_LIMIT && options.every((option) => option.text.trim());
 
-	const formatLocal = (value?: string) => {
-		const iso = localToIso(value ?? '');
+	const formatLocal = (value: string) => {
+		const iso = localToIso(value);
 		return iso ? formatPollDate(iso, currentLanguage) : null;
 	};
 	const endLabel = formatLocal(endTime);
@@ -250,7 +249,6 @@ export function PollCreator({
 			? t('pollCreator.summaryOpensLater', { start: startLabel, end: endLabel })
 			: t('pollCreator.summaryOpensNow', { end: endLabel });
 	}
-	const visibilityLevel = voterVisibility ?? 'owner';
 
 	return (
 		<>
@@ -266,18 +264,18 @@ export function PollCreator({
 					className="flex h-dvh max-h-dvh max-w-none flex-col gap-0 rounded-none bg-background p-0 ring-0 sm:h-auto sm:max-h-[min(90dvh,780px)] sm:max-w-[560px] sm:rounded-xl sm:ring-1"
 				>
 					<div className="flex h-14 flex-none items-center justify-between gap-2 border-b border-border px-2 sm:px-3">
-						{screen === 'write' ? (
+						{review ? (
+							<Button type="button" variant="ghost" onClick={() => setReview(null)}>
+								<ArrowLeft />
+								{t('common.edit')}
+							</Button>
+						) : (
 							<Button type="button" variant="ghost" onClick={() => handleOpenChange(false)}>
 								{t('common.cancel')}
 							</Button>
-						) : (
-							<Button type="button" variant="ghost" onClick={() => setScreen('write')}>
-								<ArrowLeft />
-								{t('pollCreator.edit')}
-							</Button>
 						)}
 						<DialogTitle className="truncate text-base font-semibold">
-							{screen === 'review'
+							{review
 								? t('pollCreator.reviewTitle')
 								: t(isEdit ? 'pollCreator.editTitle' : 'pollCreator.title')}
 						</DialogTitle>
@@ -292,16 +290,51 @@ export function PollCreator({
 						noValidate
 						className="flex min-h-0 flex-1 flex-col"
 						onSubmit={(e) => {
-							if (screen === 'write') {
+							if (review) {
+								publish(e);
+							} else {
 								e.preventDefault();
 								goToReview();
-							} else {
-								publish(e);
 							}
 						}}
 					>
 						<div className="min-h-0 flex-1 space-y-7 overflow-y-auto px-4 py-6 sm:px-6">
-							{screen === 'write' ? (
+							{review ? (
+								<>
+									<div className="space-y-3">
+										<p className="text-sm font-medium">{t('pollCreator.reviewPreview')}</p>
+										<div className="space-y-4 rounded-xl border border-border bg-card p-4 sm:p-5">
+											<StatusChip status={review.status} poll={review} />
+											<div className="space-y-2">
+												<p className="text-[22px] leading-tight tracking-[-0.02em]">{title.trim()}</p>
+												{description?.trim() && (
+													<p className="text-[15px] leading-relaxed text-muted-foreground">
+														{description.trim()}
+													</p>
+												)}
+											</div>
+											<ul className="space-y-2">
+												{options.map((option, index) => (
+													<li
+														key={fields[index]?.id ?? index}
+														className="flex min-h-12 items-center gap-3 rounded-xl border-[1.5px] border-border px-4 py-2.5 text-base"
+													>
+														<BallotMark checked={false} />
+														{option.text.trim()}
+													</li>
+												))}
+											</ul>
+										</div>
+									</div>
+									<ul className="space-y-3 text-[15px] leading-relaxed">
+										<li>{t('pollCreator.ruleSealed')}</li>
+										<li>
+											{t(`pollCreator.ruleVisibility.${voterVisibility}`)} {t('pollCreator.ruleFixed')}
+										</li>
+										<li>{t('pollCreator.ruleOneVote')}</li>
+									</ul>
+								</>
+							) : (
 								<>
 									<div className="space-y-2">
 										<Label htmlFor="title">{t('pollCreator.questionLabel')}</Label>
@@ -413,7 +446,7 @@ export function PollCreator({
 												<span className="block text-[15px] font-medium">{summaryTop}</span>
 												<span className="block text-sm text-muted-foreground">
 													{t('pollCreator.summaryVisibility', {
-														level: t(`pollCreator.visibility.${visibilityLevel}`),
+														level: t(`pollCreator.visibility.${voterVisibility}`),
 													})}
 												</span>
 											</span>
@@ -490,63 +523,22 @@ export function PollCreator({
 										)}
 									</div>
 								</>
-							) : (
-								review && (
-									<>
-										<div className="space-y-3">
-											<p className="text-sm font-medium">{t('pollCreator.reviewPreview')}</p>
-											<div className="space-y-4 rounded-xl border border-border bg-card p-4 sm:p-5">
-												<StatusChip status={review.status} poll={review} />
-												<div className="space-y-2">
-													<p className="text-[22px] leading-tight tracking-[-0.02em]">{title.trim()}</p>
-													{description?.trim() && (
-														<p className="text-[15px] leading-relaxed text-muted-foreground">
-															{description.trim()}
-														</p>
-													)}
-												</div>
-												<ul className="space-y-2">
-													{options.map((option, index) => (
-														<li
-															key={fields[index]?.id ?? index}
-															className="flex min-h-12 items-center gap-3 rounded-xl border-[1.5px] border-border px-4 py-2.5 text-base"
-														>
-															<BallotMark checked={false} />
-															{option.text.trim()}
-														</li>
-													))}
-												</ul>
-											</div>
-										</div>
-										<ul className="space-y-3 text-[15px] leading-relaxed">
-											<li>{t('pollCreator.ruleSealed')}</li>
-											<li>
-												{t(`pollCreator.ruleVisibility.${visibilityLevel}`)} {t('pollCreator.ruleFixed')}
-											</li>
-											<li>{t('pollCreator.ruleOneVote')}</li>
-										</ul>
-									</>
-								)
 							)}
 						</div>
 
 						<div className="flex-none space-y-3 border-t border-border px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-6">
-							{screen === 'review' && errors.root?.message && (
+							{review && errors.root?.message && (
 								<p role="alert" className="text-sm text-destructive">
 									{errors.root.message}
 								</p>
 							)}
-							<div className={cn('flex items-center gap-3', screen === 'write' && !isEdit && 'justify-between')}>
-								{screen === 'write' && !isEdit && (
+							<div className="flex items-center gap-3">
+								{!review && !isEdit && (
 									<Button type="button" variant="ghost" onClick={handleSaveDraft}>
 										{t('pollCreator.saveDraftLabel')}
 									</Button>
 								)}
-								{screen === 'write' ? (
-									<Button type="submit" className="flex-1 sm:ml-auto sm:max-w-40">
-										{t('pollCreator.review')}
-									</Button>
-								) : (
+								{review ? (
 									<ButtonLoading
 										type="submit"
 										className="flex-1 sm:ml-auto sm:max-w-48"
@@ -555,6 +547,10 @@ export function PollCreator({
 									>
 										{t(isEdit ? 'pollCreator.saveChanges' : 'pollCreator.publish')}
 									</ButtonLoading>
+								) : (
+									<Button type="submit" className="flex-1 sm:ml-auto sm:max-w-40">
+										{t('pollCreator.review')}
+									</Button>
 								)}
 							</div>
 						</div>

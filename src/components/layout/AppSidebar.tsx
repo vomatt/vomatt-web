@@ -39,31 +39,28 @@ import {
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUnreadCount } from '@/features/notifications/UnreadCountProvider';
 import { signout } from '@/lib/api/services/auth';
+import { isActivePath } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 import { MyProfile } from '@/types/user';
 
 const navigationItems = [
 	{
 		title: 'common.home',
-		id: 'linkHome',
 		url: '/',
 		icon: Home,
 	},
 	{
 		title: 'common.myPolls',
-		id: 'linkMyPolls',
 		url: '/my-polls',
 		icon: TrendingUp,
 	},
 	{
 		title: 'common.explore',
-		id: 'linkExplore',
 		url: '/explore',
 		icon: Search,
 	},
 	{
 		title: 'common.notifications',
-		id: 'linkNotifications',
 		url: '/notifications',
 		icon: Bell,
 		requiresAuth: true,
@@ -145,8 +142,7 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 							{navigationItems.map((item) => {
 								if (item.requiresAuth && !userSession) return null;
 								const badge = item.showsUnreadCount ? unreadCount : 0;
-								const isActive =
-									item.url === '/' ? pathname === '/' : pathname.startsWith(item.url);
+								const isActive = isActivePath(pathname, item.url);
 
 								return (
 									<SidebarMenuItem key={item.title}>

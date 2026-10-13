@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { LoadMore } from '@/components/LoadMore';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import { Spinner } from '@/components/ui/Spinner';
 import { Search } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -16,7 +18,6 @@ import { derivePollStatus, getTurnout } from '@/features/polls/status';
 import { useCursorList } from '@/hooks/useCursorList';
 import type { CursorPage } from '@/lib/api/cursor';
 import { topicHref } from '@/lib/routes';
-import { cn } from '@/lib/utils';
 
 type Status = 'open' | 'ended';
 type Sort = 'newest' | 'closing';
@@ -36,19 +37,16 @@ export function toExploreQuery(query: string, status: Status, sort: Sort): PollL
 
 function Pill({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
 	return (
-		<button
+		<Button
 			type="button"
+			size="sm"
+			variant={active ? 'default' : 'outline'}
 			aria-pressed={active}
 			onClick={onClick}
-			className={cn(
-				'inline-flex min-h-11 items-center rounded-full border px-4 text-sm font-medium transition-colors md:min-h-9',
-				active
-					? 'border-foreground bg-foreground text-background'
-					: 'border-border-strong bg-card text-foreground hover:border-input'
-			)}
+			className="rounded-full px-4"
 		>
 			{children}
-		</button>
+		</Button>
 	);
 }
 
@@ -104,7 +102,7 @@ export function ExploreView({
 
 	return (
 		<div className="space-y-8">
-			<h1 className="text-[32px] font-normal leading-tight tracking-[-0.03em] text-foreground md:text-[44px]">{t('explore.title')}</h1>
+			<h1 className="display-heading text-[32px] text-foreground md:text-[44px]">{t('explore.title')}</h1>
 
 			{tags.length > 0 && (
 				<section aria-labelledby="explore-topics" className="space-y-3">
@@ -133,13 +131,13 @@ export function ExploreView({
 				{EXPLORE_FILTERS_AVAILABLE && (
 					<div className="relative">
 						<Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-						<input
+						<Input
 							type="search"
 							value={query}
 							onChange={(e) => setQuery(e.target.value)}
 							placeholder={t('explore.searchPlaceholder')}
 							aria-label={t('explore.searchPlaceholder')}
-							className="h-12 w-full rounded-lg border border-input bg-card pl-10 pr-4 text-base text-foreground transition-colors placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring md:text-[15px]"
+							className="pl-10 pr-4 md:text-[15px]"
 						/>
 					</div>
 				)}

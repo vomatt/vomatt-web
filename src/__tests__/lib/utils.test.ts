@@ -1,4 +1,4 @@
-import { getSafeRedirectPath } from '@/lib/routes';
+import { getSafeRedirectPath, isActivePath } from '@/lib/routes';
 import {
 	cn,
 	formatHandleize,
@@ -288,6 +288,19 @@ describe('resolveHref', () => {
 
 	it('returns undefined when documentType is undefined', () => {
 		expect(resolveHref({ documentType: undefined, slug: 'foo' })).toBeUndefined();
+	});
+});
+
+describe('isActivePath', () => {
+	it('marks home active only on home', () => {
+		expect(isActivePath('/', '/')).toBe(true);
+		expect(isActivePath('/explore', '/')).toBe(false);
+	});
+
+	it('marks a section active on its pages below it', () => {
+		expect(isActivePath('/my-polls', '/my-polls')).toBe(true);
+		expect(isActivePath('/my-polls/drafts', '/my-polls')).toBe(true);
+		expect(isActivePath('/explore', '/my-polls')).toBe(false);
 	});
 });
 

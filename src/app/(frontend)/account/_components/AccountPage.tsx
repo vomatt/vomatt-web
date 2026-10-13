@@ -22,6 +22,7 @@ import { Switch } from '@/components/ui/Switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { BallotRecord, Insights } from '@/features/account/insights';
+import { chipClassName } from '@/features/polls/chip';
 import { PollListItem } from '@/features/polls/components/PollListItem';
 import { StatusChip } from '@/features/polls/components/StatusChip';
 import type { Poll } from '@/features/polls/schema';
@@ -52,7 +53,7 @@ export default function AccountPage({ profile, myPolls, history, insights }: Acc
 			<header className="flex flex-wrap items-center gap-4">
 				<InitialAvatar name={name} className="size-16 bg-primary text-xl font-medium text-primary-foreground" />
 				<div className="min-w-0 flex-1">
-					<h1 className="truncate text-[28px] font-normal leading-tight tracking-[-0.03em] md:text-4xl">{name}</h1>
+					<h1 className="truncate display-heading text-[28px] md:text-4xl/tight">{name}</h1>
 					<p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
 						<span className="font-mono">@{profile.username}</span>
 						{profile.membershipLevel && (
@@ -118,8 +119,8 @@ export default function AccountPage({ profile, myPolls, history, insights }: Acc
 			</section>
 
 			<Tabs defaultValue="activity">
-				<TabsList variant="line" className="h-11! w-full gap-0 border-b border-border p-0">
-					<TabsTrigger value="activity" className="h-full text-[15px] after:bottom-[-1px]!">
+				<TabsList variant="line">
+					<TabsTrigger value="activity">
 						{t('account.tabActivity')}
 						{insights.awaitingResults > 0 && (
 							<span className="ml-1.5 rounded-full bg-volt px-1.5 font-mono text-[11px] text-foreground ring-1 ring-foreground/30">
@@ -127,8 +128,8 @@ export default function AccountPage({ profile, myPolls, history, insights }: Acc
 							</span>
 						)}
 					</TabsTrigger>
-					<TabsTrigger value="polls" className="h-full text-[15px] after:bottom-[-1px]!">{t('account.tabPolls')}</TabsTrigger>
-					<TabsTrigger value="settings" className="h-full text-[15px] after:bottom-[-1px]!">{t('account.tabSettings')}</TabsTrigger>
+					<TabsTrigger value="polls">{t('account.tabPolls')}</TabsTrigger>
+					<TabsTrigger value="settings">{t('account.tabSettings')}</TabsTrigger>
 				</TabsList>
 				<TabsContent value="activity" className="pt-4">
 					<Activity history={history} />
@@ -167,8 +168,8 @@ function Activity({ history }: { history: BallotRecord[] }) {
 	const { t } = useLanguage();
 	if (history.length === 0) {
 		return (
-			<div className="rounded-xl border border-dashed border-border-strong bg-surface-soft px-5 py-8">
-				<p className="mb-4 text-[15px] text-muted-foreground">{t('account.noVotes')}</p>
+			<div className="empty-state">
+				<p className="mb-4">{t('account.noVotes')}</p>
 				<Link href="/" className={buttonVariants()}>
 					{t('account.findPolls')}
 				</Link>
@@ -188,10 +189,7 @@ function Activity({ history }: { history: BallotRecord[] }) {
 					}
 					aside={
 						<span
-							className={cn(
-								'rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.05em] text-foreground',
-								OUTCOME_STYLES[outcome]
-							)}
+							className={cn(chipClassName, OUTCOME_STYLES[outcome])}
 						>
 							{t(`account.outcome.${outcome}`)}
 						</span>
@@ -206,7 +204,7 @@ function MyPolls({ polls }: { polls: Poll[] }) {
 	const { t } = useLanguage();
 	if (polls.length === 0) {
 		return (
-			<p className="rounded-xl border border-dashed border-border-strong bg-surface-soft px-5 py-8 text-[15px] text-muted-foreground">
+			<p className="empty-state">
 				{t('account.noPolls')}
 			</p>
 		);

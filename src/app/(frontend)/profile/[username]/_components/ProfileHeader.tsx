@@ -47,7 +47,7 @@ export default function ProfileHeader({
 							isOwner={isOwner && supportsAvatars}
 						/>
 						<div className="flex-1 min-w-0">
-							<h1 className="truncate text-[28px] font-normal leading-tight tracking-[-0.03em] text-foreground">
+							<h1 className="truncate display-heading text-[28px] text-foreground">
 								{profile.displayName ?? profile.username}
 							</h1>
 							{profile.displayName && (

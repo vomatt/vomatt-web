@@ -16,7 +16,7 @@ export default async function MyPollsPage() {
 
 	return (
 		<div className="px-contain max-w-2xl mx-auto py-6">
-			<h1 className="mb-6 text-[32px] font-normal leading-tight tracking-[-0.03em] text-foreground md:text-[44px]">My Polls</h1>
+			<h1 className="mb-6 display-heading text-[32px] text-foreground md:text-[44px]">My Polls</h1>
 			<Suspense
 				fallback={
 					<>
