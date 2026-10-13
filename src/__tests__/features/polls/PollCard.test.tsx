@@ -148,6 +148,9 @@ describe('PollCard state B · Open, has Ballot', () => {
 		expect(screen.getByText('129 voted')).toBeInTheDocument();
 		await waitFor(() => expect(screen.getByText('Your vote')).toBeInTheDocument());
 		expect(screen.getByText(/Results are sealed until/)).toBeInTheDocument();
+		expect(
+			screen.getByText('After it ends, only the poll owner can see what you chose.')
+		).toBeInTheDocument();
 	});
 
 	it('shows a returning voter their choice from the status call', async () => {
@@ -211,7 +214,7 @@ describe('PollCard state B · Open, has Ballot', () => {
 		render(<PollCard poll={openPoll} viewerId="user-voter" />);
 		vote('Friday');
 
-		await waitFor(() => expect(toast.success).toHaveBeenCalledWith('Vote cast.', expect.anything()));
+		await waitFor(() => expect(toast.success).toHaveBeenCalledWith('Vote cast.'));
 	});
 
 	it('rolls back a failed cast', async () => {

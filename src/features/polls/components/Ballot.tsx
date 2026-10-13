@@ -45,7 +45,7 @@ export function Ballot({ poll, status, ballot, requireAuth, ownerActions }: Ball
 			navigator.vibrate?.(12);
 			const outcome = await ballot.cast(selected);
 			if (outcome === 'saved') {
-				toast.success(t('poll.voteCast'), { icon: <VotedStamp label={t('poll.stamp')} /> });
+				toast.success(t('poll.voteCast'));
 			} else if (outcome === 'failed') {
 				shake();
 			}
@@ -173,17 +173,20 @@ export function Ballot({ poll, status, ballot, requireAuth, ownerActions }: Ball
 
 			<AnimatePresence initial={false}>
 				{hasBallot && poll.endTime && isHydrated && (
-					<motion.p
+					<motion.div
 						key="sealed"
 						initial={{ opacity: 0, y: -6 }}
 						animate={{ opacity: 1, y: 0 }}
 						exit={{ opacity: 0, y: -6, transition: { duration: 0.15 } }}
 						transition={{ duration: 0.25, ease: 'easeOut' }}
-						className="flex items-center gap-2.5 rounded-lg border border-border bg-surface-soft px-3.5 py-3 text-[13px] text-muted-foreground"
+						className="flex items-start gap-2.5 rounded-lg border border-border bg-surface-soft px-3.5 py-3 text-[13px] text-muted-foreground"
 					>
-						<BallotBoxIcon className="text-foreground" />
-						{t('poll.sealed', { date: formatPollDate(poll.endTime, currentLanguage) })}
-					</motion.p>
+						<BallotBoxIcon className="mt-0.5 shrink-0 text-foreground" />
+						<div className="flex flex-col gap-1">
+							<p>{t('poll.sealed', { date: formatPollDate(poll.endTime, currentLanguage) })}</p>
+							{poll.voterVisibility && <p>{t(`poll.visibility.${poll.voterVisibility}`)}</p>}
+						</div>
+					</motion.div>
 				)}
 			</AnimatePresence>
 

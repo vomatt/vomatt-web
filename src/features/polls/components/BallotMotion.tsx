@@ -5,8 +5,10 @@ import { useId } from 'react';
 
 import { cn } from '@/lib/utils';
 
+import { chipClassName } from '../chip';
+
 // Motion pieces for the paper-ballot metaphor: mark a box, drop the ballot
-// in the box, get it stamped. Reduced motion is handled by <MotionProvider>.
+// in the box, see it marked as yours. Reduced motion is handled by <MotionProvider>.
 
 const INK = { type: 'spring', stiffness: 520, damping: 32 } as const;
 
@@ -36,16 +38,31 @@ export function BallotMark({ checked }: { checked: boolean }) {
 	);
 }
 
-/** A rubber stamp pressed onto the chosen option. */
+/** Marks the option the viewer voted for: a volt pill whose check draws in. */
 export function VotedStamp({ label }: { label: string }) {
 	return (
 		<motion.span
-			initial={{ opacity: 0, scale: 1.8, rotate: -24 }}
-			animate={{ opacity: 1, scale: 1, rotate: -8 }}
-			exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.15 } }}
-			transition={{ type: 'spring', stiffness: 600, damping: 18, mass: 0.6 }}
-			className="inline-flex shrink-0 select-none items-center rounded-[5px] border-[1.5px] border-foreground/70 bg-volt px-1.5 py-px font-mono text-[10px] font-bold uppercase tracking-wider text-foreground"
+			initial={{ opacity: 0, scale: 0.85 }}
+			animate={{ opacity: 1, scale: 1 }}
+			exit={{ opacity: 0, scale: 0.85, transition: { duration: 0.15 } }}
+			transition={INK}
+			className={cn(
+				chipClassName,
+				'shrink-0 select-none gap-1 border border-foreground/20 bg-volt pl-2 dark:text-background'
+			)}
 		>
+			<svg viewBox="0 0 16 16" className="size-3" fill="none" aria-hidden>
+				<motion.path
+					d="M3 8.5 6.5 12 13 4.5"
+					stroke="currentColor"
+					strokeWidth={2.4}
+					strokeLinecap="round"
+					strokeLinejoin="round"
+					initial={{ pathLength: 0 }}
+					animate={{ pathLength: 1 }}
+					transition={{ duration: 0.25, ease: 'easeOut', delay: 0.1 }}
+				/>
+			</svg>
 			{label}
 		</motion.span>
 	);
