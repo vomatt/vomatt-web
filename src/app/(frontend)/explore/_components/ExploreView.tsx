@@ -20,7 +20,7 @@ import type { CursorPage } from '@/lib/api/cursor';
 import { topicHref } from '@/lib/routes';
 
 type Status = 'open' | 'ended';
-type Sort = 'newest' | 'closing';
+type Sort = 'newest' | 'closing' | 'top';
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -68,24 +68,27 @@ export function ExploreView({
 	// Memoized on its fields, so keystrokes that don't change the query don't refetch
 	const { sort: apiSort, q } = toExploreQuery(query, status, sort);
 	const apiQuery = useMemo(() => ({ status, sort: apiSort, q }), [status, apiSort, q]);
+	// The query of the items shown: a cursor only works for the ordering that issued it,
+	// so Load more keeps to it until the new query's first page replaces the list
+	const listedQuery = useRef(apiQuery);
 	const fetchPage = useCallback(
-		(cursor: string) => getPolls(apiQuery, cursor, EXPLORE_PAGE_SIZE),
-		[apiQuery]
+		(cursor: string) => getPolls(listedQuery.current, cursor, EXPLORE_PAGE_SIZE),
+		[]
 	);
 	const list = useCursorList(initialPage, fetchPage);
 	const { reset } = list;
 
 	// A new query starts from its own first page; typing waits for a pause.
 	// The server already rendered the first page of the initial query.
-	const initialQuery = useRef(apiQuery);
 	useEffect(() => {
-		if (apiQuery === initialQuery.current) return;
+		if (apiQuery === listedQuery.current) return;
 		let ignore = false;
 		const timer = setTimeout(async () => {
 			setIsSearching(true);
 			try {
 				const page = await getPolls(apiQuery, null, EXPLORE_PAGE_SIZE);
 				if (ignore) return;
+				listedQuery.current = apiQuery;
 				reset(page);
 				setSearchFailed(false);
 			} catch {
@@ -149,6 +152,7 @@ export function ExploreView({
 						<div className="flex gap-1.5" role="group" aria-label={t('explore.sort')}>
 							<Pill active={sort === 'newest'} onClick={() => setSort('newest')}>{t('explore.sortNewest')}</Pill>
 							<Pill active={sort === 'closing'} onClick={() => setSort('closing')}>{t('explore.sortEnding')}</Pill>
+							<Pill active={sort === 'top'} onClick={() => setSort('top')}>{t('explore.sortTop')}</Pill>
 						</div>
 					)}
 				</div>
