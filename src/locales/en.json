@@ -389,7 +389,8 @@
 		"deleteCta": "Delete account",
 		"deleteConfirmTitle": "Delete your account?",
 		"deleteConfirmBody": "Type {username} to confirm. Your account will be removed permanently.",
-		"deleteConfirmLabel": "Type your username to confirm"
+		"deleteConfirmLabel": "Type your username to confirm",
+		"tabGroups": "Groups"
 	},
 	"cookieConsent": {
 		"label": "Cookie consent",
@@ -419,5 +420,26 @@
 		"add": "Invite",
 		"addFailed": "Couldn't invite them. Try again.",
 		"removeFailed": "Couldn't remove them. Try again."
+	},
+	"groups": {
+		"title": "Groups",
+		"intro": "Reusable lists of people to invite to Invite-only polls. Only you can see them, and nobody is told they're in one.",
+		"nameLabel": "Group name",
+		"namePlaceholder": "e.g. Book club",
+		"create": "New group",
+		"empty": "No groups yet.",
+		"loadFailed": "Couldn't load your groups.",
+		"memberCount": "{count} members",
+		"dialogIntro": "Inviting a group invites its members at that moment. Later changes don't affect polls already sent.",
+		"rename": "Rename",
+		"members": "Members",
+		"noMembers": "No members yet.",
+		"membersFailed": "Couldn't load the members.",
+		"addLabel": "Add people",
+		"add": "Add",
+		"delete": "Delete group",
+		"deleteConfirm": "Delete this group? Polls you invited it to keep their invitees.",
+		"saveFailed": "Couldn't save. Try again.",
+		"memberCountOne": "1 member"
 	}
 }

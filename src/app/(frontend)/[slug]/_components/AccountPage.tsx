@@ -20,6 +20,7 @@ import { Switch } from '@/components/ui/Switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { BallotRecord, Insights } from '@/features/account/insights';
+import { GroupsPanel } from '@/features/groups/GroupsPanel';
 import { chipClassName } from '@/features/polls/chip';
 import { PollListItem } from '@/features/polls/components/PollListItem';
 import { StatusChip } from '@/features/polls/components/StatusChip';
@@ -129,6 +130,7 @@ export default function AccountPage(props: AccountPageProps) {
 							)}
 						</TabsTrigger>
 						<TabsTrigger value="polls">{t('account.tabPolls')}</TabsTrigger>
+						<TabsTrigger value="groups">{t('account.tabGroups')}</TabsTrigger>
 						<TabsTrigger value="settings">{t('account.tabSettings')}</TabsTrigger>
 					</TabsList>
 					<TabsContent value="activity" className="pt-4">
@@ -136,6 +138,9 @@ export default function AccountPage(props: AccountPageProps) {
 					</TabsContent>
 					<TabsContent value="polls" className="pt-4">
 						<MyPolls polls={props.myPolls} />
+					</TabsContent>
+					<TabsContent value="groups" className="pt-4">
+						<GroupsPanel />
 					</TabsContent>
 					<TabsContent value="settings" className="pt-4">
 						<Settings profile={props.profile} visibility={visibility} setVisibility={setVisibility} />

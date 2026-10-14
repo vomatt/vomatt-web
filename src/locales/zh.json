@@ -385,7 +385,8 @@
 		"deleteCta": "刪除帳號",
 		"deleteConfirmTitle": "確定要刪除帳號？",
 		"deleteConfirmBody": "請輸入 {username} 以確認，帳號將被永久刪除。",
-		"deleteConfirmLabel": "輸入你的使用者名稱以確認"
+		"deleteConfirmLabel": "輸入你的使用者名稱以確認",
+		"tabGroups": "群組"
 	},
 	"cookieConsent": {
 		"label": "Cookie 同意",
@@ -415,5 +416,26 @@
 		"add": "邀請",
 		"addFailed": "無法邀請，請再試一次。",
 		"removeFailed": "無法移除，請再試一次。"
+	},
+	"groups": {
+		"title": "群組",
+		"intro": "可重複使用的邀請名單，用於僅限受邀者的投票。只有你看得到，成員也不會被通知。",
+		"nameLabel": "群組名稱",
+		"namePlaceholder": "例如：讀書會",
+		"create": "新增群組",
+		"empty": "還沒有群組。",
+		"loadFailed": "無法載入你的群組。",
+		"memberCount": "{count} 位成員",
+		"dialogIntro": "邀請群組時會邀請當下的成員，之後的變動不會影響已送出的投票。",
+		"rename": "重新命名",
+		"members": "成員",
+		"noMembers": "還沒有成員。",
+		"membersFailed": "無法載入成員。",
+		"addLabel": "新增成員",
+		"add": "新增",
+		"delete": "刪除群組",
+		"deleteConfirm": "要刪除這個群組嗎？已邀請過它的投票會保留受邀者。",
+		"saveFailed": "無法儲存，請再試一次。",
+		"memberCountOne": "1 位成員"
 	}
 }

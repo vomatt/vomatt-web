@@ -23,8 +23,8 @@ Contract: `api-docs.json` (= `vomatt-api` `docs/frontend/openapi.json`, CHANGELO
 ## Stage 4: Groups tab on Account
 **Goal**: Create, rename, delete Groups and manage members.
 **Tests**: GroupsPanel.
-**Status**: In Progress
+**Status**: Complete
 
 ## Stage 5: Explore "Most voted" + docs
 **Goal**: `sort=top` pill; update `docs/release/api-integration-notes.md`.
-**Status**: Not Started
+**Status**: In Progress
