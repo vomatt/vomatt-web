@@ -25,7 +25,7 @@ export default function ProfilePollList({
 	const list = useCursorList(initialPage, fetchPage);
 
 	if (list.items.length === 0) {
-		return <p className="text-muted-foreground">{t('profile.noPollsYet')}</p>;
+		return <p className="empty-state">{t('profile.noPollsYet')}</p>;
 	}
 
 	return (

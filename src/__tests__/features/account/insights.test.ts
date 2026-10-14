@@ -53,15 +53,9 @@ describe('computeInsights()', () => {
 		NOW
 	);
 
-	it('summarises votes, reach and the majority rate', () => {
-		const insights = computeInsights(
-			{ totalVotes: 12, totalPolls: 1 },
-			[poll('mine', { a: 8, b: 4 }, true)],
-			history
-		);
+	it('summarises reach and the majority rate', () => {
+		const insights = computeInsights([poll('mine', { a: 8, b: 4 }, true)], history);
 		expect(insights).toMatchObject({
-			votesCast: 12,
-			pollsCreated: 1,
 			peopleReached: 12,
 			majorityRate: 67,
 			awaitingResults: 1,
@@ -69,6 +63,6 @@ describe('computeInsights()', () => {
 	});
 
 	it('has no majority rate before anything is decided', () => {
-		expect(computeInsights({ totalVotes: 0, totalPolls: 0 }, [], []).majorityRate).toBeNull();
+		expect(computeInsights([], []).majorityRate).toBeNull();
 	});
 });

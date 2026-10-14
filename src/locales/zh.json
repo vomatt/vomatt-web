@@ -113,6 +113,12 @@
 		"notFoundHome": "回首頁",
 		"polls": "投票",
 		"noPollsYet": "還沒有投票。",
+		"stats": "數據",
+		"points": "{count} 點",
+		"joined": "{date} 加入",
+		"membership": "{level} 會員",
+		"followers": "追蹤者",
+		"following": "追蹤中",
 		"editProfile": "編輯個人資料"
 	},
 	"notifications": {

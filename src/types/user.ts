@@ -5,6 +5,10 @@ export interface UserProfile {
 	joinedAt: string; // ISO date string
 	totalPolls: number;
 	totalVotes: number;
+	// Null when the owner keeps them hidden (the default) or never set them
+	location?: string | null;
+	points?: number | null;
+	membershipLevel?: string | null;
 	// Absent until the backend ships avatars and follows; the UI hides those features then.
 	avatarUrl?: string | null;
 	followersCount?: number;

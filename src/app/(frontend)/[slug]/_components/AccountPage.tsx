@@ -15,7 +15,6 @@ import {
 	AlertDialogTitle,
 } from '@/components/ui/AlertDialog';
 import { Button, buttonVariants } from '@/components/ui/Button';
-import { InitialAvatar } from '@/components/ui/InitialAvatar';
 import { Input } from '@/components/ui/Input';
 import { Switch } from '@/components/ui/Switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
@@ -26,81 +25,128 @@ import { PollListItem } from '@/features/polls/components/PollListItem';
 import { StatusChip } from '@/features/polls/components/StatusChip';
 import type { Poll } from '@/features/polls/schema';
 import { derivePollStatus, getTurnout } from '@/features/polls/status';
+import type { CursorPage } from '@/lib/api/cursor';
 import { signout } from '@/lib/api/services/auth';
 import { deleteMyAccount, updateVisibility } from '@/lib/api/services/users';
 import { cn } from '@/lib/utils';
-import type { MyProfile } from '@/types/user';
+import type { MyProfile, UserProfile } from '@/types/user';
 
 import EditProfileDialog from './EditProfileDialog';
+import ProfileHeader, { FollowControls } from './ProfileHeader';
+import ProfilePollList from './ProfilePollList';
 
-export type AccountPageProps = {
+type OwnView = {
+	isOwn: true;
 	profile: MyProfile;
 	myPolls: Poll[];
 	history: BallotRecord[];
 	insights: Insights;
 };
 
+type PublicView = {
+	isOwn: false;
+	profile: UserProfile;
+	polls: CursorPage<Poll>;
+	isAuthenticated: boolean;
+};
+
+/** The owner sees everything; visitors see the same page minus private tabs and hidden fields. */
+export type AccountPageProps = OwnView | PublicView;
+
 /** Profile fields other people can see, in the order shown. */
 const VISIBILITY_FIELDS = ['displayName', 'bio', 'location', 'points', 'membershipLevel'] as const;
 
-export default function AccountPage({ profile, myPolls, history, insights }: AccountPageProps) {
+/** Hidden unless the owner turns them on; the owner's header leaves them out while hidden, as visitors see it. */
+const HIDDEN_BY_DEFAULT = ['location', 'points', 'membershipLevel'] as const;
+
+export default function AccountPage(props: AccountPageProps) {
 	const { t } = useLanguage();
-	const name = profile.displayName || profile.username;
+	const { profile } = props;
+	// Lives here so the header follows the switches in Settings
+	const [visibility, setVisibility] = useState(props.isOwn ? (props.profile.visibilitySettings ?? {}) : {});
+
+	const headerProfile = props.isOwn
+		? {
+				...profile,
+				...Object.fromEntries(
+					HIDDEN_BY_DEFAULT.filter((field) => !visibility[field]).map((field) => [field, null])
+				),
+			}
+		: profile;
 
 	return (
 		<div className="px-contain mx-auto max-w-3xl space-y-8 py-6 md:py-10">
-			<header className="flex flex-wrap items-center gap-4">
-				<InitialAvatar name={name} className="size-16 bg-primary text-xl font-medium text-primary-foreground" />
-				<div className="min-w-0 flex-1">
-					<h1 className="truncate display-heading text-[28px] md:text-4xl/tight">{name}</h1>
-					<p className="mt-1 font-mono text-sm text-muted-foreground">@{profile.username}</p>
-					{profile.bio && <p className="mt-1 text-sm">{profile.bio}</p>}
-				</div>
-				<EditProfileDialog
-					initialUsername={profile.username}
-					initialDisplayName={profile.displayName ?? ''}
-					initialBio={profile.bio ?? ''}
-					initialAvatarUrl={profile.avatarUrl}
-				/>
-			</header>
+			<ProfileHeader
+				profile={headerProfile}
+				action={
+					props.isOwn ? (
+						<EditProfileDialog
+							initialUsername={profile.username}
+							initialDisplayName={profile.displayName ?? ''}
+							initialBio={profile.bio ?? ''}
+							initialAvatarUrl={profile.avatarUrl}
+						/>
+					) : (
+						<FollowControls profile={props.profile} isAuthenticated={props.isAuthenticated} />
+					)
+				}
+			/>
 
 			<section
-				aria-label={t('account.stats')}
-				className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-4"
+				aria-label={t(props.isOwn ? 'account.stats' : 'profile.stats')}
+				className={cn(
+					'grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-border bg-border',
+					props.isOwn && 'sm:grid-cols-4'
+				)}
 			>
-				<Stat label={t('account.votesCast')} value={insights.votesCast} />
-				<Stat label={t('account.pollsCreated')} value={insights.pollsCreated} />
-				<Stat label={t('account.peopleReached')} value={insights.peopleReached} />
-				<Stat
-					label={t('account.majorityRate')}
-					value={insights.majorityRate === null ? t('account.majorityNone') : `${insights.majorityRate}%`}
-					hint={t('account.majorityHint')}
-				/>
+				<Stat label={t('account.votesCast')} value={profile.totalVotes} />
+				<Stat label={t('account.pollsCreated')} value={profile.totalPolls} />
+				{props.isOwn && (
+					<>
+						<Stat label={t('account.peopleReached')} value={props.insights.peopleReached} />
+						<Stat
+							label={t('account.majorityRate')}
+							value={
+								props.insights.majorityRate === null
+									? t('account.majorityNone')
+									: `${props.insights.majorityRate}%`
+							}
+							hint={t('account.majorityHint')}
+						/>
+					</>
+				)}
 			</section>
 
-			<Tabs defaultValue="activity">
-				<TabsList variant="line">
-					<TabsTrigger value="activity">
-						{t('account.tabActivity')}
-						{insights.awaitingResults > 0 && (
-							<span className="ml-1.5 rounded-full bg-volt px-1.5 font-mono text-[11px] text-foreground ring-1 ring-foreground/30">
-								{insights.awaitingResults}
-							</span>
-						)}
-					</TabsTrigger>
-					<TabsTrigger value="polls">{t('account.tabPolls')}</TabsTrigger>
-					<TabsTrigger value="settings">{t('account.tabSettings')}</TabsTrigger>
-				</TabsList>
-				<TabsContent value="activity" className="pt-4">
-					<Activity history={history} />
-				</TabsContent>
-				<TabsContent value="polls" className="pt-4">
-					<MyPolls polls={myPolls} />
-				</TabsContent>
-				<TabsContent value="settings" className="pt-4">
-					<Settings profile={profile} />
-				</TabsContent>
-			</Tabs>
+			{props.isOwn ? (
+				<Tabs defaultValue="activity">
+					<TabsList variant="line">
+						<TabsTrigger value="activity">
+							{t('account.tabActivity')}
+							{props.insights.awaitingResults > 0 && (
+								<span className="ml-1.5 rounded-full bg-volt px-1.5 font-mono text-[11px] text-foreground ring-1 ring-foreground/30">
+									{props.insights.awaitingResults}
+								</span>
+							)}
+						</TabsTrigger>
+						<TabsTrigger value="polls">{t('account.tabPolls')}</TabsTrigger>
+						<TabsTrigger value="settings">{t('account.tabSettings')}</TabsTrigger>
+					</TabsList>
+					<TabsContent value="activity" className="pt-4">
+						<Activity history={props.history} />
+					</TabsContent>
+					<TabsContent value="polls" className="pt-4">
+						<MyPolls polls={props.myPolls} />
+					</TabsContent>
+					<TabsContent value="settings" className="pt-4">
+						<Settings profile={props.profile} visibility={visibility} setVisibility={setVisibility} />
+					</TabsContent>
+				</Tabs>
+			) : (
+				<section className="space-y-4">
+					<h2 className="font-medium">{t('profile.polls')}</h2>
+					<ProfilePollList username={profile.username} initialPage={props.polls} />
+				</section>
+			)}
 		</div>
 	);
 }
@@ -183,9 +229,16 @@ function MyPolls({ polls }: { polls: Poll[] }) {
 	);
 }
 
-function Settings({ profile }: { profile: MyProfile }) {
+function Settings({
+	profile,
+	visibility,
+	setVisibility,
+}: {
+	profile: MyProfile;
+	visibility: Record<string, boolean>;
+	setVisibility: (visibility: Record<string, boolean>) => void;
+}) {
 	const { t } = useLanguage();
-	const [visibility, setVisibility] = useState(profile.visibilitySettings ?? {});
 
 	const toggle = async (field: string, value: boolean) => {
 		const previous = visibility;

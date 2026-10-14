@@ -20,6 +20,19 @@ const DATE_FORMATTERS = {
 	zh: dateFormatter('zh'),
 } satisfies Record<LanguageCode, Intl.DateTimeFormat>;
 
+// UTC so the server render and the browser agree on the month
+const monthYearFormatter = (language: LanguageCode) =>
+	new Intl.DateTimeFormat(toPayloadLocale(language), { month: 'short', year: 'numeric', timeZone: 'UTC' });
+const MONTH_YEAR_FORMATTERS = {
+	en: monthYearFormatter('en'),
+	zh: monthYearFormatter('zh'),
+} satisfies Record<LanguageCode, Intl.DateTimeFormat>;
+
+/** "Aug 2026" / "2026年8月" */
+export function formatMonthYear(iso: string, language: LanguageCode) {
+	return MONTH_YEAR_FORMATTERS[language].format(new Date(iso));
+}
+
 /** "Oct 7, 22:00" in the reader's language and time zone. */
 export function formatPollDate(iso: string, language: LanguageCode) {
 	return DATE_FORMATTERS[language].format(new Date(iso));

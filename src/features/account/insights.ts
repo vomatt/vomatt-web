@@ -30,8 +30,6 @@ export function ballotHistory(polls: Poll[], now = Date.now()): BallotRecord[] {
 }
 
 export type Insights = {
-	votesCast: number;
-	pollsCreated: number;
 	/** People who voted on the user's polls. */
 	peopleReached: number;
 	/** Share of decided Ballots where the pick won or tied, 0–100; null before any are decided. */
@@ -40,7 +38,6 @@ export type Insights = {
 };
 
 export function computeInsights(
-	{ totalVotes, totalPolls }: { totalVotes: number; totalPolls: number },
 	myPolls: Poll[],
 	history: BallotRecord[]
 ): Insights {
@@ -50,8 +47,6 @@ export function computeInsights(
 	const majorityRate = decided.length ? Math.round((withMajority / decided.length) * 100) : null;
 
 	return {
-		votesCast: totalVotes,
-		pollsCreated: totalPolls,
 		peopleReached: turnouts.reduce((sum, count) => sum + count, 0),
 		majorityRate,
 		awaitingResults: history.filter((record) => record.outcome === 'pending').length,

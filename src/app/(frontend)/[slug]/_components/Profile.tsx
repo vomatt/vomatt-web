@@ -8,10 +8,8 @@ import { getUserProfile } from '@/lib/api/services/users';
 import type { MyProfile, UserProfile } from '@/types/user';
 
 import AccountPage from './AccountPage';
-import ProfileHeader from './ProfileHeader';
-import ProfilePollList from './ProfilePollList';
 
-/** Someone else's profile, as anyone may see it. */
+/** Someone else's profile: the account page minus what its owner keeps private. */
 export async function PublicProfile({
 	profile,
 	polls: pollsPromise,
@@ -23,15 +21,7 @@ export async function PublicProfile({
 }) {
 	const polls = await pollsPromise;
 
-	return (
-		<div className="px-contain max-w-2xl mx-auto py-6 space-y-6">
-			<ProfileHeader profile={profile} isAuthenticated={isAuthenticated} />
-			<div>
-				<h2 className="text-lg font-semibold mb-4">Polls</h2>
-				<ProfilePollList username={profile.username} initialPage={polls} />
-			</div>
-		</div>
-	);
+	return <AccountPage isOwn={false} profile={profile} polls={polls} isAuthenticated={isAuthenticated} />;
 }
 
 /** The signed-in user's own profile: their account page. */
@@ -46,27 +36,26 @@ export async function OwnProfile({ profile }: { profile: MyProfile }) {
 	const polls = [...open, ...ended];
 	const myPolls = polls.filter((poll) => poll.creatorId === profile.id);
 	const history = ballotHistory(polls);
-	const insights = computeInsights(profile, myPolls, history);
+	const insights = computeInsights(myPolls, history);
 
 	const avatarUrl = profile.avatarUrl !== undefined ? profile.avatarUrl : publicProfile?.avatarUrl;
 
-	return <AccountPage profile={{ ...profile, avatarUrl }} myPolls={myPolls} history={history} insights={insights} />;
+	return <AccountPage isOwn profile={{ ...profile, avatarUrl }} myPolls={myPolls} history={history} insights={insights} />;
 }
 
 export function ProfileSkeleton() {
 	return (
-		<div className="px-contain max-w-2xl mx-auto py-6 space-y-6">
-			<div className="rounded-xl border border-border bg-card p-6">
-				<div className="flex items-center gap-4">
-					<Skeleton className="size-16 rounded-full" />
-					<div className="flex-1 space-y-2">
-						<Skeleton className="h-5 w-40" />
-						<Skeleton className="h-3.5 w-24" />
-					</div>
+		<div className="px-contain mx-auto max-w-3xl space-y-8 py-6 md:py-10">
+			<div className="flex items-center gap-4">
+				<Skeleton className="size-16 rounded-full" />
+				<div className="flex-1 space-y-2">
+					<Skeleton className="h-8 w-48" />
+					<Skeleton className="h-3.5 w-24" />
 				</div>
 			</div>
+			<Skeleton className="h-20 rounded-xl" />
 			<div>
-				<Skeleton className="mb-4 h-6 w-16" />
+				<Skeleton className="mb-4 h-8 w-40" />
 				<PollListSkeleton />
 			</div>
 		</div>
