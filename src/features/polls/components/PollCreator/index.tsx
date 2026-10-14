@@ -395,6 +395,9 @@ export function PollCreator({
 														{...register(`options.${index}.text`)}
 														onKeyDown={(e) => {
 															if (e.key !== 'Enter') return;
+															// Enter that commits IME text (Zhuyin etc.) isn't a new line;
+															// moving focus now would drop the composed text into the next option
+															if (e.nativeEvent.isComposing || e.keyCode === 229) return;
 															// Return adds the next option instead of submitting
 															e.preventDefault();
 															if (index === fields.length - 1 && canAddOption) append({ text: '' });

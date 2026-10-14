@@ -3,7 +3,7 @@
 	"version": "0.2.0",
 	"private": true,
 	"scripts": {
-		"dev": "next",
+		"dev": "next dev --port=3002 --turbopack",
 		"build": "next build",
 		"lint": "eslint src",
 		"start": "vercel dev",

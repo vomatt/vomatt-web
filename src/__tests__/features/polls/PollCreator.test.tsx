@@ -110,6 +110,15 @@ describe('PollCreator', () => {
 		expect(await screen.findByLabelText('Option 3')).toBeInTheDocument();
 	});
 
+	it('leaves the options alone when Return only commits IME text', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		fillPoll();
+		fireEvent.keyDown(screen.getByLabelText('Option 2'), { key: 'Enter', isComposing: true });
+		fireEvent.keyDown(screen.getByLabelText('Option 2'), { key: 'Enter', keyCode: 229 });
+		expect(screen.queryByLabelText('Option 3')).not.toBeInTheDocument();
+	});
+
 	// ── Timing & privacy ──────────────────────────────────────────────────────
 
 	it('folds timing and privacy into a summary that opens on demand', async () => {
