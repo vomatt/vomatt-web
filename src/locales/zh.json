@@ -102,7 +102,13 @@
 		"participants": "人已投票",
 		"topics": "主題",
 		"sealedExplainer": "投票結束前結果保持密封，避免大家被即時票數影響。結束前你都可以更改或撤回你的票。",
-		"shareCta": "邀請其他人投票"
+		"shareCta": "邀請其他人投票",
+		"endedEarly": "已提前結束，原定於 {date} 截止。",
+		"invited": "{count} 人受邀",
+		"audience": {
+			"unlisted": "只有持有連結的人能找到，不會出現在動態或搜尋中。",
+			"invite-only": "只有受邀者能看到並投票。"
+		}
 	},
 	"profile": {
 		"notFoundTitle": "找不到這個個人頁",
@@ -125,11 +131,14 @@
 		"title": "通知",
 		"empty": "目前沒有通知。",
 		"unread": "未讀",
-		"intro": "你建立或參與、且已結束的投票。",
+		"intro": "投票邀請，以及你建立、參與或受邀且已結束的投票。",
 		"markAllHint": "打開投票即標為已讀。",
 		"loadFailed": "無法載入通知。",
 		"ended": "結果出爐",
-		"cancelled": "已取消"
+		"cancelled": "已取消",
+		"invitations": "投票邀請",
+		"results": "結果",
+		"invitedBy": "{name} 邀請了你"
 	},
 	"pollCreator": {
 		"title": "新的投票",
@@ -252,14 +261,11 @@
 		"visibility": {
 			"nobody": "結束後，沒有人能看到你選了什麼。",
 			"owner": "結束後，只有發起人能看到你選了什麼。",
-			"signed-in": "結束後，所有登入的使用者都能看到你選了什麼。"
+			"signed-in": "結束後，所有登入的使用者都能看到你選了什麼。",
+			"invited": "結束後，所有受邀者都能看到你選了什麼。"
 		},
 		"edit": "編輯",
-		"cancelPoll": "取消投票",
-		"cancelPollTitle": "要取消這個投票嗎？",
-		"cancelPollBody": "投票不會開始，也不會通知任何人。",
 		"keepPoll": "保留投票",
-		"cancelFailed": "無法取消投票，請再試一次。",
 		"stamp": "已投票",
 		"discuss": "討論",
 		"votersHint": "點選選項查看誰投了它",
@@ -267,7 +273,21 @@
 		"votersHidden": "你無法查看此投票的投票者。",
 		"votersTruncated": "這裡只能列出前 {count} 位投票者。",
 		"votersNone": "沒有可顯示的投票者。",
-		"votersFailed": "無法載入投票者。"
+		"votersFailed": "無法載入投票者。",
+		"deletePoll": "刪除投票",
+		"deletePollTitle": "要刪除這個投票嗎？",
+		"deletePollBody": "投票會連同票數與留言一起為所有人移除，且不會通知任何人。",
+		"deleted": "已刪除投票。",
+		"deleteFailed": "無法刪除投票，請再試一次。",
+		"endNow": "立即結束",
+		"endNowTitle": "要立即結束這個投票嗎？",
+		"endNowBody": "投票會停止並公開結果，且無法復原。",
+		"endFailed": "無法結束投票，請再試一次。",
+		"audience": {
+			"public": "公開",
+			"unlisted": "不公開列出",
+			"invite-only": "僅限受邀者"
+		}
 	},
 	"auth": {
 		"continueWithEmail": "使用電子郵件繼續"

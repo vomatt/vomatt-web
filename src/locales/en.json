@@ -101,7 +101,13 @@
 		"participants": "people voted",
 		"topics": "Topics",
 		"sealedExplainer": "Votes stay sealed until the poll ends, so no one is swayed by the running count. You can change or withdraw your vote until then.",
-		"shareCta": "Invite others to vote"
+		"shareCta": "Invite others to vote",
+		"endedEarly": "Ended early. It was set to close {date}.",
+		"invited": "{count} invited",
+		"audience": {
+			"unlisted": "Only people with the link can find it. It isn't listed in the feed or search.",
+			"invite-only": "Only the people invited can see it and vote."
+		}
 	},
 	"profile": {
 		"notFoundTitle": "This profile doesn't exist",
@@ -129,11 +135,14 @@
 		"title": "Notifications",
 		"empty": "No notifications yet.",
 		"unread": "Unread",
-		"intro": "Polls you created or voted in that have ended.",
+		"intro": "Invitations, and polls you created, voted in or were invited to that have ended.",
 		"markAllHint": "Opening a poll marks it read.",
 		"loadFailed": "Couldn't load notifications.",
 		"ended": "Results are in",
-		"cancelled": "Cancelled"
+		"cancelled": "Cancelled",
+		"invitations": "Invitations",
+		"results": "Results",
+		"invitedBy": "{name} invited you"
 	},
 	"pollCreator": {
 		"title": "New poll",
@@ -256,14 +265,11 @@
 		"visibility": {
 			"nobody": "After it ends, no one can see what you chose.",
 			"owner": "After it ends, only the poll owner can see what you chose.",
-			"signed-in": "After it ends, anyone signed in can see what you chose."
+			"signed-in": "After it ends, anyone signed in can see what you chose.",
+			"invited": "After it ends, everyone invited can see what you chose."
 		},
 		"edit": "Edit",
-		"cancelPoll": "Cancel poll",
-		"cancelPollTitle": "Cancel this poll?",
-		"cancelPollBody": "It won't open, and no one will be notified.",
 		"keepPoll": "Keep poll",
-		"cancelFailed": "Couldn't cancel the poll. Try again.",
 		"stamp": "Voted",
 		"discuss": "Discuss",
 		"votersHint": "Select an option to see who chose it",
@@ -271,7 +277,21 @@
 		"votersHidden": "You can't see who voted in this poll.",
 		"votersTruncated": "Only the first {count} voters can be listed here.",
 		"votersNone": "No one to show.",
-		"votersFailed": "Couldn't load who voted."
+		"votersFailed": "Couldn't load who voted.",
+		"deletePoll": "Delete poll",
+		"deletePollTitle": "Delete this poll?",
+		"deletePollBody": "It's removed for everyone, with its votes and comments. No one is notified.",
+		"deleted": "Poll deleted.",
+		"deleteFailed": "Couldn't delete the poll. Try again.",
+		"endNow": "End now",
+		"endNowTitle": "End this poll now?",
+		"endNowBody": "Voting stops and the results are revealed. This can't be undone.",
+		"endFailed": "Couldn't end the poll. Try again.",
+		"audience": {
+			"public": "Public",
+			"unlisted": "Unlisted",
+			"invite-only": "Invite only"
+		}
 	},
 	"auth": {
 		"continueWithEmail": "Continue with email"

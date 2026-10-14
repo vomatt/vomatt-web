@@ -1,4 +1,10 @@
-import { derivePollStatus, getTurnout, isCancelled, timelineProgress } from '@/features/polls/status';
+import {
+	derivePollStatus,
+	endedEarly,
+	getTurnout,
+	isCancelled,
+	timelineProgress,
+} from '@/features/polls/status';
 
 const NOW = Date.parse('2026-10-05T12:00:00Z');
 const hours = (h: number) => new Date(NOW + h * 3600_000).toISOString();
@@ -93,5 +99,16 @@ describe('isCancelled()', () => {
 
 	it('is false for a poll that ran', () => {
 		expect(isCancelled(base)).toBe(false);
+	});
+});
+
+describe('endedEarly()', () => {
+	it('is true when the Poll ended before its Deadline', () => {
+		expect(endedEarly({ endTime: hours(-2), deadline: hours(24) })).toBe(true);
+	});
+
+	it('is false when it ran to its Deadline, or the API sends none', () => {
+		expect(endedEarly({ endTime: hours(-2), deadline: hours(-2) })).toBe(false);
+		expect(endedEarly({ endTime: hours(-2) })).toBe(false);
 	});
 });

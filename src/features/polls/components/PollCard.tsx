@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from 'motion/react';
 import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useState } from 'react';
 
 import { AuthDialog } from '@/components/auth/AuthDialog';
@@ -16,9 +17,10 @@ import { useRequireAuth } from '../hooks/useRequireAuth';
 import type { Poll } from '../schema';
 import { getPoll } from '../service';
 import { derivePollStatus } from '../status';
+import { AudienceLabel } from './AudienceLabel';
 import { Ballot } from './Ballot';
 import { CommentThread } from './CommentThread';
-import { OwnerActions } from './OwnerActions';
+import { getOwnerActions, OwnerActions } from './OwnerActions';
 import { PollFooter } from './PollFooter';
 import { type ResultRow, Results } from './Results';
 import { StatusChip } from './StatusChip';
@@ -36,7 +38,10 @@ interface PollCardProps {
 export function PollCard({ poll: initialPoll, viewerId, defaultShowComments = false }: PollCardProps) {
 	const { currentLanguage } = useLanguage();
 	const isHydrated = useHydrated();
+	const router = useRouter();
+	const pathname = usePathname();
 	const [poll, setPoll] = useState(initialPoll);
+	const [isDeleted, setIsDeleted] = useState(false);
 	const [showComments, setShowComments] = useState(defaultShowComments);
 	const { isAuthed, requireAuth, authDialog } = useRequireAuth(!!viewerId);
 	const thread = useComments(initialPoll.id, {
@@ -62,6 +67,17 @@ export function PollCard({ poll: initialPoll, viewerId, defaultShowComments = fa
 		voters.load(row);
 	};
 
+	// The Poll's own page is gone with it; in a list the card just leaves
+	const handleDeleted = () => {
+		if (pathname === `/poll/${id}`) router.replace('/my-polls');
+		else setIsDeleted(true);
+	};
+	if (isDeleted) return null;
+
+	const ownerActions = isOwner && getOwnerActions(poll, status).any && (
+		<OwnerActions poll={poll} status={status} onChanged={refetch} onDeleted={handleDeleted} />
+	);
+
 	return (
 		<article className="group bg-card border border-border rounded-xl">
 			<div className="p-4 space-y-4 md:p-6">
@@ -76,6 +92,7 @@ export function PollCard({ poll: initialPoll, viewerId, defaultShowComments = fa
 						<time dateTime={createdAt} className="shrink-0 whitespace-nowrap">
 							{isHydrated && formatFromNow(createdAt, currentLanguage)}
 						</time>
+						<AudienceLabel audience={poll.audience} />
 					</div>
 					<StatusChip status={status} poll={poll} />
 				</div>
@@ -116,11 +133,15 @@ export function PollCard({ poll: initialPoll, viewerId, defaultShowComments = fa
 								status={status}
 								ballot={ballot}
 								requireAuth={requireAuth}
-								ownerActions={isOwner && <OwnerActions poll={poll} onChanged={refetch} />}
+								ownerActions={status === 'scheduled' && ownerActions}
 							/>
 						)}
 					</motion.div>
 				</AnimatePresence>
+
+				{status !== 'scheduled' && ownerActions && (
+					<div className="flex justify-end">{ownerActions}</div>
+				)}
 			</div>
 
 			<PollFooter

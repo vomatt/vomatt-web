@@ -10,7 +10,7 @@ const CLOSING_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 type StatusFields = Pick<Poll, 'active' | 'votingActive' | 'startTime' | 'endTime'>;
 
-/** Ended wins over Scheduled, so a cancelled Scheduled Poll reads as Ended. */
+/** Ended wins over Scheduled, so an old cancelled Scheduled Poll reads as Ended. */
 export function derivePollStatus(poll: StatusFields, now: Date | number = Date.now()): PollStatus {
 	const time = typeof now === 'number' ? now : now.getTime();
 	const end = poll.endTime ? Date.parse(poll.endTime) : null;
@@ -22,9 +22,17 @@ export function derivePollStatus(poll: StatusFields, now: Date | number = Date.n
 	return 'open';
 }
 
-/** Cancelled: closed before it opened, so it never took a Ballot or sends a notification. */
+/**
+ * Cancelled: closed before it opened, so it never took a Ballot or sends a
+ * notification. The API no longer cancels (Scheduled Polls are Deleted), but old ones remain.
+ */
 export function isCancelled(poll: Pick<Poll, 'startTime' | 'endTime'>) {
 	return !!poll.endTime && Date.parse(poll.endTime) <= Date.parse(poll.startTime);
+}
+
+/** Ended before its Deadline: Closed by the owner, or every Invitee voted. */
+export function endedEarly(poll: Pick<Poll, 'endTime' | 'deadline'>) {
+	return !!poll.endTime && !!poll.deadline && Date.parse(poll.endTime) < Date.parse(poll.deadline);
 }
 
 /** The options with the most votes; none when nobody voted. */

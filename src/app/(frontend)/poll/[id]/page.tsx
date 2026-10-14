@@ -89,12 +89,16 @@ async function PollDetail({ id }: { id: string }) {
 	}
 
 	const { poll } = lookup;
-	// Only owners and Participants of an Ended (not Cancelled) Poll get its notification
+	const isOwner = poll.creatorId === user?.sub;
+	// Only the owner and Invitees can see an Invite-only Poll, so any other viewer is an Invitee
+	const isInvitee = poll.audience === 'invite-only' && !isOwner;
+	// An Invitee has an Invitation until the Poll Ends; then the owner, Participants
+	// and Invitees get the Ended Notification (not for a Cancelled Poll)
 	const hasNotification =
 		!!user &&
-		derivePollStatus(poll) === 'ended' &&
-		!isCancelled(poll) &&
-		(poll.creatorId === user.sub || !!poll.myOptionId);
+		(derivePollStatus(poll) === 'ended'
+			? !isCancelled(poll) && (isOwner || isInvitee || !!poll.myOptionId)
+			: isInvitee);
 
 	return (
 		<div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
