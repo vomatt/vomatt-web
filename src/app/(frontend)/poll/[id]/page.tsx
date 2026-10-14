@@ -77,7 +77,8 @@ async function PollDetail({ id }: { id: string }) {
 	const [lookup, user] = await Promise.all([lookupPoll(id), getUserSession()]);
 
 	if (!lookup.poll) {
-		return lookup.reason !== 'not-found' ? (
+		// Signed out, a 404 may be an Invite-only Poll (e.g. from an invitation email)
+		return lookup.reason !== 'not-found' || !user ? (
 			<LoginPrompt
 				className="block mx-auto max-w-sm"
 				redirectTo={`/poll/${id}`}

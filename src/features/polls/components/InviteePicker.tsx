@@ -125,6 +125,14 @@ export function InviteePicker({ value, onChange, withGroups = false, id, invalid
 			label: address,
 			remove: () => onChange({ ...value, emails: value.emails.filter((e) => e !== address) }),
 		})),
+		// A picked Group without a pill (deleted since a draft was saved, or Groups didn't load)
+		...value.groups
+			.filter((picked) => !groups.some((group) => group.id === picked.id))
+			.map((group) => ({
+				key: `group:${group.id}`,
+				label: group.name,
+				remove: () => onChange({ ...value, groups: value.groups.filter((g) => g.id !== group.id) }),
+			})),
 	];
 
 	return (
@@ -219,7 +227,7 @@ export function InviteePicker({ value, onChange, withGroups = false, id, invalid
 								type="button"
 								aria-label={t('invitees.remove', { name: chip.label })}
 								onClick={chip.remove}
-								className="grid size-8 place-items-center rounded-full text-muted-foreground hover:text-foreground"
+								className="-my-1.5 grid size-11 place-items-center rounded-full text-muted-foreground hover:text-foreground"
 							>
 								<X className="size-3.5" />
 							</button>

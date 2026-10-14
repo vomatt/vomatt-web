@@ -6,7 +6,7 @@ import { getUserSession } from '@/data/auth';
 import { NotificationList } from '@/features/notifications/NotificationList';
 import { PollListSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import { NOTIFICATIONS_PAGE_SIZE } from '@/features/polls/constants';
-import { getMyPolls } from '@/features/polls/service';
+import { getAllMyPolls, getMyPolls } from '@/features/polls/service';
 import { isInvitee } from '@/features/polls/status';
 
 export const metadata: Metadata = { title: 'Notifications' };
@@ -30,9 +30,10 @@ export default async function NotificationsPage() {
  */
 async function Notifications({ viewerId }: { viewerId: string }) {
 	const [open, firstPage] = await Promise.all([
-		getMyPolls('open').catch(() => null),
+		// Every page: an Invitation can sort anywhere in the Open list
+		getAllMyPolls('open').catch(() => null),
 		getMyPolls('ended', null, NOTIFICATIONS_PAGE_SIZE).catch(() => null),
 	]);
-	const invitations = (open?.items ?? []).filter((poll) => isInvitee(poll, viewerId));
+	const invitations = (open ?? []).filter((poll) => isInvitee(poll, viewerId));
 	return <NotificationList initialPage={firstPage} invitations={invitations} />;
 }

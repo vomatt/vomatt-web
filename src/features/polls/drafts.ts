@@ -11,8 +11,8 @@ export function listDrafts(): PollDraft[] {
 	try {
 		const drafts: PollDraft[] = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]');
 		if (!Array.isArray(drafts)) return [];
-		// Drafts saved before Audience existed lack it and the Invitees
-		return drafts.map((draft) => ({
+		// Drafts saved before Audience existed lack it and the Invitees; skip malformed entries
+		return drafts.filter((draft) => draft?.values).map((draft) => ({
 			...draft,
 			values: {
 				...draft.values,

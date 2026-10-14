@@ -84,7 +84,13 @@ export function PollCard({
 	if (isDeleted) return null;
 
 	const ownerActions = isOwner && getOwnerActions(poll, status).any && (
-		<OwnerActions poll={poll} status={status} onChanged={refetch} onDeleted={handleDeleted} />
+		<OwnerActions
+			poll={poll}
+			status={status}
+			onChanged={refetch}
+			onInviteeCount={(count) => setPoll((current) => ({ ...current, inviteeCount: count }))}
+			onDeleted={handleDeleted}
+		/>
 	);
 
 	return (
@@ -142,15 +148,13 @@ export function PollCard({
 								status={status}
 								ballot={ballot}
 								requireAuth={requireAuth}
-								ownerActions={status === 'scheduled' && ownerActions}
 							/>
 						)}
 					</motion.div>
 				</AnimatePresence>
 
-				{status !== 'scheduled' && ownerActions && (
-					<div className="flex justify-end">{ownerActions}</div>
-				)}
+				{/* One fixed place, so a status change never remounts an open owner dialog */}
+				{ownerActions && <div className="flex justify-end">{ownerActions}</div>}
 			</div>
 
 			<PollFooter

@@ -47,4 +47,12 @@ describe('DraftList', () => {
 		localStorage.setItem('vomatt_poll_drafts', JSON.stringify([{ id: 'd1', savedAt: '', values: old }]));
 		expect(listDrafts()[0].values).toMatchObject({ audience: 'public', invitees: { users: [] } });
 	});
+
+	it('skips a malformed draft instead of hiding them all', () => {
+		localStorage.setItem(
+			'vomatt_poll_drafts',
+			JSON.stringify([{ id: 'd1', savedAt: '', values }, { id: 'd2', savedAt: '' }])
+		);
+		expect(listDrafts().map((draft) => draft.id)).toEqual(['d1']);
+	});
 });

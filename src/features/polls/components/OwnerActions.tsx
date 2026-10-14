@@ -29,6 +29,8 @@ type OwnerActionsProps = {
 	status: PollStatus;
 	/** Refetch the Poll after an edit or End now. */
 	onChanged: () => void;
+	/** The Invitee count changed without the Poll Ending. */
+	onInviteeCount: (count: number) => void;
 	onDeleted: () => void;
 };
 
@@ -50,7 +52,13 @@ export function getOwnerActions(poll: Poll, status: PollStatus) {
 }
 
 /** The owner's controls (see getOwnerActions); render it only when `any` of them apply. */
-export function OwnerActions({ poll, status, onChanged, onDeleted }: OwnerActionsProps) {
+export function OwnerActions({
+	poll,
+	status,
+	onChanged,
+	onInviteeCount,
+	onDeleted,
+}: OwnerActionsProps) {
 	const { t } = useLanguage();
 	const [isEditing, setIsEditing] = useState(false);
 	const [isInviting, setIsInviting] = useState(false);
@@ -120,7 +128,17 @@ export function OwnerActions({ poll, status, onChanged, onDeleted }: OwnerAction
 				<PollCreator poll={poll} open onOpenChange={setIsEditing} onSaved={onChanged} />
 			)}
 			{isInviting && (
-				<InviteeManager pollId={poll.id} open onOpenChange={setIsInviting} onChanged={onChanged} />
+				<InviteeManager
+					pollId={poll.id}
+					open
+					onOpenChange={setIsInviting}
+					// The Poll Ends once every Invitee holds a Ballot; only then refetch it
+					onChanged={(invitees) =>
+						invitees.length > 0 && invitees.every((invitee) => invitee.hasBallot)
+							? onChanged()
+							: onInviteeCount(invitees.length)
+					}
+				/>
 			)}
 
 			<AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>

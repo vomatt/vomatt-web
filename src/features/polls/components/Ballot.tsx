@@ -20,12 +20,10 @@ type BallotProps = {
 	status: Exclude<PollStatus, 'ended'>;
 	ballot: BallotState;
 	requireAuth: (action: () => void) => void;
-	/** Owner controls for a Scheduled Poll. */
-	ownerActions?: React.ReactNode;
 };
 
 /** Card states A (no Ballot), B (has Ballot) and C (Scheduled). Never shows counts. */
-export function Ballot({ poll, status, ballot, requireAuth, ownerActions }: BallotProps) {
+export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 	const { t, currentLanguage } = useLanguage();
 	const isHydrated = useHydrated();
 	const [confirmingWithdraw, setConfirmingWithdraw] = useState(false);
@@ -67,7 +65,6 @@ export function Ballot({ poll, status, ballot, requireAuth, ownerActions }: Ball
 					{isHydrated &&
 						t('poll.opensHint', { distance: formatFromNow(poll.startTime, currentLanguage) })}
 				</span>
-				{ownerActions}
 			</>
 		);
 	} else if (confirmingWithdraw) {

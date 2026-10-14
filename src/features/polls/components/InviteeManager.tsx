@@ -25,8 +25,8 @@ type InviteeManagerProps = {
 	pollId: string;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	/** The Invitee count changed, or removing someone ended the Poll. */
-	onChanged: () => void;
+	/** Called with the new list after every change. */
+	onChanged: (invitees: Invitee[]) => void;
 };
 
 
@@ -65,7 +65,7 @@ export function InviteeManager({ pollId, open, onOpenChange, onChanged }: Invite
 		}
 		setInvitees(result.data);
 		setSelection(EMPTY_INVITEES);
-		onChanged();
+		onChanged(result.data);
 	};
 
 	const remove = async (invitee: Invitee) => {
@@ -77,7 +77,7 @@ export function InviteeManager({ pollId, open, onOpenChange, onChanged }: Invite
 			return;
 		}
 		setInvitees(result.data);
-		onChanged();
+		onChanged(result.data);
 	};
 
 	const voted = invitees?.filter((invitee) => invitee.hasBallot).length ?? 0;

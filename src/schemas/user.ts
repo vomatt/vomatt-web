@@ -4,8 +4,9 @@ import { z } from 'zod';
 export const UserDtoSchema = z.object({
 	id: z.string(),
 	username: z.string(),
-	displayName: z.string().nullable(),
-	avatarUrl: z.string().nullable(),
+	// nullish: tolerate the API leaving out an empty field
+	displayName: z.string().nullish(),
+	avatarUrl: z.string().nullish(),
 });
 
 export const UserProfileSchema = z.object({
