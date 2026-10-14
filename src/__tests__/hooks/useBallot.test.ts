@@ -59,6 +59,21 @@ describe('useBallot outcomes', () => {
 		expect(outcome).toBe('ended');
 	});
 
+	it('reports an ended poll when the Ballot was the last one it waited for', async () => {
+		mockCastBallot.mockResolvedValue({
+			ok: true,
+			data: { ...poll, active: true, votingActive: false, startTime: '2026-10-01T00:00:00Z', endTime: '2026-10-02T00:00:00Z' },
+		});
+		const onPollEnded = jest.fn();
+		const { result } = renderHook(() => useBallot(poll, { isAuthed: true, onPollEnded }));
+		let outcome: string | undefined;
+		await act(async () => {
+			outcome = await result.current.cast('opt-a');
+		});
+		expect(outcome).toBe('saved');
+		expect(onPollEnded).toHaveBeenCalled();
+	});
+
 	it('looks up the Ballot when a guest signs in on the card', async () => {
 		mockGetMyBallot.mockResolvedValue('opt-a');
 		const { result, rerender } = renderHook(
