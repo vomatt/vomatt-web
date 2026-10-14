@@ -13,7 +13,7 @@ import { PollCard } from '@/features/polls/components/PollCard';
 import { PollCardSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import type { Poll } from '@/features/polls/schema';
 import { getPoll } from '@/features/polls/service';
-import { derivePollStatus, isCancelled } from '@/features/polls/status';
+import { derivePollStatus, isCancelled, isInvitee } from '@/features/polls/status';
 import { AuthError } from '@/lib/api/client';
 
 type Lookup =
@@ -77,7 +77,8 @@ async function PollDetail({ id }: { id: string }) {
 	const [lookup, user] = await Promise.all([lookupPoll(id), getUserSession()]);
 
 	if (!lookup.poll) {
-		return lookup.reason !== 'not-found' ? (
+		// Signed out, a 404 may be an Invite-only Poll (e.g. from an invitation email)
+		return lookup.reason !== 'not-found' || !user ? (
 			<LoginPrompt
 				className="block mx-auto max-w-sm"
 				redirectTo={`/poll/${id}`}
@@ -89,17 +90,19 @@ async function PollDetail({ id }: { id: string }) {
 	}
 
 	const { poll } = lookup;
-	// Only owners and Participants of an Ended (not Cancelled) Poll get its notification
+	// An Invitee has an Invitation until the Poll Ends; then the owner, Participants
+	// and Invitees get the Ended Notification (not for a Cancelled Poll)
+	const invited = !!user && isInvitee(poll, user.sub);
 	const hasNotification =
 		!!user &&
-		derivePollStatus(poll) === 'ended' &&
-		!isCancelled(poll) &&
-		(poll.creatorId === user.sub || !!poll.myOptionId);
+		(derivePollStatus(poll) === 'ended'
+			? !isCancelled(poll) && (poll.creatorId === user.sub || invited || !!poll.myOptionId)
+			: invited);
 
 	return (
 		<div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
 			{hasNotification && <MarkNotificationRead pollId={poll.id} />}
-			<PollCard poll={lookup.poll} viewerId={user?.sub} defaultShowComments />
+			<PollCard poll={lookup.poll} viewerId={user?.sub} defaultShowComments deletedHref="/my-polls" />
 			<div className="lg:sticky lg:top-6">
 				<PollAbout poll={lookup.poll} />
 			</div>

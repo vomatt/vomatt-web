@@ -11,7 +11,7 @@ import { Search } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PollListItem } from '@/features/polls/components/PollListItem';
 import { StatusChip } from '@/features/polls/components/StatusChip';
-import { EXPLORE_PAGE_SIZE, SEARCH_MIN_LENGTH } from '@/features/polls/constants';
+import { EXPLORE_PAGE_SIZE, SEARCH_DEBOUNCE_MS, SEARCH_MIN_LENGTH } from '@/features/polls/constants';
 import type { Poll, TagDto } from '@/features/polls/schema';
 import { getPolls, type PollListQuery } from '@/features/polls/service';
 import { derivePollStatus, getTurnout } from '@/features/polls/status';
@@ -20,9 +20,7 @@ import type { CursorPage } from '@/lib/api/cursor';
 import { topicHref } from '@/lib/routes';
 
 type Status = 'open' | 'ended';
-type Sort = 'newest' | 'closing';
-
-const SEARCH_DEBOUNCE_MS = 300;
+type Sort = 'newest' | 'closing' | 'top';
 
 /** The query sent to the API; a search under the minimum length is no search. */
 export function toExploreQuery(query: string, status: Status, sort: Sort): PollListQuery {
@@ -149,6 +147,7 @@ export function ExploreView({
 						<div className="flex gap-1.5" role="group" aria-label={t('explore.sort')}>
 							<Pill active={sort === 'newest'} onClick={() => setSort('newest')}>{t('explore.sortNewest')}</Pill>
 							<Pill active={sort === 'closing'} onClick={() => setSort('closing')}>{t('explore.sortEnding')}</Pill>
+							<Pill active={sort === 'top'} onClick={() => setSort('top')}>{t('explore.sortTop')}</Pill>
 						</div>
 					)}
 				</div>

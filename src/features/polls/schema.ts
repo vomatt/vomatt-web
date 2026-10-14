@@ -78,6 +78,46 @@ const ApiVoterVisibilitySchema = z
 	.enum(['NOBODY', 'OWNER', 'SIGNED_IN'])
 	.transform((level) => FROM_API_VOTER_VISIBILITY[level]);
 
+/**
+ * Who can reach the Poll: anyone (listed in Feed, Explore and Search), only
+ * people with its link, or only the owner and its Invitees. Fixed once Open.
+ */
+export const AudienceSchema = z.enum(['public', 'unlisted', 'invite-only']);
+export const DEFAULT_AUDIENCE: Audience = 'public';
+
+const API_AUDIENCE = {
+	public: 'PUBLIC',
+	unlisted: 'UNLISTED',
+	'invite-only': 'INVITE_ONLY',
+} as const satisfies Record<Audience, string>;
+
+export function toApiAudience(audience: Audience) {
+	return API_AUDIENCE[audience];
+}
+
+const FROM_API_AUDIENCE = {
+	PUBLIC: 'public',
+	UNLISTED: 'unlisted',
+	INVITE_ONLY: 'invite-only',
+} as const satisfies Record<string, Audience>;
+
+const ApiAudienceSchema = z
+	.enum(['PUBLIC', 'UNLISTED', 'INVITE_ONLY'])
+	.transform((audience) => FROM_API_AUDIENCE[audience]);
+
+/**
+ * An Invitee of an Invite-only Poll, as its owner sees it: a user added by ID
+ * (`userId`, `username`), or an email address (`email`; never says whether it
+ * belongs to an account). One who holds a Ballot can't be removed.
+ */
+export const InviteeSchema = z.object({
+	userId: z.string().nullable(),
+	username: z.string().nullable(),
+	email: z.string().nullable(),
+	hasBallot: z.boolean(),
+	invitedAt: DateTime,
+});
+
 /** One Participant's Ballot, from GET /votes/{id}/voters (Ended Polls only). */
 export const VoterSchema = z.object({
 	userId: z.string(),
@@ -123,11 +163,21 @@ export const PollSchema = z.object({
 	updatedAt: DateTime.nullish(),
 	startTime: DateTime,
 	endTime: DateTime.nullable(),
+	/** The end time the owner set; `endTime` earlier than this means the Poll ended early. */
+	deadline: DateTime.optional(),
+	audience: ApiAudienceSchema.optional(),
+	/** Invite-only Polls only; null for other Audiences. */
+	inviteeCount: z.number().int().nullish(),
+	/** Owner only: whether the Poll can still be Deleted. Null for everyone else. */
+	deletable: z.boolean().nullish(),
 	totalVotes: z.number().int().optional(),
 	participantCount: z.number().int().optional(),
 	commentCount: z.number().int().optional(),
 	myOptionId: z.string().nullable().optional(),
-	/** Ended Notification not yet read; only set on `/votes/my?status=ended`. */
+	/**
+	 * Only set on My Polls: an unread Invitation (`status=open`) or an unread
+	 * Ended Notification (`status=ended`).
+	 */
 	unread: z.boolean().nullish(),
 	options: z.array(PollOptionSchema),
 	tags: z.array(TagDtoSchema).nullish(),
@@ -191,6 +241,13 @@ export const UpdateCommentRequestSchema = z.object({
 	text: z.string().min(1).max(2000),
 });
 
+/** Who to invite to an Invite-only Poll; Groups are copied in as their current members. */
+export interface InviteesInput {
+	userIds: string[];
+	emails: string[];
+	groupIds: string[];
+}
+
 /** What the creator hands to the service. Times are full ISO strings with an offset. */
 export interface PollInput {
 	title: string;
@@ -199,12 +256,21 @@ export interface PollInput {
 	startTime: string;
 	endTime: string;
 	voterVisibility: VoterVisibility;
+	/** Omitted: Public on create, unchanged on edit. */
+	audience?: Audience;
+	/**
+	 * Invite-only only. On edit the user and email lists replace the current
+	 * Invitees, so pass every Invitee to keep.
+	 */
+	invitees?: InviteesInput;
 }
 
 export type Comment = z.infer<typeof CommentSchema>;
 export type PollOption = z.infer<typeof PollOptionSchema>;
 export type TagDto = z.infer<typeof TagDtoSchema>;
 export type VoterVisibility = z.infer<typeof VoterVisibilitySchema>;
+export type Audience = z.infer<typeof AudienceSchema>;
+export type Invitee = z.infer<typeof InviteeSchema>;
 export type Voter = z.infer<typeof VoterSchema>;
 export type PollResults = z.infer<typeof PollResultsSchema>;
 export type UserVoteStatus = z.infer<typeof UserVoteStatusSchema>;

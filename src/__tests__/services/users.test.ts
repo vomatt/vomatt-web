@@ -56,7 +56,7 @@ describe('getUserProfile()', () => {
 describe('searchUsers()', () => {
   beforeEach(() => {
     mockApiClient.mockResolvedValue({
-      items: [{ id: 'u1', username: 'bob', email: 'bob@example.com' }],
+      items: [{ id: 'u1', username: 'bob', displayName: 'Bob', avatarUrl: null }],
       nextCursor: 'abc',
     });
   });
@@ -73,9 +73,9 @@ describe('searchUsers()', () => {
     );
   });
 
-  it('returns usernames only, with the next cursor', async () => {
+  it('returns public fields, with the next cursor', async () => {
     expect(await searchUsers('bob')).toEqual({
-      items: [{ id: 'u1', username: 'bob' }],
+      items: [{ id: 'u1', username: 'bob', displayName: 'Bob', avatarUrl: null }],
       nextCursor: 'abc',
     });
   });

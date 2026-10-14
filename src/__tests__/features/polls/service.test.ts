@@ -1,12 +1,15 @@
 import { isPollEnded, isSealed } from '@/features/polls/errors';
 import {
+	addInvitees,
 	castBallot,
 	closePoll,
 	createPoll,
 	deleteComment,
+	deletePoll,
 	getAllMyPolls,
 	getComments,
 	getFeed,
+	getInvitees,
 	getMyBallot,
 	getMyPolls,
 	getPoll,
@@ -17,6 +20,7 @@ import {
 	getVoters,
 	likeComment,
 	postComment,
+	removeInvitee,
 	retractBallot,
 	unlikeComment,
 	updateComment,
@@ -132,6 +136,23 @@ describe('getPoll()', () => {
 		expect(poll?.voterVisibility).toBe('owner');
 	});
 
+	it('parses Audience, Deadline, invitee count and deletable', async () => {
+		mockApiClient.mockResolvedValue({
+			...newPoll,
+			audience: 'INVITE_ONLY',
+			deadline: '2026-10-08T22:00:00+08:00',
+			inviteeCount: 12,
+			deletable: true,
+		});
+		const poll = await getPoll('poll-2');
+		expect(poll).toMatchObject({
+			audience: 'invite-only',
+			deadline: '2026-10-08T22:00:00+08:00',
+			inviteeCount: 12,
+			deletable: true,
+		});
+	});
+
 	it('asks with optional auth and the poll tag (apiClient skips the cache when signed in)', async () => {
 		mockApiClient.mockResolvedValue(oldPoll);
 		await getPoll('poll-1');
@@ -200,6 +221,12 @@ describe('getPolls()', () => {
 		mockPublicFetch.mockResolvedValue(page([]));
 		await getPolls({ status: 'open', sort: 'closing', q: ' side project ' }, null, 20);
 		expect(mockPublicFetch.mock.calls[0][0]).toBe('/votes?limit=20&sort=closing&q=side+project');
+	});
+
+	it('sends the top sort', async () => {
+		mockPublicFetch.mockResolvedValue(page([]));
+		await getPolls({ status: 'open', sort: 'top' });
+		expect(mockPublicFetch.mock.calls[0][0]).toBe('/votes?limit=10&sort=top');
 	});
 
 	it('never sends sort with ended (the API rejects it)', async () => {
@@ -294,8 +321,9 @@ describe('getMyBallot()', () => {
 
 describe('castBallot()', () => {
 	it('sends a single option and invalidates the poll', async () => {
+		mockApiClient.mockResolvedValue(newPoll);
 		const result = await castBallot('poll-1', 'opt-1');
-		expect(result).toEqual({ ok: true, data: undefined });
+		expect(result).toEqual({ ok: true, data: expect.objectContaining({ id: 'poll-2' }) });
 		expect(mockApiClient).toHaveBeenCalledWith('/votes/poll-1/vote', {
 			method: 'POST',
 			body: JSON.stringify({ optionIds: ['opt-1'] }),
@@ -375,6 +403,37 @@ describe('createPoll() and updatePoll()', () => {
 		expect(updateTag).toHaveBeenCalledWith('polls-feed');
 	});
 
+	it('sends the Audience in the API\'s spelling, without Invitee lists', async () => {
+		await createPoll({
+			...input,
+			audience: 'unlisted',
+			invitees: { userIds: ['u1'], emails: [], groupIds: [] },
+		});
+		const body = JSON.parse(mockApiClient.mock.calls[0][1]!.body as string);
+		expect(body.audience).toBe('UNLISTED');
+		expect(body).not.toHaveProperty('inviteeIds');
+		expect(body).not.toHaveProperty('groupIds');
+	});
+
+	it('sends users, emails and Groups for an Invite-only Poll', async () => {
+		await createPoll({
+			...input,
+			audience: 'invite-only',
+			invitees: { userIds: ['u1'], emails: ['carol@example.com'], groupIds: ['g1'] },
+		});
+		expect(JSON.parse(mockApiClient.mock.calls[0][1]!.body as string)).toMatchObject({
+			audience: 'INVITE_ONLY',
+			inviteeIds: ['u1'],
+			inviteeEmails: ['carol@example.com'],
+			groupIds: ['g1'],
+		});
+	});
+
+	it('leaves the Audience out when none is given', async () => {
+		await updatePoll('poll-1', input);
+		expect(JSON.parse(mockApiClient.mock.calls[0][1]!.body as string)).not.toHaveProperty('audience');
+	});
+
 	it('updates a Scheduled Poll with PUT', async () => {
 		await updatePoll('poll-1', { ...input, voterVisibility: 'owner' });
 		const [url, init] = mockApiClient.mock.calls[0];
@@ -402,6 +461,68 @@ describe('closePoll()', () => {
 		expect(mockApiClient).toHaveBeenCalledWith('/votes/poll-1/deactivate', { method: 'PUT' });
 		expect(revalidateTag).toHaveBeenCalledWith('poll:poll-1', { expire: 0 });
 		expect(revalidateTag).toHaveBeenCalledWith('polls-feed', { expire: 0 });
+	});
+});
+
+describe('deletePoll()', () => {
+	it('sends DELETE to /votes/{id} and expires the lists', async () => {
+		expect(await deletePoll('poll-1')).toEqual({ ok: true, data: undefined });
+		expect(mockApiClient).toHaveBeenCalledWith('/votes/poll-1', { method: 'DELETE' });
+		expect(revalidateTag).toHaveBeenCalledWith('poll:poll-1', { expire: 0 });
+		expect(revalidateTag).toHaveBeenCalledWith('polls-feed', { expire: 0 });
+	});
+
+	it('reports a passed delete window', async () => {
+		mockApiClient.mockRejectedValue(
+			new ApiError('Too late', 400, { errorCode: 'vote.delete.window_passed' })
+		);
+		expect(await deletePoll('poll-1')).toMatchObject({
+			ok: false,
+			errorCode: 'vote.delete.window_passed',
+		});
+	});
+});
+
+describe('Invitees', () => {
+	const invitees = [
+		{ userId: 'u1', username: 'bob', email: null, hasBallot: true, invitedAt: '2026-10-09T15:20:31+08:00' },
+		{ userId: null, username: null, email: 'dave@example.com', hasBallot: false, invitedAt: '2026-10-09T15:20:31+08:00' },
+	];
+
+	it('lists them', async () => {
+		mockApiClient.mockResolvedValue(invitees);
+		const result = await getInvitees('poll-1');
+		expect(result.ok && result.data).toHaveLength(2);
+		expect(mockApiClient).toHaveBeenCalledWith('/votes/poll-1/invitees');
+	});
+
+	it('adds users, emails and Groups and returns the full list', async () => {
+		mockApiClient.mockResolvedValue(invitees);
+		const result = await addInvitees('poll-1', { userIds: ['u1'], emails: ['dave@example.com'], groupIds: [] });
+		expect(result.ok && result.data[1].email).toBe('dave@example.com');
+		const [url, init] = mockApiClient.mock.calls[0];
+		expect(url).toBe('/votes/poll-1/invitees');
+		expect(init!.method).toBe('POST');
+		expect(JSON.parse(init!.body as string)).toEqual({
+			userIds: ['u1'],
+			emails: ['dave@example.com'],
+			groupIds: [],
+		});
+	});
+
+	it('removes one added by ID by path', async () => {
+		mockApiClient.mockResolvedValue([]);
+		await removeInvitee('poll-1', { userId: 'u1', email: null });
+		expect(mockApiClient).toHaveBeenCalledWith('/votes/poll-1/invitees/u1', { method: 'DELETE' });
+	});
+
+	it('removes one added by email by query', async () => {
+		mockApiClient.mockResolvedValue([]);
+		await removeInvitee('poll-1', { userId: null, email: 'dave+x@example.com' });
+		expect(mockApiClient).toHaveBeenCalledWith(
+			'/votes/poll-1/invitees?email=dave%2Bx%40example.com',
+			{ method: 'DELETE' }
+		);
 	});
 });
 

@@ -1,0 +1,59 @@
+'use client';
+
+import { InitialAvatar } from '@/components/ui/InitialAvatar';
+import { Spinner } from '@/components/ui/Spinner';
+import { X } from '@/components/ui/SvgIcons';
+import { useLanguage } from '@/contexts/LanguageContext';
+
+import { type Person, personKey } from '../invitees';
+
+type PeopleListProps<P extends Person> = {
+	label: string;
+	people: P[];
+	onRemove: (person: P) => void;
+	/** The `personKey` of the one being removed. */
+	removingKey: string | null;
+	disabled: boolean;
+	/** Shown instead of the remove button for someone who can't be removed. */
+	noteFor?: (person: P) => string | null;
+};
+
+/** Invitees or Group members, each listed by username or by the email they were added by. */
+export function PeopleList<P extends Person>({
+	label,
+	people,
+	onRemove,
+	removingKey,
+	disabled,
+	noteFor,
+}: PeopleListProps<P>) {
+	const { t } = useLanguage();
+	return (
+		<ul aria-label={label} className="space-y-1">
+			{people.map((person) => {
+				const key = personKey(person);
+				const name = person.username ?? person.email ?? '';
+				const note = noteFor?.(person);
+				return (
+					<li key={key} className="flex min-h-11 items-center gap-3 text-[15px]">
+						<InitialAvatar name={name} />
+						<span className="min-w-0 flex-1 truncate">{name}</span>
+						{note ? (
+							<span className="text-[13px] text-muted-foreground">{note}</span>
+						) : (
+							<button
+								type="button"
+								aria-label={t('invitees.remove', { name })}
+								disabled={disabled}
+								onClick={() => onRemove(person)}
+								className="grid size-11 place-items-center rounded-lg text-muted-foreground hover:text-destructive disabled:opacity-50"
+							>
+								{removingKey === key ? <Spinner /> : <X className="size-4" />}
+							</button>
+						)}
+					</li>
+				);
+			})}
+		</ul>
+	);
+}

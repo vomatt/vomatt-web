@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 import { formatFromNow, formatPollDate } from '../format';
 import type { BallotState } from '../hooks/useBallot';
 import type { Poll } from '../schema';
-import type { PollStatus } from '../status';
+import { type PollStatus, visibilityLevel } from '../status';
 import { BallotBoxIcon, BallotMark, SelectionHighlight, VotedStamp } from './BallotMotion';
 
 type BallotProps = {
@@ -20,18 +20,18 @@ type BallotProps = {
 	status: Exclude<PollStatus, 'ended'>;
 	ballot: BallotState;
 	requireAuth: (action: () => void) => void;
-	/** Owner controls for a Scheduled Poll. */
-	ownerActions?: React.ReactNode;
 };
 
 /** Card states A (no Ballot), B (has Ballot) and C (Scheduled). Never shows counts. */
-export function Ballot({ poll, status, ballot, requireAuth, ownerActions }: BallotProps) {
+export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 	const { t, currentLanguage } = useLanguage();
 	const isHydrated = useHydrated();
 	const [confirmingWithdraw, setConfirmingWithdraw] = useState(false);
 	const { myOptionId, selected, setSelected, isPending } = ballot;
 	const isScheduled = status === 'scheduled';
 	const hasBallot = myOptionId !== null;
+	const level = visibilityLevel(poll);
+	const visibilityHint = level && t(`poll.visibility.${level}`);
 
 	const [optionsRef, animateOptions] = useAnimate();
 	/** The options recoil when a request is rolled back. */
@@ -65,7 +65,6 @@ export function Ballot({ poll, status, ballot, requireAuth, ownerActions }: Ball
 					{isHydrated &&
 						t('poll.opensHint', { distance: formatFromNow(poll.startTime, currentLanguage) })}
 				</span>
-				{ownerActions}
 			</>
 		);
 	} else if (confirmingWithdraw) {
@@ -165,10 +164,8 @@ export function Ballot({ poll, status, ballot, requireAuth, ownerActions }: Ball
 				})}
 			</fieldset>
 
-			{!hasBallot && !isScheduled && poll.voterVisibility && (
-				<p className="text-[13px] text-muted-foreground">
-					{t(`poll.visibility.${poll.voterVisibility}`)}
-				</p>
+			{!hasBallot && !isScheduled && visibilityHint && (
+				<p className="text-[13px] text-muted-foreground">{visibilityHint}</p>
 			)}
 
 			<AnimatePresence initial={false}>
@@ -184,7 +181,7 @@ export function Ballot({ poll, status, ballot, requireAuth, ownerActions }: Ball
 						<BallotBoxIcon className="mt-0.5 shrink-0 text-foreground" />
 						<div className="flex flex-col gap-1">
 							<p>{t('poll.sealed', { date: formatPollDate(poll.endTime, currentLanguage) })}</p>
-							{poll.voterVisibility && <p>{t(`poll.visibility.${poll.voterVisibility}`)}</p>}
+							{visibilityHint && <p>{visibilityHint}</p>}
 						</div>
 					</motion.div>
 				)}

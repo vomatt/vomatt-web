@@ -48,4 +48,12 @@ describe('markNotificationRead()', () => {
 		expect(spy).not.toHaveBeenCalled();
 		spy.mockRestore();
 	});
+
+	it('ignores a Deleted poll', async () => {
+		const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+		mockApiClient.mockRejectedValue(new ApiError('nf', 404, { errorCode: 'vote.not_found' }));
+		await expect(markNotificationRead('poll-1')).resolves.toBeUndefined();
+		expect(spy).not.toHaveBeenCalled();
+		spy.mockRestore();
+	});
 });

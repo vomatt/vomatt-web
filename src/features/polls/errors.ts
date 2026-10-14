@@ -1,18 +1,9 @@
+import type { ActionResult } from '@/lib/api/action';
+
+export type { ActionFailure, ActionResult } from '@/lib/api/action';
+
 /** Returned by the API when a Ballot arrives after the Poll has Ended. */
 const POLL_ENDED_ERRORS = ['vote.ended'];
-
-export type ActionFailure = {
-	ok: false;
-	status?: number;
-	errorCode?: string;
-	message: string;
-};
-
-/**
- * Server Actions return this instead of throwing: errors thrown across the
- * action boundary lose their status and errorCode in production.
- */
-export type ActionResult<T = void> = { ok: true; data: T } | ActionFailure;
 
 export function isPollEnded(result: ActionResult<unknown>) {
 	return !result.ok && !!result.errorCode && POLL_ENDED_ERRORS.includes(result.errorCode);

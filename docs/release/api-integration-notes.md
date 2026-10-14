@@ -20,7 +20,7 @@ Status: **B** = blocks or breaks something now · **Q** = question / decision ne
 
 | # | Item | What the web does now | Status |
 |---|------|-----------------------|--------|
-| A1 | `GET /api/votes` has no "all statuses" option and no "most votes" sort. | Explore lost its **All** filter and **Most votes** sort. It offers Open (Newest / Ending soon) and Ended. | **Q** |
+| A1 | `GET /api/votes` has no "all statuses" option. `sort=top` (most Turnout, Open only) arrived 2026-10-14. | Explore offers Open (Newest / Ending soon / Most voted) and Ended. | **Q** (All) |
 | A2 | Search (`q`) matches titles and descriptions, not option text. | Placeholder now reads "Search poll titles and descriptions…". | **Q** — should options be searched? |
 | A3 | `/votes/my` mixes polls the user **created** with polls they **voted in**, and has no filter for either. | My Polls shows both, as the docs describe. The account page finds "created" by `creatorId === me` itself. | **Q** — add `?role=created\|participated`? |
 | A4 | There's no aggregate stats endpoint. | Account insights (people reached, majority rate, badges) are computed from every page of `/votes/my` (open and ended, up to 500 each), one request per page. `totalVotes` and `totalPolls` come from `/users/me` and are exact. | **Q** |
@@ -28,7 +28,7 @@ Status: **B** = blocks or breaks something now · **Q** = question / decision ne
 | A6 | `commentCount` counts Comments **and** Replies that aren't deleted (`VoteCommentRepository.countVisibleByVoteIds`). | The footer shows it as "N comments", replies included. | **Q** — is that the wording we want? |
 | A7 | A Reply to a Reply is moved under the top-level Comment, and nobody is notified. | The reply box starts with `@author `. Mentions aren't linked and don't notify anyone. | **Q** |
 | A8 | Avatar endpoints (`PATCH/DELETE /users/me/avatar`) and follow endpoints (`/users/{u}/follow`, `/followers`, `/following`) aren't in the contract. | The UI stays hidden as before. The code is still there: `lib/api/avatar-upload.ts`, `lib/api/users-public.ts`, and `followUser`/`unfollowUser`/`removeAvatar` in `services/users.ts`. | **Q** — build them, or remove the dead code? |
-| A9 | `GET /users/search` returns `UserDto` without applying visibility settings (email, phone, active, lastLoginAt). | `searchUsers` moved to cursor paging. No UI uses it yet. | **Q** — privacy: should the API send only public fields? |
+| A9 | ~~`GET /users/search` returns `UserDto` without applying visibility settings.~~ Resolved 2026-10-14: items carry only `id`, `username`, `displayName`, `avatarUrl`. | The invitee picker searches usernames with it. | Done |
 | A10 | `POST /auth/check-email` lets anyone test whether an email is registered. | The web still uses it only to choose between "sign in" and "sign up" wording. | **Q** (carried over from backend-requests.md) |
 | A11 | 400 validation errors report only the first failing field. | PollCreator shows the API `message`, which is now localized through `Accept-Language`, as a form-level error. | Known limitation |
 | A12 | `/api/lookups/*` isn't used by the web. | — | **Q** — what is it for on the frontend? |
@@ -56,3 +56,15 @@ Status: **B** = blocks or breaks something now · **Q** = question / decision ne
 - New: Explore searches, filters and sorts on the server. Comments have one level of Replies and deleted placeholders. Ended polls show "See who voted" when Voter Visibility allows it. Notifications have a badge, a page and mark-as-read.
 - `vote.not_allowed` now means "not open yet" and no longer counts as "ended". Only `vote.ended` does.
 - `apiClient` sends `Accept-Language` (`zh-TW` or `en`) and reads `Retry-After`.
+
+## Round 2: contract of 2026-10-14
+
+Audience (Public / Unlisted / Invite-only), Invitees, Groups, Delete, Deadline, Invitations and `sort=top`.
+
+| # | Item | What the web does now | Status |
+|---|------|-----------------------|--------|
+| R1 | The invitation email links to `EMAIL_SITE_URL` + `EMAIL_POLL_PATH`, which defaults to `/votes/{voteId}`. The web's poll page is `/poll/{id}`. | Nothing. | **B** — set `EMAIL_POLL_PATH=/poll/{voteId}` on the API, or add a web redirect |
+| R2 | A Poll doesn't say whether the viewer is one of its Invitees. | The Notifications page lists Invitations as the Invite-only Polls of someone else in the first page of `/votes/my?status=open` (up to 50). The poll page treats any non-owner viewer of an Invite-only Poll as an Invitee (only they can see it) when marking it read. | **Q** — add a flag, or a notifications list? |
+| R3 | `PUT /votes/{id}` replaces the Invitees with `inviteeIds` / `inviteeEmails`. | Editing a Poll that is already Invite-only sends neither list; Invitees are managed in the Invitees dialog on the Poll. Switching a Scheduled Poll to Invite-only sends the people picked in the creator. | OK |
+| R4 | `deletable` is computed when the Poll is read; the delete window (default 20 min) can pass while the page is open. | Delete shows while `deletable` is true; a late click shows the API's `vote.delete.window_passed` message. | OK |
+| R5 | Invite-only with no Invitees is allowed by the API. | The creator asks for at least one person or Group. The Invitees dialog lets the owner remove everyone who hasn't voted; removing the last one who hasn't voted ends the Poll (the card refetches). | OK |

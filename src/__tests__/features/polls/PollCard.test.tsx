@@ -12,6 +12,9 @@ jest.mock('next/link', () => {
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 
+const mockReplace = jest.fn();
+jest.mock('next/navigation', () => ({ useRouter: () => ({ replace: mockReplace }) }));
+
 jest.mock('sonner', () => {
 	const toast = Object.assign(jest.fn(), { error: jest.fn(), success: jest.fn() });
 	return { toast };
@@ -25,10 +28,12 @@ const mockGetResults = jest.fn();
 const mockPostComment = jest.fn();
 const mockGetComments = jest.fn();
 const mockClosePoll = jest.fn();
+const mockDeletePoll = jest.fn();
 const mockGetVoters = jest.fn();
 
 jest.mock('@/features/polls/service', () => ({
 	closePoll: (...args: any[]) => mockClosePoll(...args),
+	deletePoll: (...args: any[]) => mockDeletePoll(...args),
 	castBallot: (...args: any[]) => mockCastBallot(...args),
 	retractBallot: (...args: any[]) => mockRetractBallot(...args),
 	getMyBallot: (...args: any[]) => mockGetMyBallot(...args),
@@ -268,15 +273,17 @@ describe('PollCard state C · Scheduled', () => {
 		expect(screen.queryByRole('button', { name: 'Vote' })).not.toBeInTheDocument();
 	});
 
-	it('offers Edit and Cancel poll only to the owner', () => {
+	it('offers Edit and Delete poll only to the owner', () => {
 		const { unmount } = render(<PollCard poll={scheduled} viewerId="user-voter" />);
 		expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument();
-		expect(screen.queryByRole('button', { name: 'Cancel poll' })).not.toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Delete poll' })).not.toBeInTheDocument();
 		unmount();
 
 		render(<PollCard poll={scheduled} viewerId="user-1" />);
 		expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument();
-		expect(screen.getByRole('button', { name: 'Cancel poll' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Delete poll' })).toBeInTheDocument();
+		// A Scheduled Poll is Deleted, never Ended
+		expect(screen.queryByRole('button', { name: 'End now' })).not.toBeInTheDocument();
 	});
 
 	it('does not offer Edit on an Open Poll, even to the owner', () => {
@@ -284,24 +291,108 @@ describe('PollCard state C · Scheduled', () => {
 		expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument();
 	});
 
-	it('cancels after confirming that no one will be notified', async () => {
-		mockClosePoll.mockResolvedValue({ ok: true });
-		mockGetPoll.mockResolvedValue({ ...scheduled, active: false });
-		mockGetResults.mockResolvedValue({
-			ok: true,
-			data: {
-				id: 'poll-1',
-				options: scheduled.options.map(({ id, text }) => ({ id, text, voteCount: 0 })),
-			},
-		});
+	it('deletes after confirming, and the card leaves the list', async () => {
+		mockDeletePoll.mockResolvedValue({ ok: true });
 		render(<PollCard poll={scheduled} viewerId="user-1" />);
 
-		fireEvent.click(screen.getByRole('button', { name: 'Cancel poll' }));
-		expect(screen.getByText("It won't open, and no one will be notified.")).toBeInTheDocument();
-		fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Cancel poll' }));
+		fireEvent.click(screen.getByRole('button', { name: 'Delete poll' }));
+		expect(screen.getByText(/No one is notified/)).toBeInTheDocument();
+		fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Delete poll' }));
+
+		await waitFor(() => expect(mockDeletePoll).toHaveBeenCalledWith('poll-1'));
+		await waitFor(() => expect(screen.queryByText(scheduled.title)).not.toBeInTheDocument());
+		expect(mockReplace).not.toHaveBeenCalled();
+	});
+
+	it('leaves the Poll\'s own page once it is deleted', async () => {
+		mockDeletePoll.mockResolvedValue({ ok: true });
+		render(<PollCard poll={scheduled} viewerId="user-1" deletedHref="/my-polls" />);
+		fireEvent.click(screen.getByRole('button', { name: 'Delete poll' }));
+		fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Delete poll' }));
+		await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/my-polls'));
+	});
+
+	it('shows the API\'s reason when the delete window has passed', async () => {
+		mockDeletePoll.mockResolvedValue({
+			ok: false,
+			errorCode: 'vote.delete.window_passed',
+			message: 'Too late to delete',
+		});
+		render(<PollCard poll={{ ...openPoll, deletable: true }} viewerId="user-1" />);
+		fireEvent.click(screen.getByRole('button', { name: 'Delete poll' }));
+		fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Delete poll' }));
+		await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Too late to delete'));
+		expect(screen.getByRole('heading', { name: openPoll.title })).toBeInTheDocument();
+	});
+});
+
+describe('PollCard owner of an Open Poll', () => {
+	it('offers no End now on a Public Poll, which runs to its Deadline', () => {
+		render(<PollCard poll={{ ...openPoll, audience: 'public', deletable: false }} viewerId="user-1" />);
+		expect(screen.queryByRole('button', { name: 'End now' })).not.toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Delete poll' })).not.toBeInTheDocument();
+	});
+
+	it('offers Delete within the delete window', () => {
+		render(<PollCard poll={{ ...openPoll, audience: 'public', deletable: true }} viewerId="user-1" />);
+		expect(screen.getByRole('button', { name: 'Delete poll' })).toBeInTheDocument();
+	});
+
+	it('ends an Unlisted Poll now and shows the results', async () => {
+		mockClosePoll.mockResolvedValue({ ok: true });
+		mockGetPoll.mockResolvedValue({ ...endedPoll, audience: 'unlisted' });
+		render(<PollCard poll={{ ...openPoll, audience: 'unlisted' }} viewerId="user-1" />);
+
+		fireEvent.click(screen.getByRole('button', { name: 'End now' }));
+		fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'End now' }));
 
 		await waitFor(() => expect(mockClosePoll).toHaveBeenCalledWith('poll-1'));
-		await waitFor(() => expect(screen.getByText('No votes were cast')).toBeInTheDocument());
+		await waitFor(() => expect(screen.getByText('48%')).toBeInTheDocument());
+	});
+
+	it('offers Invitees and End now on an Invite-only Poll', () => {
+		render(<PollCard poll={{ ...openPoll, audience: 'invite-only' }} viewerId="user-1" />);
+		expect(screen.getByRole('button', { name: 'Invitees' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'End now' })).toBeInTheDocument();
+	});
+
+	it('offers nothing to anyone else', () => {
+		render(<PollCard poll={{ ...openPoll, audience: 'unlisted', deletable: null }} viewerId="user-voter" />);
+		expect(screen.queryByRole('button', { name: 'End now' })).not.toBeInTheDocument();
+	});
+});
+
+describe('PollCard Audience', () => {
+	it('marks an Invite-only Poll, and says Voter Visibility covers the Invitees', () => {
+		render(
+			<PollCard
+				poll={{ ...openPoll, audience: 'invite-only', voterVisibility: 'signed-in' }}
+				viewerId="user-voter"
+			/>
+		);
+		expect(screen.getByText('Invite only')).toBeInTheDocument();
+		expect(
+			screen.getByText('After it ends, everyone invited can see what you chose.')
+		).toBeInTheDocument();
+	});
+
+	it('says nothing for a Public Poll', () => {
+		render(<PollCard poll={{ ...openPoll, audience: 'public' }} viewerId="user-voter" />);
+		expect(screen.queryByText('Public')).not.toBeInTheDocument();
+	});
+
+	it('switches to the results when the last Invitee\'s Ballot ends the Poll', async () => {
+		const poll: Poll = { ...openPoll, audience: 'invite-only' };
+		const ended = { ...endedPoll, audience: 'invite-only' as const, endTime: iso(-1000) };
+		mockCastBallot.mockResolvedValue({ ok: true, data: ended });
+		render(<PollCard poll={poll} viewerId="user-voter" />);
+
+		fireEvent.click(screen.getByRole('radio', { name: 'Sunday' }));
+		fireEvent.click(screen.getByRole('button', { name: 'Vote' }));
+
+		await waitFor(() => expect(screen.getByText('48%')).toBeInTheDocument());
+		// The Ballot's response already is the Ended Poll
+		expect(mockGetPoll).not.toHaveBeenCalled();
 	});
 });
 

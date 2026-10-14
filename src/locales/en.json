@@ -86,7 +86,8 @@
 		"sort": "Sort",
 		"sortEnding": "Ending soon",
 		"searchTooShort": "Type at least 2 characters to search.",
-		"loadFailed": "Couldn't load polls."
+		"loadFailed": "Couldn't load polls.",
+		"sortTop": "Most voted"
 	},
 	"pollDetail": {
 		"backToFeed": "Back",
@@ -101,7 +102,13 @@
 		"participants": "people voted",
 		"topics": "Topics",
 		"sealedExplainer": "Votes stay sealed until the poll ends, so no one is swayed by the running count. You can change or withdraw your vote until then.",
-		"shareCta": "Invite others to vote"
+		"shareCta": "Invite others to vote",
+		"endedEarly": "Ended early. It was set to close {date}.",
+		"invited": "{count} invited",
+		"audience": {
+			"unlisted": "Only people with the link can find it. It isn't listed in the feed or search.",
+			"invite-only": "Only the people invited can see it and vote."
+		}
 	},
 	"profile": {
 		"notFoundTitle": "This profile doesn't exist",
@@ -129,11 +136,14 @@
 		"title": "Notifications",
 		"empty": "No notifications yet.",
 		"unread": "Unread",
-		"intro": "Polls you created or voted in that have ended.",
+		"intro": "Invitations, and polls you created, voted in or were invited to that have ended.",
 		"markAllHint": "Opening a poll marks it read.",
 		"loadFailed": "Couldn't load notifications.",
 		"ended": "Results are in",
-		"cancelled": "Cancelled"
+		"cancelled": "Cancelled",
+		"invitations": "Invitations",
+		"results": "Results",
+		"invitedBy": "{name} invited you"
 	},
 	"pollCreator": {
 		"title": "New poll",
@@ -147,15 +157,6 @@
 		"optionsPlaceholder": "Option",
 		"addOptionLabel": "Add option",
 		"saveDraftLabel": "Save draft",
-		"privacyLabel": "Visibility",
-		"privacyPublic": "Public",
-		"privacyLinkOnly": "Link only",
-		"privacyInviteOnly": "Invite only",
-		"privacyPublicHint": "Anyone can find and vote",
-		"privacyLinkOnlyHint": "Only people with the link can vote",
-		"privacyInviteOnlyHint": "Only invited users can vote — unregistered emails will receive an invitation",
-		"inviteUsersLabel": "Invite by username or email",
-		"inviteUsersPlaceholder": "Username or email — press Enter to add",
 		"editTitle": "Edit poll",
 		"editSubtitle": "You can edit a poll until it opens.",
 		"removeOption": "Remove option",
@@ -173,7 +174,8 @@
 			"owner": "Only me",
 			"ownerHint": "You see who chose each option.",
 			"signed-in": "Anyone signed in",
-			"signed-inHint": "Every signed-in user sees who chose what."
+			"signed-inHint": "Every signed-in user sees who chose what.",
+			"invited": "Everyone invited"
 		},
 		"visibilityNote": "You can't change this once the poll opens. Voters see it before they vote.",
 		"publish": "Publish poll",
@@ -186,7 +188,8 @@
 			"titleTooLong": "Keep the question to 200 characters.",
 			"optionRequired": "Fill in every option.",
 			"endRequired": "Choose when the poll ends.",
-			"endBeforeStart": "The end must be after the poll opens."
+			"endBeforeStart": "The end must be after the poll opens.",
+			"inviteesRequired": "Invite at least one person or group."
 		},
 		"discardEditTitle": "Discard your changes?",
 		"discardEditBody": "Your edits to this poll won't be saved.",
@@ -208,10 +211,26 @@
 		"ruleVisibility": {
 			"nobody": "Nobody will see who chose what.",
 			"owner": "Only you will see who chose what once it ends.",
-			"signed-in": "Anyone signed in will see who chose what once it ends."
+			"signed-in": "Anyone signed in will see who chose what once it ends.",
+			"invited": "Everyone invited will see who chose what once it ends."
 		},
 		"ruleFixed": "You can't change this after it opens.",
-		"ruleOneVote": "One vote per person. Voters can change or withdraw it until the poll closes."
+		"ruleOneVote": "One vote per person. Voters can change or withdraw it until the poll closes.",
+		"audienceLabel": "Who can see and vote?",
+		"audienceHint": {
+			"public": "Listed in the feed, Explore and search. Anyone can vote.",
+			"unlisted": "Not listed anywhere. Anyone with the link can vote.",
+			"invite-only": "Only the people you invite can see it and vote."
+		},
+		"audienceNote": "You can't change this once the poll opens.",
+		"inviteesLabel": "Invite people",
+		"inviteesHint": "People you add get an invitation. Emails without an account get access once they sign up with that address.",
+		"inviteesManaged": "Add or remove people with Invitees on the poll.",
+		"ruleAudience": {
+			"public": "Anyone can find it and vote.",
+			"unlisted": "Only people with the link can find it.",
+			"invite-only": "Only the people you invited can see it and vote. The poll ends early once all of them have voted."
+		}
 	},
 	"homePage": {
 		"feedListNoData": "Start the poll, lead the crowd.",
@@ -256,14 +275,11 @@
 		"visibility": {
 			"nobody": "After it ends, no one can see what you chose.",
 			"owner": "After it ends, only the poll owner can see what you chose.",
-			"signed-in": "After it ends, anyone signed in can see what you chose."
+			"signed-in": "After it ends, anyone signed in can see what you chose.",
+			"invited": "After it ends, everyone invited can see what you chose."
 		},
 		"edit": "Edit",
-		"cancelPoll": "Cancel poll",
-		"cancelPollTitle": "Cancel this poll?",
-		"cancelPollBody": "It won't open, and no one will be notified.",
 		"keepPoll": "Keep poll",
-		"cancelFailed": "Couldn't cancel the poll. Try again.",
 		"stamp": "Voted",
 		"discuss": "Discuss",
 		"votersHint": "Select an option to see who chose it",
@@ -271,7 +287,21 @@
 		"votersHidden": "You can't see who voted in this poll.",
 		"votersTruncated": "Only the first {count} voters can be listed here.",
 		"votersNone": "No one to show.",
-		"votersFailed": "Couldn't load who voted."
+		"votersFailed": "Couldn't load who voted.",
+		"deletePoll": "Delete poll",
+		"deletePollTitle": "Delete this poll?",
+		"deletePollBody": "It's removed for everyone, with its votes and comments. No one is notified.",
+		"deleted": "Poll deleted.",
+		"deleteFailed": "Couldn't delete the poll. Try again.",
+		"endNow": "End now",
+		"endNowTitle": "End this poll now?",
+		"endNowBody": "Voting stops and the results are revealed. This can't be undone.",
+		"endFailed": "Couldn't end the poll. Try again.",
+		"audience": {
+			"public": "Public",
+			"unlisted": "Unlisted",
+			"invite-only": "Invite only"
+		}
 	},
 	"auth": {
 		"continueWithEmail": "Continue with email"
@@ -361,7 +391,8 @@
 		"deleteCta": "Delete account",
 		"deleteConfirmTitle": "Delete your account?",
 		"deleteConfirmBody": "Type {username} to confirm. Your account will be removed permanently.",
-		"deleteConfirmLabel": "Type your username to confirm"
+		"deleteConfirmLabel": "Type your username to confirm",
+		"tabGroups": "Groups"
 	},
 	"cookieConsent": {
 		"label": "Cookie consent",
@@ -370,5 +401,47 @@
 		"accept": "Accept analytics",
 		"decline": "Decline",
 		"settings": "Cookie settings"
+	},
+	"invitees": {
+		"title": "Invitees",
+		"description": "People who can see this poll and vote.",
+		"summary": "{count} invited · {voted} voted",
+		"placeholder": "Username or email",
+		"inviteEmail": "Invite {email}",
+		"suggestions": "Matching people",
+		"noUsers": "No one with that username.",
+		"searchFailed": "Couldn't search. Try again.",
+		"picked": "Invited",
+		"remove": "Remove {name}",
+		"groups": "Your groups",
+		"groupPill": "{name} · {count}",
+		"voted": "Voted",
+		"empty": "No one is invited yet.",
+		"loadFailed": "Couldn't load the invitees.",
+		"addLabel": "Invite more people",
+		"add": "Invite",
+		"addFailed": "Couldn't invite them. Try again.",
+		"removeFailed": "Couldn't remove them. Try again."
+	},
+	"groups": {
+		"title": "Groups",
+		"intro": "Reusable lists of people to invite to Invite-only polls. Only you can see them, and nobody is told they're in one.",
+		"nameLabel": "Group name",
+		"namePlaceholder": "e.g. Book club",
+		"create": "New group",
+		"empty": "No groups yet.",
+		"loadFailed": "Couldn't load your groups.",
+		"memberCount": "{count} members",
+		"dialogIntro": "Inviting a group invites its members at that moment. Later changes don't affect polls already sent.",
+		"rename": "Rename",
+		"members": "Members",
+		"noMembers": "No members yet.",
+		"membersFailed": "Couldn't load the members.",
+		"addLabel": "Add people",
+		"add": "Add",
+		"delete": "Delete group",
+		"deleteConfirm": "Delete this group? Polls you invited it to keep their invitees.",
+		"saveFailed": "Couldn't save. Try again.",
+		"memberCountOne": "1 member"
 	}
 }

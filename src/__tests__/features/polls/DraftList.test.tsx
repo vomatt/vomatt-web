@@ -13,6 +13,8 @@ const values = {
 	startTime: '',
 	endTime: '',
 	voterVisibility: 'owner' as const,
+	audience: 'public' as const,
+	invitees: { users: [], emails: [], groups: [] },
 };
 
 beforeEach(() => localStorage.clear());
@@ -38,5 +40,19 @@ describe('DraftList', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
 		expect(screen.queryByText('Throwaway')).not.toBeInTheDocument();
 		expect(listDrafts()).toEqual([]);
+	});
+
+	it('fills in the Audience of a draft saved before it existed', () => {
+		const { audience: _audience, invitees: _invitees, ...old } = values;
+		localStorage.setItem('vomatt_poll_drafts', JSON.stringify([{ id: 'd1', savedAt: '', values: old }]));
+		expect(listDrafts()[0].values).toMatchObject({ audience: 'public', invitees: { users: [] } });
+	});
+
+	it('skips a malformed draft instead of hiding them all', () => {
+		localStorage.setItem(
+			'vomatt_poll_drafts',
+			JSON.stringify([{ id: 'd1', savedAt: '', values }, { id: 'd2', savedAt: '' }])
+		);
+		expect(listDrafts().map((draft) => draft.id)).toEqual(['d1']);
 	});
 });

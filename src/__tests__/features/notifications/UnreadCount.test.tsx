@@ -140,7 +140,7 @@ describe('NotificationList', () => {
 	} as Poll;
 
 	it('clears the dot when opened, leaving the marking to the poll page', () => {
-		render(<NotificationList initialPage={{ items: [poll], nextCursor: null }} />);
+		render(<NotificationList initialPage={{ items: [poll], nextCursor: null }} invitations={[]} />);
 		expect(screen.getByLabelText('Unread')).toBeInTheDocument();
 
 		fireEvent.click(screen.getByText('Lunch?'));
@@ -152,6 +152,7 @@ describe('NotificationList', () => {
 		render(
 			<NotificationList
 				initialPage={{ items: [{ ...poll, endTime: poll.startTime, unread: false }], nextCursor: null }}
+				invitations={[]}
 			/>
 		);
 		expect(screen.getByText('Cancelled')).toBeInTheDocument();

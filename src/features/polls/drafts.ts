@@ -1,4 +1,6 @@
 import type { PollFormValues } from './components/PollCreator/formSchema';
+import { EMPTY_INVITEES } from './invitees';
+import { DEFAULT_AUDIENCE } from './schema';
 
 /** Drafts stay in local storage; they never reach the API. */
 const STORAGE_KEY = 'vomatt_poll_drafts';
@@ -7,8 +9,17 @@ export type PollDraft = { id: string; savedAt: string; values: PollFormValues };
 
 export function listDrafts(): PollDraft[] {
 	try {
-		const drafts = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]');
-		return Array.isArray(drafts) ? drafts : [];
+		const drafts: PollDraft[] = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]');
+		if (!Array.isArray(drafts)) return [];
+		// Drafts saved before Audience existed lack it and the Invitees; skip malformed entries
+		return drafts.filter((draft) => draft?.values).map((draft) => ({
+			...draft,
+			values: {
+				...draft.values,
+				audience: draft.values.audience ?? DEFAULT_AUDIENCE,
+				invitees: draft.values.invitees ?? EMPTY_INVITEES,
+			},
+		}));
 	} catch {
 		return [];
 	}

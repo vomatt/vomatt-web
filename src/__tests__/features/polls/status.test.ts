@@ -1,4 +1,12 @@
-import { derivePollStatus, getTurnout, isCancelled, timelineProgress } from '@/features/polls/status';
+import {
+	derivePollStatus,
+	endedEarly,
+	getTurnout,
+	isCancelled,
+	isInvitee,
+	timelineProgress,
+	visibilityLevel,
+} from '@/features/polls/status';
 
 const NOW = Date.parse('2026-10-05T12:00:00Z');
 const hours = (h: number) => new Date(NOW + h * 3600_000).toISOString();
@@ -93,5 +101,40 @@ describe('isCancelled()', () => {
 
 	it('is false for a poll that ran', () => {
 		expect(isCancelled(base)).toBe(false);
+	});
+});
+
+describe('endedEarly()', () => {
+	it('is true when the Poll ended before its Deadline', () => {
+		expect(endedEarly({ endTime: hours(-2), deadline: hours(24) })).toBe(true);
+	});
+
+	it('is false when it ran to its Deadline, or the API sends none', () => {
+		expect(endedEarly({ endTime: hours(-2), deadline: hours(-2) })).toBe(false);
+		expect(endedEarly({ endTime: hours(-2) })).toBe(false);
+	});
+});
+
+describe('isInvitee()', () => {
+	it('is true for anyone but the owner viewing an Invite-only Poll', () => {
+		expect(isInvitee({ audience: 'invite-only', creatorId: 'owner' }, 'bob')).toBe(true);
+	});
+
+	it('is false for the owner, and on other Audiences', () => {
+		expect(isInvitee({ audience: 'invite-only', creatorId: 'owner' }, 'owner')).toBe(false);
+		expect(isInvitee({ audience: 'unlisted', creatorId: 'owner' }, 'bob')).toBe(false);
+		expect(isInvitee({ audience: undefined, creatorId: 'owner' }, 'bob')).toBe(false);
+	});
+});
+
+describe('visibilityLevel()', () => {
+	it('reads signed-in as invited on an Invite-only Poll', () => {
+		expect(visibilityLevel({ voterVisibility: 'signed-in', audience: 'invite-only' })).toBe('invited');
+	});
+
+	it('keeps the level everywhere else', () => {
+		expect(visibilityLevel({ voterVisibility: 'signed-in', audience: 'public' })).toBe('signed-in');
+		expect(visibilityLevel({ voterVisibility: 'owner', audience: 'invite-only' })).toBe('owner');
+		expect(visibilityLevel({ voterVisibility: undefined, audience: 'public' })).toBeUndefined();
 	});
 });

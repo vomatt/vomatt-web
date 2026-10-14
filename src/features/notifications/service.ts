@@ -7,8 +7,9 @@ import { apiClient, ApiError, AuthError } from '@/lib/api/client';
 const UnreadCountSchema = z.object({ count: z.number().int() });
 
 /**
- * Ended Notifications the signed-in user hasn't read; null once the session
- * is gone. The list itself is `getMyPolls('ended')`, where each Poll carries `unread`.
+ * Unread Invitations (to Scheduled or Open Invite-only Polls) plus unread
+ * Ended Notifications; null once the session is gone. Each Poll in
+ * `getMyPolls` carries its own `unread`.
  */
 export async function getUnreadCount(): Promise<number | null> {
 	try {
@@ -19,15 +20,18 @@ export async function getUnreadCount(): Promise<number | null> {
 	}
 }
 
+/** No notification for this user, or the Poll is gone (Deleted). */
+const NOTHING_TO_READ = ['notification.not_found', 'vote.not_found'];
+
 /**
- * Marks one Poll's Ended Notification read. Idempotent; a Poll that has no
- * notification for this user (404 `notification.not_found`) is ignored.
+ * Marks the Poll's current notification read: the Invitation, or the Ended
+ * Notification once it has Ended. Idempotent; nothing to read is ignored.
  */
 export async function markNotificationRead(pollId: string): Promise<void> {
 	try {
 		await apiClient(`/notifications/${encodeURIComponent(pollId)}/read`, { method: 'POST' });
 	} catch (error) {
-		if (error instanceof ApiError && error.data?.errorCode === 'notification.not_found') return;
+		if (error instanceof ApiError && NOTHING_TO_READ.includes(error.data?.errorCode)) return;
 		console.error('Marking notification read failed:', error);
 	}
 }
