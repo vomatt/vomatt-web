@@ -68,4 +68,23 @@ describe('ExploreView', () => {
 		expect(mockGetPolls).toHaveBeenCalledTimes(1);
 		expect(mockGetPolls).toHaveBeenCalledWith({ status: 'open', sort: 'newest', q: 'lun' }, null, 20);
 	});
+
+	it('sorts open polls by most voted', async () => {
+		mockGetPolls.mockResolvedValue({ items: [], nextCursor: null });
+		render(<ExploreView initialPage={{ items: [], nextCursor: null }} tags={[]} />);
+		fireEvent.click(screen.getByRole('button', { name: 'Most voted' }));
+		await act(async () => jest.advanceTimersByTime(300));
+		expect(mockGetPolls).toHaveBeenCalledWith({ status: 'open', sort: 'top', q: undefined }, null, 20);
+	});
+
+	it('loads more of the listed polls until the new sort\'s first page arrives', async () => {
+		mockGetPolls.mockResolvedValue({ items: [poll('p2', 'Dinner?')], nextCursor: null });
+		render(<ExploreView initialPage={{ items: [poll('p1', 'Lunch?')], nextCursor: 'c1' }} tags={[]} />);
+
+		fireEvent.click(screen.getByRole('button', { name: 'Most voted' }));
+		fireEvent.click(screen.getByRole('button', { name: 'Load more' }));
+		// The cursor belongs to the newest ordering, so it goes back with that query
+		expect(mockGetPolls).toHaveBeenCalledWith({ status: 'open', sort: 'newest', q: undefined }, 'c1', 20);
+		await act(async () => jest.advanceTimersByTime(300));
+	});
 });

@@ -12,6 +12,7 @@ jest.mock('@/lib/api/services/users', () => ({
 	editProfile: jest.fn(),
 }));
 jest.mock('@/features/polls/service', () => ({ getUserPolls: jest.fn() }));
+jest.mock('@/features/groups/GroupsPanel', () => ({ GroupsPanel: () => <p>Groups panel</p> }));
 jest.mock('@/hooks/useAvatarUpload', () => ({
 	useAvatarUpload: () => ({ avatarUrl: null, isUploading: false, upload: jest.fn(), remove: jest.fn() }),
 }));
@@ -92,6 +93,7 @@ describe('AccountPage', () => {
 		// Location is hidden from visitors, so the owner's header leaves it out too
 		expect(screen.queryByText(/Taipei/)).not.toBeInTheDocument();
 		expect(screen.getByText('People reached')).toBeInTheDocument();
+		expect(screen.getByRole('tab', { name: 'Groups' })).toBeInTheDocument();
 		expect(screen.getByRole('tab', { name: 'Settings' })).toBeInTheDocument();
 	});
 });

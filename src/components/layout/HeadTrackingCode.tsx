@@ -1,27 +1,22 @@
-// no third-party scripts in head component: https://nextjs.org/docs/messages/no-script-tags-in-head-component
-// https://stackoverflow.com/questions/68058814/next-11-and-adding-script-tags-not-working-no-scripts-are-rendered
-// import Head from 'next/head';
 import Script from 'next/script';
 import React from 'react';
 
-type HeadTrackingCodeProps = {
-	siteData?: {
-		integrations?: {
-			gaID?: string;
-			gtmID?: string;
-		};
-	} | null;
+export type Integrations = {
+	gaIDs?: string[] | null;
+	gtmIDs?: string[] | null;
 };
 
-export function HeadTrackingCode({ siteData = {} }: HeadTrackingCodeProps) {
-	const { integrations } = siteData || {};
+// Rendered by CookieConsent only after the visitor accepts analytics cookies
+export function HeadTrackingCode({ gaIDs, gtmIDs }: Integrations) {
+	const gaList = gaIDs?.filter(Boolean) ?? [];
+	const gtmList = gtmIDs?.filter(Boolean) ?? [];
 
 	return (
 		<>
-			{integrations?.gaID && (
+			{gaList.length > 0 && (
 				<>
 					<Script
-						src={`https://www.googletagmanager.com/gtag/js?id=${integrations?.gaID}`}
+						src={`https://www.googletagmanager.com/gtag/js?id=${gaList[0]}`}
 						async
 					/>
 					<Script
@@ -30,24 +25,24 @@ export function HeadTrackingCode({ siteData = {} }: HeadTrackingCodeProps) {
 							__html: `window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
-gtag('config', '${integrations?.gaID}', {page_path: window.location.pathname,});
-							`,
+${gaList.map((id) => `gtag('config', '${id}', {page_path: window.location.pathname});`).join('\n')}`,
 						}}
 					/>
 				</>
 			)}
-			{integrations?.gtmID && (
+			{gtmList.map((id) => (
 				<Script
-					id="tracking-gtm"
+					key={id}
+					id={`tracking-gtm-${id}`}
 					dangerouslySetInnerHTML={{
 						__html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','${integrations?.gtmID}');`,
+})(window,document,'script','dataLayer','${id}');`,
 					}}
 				/>
-			)}
+			))}
 		</>
 	);
 }

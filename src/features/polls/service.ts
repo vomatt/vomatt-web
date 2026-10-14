@@ -2,8 +2,10 @@
 
 import { revalidateTag, updateTag } from 'next/cache';
 import { unstable_rethrow } from 'next/navigation';
+import { z } from 'zod';
 
-import { apiClient, ApiError, AuthError, publicFetch } from '@/lib/api/client';
+import { attempt } from '@/lib/api/action';
+import { apiClient, ApiError, publicFetch } from '@/lib/api/client';
 import {
 	collectPages,
 	type CursorPage,
@@ -14,10 +16,14 @@ import {
 
 import { FEED_TAG, pollTag } from './cache';
 import { SEARCH_MIN_LENGTH } from './constants';
-import type { ActionFailure, ActionResult } from './errors';
+import type { ActionResult } from './errors';
+import { personPath } from './invitees';
 import {
 	type Comment,
 	CommentSchema,
+	type Invitee,
+	InviteeSchema,
+	type InviteesInput,
 	type Poll,
 	type PollInput,
 	type PollResults,
@@ -25,6 +31,7 @@ import {
 	PollSchema,
 	type TagDto,
 	TagDtoSchema,
+	toApiAudience,
 	toApiVoterVisibility,
 	UserVoteStatusSchema,
 	type Voter,
@@ -32,31 +39,6 @@ import {
 } from './schema';
 
 const PollPage = cursorPageSchema(PollSchema);
-
-function toFailure(error: unknown): ActionFailure {
-	unstable_rethrow(error);
-	if (error instanceof ApiError) {
-		return {
-			ok: false,
-			status: error.statusCode,
-			errorCode: error.data?.errorCode,
-			message: error.message,
-		};
-	}
-	if (error instanceof AuthError) {
-		return { ok: false, status: error.statusCode, message: error.message };
-	}
-	return { ok: false, message: error instanceof Error ? error.message : 'Request failed' };
-}
-
-/** Runs a request as a Server Action result: never throws, except Next's redirects. */
-async function attempt<T>(request: () => Promise<T>): Promise<ActionResult<T>> {
-	try {
-		return { ok: true, data: await request() };
-	} catch (error) {
-		return toFailure(error);
-	}
-}
 
 function toRequestBody(input: PollInput) {
 	return JSON.stringify({
@@ -68,6 +50,14 @@ function toRequestBody(input: PollInput) {
 		allowMultipleChoices: false,
 		anonymous: input.voterVisibility === 'nobody',
 		voterVisibility: toApiVoterVisibility(input.voterVisibility),
+		audience: input.audience && toApiAudience(input.audience),
+		// Other Audiences send no lists: the API rejects them, and switching away removes the Invitees
+		...(input.audience === 'invite-only' &&
+			input.invitees && {
+				inviteeIds: input.invitees.userIds,
+				inviteeEmails: input.invitees.emails,
+				groupIds: input.invitees.groupIds,
+			}),
 	});
 }
 
@@ -88,10 +78,13 @@ async function fetchPollPage(path: string, params: URLSearchParams, { asViewer =
 	return PollPage.parse(data);
 }
 
-/** `sort` applies to Open Polls only; Ended ones are always latest-ended first. */
+/**
+ * `sort` applies to Open Polls only; Ended ones are always latest-ended first.
+ * `top` is most Turnout first.
+ */
 export type PollListQuery = {
 	status?: 'open' | 'ended';
-	sort?: 'newest' | 'closing';
+	sort?: 'newest' | 'closing' | 'top';
 	/** Tag slug. */
 	tag?: string;
 	/** Matches titles and descriptions; ignored under 2 characters. */
@@ -149,9 +142,10 @@ export async function getUserPolls(
 }
 
 /**
- * The signed-in user's Polls. `open`: Scheduled and Open ones they created
- * plus Open ones they hold a Ballot in, closing soonest first. `ended`: Ended
- * and Cancelled ones of either kind, latest first, each with `unread`.
+ * The signed-in user's Polls: ones they created, hold a Ballot in or are an
+ * Invitee of. `open`: Scheduled and Open, closing soonest first, each with
+ * `unread` for an Invitation. `ended`: Ended (and old Cancelled) ones, latest
+ * first, each with `unread` for the Ended Notification.
  */
 export async function getMyPolls(
 	status: 'open' | 'ended' = 'open',
@@ -234,7 +228,7 @@ export async function getResults(pollId: string): Promise<ActionResult<PollResul
  * `expire: 0` avoids updateTag's re-render of the current route in the action
  * response. Ballots leave the shared lists to their 30s revalidate (expiring
  * them on every vote would make the next guest wait for a full uncached list);
- * owner changes (`lists: true`) also expire them, so an edited or cancelled
+ * owner changes (`lists: true`) also expire them, so an edited, ended or deleted
  * poll doesn't linger in Explore, profiles and the guest feed.
  */
 function invalidatePoll(id: string, { lists = false } = {}) {
@@ -242,14 +236,18 @@ function invalidatePoll(id: string, { lists = false } = {}) {
 	if (lists) revalidateTag(FEED_TAG, { expire: 0 });
 }
 
-/** Casts a Ballot, or replaces the existing one. */
-export async function castBallot(pollId: string, optionId: string): Promise<ActionResult> {
+/**
+ * Casts a Ballot, or replaces the existing one. Resolves to the Poll, which
+ * has already Ended when this was the last Invitee's Ballot of an Invite-only Poll.
+ */
+export async function castBallot(pollId: string, optionId: string): Promise<ActionResult<Poll>> {
 	return attempt(async () => {
-		await apiClient(`/votes/${pollId}/vote`, {
+		const poll = await apiClient(`/votes/${pollId}/vote`, {
 			method: 'POST',
 			body: JSON.stringify({ optionIds: [optionId] }),
 		});
 		invalidatePoll(pollId);
+		return PollSchema.parse(poll);
 	});
 }
 
@@ -283,11 +281,70 @@ export async function updatePoll(id: string, input: PollInput): Promise<ActionRe
 	});
 }
 
-/** Closes an Open Poll early, or cancels a Scheduled one (no one is notified). */
+/**
+ * Ends an Open Unlisted or Invite-only Poll now. A Public Poll runs to its
+ * Deadline (400 `vote.close.public_not_allowed`); a Scheduled one is Deleted instead.
+ */
 export async function closePoll(id: string): Promise<ActionResult> {
 	return attempt(async () => {
 		await apiClient(`/votes/${id}/deactivate`, { method: 'PUT' });
 		invalidatePoll(id, { lists: true });
+	});
+}
+
+/**
+ * Removes the Poll for everyone; nobody is notified. Only while Scheduled or
+ * within the delete window after posting (the Poll's `deletable`).
+ */
+export async function deletePoll(id: string): Promise<ActionResult> {
+	return attempt(async () => {
+		await apiClient(`/votes/${id}`, { method: 'DELETE' });
+		invalidatePoll(id, { lists: true });
+	});
+}
+
+// ── Invitees (owner of an Invite-only Poll) ──────────────────────────────────
+
+const InviteeList = z.array(InviteeSchema);
+
+/** Every Invitee, each with `hasBallot`. */
+export async function getInvitees(pollId: string): Promise<ActionResult<Invitee[]>> {
+	return attempt(async () => InviteeList.parse(await apiClient(`/votes/${pollId}/invitees`)));
+}
+
+/**
+ * Adds Invitees; ones already invited are ignored. Not once the Poll has
+ * Ended. Resolves to the full list.
+ */
+export async function addInvitees(
+	pollId: string,
+	invitees: InviteesInput
+): Promise<ActionResult<Invitee[]>> {
+	return attempt(async () => {
+		const list = await apiClient(`/votes/${pollId}/invitees`, {
+			method: 'POST',
+			body: JSON.stringify(invitees),
+		});
+		invalidatePoll(pollId);
+		return InviteeList.parse(list);
+	});
+}
+
+/**
+ * Removes one Invitee, by user ID or by the email they were added by.
+ * Refused (`vote.invitee.has_ballot`) once they hold a Ballot. Removing the
+ * last Invitee without a Ballot Ends the Poll. Resolves to the full list.
+ */
+export async function removeInvitee(
+	pollId: string,
+	invitee: Pick<Invitee, 'userId' | 'email'>
+): Promise<ActionResult<Invitee[]>> {
+	return attempt(async () => {
+		const list = await apiClient(personPath(`/votes/${pollId}/invitees`, invitee), {
+			method: 'DELETE',
+		});
+		invalidatePoll(pollId);
+		return InviteeList.parse(list);
 	});
 }
 

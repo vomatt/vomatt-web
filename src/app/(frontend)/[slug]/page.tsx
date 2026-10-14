@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 
+import { CookieSettingsButton } from '@/components/layout/CookieConsent';
 import { getMyProfile } from '@/data/auth';
 import { isOwnUsername, usernameFromSlug } from '@/features/account/username';
 import { getUserPolls } from '@/features/polls/service';
@@ -48,7 +49,13 @@ export default async function PageSlugRoute(props: Props) {
 		params,
 	});
 
-	if (data) return <PageGeneral data={data} />;
+	if (data) {
+		return (
+			<PageGeneral data={data}>
+				{params.slug === 'cookies-policy' && <CookieSettingsButton />}
+			</PageGeneral>
+		);
+	}
 
 	const username = usernameFromSlug(params.slug);
 	if (!username) notFound();

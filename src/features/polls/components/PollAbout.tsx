@@ -12,7 +12,7 @@ import { profileHref, topicHref } from '@/lib/routes';
 import { formatFromNow, formatPollDate } from '../format';
 import { useSharePoll } from '../hooks/useSharePoll';
 import type { Poll } from '../schema';
-import { derivePollStatus, getTurnout, timelineProgress } from '../status';
+import { derivePollStatus, endedEarly, getTurnout, timelineProgress } from '../status';
 
 /** The side panel on the detail page: who asked, the voting window, turnout and topics. */
 export function PollAbout({ poll }: { poll: Poll }) {
@@ -25,7 +25,11 @@ export function PollAbout({ poll }: { poll: Poll }) {
 	const share = useSharePoll();
 
 	const statusLine = () => {
-		if (status === 'ended') return t('pollDetail.resultsIn');
+		if (status === 'ended') {
+			return endedEarly(poll) && poll.deadline
+				? t('pollDetail.endedEarly', { date: formatPollDate(poll.deadline, currentLanguage) })
+				: t('pollDetail.resultsIn');
+		}
 		if (status === 'scheduled') {
 			return t('poll.opensHint', { distance: formatFromNow(poll.startTime, currentLanguage) });
 		}
@@ -73,7 +77,19 @@ export function PollAbout({ poll }: { poll: Poll }) {
 			{turnout !== undefined && (
 				<p>
 					<span className="font-mono text-3xl tracking-tight tabular-nums">{turnout.toLocaleString()}</span>{' '}
-					<span className="text-muted-foreground">{t('pollDetail.participants')}</span>
+					<span className="text-muted-foreground">
+						{t('pollDetail.participants')}
+						{poll.inviteeCount != null &&
+							` · ${t('pollDetail.invited', { count: poll.inviteeCount.toLocaleString() })}`}
+					</span>
+				</p>
+			)}
+
+			{(poll.audience === 'unlisted' || poll.audience === 'invite-only') && (
+				<p className="leading-relaxed text-muted-foreground">
+					<span className="font-medium text-foreground">{t(`poll.audience.${poll.audience}`)}</span>
+					{' · '}
+					{t(`pollDetail.audience.${poll.audience}`)}
 				</p>
 			)}
 
@@ -98,7 +114,8 @@ export function PollAbout({ poll }: { poll: Poll }) {
 
 			<Button variant="outline" size="sm" className="w-full gap-2" onClick={() => share(poll)}>
 				<Share2 className="size-4" />
-				{t('pollDetail.shareCta')}
+				{/* Sharing can't let anyone into an Invite-only Poll */}
+				{t(poll.audience === 'invite-only' ? 'poll.share' : 'pollDetail.shareCta')}
 			</Button>
 		</aside>
 	);

@@ -218,7 +218,11 @@ export const siteSharingQuery = defineQuery(`
 		shareGraphic,
 		'shareVideo': shareVideo.asset->url,
 		favicon,
-		faviconLight
+		faviconLight,
+		"integrations": *[_type == "settingsIntegration"][0]{
+			gaIDs,
+			gtmIDs
+		}
 	}
 `);
 

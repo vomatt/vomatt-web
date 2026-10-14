@@ -9,6 +9,7 @@ import { Toaster } from 'sonner';
 import BrandLogo from '@/components/BrandLogo';
 import CustomPortableText from '@/components/CustomPortableText';
 import { Layout } from '@/components/layout';
+import { CookieConsent } from '@/components/layout/CookieConsent';
 import { TooltipProvider } from '@/components/ui/Tooltip';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { isComingSoon } from '@/lib/comingSoon';
@@ -115,6 +116,7 @@ export default async function RootLayout({
 							<Layout>{children}</Layout>
 						</TooltipProvider>
 						<Toaster richColors closeButton position="bottom-center" />
+						<CookieConsent integrations={settings?.integrations} />
 					</LanguageProvider>
 				)}
 			</body>

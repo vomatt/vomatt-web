@@ -8,14 +8,18 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { type ActionResult, isPollEnded } from '../errors';
 import type { Poll } from '../schema';
 import { castBallot, getMyBallot, retractBallot } from '../service';
-import { getTurnout, shiftCount } from '../status';
+import { derivePollStatus, getTurnout, shiftCount } from '../status';
 
 export type BallotOutcome = 'saved' | 'failed' | 'ended';
 
 type Options = {
 	isAuthed: boolean;
-	/** Called when the API says the Poll has Ended, so the card can refetch it. */
-	onPollEnded: () => void;
+	/**
+	 * Called when the API says the Poll has Ended, so the card can refetch it.
+	 * When the viewer's Ballot itself Ended it (the last one an Invite-only
+	 * Poll waited for), the Ended Poll comes along.
+	 */
+	onPollEnded: (poll?: Poll) => void;
 };
 
 /**
@@ -65,7 +69,7 @@ export function useBallot(poll: Poll, { isAuthed, onPollEnded }: Options) {
 
 	const run = useCallback(
 		async (
-			request: () => Promise<ActionResult>,
+			request: () => Promise<ActionResult<Poll | void>>,
 			next: string | null,
 			failureMessage: string
 		): Promise<BallotOutcome> => {
@@ -83,7 +87,10 @@ export function useBallot(poll: Poll, { isAuthed, onPollEnded }: Options) {
 
 			const result = await request();
 			setIsPending(false);
-			if (result.ok) return 'saved';
+			if (result.ok) {
+				if (result.data && derivePollStatus(result.data) === 'ended') onPollEnded(result.data);
+				return 'saved';
+			}
 
 			setMyOptionId(previous);
 			setSelected(previous);

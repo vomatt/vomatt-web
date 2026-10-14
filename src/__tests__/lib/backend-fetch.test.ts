@@ -23,7 +23,12 @@ afterAll(() => {
 
 // The response is logged once a copy of its body has been read
 const flushLogs = () => new Promise((resolve) => setImmediate(resolve));
-const logged = () => logSpy.mock.calls.map((args) => args.join(' ')).join('\n');
+// Without color codes, so assertions read like the terminal does
+const logged = () =>
+	logSpy.mock.calls
+		.map((args) => args.join(' '))
+		.join('\n')
+		.replace(/\x1b\[\d+m/g, '');
 
 describe('backendFetch', () => {
 	it('logs nothing outside development', async () => {
@@ -34,6 +39,17 @@ describe('backendFetch', () => {
 		await flushLogs();
 
 		expect(logSpy).not.toHaveBeenCalled();
+	});
+
+	it('logs outside development when API_LOG=1', async () => {
+		env.NODE_ENV = 'production';
+		env.API_LOG = '1';
+		fetchMock.mockResolvedValue(json({ data: { id: 'x' } }));
+
+		await backendFetch('https://api.test/api/polls');
+		await flushLogs();
+
+		expect(logged()).toContain('GET https://api.test/api/polls → 200');
 	});
 
 	it('logs nothing when API_LOG=0', async () => {
@@ -58,8 +74,8 @@ describe('backendFetch', () => {
 		await flushLogs();
 
 		expect(logged()).toContain('POST https://api.test/api/polls → 201');
-		expect(logged()).toContain('{"title":"Cats?"}');
-		expect(logged()).toContain('{"data":{"id":"x"}}');
+		expect(logged()).toContain('"title": "Cats?"');
+		expect(logged()).toContain('"id": "x"');
 	});
 
 	it('hides tokens in headers and bodies', async () => {
@@ -83,6 +99,20 @@ describe('backendFetch', () => {
 
 		expect(logged()).toContain('[redacted]');
 		expect(logged()).not.toMatch(/a1|r1|a2|r2|a3/);
+	});
+
+	it('hides the sign-in code but keeps error codes', async () => {
+		env.NODE_ENV = 'development';
+		fetchMock.mockResolvedValue(json({ errorCode: 'OTP_INVALID' }, 400));
+
+		await backendFetch('https://api.test/api/auth/verify-otp', {
+			method: 'POST',
+			body: JSON.stringify({ email: 'a@b.test', code: '123456' }),
+		});
+		await flushLogs();
+
+		expect(logged()).not.toContain('123456');
+		expect(logged()).toContain('OTP_INVALID');
 	});
 
 	it('leaves the response body readable for the caller', async () => {
