@@ -49,7 +49,7 @@ export function getOwnerActions(poll: Poll, status: PollStatus) {
 	return { canEdit, canDelete, canEnd, canInvite, any: canEdit || canDelete || canEnd || canInvite };
 }
 
-/** The owner's controls (see getOwnerActions). Renders nothing when none apply. */
+/** The owner's controls (see getOwnerActions); render it only when `any` of them apply. */
 export function OwnerActions({ poll, status, onChanged, onDeleted }: OwnerActionsProps) {
 	const { t } = useLanguage();
 	const [isEditing, setIsEditing] = useState(false);
@@ -57,8 +57,7 @@ export function OwnerActions({ poll, status, onChanged, onDeleted }: OwnerAction
 	const [confirming, setConfirming] = useState<Confirm>('delete');
 	const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
-	const { canEdit, canDelete, canEnd, canInvite, any } = getOwnerActions(poll, status);
-	if (!any) return null;
+	const { canEdit, canDelete, canEnd, canInvite } = getOwnerActions(poll, status);
 
 	const remove = async () => {
 		const result = await deletePoll(poll.id);

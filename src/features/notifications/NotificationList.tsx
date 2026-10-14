@@ -23,12 +23,12 @@ const markRead = (polls: Poll[], id: string) =>
 
 export function NotificationList({
 	initialPage,
-	invitations: initialInvitations = [],
+	invitations: initialInvitations,
 }: {
 	/** Ended Notifications; null when they couldn't be loaded. */
 	initialPage: CursorPage<Poll> | null;
 	/** Scheduled and Open Invite-only Polls the user is invited to. */
-	invitations?: Poll[];
+	invitations: Poll[];
 }) {
 	const { t } = useLanguage();
 	const list = useCursorList(initialPage, fetchPage);

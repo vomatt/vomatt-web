@@ -30,6 +30,24 @@ export function isCancelled(poll: Pick<Poll, 'startTime' | 'endTime'>) {
 	return !!poll.endTime && Date.parse(poll.endTime) <= Date.parse(poll.startTime);
 }
 
+/**
+ * Voter Visibility as the viewer should read it: on an Invite-only Poll
+ * "signed in" covers only the owner and the Invitees.
+ */
+export function visibilityLevel(poll: Pick<Poll, 'voterVisibility' | 'audience'>) {
+	return poll.voterVisibility === 'signed-in' && poll.audience === 'invite-only'
+		? 'invited'
+		: poll.voterVisibility;
+}
+
+/**
+ * Only the owner and its Invitees can see an Invite-only Poll, so any other
+ * viewer of one is an Invitee. The API has no flag for it (integration note R2).
+ */
+export function isInvitee(poll: Pick<Poll, 'audience' | 'creatorId'>, viewerId: string) {
+	return poll.audience === 'invite-only' && poll.creatorId !== viewerId;
+}
+
 /** Ended before its Deadline: Closed by the owner, or every Invitee voted. */
 export function endedEarly(poll: Pick<Poll, 'endTime' | 'deadline'>) {
 	return !!poll.endTime && !!poll.deadline && Date.parse(poll.endTime) < Date.parse(poll.deadline);

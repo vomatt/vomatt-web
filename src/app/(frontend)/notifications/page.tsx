@@ -7,6 +7,7 @@ import { NotificationList } from '@/features/notifications/NotificationList';
 import { PollListSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import { NOTIFICATIONS_PAGE_SIZE } from '@/features/polls/constants';
 import { getMyPolls } from '@/features/polls/service';
+import { isInvitee } from '@/features/polls/status';
 
 export const metadata: Metadata = { title: 'Notifications' };
 
@@ -32,8 +33,6 @@ async function Notifications({ viewerId }: { viewerId: string }) {
 		getMyPolls('open').catch(() => null),
 		getMyPolls('ended', null, NOTIFICATIONS_PAGE_SIZE).catch(() => null),
 	]);
-	const invitations = (open?.items ?? []).filter(
-		(poll) => poll.audience === 'invite-only' && poll.creatorId !== viewerId
-	);
+	const invitations = (open?.items ?? []).filter((poll) => isInvitee(poll, viewerId));
 	return <NotificationList initialPage={firstPage} invitations={invitations} />;
 }

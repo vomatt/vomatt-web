@@ -71,7 +71,7 @@ describe('useBallot outcomes', () => {
 			outcome = await result.current.cast('opt-a');
 		});
 		expect(outcome).toBe('saved');
-		expect(onPollEnded).toHaveBeenCalled();
+		expect(onPollEnded).toHaveBeenCalledWith(expect.objectContaining({ votingActive: false }));
 	});
 
 	it('looks up the Ballot when a guest signs in on the card', async () => {

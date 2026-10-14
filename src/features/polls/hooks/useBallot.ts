@@ -15,10 +15,11 @@ export type BallotOutcome = 'saved' | 'failed' | 'ended';
 type Options = {
 	isAuthed: boolean;
 	/**
-	 * Called when the API says the Poll has Ended (also when the viewer's
-	 * Ballot was the last one an Invite-only Poll waited for), so the card can refetch it.
+	 * Called when the API says the Poll has Ended, so the card can refetch it.
+	 * When the viewer's Ballot itself Ended it (the last one an Invite-only
+	 * Poll waited for), the Ended Poll comes along.
 	 */
-	onPollEnded: () => void;
+	onPollEnded: (poll?: Poll) => void;
 };
 
 /**
@@ -87,7 +88,7 @@ export function useBallot(poll: Poll, { isAuthed, onPollEnded }: Options) {
 			const result = await request();
 			setIsPending(false);
 			if (result.ok) {
-				if (result.data && derivePollStatus(result.data) === 'ended') onPollEnded();
+				if (result.data && derivePollStatus(result.data) === 'ended') onPollEnded(result.data);
 				return 'saved';
 			}
 

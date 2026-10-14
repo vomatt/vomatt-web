@@ -11,7 +11,7 @@ import { Search } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PollListItem } from '@/features/polls/components/PollListItem';
 import { StatusChip } from '@/features/polls/components/StatusChip';
-import { EXPLORE_PAGE_SIZE, SEARCH_MIN_LENGTH } from '@/features/polls/constants';
+import { EXPLORE_PAGE_SIZE, SEARCH_DEBOUNCE_MS, SEARCH_MIN_LENGTH } from '@/features/polls/constants';
 import type { Poll, TagDto } from '@/features/polls/schema';
 import { getPolls, type PollListQuery } from '@/features/polls/service';
 import { derivePollStatus, getTurnout } from '@/features/polls/status';
@@ -21,8 +21,6 @@ import { topicHref } from '@/lib/routes';
 
 type Status = 'open' | 'ended';
 type Sort = 'newest' | 'closing' | 'top';
-
-const SEARCH_DEBOUNCE_MS = 300;
 
 /** The query sent to the API; a search under the minimum length is no search. */
 export function toExploreQuery(query: string, status: Status, sort: Sort): PollListQuery {
@@ -68,27 +66,24 @@ export function ExploreView({
 	// Memoized on its fields, so keystrokes that don't change the query don't refetch
 	const { sort: apiSort, q } = toExploreQuery(query, status, sort);
 	const apiQuery = useMemo(() => ({ status, sort: apiSort, q }), [status, apiSort, q]);
-	// The query of the items shown: a cursor only works for the ordering that issued it,
-	// so Load more keeps to it until the new query's first page replaces the list
-	const listedQuery = useRef(apiQuery);
 	const fetchPage = useCallback(
-		(cursor: string) => getPolls(listedQuery.current, cursor, EXPLORE_PAGE_SIZE),
-		[]
+		(cursor: string) => getPolls(apiQuery, cursor, EXPLORE_PAGE_SIZE),
+		[apiQuery]
 	);
 	const list = useCursorList(initialPage, fetchPage);
 	const { reset } = list;
 
 	// A new query starts from its own first page; typing waits for a pause.
 	// The server already rendered the first page of the initial query.
+	const initialQuery = useRef(apiQuery);
 	useEffect(() => {
-		if (apiQuery === listedQuery.current) return;
+		if (apiQuery === initialQuery.current) return;
 		let ignore = false;
 		const timer = setTimeout(async () => {
 			setIsSearching(true);
 			try {
 				const page = await getPolls(apiQuery, null, EXPLORE_PAGE_SIZE);
 				if (ignore) return;
-				listedQuery.current = apiQuery;
 				reset(page);
 				setSearchFailed(false);
 			} catch {

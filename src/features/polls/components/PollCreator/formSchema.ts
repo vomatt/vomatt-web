@@ -50,14 +50,13 @@ export const pollFormSchema = z
 		startTime: z.string(),
 		endTime: z.string().min(1, 'pollCreator.errors.endRequired'),
 		voterVisibility: VoterVisibilitySchema,
-		// Defaults: drafts saved before these fields existed have neither
-		audience: AudienceSchema.default(DEFAULT_AUDIENCE),
+		audience: AudienceSchema,
 		/**
 		 * Who to invite, for an Invite-only Poll. Null when editing a Poll that
 		 * is already Invite-only: its Invitees are managed on the Poll, and
 		 * sending a list here would replace them.
 		 */
-		invitees: InviteeSelectionSchema.nullable().default(EMPTY_INVITEES),
+		invitees: InviteeSelectionSchema.nullable(),
 	})
 	.superRefine((values, ctx) => {
 		if (values.audience === 'invite-only' && values.invitees && isSelectionEmpty(values.invitees)) {
@@ -130,7 +129,7 @@ export function formToInput(values: PollFormValues): PollInput {
 		startTime: (values.startTime ? new Date(values.startTime) : new Date()).toISOString(),
 		endTime: new Date(values.endTime).toISOString(),
 		voterVisibility: values.voterVisibility,
-		audience: values.audience ?? DEFAULT_AUDIENCE,
+		audience: values.audience,
 		invitees:
 			values.audience === 'invite-only' && values.invitees
 				? selectionToInput(values.invitees)

@@ -12,15 +12,15 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from '@/components/ui/Dialog';
-import { InitialAvatar } from '@/components/ui/InitialAvatar';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Spinner } from '@/components/ui/Spinner';
-import { ArrowRight, X } from '@/components/ui/SvgIcons';
+import { ArrowRight } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { InviteePicker } from '@/features/polls/components/InviteePicker';
-import type { ActionResult } from '@/features/polls/errors';
-import { EMPTY_INVITEES, isSelectionEmpty } from '@/features/polls/invitees';
+import { PeopleList } from '@/features/polls/components/PeopleList';
+import { EMPTY_INVITEES, isSelectionEmpty, personKey } from '@/features/polls/invitees';
+import type { ActionResult } from '@/lib/api/action';
 
 import { type Group, GROUP_NAME_MAX,type GroupMember } from './schema';
 import {
@@ -147,8 +147,6 @@ export function GroupsPanel() {
 	);
 }
 
-const memberKey = (member: GroupMember) => member.email ?? member.userId ?? '';
-
 function GroupDialog({
 	group,
 	onClose,
@@ -214,7 +212,7 @@ function GroupDialog({
 	};
 
 	const remove = async (member: GroupMember) => {
-		const list = await run(memberKey(member), () => removeGroupMember(group.id, member));
+		const list = await run(personKey(member), () => removeGroupMember(group.id, member));
 		if (list) showMembers(list);
 	};
 
@@ -263,26 +261,13 @@ function GroupDialog({
 						<p className="py-2 text-[13px] text-muted-foreground">{t('groups.noMembers')}</p>
 					)}
 					{!!members?.length && (
-						<ul aria-label={t('groups.members')} className="space-y-1">
-							{members.map((member) => {
-								const label = member.username ?? member.email ?? '';
-								return (
-									<li key={memberKey(member)} className="flex min-h-11 items-center gap-3 text-[15px]">
-										<InitialAvatar name={label} />
-										<span className="min-w-0 flex-1 truncate">{label}</span>
-										<button
-											type="button"
-											aria-label={t('invitees.remove', { name: label })}
-											disabled={pending !== null}
-											onClick={() => remove(member)}
-											className="grid size-11 place-items-center rounded-lg text-muted-foreground hover:text-destructive disabled:opacity-50"
-										>
-											{pending === memberKey(member) ? <Spinner /> : <X className="size-4" />}
-										</button>
-									</li>
-								);
-							})}
-						</ul>
+						<PeopleList
+							label={t('groups.members')}
+							people={members}
+							onRemove={remove}
+							removingKey={pending}
+							disabled={pending !== null}
+						/>
 					)}
 				</div>
 

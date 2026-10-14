@@ -2,7 +2,18 @@ import { unstable_rethrow } from 'next/navigation';
 
 import { ApiError, AuthError } from '@/lib/api/client';
 
-import type { ActionFailure, ActionResult } from './errors';
+export type ActionFailure = {
+	ok: false;
+	status?: number;
+	errorCode?: string;
+	message: string;
+};
+
+/**
+ * Server Actions return this instead of throwing: errors thrown across the
+ * action boundary lose their status and errorCode in production.
+ */
+export type ActionResult<T = void> = { ok: true; data: T } | ActionFailure;
 
 function toFailure(error: unknown): ActionFailure {
 	unstable_rethrow(error);

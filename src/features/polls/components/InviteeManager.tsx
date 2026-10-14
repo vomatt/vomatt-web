@@ -11,16 +11,15 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from '@/components/ui/Dialog';
-import { InitialAvatar } from '@/components/ui/InitialAvatar';
 import { Label } from '@/components/ui/Label';
 import { Spinner } from '@/components/ui/Spinner';
-import { X } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-import { EMPTY_INVITEES, isSelectionEmpty, selectionToInput } from '../invitees';
+import { EMPTY_INVITEES, isSelectionEmpty, personKey, selectionToInput } from '../invitees';
 import type { Invitee } from '../schema';
 import { addInvitees, getInvitees, removeInvitee } from '../service';
 import { InviteePicker } from './InviteePicker';
+import { PeopleList } from './PeopleList';
 
 type InviteeManagerProps = {
 	pollId: string;
@@ -30,7 +29,6 @@ type InviteeManagerProps = {
 	onChanged: () => void;
 };
 
-const inviteeKey = (invitee: Invitee) => invitee.email ?? invitee.userId ?? '';
 
 /**
  * The owner's list of Invitees of an Invite-only Poll that hasn't Ended: add
@@ -71,7 +69,7 @@ export function InviteeManager({ pollId, open, onOpenChange, onChanged }: Invite
 	};
 
 	const remove = async (invitee: Invitee) => {
-		setRemoving(inviteeKey(invitee));
+		setRemoving(personKey(invitee));
 		const result = await removeInvitee(pollId, invitee);
 		setRemoving(null);
 		if (!result.ok) {
@@ -109,31 +107,15 @@ export function InviteeManager({ pollId, open, onOpenChange, onChanged }: Invite
 						<p className="py-2 text-[13px] text-muted-foreground">{t('invitees.empty')}</p>
 					)}
 					{!!invitees?.length && (
-						<ul aria-label={t('invitees.title')} className="space-y-1">
-							{invitees.map((invitee) => {
-								const name = invitee.username ?? invitee.email ?? '';
-								return (
-									<li key={inviteeKey(invitee)} className="flex min-h-11 items-center gap-3 text-[15px]">
-										<InitialAvatar name={name} />
-										<span className="min-w-0 flex-1 truncate">{name}</span>
-										{invitee.hasBallot ? (
-											// One who holds a Ballot can't be removed
-											<span className="text-[13px] text-muted-foreground">{t('invitees.voted')}</span>
-										) : (
-											<button
-												type="button"
-												aria-label={t('invitees.remove', { name })}
-												disabled={removing !== null}
-												onClick={() => remove(invitee)}
-												className="grid size-11 place-items-center rounded-lg text-muted-foreground hover:text-destructive disabled:opacity-50"
-											>
-												{removing === inviteeKey(invitee) ? <Spinner /> : <X className="size-4" />}
-											</button>
-										)}
-									</li>
-								);
-							})}
-						</ul>
+						<PeopleList
+							label={t('invitees.title')}
+							people={invitees}
+							onRemove={remove}
+							removingKey={removing}
+							disabled={removing !== null}
+							// One who holds a Ballot can't be removed
+							noteFor={(invitee) => (invitee.hasBallot ? t('invitees.voted') : null)}
+						/>
 					)}
 				</div>
 

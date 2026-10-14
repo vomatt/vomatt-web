@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { clearAuthTokens } from '@/lib/api/auth';
 import { apiClient, ApiError, publicFetch } from '@/lib/api/client';
 import { cursorPageSchema, pageParams } from '@/lib/api/cursor';
+import { UserDtoSchema } from '@/schemas/user';
 import { MyProfile, UserProfile } from '@/types/user';
 
 // Public profiles are cached; a profile edit refreshes them and re-renders the page
@@ -24,14 +25,7 @@ export async function getUserProfile(username: string): Promise<UserProfile | nu
   }
 }
 
-const UserSearchPage = cursorPageSchema(
-  z.object({
-    id: z.string(),
-    username: z.string(),
-    displayName: z.string().nullish(),
-    avatarUrl: z.string().nullish(),
-  })
-);
+const UserSearchPage = cursorPageSchema(UserDtoSchema);
 
 /**
  * Signed-in only; a partial, case-insensitive username match, by username.

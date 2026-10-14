@@ -13,11 +13,7 @@ jest.mock('next/link', () => {
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 
 const mockReplace = jest.fn();
-let mockPathname = '/';
-jest.mock('next/navigation', () => ({
-	useRouter: () => ({ replace: mockReplace }),
-	usePathname: () => mockPathname,
-}));
+jest.mock('next/navigation', () => ({ useRouter: () => ({ replace: mockReplace }) }));
 
 jest.mock('sonner', () => {
 	const toast = Object.assign(jest.fn(), { error: jest.fn(), success: jest.fn() });
@@ -309,13 +305,11 @@ describe('PollCard state C · Scheduled', () => {
 	});
 
 	it('leaves the Poll\'s own page once it is deleted', async () => {
-		mockPathname = '/poll/poll-1';
 		mockDeletePoll.mockResolvedValue({ ok: true });
-		render(<PollCard poll={scheduled} viewerId="user-1" />);
+		render(<PollCard poll={scheduled} viewerId="user-1" deletedHref="/my-polls" />);
 		fireEvent.click(screen.getByRole('button', { name: 'Delete poll' }));
 		fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Delete poll' }));
 		await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/my-polls'));
-		mockPathname = '/';
 	});
 
 	it('shows the API\'s reason when the delete window has passed', async () => {
@@ -391,14 +385,14 @@ describe('PollCard Audience', () => {
 		const poll: Poll = { ...openPoll, audience: 'invite-only' };
 		const ended = { ...endedPoll, audience: 'invite-only' as const, endTime: iso(-1000) };
 		mockCastBallot.mockResolvedValue({ ok: true, data: ended });
-		mockGetPoll.mockResolvedValue(ended);
 		render(<PollCard poll={poll} viewerId="user-voter" />);
 
 		fireEvent.click(screen.getByRole('radio', { name: 'Sunday' }));
 		fireEvent.click(screen.getByRole('button', { name: 'Vote' }));
 
-		await waitFor(() => expect(mockGetPoll).toHaveBeenCalledWith('poll-1'));
 		await waitFor(() => expect(screen.getByText('48%')).toBeInTheDocument());
+		// The Ballot's response already is the Ended Poll
+		expect(mockGetPoll).not.toHaveBeenCalled();
 	});
 });
 

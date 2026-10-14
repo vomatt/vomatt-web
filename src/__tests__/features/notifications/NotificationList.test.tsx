@@ -65,7 +65,7 @@ describe('NotificationList', () => {
 	});
 
 	it('shows the empty state only when there is nothing at all', () => {
-		render(<NotificationList initialPage={{ items: [], nextCursor: null }} />);
+		render(<NotificationList initialPage={{ items: [], nextCursor: null }} invitations={[]} />);
 		expect(screen.getByText('No notifications yet.')).toBeInTheDocument();
 	});
 });

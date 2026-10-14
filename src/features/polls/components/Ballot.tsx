@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 import { formatFromNow, formatPollDate } from '../format';
 import type { BallotState } from '../hooks/useBallot';
 import type { Poll } from '../schema';
-import type { PollStatus } from '../status';
+import { type PollStatus, visibilityLevel } from '../status';
 import { BallotBoxIcon, BallotMark, SelectionHighlight, VotedStamp } from './BallotMotion';
 
 type BallotProps = {
@@ -32,11 +32,8 @@ export function Ballot({ poll, status, ballot, requireAuth, ownerActions }: Ball
 	const { myOptionId, selected, setSelected, isPending } = ballot;
 	const isScheduled = status === 'scheduled';
 	const hasBallot = myOptionId !== null;
-	// On an Invite-only Poll "signed in" covers only the owner and the Invitees
-	const visibilityHint =
-		poll.voterVisibility === 'signed-in' && poll.audience === 'invite-only'
-			? t('poll.visibility.invited')
-			: poll.voterVisibility && t(`poll.visibility.${poll.voterVisibility}`);
+	const level = visibilityLevel(poll);
+	const visibilityHint = level && t(`poll.visibility.${level}`);
 
 	const [optionsRef, animateOptions] = useAnimate();
 	/** The options recoil when a request is rolled back. */

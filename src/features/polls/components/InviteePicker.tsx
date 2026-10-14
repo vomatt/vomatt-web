@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { z } from 'zod';
 
+import { emailSchema } from '@/components/auth/auth-schemas';
 import { Button } from '@/components/ui/Button';
 import { InitialAvatar } from '@/components/ui/InitialAvatar';
 import { Input } from '@/components/ui/Input';
@@ -12,16 +12,15 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import type { Group } from '@/features/groups/schema';
 import { getGroups } from '@/features/groups/service';
 import { searchUsers } from '@/lib/api/services/users';
+import type { UserDto } from '@/schemas/user';
 
+import { SEARCH_DEBOUNCE_MS } from '../constants';
 import type { InviteeSelection, PickedUser } from '../invitees';
 
-const EmailSchema = z.string().email();
-const SEARCH_DEBOUNCE_MS = 300;
 const MAX_SUGGESTIONS = 5;
 
-type Found = { username: string; displayName?: string | null } & PickedUser;
 /** Search results, tagged with the term they answer so stale ones never show. */
-type Results = { term: string; users: Found[]; failed?: boolean };
+type Results = { term: string; users: UserDto[]; failed?: boolean };
 
 type InviteePickerProps = {
 	value: InviteeSelection;
@@ -45,7 +44,8 @@ export function InviteePicker({ value, onChange, withGroups = false, id, invalid
 
 	const term = query.trim();
 	const email = term.toLowerCase();
-	const isEmail = EmailSchema.safeParse(email).success;
+	// The sign-in rule, so an address is accepted here exactly when it can sign up
+	const isEmail = emailSchema.shape.email.safeParse(email).success;
 	const looksLikeEmail = term.includes('@');
 	const isSearching = !!term && !looksLikeEmail;
 	const isLoading = isSearching && results.term !== term;

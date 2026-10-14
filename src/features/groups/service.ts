@@ -2,8 +2,9 @@
 
 import { z } from 'zod';
 
-import { attempt } from '@/features/polls/action';
-import type { ActionResult } from '@/features/polls/errors';
+import { personPath } from '@/features/polls/invitees';
+import type { ActionResult } from '@/lib/api/action';
+import { attempt } from '@/lib/api/action';
 import { apiClient } from '@/lib/api/client';
 
 import { type Group, type GroupMember, GroupMemberSchema, GroupSchema } from './schema';
@@ -69,8 +70,6 @@ export async function removeGroupMember(
 	groupId: string,
 	member: Pick<GroupMember, 'userId' | 'email'>
 ): Promise<ActionResult<GroupMember[]>> {
-	const path = member.email
-		? `${groupPath(groupId)}/members?${new URLSearchParams({ email: member.email })}`
-		: `${groupPath(groupId)}/members/${encodeURIComponent(member.userId ?? '')}`;
+	const path = personPath(`${groupPath(groupId)}/members`, member);
 	return attempt(async () => MemberList.parse(await apiClient(path, { method: 'DELETE' })));
 }

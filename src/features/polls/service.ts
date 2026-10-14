@@ -4,6 +4,7 @@ import { revalidateTag, updateTag } from 'next/cache';
 import { unstable_rethrow } from 'next/navigation';
 import { z } from 'zod';
 
+import { attempt } from '@/lib/api/action';
 import { apiClient, ApiError, publicFetch } from '@/lib/api/client';
 import {
 	collectPages,
@@ -13,10 +14,10 @@ import {
 	pageParams,
 } from '@/lib/api/cursor';
 
-import { attempt } from './action';
 import { FEED_TAG, pollTag } from './cache';
 import { SEARCH_MIN_LENGTH } from './constants';
 import type { ActionResult } from './errors';
+import { personPath } from './invitees';
 import {
 	type Comment,
 	CommentSchema,
@@ -322,11 +323,7 @@ export async function addInvitees(
 	return attempt(async () => {
 		const list = await apiClient(`/votes/${pollId}/invitees`, {
 			method: 'POST',
-			body: JSON.stringify({
-				userIds: invitees.userIds,
-				emails: invitees.emails,
-				groupIds: invitees.groupIds,
-			}),
+			body: JSON.stringify(invitees),
 		});
 		invalidatePoll(pollId);
 		return InviteeList.parse(list);
@@ -342,11 +339,10 @@ export async function removeInvitee(
 	pollId: string,
 	invitee: Pick<Invitee, 'userId' | 'email'>
 ): Promise<ActionResult<Invitee[]>> {
-	const path = invitee.email
-		? `/votes/${pollId}/invitees?${new URLSearchParams({ email: invitee.email })}`
-		: `/votes/${pollId}/invitees/${encodeURIComponent(invitee.userId ?? '')}`;
 	return attempt(async () => {
-		const list = await apiClient(path, { method: 'DELETE' });
+		const list = await apiClient(personPath(`/votes/${pollId}/invitees`, invitee), {
+			method: 'DELETE',
+		});
 		invalidatePoll(pollId);
 		return InviteeList.parse(list);
 	});

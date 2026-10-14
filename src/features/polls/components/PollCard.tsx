@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from 'motion/react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useCallback, useState } from 'react';
 
 import { AuthDialog } from '@/components/auth/AuthDialog';
@@ -32,14 +32,20 @@ interface PollCardProps {
 	viewerId?: string;
 	/** The detail page opens the discussion right away. */
 	defaultShowComments?: boolean;
+	/** Where to go once the owner Deletes the Poll; without it the card just leaves the list. */
+	deletedHref?: string;
 }
 
 /** Shows the Ballot until the Poll Ends, then the Results. Whether the viewer voted doesn't matter. */
-export function PollCard({ poll: initialPoll, viewerId, defaultShowComments = false }: PollCardProps) {
+export function PollCard({
+	poll: initialPoll,
+	viewerId,
+	defaultShowComments = false,
+	deletedHref,
+}: PollCardProps) {
 	const { currentLanguage } = useLanguage();
 	const isHydrated = useHydrated();
 	const router = useRouter();
-	const pathname = usePathname();
 	const [poll, setPoll] = useState(initialPoll);
 	const [isDeleted, setIsDeleted] = useState(false);
 	const [showComments, setShowComments] = useState(defaultShowComments);
@@ -54,7 +60,11 @@ export function PollCard({ poll: initialPoll, viewerId, defaultShowComments = fa
 		if (fresh) setPoll(fresh);
 	}, [poll.id]);
 
-	const ballot = useBallot(poll, { isAuthed, onPollEnded: refetch });
+	const handlePollEnded = useCallback(
+		(ended?: Poll) => (ended ? setPoll(ended) : refetch()),
+		[refetch]
+	);
+	const ballot = useBallot(poll, { isAuthed, onPollEnded: handlePollEnded });
 	const status = derivePollStatus(poll);
 	const { id, title, description, creatorId, creatorUsername, createdAt } = poll;
 	const isOwner = !!viewerId && viewerId === creatorId;
@@ -67,9 +77,8 @@ export function PollCard({ poll: initialPoll, viewerId, defaultShowComments = fa
 		voters.load(row);
 	};
 
-	// The Poll's own page is gone with it; in a list the card just leaves
 	const handleDeleted = () => {
-		if (pathname === `/poll/${id}`) router.replace('/my-polls');
+		if (deletedHref) router.replace(deletedHref);
 		else setIsDeleted(true);
 	};
 	if (isDeleted) return null;

@@ -3,7 +3,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useState } from 'react';
-import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
+import {
+	Controller,
+	useFieldArray,
+	useForm,
+	type UseFormRegisterReturn,
+	useWatch,
+} from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { ButtonLoading } from '@/components/ButtonLoading';
@@ -43,7 +49,7 @@ import {
 	VoterVisibilitySchema,
 } from '../../schema';
 import { createPoll, updatePoll } from '../../service';
-import { derivePollStatus, type PollStatus } from '../../status';
+import { derivePollStatus, type PollStatus, visibilityLevel } from '../../status';
 import { BallotMark } from '../BallotMotion';
 import { InviteePicker } from '../InviteePicker';
 import { StatusChip } from '../StatusChip';
@@ -85,8 +91,7 @@ export interface PollCreatorProps {
 
 function initialValues(poll?: Poll, draft?: PollDraft) {
 	if (poll) return pollToForm(poll);
-	// Older drafts lack the newer fields
-	return draft ? { ...emptyPollForm(), ...draft.values } : emptyPollForm();
+	return draft?.values ?? emptyPollForm();
 }
 
 /** A `datetime-local` value as ISO, or null when empty or unparseable. */
@@ -134,21 +139,12 @@ export function PollCreator({
 		defaultValues: defaults,
 	});
 	const { fields, append, remove } = useFieldArray({ control, name: 'options' });
-	const [title, description, options, startTime, endTime, voterVisibility, audience, invitees] =
-		useWatch({
-			control,
-			name: [
-				'title',
-				'description',
-				'options',
-				'startTime',
-				'endTime',
-				'voterVisibility',
-				'audience',
-				'invitees',
-			],
-		});
+	const [title, description, options, startTime, endTime, voterVisibility, audience] = useWatch({
+		control,
+		name: ['title', 'description', 'options', 'startTime', 'endTime', 'voterVisibility', 'audience'],
+	});
 	const isInviteOnly = audience === 'invite-only';
+	const level = visibilityLevel({ voterVisibility, audience });
 
 	const setOpen = (value: boolean) => {
 		setInternalOpen(value);
@@ -341,14 +337,10 @@ export function PollCreator({
 										</div>
 									</div>
 									<ul className="space-y-3 text-[15px] leading-relaxed">
-										<li>{t(`pollCreator.ruleAudience.${audience ?? 'public'}`)}</li>
+										<li>{t(`pollCreator.ruleAudience.${audience}`)}</li>
 										<li>{t('pollCreator.ruleSealed')}</li>
 										<li>
-											{t(
-												isInviteOnly && voterVisibility === 'signed-in'
-													? 'pollCreator.ruleVisibility.invited'
-													: `pollCreator.ruleVisibility.${voterVisibility}`
-											)}{' '}
+											{t(`pollCreator.ruleVisibility.${level}`)}{' '}
 											{t('pollCreator.ruleFixed')}
 										</li>
 										<li>{t('pollCreator.ruleOneVote')}</li>
@@ -467,10 +459,10 @@ export function PollCreator({
 											<span className="flex-1 space-y-0.5">
 												<span className="block text-[15px] font-medium">{summaryTop}</span>
 												<span className="block text-sm text-muted-foreground">
-													{t(`poll.audience.${audience ?? 'public'}`)}
+													{t(`poll.audience.${audience}`)}
 													{' · '}
 													{t('pollCreator.summaryVisibility', {
-														level: t(`pollCreator.visibility.${voterVisibility}`),
+														level: t(`pollCreator.visibility.${level}`),
 													})}
 												</span>
 											</span>
@@ -516,56 +508,39 @@ export function PollCreator({
 													{errorText(errors.endTime?.message)}
 												</div>
 
-												<fieldset className="space-y-2">
-													<legend className="mb-2 text-sm font-medium">
-														{t('pollCreator.audienceLabel')}
-													</legend>
-													{AudienceSchema.options.map((level) => (
-														<label
-															key={level}
-															className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-[15px] transition-colors hover:border-border-strong has-[:checked]:border-foreground has-[:checked]:bg-volt-tint has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring"
-														>
-															<input
-																type="radio"
-																value={level}
-																className="size-5 shrink-0 accent-[var(--foreground)]"
-																{...register('audience')}
-															/>
-															<span>
-																<span className="font-medium">{t(`poll.audience.${level}`)}</span>
-																<small className="block text-sm text-muted-foreground">
-																	{t(`pollCreator.audienceHint.${level}`)}
-																</small>
-															</span>
-														</label>
-													))}
-													<p className="pt-1 text-[13px] text-muted-foreground">
-														{t('pollCreator.audienceNote')}
-													</p>
-												</fieldset>
+												<RadioCards
+													legend={t('pollCreator.audienceLabel')}
+													note={t('pollCreator.audienceNote')}
+													input={register('audience')}
+													options={AudienceSchema.options.map((level) => ({
+														value: level,
+														label: t(`poll.audience.${level}`),
+														hint: t(`pollCreator.audienceHint.${level}`),
+													}))}
+												/>
 
 												{isInviteOnly && (
 													<div className="space-y-2">
 														<Label htmlFor="invitees">{t('pollCreator.inviteesLabel')}</Label>
-														{invitees ? (
-															<Controller
-																control={control}
-																name="invitees"
-																render={({ field }) => (
+														<Controller
+															control={control}
+															name="invitees"
+															render={({ field }) =>
+																field.value ? (
 																	<InviteePicker
 																		id="invitees"
 																		withGroups
-																		value={invitees}
+																		value={field.value}
 																		onChange={field.onChange}
 																		invalid={!!errors.invitees}
 																	/>
-																)}
-															/>
-														) : (
-															<p className="text-[13px] text-muted-foreground">
-																{t('pollCreator.inviteesManaged')}
-															</p>
-														)}
+																) : (
+																	<p className="text-[13px] text-muted-foreground">
+																		{t('pollCreator.inviteesManaged')}
+																	</p>
+																)
+															}
+														/>
 														<p className="text-[13px] text-muted-foreground">
 															{t('pollCreator.inviteesHint')}
 														</p>
@@ -573,33 +548,16 @@ export function PollCreator({
 													</div>
 												)}
 
-												<fieldset className="space-y-2">
-													<legend className="mb-2 text-sm font-medium">
-														{t('pollCreator.visibilityLabel')}
-													</legend>
-													{VoterVisibilitySchema.options.map((level) => (
-														<label
-															key={level}
-															className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-[15px] transition-colors hover:border-border-strong has-[:checked]:border-foreground has-[:checked]:bg-volt-tint has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring"
-														>
-															<input
-																type="radio"
-																value={level}
-																className="size-5 shrink-0 accent-[var(--foreground)]"
-																{...register('voterVisibility')}
-															/>
-															<span>
-																<span className="font-medium">{t(`pollCreator.visibility.${level}`)}</span>
-																<small className="block text-sm text-muted-foreground">
-																	{t(`pollCreator.visibility.${level}Hint`)}
-																</small>
-															</span>
-														</label>
-													))}
-													<p className="pt-1 text-[13px] text-muted-foreground">
-														{t('pollCreator.visibilityNote')}
-													</p>
-												</fieldset>
+												<RadioCards
+													legend={t('pollCreator.visibilityLabel')}
+													note={t('pollCreator.visibilityNote')}
+													input={register('voterVisibility')}
+													options={VoterVisibilitySchema.options.map((level) => ({
+														value: level,
+														label: t(`pollCreator.visibility.${level}`),
+														hint: t(`pollCreator.visibility.${level}Hint`),
+													}))}
+												/>
 											</section>
 										)}
 									</div>
@@ -670,5 +628,40 @@ export function PollCreator({
 				)}
 			</AlertDialog>
 		</>
+	);
+}
+
+type RadioCardsProps = {
+	legend: string;
+	/** Shown under the cards. */
+	note: string;
+	input: UseFormRegisterReturn;
+	options: { value: string; label: string; hint: string }[];
+};
+
+/** A radio group of bordered cards, each a label and a hint, for the folded settings. */
+function RadioCards({ legend, note, input, options }: RadioCardsProps) {
+	return (
+		<fieldset className="space-y-2">
+			<legend className="mb-2 text-sm font-medium">{legend}</legend>
+			{options.map(({ value, label, hint }) => (
+				<label
+					key={value}
+					className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-[15px] transition-colors hover:border-border-strong has-[:checked]:border-foreground has-[:checked]:bg-volt-tint has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring"
+				>
+					<input
+						type="radio"
+						value={value}
+						className="size-5 shrink-0 accent-[var(--foreground)]"
+						{...input}
+					/>
+					<span>
+						<span className="font-medium">{label}</span>
+						<small className="block text-sm text-muted-foreground">{hint}</small>
+					</span>
+				</label>
+			))}
+			<p className="pt-1 text-[13px] text-muted-foreground">{note}</p>
+		</fieldset>
 	);
 }

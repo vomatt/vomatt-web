@@ -220,6 +220,8 @@ describe('PollCreator', () => {
 			startTime: 'not a date',
 			endTime: '2030-01-01T22:00',
 			voterVisibility: 'owner',
+			audience: 'public',
+			invitees: { users: [], emails: [], groups: [] },
 		});
 		render(<PollCreator triggerChildren={TRIGGER} draft={draft} />);
 		await openDialog();
@@ -351,7 +353,7 @@ describe('PollCreator', () => {
 		expect(draft.values.title).toBe('Half-written');
 	});
 
-	it('resumes a draft and deletes it once published', async () => {
+	it('resumes a draft saved before Audience existed and deletes it once published', async () => {
 		const values = {
 			title: 'From a draft',
 			description: '',
@@ -360,7 +362,8 @@ describe('PollCreator', () => {
 			endTime: '2030-01-01T10:00',
 			voterVisibility: 'signed-in' as const,
 		};
-		const draft = saveDraft(values);
+		localStorage.setItem('vomatt_poll_drafts', JSON.stringify([{ id: 'd1', savedAt: '', values }]));
+		const [draft] = listDrafts();
 		render(<PollCreator draft={draft} open onOpenChange={jest.fn()} />);
 
 		expect(screen.getByLabelText(QUESTION)).toHaveValue('From a draft');
