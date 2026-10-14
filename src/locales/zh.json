@@ -358,5 +358,13 @@
 		"deleteConfirmTitle": "確定要刪除帳號？",
 		"deleteConfirmBody": "請輸入 {username} 以確認，帳號將被永久刪除。",
 		"deleteConfirmLabel": "輸入你的使用者名稱以確認"
+	},
+	"cookieConsent": {
+		"label": "Cookie 同意",
+		"message": "我們想使用分析 Cookie 來了解 vomatt 的使用情形。登入與語言 Cookie 會一直啟用。",
+		"policy": "Cookie 政策",
+		"accept": "接受分析",
+		"decline": "拒絕",
+		"settings": "Cookie 設定"
 	}
 }

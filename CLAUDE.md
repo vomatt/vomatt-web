@@ -81,7 +81,7 @@ NEXT_PUBLIC_SANITY_DATASET     # Sanity dataset
 SESSION_SECRET   # Must equal the API's JWT_SECRET (HMAC-SHA)
 SITE_URL         # Frontend URL, no trailing slash; required (metadataBase)
 API_URL          # vomatt-api origin, no path (e.g. http://localhost:8080)
-API_LOG          # Optional; 0 silences the dev-only API request/response log
+API_LOG          # Optional API request/response log: 0 silences it in dev, 1 enables it in a deployment
 ```
 
 Template and Vercel setup: `.env.example`, `README.md`. The production site shows only the coming-soon page until Sanity's Settings → General → Coming soon is turned off (`src/lib/comingSoon.ts`).

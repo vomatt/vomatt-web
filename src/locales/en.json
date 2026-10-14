@@ -362,5 +362,13 @@
 		"deleteConfirmTitle": "Delete your account?",
 		"deleteConfirmBody": "Type {username} to confirm. Your account will be removed permanently.",
 		"deleteConfirmLabel": "Type your username to confirm"
+	},
+	"cookieConsent": {
+		"label": "Cookie consent",
+		"message": "We'd like to use analytics cookies to understand how vomatt is used. Sign-in and language cookies are always on.",
+		"policy": "Cookies Policy",
+		"accept": "Accept analytics",
+		"decline": "Decline",
+		"settings": "Cookie settings"
 	}
 }
