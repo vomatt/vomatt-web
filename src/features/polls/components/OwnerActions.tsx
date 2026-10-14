@@ -22,6 +22,7 @@ import { closePoll, deletePoll } from '../service';
 import type { PollStatus } from '../status';
 
 const PollCreator = dynamic(() => import('./PollCreator').then((m) => m.PollCreator));
+const InviteeManager = dynamic(() => import('./InviteeManager').then((m) => m.InviteeManager));
 
 type OwnerActionsProps = {
 	poll: Poll;
@@ -36,7 +37,7 @@ type Confirm = 'delete' | 'end';
 /**
  * Edit while Scheduled; Delete while Scheduled or within the delete window
  * (`deletable`); End now for an Open Unlisted or Invite-only Poll (a Public
- * one runs to its Deadline).
+ * one runs to its Deadline); Invitees until an Invite-only Poll Ends.
  */
 export function getOwnerActions(poll: Poll, status: PollStatus) {
 	const canEdit = status === 'scheduled';
@@ -44,17 +45,19 @@ export function getOwnerActions(poll: Poll, status: PollStatus) {
 	const canEnd =
 		(status === 'open' || status === 'closing') &&
 		(poll.audience === 'unlisted' || poll.audience === 'invite-only');
-	return { canEdit, canDelete, canEnd, any: canEdit || canDelete || canEnd };
+	const canInvite = poll.audience === 'invite-only' && status !== 'ended';
+	return { canEdit, canDelete, canEnd, canInvite, any: canEdit || canDelete || canEnd || canInvite };
 }
 
 /** The owner's controls (see getOwnerActions). Renders nothing when none apply. */
 export function OwnerActions({ poll, status, onChanged, onDeleted }: OwnerActionsProps) {
 	const { t } = useLanguage();
 	const [isEditing, setIsEditing] = useState(false);
+	const [isInviting, setIsInviting] = useState(false);
 	const [confirming, setConfirming] = useState<Confirm>('delete');
 	const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
-	const { canEdit, canDelete, canEnd, any } = getOwnerActions(poll, status);
+	const { canEdit, canDelete, canEnd, canInvite, any } = getOwnerActions(poll, status);
 	if (!any) return null;
 
 	const remove = async () => {
@@ -87,7 +90,7 @@ export function OwnerActions({ poll, status, onChanged, onDeleted }: OwnerAction
 	};
 
 	return (
-		<div className="flex gap-1.5">
+		<div className="flex flex-wrap justify-end gap-1.5">
 			{canDelete && (
 				<Button
 					size="sm"
@@ -103,6 +106,11 @@ export function OwnerActions({ poll, status, onChanged, onDeleted }: OwnerAction
 					{t('poll.endNow')}
 				</Button>
 			)}
+			{canInvite && (
+				<Button size="sm" variant="outline" onClick={() => setIsInviting(true)}>
+					{t('invitees.title')}
+				</Button>
+			)}
 			{canEdit && (
 				<Button size="sm" variant="outline" onClick={() => setIsEditing(true)}>
 					{t('poll.edit')}
@@ -111,6 +119,9 @@ export function OwnerActions({ poll, status, onChanged, onDeleted }: OwnerAction
 
 			{isEditing && (
 				<PollCreator poll={poll} open onOpenChange={setIsEditing} onSaved={onChanged} />
+			)}
+			{isInviting && (
+				<InviteeManager pollId={poll.id} open onOpenChange={setIsInviting} onChanged={onChanged} />
 			)}
 
 			<AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>

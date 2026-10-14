@@ -3,7 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useState } from 'react';
-import { useFieldArray, useForm, useWatch } from 'react-hook-form';
+import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { ButtonLoading } from '@/components/ButtonLoading';
@@ -34,6 +34,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { deleteDraft, type PollDraft, saveDraft } from '../../drafts';
 import { formatPollDate } from '../../format';
 import {
+	AudienceSchema,
 	type Poll,
 	POLL_OPTION_MAX,
 	POLL_OPTIONS_LIMIT,
@@ -44,6 +45,7 @@ import {
 import { createPoll, updatePoll } from '../../service';
 import { derivePollStatus, type PollStatus } from '../../status';
 import { BallotMark } from '../BallotMotion';
+import { InviteePicker } from '../InviteePicker';
 import { StatusChip } from '../StatusChip';
 import {
 	emptyPollForm,
@@ -83,7 +85,8 @@ export interface PollCreatorProps {
 
 function initialValues(poll?: Poll, draft?: PollDraft) {
 	if (poll) return pollToForm(poll);
-	return draft?.values ?? emptyPollForm();
+	// Older drafts lack the newer fields
+	return draft ? { ...emptyPollForm(), ...draft.values } : emptyPollForm();
 }
 
 /** A `datetime-local` value as ISO, or null when empty or unparseable. */
@@ -131,10 +134,21 @@ export function PollCreator({
 		defaultValues: defaults,
 	});
 	const { fields, append, remove } = useFieldArray({ control, name: 'options' });
-	const [title, description, options, startTime, endTime, voterVisibility] = useWatch({
-		control,
-		name: ['title', 'description', 'options', 'startTime', 'endTime', 'voterVisibility'],
-	});
+	const [title, description, options, startTime, endTime, voterVisibility, audience, invitees] =
+		useWatch({
+			control,
+			name: [
+				'title',
+				'description',
+				'options',
+				'startTime',
+				'endTime',
+				'voterVisibility',
+				'audience',
+				'invitees',
+			],
+		});
+	const isInviteOnly = audience === 'invite-only';
 
 	const setOpen = (value: boolean) => {
 		setInternalOpen(value);
@@ -327,9 +341,15 @@ export function PollCreator({
 										</div>
 									</div>
 									<ul className="space-y-3 text-[15px] leading-relaxed">
+										<li>{t(`pollCreator.ruleAudience.${audience ?? 'public'}`)}</li>
 										<li>{t('pollCreator.ruleSealed')}</li>
 										<li>
-											{t(`pollCreator.ruleVisibility.${voterVisibility}`)} {t('pollCreator.ruleFixed')}
+											{t(
+												isInviteOnly && voterVisibility === 'signed-in'
+													? 'pollCreator.ruleVisibility.invited'
+													: `pollCreator.ruleVisibility.${voterVisibility}`
+											)}{' '}
+											{t('pollCreator.ruleFixed')}
 										</li>
 										<li>{t('pollCreator.ruleOneVote')}</li>
 									</ul>
@@ -447,6 +467,8 @@ export function PollCreator({
 											<span className="flex-1 space-y-0.5">
 												<span className="block text-[15px] font-medium">{summaryTop}</span>
 												<span className="block text-sm text-muted-foreground">
+													{t(`poll.audience.${audience ?? 'public'}`)}
+													{' · '}
 													{t('pollCreator.summaryVisibility', {
 														level: t(`pollCreator.visibility.${voterVisibility}`),
 													})}
@@ -493,6 +515,63 @@ export function PollCreator({
 													</div>
 													{errorText(errors.endTime?.message)}
 												</div>
+
+												<fieldset className="space-y-2">
+													<legend className="mb-2 text-sm font-medium">
+														{t('pollCreator.audienceLabel')}
+													</legend>
+													{AudienceSchema.options.map((level) => (
+														<label
+															key={level}
+															className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-[15px] transition-colors hover:border-border-strong has-[:checked]:border-foreground has-[:checked]:bg-volt-tint has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring"
+														>
+															<input
+																type="radio"
+																value={level}
+																className="size-5 shrink-0 accent-[var(--foreground)]"
+																{...register('audience')}
+															/>
+															<span>
+																<span className="font-medium">{t(`poll.audience.${level}`)}</span>
+																<small className="block text-sm text-muted-foreground">
+																	{t(`pollCreator.audienceHint.${level}`)}
+																</small>
+															</span>
+														</label>
+													))}
+													<p className="pt-1 text-[13px] text-muted-foreground">
+														{t('pollCreator.audienceNote')}
+													</p>
+												</fieldset>
+
+												{isInviteOnly && (
+													<div className="space-y-2">
+														<Label htmlFor="invitees">{t('pollCreator.inviteesLabel')}</Label>
+														{invitees ? (
+															<Controller
+																control={control}
+																name="invitees"
+																render={({ field }) => (
+																	<InviteePicker
+																		id="invitees"
+																		withGroups
+																		value={invitees}
+																		onChange={field.onChange}
+																		invalid={!!errors.invitees}
+																	/>
+																)}
+															/>
+														) : (
+															<p className="text-[13px] text-muted-foreground">
+																{t('pollCreator.inviteesManaged')}
+															</p>
+														)}
+														<p className="text-[13px] text-muted-foreground">
+															{t('pollCreator.inviteesHint')}
+														</p>
+														{errorText(errors.invitees?.message)}
+													</div>
+												)}
 
 												<fieldset className="space-y-2">
 													<legend className="mb-2 text-sm font-medium">

@@ -356,6 +356,12 @@ describe('PollCard owner of an Open Poll', () => {
 		await waitFor(() => expect(screen.getByText('48%')).toBeInTheDocument());
 	});
 
+	it('offers Invitees and End now on an Invite-only Poll', () => {
+		render(<PollCard poll={{ ...openPoll, audience: 'invite-only' }} viewerId="user-1" />);
+		expect(screen.getByRole('button', { name: 'Invitees' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'End now' })).toBeInTheDocument();
+	});
+
 	it('offers nothing to anyone else', () => {
 		render(<PollCard poll={{ ...openPoll, audience: 'unlisted', deletable: null }} viewerId="user-voter" />);
 		expect(screen.queryByRole('button', { name: 'End now' })).not.toBeInTheDocument();

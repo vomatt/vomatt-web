@@ -156,15 +156,6 @@
 		"optionsPlaceholder": "Option",
 		"addOptionLabel": "Add option",
 		"saveDraftLabel": "Save draft",
-		"privacyLabel": "Visibility",
-		"privacyPublic": "Public",
-		"privacyLinkOnly": "Link only",
-		"privacyInviteOnly": "Invite only",
-		"privacyPublicHint": "Anyone can find and vote",
-		"privacyLinkOnlyHint": "Only people with the link can vote",
-		"privacyInviteOnlyHint": "Only invited users can vote — unregistered emails will receive an invitation",
-		"inviteUsersLabel": "Invite by username or email",
-		"inviteUsersPlaceholder": "Username or email — press Enter to add",
 		"editTitle": "Edit poll",
 		"editSubtitle": "You can edit a poll until it opens.",
 		"removeOption": "Remove option",
@@ -195,7 +186,8 @@
 			"titleTooLong": "Keep the question to 200 characters.",
 			"optionRequired": "Fill in every option.",
 			"endRequired": "Choose when the poll ends.",
-			"endBeforeStart": "The end must be after the poll opens."
+			"endBeforeStart": "The end must be after the poll opens.",
+			"inviteesRequired": "Invite at least one person or group."
 		},
 		"discardEditTitle": "Discard your changes?",
 		"discardEditBody": "Your edits to this poll won't be saved.",
@@ -217,10 +209,26 @@
 		"ruleVisibility": {
 			"nobody": "Nobody will see who chose what.",
 			"owner": "Only you will see who chose what once it ends.",
-			"signed-in": "Anyone signed in will see who chose what once it ends."
+			"signed-in": "Anyone signed in will see who chose what once it ends.",
+			"invited": "Everyone invited will see who chose what once it ends."
 		},
 		"ruleFixed": "You can't change this after it opens.",
-		"ruleOneVote": "One vote per person. Voters can change or withdraw it until the poll closes."
+		"ruleOneVote": "One vote per person. Voters can change or withdraw it until the poll closes.",
+		"audienceLabel": "Who can see and vote?",
+		"audienceHint": {
+			"public": "Listed in the feed, Explore and search. Anyone can vote.",
+			"unlisted": "Not listed anywhere. Anyone with the link can vote.",
+			"invite-only": "Only the people you invite can see it and vote."
+		},
+		"audienceNote": "You can't change this once the poll opens.",
+		"inviteesLabel": "Invite people",
+		"inviteesHint": "People you add get an invitation. Emails without an account get access once they sign up with that address.",
+		"inviteesManaged": "Add or remove people with Invitees on the poll.",
+		"ruleAudience": {
+			"public": "Anyone can find it and vote.",
+			"unlisted": "Only people with the link can find it.",
+			"invite-only": "Only the people you invited can see it and vote. The poll ends early once all of them have voted."
+		}
 	},
 	"homePage": {
 		"feedListNoData": "Start the poll, lead the crowd.",
@@ -390,5 +398,26 @@
 		"accept": "Accept analytics",
 		"decline": "Decline",
 		"settings": "Cookie settings"
+	},
+	"invitees": {
+		"title": "Invitees",
+		"description": "People who can see this poll and vote.",
+		"summary": "{count} invited · {voted} voted",
+		"placeholder": "Username or email",
+		"inviteEmail": "Invite {email}",
+		"suggestions": "Matching people",
+		"noUsers": "No one with that username.",
+		"searchFailed": "Couldn't search. Try again.",
+		"picked": "Invited",
+		"remove": "Remove {name}",
+		"groups": "Your groups",
+		"groupPill": "{name} · {count}",
+		"voted": "Voted",
+		"empty": "No one is invited yet.",
+		"loadFailed": "Couldn't load the invitees.",
+		"addLabel": "Invite more people",
+		"add": "Invite",
+		"addFailed": "Couldn't invite them. Try again.",
+		"removeFailed": "Couldn't remove them. Try again."
 	}
 }

@@ -18,12 +18,12 @@ Contract: `api-docs.json` (= `vomatt-api` `docs/frontend/openapi.json`, CHANGELO
 **Goal**: Audience picker; Invite-only adds users (search), emails and Groups; edit prefills current Invitees; owners manage Invitees of an Open Poll.
 **Success Criteria**: Request carries `audience`, `inviteeIds`, `inviteeEmails`, `groupIds`; old drafts still load.
 **Tests**: PollCreator, InviteePicker, InviteeManager.
-**Status**: In Progress
+**Status**: Complete
 
 ## Stage 4: Groups tab on Account
 **Goal**: Create, rename, delete Groups and manage members.
 **Tests**: GroupsPanel.
-**Status**: Not Started
+**Status**: In Progress
 
 ## Stage 5: Explore "Most voted" + docs
 **Goal**: `sort=top` pill; update `docs/release/api-integration-notes.md`.

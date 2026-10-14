@@ -13,6 +13,12 @@ jest.mock('@/features/polls/service', () => ({
 	createPoll: jest.fn(),
 	updatePoll: jest.fn(),
 }));
+const mockSearchUsers = jest.fn();
+jest.mock('@/lib/api/services/users', () => ({
+	searchUsers: (...args: unknown[]) => mockSearchUsers(...args),
+}));
+const mockGetGroups = jest.fn();
+jest.mock('@/features/groups/service', () => ({ getGroups: () => mockGetGroups() }));
 
 const mockCreatePoll = createPoll as jest.Mock;
 const mockUpdatePoll = updatePoll as jest.Mock;
@@ -47,6 +53,14 @@ beforeEach(() => {
 	localStorage.clear();
 	mockCreatePoll.mockResolvedValue({ ok: true, data: {} });
 	mockUpdatePoll.mockResolvedValue({ ok: true, data: {} });
+	mockGetGroups.mockResolvedValue({
+		ok: true,
+		data: [{ id: 'g1', name: 'Book club', memberCount: 3, createdAt: '2026-10-09T15:20:31+08:00' }],
+	});
+	mockSearchUsers.mockResolvedValue({
+		items: [{ id: 'u1', username: 'bob', displayName: 'Bob', avatarUrl: null }],
+		nextCursor: null,
+	});
 });
 
 describe('PollCreator', () => {
@@ -124,7 +138,7 @@ describe('PollCreator', () => {
 	it('folds timing and privacy into a summary that opens on demand', async () => {
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();
-		expect(screen.getByText('After it ends: Only me')).toBeInTheDocument();
+		expect(screen.getByText(/Public · After it ends: Only me/)).toBeInTheDocument();
 		expect(screen.queryByLabelText(END)).not.toBeInTheDocument();
 		openSettings();
 		expect(screen.getByLabelText(END)).toBeInTheDocument();
@@ -243,8 +257,63 @@ describe('PollCreator', () => {
 			startTime: expect.stringMatching(/Z$/),
 			endTime: new Date('2030-01-01T22:00').toISOString(),
 			voterVisibility: 'nobody',
+			audience: 'public',
 		});
 		await waitFor(() => expect(screen.queryByText('How voters will see it')).not.toBeInTheDocument());
+	});
+
+	// ── Audience and Invitees ─────────────────────────────────────────────────
+
+	it('publishes an Unlisted poll', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		fillPoll();
+		openSettings();
+		fireEvent.click(screen.getByLabelText(/Unlisted/));
+		await toReview();
+		expect(screen.getByText('Only people with the link can find it.')).toBeInTheDocument();
+		publish();
+		await waitFor(() => expect(mockCreatePoll).toHaveBeenCalled());
+		expect(mockCreatePoll.mock.calls[0][0]).toMatchObject({ audience: 'unlisted', invitees: undefined });
+	});
+
+	it('invites people, emails and Groups to an Invite-only poll', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		fillPoll();
+		openSettings();
+		fireEvent.click(screen.getByLabelText(/Invite only/));
+
+		fireEvent.click(await screen.findByRole('button', { name: 'Book club · 3' }));
+		const field = screen.getByLabelText('Invite people');
+		fireEvent.change(field, { target: { value: 'bo' } });
+		fireEvent.click(await screen.findByRole('button', { name: /bob/ }));
+		expect(mockSearchUsers).toHaveBeenCalledWith('bo');
+		fireEvent.change(field, { target: { value: ' Carol@Example.com ' } });
+		fireEvent.keyDown(field, { key: 'Enter' });
+		expect(screen.getByText('carol@example.com')).toBeInTheDocument();
+		// Enter in the picker adds, it never moves on to review
+		expect(screen.queryByText('How voters will see it')).not.toBeInTheDocument();
+
+		await toReview();
+		expect(screen.getByText(/Only the people you invited can see it and vote\./)).toBeInTheDocument();
+		publish();
+		await waitFor(() => expect(mockCreatePoll).toHaveBeenCalled());
+		expect(mockCreatePoll.mock.calls[0][0]).toMatchObject({
+			audience: 'invite-only',
+			invitees: { userIds: ['u1'], emails: ['carol@example.com'], groupIds: ['g1'] },
+		});
+	});
+
+	it('asks for someone to invite before review', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		fillPoll();
+		openSettings();
+		fireEvent.click(screen.getByLabelText(/Invite only/));
+		review();
+		expect(await screen.findByText('Invite at least one person or group.')).toBeInTheDocument();
+		expect(screen.queryByText('How voters will see it')).not.toBeInTheDocument();
 	});
 
 	it('takes the creator to the new poll after publishing', async () => {
@@ -350,6 +419,35 @@ describe('PollCreator', () => {
 		);
 		expect(mockCreatePoll).not.toHaveBeenCalled();
 		expect(onSaved).toHaveBeenCalled();
+	});
+
+	it('edits an Invite-only Poll without replacing its Invitees', async () => {
+		const poll: Poll = {
+			id: 'poll-9',
+			title: 'Book for November?',
+			active: true,
+			votingActive: false,
+			creatorId: 'u1',
+			creatorUsername: 'klaus',
+			createdAt: '2030-01-01T00:00:00Z',
+			startTime: '2030-01-05T01:00:00Z',
+			endTime: '2030-01-08T01:00:00Z',
+			voterVisibility: 'owner',
+			audience: 'invite-only',
+			inviteeCount: 4,
+			options: [
+				{ id: 'a', text: 'Dune' },
+				{ id: 'b', text: 'Emma' },
+			],
+		};
+		render(<PollCreator poll={poll} open onOpenChange={jest.fn()} />);
+		openSettings();
+		expect(screen.getByLabelText(/Invite only/)).toBeChecked();
+		expect(screen.getByText('Add or remove people with Invitees on the poll.')).toBeInTheDocument();
+		await toReview();
+		fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
+		await waitFor(() => expect(mockUpdatePoll).toHaveBeenCalled());
+		expect(mockUpdatePoll.mock.calls[0][1]).toMatchObject({ audience: 'invite-only', invitees: undefined });
 	});
 
 	it('asks before discarding unsaved edits', async () => {
