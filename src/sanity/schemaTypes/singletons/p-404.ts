@@ -1,4 +1,4 @@
-import { UnknownIcon } from '@sanity/icons';
+import { UnknownIcon } from '@sanity/icons/Unknown';
 import { defineType } from 'sanity';
 
 import callToAction from '@/sanity/schemaTypes/objects/call-to-action';

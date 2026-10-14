@@ -41,13 +41,6 @@ export const resolveHref = ({
 	}
 };
 
-export const getWindowURl = (windowUrl: string) => {
-	if (windowUrl.includes('localhost:')) {
-		return `http://${windowUrl}`;
-	}
-	return `https://${windowUrl}`;
-};
-
 /** A user's profile; it shares the root with Sanity pages. */
 export const profileHref = (username: string) => `/${encodeURIComponent(username)}`;
 

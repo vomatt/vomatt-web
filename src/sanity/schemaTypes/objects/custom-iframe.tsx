@@ -1,5 +1,5 @@
 'use client';
-import { LinkIcon } from '@sanity/icons';
+import { LinkIcon } from '@sanity/icons/Link';
 import { defineArrayMember, type PreviewProps } from 'sanity';
 
 const Preview = (props: PreviewProps & { embedSnippet?: string }) => {

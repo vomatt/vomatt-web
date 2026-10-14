@@ -1,4 +1,4 @@
-import { ControlsIcon } from '@sanity/icons';
+import { ControlsIcon } from '@sanity/icons/Controls';
 import { defineType } from 'sanity';
 
 import { getSwatch } from '@/sanity/lib/utils';

@@ -1,4 +1,4 @@
-import { EnvelopeIcon } from '@sanity/icons';
+import { EnvelopeIcon } from '@sanity/icons/Envelope';
 import { defineArrayMember } from 'sanity';
 
 export default function newsletter() {

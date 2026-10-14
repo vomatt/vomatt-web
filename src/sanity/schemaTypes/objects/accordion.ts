@@ -1,4 +1,4 @@
-import { DoubleChevronDownIcon } from '@sanity/icons';
+import { DoubleChevronDownIcon } from '@sanity/icons/DoubleChevronDown';
 
 export default function accordion() {
 	return {

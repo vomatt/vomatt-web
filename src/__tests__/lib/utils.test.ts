@@ -262,6 +262,12 @@ describe('resolveHref', () => {
 		);
 	});
 
+	it('returns undefined for pGeneral without a slug', () => {
+		expect(
+			resolveHref({ documentType: 'pGeneral', slug: undefined })
+		).toBeUndefined();
+	});
+
 	it('returns /blog for pBlogIndex', () => {
 		expect(resolveHref({ documentType: 'pBlogIndex', slug: undefined })).toBe(
 			'/blog'

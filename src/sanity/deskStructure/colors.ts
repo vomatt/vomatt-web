@@ -1,4 +1,4 @@
-import { DropIcon } from '@sanity/icons';
+import { DropIcon } from '@sanity/icons/Drop';
 import type { StructureBuilder } from 'sanity/structure';
 
 export const colorsMenu = (S: StructureBuilder) => {

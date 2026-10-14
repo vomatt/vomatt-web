@@ -447,13 +447,13 @@ export const resolveHref = ({
 		case 'pHome':
 			return '/';
 		case 'pGeneral':
-			return `/${slug}`;
+			return slug ? `/${slug}` : undefined;
 		case 'pBlogIndex':
 			return '/blog';
 		case 'pSignUp':
 			return '/login';
 		case 'pBlog':
-			return `/blog/${slug}`;
+			return slug ? `/blog/${slug}` : undefined;
 		case 'externalUrl':
 			return slug;
 

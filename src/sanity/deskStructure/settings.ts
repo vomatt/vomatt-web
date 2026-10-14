@@ -1,9 +1,7 @@
-import {
-	CogIcon,
-	EarthGlobeIcon,
-	EnterRightIcon,
-	PackageIcon,
-} from '@sanity/icons';
+import { CogIcon } from '@sanity/icons/Cog';
+import { EarthGlobeIcon } from '@sanity/icons/EarthGlobe';
+import { EnterRightIcon } from '@sanity/icons/EnterRight';
+import { PackageIcon } from '@sanity/icons/Package';
 import type { StructureBuilder } from 'sanity/structure';
 
 export const settingsMenu = (S: StructureBuilder) => {

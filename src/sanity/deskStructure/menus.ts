@@ -1,4 +1,4 @@
-import { MenuIcon } from '@sanity/icons';
+import { MenuIcon } from '@sanity/icons/Menu';
 import type { StructureBuilder } from 'sanity/structure';
 
 export const menusMenu = (S: StructureBuilder) => {

@@ -3,21 +3,18 @@
 import { colorInput } from '@sanity/color-input';
 import { visionTool } from '@sanity/vision';
 import { defineConfig, isDev } from 'sanity';
-import { presentationTool } from 'sanity/presentation';
 import { structureTool } from 'sanity/structure';
 import { media } from 'sanity-plugin-media';
 import { noteField } from 'sanity-plugin-note-field';
 
 import { defaultDocumentNode } from '@/sanity/defaultDocumentNode';
 import { apiVersion, dataset, projectId } from '@/sanity/env';
-import * as presentationResolver from '@/sanity/lib/presentation-resolver';
 import { singletonPlugin } from '@/sanity/lib/utils';
 import { schemaTypes } from '@/sanity/schemaTypes';
 import { gAnnouncement } from '@/sanity/schemaTypes/singletons/g-announcement';
 import { gFooter } from '@/sanity/schemaTypes/singletons/g-footer';
 import { gHeader } from '@/sanity/schemaTypes/singletons/g-header';
 import { p404 } from '@/sanity/schemaTypes/singletons/p-404';
-import { pContact } from '@/sanity/schemaTypes/singletons/p-contact';
 import { pHome } from '@/sanity/schemaTypes/singletons/p-home';
 import { settingsGeneral } from '@/sanity/schemaTypes/singletons/settings-general';
 import { settingsIntegration } from '@/sanity/schemaTypes/singletons/settings-integrations';
@@ -31,15 +28,6 @@ const commonPlugins = [
 	media(),
 	colorInput(),
 	noteField(),
-	presentationTool({
-		resolve: presentationResolver,
-		previewUrl: {
-			origin: process.env.SANITY_STUDIO_PREVIEW_ORIGIN,
-			previewMode: {
-				enable: '/api/draft-mode/enable',
-			},
-		},
-	}),
 	singletonPlugin([
 		gFooter.name,
 		gHeader.name,
@@ -47,7 +35,6 @@ const commonPlugins = [
 		settingsIntegration.name,
 		settingsGeneral.name,
 		p404.name,
-		pContact.name,
 		gAnnouncement.name,
 	]),
 ];

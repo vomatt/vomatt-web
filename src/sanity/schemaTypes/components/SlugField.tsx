@@ -1,44 +1,39 @@
 import { Card, Flex, Text } from '@sanity/ui';
-import { type ObjectFieldProps, type SlugValue, useFormValue } from 'sanity';
+import {
+	getPublishedId,
+	type ObjectFieldProps,
+	type SlugValue,
+	useEditState,
+	useFormValue,
+} from 'sanity';
 
-import { getWindowURl } from '@/lib/routes';
+import { resolveHref } from '@/lib/utils';
 
+// The Studio is served from the site itself, so the page lives on the same origin
 export function getUrl({
 	docType,
 	slug,
-	docId,
 }: {
 	docType: string | undefined;
 	slug: string | undefined;
-	docId: string | undefined;
 }) {
-	const baseUrl = getWindowURl(window.location.host);
-	const baseApiUrl = '/api/view-page';
-	const queryParams = [];
+	const href = resolveHref({ documentType: docType, slug });
+	if (!href) return undefined;
 
-	queryParams.push(`documentType=${docType}`);
-	queryParams.push(`docId=${docId}`);
-
-	if (slug) {
-		queryParams.push(`slug=${slug}`);
-	}
-
-	const queryString = queryParams.join('&');
-	const url = `${baseUrl}${baseApiUrl}?${queryString}`;
-
-	return url;
+	return new URL(href, window.location.origin).toString();
 }
 
 export const SlugField = (props: ObjectFieldProps<SlugValue>) => {
 	const { children, title, description, value } = props;
 	const docType = useFormValue([`_type`]) as string | undefined;
 	const docId = useFormValue([`_id`]) as string | undefined;
+	// The site only serves published content, so link to the published slug
+	const { published } = useEditState(getPublishedId(docId ?? ''), docType ?? '');
+	const publishedSlug = (published?.slug as SlugValue | undefined)?.current;
 
-	const pageUrl = getUrl({
-		docType,
-		docId,
-		slug: value?.current,
-	});
+	const pageUrl = published
+		? getUrl({ docType, slug: publishedSlug })
+		: undefined;
 
 	return (
 		<Card tone={(value?.current?.length ?? 0) > 15 ? 'caution' : 'positive'}>
@@ -49,13 +44,15 @@ export const SlugField = (props: ObjectFieldProps<SlugValue>) => {
 							{title}
 						</Text>
 					</Card>
-					<Flex>
-						<Text size={1} weight="semibold">
-							<a href={pageUrl} target="_blank">
-								View page
-							</a>
-						</Text>
-					</Flex>
+					{pageUrl && (
+						<Flex>
+							<Text size={1} weight="semibold">
+								<a href={pageUrl} target="_blank" rel="noreferrer">
+									View page
+								</a>
+							</Text>
+						</Flex>
+					)}
 				</Flex>
 			</Card>
 			<Card paddingTop={1} paddingBottom={2}>

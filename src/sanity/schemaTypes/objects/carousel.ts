@@ -1,4 +1,4 @@
-import { InlineElementIcon } from '@sanity/icons';
+import { InlineElementIcon } from '@sanity/icons/InlineElement';
 import { defineArrayMember } from 'sanity';
 
 import customImage from '@/sanity/schemaTypes/objects/custom-image';

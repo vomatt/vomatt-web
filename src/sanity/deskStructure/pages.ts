@@ -1,9 +1,6 @@
-import {
-	DocumentsIcon,
-	EnvelopeIcon,
-	HomeIcon,
-	UnknownIcon,
-} from '@sanity/icons';
+import { DocumentsIcon } from '@sanity/icons/Documents';
+import { HomeIcon } from '@sanity/icons/Home';
+import { UnknownIcon } from '@sanity/icons/Unknown';
 import type { StructureBuilder } from 'sanity/structure';
 
 import { apiVersion } from '@/sanity/env';
@@ -47,19 +44,6 @@ const pageError = (S: StructureBuilder) => {
 		.icon(UnknownIcon);
 };
 
-const pageContact = (S: StructureBuilder) => {
-	return S.listItem()
-		.title('Contact Page')
-		.child(
-			S.editor()
-				.id('pContact')
-				.title('Contact Page')
-				.schemaType('pContact')
-				.documentId('pContact')
-		)
-		.icon(EnvelopeIcon);
-};
-
 export const pagesMenu = (S: StructureBuilder) => {
 	return S.listItem()
 		.title('Primary Pages')
@@ -68,7 +52,7 @@ export const pagesMenu = (S: StructureBuilder) => {
 		.child(
 			S.list()
 				.title('Primary Pages')
-				.items([pageHome(S), pageSignUp(S), pageError(S), pageContact(S)])
+				.items([pageHome(S), pageSignUp(S), pageError(S)])
 		);
 };
 
