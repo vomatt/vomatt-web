@@ -59,8 +59,9 @@ Sign-in codes are emailed; with email disabled locally, read the code from Redis
 | `NEXT_PUBLIC_SANITY_API_VERSION` | No | `2025-08-08` | Sanity API version; defaults to `2025-08-08`. |
 
 Not needed (leave unset): `DATABASE_URL`, `PAYLOAD_SECRET` (Payload was removed);
-`SANITY_API_READ_TOKEN`, `SANITY_REVALIDATE_SECRET`, `NEXT_PUBLIC_SANITY_STUDIO_URL`,
-`SANITY_STUDIO_PREVIEW_ORIGIN` (read in code but nothing depends on them yet);
+`SANITY_API_READ_TOKEN`, `SANITY_REVALIDATE_SECRET`, `NEXT_PUBLIC_SANITY_STUDIO_URL`
+(read in code but nothing depends on them yet); `SANITY_STUDIO_PREVIEW_ORIGIN` (the Presentation
+tool was removed);
 `NEXT_PUBLIC_API_URL` (only the dev mocks for follows/avatars use it).
 
 On **vomatt-api**, set at least `JWT_SECRET` (same value as `SESSION_SECRET`), the database and

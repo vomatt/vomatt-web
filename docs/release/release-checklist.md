@@ -43,8 +43,6 @@ never calls the API directly, so its CORS list doesn't need the web origin.
 
 - `npm run lint` reports 12 errors from the React Compiler rules in files this release didn't
   touch (LanguageContext, DraftList, PollCreator, hooks/*). They predate the release work.
-- Sanity Presentation (visual editing) has no `/api/draft-mode/enable` route yet, so its preview
-  pane won't load. Editing and publishing in the Studio work.
 - `src/lib/session.ts` is unused.
 - Follow, followers and avatar upload are hidden until the API supports them; their dev-only mock
   routes under `/api/v1/users/*` answer 404 in production.

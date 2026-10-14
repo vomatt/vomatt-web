@@ -1,4 +1,6 @@
-import { LinkIcon, MasterDetailIcon, WarningOutlineIcon } from '@sanity/icons';
+import { LinkIcon } from '@sanity/icons/Link';
+import { MasterDetailIcon } from '@sanity/icons/MasterDetail';
+import { WarningOutlineIcon } from '@sanity/icons/WarningOutline';
 import { defineType } from 'sanity';
 
 import { resolveHref } from '@/lib/utils';

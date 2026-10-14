@@ -18,8 +18,6 @@ export const resolvedHrefQuery = defineQuery(`
 			linkType == "internal" => internalLink-> {
 				"url": select(
 					_type == "pHome" => "/",
-					_type == "pBlogIndex" => "/blog",
-					_type == "pBlog" => "/blog/" + slug.current,
 					defined(slug.current) => "/" + slug.current,
 					null
 				)
@@ -144,22 +142,6 @@ const pageModuleFields = defineQuery(`
 	}
 `);
 
-const customFormFields = defineQuery(`
-	formFields[] {
-		placeholder,
-		_key,
-		required,
-		fieldLabel,
-		inputType,
-		size,
-		selectOptions[] {
-			_key,
-			"title": option,
-			"value": option
-		}
-	}
-`);
-
 // Site configuration with caching recommendation
 export const siteDataQuery = defineQuery(`{
 		"announcement": *[_type == "gAnnouncement"][0]{
@@ -255,99 +237,6 @@ export const pageGeneralQuery = defineQuery(`
 export const pageGeneralSlugsQuery = defineQuery(`
   *[_type == "pGeneral" && defined(slug.current)]
   {"slug": slug.current}
-`);
-
-export const pageContactQuery = defineQuery(`
-	*[_type == "pContact"][0]{
-		${baseFields},
-		contactForm {
-			formTitle,
-			${customFormFields},
-			successMessage,
-			errorMessage,
-			sendToEmail,
-			emailSubject,
-			formFailureNotificationEmail
-		}
-	}
-`);
-
-// Blog queries with pagination
-export const getBlogPostData = (type?: string): string => {
-	const basePostFields = defineQuery(`
-		${baseFields},
-		author->{name},
-		categories[]-> {
-			_id,
-			title,
-			"slug": slug.current,
-			categoryColor->{...color}
-		}
-	`);
-
-	return type === 'card'
-		? defineQuery(`${basePostFields}, excerpt`)
-		: defineQuery(`
-			${basePostFields},
-			content[]{
-				${portableTextContentFields}
-			},
-			"relatedBlogs": relatedBlogs[]->{
-				${getBlogPostData('card')}
-			}
-		`);
-};
-
-export const articleListAllQuery = defineQuery(`
-	"articleList": *[_type == "pBlog"] | order(_updatedAt desc) [0...12] {
-		${getBlogPostData('card')}
-	}
-`);
-
-const blogIndexBaseQuery = defineQuery(`
-	${baseFields},
-	"slug": "blog",
-	itemsPerPage,
-	paginationMethod,
-	loadMoreButtonLabel,
-	infiniteScrollCompleteLabel,
-	"itemsTotalCount": count(*[_type == "pBlog"])
-`);
-
-export const pageBlogIndexQuery = defineQuery(`
-	*[_type == "pBlogIndex"][0]{
-		${blogIndexBaseQuery}
-	}
-`);
-
-export const pageBlogIndexWithArticleDataSSGQuery = defineQuery(`
-	*[_type == "pBlogIndex"][0]{
-		${blogIndexBaseQuery},
-		${articleListAllQuery}
-	}
-`);
-
-export const pageBlogPaginationMethodQuery = defineQuery(`
-	{
-		"articleTotalNumber": count(*[_type == "pBlog"])
-		"itemsPerPage": *[_type == "pBlogIndex"][0].itemsPerPage
-	}`);
-
-export const pageBlogSlugsQuery = defineQuery(`
-  *[_type == "pBlog" && defined(slug.current)]
-  {"slug": slug.current}
-`);
-
-export const pageBlogSingleQuery = defineQuery(`
-	*[_type == "pBlog" && slug.current == $slug][0]{
-		${getBlogPostData()},
-		"defaultRelatedBlogs": *[_type == "pBlog"
-			&& count(categories[@._ref in ^.^.categories[]._ref ]) > 0
-			&& _id != ^._id
-		] | order(publishedAt desc, _createdAt desc) [0...2] {
-			${getBlogPostData('card')}
-		}
-	}
 `);
 
 export const pSignUpDataQuery = defineQuery(`

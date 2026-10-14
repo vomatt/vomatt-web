@@ -1,4 +1,4 @@
-import { DoubleChevronDownIcon } from '@sanity/icons';
+import { DoubleChevronDownIcon } from '@sanity/icons/DoubleChevronDown';
 import { defineArrayMember } from 'sanity';
 
 export default function accordionList() {

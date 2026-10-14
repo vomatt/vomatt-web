@@ -1,7 +1,10 @@
-import { LinkIcon } from '@sanity/icons';
+import { LinkIcon } from '@sanity/icons/Link';
 import { defineField, defineType } from 'sanity';
 
-import { LinkInput } from '@/sanity/schemaTypes/components/LinkInput';
+import {
+	LinkInput,
+	pageDocumentOrder,
+} from '@/sanity/schemaTypes/components/LinkInput';
 
 export const linkInput = defineType({
 	name: 'linkInput',
@@ -23,9 +26,7 @@ export const linkInput = defineType({
 			name: 'internalLink',
 			title: 'Internal Page',
 			type: 'reference',
-			to: [
-				{ type: 'pHome' },
-			] /* Add page document references to the fetchOptions query in @/sanity/component/LinkInput. */,
+			to: pageDocumentOrder.map((type) => ({ type })),
 			hidden: ({ parent }) => parent?.linkType !== 'internal',
 		}),
 		defineField({

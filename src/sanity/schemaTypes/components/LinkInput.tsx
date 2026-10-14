@@ -1,22 +1,25 @@
 'use client';
 
-import { LinkIcon, MasterDetailIcon, SearchIcon } from '@sanity/icons';
-import { Autocomplete, Card, Flex, Stack, Text } from '@sanity/ui';
+import { LinkIcon } from '@sanity/icons/Link';
+import { MasterDetailIcon } from '@sanity/icons/MasterDetail';
+import { SearchIcon } from '@sanity/icons/Search';
+import { Card, Flex, Stack, Text } from '@sanity/ui';
+import { Autocomplete } from '@sanity/ui/autocomplete';
 import { type PortableTextBlock, toPlainText } from 'next-sanity';
 import React, { useCallback, useEffect, useState } from 'react';
-import { type ObjectInputProps, set } from 'sanity';
+import { type ObjectInputProps, type SanityClient, set, useClient } from 'sanity';
 
 import { resolveHref } from '@/lib/utils';
 import { isValidUrl } from '@/lib/utils';
-import { client } from '@/sanity/lib/client';
+import { apiVersion } from '@/sanity/env';
 
-const pageDocumentOrder = [
-	'pHome',
-	'pGeneral',
-	'pBlogIndex',
-	'pBlog',
-	'pContact',
-];
+// Page types a link can point to, in picker order; linkInput's reference field uses the same list
+export const pageDocumentOrder = ['pHome', 'pGeneral'];
+
+const typeRank = (type: string | undefined) => {
+	const index = pageDocumentOrder.indexOf(type ?? '');
+	return index === -1 ? pageDocumentOrder.length : index;
+};
 
 type PageQueryResult = {
 	title: string | PortableTextBlock[];
@@ -44,15 +47,18 @@ type LinkInputValue = {
 	externalUrl?: string;
 };
 
-const fetchOptions = async (): Promise<LinkOption[]> => {
-	const groqQuery = `* [_type in ${JSON.stringify(pageDocumentOrder)}] {
+// Published pages only: a link must reference a published document
+const fetchOptions = async (client: SanityClient): Promise<LinkOption[]> => {
+	const groqQuery = `*[_type in $types && !(_id in path("drafts.**"))] {
 		title,
 		_type,
 		_id,
 		"slug": slug.current,
 	}`;
 
-	const data = await client.fetch<PageQueryResult[]>(groqQuery);
+	const data = await client.fetch<PageQueryResult[]>(groqQuery, {
+		types: pageDocumentOrder,
+	});
 
 	return data
 		.map(({ _type, slug, _id, title }) => ({
@@ -71,12 +77,7 @@ const fetchOptions = async (): Promise<LinkOption[]> => {
 				isInternal: true,
 			},
 		}))
-		.sort(
-			(a, b) =>
-				(pageDocumentOrder.indexOf(a.payload._type) ||
-					pageDocumentOrder.length) -
-				(pageDocumentOrder.indexOf(b.payload._type) || pageDocumentOrder.length)
-		);
+		.sort((a, b) => typeRank(a.payload._type) - typeRank(b.payload._type));
 };
 
 const renderOption = (option: LinkOption) => {
@@ -91,7 +92,7 @@ const renderOption = (option: LinkOption) => {
 				) : (
 					<MasterDetailIcon style={{ fontSize: 36 }} />
 				)}
-				<Stack space={2} flex={1} paddingLeft={1}>
+				<Stack gap={2} flex={1} paddingLeft={1}>
 					<Text size={[1, 1, 2]} textOverflow="ellipsis">
 						{pageTitle}
 					</Text>
@@ -106,6 +107,7 @@ const renderOption = (option: LinkOption) => {
 
 export const LinkInput = (props: ObjectInputProps<LinkInputValue>) => {
 	const { elementProps, onChange, value } = props;
+	const client = useClient({ apiVersion });
 	const [loading, setLoading] = useState(true);
 	const [pageItemData, setPageItemData] = useState<LinkOption[]>([]);
 	const [optionsList, setOptionsList] = useState<LinkOption[]>([]);
@@ -187,13 +189,13 @@ export const LinkInput = (props: ObjectInputProps<LinkInputValue>) => {
 	useEffect(() => {
 		const loadPageItems = async () => {
 			setLoading(true);
-			const result = await fetchOptions();
+			const result = await fetchOptions(client);
 			setPageItemData(result);
 			setOptionsList(result);
 			setLoading(false);
 		};
 		loadPageItems();
-	}, []);
+	}, [client]);
 
 	// Helper function to get the current value for display
 	const getCurrentValue = useCallback(() => {

@@ -1,4 +1,4 @@
-import { EditIcon } from '@sanity/icons';
+import { EditIcon } from '@sanity/icons/Edit';
 import { defineType } from 'sanity';
 
 import { getPortableTextPreview } from '@/sanity/lib/utils';

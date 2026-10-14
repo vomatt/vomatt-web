@@ -1,4 +1,5 @@
-import { EllipsisHorizontalIcon, StringIcon } from '@sanity/icons';
+import { EllipsisHorizontalIcon } from '@sanity/icons/EllipsisHorizontal';
+import { StringIcon } from '@sanity/icons/String';
 import { defineArrayMember } from 'sanity';
 
 import customImage from '@/sanity/schemaTypes/objects/custom-image';
