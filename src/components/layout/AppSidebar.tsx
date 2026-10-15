@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 
 import BrandLogo from '@/components/BrandLogo';
 import { Button, buttonVariants } from '@/components/ui/Button';
+import { InitialAvatar } from '@/components/ui/InitialAvatar';
 import {
 	ArrowRight,
 	Bell,
@@ -37,6 +38,7 @@ import {
 	SidebarMenuItem,
 } from '@/components/ui/Sidebar';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { useUnreadCount } from '@/features/notifications/UnreadCountProvider';
 import { signout } from '@/lib/api/services/auth';
 import { isActivePath, profileHref } from '@/lib/routes';
@@ -75,18 +77,6 @@ interface AppSidebarProps {
 
 const hideSideBarFromPages = ['/login'];
 
-function getUserInitials(fullName?: string, email?: string): string {
-	if (fullName) {
-		const parts = fullName.trim().split(/\s+/);
-		if (parts.length >= 2) {
-			return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-		}
-		return fullName.slice(0, 2).toUpperCase();
-	}
-	if (email) return email[0].toUpperCase();
-	return 'U';
-}
-
 export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 	const { t } = useLanguage();
 	const pathname = usePathname();
@@ -98,10 +88,6 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 
 	if (hideSideBarFromPages.includes(pathname)) return null;
 
-	const initials = getUserInitials(
-		profile?.displayName ?? undefined,
-		profile?.username
-	);
 	// /account redirects to the profile; link there directly so the card shows as active
 	const accountHref = profile ? profileHref(profile.username) : '/account';
 
@@ -191,11 +177,12 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 								pathname === accountHref && 'bg-surface-soft'
 							)}
 						>
-							<div className="size-9 rounded-full bg-sidebar-primary flex items-center justify-center shrink-0">
-								<span className="text-sidebar-primary-foreground text-xs font-bold tracking-wide">
-									{initials}
-								</span>
-							</div>
+							{profile ? (
+								<UserAvatar username={profile.username} avatarUrl={profile.avatarUrl} className="size-9" />
+							) : (
+								// The profile failed to load; there's no name to draw from
+								<InitialAvatar name="U" className="size-9 bg-sidebar-primary text-sidebar-primary-foreground" />
+							)}
 
 							<div className="flex-1 min-w-0">
 								<p className="text-sm font-semibold text-sidebar-foreground leading-tight truncate">

@@ -4,6 +4,7 @@ jest.mock('@/lib/api/users-public', () => ({
   getFollowers: jest.fn(),
   getFollowing: jest.fn(),
 }));
+jest.mock('@/contexts/LanguageContext', () => require('../helpers/mockLanguage'));
 jest.mock('next/link', () => ({
   __esModule: true,
   default: ({ children, href }: any) => <a href={href}>{children}</a>,

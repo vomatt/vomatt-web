@@ -20,6 +20,7 @@ import { Switch } from '@/components/ui/Switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { BallotRecord, Insights } from '@/features/account/insights';
+import { AvatarPicker } from '@/features/avatars/AvatarPicker';
 import { GroupsPanel } from '@/features/groups/GroupsPanel';
 import { chipClassName } from '@/features/polls/chip';
 import { PollListItem } from '@/features/polls/components/PollListItem';
@@ -85,7 +86,6 @@ export default function AccountPage(props: AccountPageProps) {
 							initialUsername={profile.username}
 							initialDisplayName={profile.displayName ?? ''}
 							initialBio={profile.bio ?? ''}
-							initialAvatarUrl={profile.avatarUrl}
 						/>
 					) : (
 						<FollowControls profile={props.profile} isAuthenticated={props.isAuthenticated} />
@@ -258,6 +258,11 @@ function Settings({
 
 	return (
 		<div className="space-y-8">
+			{/* Hidden until the API returns avatarUrl, since a choice couldn't be saved */}
+			{profile.avatarUrl !== undefined && (
+				<AvatarPicker key={profile.avatarUrl} username={profile.username} avatarUrl={profile.avatarUrl} />
+			)}
+
 			<section className="space-y-3">
 				<div>
 					<h3 className="font-medium">{t('account.privacyTitle')}</h3>

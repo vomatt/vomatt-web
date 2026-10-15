@@ -26,8 +26,29 @@ Found while moving vomatt-web onto the live `vomatt-api` contract and testing bo
 | 11 | Store `voterVisibility` (`nobody` / `owner` / `signed-in`) | Open: needs a DB column. Meanwhile results list voters only to the poll's creator (never for anonymous polls), so "Anyone signed in" behaves like "Only me" |
 | 12 | Display name and bio public by default | **Done** |
 | 13 | Notify voters when results are revealed | Open (needs a notifications table and a job) |
-| 14 | Avatars and follows | Open (schema); UI stays hidden until profiles send the fields |
+| 14 | Avatars and follows | Avatars: see 16. Follows: open (schema); UI stays hidden until profiles send the fields |
 | 15 | Change username | Done: `PATCH /api/users/me` `{ username }` (`editProfile` in `lib/api/services/users.ts`). Still open: Profiles live at `/{username}`, so usernames must not match app routes (`explore`, `login`, `account`, …) or Sanity page slugs |
+| 16 | Choose an avatar from the cast | Open. Details below |
+
+## 16. Avatars: the cast
+
+The web gives everyone one of 48 drawn characters (`src/features/avatars/catalog.ts`). A choice is
+stored as `bot:<kind>` (e.g. `bot:boba`) in the existing `users.avatar_url` column; no migration.
+
+1. `PATCH /api/users/me` accepts `avatarUrl`. Reject anything that isn't `bot:` plus one of the
+   kinds in `BOT_KINDS` (400, field error), so no one can point everyone at an image URL.
+2. `GET /api/users/me` and `GET /api/users/{username}` return `avatarUrl` (null when unset). Avatars
+   are always public, so no visibility setting applies.
+3. A new user gets a random `bot:<kind>` when the account is created (`AuthService`, both
+   `User.builder()` sites). Stop copying Google / Apple / LINE pictures into `avatar_url`; existing
+   picture URLs stay until the user picks a bot.
+4. Return `avatarUrl` for poll creators, voters and comment authors (and the web passes it to
+   `UserAvatar` there). Ship this with 2: the picker turns on as soon as profiles return
+   `avatarUrl`, and without 4 a chosen bot would show on the profile but not beside comments.
+
+Until then the web draws the bot picked from the username (`defaultBotFor`), so it changes if the
+username changes, and the picker in Settings stays hidden because `avatarUrl` isn't in the profile.
+Provider photo URLs (`https://…`) are ignored: everyone is drawn as a bot.
 
 ## Notes
 

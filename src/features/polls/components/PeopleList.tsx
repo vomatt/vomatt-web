@@ -4,6 +4,7 @@ import { InitialAvatar } from '@/components/ui/InitialAvatar';
 import { Spinner } from '@/components/ui/Spinner';
 import { X } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { UserAvatar } from '@/features/avatars/UserAvatar';
 
 import { type Person, personKey } from '../invitees';
 
@@ -36,7 +37,7 @@ export function PeopleList<P extends Person>({
 				const note = noteFor?.(person);
 				return (
 					<li key={key} className="flex min-h-11 items-center gap-3 text-[15px]">
-						<InitialAvatar name={name} />
+						{person.username ? <UserAvatar username={person.username} /> : <InitialAvatar name={name} />}
 						<span className="min-w-0 flex-1 truncate">{name}</span>
 						{note ? (
 							<span className="text-[13px] text-muted-foreground">{note}</span>

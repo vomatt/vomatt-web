@@ -44,8 +44,9 @@ never calls the API directly, so its CORS list doesn't need the web origin.
 - `npm run lint` reports 12 errors from the React Compiler rules in files this release didn't
   touch (LanguageContext, DraftList, PollCreator, hooks/*). They predate the release work.
 - `src/lib/session.ts` is unused.
-- Follow, followers and avatar upload are hidden until the API supports them; their dev-only mock
-  routes under `/api/v1/users/*` answer 404 in production.
+- Follow and followers are hidden until the API supports them; their dev-only mock routes under
+  `/api/v1/users/*` answer 404 in production. The avatar picker is hidden until profiles return
+  `avatarUrl` (backend request 16).
 
 ## Verified locally (vomatt-api in Docker, access token TTL 120s)
 

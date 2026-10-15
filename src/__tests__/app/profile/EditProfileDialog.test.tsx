@@ -17,9 +17,6 @@ const mockEditProfile = jest.fn();
 jest.mock('@/lib/api/services/users', () => ({
 	editProfile: (...a: unknown[]) => mockEditProfile(...a),
 }));
-jest.mock('@/hooks/useAvatarUpload', () => ({
-	useAvatarUpload: () => ({ avatarUrl: null, isUploading: false, upload: jest.fn(), remove: jest.fn() }),
-}));
 
 beforeEach(() => {
 	jest.clearAllMocks();

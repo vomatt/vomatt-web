@@ -87,13 +87,7 @@ describe('mock store helpers', () => {
       expect(profile!.isFollowing).toBeUndefined();
     });
 
-    it('avatarUrl comes from avatars map', () => {
-      store.avatars.set('alice', 'data:image/png;base64,abc');
-      const profile = store.getEnrichedProfile('alice', null);
-      expect(profile!.avatarUrl).toBe('data:image/png;base64,abc');
-    });
-
-    it('avatarUrl is null when no avatar uploaded', () => {
+    it('avatarUrl is null: the mock has no avatars', () => {
       const profile = store.getEnrichedProfile('bob', null);
       expect(profile!.avatarUrl).toBeNull();
     });

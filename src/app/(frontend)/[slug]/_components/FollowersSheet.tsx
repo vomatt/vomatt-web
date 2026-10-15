@@ -10,6 +10,7 @@ import {
   SheetTitle,
 } from '@/components/ui/Sheet';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { getFollowers, getFollowing } from '@/lib/api/users-public';
 import { profileHref } from '@/lib/routes';
 import type { UserSummary } from '@/types/user';
@@ -88,19 +89,7 @@ export default function FollowersSheet({
                 onClick={() => onOpenChange(false)}
                 className="flex items-center gap-3 py-2 rounded-lg hover:bg-accent/50 transition-colors px-2 -mx-2"
               >
-                <div className="w-10 h-10 rounded-full overflow-hidden bg-primary flex items-center justify-center shrink-0">
-                  {user.avatarUrl ? (
-                    <img
-                      src={user.avatarUrl}
-                      alt={user.displayName ?? user.username}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-white text-xs font-medium">
-                      {(user.displayName ?? user.username).charAt(0).toUpperCase()}
-                    </span>
-                  )}
-                </div>
+                <UserAvatar username={user.username} avatarUrl={user.avatarUrl} className="size-10" />
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">
                     {user.displayName ?? user.username}

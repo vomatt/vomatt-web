@@ -3,8 +3,8 @@
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 
-import { InitialAvatar } from '@/components/ui/InitialAvatar';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { formatMonthYear } from '@/features/polls/format';
 import { toPayloadLocale } from '@/lib/locale';
 import type { UserProfile } from '@/types/user';
@@ -36,11 +36,7 @@ export default function ProfileHeader({ profile, action }: { profile: HeaderProf
 
 	return (
 		<header className="flex flex-wrap items-center gap-4">
-			{profile.avatarUrl ? (
-				<img src={profile.avatarUrl} alt="" className="size-16 shrink-0 rounded-full object-cover" />
-			) : (
-				<InitialAvatar name={name} className="size-16 bg-primary text-xl font-medium text-primary-foreground" />
-			)}
+			<UserAvatar username={profile.username} avatarUrl={profile.avatarUrl} className="size-16" />
 			<div className="min-w-0 flex-1">
 				<h1 className="truncate display-heading text-[28px] md:text-4xl/tight">{name}</h1>
 				{profile.displayName && <p className="mt-1 font-mono text-sm text-muted-foreground">@{profile.username}</p>}

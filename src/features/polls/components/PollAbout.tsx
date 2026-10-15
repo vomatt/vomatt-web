@@ -3,9 +3,9 @@
 import Link from 'next/link';
 
 import { Button } from '@/components/ui/Button';
-import { InitialAvatar } from '@/components/ui/InitialAvatar';
 import { Share2 } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { useHydrated } from '@/hooks/useHydrated';
 import { profileHref, topicHref } from '@/lib/routes';
 
@@ -40,7 +40,7 @@ export function PollAbout({ poll }: { poll: Poll }) {
 	return (
 		<aside className="space-y-5 rounded-xl border border-border bg-card p-5 text-sm md:p-6">
 			<div className="flex items-center gap-3">
-				<InitialAvatar name={poll.creatorUsername} className="size-9 text-sm" />
+				<UserAvatar username={poll.creatorUsername} className="size-9" />
 				<div className="min-w-0">
 					<p className="text-xs text-muted-foreground">{t('pollDetail.askedBy')}</p>
 					<Link href={profileHref(poll.creatorUsername)} className="font-medium hover:underline">

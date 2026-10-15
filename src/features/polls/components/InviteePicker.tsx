@@ -4,11 +4,11 @@ import { useEffect, useState } from 'react';
 
 import { emailSchema } from '@/components/auth/auth-schemas';
 import { Button } from '@/components/ui/Button';
-import { InitialAvatar } from '@/components/ui/InitialAvatar';
 import { Input } from '@/components/ui/Input';
 import { Spinner } from '@/components/ui/Spinner';
 import { X } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { UserAvatar } from '@/features/avatars/UserAvatar';
 import type { Group } from '@/features/groups/schema';
 import { getGroups } from '@/features/groups/service';
 import { searchUsers } from '@/lib/api/services/users';
@@ -198,7 +198,7 @@ export function InviteePicker({ value, onChange, withGroups = false, id, invalid
 									onClick={() => addUser(user)}
 									className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-[15px] hover:bg-muted"
 								>
-									<InitialAvatar name={user.username} />
+									<UserAvatar username={user.username} avatarUrl={user.avatarUrl} />
 									<span className="truncate">{user.username}</span>
 									{user.displayName && (
 										<span className="truncate text-[13px] text-muted-foreground">{user.displayName}</span>

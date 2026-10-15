@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 
-/** A circle with the first letter of a name, until users have avatars. Size and colour come from `className`. */
+/** A circle with the first letter of a name, for people without a username (and so no avatar). Size and colour come from `className`. */
 export function InitialAvatar({ name, className }: { name: string; className?: string }) {
 	return (
 		<div

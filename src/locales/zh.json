@@ -439,5 +439,214 @@
 		"deleteConfirm": "要刪除這個群組嗎？已邀請過它的投票會保留受邀者。",
 		"saveFailed": "無法儲存，請再試一次。",
 		"memberCountOne": "1 位成員"
+	},
+	"avatar": {
+		"title": "頭像",
+		"body": "加入時我們幫你挑了一個，隨時可以換。",
+		"surprise": "隨機換一個",
+		"save": "儲存頭像",
+		"saved": "已儲存",
+		"savedToast": "頭像已更新",
+		"choose": "選擇{name}",
+		"families": {
+			"bites": "台灣小吃",
+			"guardians": "廟宇守護",
+			"visitors": "外星訪客",
+			"animals": "島上動物"
+		},
+		"bots": {
+			"boba": {
+				"name": "珍奶",
+				"trait": "少冰半糖"
+			},
+			"bao": {
+				"name": "小籠包",
+				"trait": "十八褶"
+			},
+			"oolong": {
+				"name": "烏龍",
+				"trait": "高山茶，第二泡"
+			},
+			"su": {
+				"name": "鳳梨酥",
+				"trait": "咬了一口"
+			},
+			"egg": {
+				"name": "茶葉蛋",
+				"trait": "從早上滷到現在"
+			},
+			"ice": {
+				"name": "芒果冰",
+				"trait": "永康街，芒果加滿"
+			},
+			"youtiao": {
+				"name": "油條",
+				"trait": "泡進豆漿"
+			},
+			"tofu": {
+				"name": "臭豆腐",
+				"trait": "先聞到，再愛上"
+			},
+			"sausage": {
+				"name": "香腸",
+				"trait": "夜市炭烤"
+			},
+			"chip": {
+				"name": "晶片",
+				"trait": "新竹製造"
+			},
+			"tower": {
+				"name": "101",
+				"trait": "每年跨年放煙火"
+			},
+			"lumen": {
+				"name": "天燈",
+				"trait": "平溪放天燈"
+			},
+			"mazu": {
+				"name": "媽祖",
+				"trait": "守護海上"
+			},
+			"tudi": {
+				"name": "土地公",
+				"trait": "照顧整個街坊"
+			},
+			"yuelao": {
+				"name": "月老",
+				"trait": "牽紅線"
+			},
+			"qiye": {
+				"name": "七爺",
+				"trait": "白無常，走得高"
+			},
+			"baye": {
+				"name": "八爺",
+				"trait": "黑無常，走得兇"
+			},
+			"shi": {
+				"name": "石獅",
+				"trait": "腳踩繡球"
+			},
+			"long": {
+				"name": "龍",
+				"trait": "盤在廟頂"
+			},
+			"denglong": {
+				"name": "燈籠",
+				"trait": "紅色的，掛在廟門"
+			},
+			"ding": {
+				"name": "香爐",
+				"trait": "銅鑄的那座"
+			},
+			"jiaobei": {
+				"name": "筊杯",
+				"trait": "問神明是或否"
+			},
+			"xiang": {
+				"name": "香",
+				"trait": "三炷香敬祖先"
+			},
+			"banyan": {
+				"name": "榕樹",
+				"trait": "廟口那棵老樹"
+			},
+			"gray": {
+				"name": "小灰人",
+				"trait": "為了夜市而來"
+			},
+			"nordic": {
+				"name": "北歐人",
+				"trait": "冷靜得可疑"
+			},
+			"reptile": {
+				"name": "蜥蜴人",
+				"trait": "完全正常的人類"
+			},
+			"mantis": {
+				"name": "螳螂人",
+				"trait": "每個選項都看見"
+			},
+			"anu": {
+				"name": "阿努納奇",
+				"trait": "比蘇美還古老"
+			},
+			"tallwhite": {
+				"name": "高白人",
+				"trait": "室內也戴墨鏡"
+			},
+			"moth": {
+				"name": "天蛾人",
+				"trait": "橋塌之前有人看過"
+			},
+			"blob": {
+				"name": "軟泥怪",
+				"trait": "沒有固定立場"
+			},
+			"cyclops": {
+				"name": "獨眼怪",
+				"trait": "一隻眼，一張票"
+			},
+			"probe": {
+				"name": "探測器",
+				"trait": "從 1977 年聽到現在"
+			},
+			"saucer": {
+				"name": "飛碟",
+				"trait": "只是路過"
+			},
+			"trio": {
+				"name": "三眼怪",
+				"trait": "三隻眼，三種意見"
+			},
+			"bear": {
+				"name": "台灣黑熊",
+				"trait": "胸口一彎月亮"
+			},
+			"magpie": {
+				"name": "藍鵲",
+				"trait": "長尾巴，一家很吵"
+			},
+			"pangolin": {
+				"name": "穿山甲",
+				"trait": "有盔甲，沒脾氣"
+			},
+			"shihu": {
+				"name": "石虎",
+				"trait": "苗栗來的"
+			},
+			"macaque": {
+				"name": "獼猴",
+				"trait": "壽山是牠的"
+			},
+			"deer": {
+				"name": "梅花鹿",
+				"trait": "一身梅花斑"
+			},
+			"pheasant": {
+				"name": "帝雉",
+				"trait": "阿里山的帝王"
+			},
+			"firefly": {
+				"name": "螢火蟲",
+				"trait": "四月的山上夜晚"
+			},
+			"crab": {
+				"name": "陸蟹",
+				"trait": "在墾丁過馬路"
+			},
+			"flyfish": {
+				"name": "飛魚",
+				"trait": "每年春天回蘭嶼"
+			},
+			"turtle": {
+				"name": "海龜",
+				"trait": "小琉球常客"
+			},
+			"dog": {
+				"name": "台灣土狗",
+				"trait": "捲尾巴"
+			}
+		}
 	}
 }

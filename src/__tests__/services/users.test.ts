@@ -5,7 +5,6 @@ import {
   editProfile,
   followUser,
   getUserProfile,
-  removeAvatar,
   searchUsers,
   unfollowUser,
 } from '@/lib/api/services/users';
@@ -118,15 +117,6 @@ describe('deleteUser()', () => {
   it('sends DELETE to /users/{userId}', async () => {
     await deleteUser('user-123');
     expect(mockApiClient).toHaveBeenCalledWith('/users/user-123', {
-      method: 'DELETE',
-    });
-  });
-});
-
-describe('removeAvatar()', () => {
-  it('sends DELETE to /users/me/avatar', async () => {
-    await removeAvatar();
-    expect(mockApiClient).toHaveBeenCalledWith('/users/me/avatar', {
       method: 'DELETE',
     });
   });

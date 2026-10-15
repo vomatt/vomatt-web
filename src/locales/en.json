@@ -443,5 +443,214 @@
 		"deleteConfirm": "Delete this group? Polls you invited it to keep their invitees.",
 		"saveFailed": "Couldn't save. Try again.",
 		"memberCountOne": "1 member"
+	},
+	"avatar": {
+		"title": "Avatar",
+		"body": "We picked one for you when you joined. Swap it any time.",
+		"surprise": "Surprise me",
+		"save": "Save avatar",
+		"saved": "Saved",
+		"savedToast": "Avatar updated",
+		"choose": "Choose {name}",
+		"families": {
+			"bites": "Taiwan bites",
+			"guardians": "Temple guardians",
+			"visitors": "Visitors",
+			"animals": "Island animals"
+		},
+		"bots": {
+			"boba": {
+				"name": "Boba",
+				"trait": "Less ice, half sugar"
+			},
+			"bao": {
+				"name": "Bao",
+				"trait": "Eighteen pleats"
+			},
+			"oolong": {
+				"name": "Oolong",
+				"trait": "High-mountain, second steep"
+			},
+			"su": {
+				"name": "Su",
+				"trait": "Pineapple cake, one bite in"
+			},
+			"egg": {
+				"name": "Tea Egg",
+				"trait": "Simmering since morning"
+			},
+			"ice": {
+				"name": "Shaved Ice",
+				"trait": "Mango on top, Yongkang St"
+			},
+			"youtiao": {
+				"name": "Youtiao",
+				"trait": "Dunked in soy milk"
+			},
+			"tofu": {
+				"name": "Stinky Tofu",
+				"trait": "Smell first, then love"
+			},
+			"sausage": {
+				"name": "Sausage",
+				"trait": "Night-market grill"
+			},
+			"chip": {
+				"name": "Chip",
+				"trait": "Made in Hsinchu"
+			},
+			"tower": {
+				"name": "101",
+				"trait": "Fireworks every New Year"
+			},
+			"lumen": {
+				"name": "Lumen",
+				"trait": "Pingxi sky lantern"
+			},
+			"mazu": {
+				"name": "Mazu",
+				"trait": "Watches over the sea"
+			},
+			"tudi": {
+				"name": "Earth God",
+				"trait": "Keeps the neighbourhood"
+			},
+			"yuelao": {
+				"name": "Yue Lao",
+				"trait": "Ties the red thread"
+			},
+			"qiye": {
+				"name": "Qiye",
+				"trait": "White Wuchang, walks tall"
+			},
+			"baye": {
+				"name": "Baye",
+				"trait": "Black Wuchang, walks fierce"
+			},
+			"shi": {
+				"name": "Stone Lion",
+				"trait": "Paw on the ball"
+			},
+			"long": {
+				"name": "Long",
+				"trait": "Rides the temple roof"
+			},
+			"denglong": {
+				"name": "Lantern",
+				"trait": "Red, by the gate"
+			},
+			"ding": {
+				"name": "Ding",
+				"trait": "The bronze burner"
+			},
+			"jiaobei": {
+				"name": "Jiaobei",
+				"trait": "Asks the gods yes or no"
+			},
+			"xiang": {
+				"name": "Xiang",
+				"trait": "Three sticks for the ancestors"
+			},
+			"banyan": {
+				"name": "Banyan",
+				"trait": "The old tree by the temple"
+			},
+			"gray": {
+				"name": "Gray",
+				"trait": "Came for the night market"
+			},
+			"nordic": {
+				"name": "Nordic",
+				"trait": "Suspiciously calm"
+			},
+			"reptile": {
+				"name": "Reptilian",
+				"trait": "Totally normal human"
+			},
+			"mantis": {
+				"name": "Mantis",
+				"trait": "Sees every option"
+			},
+			"anu": {
+				"name": "Anunnaki",
+				"trait": "Older than Sumer"
+			},
+			"tallwhite": {
+				"name": "Tall White",
+				"trait": "Shades on, indoors"
+			},
+			"moth": {
+				"name": "Mothman",
+				"trait": "Seen before the bridge"
+			},
+			"blob": {
+				"name": "Blob",
+				"trait": "No fixed opinion"
+			},
+			"cyclops": {
+				"name": "Cyclops",
+				"trait": "One eye, one vote"
+			},
+			"probe": {
+				"name": "Probe",
+				"trait": "Listening since 1977"
+			},
+			"saucer": {
+				"name": "Saucer",
+				"trait": "Just visiting"
+			},
+			"trio": {
+				"name": "Trio",
+				"trait": "Three eyes, three opinions"
+			},
+			"bear": {
+				"name": "Black Bear",
+				"trait": "A moon on its chest"
+			},
+			"magpie": {
+				"name": "Blue Magpie",
+				"trait": "Long tail, loud family"
+			},
+			"pangolin": {
+				"name": "Pangolin",
+				"trait": "Armour, no attitude"
+			},
+			"shihu": {
+				"name": "Leopard Cat",
+				"trait": "Shihu, from Miaoli"
+			},
+			"macaque": {
+				"name": "Macaque",
+				"trait": "Runs Shoushan"
+			},
+			"deer": {
+				"name": "Sika Deer",
+				"trait": "Plum-blossom spots"
+			},
+			"pheasant": {
+				"name": "Mikado",
+				"trait": "Emperor pheasant, Alishan"
+			},
+			"firefly": {
+				"name": "Firefly",
+				"trait": "April nights in the hills"
+			},
+			"crab": {
+				"name": "Land Crab",
+				"trait": "Crosses the road in Kenting"
+			},
+			"flyfish": {
+				"name": "Flying Fish",
+				"trait": "Lanyu, every spring"
+			},
+			"turtle": {
+				"name": "Sea Turtle",
+				"trait": "Regular at Xiaoliuqiu"
+			},
+			"dog": {
+				"name": "Tugou",
+				"trait": "Taiwan dog, curly tail"
+			}
+		}
 	}
 }

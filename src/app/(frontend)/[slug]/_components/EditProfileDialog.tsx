@@ -15,11 +15,9 @@ import {
 } from '@/components/ui/Dialog';
 import { Input } from '@/components/ui/Input';
 import { Spinner } from '@/components/ui/Spinner';
-import { User as UserIcon } from '@/components/ui/SvgIcons';
 import { Textarea } from '@/components/ui/Textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { isValidUsername, USERNAME_MAX_LENGTH } from '@/features/account/username';
-import { useAvatarUpload } from '@/hooks/useAvatarUpload';
 import { editProfile } from '@/lib/api/services/users';
 import { profileHref } from '@/lib/routes';
 
@@ -27,15 +25,12 @@ interface EditProfileDialogProps {
 	initialUsername: string;
 	initialDisplayName: string;
 	initialBio: string;
-	/** `undefined` when the backend doesn't support avatars; the photo section is hidden then. */
-	initialAvatarUrl?: string | null;
 }
 
 export default function EditProfileDialog({
 	initialUsername,
 	initialDisplayName,
 	initialBio,
-	initialAvatarUrl,
 }: EditProfileDialogProps) {
 	const { t } = useLanguage();
 	const router = useRouter();
@@ -44,18 +39,6 @@ export default function EditProfileDialog({
 	const [displayName, setDisplayName] = useState(initialDisplayName);
 	const [bio, setBio] = useState(initialBio);
 	const [isPending, setIsPending] = useState(false);
-
-	const supportsAvatars = initialAvatarUrl !== undefined;
-	const { avatarUrl, isUploading, upload, remove } = useAvatarUpload(initialAvatarUrl ?? null);
-
-	async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
-		const file = e.target.files?.[0];
-		if (!file) return;
-		const error = await upload(file);
-		if (error) toast.error(error);
-		else toast.success('Avatar updated');
-		e.target.value = '';
-	}
 
 	async function handleSubmit(e?: React.FormEvent) {
 		e?.preventDefault();
@@ -101,50 +84,6 @@ export default function EditProfileDialog({
 					<DialogTitle>Edit Profile</DialogTitle>
 				</DialogHeader>
 				<form id="edit-profile" onSubmit={handleSubmit} className="flex flex-col gap-4">
-					{/* Avatar section */}
-					{supportsAvatars && (
-					<div className="flex flex-col gap-2">
-						<label className="text-sm font-medium text-foreground">Photo</label>
-						<div className="flex items-center gap-4">
-							{/* Avatar preview */}
-							<div className="w-16 h-16 rounded-full overflow-hidden bg-primary flex items-center justify-center shrink-0">
-								{avatarUrl ? (
-									<img src={avatarUrl} alt="Profile picture" className="w-full h-full object-cover" />
-								) : (
-									<span className="w-8 h-8 text-white flex items-center justify-center">
-										<UserIcon size="2em" />
-									</span>
-								)}
-							</div>
-							<div className="flex flex-col gap-1.5">
-								<label
-									htmlFor="edit-avatar-upload"
-									className="text-sm text-primary underline cursor-pointer hover:opacity-70 transition-opacity"
-								>
-									{isUploading ? 'Uploading…' : 'Change photo'}
-								</label>
-								<input
-									id="edit-avatar-upload"
-									type="file"
-									accept="image/jpeg,image/png,image/webp,image/gif"
-									className="hidden"
-									disabled={isUploading}
-									onChange={handleAvatarChange}
-								/>
-								{avatarUrl && (
-									<button
-										type="button"
-										onClick={remove}
-										disabled={isUploading}
-										className="text-sm text-destructive underline text-left hover:opacity-70 transition-opacity disabled:opacity-40"
-									>
-										Remove photo
-									</button>
-								)}
-							</div>
-						</div>
-					</div>
-					)}
 					<div className="flex flex-col gap-1.5">
 						<label
 							htmlFor="username"
@@ -202,7 +141,7 @@ export default function EditProfileDialog({
 					<Button
 						type="submit"
 						form="edit-profile"
-						disabled={isPending || isUploading}
+						disabled={isPending}
 					>
 						{isPending ? <Spinner className="mr-2" /> : null}
 						Save Changes

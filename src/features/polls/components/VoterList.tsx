@@ -4,9 +4,9 @@ import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
-import { InitialAvatar } from '@/components/ui/InitialAvatar';
 import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { collectPages, mergeById } from '@/lib/api/cursor';
 import { profileHref } from '@/lib/routes';
 
@@ -150,7 +150,7 @@ export function VotersDialog({ option, voters, onClose }: VotersDialogProps) {
 										href={profileHref(voter.username)}
 										className="-mx-2 flex min-h-11 items-center gap-3 rounded-lg px-2 text-[15px] hover:bg-muted"
 									>
-										<InitialAvatar name={voter.username} />
+										<UserAvatar username={voter.username} />
 										<span className="truncate">{voter.username}</span>
 									</Link>
 								</li>

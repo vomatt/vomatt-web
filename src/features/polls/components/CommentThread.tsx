@@ -6,11 +6,11 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/Button';
-import { InitialAvatar } from '@/components/ui/InitialAvatar';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Heart } from '@/components/ui/SvgIcons';
 import { Textarea } from '@/components/ui/Textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { useHydrated } from '@/hooks/useHydrated';
 import { profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
@@ -304,7 +304,7 @@ function CommentBody({ comment, viewerId, thread, requireAuth, onReply }: Commen
 
 	return (
 		<article className={cn('flex gap-3', isPending && 'opacity-60')}>
-			<InitialAvatar name={author} />
+			<UserAvatar username={author} />
 			<div className="min-w-0 flex-1">
 				<div className="flex flex-wrap items-baseline gap-x-2 text-xs">
 					{isPending ? (

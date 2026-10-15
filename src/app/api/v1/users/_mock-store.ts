@@ -2,9 +2,6 @@ import type { UserProfile, UserSummary } from '@/types/user';
 
 // ─── In-memory state ─────────────────────────────────────────────────────────
 
-/** username → base64 data URL */
-export const avatars = new Map<string, string>();
-
 /** follower username → Set of followee usernames */
 export const follows = new Map<string, Set<string>>();
 
@@ -108,7 +105,7 @@ export function getEnrichedProfile(
 
   const profile: UserProfile = {
     ...seed,
-    avatarUrl: avatars.get(username) ?? null,
+    avatarUrl: null,
     followersCount: getFollowersCount(username),
     followingCount: getFollowingCount(username),
   };
@@ -129,7 +126,7 @@ export function getUserSummaries(usernames: string[]): UserSummary[] {
       {
         username: seed.username,
         displayName: seed.displayName,
-        avatarUrl: avatars.get(username) ?? null,
+        avatarUrl: null,
       },
     ];
   });

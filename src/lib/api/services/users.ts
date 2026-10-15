@@ -6,12 +6,10 @@ import { z } from 'zod';
 
 import { clearAuthTokens } from '@/lib/api/auth';
 import { apiClient, ApiError, publicFetch } from '@/lib/api/client';
+import { PROFILES_TAG } from '@/lib/api/constants';
 import { cursorPageSchema, pageParams } from '@/lib/api/cursor';
 import { UserDtoSchema } from '@/schemas/user';
 import { MyProfile, UserProfile } from '@/types/user';
-
-// Public profiles are cached; a profile edit refreshes them and re-renders the page
-const PROFILES_TAG = 'profiles';
 
 export async function getUserProfile(username: string): Promise<UserProfile | null> {
   try {
@@ -39,10 +37,6 @@ export async function searchUsers(username: string, cursor?: string, limit = 20)
 
 export async function deleteUser(userId: string) {
   return apiClient(`/users/${userId}`, { method: 'DELETE' });
-}
-
-export async function removeAvatar() {
-  return apiClient('/users/me/avatar', { method: 'DELETE' });
 }
 
 export async function followUser(username: string) {
