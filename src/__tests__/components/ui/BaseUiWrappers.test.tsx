@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/Button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/Dialog';
 import { SidebarMenuButton, SidebarProvider } from '@/components/ui/Sidebar';
 import { Switch } from '@/components/ui/Switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
+import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 
 // Polyfill APIs missing in jsdom
 global.ResizeObserver = class {
@@ -110,6 +110,31 @@ describe('Base UI wrappers', () => {
 			'data-active'
 		);
 		expect(screen.getByText('Panel B')).toBeVisible();
+	});
+
+	it('TabsIndicator marks the hovered tab without moving off the active one', () => {
+		render(
+			<Tabs defaultValue="a">
+				<TabsList variant="line">
+					<TabsTrigger value="a">A</TabsTrigger>
+					<TabsTrigger value="b">B</TabsTrigger>
+					<TabsIndicator />
+				</TabsList>
+			</Tabs>
+		);
+		const tabB = screen.getByRole('tab', { name: 'B' });
+		tabB.getBoundingClientRect = () => ({ left: 80, width: 40 }) as DOMRect;
+		const active = document.querySelector<HTMLElement>('[data-slot=tabs-indicator]')!;
+
+		fireEvent.pointerOver(tabB);
+		const hover = document.querySelector<HTMLElement>('[data-slot=tabs-hover-indicator]')!;
+		expect(hover.style.left).toBe('80px');
+		expect(hover.style.width).toBe('40px');
+		expect(hover).not.toHaveClass('opacity-0');
+		expect(active.style.left).toBe('');
+
+		fireEvent.pointerLeave(screen.getByRole('tablist'));
+		expect(hover).toHaveClass('opacity-0');
 	});
 
 	it('Switch toggles its checked state', () => {

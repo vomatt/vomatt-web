@@ -17,7 +17,7 @@ import {
 import { Button, buttonVariants } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Switch } from '@/components/ui/Switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
+import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { BallotRecord, Insights } from '@/features/account/insights';
 import { AvatarPicker } from '@/features/avatars/AvatarPicker';
@@ -132,6 +132,7 @@ export default function AccountPage(props: AccountPageProps) {
 						<TabsTrigger value="polls">{t('account.tabPolls')}</TabsTrigger>
 						<TabsTrigger value="groups">{t('account.tabGroups')}</TabsTrigger>
 						<TabsTrigger value="settings">{t('account.tabSettings')}</TabsTrigger>
+						<TabsIndicator />
 					</TabsList>
 					<TabsContent value="activity" className="pt-4">
 						<Activity history={props.history} />
