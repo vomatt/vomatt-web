@@ -20,6 +20,11 @@ import { buildShareImageUrl, imageBuilder } from '@/sanity/lib/image';
 import { sanityFetch } from '@/sanity/lib/live';
 import { siteSharingQuery } from '@/sanity/lib/queries';
 
+// Server Actions run under the page's limit, and vomatt-api can take over 10s
+// (Vercel's old default) on a cold start. A limit below that kills the action
+// after the API has already used the sign-in code or sent a new one.
+export const maxDuration = 60;
+
 const geistSans = Geist({ subsets: ['latin'], variable: '--font-geist-sans' });
 const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono' });
 
