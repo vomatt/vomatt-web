@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 
 import AccountPage from '@/app/(frontend)/[slug]/_components/AccountPage';
 import type { MyProfile, UserProfile } from '@/types/user';
@@ -25,6 +25,7 @@ const publicProfile: UserProfile = {
 	location: 'Taipei',
 	points: null,
 	membershipLevel: null,
+	avatarUrl: null,
 };
 
 const myProfile: MyProfile = {
@@ -45,6 +46,7 @@ const myProfile: MyProfile = {
 	totalPolls: 3,
 	totalVotes: 12,
 	visibilitySettings: { points: true },
+	avatarUrl: 'bot:boba',
 };
 
 const insights = { peopleReached: 40, majorityRate: 50, awaitingResults: 0 };
@@ -93,5 +95,21 @@ describe('AccountPage', () => {
 		expect(screen.getByText('People reached')).toBeInTheDocument();
 		expect(screen.getByRole('tab', { name: 'Groups' })).toBeInTheDocument();
 		expect(screen.getByRole('tab', { name: 'Settings' })).toBeInTheDocument();
+	});
+
+	it('lets the owner change their avatar from the header, not from Settings', () => {
+		render(<AccountPage isOwn profile={myProfile} myPolls={[]} history={[]} insights={insights} />);
+
+		expect(screen.getByRole('button', { name: 'Change avatar' })).toBeInTheDocument();
+		fireEvent.click(screen.getByRole('tab', { name: 'Settings' }));
+		expect(screen.queryByRole('heading', { name: 'Avatar' })).not.toBeInTheDocument();
+	});
+
+	it("doesn't let visitors change the avatar", () => {
+		render(
+			<AccountPage isOwn={false} profile={publicProfile} polls={{ items: [], nextCursor: null }} isAuthenticated />
+		);
+
+		expect(screen.queryByRole('button', { name: 'Change avatar' })).not.toBeInTheDocument();
 	});
 });

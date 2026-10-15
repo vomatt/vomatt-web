@@ -9,8 +9,8 @@ export interface UserProfile {
 	location?: string | null;
 	points?: number | null;
 	membershipLevel?: string | null;
-	// Absent until the backend ships avatars and follows; the UI hides those features then.
-	avatarUrl?: string | null;
+	avatarUrl: string | null; // `bot:<kind>`; older accounts may hold an image URL
+	// Absent until the backend ships follows; the UI hides them then.
 	followersCount?: number;
 	followingCount?: number;
 	isFollowing?: boolean; // only present when request includes Authorization header
@@ -35,7 +35,7 @@ export interface MyProfile {
 	totalPolls: number;
 	totalVotes: number;
 	visibilitySettings: Record<string, boolean>;
-	avatarUrl?: string | null; // absent until the backend ships avatars
+	avatarUrl: string | null; // `bot:<kind>`; older accounts may hold an image URL
 }
 
 export interface UserSummary {

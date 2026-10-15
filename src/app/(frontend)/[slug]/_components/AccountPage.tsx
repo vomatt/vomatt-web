@@ -20,7 +20,6 @@ import { Switch } from '@/components/ui/Switch';
 import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { BallotRecord, Insights } from '@/features/account/insights';
-import { AvatarPicker } from '@/features/avatars/AvatarPicker';
 import { GroupsPanel } from '@/features/groups/GroupsPanel';
 import { chipClassName } from '@/features/polls/chip';
 import { PollListItem } from '@/features/polls/components/PollListItem';
@@ -80,6 +79,7 @@ export default function AccountPage(props: AccountPageProps) {
 		<div className="px-contain mx-auto max-w-3xl space-y-8 py-6 md:py-10">
 			<ProfileHeader
 				profile={headerProfile}
+				isOwn={props.isOwn}
 				action={
 					props.isOwn ? (
 						<EditProfileDialog
@@ -259,11 +259,6 @@ function Settings({
 
 	return (
 		<div className="space-y-8">
-			{/* Hidden until the API returns avatarUrl, since a choice couldn't be saved */}
-			{profile.avatarUrl !== undefined && (
-				<AvatarPicker key={profile.avatarUrl} username={profile.username} avatarUrl={profile.avatarUrl} />
-			)}
-
 			<section className="space-y-3">
 				<div>
 					<h3 className="font-medium">{t('account.privacyTitle')}</h3>

@@ -2,11 +2,8 @@
 	"openapi": "3.0.1",
 	"info": {
 		"title": "Vomatt REST API",
-		"description": "REST API of Vomatt, a social polling platform.\n\n**Envelope**: every response is `{ success, data, message, errorCode, error }`. On success `data` holds the payload; on failure `success=false` and `data` is normally null.\n\n**Auth**: `Authorization: Bearer \u003Caccess token\u003E` (JWT). Obtain tokens via `/api/auth/**`; 401 `auth.token.expired` means refresh, `auth.token.invalid` means sign in again.\n\n**Errors**: branch on `errorCode` (lowercase dotted, e.g. `vote.not_found`), never on `message`. Filter-level 401/403/429 use the same body. 429 carries a `Retry-After` header (seconds), except when the rate limiter itself is unavailable.\n\n**Pagination**: list endpoints return `{ items, nextCursor }`; pass `nextCursor` back as `cursor`. `limit` defaults to 20 and is clamped to 1..50.\n\n**i18n**: send `Accept-Language` (`zh-TW` default, `en`) to localize `message`.\n\nConventions, flows and glossary: `docs/frontend/README.md` in the repository.",
-		"contact": {
-			"name": "Vomatt",
-			"email": "yi-hsien@vomatt.com"
-		},
+		"description": "REST API of Vomatt, a social polling platform.\n\n**Envelope**: every response is `{ success, data, message, errorCode, error }`. On success `data` holds the payload; on failure `success=false` and `data` is normally null.\n\n**Auth**: `Authorization: Bearer <access token>` (JWT). Obtain tokens via `/api/auth/**`; 401 `auth.token.expired` means refresh, `auth.token.invalid` means sign in again.\n\n**Errors**: branch on `errorCode` (lowercase dotted, e.g. `vote.not_found`), never on `message`. Filter-level 401/403/429 use the same body. 429 carries a `Retry-After` header (seconds), except when the rate limiter itself is unavailable.\n\n**Pagination**: list endpoints return `{ items, nextCursor }`; pass `nextCursor` back as `cursor`. `limit` defaults to 20 and is clamped to 1..50.\n\n**i18n**: send `Accept-Language` (`zh-TW` default, `en`) to localize `message`.\n\nConventions, flows and glossary: `docs/frontend/README.md` in the repository.",
+		"contact": { "name": "Vomatt", "email": "yi-hsien@vomatt.com" },
 		"license": {
 			"name": "MIT License",
 			"url": "https://opensource.org/licenses/MIT"
@@ -14,49 +11,27 @@
 		"version": "1.0"
 	},
 	"servers": [
-		{
-			"url": "https://vomatt-api.vercel.app",
-			"description": "Development"
-		},
-		{
-			"url": "https://vomatt-api.vercel.app",
-			"description": "Production"
-		}
+		{ "url": "https://vomatt-api.vercel.app", "description": "Development" },
+		{ "url": "https://vomatt-api.vercel.app", "description": "Production" }
 	],
-	"security": [
-		{
-			"bearerAuth": []
-		}
-	],
+	"security": [{ "bearerAuth": [] }],
 	"tags": [
 		{
 			"name": "Admin - Lookup",
 			"description": "Dictionary management APIs (Admin)"
 		},
-		{
-			"name": "Tag",
-			"description": "Public tag APIs"
-		},
+		{ "name": "Tag", "description": "Public tag APIs" },
 		{
 			"name": "Vote Comment",
 			"description": "Comments and Replies on a Poll (path segment `votes` = Poll)"
 		},
-		{
-			"name": "Lookup",
-			"description": "Dictionary lookup APIs"
-		},
-		{
-			"name": "User",
-			"description": "User management APIs"
-		},
+		{ "name": "Lookup", "description": "Dictionary lookup APIs" },
+		{ "name": "User", "description": "User management APIs" },
 		{
 			"name": "Notification",
 			"description": "Invitations and Ended Notifications, derived when read (no push). The list itself is `GET /api/votes/my` (Invitations on `status=open`, Ended Notifications on `status=ended`), whose items carry `unread`"
 		},
-		{
-			"name": "Admin Tag",
-			"description": "Admin-only tag management APIs"
-		},
+		{ "name": "Admin Tag", "description": "Admin-only tag management APIs" },
 		{
 			"name": "Group",
 			"description": "Groups: the caller's private, reusable invite lists of users and email addresses"
@@ -83,9 +58,7 @@
 						"in": "path",
 						"description": "Poll ID",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05"
 					}
 				],
@@ -228,9 +201,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -239,9 +210,7 @@
 						"description": "Resource not found (errorCode e.g. `vote.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -250,9 +219,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -270,33 +237,23 @@
 						"in": "path",
 						"description": "Poll ID",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05"
 					}
 				],
 				"requestBody": {
 					"content": {
 						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/CreateVoteRequest"
-							},
+							"schema": { "$ref": "#/components/schemas/CreateVoteRequest" },
 							"examples": {
 								"Reschedule": {
 									"description": "Reschedule",
 									"value": {
 										"title": "Which language should we use for the next side project?",
 										"options": [
-											{
-												"text": "Java"
-											},
-											{
-												"text": "Kotlin"
-											},
-											{
-												"text": "Go"
-											}
+											{ "text": "Java" },
+											{ "text": "Kotlin" },
+											{ "text": "Go" }
 										],
 										"endTime": "2026-10-20T09:00:00+08:00"
 									}
@@ -384,9 +341,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -395,9 +350,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -406,9 +359,7 @@
 						"description": "Poll does not exist, is Deleted, or is Invite-only and hidden from the caller (`vote.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"examples": {
 									"vote.not_found": {
 										"description": "vote.not_found",
@@ -428,9 +379,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -439,9 +388,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -459,9 +406,7 @@
 						"in": "path",
 						"description": "Poll ID",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05"
 					}
 				],
@@ -497,9 +442,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -508,9 +451,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -519,9 +460,7 @@
 						"description": "Poll does not exist or is already Deleted (`vote.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"examples": {
 									"vote.not_found": {
 										"description": "vote.not_found",
@@ -541,9 +480,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -552,9 +489,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -574,9 +509,7 @@
 						"in": "path",
 						"description": "Poll ID",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05"
 					}
 				],
@@ -612,9 +545,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -623,9 +554,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -634,9 +563,7 @@
 						"description": "Poll does not exist, is Deleted, or is Invite-only and hidden from the caller (`vote.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"examples": {
 									"vote.not_found": {
 										"description": "vote.not_found",
@@ -656,9 +583,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -667,9 +592,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -689,33 +612,24 @@
 						"in": "path",
 						"description": "Poll ID",
 						"required": true,
-						"schema": {
-							"type": "string"
-						}
+						"schema": { "type": "string" }
 					},
 					{
 						"name": "commentId",
 						"in": "path",
 						"description": "Comment ID",
 						"required": true,
-						"schema": {
-							"type": "string",
-							"format": "uuid"
-						}
+						"schema": { "type": "string", "format": "uuid" }
 					}
 				],
 				"requestBody": {
 					"content": {
 						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/UpdateCommentRequest"
-							},
+							"schema": { "$ref": "#/components/schemas/UpdateCommentRequest" },
 							"examples": {
 								"edit": {
 									"description": "edit",
-									"value": {
-										"text": "Edited: B is cheaper and ships faster."
-									}
+									"value": { "text": "Edited: B is cheaper and ships faster." }
 								}
 							}
 						}
@@ -763,9 +677,7 @@
 						"description": "Comment not found or already deleted (errorCode `comment.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -774,9 +686,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -785,9 +695,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -796,9 +704,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -807,9 +713,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -827,19 +731,14 @@
 						"in": "path",
 						"description": "Poll ID",
 						"required": true,
-						"schema": {
-							"type": "string"
-						}
+						"schema": { "type": "string" }
 					},
 					{
 						"name": "commentId",
 						"in": "path",
 						"description": "Comment ID",
 						"required": true,
-						"schema": {
-							"type": "string",
-							"format": "uuid"
-						}
+						"schema": { "type": "string", "format": "uuid" }
 					}
 				],
 				"responses": {
@@ -874,9 +773,7 @@
 						"description": "Comment not found or already deleted (errorCode `comment.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -885,9 +782,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -896,9 +791,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -907,9 +800,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -918,9 +809,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -940,24 +829,18 @@
 						"in": "path",
 						"description": "Group ID",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "0199f2b0-7a1c-7e45-9b3d-2c8f6a4e1d07"
 					}
 				],
 				"requestBody": {
 					"content": {
 						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/GroupRequest"
-							},
+							"schema": { "$ref": "#/components/schemas/GroupRequest" },
 							"examples": {
 								"Rename": {
 									"description": "Rename",
-									"value": {
-										"name": "Book club 2026"
-									}
+									"value": { "name": "Book club 2026" }
 								}
 							}
 						}
@@ -996,9 +879,7 @@
 						"description": "Group does not exist or belongs to someone else (`group.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"examples": {
 									"group.not_found": {
 										"description": "group.not_found",
@@ -1018,9 +899,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -1029,9 +908,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -1040,9 +917,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -1051,9 +926,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -1071,9 +944,7 @@
 						"in": "path",
 						"description": "Group ID",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "0199f2b0-7a1c-7e45-9b3d-2c8f6a4e1d07"
 					}
 				],
@@ -1109,9 +980,7 @@
 						"description": "Group does not exist or belongs to someone else (`group.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"examples": {
 									"group.not_found": {
 										"description": "group.not_found",
@@ -1131,9 +1000,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -1142,9 +1009,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -1153,9 +1018,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -1164,9 +1027,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -1186,17 +1047,13 @@
 						"in": "path",
 						"description": "Tag ID (UUIDv7)",
 						"required": true,
-						"schema": {
-							"type": "string"
-						}
+						"schema": { "type": "string" }
 					}
 				],
 				"requestBody": {
 					"content": {
 						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/UpdateTagRequest"
-							},
+							"schema": { "$ref": "#/components/schemas/UpdateTagRequest" },
 							"examples": {
 								"UpdateTag": {
 									"description": "UpdateTag",
@@ -1217,9 +1074,7 @@
 						"description": "Success",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponseTagDto"
-								},
+								"schema": { "$ref": "#/components/schemas/ApiResponseTagDto" },
 								"examples": {
 									"UpdatedTag": {
 										"description": "UpdatedTag",
@@ -1246,9 +1101,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -1257,9 +1110,7 @@
 						"description": "Tag not found (`tag.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"examples": {
 									"TagNotFound": {
 										"description": "TagNotFound",
@@ -1279,9 +1130,7 @@
 						"description": "Tag name already exists (`tag.name.exists`) or slug already exists (`tag.slug.exists`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"examples": {
 									"TagNameExists": {
 										"description": "TagNameExists",
@@ -1301,9 +1150,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -1312,9 +1159,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -1323,9 +1168,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -1343,9 +1186,7 @@
 						"in": "path",
 						"description": "Tag ID (UUIDv7)",
 						"required": true,
-						"schema": {
-							"type": "string"
-						}
+						"schema": { "type": "string" }
 					}
 				],
 				"responses": {
@@ -1380,9 +1221,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -1391,9 +1230,7 @@
 						"description": "Tag not found (`tag.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"examples": {
 									"TagNotFound": {
 										"description": "TagNotFound",
@@ -1413,9 +1250,7 @@
 						"description": "Tag is referenced by a Poll (`tag.in_use`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"examples": {
 									"TagInUse": {
 										"description": "TagInUse",
@@ -1435,9 +1270,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -1446,9 +1279,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -1457,9 +1288,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -1479,25 +1308,18 @@
 						"in": "path",
 						"description": "Dictionary item ID (UUIDv7)",
 						"required": true,
-						"schema": {
-							"type": "string"
-						}
+						"schema": { "type": "string" }
 					}
 				],
 				"requestBody": {
 					"content": {
 						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/UpdateLookupRequest"
-							},
+							"schema": { "$ref": "#/components/schemas/UpdateLookupRequest" },
 							"examples": {
 								"UpdateLookup": {
 									"description": "UpdateLookup",
 									"value": {
-										"lookupValue": {
-											"label": "One day",
-											"hours": 24
-										},
+										"lookupValue": { "label": "One day", "hours": 24 },
 										"seq": 2
 									}
 								}
@@ -1523,10 +1345,7 @@
 												"id": "0199c3a2-7b5e-7c1d-9a4f-3e2b1d5c6f71",
 												"lookupType": "vote_duration",
 												"lookupKey": "24h",
-												"lookupValue": {
-													"label": "24 hours",
-													"hours": 24
-												},
+												"lookupValue": { "label": "24 hours", "hours": 24 },
 												"seq": 1,
 												"parentType": null,
 												"parentKey": null,
@@ -1547,9 +1366,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -1558,9 +1375,7 @@
 						"description": "Dictionary item not found (`lookup.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"examples": {
 									"LookupNotFound": {
 										"description": "LookupNotFound",
@@ -1580,9 +1395,7 @@
 						"description": "Type and key already used by another item (`lookup.exists`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"examples": {
 									"LookupExists": {
 										"description": "LookupExists",
@@ -1602,9 +1415,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -1613,9 +1424,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -1624,9 +1433,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -1644,9 +1451,7 @@
 						"in": "path",
 						"description": "Dictionary item ID (UUIDv7)",
 						"required": true,
-						"schema": {
-							"type": "string"
-						}
+						"schema": { "type": "string" }
 					}
 				],
 				"responses": {
@@ -1681,9 +1486,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -1692,9 +1495,7 @@
 						"description": "Dictionary item not found (`lookup.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"examples": {
 									"LookupNotFound": {
 										"description": "LookupNotFound",
@@ -1714,9 +1515,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -1725,9 +1524,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -1736,9 +1533,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -1758,9 +1553,7 @@
 						"in": "query",
 						"description": "`open` (default) or `ended`",
 						"required": false,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "open"
 					},
 					{
@@ -1768,9 +1561,7 @@
 						"in": "query",
 						"description": "`newest` (default), `closing` or `top`; only valid with `status=open`",
 						"required": false,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "closing"
 					},
 					{
@@ -1778,9 +1569,7 @@
 						"in": "query",
 						"description": "Tag slug to browse (Explore); omitted or blank means no tag filter",
 						"required": false,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "tech"
 					},
 					{
@@ -1788,9 +1577,7 @@
 						"in": "query",
 						"description": "Free-text query on title and description (Search); at least 2 characters",
 						"required": false,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "side project"
 					},
 					{
@@ -1798,19 +1585,14 @@
 						"in": "query",
 						"description": "`nextCursor` of the previous page; omit for the first page",
 						"required": false,
-						"schema": {
-							"type": "string"
-						}
+						"schema": { "type": "string" }
 					},
 					{
 						"name": "limit",
 						"in": "query",
 						"description": "Page size, 1-50 (default 20); out-of-range values are clamped",
 						"required": false,
-						"schema": {
-							"type": "integer",
-							"format": "int32"
-						},
+						"schema": { "type": "integer", "format": "int32" },
 						"example": 20
 					}
 				],
@@ -1844,14 +1626,8 @@
 														"inviteeCount": null,
 														"myOptionId": null,
 														"options": [
-															{
-																"text": "Java",
-																"votes": null
-															},
-															{
-																"text": "Kotlin",
-																"votes": null
-															}
+															{ "text": "Java", "votes": null },
+															{ "text": "Kotlin", "votes": null }
 														]
 													}
 												],
@@ -1870,9 +1646,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -1881,9 +1655,7 @@
 						"description": "Resource not found (errorCode e.g. `vote.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -1892,9 +1664,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -1909,9 +1679,7 @@
 				"requestBody": {
 					"content": {
 						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/CreateVoteRequest"
-							},
+							"schema": { "$ref": "#/components/schemas/CreateVoteRequest" },
 							"examples": {
 								"Scheduled Poll": {
 									"description": "Scheduled Poll",
@@ -1919,13 +1687,8 @@
 										"title": "Which language should we use for the next side project?",
 										"description": "Vote before Friday.",
 										"options": [
-											{
-												"text": "Java"
-											},
-											{
-												"text": "Kotlin",
-												"description": "Coroutines"
-											}
+											{ "text": "Java" },
+											{ "text": "Kotlin", "description": "Coroutines" }
 										],
 										"startTime": "2026-10-12T09:00:00+08:00",
 										"endTime": "2026-10-19T09:00:00+08:00",
@@ -2017,9 +1780,7 @@
 						"description": "The signed-in user no longer exists (errorCode `user.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"examples": {
 									"user.not_found": {
 										"description": "user.not_found",
@@ -2039,9 +1800,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -2050,9 +1809,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -2061,9 +1818,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -2072,9 +1827,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -2094,18 +1847,14 @@
 						"in": "path",
 						"description": "Poll ID",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05"
 					}
 				],
 				"requestBody": {
 					"content": {
 						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/VoteRequest"
-							},
+							"schema": { "$ref": "#/components/schemas/VoteRequest" },
 							"examples": {
 								"Choose Java": {
 									"description": "Choose Java",
@@ -2196,9 +1945,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -2207,9 +1954,7 @@
 						"description": "Poll does not exist, is Deleted or hidden from the caller, or option does not exist (`vote.not_found`, `vote.option.not_found`, `user.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"examples": {
 									"vote.not_found": {
 										"description": "vote.not_found",
@@ -2229,9 +1974,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -2240,9 +1983,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -2251,9 +1992,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -2271,9 +2010,7 @@
 						"in": "path",
 						"description": "Poll ID",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05"
 					}
 				],
@@ -2355,9 +2092,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -2366,9 +2101,7 @@
 						"description": "Poll does not exist, is Deleted, or is Invite-only and hidden from the caller (`vote.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"examples": {
 									"vote.not_found": {
 										"description": "vote.not_found",
@@ -2388,9 +2121,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -2399,9 +2130,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -2410,9 +2139,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -2432,9 +2159,7 @@
 						"in": "path",
 						"description": "Poll ID",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05"
 					}
 				],
@@ -2487,9 +2212,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -2498,9 +2221,7 @@
 						"description": "Poll does not exist, is Deleted, or is Invite-only and hidden from the caller (`vote.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"examples": {
 									"vote.not_found": {
 										"description": "vote.not_found",
@@ -2520,9 +2241,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -2531,9 +2250,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -2542,9 +2259,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -2562,18 +2277,14 @@
 						"in": "path",
 						"description": "Poll ID",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05"
 					}
 				],
 				"requestBody": {
 					"content": {
 						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/InviteesRequest"
-							},
+							"schema": { "$ref": "#/components/schemas/InviteesRequest" },
 							"examples": {
 								"Invite carol and dave": {
 									"description": "Invite carol and dave",
@@ -2642,9 +2353,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -2653,9 +2362,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -2664,9 +2371,7 @@
 						"description": "Poll does not exist, is Deleted, or is Invite-only and hidden from the caller (`vote.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"examples": {
 									"vote.not_found": {
 										"description": "vote.not_found",
@@ -2686,9 +2391,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -2697,9 +2400,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -2717,9 +2418,7 @@
 						"in": "path",
 						"description": "Poll ID",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05"
 					},
 					{
@@ -2727,9 +2426,7 @@
 						"in": "query",
 						"description": "Email address the Invitee was added by",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "dave@example.com"
 					}
 				],
@@ -2782,9 +2479,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -2793,9 +2488,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -2804,9 +2497,7 @@
 						"description": "Poll does not exist, is Deleted, or is Invite-only and hidden from the caller (`vote.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"examples": {
 									"vote.not_found": {
 										"description": "vote.not_found",
@@ -2826,9 +2517,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -2837,9 +2526,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -2859,28 +2546,21 @@
 						"in": "path",
 						"description": "Poll ID",
 						"required": true,
-						"schema": {
-							"type": "string"
-						}
+						"schema": { "type": "string" }
 					},
 					{
 						"name": "cursor",
 						"in": "query",
 						"description": "`nextCursor` returned by the previous page; omit for the first page",
 						"required": false,
-						"schema": {
-							"type": "string"
-						}
+						"schema": { "type": "string" }
 					},
 					{
 						"name": "limit",
 						"in": "query",
 						"description": "Page size, 1-50 (default 20); out-of-range values are clamped",
 						"required": false,
-						"schema": {
-							"type": "integer",
-							"format": "int32"
-						}
+						"schema": { "type": "integer", "format": "int32" }
 					}
 				],
 				"responses": {
@@ -2944,9 +2624,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -2955,9 +2633,7 @@
 						"description": "Resource not found (errorCode e.g. `vote.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -2966,9 +2642,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -2986,17 +2660,13 @@
 						"in": "path",
 						"description": "Poll ID",
 						"required": true,
-						"schema": {
-							"type": "string"
-						}
+						"schema": { "type": "string" }
 					}
 				],
 				"requestBody": {
 					"content": {
 						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/CreateCommentRequest"
-							},
+							"schema": { "$ref": "#/components/schemas/CreateCommentRequest" },
 							"examples": {
 								"topLevelComment": {
 									"description": "topLevelComment",
@@ -3057,9 +2727,7 @@
 						"description": "Poll or current user not found (errorCode `vote.not_found`, `user.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3068,9 +2736,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3079,9 +2745,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3090,9 +2754,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3101,9 +2763,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3123,19 +2783,14 @@
 						"in": "path",
 						"description": "Poll ID",
 						"required": true,
-						"schema": {
-							"type": "string"
-						}
+						"schema": { "type": "string" }
 					},
 					{
 						"name": "commentId",
 						"in": "path",
 						"description": "Comment ID",
 						"required": true,
-						"schema": {
-							"type": "string",
-							"format": "uuid"
-						}
+						"schema": { "type": "string", "format": "uuid" }
 					}
 				],
 				"responses": {
@@ -3170,9 +2825,7 @@
 						"description": "Comment or current user not found (errorCode `comment.not_found`, `user.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3181,9 +2834,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3192,9 +2843,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3203,9 +2852,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3214,9 +2861,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3234,19 +2879,14 @@
 						"in": "path",
 						"description": "Poll ID",
 						"required": true,
-						"schema": {
-							"type": "string"
-						}
+						"schema": { "type": "string" }
 					},
 					{
 						"name": "commentId",
 						"in": "path",
 						"description": "Comment ID",
 						"required": true,
-						"schema": {
-							"type": "string",
-							"format": "uuid"
-						}
+						"schema": { "type": "string", "format": "uuid" }
 					}
 				],
 				"responses": {
@@ -3281,9 +2921,7 @@
 						"description": "Comment not found or deleted (errorCode `comment.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3292,9 +2930,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3303,9 +2939,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3314,9 +2948,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3325,9 +2957,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3347,9 +2977,7 @@
 						"in": "path",
 						"description": "Id of the Poll whose notification is marked read",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d47"
 					}
 				],
@@ -3380,9 +3008,7 @@
 						"description": "Poll does not exist or is Deleted (errorCode `vote.not_found`), or the caller has no notification for it (`notification.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": {
 									"success": false,
 									"data": null,
@@ -3397,9 +3023,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3408,9 +3032,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3419,9 +3041,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3430,9 +3050,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3480,9 +3098,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3491,9 +3107,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3502,9 +3116,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3513,9 +3125,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3530,15 +3140,11 @@
 				"requestBody": {
 					"content": {
 						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/GroupRequest"
-							},
+							"schema": { "$ref": "#/components/schemas/GroupRequest" },
 							"examples": {
 								"Book club": {
 									"description": "Book club",
-									"value": {
-										"name": "Book club"
-									}
+									"value": { "name": "Book club" }
 								}
 							}
 						}
@@ -3577,9 +3183,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3588,9 +3192,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3599,9 +3201,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3610,9 +3210,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3632,9 +3230,7 @@
 						"in": "path",
 						"description": "Group ID",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "0199f2b0-7a1c-7e45-9b3d-2c8f6a4e1d07"
 					}
 				],
@@ -3678,9 +3274,7 @@
 						"description": "Group does not exist or belongs to someone else (`group.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"examples": {
 									"group.not_found": {
 										"description": "group.not_found",
@@ -3700,9 +3294,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3711,9 +3303,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3722,9 +3312,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3733,9 +3321,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3753,18 +3339,14 @@
 						"in": "path",
 						"description": "Group ID",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "0199f2b0-7a1c-7e45-9b3d-2c8f6a4e1d07"
 					}
 				],
 				"requestBody": {
 					"content": {
 						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/GroupMembersRequest"
-							},
+							"schema": { "$ref": "#/components/schemas/GroupMembersRequest" },
 							"examples": {
 								"Add bob and dave": {
 									"description": "Add bob and dave",
@@ -3818,9 +3400,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3829,9 +3409,7 @@
 						"description": "Group does not exist or belongs to someone else (`group.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"examples": {
 									"group.not_found": {
 										"description": "group.not_found",
@@ -3851,9 +3429,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3862,9 +3438,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3873,9 +3447,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3893,9 +3465,7 @@
 						"in": "path",
 						"description": "Group ID",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "0199f2b0-7a1c-7e45-9b3d-2c8f6a4e1d07"
 					},
 					{
@@ -3903,9 +3473,7 @@
 						"in": "query",
 						"description": "Email address the member was added by",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "dave@example.com"
 					}
 				],
@@ -3949,9 +3517,7 @@
 						"description": "Group does not exist or belongs to someone else (`group.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"examples": {
 									"group.not_found": {
 										"description": "group.not_found",
@@ -3971,9 +3537,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3982,9 +3546,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -3993,9 +3555,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -4004,9 +3564,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -4018,14 +3576,12 @@
 			"post": {
 				"tags": ["Auth"],
 				"summary": "Verify email OTP and sign in",
-				"description": "**Auth**: public\n**Precondition**: an OTP was sent to this email via `POST /api/auth/send-otp` and has not expired\n**Behavior**: consumes the OTP and returns an access token and refresh token. Creates the user if the email is new (signup), otherwise signs the existing user in. If `checkRole` is \"true\", the account must already exist and be an admin, and this is checked before the OTP is consumed\n**Side effects**: the OTP is consumed on success; a new user is created and a welcome email sent on signup; `lastLoginAt` is updated. After 5 wrong codes the OTP is deleted and a new one must be requested\n**Errors**:\n- 400 `auth.identifier.required`: `email` is missing or blank\n- 401 `auth.otp.invalid_or_expired`: no OTP exists for this email (never sent, expired, or already used)\n- 401 `auth.invalid_otp`: the code is wrong\n- 401 `auth.otp.too_many_attempts`: 5th wrong code; the OTP is discarded\n- 403 `auth.admin.forbidden`: `checkRole` is \"true\" and the account is not an existing admin\n- 403 `auth.account_banned`: the user is suspended (`active=false`)",
+				"description": "**Auth**: public\n**Precondition**: an OTP was sent to this email via `POST /api/auth/send-otp` and has not expired\n**Behavior**: consumes the OTP and returns an access token and refresh token. Creates the user if the email is new (signup), otherwise signs the existing user in. If `checkRole` is \"true\", the account must already exist and be an admin, and this is checked before the OTP is consumed\n**Side effects**: the OTP is consumed on success; a new user (with a random bot avatar) is created and a welcome email sent on signup; `lastLoginAt` is updated. After 5 wrong codes the OTP is deleted and a new one must be requested\n**Errors**:\n- 400 `auth.identifier.required`: `email` is missing or blank\n- 401 `auth.otp.invalid_or_expired`: no OTP exists for this email (never sent, expired, or already used)\n- 401 `auth.invalid_otp`: the code is wrong\n- 401 `auth.otp.too_many_attempts`: 5th wrong code; the OTP is discarded\n- 403 `auth.admin.forbidden`: `checkRole` is \"true\" and the account is not an existing admin\n- 403 `auth.account_banned`: the user is suspended (`active=false`)",
 				"operationId": "verifyOtp",
 				"requestBody": {
 					"content": {
 						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/VerifyOtpRequest"
-							},
+							"schema": { "$ref": "#/components/schemas/VerifyOtpRequest" },
 							"example": {
 								"email": "user@example.com",
 								"code": "123456",
@@ -4054,7 +3610,7 @@
 											"username": "user_0427",
 											"displayName": "Ming Wang",
 											"roles": ["user"],
-											"avatarUrl": null,
+											"avatarUrl": "bot:boba",
 											"phoneNumber": null
 										}
 									},
@@ -4069,9 +3625,7 @@
 						"description": "OTP missing/expired, wrong, or too many wrong attempts",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": {
 									"success": false,
 									"data": null,
@@ -4086,9 +3640,7 @@
 						"description": "Account suspended (`auth.account_banned`) or not an admin when `checkRole` is \"true\" (`auth.admin.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": {
 									"success": false,
 									"data": null,
@@ -4103,9 +3655,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -4114,9 +3664,7 @@
 						"description": "Resource not found (errorCode e.g. `vote.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -4125,9 +3673,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -4144,13 +3690,8 @@
 				"requestBody": {
 					"content": {
 						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/SendOtpRequest"
-							},
-							"example": {
-								"email": "user@example.com",
-								"checkRole": "false"
-							}
+							"schema": { "$ref": "#/components/schemas/SendOtpRequest" },
+							"example": { "email": "user@example.com", "checkRole": "false" }
 						}
 					},
 					"required": true
@@ -4165,9 +3706,7 @@
 								},
 								"example": {
 									"success": true,
-									"data": {
-										"success": true
-									},
+									"data": { "success": true },
 									"message": null,
 									"errorCode": null,
 									"error": null
@@ -4179,9 +3718,7 @@
 						"description": "`checkRole` is \"true\" and the email is not an existing admin account",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": {
 									"success": false,
 									"data": null,
@@ -4196,9 +3733,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -4207,9 +3742,7 @@
 						"description": "Resource not found (errorCode e.g. `vote.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -4218,9 +3751,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -4237,9 +3768,7 @@
 				"requestBody": {
 					"content": {
 						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/RefreshRequest"
-							},
+							"schema": { "$ref": "#/components/schemas/RefreshRequest" },
 							"example": {
 								"refreshToken": "8c7e3f4a-1234-5678-90ab-cdef12345678"
 							}
@@ -4273,9 +3802,7 @@
 						"description": "Refresh token invalid/expired/revoked (`auth.refresh_token.invalid`), or reuse of an already-rotated token detected (`auth.suspicious_login`); either way the client must sign in again",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": {
 									"success": false,
 									"data": null,
@@ -4290,9 +3817,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -4301,9 +3826,7 @@
 						"description": "Resource not found (errorCode e.g. `vote.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -4312,9 +3835,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -4326,7 +3847,7 @@
 			"post": {
 				"tags": ["Auth"],
 				"summary": "Verify phone OTP and sign in",
-				"description": "**Auth**: public\n**Precondition**: an OTP was sent to this number via `POST /api/auth/phone/send-otp` and has not expired\n**Behavior**: consumes the OTP and returns an access token and refresh token. Creates the user if the number is new, otherwise signs the existing user in\n**Side effects**: the OTP is consumed on success; a new user is created if needed; `lastLoginAt` is updated. After 5 wrong codes the OTP is deleted and a new one must be requested\n**Errors**:\n- 401 `auth.otp.invalid_or_expired`: no OTP exists for this number (never sent, expired, or already used)\n- 401 `auth.invalid_otp`: the code is wrong\n- 401 `auth.otp.too_many_attempts`: 5th wrong code; the OTP is discarded\n- 403 `auth.account_banned`: the user is suspended (`active=false`)",
+				"description": "**Auth**: public\n**Precondition**: an OTP was sent to this number via `POST /api/auth/phone/send-otp` and has not expired\n**Behavior**: consumes the OTP and returns an access token and refresh token. Creates the user if the number is new, otherwise signs the existing user in\n**Side effects**: the OTP is consumed on success; a new user (with a random bot avatar) is created if needed; `lastLoginAt` is updated. After 5 wrong codes the OTP is deleted and a new one must be requested\n**Errors**:\n- 401 `auth.otp.invalid_or_expired`: no OTP exists for this number (never sent, expired, or already used)\n- 401 `auth.invalid_otp`: the code is wrong\n- 401 `auth.otp.too_many_attempts`: 5th wrong code; the OTP is discarded\n- 403 `auth.account_banned`: the user is suspended (`active=false`)",
 				"operationId": "phoneVerifyOtp",
 				"requestBody": {
 					"content": {
@@ -4334,10 +3855,7 @@
 							"schema": {
 								"$ref": "#/components/schemas/PhoneVerifyOtpRequest"
 							},
-							"example": {
-								"phone": "0912345678",
-								"code": "123456"
-							}
+							"example": { "phone": "0912345678", "code": "123456" }
 						}
 					},
 					"required": true
@@ -4361,7 +3879,7 @@
 											"username": "user_0427",
 											"displayName": "Ming Wang",
 											"roles": ["user"],
-											"avatarUrl": null,
+											"avatarUrl": "bot:boba",
 											"phoneNumber": null
 										}
 									},
@@ -4376,9 +3894,7 @@
 						"description": "OTP missing/expired, wrong, or too many wrong attempts",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": {
 									"success": false,
 									"data": null,
@@ -4393,9 +3909,7 @@
 						"description": "Account suspended (`auth.account_banned`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": {
 									"success": false,
 									"data": null,
@@ -4410,9 +3924,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -4421,9 +3933,7 @@
 						"description": "Resource not found (errorCode e.g. `vote.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -4432,9 +3942,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -4451,13 +3959,8 @@
 				"requestBody": {
 					"content": {
 						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/PhoneSendOtpRequest"
-							},
-							"example": {
-								"phone": "0912345678",
-								"type": "login"
-							}
+							"schema": { "$ref": "#/components/schemas/PhoneSendOtpRequest" },
+							"example": { "phone": "0912345678", "type": "login" }
 						}
 					},
 					"required": true
@@ -4472,9 +3975,7 @@
 								},
 								"example": {
 									"success": true,
-									"data": {
-										"success": true
-									},
+									"data": { "success": true },
 									"message": null,
 									"errorCode": null,
 									"error": null
@@ -4486,9 +3987,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -4497,9 +3996,7 @@
 						"description": "Resource not found (errorCode e.g. `vote.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -4508,9 +4005,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -4527,9 +4022,7 @@
 				"requestBody": {
 					"content": {
 						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/RefreshRequest"
-							},
+							"schema": { "$ref": "#/components/schemas/RefreshRequest" },
 							"example": {
 								"refreshToken": "8c7e3f4a-1234-5678-90ab-cdef12345678"
 							}
@@ -4547,9 +4040,7 @@
 								},
 								"example": {
 									"success": true,
-									"data": {
-										"success": true
-									},
+									"data": { "success": true },
 									"message": null,
 									"errorCode": null,
 									"error": null
@@ -4561,9 +4052,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -4572,9 +4061,7 @@
 						"description": "Resource not found (errorCode e.g. `vote.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -4583,9 +4070,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -4597,14 +4082,12 @@
 			"post": {
 				"tags": ["Auth"],
 				"summary": "Sign in with LINE",
-				"description": "**Auth**: public\n**Precondition**: the client completed LINE Login and holds the authorization `code` and the `redirectUri` it used\n**Behavior**: exchanges the code with LINE, reads the LINE profile and signs in the matching user, creating it if new. If LINE provides no email, a synthetic `line_\u003CuserId\u003E@line.oauth` email is used, so `user.email` in the response is never null for LINE logins\n**Side effects**: creates a user on first login; sets the avatar from the LINE picture when the user has none; `lastLoginAt` is updated\n**Errors**:\n- 400 `auth.line.not_configured`: LINE login is not configured on the server\n- 401 `auth.line.token_exchange_failed`: LINE did not return an access token for this code\n- 401 `auth.line.profile_failed`: the LINE profile could not be read\n- 403 `auth.account_banned`: the user is suspended (`active=false`)",
+				"description": "**Auth**: public\n**Precondition**: the client completed LINE Login and holds the authorization `code` and the `redirectUri` it used\n**Behavior**: exchanges the code with LINE, reads the LINE profile and signs in the matching user, creating it if new. If LINE provides no email, a synthetic `line_<userId>@line.oauth` email is used, so `user.email` in the response is never null for LINE logins\n**Side effects**: creates a user on first login, with a random bot avatar; `lastLoginAt` is updated\n**Errors**:\n- 400 `auth.line.not_configured`: LINE login is not configured on the server\n- 401 `auth.line.token_exchange_failed`: LINE did not return an access token for this code\n- 401 `auth.line.profile_failed`: the LINE profile could not be read\n- 403 `auth.account_banned`: the user is suspended (`active=false`)",
 				"operationId": "lineLogin",
 				"requestBody": {
 					"content": {
 						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/LineAuthRequest"
-							},
+							"schema": { "$ref": "#/components/schemas/LineAuthRequest" },
 							"example": {
 								"code": "abc123def456",
 								"redirectUri": "https://app.example.com/auth/line/callback"
@@ -4632,7 +4115,7 @@
 											"username": "user_0427",
 											"displayName": "Ming Wang",
 											"roles": ["user"],
-											"avatarUrl": null,
+											"avatarUrl": "bot:boba",
 											"phoneNumber": null
 										}
 									},
@@ -4647,9 +4130,7 @@
 						"description": "LINE authorization code could not be exchanged, or the LINE profile could not be read",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": {
 									"success": false,
 									"data": null,
@@ -4664,9 +4145,7 @@
 						"description": "Account suspended (`auth.account_banned`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": {
 									"success": false,
 									"data": null,
@@ -4681,9 +4160,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -4692,9 +4169,7 @@
 						"description": "Resource not found (errorCode e.g. `vote.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -4703,9 +4178,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -4717,17 +4190,13 @@
 			"post": {
 				"tags": ["Auth"],
 				"summary": "Sign in with Google",
-				"description": "**Auth**: public\n**Precondition**: the client obtained a Google ID token (Google Sign-In)\n**Behavior**: validates the ID token with Google and checks its audience. Signs in the user with that email, creating the user if new. An existing account with the same email is reused only when Google reports the email as verified\n**Side effects**: creates a user on first login; sets the avatar from the Google picture when the user has none; `lastLoginAt` is updated\n**Errors**:\n- 400 `auth.google.not_configured`: Google login is not configured on the server\n- 401 `auth.google.no_email`: the token is invalid or carries no email\n- 401 `auth.google.invalid_audience`: the token was issued for a different client ID\n- 401 `auth.email_not_verified`: Google reports the email as unverified\n- 403 `auth.account_banned`: the user is suspended (`active=false`)",
+				"description": "**Auth**: public\n**Precondition**: the client obtained a Google ID token (Google Sign-In)\n**Behavior**: validates the ID token with Google and checks its audience. Signs in the user with that email, creating the user if new. An existing account with the same email is reused only when Google reports the email as verified\n**Side effects**: creates a user on first login, with a random bot avatar; `lastLoginAt` is updated\n**Errors**:\n- 400 `auth.google.not_configured`: Google login is not configured on the server\n- 401 `auth.google.no_email`: the token is invalid or carries no email\n- 401 `auth.google.invalid_audience`: the token was issued for a different client ID\n- 401 `auth.email_not_verified`: Google reports the email as unverified\n- 403 `auth.account_banned`: the user is suspended (`active=false`)",
 				"operationId": "googleLogin",
 				"requestBody": {
 					"content": {
 						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/GoogleAuthRequest"
-							},
-							"example": {
-								"idToken": "eyJhbGciOiJSUzI1NiIsImtpZCI6Ij..."
-							}
+							"schema": { "$ref": "#/components/schemas/GoogleAuthRequest" },
+							"example": { "idToken": "eyJhbGciOiJSUzI1NiIsImtpZCI6Ij..." }
 						}
 					},
 					"required": true
@@ -4751,7 +4220,7 @@
 											"username": "user_0427",
 											"displayName": "Ming Wang",
 											"roles": ["user"],
-											"avatarUrl": null,
+											"avatarUrl": "bot:boba",
 											"phoneNumber": null
 										}
 									},
@@ -4766,9 +4235,7 @@
 						"description": "Google ID token rejected, or its email is not verified",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": {
 									"success": false,
 									"data": null,
@@ -4783,9 +4250,7 @@
 						"description": "Account suspended (`auth.account_banned`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": {
 									"success": false,
 									"data": null,
@@ -4800,9 +4265,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -4811,9 +4274,7 @@
 						"description": "Resource not found (errorCode e.g. `vote.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -4822,9 +4283,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -4841,12 +4300,8 @@
 				"requestBody": {
 					"content": {
 						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/CheckEmailRequest"
-							},
-							"example": {
-								"email": "user@example.com"
-							}
+							"schema": { "$ref": "#/components/schemas/CheckEmailRequest" },
+							"example": { "email": "user@example.com" }
 						}
 					},
 					"required": true
@@ -4861,9 +4316,7 @@
 								},
 								"example": {
 									"success": true,
-									"data": {
-										"exists": true
-									},
+									"data": { "exists": true },
 									"message": null,
 									"errorCode": null,
 									"error": null
@@ -4875,9 +4328,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -4886,9 +4337,7 @@
 						"description": "Resource not found (errorCode e.g. `vote.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -4897,9 +4346,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -4911,14 +4358,12 @@
 			"post": {
 				"tags": ["Auth"],
 				"summary": "Sign in with Apple",
-				"description": "**Auth**: public\n**Precondition**: the client obtained an Apple identity token (Sign in with Apple)\n**Behavior**: verifies the token signature against Apple's public keys, then its issuer, audience and expiry. Signs in the user with the token's email, creating it if new. `fullName` is used only when a new user is created. An existing account with the same email is reused only when Apple reports the email as verified\n**Side effects**: creates a user on first login; `lastLoginAt` is updated\n**Errors**:\n- 401 `auth.apple.invalid_token`: the token is malformed or has no key ID\n- 401 `auth.apple.key_not_found`: no Apple public key matches the token\n- 401 `auth.apple.invalid_signature`: the signature does not verify\n- 401 `auth.apple.invalid_issuer`: the issuer is not Apple\n- 401 `auth.apple.invalid_audience`: the token was issued for a different client ID\n- 401 `auth.apple.token_expired`: the token has expired\n- 401 `auth.apple.no_email`: the token carries no email\n- 401 `auth.email_not_verified`: Apple reports the email as unverified\n- 401 `auth.apple.login_failed`: any other failure while processing the token\n- 403 `auth.account_banned`: the user is suspended (`active=false`)\n- 503 `common.service_unavailable`: Apple's key endpoint failed or returned an unusable response",
+				"description": "**Auth**: public\n**Precondition**: the client obtained an Apple identity token (Sign in with Apple)\n**Behavior**: verifies the token signature against Apple's public keys, then its issuer, audience and expiry. Signs in the user with the token's email, creating it if new. `fullName` is used only when a new user is created. An existing account with the same email is reused only when Apple reports the email as verified\n**Side effects**: creates a user on first login, with a random bot avatar; `lastLoginAt` is updated\n**Errors**:\n- 401 `auth.apple.invalid_token`: the token is malformed or has no key ID\n- 401 `auth.apple.key_not_found`: no Apple public key matches the token\n- 401 `auth.apple.invalid_signature`: the signature does not verify\n- 401 `auth.apple.invalid_issuer`: the issuer is not Apple\n- 401 `auth.apple.invalid_audience`: the token was issued for a different client ID\n- 401 `auth.apple.token_expired`: the token has expired\n- 401 `auth.apple.no_email`: the token carries no email\n- 401 `auth.email_not_verified`: Apple reports the email as unverified\n- 401 `auth.apple.login_failed`: any other failure while processing the token\n- 403 `auth.account_banned`: the user is suspended (`active=false`)\n- 503 `common.service_unavailable`: Apple's key endpoint failed or returned an unusable response",
 				"operationId": "appleLogin",
 				"requestBody": {
 					"content": {
 						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/AppleAuthRequest"
-							},
+							"schema": { "$ref": "#/components/schemas/AppleAuthRequest" },
 							"example": {
 								"idToken": "eyJraWQiOiJZdXl1eVoxIiwiYWxnIjoiUlMyNTYifQ...",
 								"fullName": "Ming Wang"
@@ -4946,7 +4391,7 @@
 											"username": "user_0427",
 											"displayName": "Ming Wang",
 											"roles": ["user"],
-											"avatarUrl": null,
+											"avatarUrl": "bot:boba",
 											"phoneNumber": null
 										}
 									},
@@ -4961,9 +4406,7 @@
 						"description": "Apple identity token rejected (malformed, bad signature, wrong issuer/audience, expired, no email, or unverified email)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": {
 									"success": false,
 									"data": null,
@@ -4978,9 +4421,7 @@
 						"description": "Account suspended (`auth.account_banned`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": {
 									"success": false,
 									"data": null,
@@ -4995,9 +4436,7 @@
 						"description": "Apple's key endpoint is unreachable; safe to retry (`common.service_unavailable`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								}
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" }
 							}
 						}
 					},
@@ -5005,9 +4444,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5016,9 +4453,7 @@
 						"description": "Resource not found (errorCode e.g. `vote.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5027,9 +4462,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5046,9 +4479,7 @@
 				"requestBody": {
 					"content": {
 						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/CreateTagRequest"
-							},
+							"schema": { "$ref": "#/components/schemas/CreateTagRequest" },
 							"examples": {
 								"CreateTag": {
 									"description": "CreateTag",
@@ -5069,9 +4500,7 @@
 						"description": "Success",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponseTagDto"
-								},
+								"schema": { "$ref": "#/components/schemas/ApiResponseTagDto" },
 								"examples": {
 									"CreatedTag": {
 										"description": "CreatedTag",
@@ -5098,9 +4527,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5109,9 +4536,7 @@
 						"description": "Tag name already exists (`tag.name.exists`) or slug already exists (`tag.slug.exists`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"examples": {
 									"TagNameExists": {
 										"description": "TagNameExists",
@@ -5131,9 +4556,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5142,9 +4565,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5153,9 +4574,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5172,19 +4591,14 @@
 				"requestBody": {
 					"content": {
 						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/CreateLookupRequest"
-							},
+							"schema": { "$ref": "#/components/schemas/CreateLookupRequest" },
 							"examples": {
 								"CreateLookup": {
 									"description": "CreateLookup",
 									"value": {
 										"lookupType": "vote_duration",
 										"lookupKey": "24h",
-										"lookupValue": {
-											"label": "24 hours",
-											"hours": 24
-										},
+										"lookupValue": { "label": "24 hours", "hours": 24 },
 										"seq": 1,
 										"description": "Poll duration presets",
 										"frontendUsing": true
@@ -5212,10 +4626,7 @@
 												"id": "0199c3a2-7b5e-7c1d-9a4f-3e2b1d5c6f71",
 												"lookupType": "vote_duration",
 												"lookupKey": "24h",
-												"lookupValue": {
-													"label": "24 hours",
-													"hours": 24
-												},
+												"lookupValue": { "label": "24 hours", "hours": 24 },
 												"seq": 1,
 												"parentType": null,
 												"parentKey": null,
@@ -5236,9 +4647,7 @@
 						"description": "Type and key already used by another item (`lookup.exists`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"examples": {
 									"LookupExists": {
 										"description": "LookupExists",
@@ -5258,9 +4667,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5269,9 +4676,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5280,9 +4685,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5291,9 +4694,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5326,6 +4727,7 @@
 										"lastName": "Chen",
 										"displayName": "Alice",
 										"bio": "Poll enthusiast",
+										"avatarUrl": "bot:boba",
 										"location": "Taipei",
 										"points": 120,
 										"membershipLevel": "basic",
@@ -5356,9 +4758,7 @@
 						"description": "Account no longer exists (errorCode `user.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": {
 									"success": false,
 									"data": null,
@@ -5373,9 +4773,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5384,9 +4782,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5395,9 +4791,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5406,9 +4800,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5418,14 +4810,12 @@
 			"patch": {
 				"tags": ["User"],
 				"summary": "Update my profile",
-				"description": "**Auth**: required\n**Precondition**: none\n**Behavior**: updates `username`, `displayName` and/or `bio`. Sending the current `username` is a no-op. A field that is omitted or `null` is left unchanged (`null` cannot be used to clear a value; send an empty string instead). Returns the public profile after the update, so the optional fields are masked by the caller's own visibility settings.\n**Side effects**: persists the new values; after a `username` change the old public profile path returns 404\n**Errors**:\n- 400 `common.validation_failed`: `username` is not 3-50 characters of [a-z0-9_] or is `search`, `displayName` exceeds 100 characters, or `bio` exceeds 500 characters\n- 404 `user.not_found`: the account no longer exists\n- 409 `user.username.taken`: another account already uses `username`",
+				"description": "**Auth**: required\n**Precondition**: none\n**Behavior**: updates `username`, `displayName`, `bio` and/or `avatarUrl`. `avatarUrl` must be `bot:<kind>` with one of the bot cast kinds. Sending the current `username` is a no-op, except that an older account holding a reserved name gets 400 (omit `username` when unchanged). A field that is omitted or `null` is left unchanged (`null` cannot be used to clear a value; send an empty string instead, except `avatarUrl`, which cannot be cleared). Returns the public profile after the update, so the optional fields are masked by the caller's own visibility settings.\n**Side effects**: persists the new values; after a `username` change the old public profile path returns 404\n**Errors**:\n- 400 `common.validation_failed`: `username` is not 3-50 characters of [a-z0-9_] or is a reserved name (see the `username` schema), `displayName` exceeds 100 characters, `bio` exceeds 500 characters, or `avatarUrl` is not a known `bot:<kind>`\n- 404 `user.not_found`: the account no longer exists\n- 409 `user.username.taken`: another account already uses `username`",
 				"operationId": "updateMyProfile",
 				"requestBody": {
 					"content": {
 						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/UpdateProfileRequest"
-							}
+							"schema": { "$ref": "#/components/schemas/UpdateProfileRequest" }
 						}
 					},
 					"required": true
@@ -5444,6 +4834,7 @@
 										"username": "alice",
 										"displayName": "Alice C.",
 										"bio": "Poll enthusiast",
+										"avatarUrl": "bot:boba",
 										"joinedAt": "2026-08-01T10:00:00+08:00",
 										"totalPolls": 4,
 										"totalVotes": 17,
@@ -5465,9 +4856,7 @@
 						"description": "Account no longer exists (errorCode `user.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": {
 									"success": false,
 									"data": null,
@@ -5482,9 +4871,7 @@
 						"description": "Username already used by another account (errorCode `user.username.taken`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": {
 									"success": false,
 									"data": null,
@@ -5499,9 +4886,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5510,9 +4895,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5521,9 +4904,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5532,9 +4913,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5589,9 +4968,7 @@
 						"description": "Account no longer exists (errorCode `user.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": {
 									"success": false,
 									"data": null,
@@ -5606,9 +4983,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5617,9 +4992,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5628,9 +5001,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5639,9 +5010,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5661,9 +5030,7 @@
 						"in": "path",
 						"description": "Dictionary item ID (UUIDv7)",
 						"required": true,
-						"schema": {
-							"type": "string"
-						}
+						"schema": { "type": "string" }
 					}
 				],
 				"responses": {
@@ -5698,9 +5065,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5709,9 +5074,7 @@
 						"description": "Dictionary item not found (`lookup.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"examples": {
 									"LookupNotFound": {
 										"description": "LookupNotFound",
@@ -5731,9 +5094,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5742,9 +5103,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5753,9 +5112,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5775,9 +5132,7 @@
 						"in": "path",
 						"description": "Dictionary item ID (UUIDv7)",
 						"required": true,
-						"schema": {
-							"type": "string"
-						}
+						"schema": { "type": "string" }
 					}
 				],
 				"responses": {
@@ -5812,9 +5167,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5823,9 +5176,7 @@
 						"description": "Dictionary item not found (`lookup.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"examples": {
 									"LookupNotFound": {
 										"description": "LookupNotFound",
@@ -5845,9 +5196,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5856,9 +5205,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5867,9 +5214,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5889,9 +5234,7 @@
 						"in": "path",
 						"description": "Poll ID",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05"
 					},
 					{
@@ -5899,19 +5242,14 @@
 						"in": "query",
 						"description": "`nextCursor` of the previous page; omit for the first page",
 						"required": false,
-						"schema": {
-							"type": "string"
-						}
+						"schema": { "type": "string" }
 					},
 					{
 						"name": "limit",
 						"in": "query",
 						"description": "Page size, 1-50 (default 20); out-of-range values are clamped",
 						"required": false,
-						"schema": {
-							"type": "integer",
-							"format": "int32"
-						},
+						"schema": { "type": "integer", "format": "int32" },
 						"example": 20
 					}
 				],
@@ -5952,9 +5290,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5963,9 +5299,7 @@
 						"description": "Poll does not exist, is Deleted, or is Invite-only and hidden from the caller (`vote.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"examples": {
 									"vote.not_found": {
 										"description": "vote.not_found",
@@ -5985,9 +5319,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -5996,9 +5328,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -6007,9 +5337,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -6029,9 +5357,7 @@
 						"in": "path",
 						"description": "Poll ID",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05"
 					}
 				],
@@ -6071,7 +5397,7 @@
 														"description": null,
 														"displayOrder": 0,
 														"voteCount": 27,
-														"percentage": 64.2857142857143
+														"percentage": 64.28571428571429
 													},
 													{
 														"id": "0199f2a4-8d12-7f60-9b17-2a4c8e0d5f39",
@@ -6079,7 +5405,7 @@
 														"description": null,
 														"displayOrder": 1,
 														"voteCount": 15,
-														"percentage": 35.7142857142857
+														"percentage": 35.714285714285715
 													}
 												]
 											},
@@ -6096,9 +5422,7 @@
 						"description": "The Poll has not Ended, results are Sealed (`vote.results.sealed`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"examples": {
 									"vote.results.sealed": {
 										"description": "vote.results.sealed",
@@ -6118,9 +5442,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -6129,9 +5451,7 @@
 						"description": "Resource not found (errorCode e.g. `vote.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -6140,9 +5460,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -6162,9 +5480,7 @@
 						"in": "path",
 						"description": "Poll ID",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05"
 					}
 				],
@@ -6196,10 +5512,7 @@
 										"description": "No Ballot",
 										"value": {
 											"success": true,
-											"data": {
-												"hasVoted": false,
-												"selectedOptions": []
-											},
+											"data": { "hasVoted": false, "selectedOptions": [] },
 											"message": null,
 											"errorCode": null,
 											"error": null
@@ -6213,9 +5526,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -6224,9 +5535,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -6235,9 +5544,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -6246,9 +5553,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -6269,38 +5574,28 @@
 						"in": "path",
 						"description": "Poll ID",
 						"required": true,
-						"schema": {
-							"type": "string"
-						}
+						"schema": { "type": "string" }
 					},
 					{
 						"name": "commentId",
 						"in": "path",
 						"description": "Top-level Comment ID",
 						"required": true,
-						"schema": {
-							"type": "string",
-							"format": "uuid"
-						}
+						"schema": { "type": "string", "format": "uuid" }
 					},
 					{
 						"name": "cursor",
 						"in": "query",
 						"description": "`nextCursor` returned by the previous page; omit for the first page",
 						"required": false,
-						"schema": {
-							"type": "string"
-						}
+						"schema": { "type": "string" }
 					},
 					{
 						"name": "limit",
 						"in": "query",
 						"description": "Page size, 1-50 (default 20); out-of-range values are clamped",
 						"required": false,
-						"schema": {
-							"type": "integer",
-							"format": "int32"
-						}
+						"schema": { "type": "integer", "format": "int32" }
 					}
 				],
 				"responses": {
@@ -6349,9 +5644,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -6360,9 +5653,7 @@
 						"description": "Resource not found (errorCode e.g. `vote.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -6371,9 +5662,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -6393,9 +5682,7 @@
 						"in": "query",
 						"description": "`open` (default, includes the caller's Scheduled Polls) or `ended`",
 						"required": false,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "open"
 					},
 					{
@@ -6403,19 +5690,14 @@
 						"in": "query",
 						"description": "`nextCursor` of the previous page; omit for the first page",
 						"required": false,
-						"schema": {
-							"type": "string"
-						}
+						"schema": { "type": "string" }
 					},
 					{
 						"name": "limit",
 						"in": "query",
 						"description": "Page size, 1-50 (default 20); out-of-range values are clamped",
 						"required": false,
-						"schema": {
-							"type": "integer",
-							"format": "int32"
-						},
+						"schema": { "type": "integer", "format": "int32" },
 						"example": 20
 					}
 				],
@@ -6449,14 +5731,8 @@
 														"inviteeCount": null,
 														"myOptionId": null,
 														"options": [
-															{
-																"text": "Java",
-																"votes": null
-															},
-															{
-																"text": "Kotlin",
-																"votes": null
-															}
+															{ "text": "Java", "votes": null },
+															{ "text": "Kotlin", "votes": null }
 														]
 													}
 												],
@@ -6475,9 +5751,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -6486,9 +5760,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -6497,9 +5769,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -6508,9 +5778,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -6522,7 +5790,7 @@
 			"get": {
 				"tags": ["User"],
 				"summary": "Get user public profile",
-				"description": "**Auth**: public (the response is the same whether or not the caller is signed in)\n**Precondition**: none\n**Behavior**: returns the public view of a user. `username`, `joinedAt`, `totalPolls` and `totalVotes` are always present. Every optional field is `null` unless the owner made it visible: `displayName` and `bio` are visible by default, `email`, `firstName`, `lastName`, `location`, `points` and `membershipLevel` are hidden by default. `totalPolls` counts only Polls that have opened (Open and Ended), matching `GET /api/users/{username}/votes`.\n**Side effects**: none\n**Errors**:\n- 404 `user.not_found`: no user has this username, or the user is suspended",
+				"description": "**Auth**: public (the response is the same whether or not the caller is signed in)\n**Precondition**: none\n**Behavior**: returns the public view of a user. `username`, `avatarUrl`, `joinedAt`, `totalPolls` and `totalVotes` are always present (`avatarUrl` is `null` when never set). Every optional field is `null` unless the owner made it visible: `displayName` and `bio` are visible by default, `email`, `firstName`, `lastName`, `location`, `points` and `membershipLevel` are hidden by default. `totalPolls` counts only Polls that have opened (Open and Ended), matching `GET /api/users/{username}/votes`.\n**Side effects**: none\n**Errors**:\n- 404 `user.not_found`: no user has this username, or the user is suspended",
 				"operationId": "getUserProfile",
 				"parameters": [
 					{
@@ -6530,9 +5798,7 @@
 						"in": "path",
 						"description": "Username of the user to look up",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "alice"
 					}
 				],
@@ -6550,6 +5816,7 @@
 										"username": "alice",
 										"displayName": "Alice",
 										"bio": "Poll enthusiast",
+										"avatarUrl": "bot:boba",
 										"joinedAt": "2026-08-01T10:00:00+08:00",
 										"totalPolls": 4,
 										"totalVotes": 17,
@@ -6571,9 +5838,7 @@
 						"description": "Resource not found (errorCode e.g. `vote.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -6582,9 +5847,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -6593,9 +5856,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -6615,9 +5876,7 @@
 						"in": "path",
 						"description": "Username of the Poll creator",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "alice"
 					},
 					{
@@ -6625,19 +5884,14 @@
 						"in": "query",
 						"description": "`nextCursor` from the previous page; omit for the first page",
 						"required": false,
-						"schema": {
-							"type": "string"
-						}
+						"schema": { "type": "string" }
 					},
 					{
 						"name": "limit",
 						"in": "query",
 						"description": "Page size, 1-50 (default 20); out-of-range values are clamped",
 						"required": false,
-						"schema": {
-							"type": "integer",
-							"format": "int32"
-						},
+						"schema": { "type": "integer", "format": "int32" },
 						"example": 20
 					}
 				],
@@ -6671,14 +5925,8 @@
 														"inviteeCount": null,
 														"myOptionId": null,
 														"options": [
-															{
-																"text": "Java",
-																"votes": null
-															},
-															{
-																"text": "Kotlin",
-																"votes": null
-															}
+															{ "text": "Java", "votes": null },
+															{ "text": "Kotlin", "votes": null }
 														]
 													}
 												],
@@ -6697,9 +5945,7 @@
 						"description": "Resource not found (errorCode e.g. `vote.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -6708,9 +5954,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -6719,9 +5963,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -6741,9 +5983,7 @@
 						"in": "query",
 						"description": "Username fragment to search for",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "ali"
 					},
 					{
@@ -6751,19 +5991,14 @@
 						"in": "query",
 						"description": "`nextCursor` returned by the previous page",
 						"required": false,
-						"schema": {
-							"type": "string"
-						}
+						"schema": { "type": "string" }
 					},
 					{
 						"name": "limit",
 						"in": "query",
 						"description": "Page size (1-50, default 20)",
 						"required": false,
-						"schema": {
-							"type": "integer",
-							"format": "int32"
-						}
+						"schema": { "type": "integer", "format": "int32" }
 					}
 				],
 				"responses": {
@@ -6782,7 +6017,7 @@
 												"id": "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d47",
 												"username": "alice",
 												"displayName": "Alice",
-												"avatarUrl": "https://cdn.example.com/avatar/abc.jpg"
+												"avatarUrl": "bot:boba"
 											},
 											{
 												"id": "0199c1a2-8c4f-7e5b-a021-3d6f9b2c4e58",
@@ -6804,9 +6039,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -6815,9 +6048,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -6826,9 +6057,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -6837,9 +6066,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -6889,9 +6116,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -6900,9 +6125,7 @@
 						"description": "Resource not found (errorCode e.g. `vote.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -6911,9 +6134,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -6933,19 +6154,14 @@
 						"in": "query",
 						"description": "`nextCursor` returned by the previous page; omit for the first page",
 						"required": false,
-						"schema": {
-							"type": "string"
-						}
+						"schema": { "type": "string" }
 					},
 					{
 						"name": "limit",
 						"in": "query",
 						"description": "Page size, 1-50 (default 20); out-of-range values are clamped",
 						"required": false,
-						"schema": {
-							"type": "integer",
-							"format": "int32"
-						}
+						"schema": { "type": "integer", "format": "int32" }
 					}
 				],
 				"responses": {
@@ -6987,9 +6203,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -6998,9 +6212,7 @@
 						"description": "Resource not found (errorCode e.g. `vote.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7009,9 +6221,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7035,9 +6245,7 @@
 								},
 								"example": {
 									"success": true,
-									"data": {
-										"count": 3
-									},
+									"data": { "count": 3 },
 									"message": null,
 									"errorCode": null,
 									"error": null
@@ -7049,9 +6257,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7060,9 +6266,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7071,9 +6275,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7082,9 +6284,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7104,9 +6304,7 @@
 						"in": "path",
 						"description": "Dictionary type",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "vote_duration"
 					}
 				],
@@ -7128,10 +6326,7 @@
 													"id": "0199c3a2-7b5e-7c1d-9a4f-3e2b1d5c6f71",
 													"lookupType": "vote_duration",
 													"lookupKey": "24h",
-													"lookupValue": {
-														"label": "24 hours",
-														"hours": 24
-													},
+													"lookupValue": { "label": "24 hours", "hours": 24 },
 													"seq": 1,
 													"parentType": null,
 													"parentKey": null,
@@ -7153,9 +6348,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7164,9 +6357,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7175,9 +6366,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7186,9 +6375,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7208,9 +6395,7 @@
 						"in": "path",
 						"description": "Dictionary type",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "vote_duration"
 					},
 					{
@@ -7218,9 +6403,7 @@
 						"in": "path",
 						"description": "Dictionary key",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "24h"
 					}
 				],
@@ -7241,10 +6424,7 @@
 												"id": "0199c3a2-7b5e-7c1d-9a4f-3e2b1d5c6f71",
 												"lookupType": "vote_duration",
 												"lookupKey": "24h",
-												"lookupValue": {
-													"label": "24 hours",
-													"hours": 24
-												},
+												"lookupValue": { "label": "24 hours", "hours": 24 },
 												"seq": 1,
 												"parentType": null,
 												"parentKey": null,
@@ -7265,9 +6445,7 @@
 						"description": "Dictionary item not found (`lookup.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"examples": {
 									"LookupNotFound": {
 										"description": "LookupNotFound",
@@ -7287,9 +6465,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7298,9 +6474,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7309,9 +6483,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7320,9 +6492,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7342,9 +6512,7 @@
 						"in": "path",
 						"description": "Dictionary type of the children",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "vote_subcategory"
 					},
 					{
@@ -7352,9 +6520,7 @@
 						"in": "query",
 						"description": "Parent item's type",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "vote_category"
 					},
 					{
@@ -7362,9 +6528,7 @@
 						"in": "query",
 						"description": "Parent item's key",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "life"
 					}
 				],
@@ -7386,9 +6550,7 @@
 													"id": "0199c3a2-7b5e-7c1d-9a4f-3e2b1d5c6f72",
 													"lookupType": "vote_subcategory",
 													"lookupKey": "food",
-													"lookupValue": {
-														"label": "Food"
-													},
+													"lookupValue": { "label": "Food" },
 													"seq": 1,
 													"parentType": "vote_category",
 													"parentKey": "life",
@@ -7410,9 +6572,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7421,9 +6581,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7432,9 +6590,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7443,9 +6599,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7478,10 +6632,7 @@
 														"id": "0199c3a2-7b5e-7c1d-9a4f-3e2b1d5c6f71",
 														"lookupType": "vote_duration",
 														"lookupKey": "24h",
-														"lookupValue": {
-															"label": "24 hours",
-															"hours": 24
-														},
+														"lookupValue": { "label": "24 hours", "hours": 24 },
 														"seq": 1,
 														"parentType": null,
 														"parentKey": null,
@@ -7504,9 +6655,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7515,9 +6664,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7526,9 +6673,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7537,9 +6682,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7559,9 +6702,7 @@
 						"in": "path",
 						"description": "Poll ID",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05"
 					},
 					{
@@ -7569,9 +6710,7 @@
 						"in": "path",
 						"description": "Option ID",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "0199f2a4-8d11-7c3e-b0a4-5e29c7d6f813"
 					}
 				],
@@ -7653,9 +6792,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7664,9 +6801,7 @@
 						"description": "Poll does not exist, is Deleted, or is Invite-only and hidden from the caller (`vote.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"examples": {
 									"vote.not_found": {
 										"description": "vote.not_found",
@@ -7686,9 +6821,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7697,9 +6830,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7708,9 +6839,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7731,9 +6860,7 @@
 						"in": "path",
 						"description": "Poll ID",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05"
 					},
 					{
@@ -7741,9 +6868,7 @@
 						"in": "path",
 						"description": "User ID of the Invitee",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "0199f2a1-3d6e-7a24-8c1f-8e5b2f4a7d93"
 					}
 				],
@@ -7796,9 +6921,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7807,9 +6930,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7818,9 +6939,7 @@
 						"description": "Poll does not exist, is Deleted, or is Invite-only and hidden from the caller (`vote.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"examples": {
 									"vote.not_found": {
 										"description": "vote.not_found",
@@ -7840,9 +6959,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7851,9 +6968,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7873,9 +6988,7 @@
 						"in": "path",
 						"description": "Id of the account to delete",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d47"
 					}
 				],
@@ -7906,9 +7019,7 @@
 						"description": "Account does not exist (errorCode `user.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": {
 									"success": false,
 									"data": null,
@@ -7923,9 +7034,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7934,9 +7043,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7945,9 +7052,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7956,9 +7061,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -7978,9 +7081,7 @@
 						"in": "path",
 						"description": "Group ID",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "0199f2b0-7a1c-7e45-9b3d-2c8f6a4e1d07"
 					},
 					{
@@ -7988,9 +7089,7 @@
 						"in": "path",
 						"description": "User ID of the member",
 						"required": true,
-						"schema": {
-							"type": "string"
-						},
+						"schema": { "type": "string" },
 						"example": "0199f2a1-2c5d-7f13-9b0e-7d4a1e3f6c82"
 					}
 				],
@@ -8034,9 +7133,7 @@
 						"description": "Group does not exist or belongs to someone else (`group.not_found`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"examples": {
 									"group.not_found": {
 										"description": "group.not_found",
@@ -8056,9 +7153,7 @@
 						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -8067,9 +7162,7 @@
 						"description": "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -8078,9 +7171,7 @@
 						"description": "Authenticated but not allowed (errorCode `common.forbidden`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -8089,9 +7180,7 @@
 						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
 						"content": {
 							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorResponse"
-								},
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
 								"example": null
 							}
 						}
@@ -8122,10 +7211,7 @@
 						"type": "string",
 						"description": "Stable machine-readable code, e.g. `vote.not_found`"
 					},
-					"error": {
-						"type": "string",
-						"description": "Same text as `message`"
-					}
+					"error": { "type": "string", "description": "Same text as `message`" }
 				},
 				"description": "Error envelope returned by every failing endpoint and filter"
 			},
@@ -8151,9 +7237,7 @@
 					"options": {
 						"type": "array",
 						"description": "Options of the Poll; the number of options must be between 2 and 10 (`vote.options.min` / `vote.options.max`)",
-						"items": {
-							"$ref": "#/components/schemas/VoteOptionRequest"
-						}
+						"items": { "$ref": "#/components/schemas/VoteOptionRequest" }
 					},
 					"startTime": {
 						"type": "string",
@@ -8247,9 +7331,7 @@
 							"nullable": true
 						}
 					},
-					"anonymous": {
-						"type": "boolean"
-					}
+					"anonymous": { "type": "boolean" }
 				},
 				"description": "Body to create a Poll, or to replace a Scheduled Poll's content (PUT sends the full body again)"
 			},
@@ -8369,10 +7451,7 @@
 						"type": "object",
 						"description": "New JSON value; null keeps the current one",
 						"nullable": true,
-						"example": {
-							"label": "48 hours",
-							"hours": 48
-						}
+						"example": { "label": "48 hours", "hours": 48 }
 					},
 					"seq": {
 						"type": "integer",
@@ -8422,9 +7501,7 @@
 						"description": "true on success, false on error",
 						"example": true
 					},
-					"data": {
-						"$ref": "#/components/schemas/VoteResponse"
-					},
+					"data": { "$ref": "#/components/schemas/VoteResponse" },
 					"message": {
 						"type": "string",
 						"description": "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",
@@ -8569,7 +7646,7 @@
 					},
 					"deadline": {
 						"type": "string",
-						"description": "Deadline: the end time the owner set. Ending early never moves it, so `endTime` \u003C `deadline` means the Poll ended early. For Polls that ended early before this field existed, it equals `endTime`",
+						"description": "Deadline: the end time the owner set. Ending early never moves it, so `endTime` < `deadline` means the Poll ended early. For Polls that ended early before this field existed, it equals `endTime`",
 						"format": "date-time",
 						"example": "2026-10-19T09:00:00+08:00"
 					},
@@ -8607,16 +7684,12 @@
 					"options": {
 						"type": "array",
 						"description": "Options sorted by `displayOrder`",
-						"items": {
-							"$ref": "#/components/schemas/VoteOptionResponse"
-						}
+						"items": { "$ref": "#/components/schemas/VoteOptionResponse" }
 					},
 					"tags": {
 						"type": "array",
 						"description": "Tags attached to the Poll; empty when it has none",
-						"items": {
-							"$ref": "#/components/schemas/TagDto"
-						}
+						"items": { "$ref": "#/components/schemas/TagDto" }
 					},
 					"commentCount": {
 						"type": "integer",
@@ -8661,17 +7734,11 @@
 						"nullable": true,
 						"example": true
 					},
-					"active": {
-						"type": "boolean"
-					},
-					"anonymous": {
-						"type": "boolean"
-					},
-					"votingActive": {
-						"type": "boolean"
-					}
+					"active": { "type": "boolean" },
+					"anonymous": { "type": "boolean" },
+					"votingActive": { "type": "boolean" }
 				},
-				"description": "A Poll. Its state is derived from `startTime`, `endTime` and `votingActive`: Scheduled (now \u003C startTime), Open (`votingActive` = true), Ended (now \u003E= endTime). A Cancelled Poll (no longer produced) is Ended with `endTime` \u003C= `startTime`. While the Poll has not Ended, per-option counts are Sealed (`options[].votes` is null)",
+				"description": "A Poll. Its state is derived from `startTime`, `endTime` and `votingActive`: Scheduled (now < startTime), Open (`votingActive` = true), Ended (now >= endTime). A Cancelled Poll (no longer produced) is Ended with `endTime` <= `startTime`. While the Poll has not Ended, per-option counts are Sealed (`options[].votes` is null)",
 				"nullable": true
 			},
 			"VoteRequest": {
@@ -8770,9 +7837,7 @@
 						"description": "true on success, false on error",
 						"example": true
 					},
-					"data": {
-						"$ref": "#/components/schemas/CommentDto"
-					},
+					"data": { "$ref": "#/components/schemas/CommentDto" },
 					"message": {
 						"type": "string",
 						"description": "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",
@@ -8882,9 +7947,7 @@
 						"description": "true on success, false on error",
 						"example": true
 					},
-					"data": {
-						"$ref": "#/components/schemas/GroupResponse"
-					},
+					"data": { "$ref": "#/components/schemas/GroupResponse" },
 					"message": {
 						"type": "string",
 						"description": "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",
@@ -9182,10 +8245,7 @@
 					"lookupValue": {
 						"type": "object",
 						"description": "Arbitrary JSON value (string, number, object or array); must not be null",
-						"example": {
-							"label": "24 hours",
-							"hours": 24
-						}
+						"example": { "label": "24 hours", "hours": 24 }
 					},
 					"seq": {
 						"type": "integer",
@@ -9233,9 +8293,7 @@
 						"description": "true on success, false on error",
 						"example": true
 					},
-					"data": {
-						"$ref": "#/components/schemas/LookupDto"
-					},
+					"data": { "$ref": "#/components/schemas/LookupDto" },
 					"message": {
 						"type": "string",
 						"description": "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",
@@ -9278,10 +8336,7 @@
 					"lookupValue": {
 						"type": "object",
 						"description": "Arbitrary JSON value (string, number, object or array); the shape depends on the type",
-						"example": {
-							"label": "24 hours",
-							"hours": 24
-						}
+						"example": { "label": "24 hours", "hours": 24 }
 					},
 					"seq": {
 						"type": "integer",
@@ -9327,9 +8382,9 @@
 					"username": {
 						"maxLength": 50,
 						"minLength": 3,
-						"pattern": "^(?!search$)[a-z0-9_]{3,50}$",
+						"pattern": "^(?!(?:search|account|explore|login|notifications|poll|sanity|api|me|my|admin|settings)$)[a-z0-9_]{3,50}$",
 						"type": "string",
-						"description": "New username, used in the public profile path: 3-50 characters of [a-z0-9_], not `search`; null or omitted keeps the current value",
+						"description": "New username, used in the public profile path: 3-50 characters of [a-z0-9_], not a reserved name (search, account, explore, login, notifications, poll, sanity, api, me, my, admin, settings); null or omitted keeps the current value",
 						"nullable": true,
 						"example": "alice_c"
 					},
@@ -9348,6 +8403,13 @@
 						"description": "New bio (max 500 characters); null or omitted keeps the current value",
 						"nullable": true,
 						"example": "Poll enthusiast"
+					},
+					"avatarUrl": {
+						"pattern": "^bot:(boba|bao|oolong|su|egg|ice|youtiao|tofu|sausage|chip|tower|lumen|mazu|tudi|yuelao|qiye|baye|shi|long|denglong|ding|jiaobei|xiang|banyan|gray|nordic|reptile|mantis|anu|tallwhite|moth|blob|cyclops|probe|saucer|trio|bear|magpie|pangolin|shihu|macaque|deer|pheasant|firefly|crab|flyfish|turtle|dog)$",
+						"type": "string",
+						"description": "New avatar, one of the bot cast as `bot:<kind>`; any other value is rejected. null or omitted keeps the current value",
+						"nullable": true,
+						"example": "bot:boba"
 					}
 				},
 				"description": "Profile update; omitted or null fields are left unchanged"
@@ -9364,11 +8426,7 @@
 							"example": false
 						},
 						"description": "Field name to visible flag. Allowed keys: email, firstName, lastName, location, points, displayName, bio, membershipLevel. Omitted fields keep their current setting; unknown keys are ignored",
-						"example": {
-							"email": false,
-							"firstName": true,
-							"location": false
-						}
+						"example": { "email": false, "firstName": true, "location": false }
 					}
 				},
 				"description": "Field visibility update for the public profile"
@@ -9439,7 +8497,7 @@
 						"type": "number",
 						"description": "Support: share of the Participants whose Ballot chose this option, 0-100 (not rounded). 0 when there are no Participants",
 						"format": "double",
-						"example": 64.2857142857143
+						"example": 64.28571428571429
 					}
 				},
 				"description": "One option of an Ended Poll with its result"
@@ -9450,9 +8508,7 @@
 					"items": {
 						"type": "array",
 						"description": "Items of this page",
-						"items": {
-							"$ref": "#/components/schemas/UserDto"
-						}
+						"items": { "$ref": "#/components/schemas/UserDto" }
 					},
 					"nextCursor": {
 						"type": "string",
@@ -9476,9 +8532,7 @@
 						"type": "array",
 						"description": "Response payload; null on errors (a few business errors carry structured data) and on operations without a result",
 						"nullable": true,
-						"items": {
-							"$ref": "#/components/schemas/LookupDto"
-						}
+						"items": { "$ref": "#/components/schemas/LookupDto" }
 					},
 					"message": {
 						"type": "string",
@@ -9513,9 +8567,7 @@
 						"type": "array",
 						"description": "Response payload; null on errors (a few business errors carry structured data) and on operations without a result",
 						"nullable": true,
-						"items": {
-							"$ref": "#/components/schemas/GroupResponse"
-						}
+						"items": { "$ref": "#/components/schemas/GroupResponse" }
 					},
 					"message": {
 						"type": "string",
@@ -9550,9 +8602,7 @@
 						"type": "array",
 						"description": "Response payload; null on errors (a few business errors carry structured data) and on operations without a result",
 						"nullable": true,
-						"items": {
-							"$ref": "#/components/schemas/InviteeResponse"
-						}
+						"items": { "$ref": "#/components/schemas/InviteeResponse" }
 					},
 					"message": {
 						"type": "string",
@@ -9583,9 +8633,7 @@
 						"description": "true on success, false on error",
 						"example": true
 					},
-					"data": {
-						"$ref": "#/components/schemas/UserVoteStatusResponse"
-					},
+					"data": { "$ref": "#/components/schemas/UserVoteStatusResponse" },
 					"message": {
 						"type": "string",
 						"description": "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",
@@ -9615,9 +8663,7 @@
 						"description": "true on success, false on error",
 						"example": true
 					},
-					"data": {
-						"$ref": "#/components/schemas/VoteResultResponse"
-					},
+					"data": { "$ref": "#/components/schemas/VoteResultResponse" },
 					"message": {
 						"type": "string",
 						"description": "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",
@@ -9653,9 +8699,7 @@
 							"type": "array",
 							"description": "Response payload; null on errors (a few business errors carry structured data) and on operations without a result",
 							"nullable": true,
-							"items": {
-								"$ref": "#/components/schemas/LookupDto"
-							}
+							"items": { "$ref": "#/components/schemas/LookupDto" }
 						},
 						"description": "Response payload; null on errors (a few business errors carry structured data) and on operations without a result",
 						"nullable": true
@@ -9693,9 +8737,7 @@
 						"type": "array",
 						"description": "Response payload; null on errors (a few business errors carry structured data) and on operations without a result",
 						"nullable": true,
-						"items": {
-							"$ref": "#/components/schemas/TagDto"
-						}
+						"items": { "$ref": "#/components/schemas/TagDto" }
 					},
 					"message": {
 						"type": "string",
@@ -9726,9 +8768,7 @@
 						"description": "true on success, false on error",
 						"example": true
 					},
-					"data": {
-						"$ref": "#/components/schemas/CursorResponseCommentDto"
-					},
+					"data": { "$ref": "#/components/schemas/CursorResponseCommentDto" },
 					"message": {
 						"type": "string",
 						"description": "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",
@@ -9789,7 +8829,7 @@
 				"properties": {
 					"token": {
 						"type": "string",
-						"description": "JWT access token; send it as `Authorization: Bearer \u003Ctoken\u003E`. Valid for 1 hour by default",
+						"description": "JWT access token; send it as `Authorization: Bearer <token>`. Valid for 1 hour by default",
 						"example": "eyJhbGciOiJIUzI1NiJ9..."
 					},
 					"refreshToken": {
@@ -9797,9 +8837,7 @@
 						"description": "Opaque refresh token, valid for 30 days by default. Use it with POST /api/auth/refresh when the access token expires. Single-use: every refresh returns a new one that replaces it",
 						"example": "8c7e3f4a-1234-5678-90ab-cdef12345678"
 					},
-					"user": {
-						"$ref": "#/components/schemas/UserInfo"
-					}
+					"user": { "$ref": "#/components/schemas/UserInfo" }
 				},
 				"description": "Response after a successful login, signup or token refresh",
 				"nullable": true
@@ -9812,9 +8850,7 @@
 						"description": "true on success, false on error",
 						"example": true
 					},
-					"data": {
-						"$ref": "#/components/schemas/MyProfileResponse"
-					},
+					"data": { "$ref": "#/components/schemas/MyProfileResponse" },
 					"message": {
 						"type": "string",
 						"description": "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",
@@ -9875,9 +8911,7 @@
 						"description": "true on success, false on error",
 						"example": true
 					},
-					"data": {
-						"$ref": "#/components/schemas/TagDto"
-					},
+					"data": { "$ref": "#/components/schemas/TagDto" },
 					"message": {
 						"type": "string",
 						"description": "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",
@@ -9920,9 +8954,9 @@
 					},
 					"avatarUrl": {
 						"type": "string",
-						"description": "Avatar URL; null until the user or an OAuth provider (Google / LINE) supplies one",
+						"description": "Avatar as `bot:<kind>` (the bot cast). Older accounts may hold an image URL; null if never set",
 						"nullable": true,
-						"example": "https://cdn.example.com/avatar/abc.jpg"
+						"example": "bot:boba"
 					}
 				},
 				"description": "User search result item; only public profile fields, masked by the owner's visibility settings"
@@ -9933,9 +8967,7 @@
 					"items": {
 						"type": "array",
 						"description": "Items of this page",
-						"items": {
-							"$ref": "#/components/schemas/VoterResponse"
-						}
+						"items": { "$ref": "#/components/schemas/VoterResponse" }
 					},
 					"nextCursor": {
 						"type": "string",
@@ -10012,9 +9044,7 @@
 					"items": {
 						"type": "array",
 						"description": "Items of this page",
-						"items": {
-							"$ref": "#/components/schemas/CommentDto"
-						}
+						"items": { "$ref": "#/components/schemas/CommentDto" }
 					},
 					"nextCursor": {
 						"type": "string",
@@ -10032,9 +9062,7 @@
 					"items": {
 						"type": "array",
 						"description": "Items of this page",
-						"items": {
-							"$ref": "#/components/schemas/TagDto"
-						}
+						"items": { "$ref": "#/components/schemas/TagDto" }
 					},
 					"nextCursor": {
 						"type": "string",
@@ -10052,9 +9080,7 @@
 					"items": {
 						"type": "array",
 						"description": "Items of this page",
-						"items": {
-							"$ref": "#/components/schemas/VoteResponse"
-						}
+						"items": { "$ref": "#/components/schemas/VoteResponse" }
 					},
 					"nextCursor": {
 						"type": "string",
@@ -10085,6 +9111,12 @@
 						"description": "Bio; null if the owner hid it (public by default) or never set one",
 						"nullable": true,
 						"example": "Poll enthusiast"
+					},
+					"avatarUrl": {
+						"type": "string",
+						"description": "Avatar as `bot:<kind>` (the bot cast); always public. Older accounts may hold an image URL; null if never set",
+						"nullable": true,
+						"example": "bot:boba"
 					},
 					"joinedAt": {
 						"type": "string",
@@ -10184,9 +9216,9 @@
 					},
 					"avatarUrl": {
 						"type": "string",
-						"description": "Avatar URL. Null until the user or an OAuth provider (Google / LINE) supplies one",
+						"description": "Avatar as `bot:<kind>` (the bot cast), assigned at random on sign-up. Older accounts may hold an image URL or null",
 						"nullable": true,
-						"example": "https://cdn.example.com/avatar/abc.jpg"
+						"example": "bot:boba"
 					},
 					"phoneNumber": {
 						"type": "string",
@@ -10206,9 +9238,7 @@
 						"description": "true on success, false on error",
 						"example": true
 					},
-					"data": {
-						"$ref": "#/components/schemas/SimpleResultResponse"
-					},
+					"data": { "$ref": "#/components/schemas/SimpleResultResponse" },
 					"message": {
 						"type": "string",
 						"description": "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",
@@ -10279,6 +9309,12 @@
 						"nullable": true,
 						"example": "Poll enthusiast"
 					},
+					"avatarUrl": {
+						"type": "string",
+						"description": "Avatar as `bot:<kind>` (the bot cast); always public. Older accounts may hold an image URL; null if never set",
+						"nullable": true,
+						"example": "bot:boba"
+					},
 					"location": {
 						"type": "string",
 						"description": "Location; null if not set",
@@ -10335,11 +9371,7 @@
 							"example": false
 						},
 						"description": "Field name to visible flag, i.e. what other users see on the public profile; keys: email, firstName, lastName, location, points, displayName, bio, membershipLevel",
-						"example": {
-							"email": false,
-							"displayName": true,
-							"bio": true
-						}
+						"example": { "email": false, "displayName": true, "bio": true }
 					}
 				},
 				"description": "The caller's own profile; every field is returned regardless of visibility settings",
@@ -10366,9 +9398,7 @@
 						"description": "true on success, false on error",
 						"example": true
 					},
-					"data": {
-						"$ref": "#/components/schemas/CursorResponseVoteResponse"
-					},
+					"data": { "$ref": "#/components/schemas/CursorResponseVoteResponse" },
 					"message": {
 						"type": "string",
 						"description": "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",
@@ -10398,9 +9428,7 @@
 						"description": "true on success, false on error",
 						"example": true
 					},
-					"data": {
-						"$ref": "#/components/schemas/AuthEmailExistsResponse"
-					},
+					"data": { "$ref": "#/components/schemas/AuthEmailExistsResponse" },
 					"message": {
 						"type": "string",
 						"description": "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",
@@ -10497,19 +9525,11 @@
 					"options": {
 						"type": "array",
 						"description": "Options sorted by `displayOrder`, each with its count and Support",
-						"items": {
-							"$ref": "#/components/schemas/VoteOptionResultResponse"
-						}
+						"items": { "$ref": "#/components/schemas/VoteOptionResultResponse" }
 					},
-					"active": {
-						"type": "boolean"
-					},
-					"anonymous": {
-						"type": "boolean"
-					},
-					"votingActive": {
-						"type": "boolean"
-					}
+					"active": { "type": "boolean" },
+					"anonymous": { "type": "boolean" },
+					"votingActive": { "type": "boolean" }
 				},
 				"description": "Results of an Ended Poll. Only returned once the Poll has Ended; before that the endpoint answers 403 `vote.results.sealed`",
 				"nullable": true
@@ -10522,9 +9542,7 @@
 						"description": "true on success, false on error",
 						"example": true
 					},
-					"data": {
-						"$ref": "#/components/schemas/AuthResponse"
-					},
+					"data": { "$ref": "#/components/schemas/AuthResponse" },
 					"message": {
 						"type": "string",
 						"description": "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",
@@ -10558,9 +9576,7 @@
 						"type": "array",
 						"description": "Response payload; null on errors (a few business errors carry structured data) and on operations without a result",
 						"nullable": true,
-						"items": {
-							"$ref": "#/components/schemas/GroupMemberResponse"
-						}
+						"items": { "$ref": "#/components/schemas/GroupMemberResponse" }
 					},
 					"message": {
 						"type": "string",
@@ -10591,9 +9607,7 @@
 						"description": "true on success, false on error",
 						"example": true
 					},
-					"data": {
-						"$ref": "#/components/schemas/CursorResponseTagDto"
-					},
+					"data": { "$ref": "#/components/schemas/CursorResponseTagDto" },
 					"message": {
 						"type": "string",
 						"description": "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",
@@ -10662,9 +9676,7 @@
 						"description": "true on success, false on error",
 						"example": true
 					},
-					"data": {
-						"$ref": "#/components/schemas/UserProfileResponse"
-					},
+					"data": { "$ref": "#/components/schemas/UserProfileResponse" },
 					"message": {
 						"type": "string",
 						"description": "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",
@@ -10694,9 +9706,7 @@
 						"description": "true on success, false on error",
 						"example": true
 					},
-					"data": {
-						"$ref": "#/components/schemas/UnreadCountResponse"
-					},
+					"data": { "$ref": "#/components/schemas/UnreadCountResponse" },
 					"message": {
 						"type": "string",
 						"description": "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",
@@ -10762,9 +9772,7 @@
 						"description": "true on success, false on error",
 						"example": true
 					},
-					"data": {
-						"$ref": "#/components/schemas/CursorResponseUserDto"
-					},
+					"data": { "$ref": "#/components/schemas/CursorResponseUserDto" },
 					"message": {
 						"type": "string",
 						"description": "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",

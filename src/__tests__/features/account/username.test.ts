@@ -1,4 +1,4 @@
-import { isOwnUsername, isValidUsername, usernameFromSlug } from '@/features/account/username';
+import { isOwnUsername, isValidUsername, RESERVED_USERNAMES, usernameFromSlug } from '@/features/account/username';
 
 describe('usernameFromSlug', () => {
 	it('decodes a percent-encoded slug', () => {
@@ -36,8 +36,15 @@ describe('isValidUsername', () => {
 		expect(isValidUsername('Alice')).toBe(false);
 	});
 
-	it('rejects the reserved name the API refuses', () => {
-		expect(isValidUsername('search')).toBe(false);
+	it('rejects the reserved names the API refuses', () => {
+		for (const name of RESERVED_USERNAMES) {
+			expect(isValidUsername(name)).toBe(false);
+		}
+	});
+
+	it('accepts names that only start with a reserved name', () => {
 		expect(isValidUsername('searcher')).toBe(true);
+		expect(isValidUsername('admins')).toBe(true);
+		expect(isValidUsername('mine')).toBe(true);
 	});
 });

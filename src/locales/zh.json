@@ -11,6 +11,7 @@
 		"loading": "載入中",
 		"error": "發生錯誤",
 		"cancel": "取消",
+		"close": "關閉",
 		"save": "儲存",
 		"delete": "刪除",
 		"edit": "編輯",
@@ -442,10 +443,10 @@
 	},
 	"avatar": {
 		"title": "頭像",
+		"change": "更換頭像",
 		"body": "加入時我們幫你挑了一個，隨時可以換。",
 		"surprise": "隨機換一個",
 		"save": "儲存頭像",
-		"saved": "已儲存",
 		"savedToast": "頭像已更新",
 		"choose": "選擇{name}",
 		"families": {

@@ -4,7 +4,6 @@ import { PollListSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import type { Poll } from '@/features/polls/schema';
 import { getAllMyPolls } from '@/features/polls/service';
 import type { CursorPage } from '@/lib/api/cursor';
-import { getUserProfile } from '@/lib/api/services/users';
 import type { MyProfile, UserProfile } from '@/types/user';
 
 import AccountPage from './AccountPage';
@@ -27,20 +26,16 @@ export async function PublicProfile({
 /** The signed-in user's own profile: their account page. */
 export async function OwnProfile({ profile }: { profile: MyProfile }) {
 	// Every Poll the user created or holds a Ballot in, so insights cover them all
-	// The public profile is read too: avatars may ship there before /users/me carries them
-	const [open, ended, publicProfile] = await Promise.all([
+	const [open, ended] = await Promise.all([
 		getAllMyPolls('open').catch(() => []),
 		getAllMyPolls('ended').catch(() => []),
-		getUserProfile(profile.username).catch(() => null),
 	]);
 	const polls = [...open, ...ended];
 	const myPolls = polls.filter((poll) => poll.creatorId === profile.id);
 	const history = ballotHistory(polls);
 	const insights = computeInsights(myPolls, history);
 
-	const avatarUrl = profile.avatarUrl !== undefined ? profile.avatarUrl : publicProfile?.avatarUrl;
-
-	return <AccountPage isOwn profile={{ ...profile, avatarUrl }} myPolls={myPolls} history={history} insights={insights} />;
+	return <AccountPage isOwn profile={profile} myPolls={myPolls} history={history} insights={insights} />;
 }
 
 export function ProfileSkeleton() {

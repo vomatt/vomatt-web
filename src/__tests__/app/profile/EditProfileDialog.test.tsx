@@ -2,12 +2,6 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import EditProfileDialog from '@/app/(frontend)/[slug]/_components/EditProfileDialog';
 
-global.ResizeObserver = class {
-	observe() {}
-	unobserve() {}
-	disconnect() {}
-} as any;
-
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 const mockReplace = jest.fn();
 jest.mock('next/navigation', () => ({ useRouter: () => ({ replace: mockReplace }) }));

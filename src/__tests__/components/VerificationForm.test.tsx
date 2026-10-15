@@ -2,13 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 import VerificationForm, { RESEND_COOLDOWN_SECONDS } from '@/components/auth/VerificationForm';
 
-// Polyfill APIs missing in jsdom (used by input-otp)
-global.ResizeObserver = class {
-	observe() {}
-	unobserve() {}
-	disconnect() {}
-} as any;
-
+// Polyfill APIs missing in jsdom (used by input-otp); ResizeObserver is in jest.setup.ts
 if (!document.elementFromPoint) {
 	document.elementFromPoint = () => null;
 }

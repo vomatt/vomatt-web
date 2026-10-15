@@ -3,12 +3,6 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { AuthDialog } from '@/components/auth/AuthDialog';
 
 // Polyfill APIs missing in jsdom
-global.ResizeObserver = class {
-	observe() {}
-	unobserve() {}
-	disconnect() {}
-} as any;
-
 if (!document.elementFromPoint) {
 	document.elementFromPoint = () => null;
 }

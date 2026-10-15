@@ -57,8 +57,8 @@ export function defaultBotFor(username: string): BotKind {
 }
 
 /**
- * The bot to draw for a user: the one they chose, else their username's. Other
- * values (provider photos) are ignored, since profiles don't return them.
+ * The bot to draw for a user: the one they chose, else their username's. Image
+ * URLs that older accounts still hold are ignored: everyone is drawn as a bot.
  */
 export function resolveAvatar(username: string, avatarUrl: string | null | undefined): BotKind {
 	return parseBotAvatar(avatarUrl) ?? defaultBotFor(username);

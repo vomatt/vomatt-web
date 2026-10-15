@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { useState } from 'react';
 
 import { useLanguage } from '@/contexts/LanguageContext';
+import { AvatarDialog } from '@/features/avatars/AvatarDialog';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { formatMonthYear } from '@/features/polls/format';
 import { toPayloadLocale } from '@/lib/locale';
@@ -20,10 +21,20 @@ type HeaderProfile = Pick<
 /**
  * The same header for the owner and for visitors. Visitors get only the fields
  * the owner made public: the API sends hidden ones as null, so they drop out.
+ * The owner's avatar opens the dialog to change it.
  */
-export default function ProfileHeader({ profile, action }: { profile: HeaderProfile; action?: ReactNode }) {
+export default function ProfileHeader({
+	profile,
+	action,
+	isOwn = false,
+}: {
+	profile: HeaderProfile;
+	action?: ReactNode;
+	isOwn?: boolean;
+}) {
 	const { t, currentLanguage } = useLanguage();
 	const name = profile.displayName || profile.username;
+	const Avatar = isOwn ? AvatarDialog : UserAvatar;
 
 	const details = [
 		profile.location,
@@ -36,7 +47,7 @@ export default function ProfileHeader({ profile, action }: { profile: HeaderProf
 
 	return (
 		<header className="flex flex-wrap items-center gap-4">
-			<UserAvatar username={profile.username} avatarUrl={profile.avatarUrl} className="size-16" />
+			<Avatar username={profile.username} avatarUrl={profile.avatarUrl} className="size-16" />
 			<div className="min-w-0 flex-1">
 				<h1 className="truncate display-heading text-[28px] md:text-4xl/tight">{name}</h1>
 				{profile.displayName && <p className="mt-1 font-mono text-sm text-muted-foreground">@{profile.username}</p>}

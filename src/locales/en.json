@@ -11,6 +11,7 @@
 		"loading": "Loading...",
 		"error": "Something went wrong",
 		"cancel": "Cancel",
+		"close": "Close",
 		"save": "Save",
 		"delete": "Delete",
 		"edit": "Edit",
@@ -446,10 +447,10 @@
 	},
 	"avatar": {
 		"title": "Avatar",
+		"change": "Change avatar",
 		"body": "We picked one for you when you joined. Swap it any time.",
 		"surprise": "Surprise me",
 		"save": "Save avatar",
-		"saved": "Saved",
 		"savedToast": "Avatar updated",
 		"choose": "Choose {name}",
 		"families": {

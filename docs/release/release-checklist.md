@@ -45,8 +45,9 @@ never calls the API directly, so its CORS list doesn't need the web origin.
   touch (LanguageContext, DraftList, PollCreator, hooks/*). They predate the release work.
 - `src/lib/session.ts` is unused.
 - Follow and followers are hidden until the API supports them; their dev-only mock routes under
-  `/api/v1/users/*` answer 404 in production. The avatar picker is hidden until profiles return
-  `avatarUrl` (backend request 16).
+  `/api/v1/users/*` answer 404 in production.
+- Poll bylines, voter lists and comments draw each person's bot from their username until the API
+  returns `avatarUrl` there (backend request 16, item 4), so they can differ from the profile.
 
 ## Verified locally (vomatt-api in Docker, access token TTL 120s)
 

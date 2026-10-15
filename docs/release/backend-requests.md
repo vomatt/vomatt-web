@@ -27,8 +27,8 @@ Found while moving vomatt-web onto the live `vomatt-api` contract and testing bo
 | 12 | Display name and bio public by default | **Done** |
 | 13 | Notify voters when results are revealed | Open (needs a notifications table and a job) |
 | 14 | Avatars and follows | Avatars: see 16. Follows: open (schema); UI stays hidden until profiles send the fields |
-| 15 | Change username | Done: `PATCH /api/users/me` `{ username }` (`editProfile` in `lib/api/services/users.ts`). Still open: Profiles live at `/{username}`, so usernames must not match app routes (`explore`, `login`, `account`, …) or Sanity page slugs |
-| 16 | Choose an avatar from the cast | Open. Details below |
+| 15 | Change username | Done: `PATCH /api/users/me` `{ username }` (`editProfile` in `lib/api/services/users.ts`). App routes are reserved since 2026-10-15 (`search`, `account`, `explore`, `login`, `notifications`, `poll`, `sanity`, `api`, `me`, `my`, `admin`, `settings`; mirrored by hand in `features/account/username.ts`, so it drifts if either side adds a route; listing the names in the `username` schema would let the web read them). Still open: Sanity page slugs aren't reserved |
+| 16 | Choose an avatar from the cast | **Partly** (2026-10-15): 1–3 done, the picker is on. 4 is open. Details below |
 
 ## 16. Avatars: the cast
 
@@ -46,9 +46,13 @@ stored as `bot:<kind>` (e.g. `bot:boba`) in the existing `users.avatar_url` colu
    `UserAvatar` there). Ship this with 2: the picker turns on as soon as profiles return
    `avatarUrl`, and without 4 a chosen bot would show on the profile but not beside comments.
 
-Until then the web draws the bot picked from the username (`defaultBotFor`), so it changes if the
-username changes, and the picker in Settings stays hidden because `avatarUrl` isn't in the profile.
-Provider photo URLs (`https://…`) are ignored: everyone is drawn as a bot.
+Status 2026-10-15: 1–3 are in the contract, so the picker in Settings is on and profiles, the
+sidebar, followers and the invitee search draw the stored bot. 4 is still open: `VoteResponse`,
+`VoteResultResponse` (creator), `VoterResponse`, `CommentDto`, `GroupMemberResponse` and
+`InviteeResponse` carry no `avatarUrl`, so poll bylines, voter lists and comments draw the bot
+picked from the username (`defaultBotFor`). Because sign-up now assigns a random bot, those spots
+show a different character from the profile for every new user, not only for those who chose one.
+Provider photo URLs (`https://…`) on older accounts are ignored: everyone is drawn as a bot.
 
 ## Notes
 

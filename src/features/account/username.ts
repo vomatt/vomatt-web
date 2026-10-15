@@ -1,9 +1,26 @@
-// The API's rule (UpdateProfileRequest.username); `search` is reserved there
+// The API's rule (UpdateProfileRequest.username), reserved names included
 export const USERNAME_MAX_LENGTH = 50;
 
-const USERNAME_PATTERN = new RegExp(`^(?!search$)[a-z0-9_]{3,${USERNAME_MAX_LENGTH}}$`);
+// `api`, `me` and `my` are also too short; they stay listed to match the API
+export const RESERVED_USERNAMES = new Set([
+	'search',
+	'account',
+	'explore',
+	'login',
+	'notifications',
+	'poll',
+	'sanity',
+	'api',
+	'me',
+	'my',
+	'admin',
+	'settings',
+]);
 
-export const isValidUsername = (username: string) => USERNAME_PATTERN.test(username);
+const USERNAME_PATTERN = new RegExp(`^[a-z0-9_]{3,${USERNAME_MAX_LENGTH}}$`);
+
+export const isValidUsername = (username: string) =>
+	!RESERVED_USERNAMES.has(username) && USERNAME_PATTERN.test(username);
 
 /** The username a root URL segment names; null when the segment isn't valid percent-encoding. */
 export function usernameFromSlug(slug: string): string | null {
@@ -15,5 +32,7 @@ export function usernameFromSlug(slug: string): string | null {
 }
 
 /** Whether `username` is the viewer's own; case-insensitive, as profile lookups may be. */
-export const isOwnUsername = <T extends { username: string }>(me: T | null, username: string): me is T =>
-	!!me && me.username.toLowerCase() === username.toLowerCase();
+export const isOwnUsername = <T extends { username: string }>(
+	me: T | null,
+	username: string
+): me is T => !!me && me.username.toLowerCase() === username.toLowerCase();
