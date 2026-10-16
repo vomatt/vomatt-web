@@ -12,7 +12,7 @@ Browser ──► vomatt-web (Vercel) ──► vomatt-api   (server-side only, 
 
 ## Requirements
 
-- Node.js 20.9 or later (Vercel's default, 24, is fine)
+- Node.js 22 or 24 (Next.js 16 needs 20.9+, but Node 20 is end-of-life; Vercel's default is 24)
 - npm (the lockfile is `package-lock.json`)
 - A running vomatt-api (local Docker or deployed) and a Sanity project
 
@@ -24,8 +24,8 @@ cp .env.example .env.local   # then fill in the values, see below
 npm run dev
 ```
 
-- Site: http://localhost:3000
-- Studio: http://localhost:3000/sanity (log in with your Sanity account)
+- Site: http://localhost:3002 (the dev server uses Turbopack on port 3002)
+- Studio: http://localhost:3002/sanity (log in with your Sanity account)
 
 Local development always shows the full site; the coming-soon page only applies in production.
 
@@ -36,7 +36,7 @@ Local development always shows the full site; the coming-soon page only applies 
 3. **Dataset visibility must be Public** (manage → Datasets). The site reads published content
    without a token.
 4. **API → CORS origins**: add every origin the Studio runs on, with *Allow credentials*:
-   `http://localhost:3000`, your production domain, and your Vercel preview domain pattern if
+   `http://localhost:3002`, your production domain, and your Vercel preview domain pattern if
    editors use previews.
 5. Open `/sanity` and publish **Settings → General** (site title, share image, favicon, coming soon).
 
@@ -56,13 +56,15 @@ Sign-in codes are emailed; with email disabled locally, read the code from Redis
 | `API_URL` | Yes | `https://api.vomatt.com` | vomatt-api **origin only** — no path, **no trailing slash**. Called from the server only. |
 | `SESSION_SECRET` | Yes | 64 random chars | **Must equal the API's `JWT_SECRET`.** Used to verify access tokens. A mismatch signs everyone out on every request. Server-only; never prefix with `NEXT_PUBLIC_`. |
 | `SITE_URL` | Yes | `https://vomatt.com` | Public origin, no trailing slash. Used for metadata, Open Graph and canonical URLs; the site errors if it is missing. |
+| `API_LOG` | No | `1` | Logs each API request/response from the server. On by default in `npm run dev` (`0` silences it); off in deployments unless `1` (e.g. a Preview scoped to the `dev` branch, read in Vercel Runtime Logs). |
 | `NEXT_PUBLIC_SANITY_API_VERSION` | No | `2025-08-08` | Sanity API version; defaults to `2025-08-08`. |
 
 Not needed (leave unset): `DATABASE_URL`, `PAYLOAD_SECRET` (Payload was removed);
 `SANITY_API_READ_TOKEN`, `SANITY_REVALIDATE_SECRET`, `NEXT_PUBLIC_SANITY_STUDIO_URL`
 (read in code but nothing depends on them yet); `SANITY_STUDIO_PREVIEW_ORIGIN` (the Presentation
 tool was removed);
-`NEXT_PUBLIC_API_URL` (only the dev mocks for follows/avatars use it).
+`NEXT_PUBLIC_API_URL` (the followers/following sheet calls this site's own `/api` routes when it is
+unset).
 
 On **vomatt-api**, set at least `JWT_SECRET` (same value as `SESSION_SECRET`), the database and
 Redis settings, and email (`EMAIL_ENABLED=true` + SMTP) — sign-in is email-code only.
@@ -97,13 +99,28 @@ Before switching it off, run through [docs/release/release-checklist.md](docs/re
 ## Scripts
 
 ```bash
-npm run dev           # dev server
-npm run build         # production build
-npm run start:web     # serve the production build locally
-npm run lint          # ESLint
-npm test              # Jest
-npx tsc --noEmit      # type-check
+npm run dev               # dev server (Turbopack, port 3002)
+npm run build             # production build
+npm run start:web         # serve the production build locally
+npm start                 # run through `vercel dev` (needs the Vercel CLI and a linked project)
+npm run lint              # ESLint
+npm test                  # Jest (tests in src/__tests__/)
+npm run test:watch        # Jest in watch mode
+npm run test:coverage     # Jest with coverage
+npx jest <path>           # one test file
+npx tsc --noEmit          # type-check
+npm run generate:openapi  # regenerate openapi.json from the Zod schemas
 ```
+
+## Project docs
+
+| File | What's in it |
+|------|--------------|
+| [DESIGN.md](DESIGN.md) | Design tokens, type, UI building blocks, don'ts — read before UI work |
+| [PRODUCT.md](PRODUCT.md) | Users, brand, product principles |
+| [CLAUDE.md](CLAUDE.md) | Architecture notes: route groups, data layer, auth/token refresh, i18n |
+| [api-docs.json](api-docs.json) | vomatt-api contract (what the API serves at `/v3/api-docs`) |
+| [docs/release/](docs/release) | Release checklist, API integration notes, open backend requests |
 
 ## Troubleshooting
 

@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-npm run dev           # Start dev server
+npm run dev           # Start dev server (Turbopack, port 3002)
 npm run build         # Production build
 npm run lint          # ESLint (next/core-web-vitals + simple-import-sort)
 npm run test          # Jest (jsdom)
@@ -51,13 +51,13 @@ Render Portable Text with `@/components/CustomPortableText`; build image URLs wi
 - **`auth.ts`** — `server-only` cookie helpers (`getTokens`, `setAuthTokens`, `clearAuthTokens`). Never make it `'use server'`: every export would become a callable Server Action.
 - **Refresh happens only in `src/proxy.tsx`**, which writes rotated cookies to both the request and the response. The backend revokes every session when a used refresh token comes back, so nothing else may refresh.
 - **`client.ts`** — `apiClient<T>()` (authenticated; throws `AuthError` on 401, `ApiError` with `data.errorCode` otherwise; `auth: 'optional'` falls back to `publicFetch`) and `publicFetch<T>()`. Both unwrap the `ApiResponse` envelope.
-- **`services/`** — `auth.ts` (`requestOtp`, `verifyOtp`, `signout`) and `users.ts` are Server Actions (`'use server'`). Poll, ballot, comment and invitee actions live in `src/features/polls/service.ts`, group actions in `src/features/groups/service.ts`; both return `ActionResult` (via `attempt()` in `lib/api/action.ts`) instead of throwing.
+- **`services/`** — `auth.ts` (`requestOtp`, `verifyOtp`, `signout`) and `users.ts` are Server Actions (`'use server'`). Domain actions live in `src/features/<domain>/service.ts` (polls — incl. ballots, comments, invitees — groups, avatars, notifications) and return `ActionResult` (via `attempt()` in `lib/api/action.ts`) instead of throwing.
 
 The backend is `vomatt-api` (sibling repo): prefix `/api`; the contract is `api-docs.json` at the repo root (what the deployed API at `API_URL` serves from `/v3/api-docs`; flow docs in `vomatt-api/docs/frontend/`). Lists are cursor-paged: `{ items, nextCursor }` with `limit`/`cursor` params (`lib/api/cursor.ts`). Open questions from the integration are in `docs/release/api-integration-notes.md`; older backend gaps in `docs/release/backend-requests.md`.
 
 ### Internationalization
 
-Locales: `en`, `zh-TW` (default `en`). Config at `src/i18n-config.ts`. Language is detected in `src/proxy.tsx` middleware via `negotiator` + `@formatjs/intl-localematcher` and stored in the `USER_LANG` cookie. In components, use the `useLanguage()` context hook and call `t('key')`.
+Locales: `en`, `zh` (Traditional Chinese; default `en`), strings in `src/locales/{en,zh}.json`. Config at `src/i18n-config.ts`. Language is detected in `src/proxy.tsx` middleware via `negotiator` + `@formatjs/intl-localematcher` and stored in the `USER_LANG` cookie. In components, use the `useLanguage()` context hook and call `t('key')`.
 
 ### State & UI Conventions
 
@@ -67,7 +67,7 @@ Locales: `en`, `zh-TW` (default `en`). Config at `src/i18n-config.ts`. Language 
 - Layout uses a collapsible sidebar (`SidebarProvider` + `AppSidebar`) visible on all routes except `/login`. Mobile gets a `TabBar` instead.
 - Fonts: Geist (UI and headings, weight 400 with tight tracking for display) and Geist Mono (counts, times), loaded with `next/font` in the root layout.
 - Design tokens in `src/styles/global.css` use OKLCh color space with Tailwind CSS v4.
-- Tailwind v4: `revalidatePath(path, 'page')` requires the second arg; use `updateTag(tag)` for single-tag revalidation.
+- Next.js cache: `revalidatePath(path, 'page')` requires the second arg; use `updateTag(tag)` for single-tag revalidation.
 
 ### ISR Revalidation
 
@@ -92,14 +92,13 @@ Template and Vercel setup: `.env.example`, `README.md`. The production site show
 |------|-------|
 | Global CSS / design tokens | `src/styles/global.css` |
 | Sanity Studio config | `sanity.config.ts` |
-| Sanity schemas / queries | `src/sanity/schemaTypes/`, `src/sanity/lib/queries.js` |
+| Sanity schemas / queries | `src/sanity/schemaTypes/`, `src/sanity/lib/queries.ts` |
 | API client + token logic | `src/lib/api/client.ts`, `src/lib/api/auth.ts` |
 | Poll domain (schema, status, service) | `src/features/polls/` |
 | Sidebar | `src/components/layout/AppSidebar.tsx` |
 | Main layout composition | `src/components/layout/index.tsx` |
 | Root frontend layout | `src/app/(frontend)/layout.tsx` |
 | i18n middleware | `src/proxy.tsx` |
-| Mock poll data | `src/lib/api/mock/polls` |
 
 <!-- BEGIN:nextjs-agent-rules -->
 
