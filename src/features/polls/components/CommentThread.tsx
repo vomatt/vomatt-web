@@ -1,7 +1,6 @@
 'use client';
 
 import { AnimatePresence, motion } from 'motion/react';
-import Link from 'next/link';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -11,8 +10,8 @@ import { Heart } from '@/components/ui/SvgIcons';
 import { Textarea } from '@/components/ui/Textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
+import { ProfileAvatar, ProfileName } from '@/features/profiles/UserChip';
 import { useHydrated } from '@/hooks/useHydrated';
-import { profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
 import { formatFromNow } from '../format';
@@ -304,15 +303,21 @@ function CommentBody({ comment, viewerId, thread, requireAuth, onReply }: Commen
 
 	return (
 		<article className={cn('flex gap-3', isPending && 'opacity-60')}>
-			<UserAvatar username={author} />
+			{isPending ? (
+				<UserAvatar username={author} avatarUrl={comment.authorAvatarUrl} />
+			) : (
+				<ProfileAvatar username={author} avatarUrl={comment.authorAvatarUrl} />
+			)}
 			<div className="min-w-0 flex-1">
 				<div className="flex flex-wrap items-baseline gap-x-2 text-xs">
 					{isPending ? (
 						<span className="font-medium text-foreground">{author}</span>
 					) : (
-						<Link href={profileHref(author)} className="font-medium text-foreground hover:underline">
-							{author}
-						</Link>
+						<ProfileName
+							username={author}
+							avatarUrl={comment.authorAvatarUrl}
+							className="font-medium text-foreground hover:underline"
+						/>
 					)}
 					<time dateTime={comment.createdAt} className="text-muted-foreground">
 						{isHydrated && formatFromNow(comment.createdAt, currentLanguage)}

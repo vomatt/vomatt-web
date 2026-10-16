@@ -29,6 +29,11 @@ const poll: Poll = {
 };
 
 describe('PollAbout', () => {
+	it("shows the creator's chosen avatar", () => {
+		const { container } = render(<PollAbout poll={{ ...poll, creatorAvatarUrl: 'bot:bear' }} />);
+		expect(container.querySelector('img')).toHaveAttribute('src', '/avatars/bear.svg');
+	});
+
 	it('says a Poll ended early, with its Deadline', () => {
 		render(<PollAbout poll={{ ...poll, active: false, endTime: iso(-HOUR), deadline: iso(24 * HOUR) }} />);
 		expect(screen.getByText(/^Ended early\. It was set to close/)).toBeInTheDocument();

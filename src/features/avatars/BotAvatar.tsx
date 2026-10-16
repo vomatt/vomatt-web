@@ -18,13 +18,13 @@ const TINT_CLASSES = {
 
 /**
  * One character of the cast on its tinted circle. Size comes from `className` (default 32px).
- * Hovering shows the character's name and trait; pass `tooltip={false}` where they're already shown.
+ * With `tooltip`, hovering shows the character's name and trait (the profile page and the picker).
  * The drawings are static files in public/avatars, so pages don't ship them as JS.
  */
 export function BotAvatar({
 	kind,
 	className,
-	tooltip = true,
+	tooltip = false,
 }: {
 	kind: BotKind;
 	className?: string;

@@ -6,8 +6,7 @@ import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { AvatarDialog } from '@/features/avatars/AvatarDialog';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
-import { formatMonthYear } from '@/features/polls/format';
-import { toPayloadLocale } from '@/lib/locale';
+import { profileDetails } from '@/features/profiles/details';
 import type { UserProfile } from '@/types/user';
 
 import FollowButton from './FollowButton';
@@ -34,20 +33,16 @@ export default function ProfileHeader({
 }) {
 	const { t, currentLanguage } = useLanguage();
 	const name = profile.displayName || profile.username;
-	const Avatar = isOwn ? AvatarDialog : UserAvatar;
 
-	const details = [
-		profile.location,
-		profile.points != null
-			? t('profile.points', { count: profile.points.toLocaleString(toPayloadLocale(currentLanguage)) })
-			: null,
-		profile.membershipLevel ? t('profile.membership', { level: profile.membershipLevel }) : null,
-		t('profile.joined', { date: formatMonthYear(profile.joinedAt, currentLanguage) }),
-	].filter(Boolean);
+	const details = profileDetails(profile, t, currentLanguage);
 
 	return (
 		<header className="flex flex-wrap items-center gap-4">
-			<Avatar username={profile.username} avatarUrl={profile.avatarUrl} className="size-16" />
+			{isOwn ? (
+				<AvatarDialog username={profile.username} avatarUrl={profile.avatarUrl} className="size-16" />
+			) : (
+				<UserAvatar username={profile.username} avatarUrl={profile.avatarUrl} className="size-16" tooltip />
+			)}
 			<div className="min-w-0 flex-1">
 				<h1 className="truncate display-heading text-[28px] md:text-4xl/tight">{name}</h1>
 				{profile.displayName && <p className="mt-1 font-mono text-sm text-muted-foreground">@{profile.username}</p>}

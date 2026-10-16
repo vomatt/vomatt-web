@@ -15,6 +15,7 @@ import { EXPLORE_PAGE_SIZE, SEARCH_DEBOUNCE_MS, SEARCH_MIN_LENGTH } from '@/feat
 import type { Poll, TagDto } from '@/features/polls/schema';
 import { getPolls, type PollListQuery } from '@/features/polls/service';
 import { derivePollStatus, getTurnout } from '@/features/polls/status';
+import { UserChip } from '@/features/profiles/UserChip';
 import { useCursorList } from '@/hooks/useCursorList';
 import type { CursorPage } from '@/lib/api/cursor';
 import { topicHref } from '@/lib/routes';
@@ -167,9 +168,14 @@ export function ExploreView({
 								key={poll.id}
 								poll={poll}
 								meta={
-									<span className="inline-flex gap-1.5">
+									<span className="inline-flex items-center gap-1.5">
 										<span>{t('poll.voted', { count: (getTurnout(poll) ?? 0).toLocaleString() })}</span>
-										<span>{poll.creatorUsername}</span>
+										<UserChip
+											username={poll.creatorUsername}
+											avatarUrl={poll.creatorAvatarUrl}
+											link={false}
+											avatarClassName="size-4"
+										/>
 									</span>
 								}
 								aside={<StatusChip status={derivePollStatus(poll)} poll={poll} />}

@@ -86,7 +86,6 @@ export function AvatarDialog({
 			>
 				<BotAvatar
 					kind={saved}
-					tooltip={false}
 					className={cn('transition-opacity group-hover:opacity-80', className)}
 				/>
 				<span className="absolute -right-0.5 -bottom-0.5 flex size-6 items-center justify-center rounded-full border border-border bg-card text-foreground">
@@ -106,7 +105,6 @@ export function AvatarDialog({
 					<BotAvatar
 						kind={selected}
 						className="size-16 md:size-28"
-						tooltip={false}
 					/>
 					<div className="min-w-0 flex-1" aria-live="polite">
 						<p className="font-medium md:text-lg">
@@ -144,7 +142,7 @@ export function AvatarDialog({
 												: 'hover:bg-border-strong'
 										)}
 									>
-										<BotAvatar kind={kind} className="size-full" />
+										<BotAvatar kind={kind} className="size-full" tooltip />
 									</button>
 								))}
 							</div>

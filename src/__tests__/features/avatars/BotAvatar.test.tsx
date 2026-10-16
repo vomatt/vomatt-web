@@ -7,14 +7,14 @@ jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguag
 
 describe('BotAvatar', () => {
 	it("shows the character's name and trait on hover", async () => {
-		const { container } = render(<BotAvatar kind="bear" />);
+		const { container } = render(<BotAvatar kind="bear" tooltip />);
 		await userEvent.hover(container.querySelector('img')!);
 		expect(await screen.findByText('Black Bear')).toBeInTheDocument();
 		expect(screen.getByText('A moon on its chest')).toBeInTheDocument();
 	});
 
-	it('draws the image alone when the tooltip is off', () => {
-		const { container } = render(<BotAvatar kind="bear" tooltip={false} />);
+	it('draws the image alone by default', () => {
+		const { container } = render(<BotAvatar kind="bear" />);
 		expect(container.querySelector('img')).toHaveAttribute('src', '/avatars/bear.svg');
 		expect(container.querySelector('[data-slot="tooltip-trigger"]')).toBeNull();
 	});

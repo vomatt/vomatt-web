@@ -11,6 +11,7 @@ import { NOTIFICATIONS_PAGE_SIZE } from '@/features/polls/constants';
 import type { Poll } from '@/features/polls/schema';
 import { getMyPolls } from '@/features/polls/service';
 import { derivePollStatus, isCancelled } from '@/features/polls/status';
+import { UserChip } from '@/features/profiles/UserChip';
 import { useCursorList } from '@/hooks/useCursorList';
 import type { CursorPage } from '@/lib/api/cursor';
 
@@ -99,7 +100,14 @@ export function NotificationList({
 								meta={
 									<>
 										{unreadMarker(poll)}
-										{t('notifications.invitedBy', { name: poll.creatorUsername })}
+										<UserChip
+											username={poll.creatorUsername}
+											avatarUrl={poll.creatorAvatarUrl}
+											label={t('notifications.invitedBy', { name: poll.creatorUsername })}
+											link={false}
+											className="align-middle"
+											avatarClassName="size-4"
+										/>
 									</>
 								}
 							/>

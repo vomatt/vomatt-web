@@ -21,7 +21,7 @@ import {
 } from '../../schema';
 
 const InviteeSelectionSchema = z.object({
-	users: z.array(z.object({ id: z.string(), username: z.string() })),
+	users: z.array(z.object({ id: z.string(), username: z.string(), avatarUrl: z.string().nullish() })),
 	emails: z.array(z.string()),
 	groups: z.array(z.object({ id: z.string(), name: z.string(), memberCount: z.number() })),
 }) satisfies z.ZodType<InviteeSelection>;

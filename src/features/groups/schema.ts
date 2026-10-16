@@ -19,6 +19,7 @@ export const GroupSchema = z.object({
 export const GroupMemberSchema = z.object({
 	userId: z.string().nullable(),
 	username: z.string().nullable(),
+	avatarUrl: z.string().nullish(),
 	email: z.string().nullable(),
 	addedAt: DateTime,
 });

@@ -122,6 +122,7 @@
 		"noPollsYet": "No polls yet.",
 		"stats": "Numbers",
 		"points": "{count} points",
+		"cardFailed": "Couldn't load this profile.",
 		"joined": "Joined {date}",
 		"membership": "{level} member",
 		"followers": "Followers",

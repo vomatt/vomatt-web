@@ -6,10 +6,13 @@ export function UserAvatar({
 	username,
 	avatarUrl,
 	className,
+	tooltip,
 }: {
 	username: string;
 	avatarUrl?: string | null;
 	className?: string;
+	/** Name and trait of the bot on hover; only on the profile page. */
+	tooltip?: boolean;
 }) {
-	return <BotAvatar kind={resolveAvatar(username, avatarUrl)} className={className} />;
+	return <BotAvatar kind={resolveAvatar(username, avatarUrl)} className={className} tooltip={tooltip} />;
 }

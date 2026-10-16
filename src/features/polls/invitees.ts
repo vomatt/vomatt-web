@@ -1,6 +1,6 @@
 import type { InviteesInput } from './schema';
 
-export type PickedUser = { id: string; username: string };
+export type PickedUser = { id: string; username: string; avatarUrl?: string | null };
 type PickedGroup = { id: string; name: string; memberCount: number };
 
 /** People picked by username or email, and Groups whose members are copied in. */
@@ -13,7 +13,12 @@ export function isSelectionEmpty(selection: InviteeSelection) {
 }
 
 /** An Invitee or Group member: added by user ID, or by an email address. */
-export type Person = { userId: string | null; username: string | null; email: string | null };
+export type Person = {
+	userId: string | null;
+	username: string | null;
+	avatarUrl?: string | null;
+	email: string | null;
+};
 
 /** Unique within one list: an email is listed only by that address, even once tied to a user. */
 export function personKey(person: Pick<Person, 'userId' | 'email'>) {

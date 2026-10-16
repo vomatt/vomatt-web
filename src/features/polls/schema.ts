@@ -11,7 +11,7 @@ const DateTime = z.string().datetime({ offset: true });
 
 /**
  * `author` is the commenter's username. A deleted Comment that still has
- * Replies stays as a placeholder: `deleted`, with no author or text.
+ * Replies stays as a placeholder: `deleted`, with no author, avatar or text.
  * Replies (`parentId` set) always hang off a top-level Comment.
  */
 export const CommentSchema = z.object({
@@ -19,6 +19,7 @@ export const CommentSchema = z.object({
 	voteId: z.string().optional(),
 	userId: z.string().nullish(),
 	author: z.string().nullable(),
+	authorAvatarUrl: z.string().nullish(),
 	text: z.string().nullable(),
 	createdAt: DateTime,
 	updatedAt: DateTime.nullish(),
@@ -113,6 +114,7 @@ const ApiAudienceSchema = z
 export const InviteeSchema = z.object({
 	userId: z.string().nullable(),
 	username: z.string().nullable(),
+	avatarUrl: z.string().nullish(),
 	email: z.string().nullable(),
 	hasBallot: z.boolean(),
 	invitedAt: DateTime,
@@ -122,6 +124,7 @@ export const InviteeSchema = z.object({
 export const VoterSchema = z.object({
 	userId: z.string(),
 	username: z.string(),
+	avatarUrl: z.string().nullish(),
 	optionId: z.string(),
 	votedAt: DateTime,
 });
@@ -159,6 +162,7 @@ export const PollSchema = z.object({
 	voterVisibility: ApiVoterVisibilitySchema.optional(),
 	creatorId: z.string(),
 	creatorUsername: z.string(),
+	creatorAvatarUrl: z.string().nullish(),
 	createdAt: DateTime,
 	updatedAt: DateTime.nullish(),
 	startTime: DateTime,

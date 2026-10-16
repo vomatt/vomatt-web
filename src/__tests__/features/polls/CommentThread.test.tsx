@@ -31,7 +31,14 @@ jest.mock('@/features/polls/service', () => ({
 }));
 
 const mine = { id: 'c1', userId: 'me', author: 'klaus', text: 'Mine', createdAt: '2026-10-05T00:00:00Z', likeCount: 2 };
-const theirs = { id: 'c2', userId: 'other', author: 'mei', text: 'Theirs', createdAt: '2026-10-04T00:00:00Z' };
+const theirs = {
+	id: 'c2',
+	userId: 'other',
+	author: 'mei',
+	authorAvatarUrl: 'bot:bear',
+	text: 'Theirs',
+	createdAt: '2026-10-04T00:00:00Z',
+};
 
 beforeEach(() => {
 	jest.clearAllMocks();
@@ -53,6 +60,12 @@ function Harness() {
 }
 
 describe('CommentThread', () => {
+	it("shows each author's chosen avatar", async () => {
+		render(<Harness />);
+		const article = (await screen.findByText('Theirs')).closest('article')!;
+		expect(article.querySelector('img')).toHaveAttribute('src', '/avatars/bear.svg');
+	});
+
 	it('offers edit and delete only on the viewer\'s own comments', async () => {
 		render(<Harness />);
 		await screen.findByText('Mine');

@@ -85,7 +85,8 @@ export function InviteePicker({ value, onChange, withGroups = false, id, invalid
 	}, [withGroups]);
 
 	const addUser = (user: PickedUser) => {
-		onChange({ ...value, users: [...value.users, { id: user.id, username: user.username }] });
+		const picked = { id: user.id, username: user.username, avatarUrl: user.avatarUrl };
+		onChange({ ...value, users: [...value.users, picked] });
 		setQuery('');
 	};
 
@@ -114,10 +115,11 @@ export function InviteePicker({ value, onChange, withGroups = false, id, invalid
 		else if (suggestions[0]) addUser(suggestions[0]);
 	};
 
-	const chips = [
+	const chips: { key: string; label: string; user?: PickedUser; remove: () => void }[] = [
 		...value.users.map((user) => ({
 			key: `user:${user.id}`,
 			label: user.username,
+			user,
 			remove: () => onChange({ ...value, users: value.users.filter((u) => u.id !== user.id) }),
 		})),
 		...value.emails.map((address) => ({
@@ -222,6 +224,9 @@ export function InviteePicker({ value, onChange, withGroups = false, id, invalid
 							key={chip.key}
 							className="inline-flex min-h-8 items-center gap-1 rounded-full bg-secondary pl-3 text-[13px]"
 						>
+							{chip.user && (
+								<UserAvatar username={chip.user.username} avatarUrl={chip.user.avatarUrl} className="-ml-2 size-6" />
+							)}
 							<span className="max-w-56 truncate">{chip.label}</span>
 							<button
 								type="button"

@@ -7,8 +7,8 @@ import { useCallback, useState } from 'react';
 
 import { AuthDialog } from '@/components/auth/AuthDialog';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { UserChip } from '@/features/profiles/UserChip';
 import { useHydrated } from '@/hooks/useHydrated';
-import { profileHref } from '@/lib/routes';
 
 import { formatFromNow } from '../format';
 import { useBallot } from '../hooks/useBallot';
@@ -98,12 +98,12 @@ export function PollCard({
 			<div className="p-4 space-y-4 md:p-6">
 				<div className="flex items-center justify-between gap-3">
 					<div className="flex min-w-0 items-center gap-1.5 text-[13px] text-muted-foreground">
-						<Link
-							href={profileHref(creatorUsername)}
-							className="truncate font-medium hover:text-foreground transition-colors"
-						>
-							{creatorUsername}
-						</Link>
+						<UserChip
+							username={creatorUsername}
+							avatarUrl={poll.creatorAvatarUrl}
+							className="font-medium hover:text-foreground transition-colors"
+							avatarClassName="size-6"
+						/>
 						<time dateTime={createdAt} className="shrink-0 whitespace-nowrap">
 							{isHydrated && formatFromNow(createdAt, currentLanguage)}
 						</time>

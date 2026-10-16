@@ -1,14 +1,12 @@
 'use client';
 
-import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { UserAvatar } from '@/features/avatars/UserAvatar';
+import { UserChip } from '@/features/profiles/UserChip';
 import { collectPages, mergeById } from '@/lib/api/cursor';
-import { profileHref } from '@/lib/routes';
 
 import type { Voter } from '../schema';
 import { getVoters } from '../service';
@@ -146,13 +144,11 @@ export function VotersDialog({ option, voters, onClose }: VotersDialogProps) {
 						<ul aria-label={t('poll.voters')} className="space-y-1">
 							{chose.map((voter) => (
 								<li key={voter.userId}>
-									<Link
-										href={profileHref(voter.username)}
-										className="-mx-2 flex min-h-11 items-center gap-3 rounded-lg px-2 text-[15px] hover:bg-muted"
-									>
-										<UserAvatar username={voter.username} />
-										<span className="truncate">{voter.username}</span>
-									</Link>
+									<UserChip
+										username={voter.username}
+										avatarUrl={voter.avatarUrl}
+										className="-mx-2 flex min-h-11 gap-3 rounded-lg px-2 text-[15px] hover:bg-muted"
+									/>
 								</li>
 							))}
 						</ul>
