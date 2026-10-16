@@ -260,6 +260,7 @@
 		"voteCast": "已完成投票。",
 		"voteFailed": "無法儲存你的投票，請再試一次。",
 		"withdrawFailed": "無法撤回你的投票，請再試一次。",
+		"tooManyVotes": "投票太頻繁了，請稍候一分鐘再試。",
 		"resultsFailed": "無法載入結果。",
 		"won": "「{option}」勝出，支持率以 {count} 位參與者計算",
 		"tie": "{options}平手",

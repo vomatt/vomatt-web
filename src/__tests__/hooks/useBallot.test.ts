@@ -49,6 +49,34 @@ describe('useBallot outcomes', () => {
 		await waitFor(() => expect(result.current.myOptionId).toBeNull());
 	});
 
+	it('tells the voter to slow down when Ballot writes are rate limited', async () => {
+		const { toast } = jest.requireMock('sonner');
+		mockCastBallot.mockResolvedValue({ ok: false, status: 429, errorCode: 'common.rate_limited', message: 'slow' });
+		const { result } = setup();
+		let outcome: string | undefined;
+		await act(async () => {
+			outcome = await result.current.cast('opt-a');
+		});
+		expect(outcome).toBe('failed');
+		expect(toast.error).toHaveBeenCalledWith("You're voting too fast. Wait a minute and try again.");
+	});
+
+	it('tells the voter to slow down when a withdrawal is rate limited', async () => {
+		const { toast } = jest.requireMock('sonner');
+		mockCastBallot.mockResolvedValue({ ok: true });
+		mockRetractBallot.mockResolvedValue({ ok: false, status: 429, errorCode: 'common.rate_limited', message: 'slow' });
+		const { result } = setup();
+		let outcome: string | undefined;
+		await act(async () => {
+			await result.current.cast('opt-a');
+		});
+		await act(async () => {
+			outcome = await result.current.retract();
+		});
+		expect(outcome).toBe('failed');
+		expect(toast.error).toHaveBeenCalledWith("You're voting too fast. Wait a minute and try again.");
+	});
+
 	it('resolves ended when the poll closed meanwhile', async () => {
 		mockCastBallot.mockResolvedValue({ ok: false, errorCode: 'vote.ended', message: 'ended' });
 		const { result } = setup();

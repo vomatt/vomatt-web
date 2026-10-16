@@ -1839,7 +1839,7 @@
 			"post": {
 				"tags": ["Vote"],
 				"summary": "Cast a Ballot",
-				"description": "**Auth**: required\n**Precondition**: the Poll is Open (not Scheduled, not Ended)\n**Behavior**: records the caller's Ballot with exactly one Selection. If the caller already holds a Ballot it is replaced by the new one (change of mind); casting the same option again changes nothing. The response is the Poll with the results still Sealed and `myOptionId` set.\n**Side effects**: Turnout +1 on the first Ballot only; the option counts move silently (not visible until the Poll has Ended); the action is audit-logged. When this Ballot leaves every Invitee of an INVITE_ONLY Poll holding a Ballot (the owner's own Ballot never counts), the Poll Ends now (`endTime` moves, `deadline` stays), so the response comes back Ended with results visible and the Ended Notification follows.\n**Errors**:\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is INVITE_ONLY and the caller is neither its owner nor an Invitee\n- 400 `vote.ended`: the Poll has Ended; Ballots are frozen\n- 400 `vote.not_allowed`: the Poll is still Scheduled\n- 400 `vote.multiple.not_allowed`: `optionIds` holds more than one ID\n- 404 `vote.option.not_found`: the option ID does not exist\n- 400 `vote.option.not_in_vote`: the option belongs to another Poll\n- 404 `user.not_found`: the signed-in user no longer exists\n- 400 `common.validation_failed`: `optionIds` is empty\n",
+				"description": "**Auth**: required\n**Precondition**: the Poll is Open (not Scheduled, not Ended)\n**Behavior**: records the caller's Ballot with exactly one Selection. If the caller already holds a Ballot it is replaced by the new one (change of mind); casting the same option again changes nothing. The response is the Poll with the results still Sealed and `myOptionId` set.\n**Side effects**: Turnout +1 on the first Ballot only; the option counts move silently (not visible until the Poll has Ended); the action is audit-logged. When this Ballot leaves every Invitee of an INVITE_ONLY Poll holding a Ballot (the owner's own Ballot never counts), the Poll Ends now (`endTime` moves, `deadline` stays), so the response comes back Ended with results visible and the Ended Notification follows.\n**Errors**:\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is INVITE_ONLY and the caller is neither its owner nor an Invitee\n- 400 `vote.ended`: the Poll has Ended; Ballots are frozen\n- 400 `vote.not_allowed`: the Poll is still Scheduled\n- 400 `vote.multiple.not_allowed`: `optionIds` holds more than one ID\n- 404 `vote.option.not_found`: the option ID does not exist\n- 400 `vote.option.not_in_vote`: the option belongs to another Poll\n- 404 `user.not_found`: the signed-in user no longer exists\n- 400 `common.validation_failed`: `optionIds` is empty\n- 429 `common.rate_limited`: more than 30 Ballot writes (cast, Retract, remove Selection) by the caller within 60 seconds; no `Retry-After`\n",
 				"operationId": "vote",
 				"parameters": [
 					{
@@ -2002,7 +2002,7 @@
 			"delete": {
 				"tags": ["Vote"],
 				"summary": "Retract a Ballot",
-				"description": "**Auth**: required\n**Precondition**: the Poll is Open (not Scheduled, not Ended)\n**Behavior**: withdraws the caller's whole Ballot (Retraction); the caller is no longer a Participant. Idempotent: succeeds, changing nothing, when the caller holds no Ballot.\n**Side effects**: Turnout -1 when a Ballot was removed. A Participant who Retracted gets no Ended Notification, unless they are an Invitee: every Invitee of an INVITE_ONLY Poll still gets it.\n**Errors**:\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is INVITE_ONLY and the caller is neither its owner nor an Invitee\n- 400 `vote.ended`: the Poll has Ended; Ballots are frozen\n- 400 `vote.not_allowed`: the Poll is still Scheduled\n",
+				"description": "**Auth**: required\n**Precondition**: the Poll is Open (not Scheduled, not Ended)\n**Behavior**: withdraws the caller's whole Ballot (Retraction); the caller is no longer a Participant. Idempotent: succeeds, changing nothing, when the caller holds no Ballot.\n**Side effects**: Turnout -1 when a Ballot was removed. A Participant who Retracted gets no Ended Notification, unless they are an Invitee: every Invitee of an INVITE_ONLY Poll still gets it.\n**Errors**:\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is INVITE_ONLY and the caller is neither its owner nor an Invitee\n- 400 `vote.ended`: the Poll has Ended; Ballots are frozen\n- 400 `vote.not_allowed`: the Poll is still Scheduled\n- 429 `common.rate_limited`: more than 30 Ballot writes (cast, Retract, remove Selection) by the caller within 60 seconds; no `Retry-After`\n",
 				"operationId": "retract",
 				"parameters": [
 					{
@@ -2410,7 +2410,7 @@
 			"delete": {
 				"tags": ["Vote"],
 				"summary": "Remove an email Invitee",
-				"description": "**Auth**: required (owner only)\n**Precondition**: the Poll is INVITE_ONLY and Scheduled or Open, and the Invitee holds no Ballot\n**Behavior**: removes the Invitee added by this address (lower-cased and trimmed like sign-in does), whether or not it belongs to an account; from then on the Poll is 404 `vote.not_found` for that person and verifying the address no longer grants access. Idempotent: succeeds, changing nothing, when the address is not an Invitee. Returns the full Invitee list.\n**Side effects**: `inviteeCount` drops; the action is audit-logged. When every remaining Invitee of an Open Poll holds a Ballot (and at least one remains), the Poll Ends now (`endTime` moves, `deadline` stays) and the Ended Notification follows. This check also runs when nothing was removed, so even a no-op call can end such a Poll.\n**Errors**:\n- 400 `vote.invitee.has_ballot`: the Invitee holds a Ballot, so counted Ballots are never orphaned\n- 400 `vote.invitee.not_invite_only`: the Poll is not INVITE_ONLY\n- 400 `vote.ended`: the Poll has Ended\n- 403 `vote.forbidden`: the caller is not the owner\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is INVITE_ONLY and the caller is neither its owner nor an Invitee\n",
+				"description": "**Auth**: required (owner only)\n**Precondition**: the Poll is INVITE_ONLY and Scheduled or Open, and the Invitee holds no Ballot\n**Behavior**: removes the Invitee added by this address (normalized like sign-in does: lower-cased, trimmed, Gmail in canonical form), whether or not it belongs to an account; from then on the Poll is 404 `vote.not_found` for that person and verifying the address no longer grants access. Idempotent: succeeds, changing nothing, when the address is not an Invitee. Returns the full Invitee list.\n**Side effects**: `inviteeCount` drops; the action is audit-logged. When every remaining Invitee of an Open Poll holds a Ballot (and at least one remains), the Poll Ends now (`endTime` moves, `deadline` stays) and the Ended Notification follows. This check also runs when nothing was removed, so even a no-op call can end such a Poll.\n**Errors**:\n- 400 `vote.invitee.has_ballot`: the Invitee holds a Ballot, so counted Ballots are never orphaned\n- 400 `vote.invitee.not_invite_only`: the Poll is not INVITE_ONLY\n- 400 `vote.ended`: the Poll has Ended\n- 403 `vote.forbidden`: the caller is not the owner\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is INVITE_ONLY and the caller is neither its owner nor an Invitee\n",
 				"operationId": "removeEmailInvitee",
 				"parameters": [
 					{
@@ -3457,7 +3457,7 @@
 			"delete": {
 				"tags": ["Group"],
 				"summary": "Remove an email Group member",
-				"description": "**Auth**: required (owner only)\n**Precondition**: none\n**Behavior**: removes the member added by this address (lower-cased and trimmed like sign-in does), whether or not it belongs to an account. Idempotent: succeeds, changing nothing, when the address is not a member. Polls the Group was already invited into keep their Invitees. Returns the full member list.\n**Side effects**: the action is audit-logged.\n**Errors**:\n- 404 `group.not_found`: the Group does not exist or belongs to someone else",
+				"description": "**Auth**: required (owner only)\n**Precondition**: none\n**Behavior**: removes the member added by this address (normalized like sign-in does: lower-cased, trimmed, Gmail in canonical form), whether or not it belongs to an account. Idempotent: succeeds, changing nothing, when the address is not a member. Polls the Group was already invited into keep their Invitees. Returns the full member list.\n**Side effects**: the action is audit-logged.\n**Errors**:\n- 404 `group.not_found`: the Group does not exist or belongs to someone else",
 				"operationId": "removeEmailMember",
 				"parameters": [
 					{
@@ -3685,7 +3685,7 @@
 			"post": {
 				"tags": ["Auth"],
 				"summary": "Send email OTP",
-				"description": "**Auth**: public\n**Precondition**: none; the same endpoint serves login and signup (the server picks which by whether the email is registered)\n**Behavior**: generates a 6-digit OTP, stores it with a TTL (default 180 s) and emails it. The email is lower-cased and trimmed. If `checkRole` is \"true\", only an existing admin account may request an OTP (admin console login)\n**Side effects**: sends an email; replaces any previous OTP for this address. A resend is refused during the cooldown (default 180 s)\n**Errors**:\n- 400 `auth.identifier.required`: `email` is missing or blank\n- 400 `auth.otp.resend_cooldown`: an OTP was sent too recently; the message states the seconds left\n- 400 `auth.email.send_failed`: the email provider rejected the message\n- 403 `auth.admin.forbidden`: `checkRole` is \"true\" and the account is not an admin",
+				"description": "**Auth**: public\n**Precondition**: none; the same endpoint serves login and signup (the server picks which by whether the email is registered)\n**Behavior**: generates a 6-digit OTP, stores it with a TTL (default 180 s) and emails it. The email is lower-cased and trimmed; a Gmail address (gmail.com / googlemail.com) also loses its +tag and dots and moves to gmail.com. If `checkRole` is \"true\", only an existing admin account may request an OTP (admin console login)\n**Side effects**: sends an email; replaces any previous OTP for this address. A resend is refused during the cooldown (default 180 s)\n**Errors**:\n- 400 `auth.identifier.required`: `email` is missing or blank\n- 400 `auth.otp.resend_cooldown`: an OTP was sent too recently; the message states the seconds left\n- 400 `auth.email.send_failed`: the email provider rejected the message\n- 403 `auth.admin.forbidden`: `checkRole` is \"true\" and the account is not an admin",
 				"operationId": "sendOtp",
 				"requestBody": {
 					"content": {
@@ -3847,7 +3847,7 @@
 			"post": {
 				"tags": ["Auth"],
 				"summary": "Verify phone OTP and sign in",
-				"description": "**Auth**: public\n**Precondition**: an OTP was sent to this number via `POST /api/auth/phone/send-otp` and has not expired\n**Behavior**: consumes the OTP and returns an access token and refresh token. Creates the user if the number is new, otherwise signs the existing user in\n**Side effects**: the OTP is consumed on success; a new user (with a random bot avatar) is created if needed; `lastLoginAt` is updated. After 5 wrong codes the OTP is deleted and a new one must be requested\n**Errors**:\n- 401 `auth.otp.invalid_or_expired`: no OTP exists for this number (never sent, expired, or already used)\n- 401 `auth.invalid_otp`: the code is wrong\n- 401 `auth.otp.too_many_attempts`: 5th wrong code; the OTP is discarded\n- 403 `auth.account_banned`: the user is suspended (`active=false`)",
+				"description": "**Auth**: public\n**Precondition**: an OTP was sent to this number via `POST /api/auth/phone/send-otp` and has not expired\n**Behavior**: normalizes the number to E.164 like send-otp, so an OTP sent to `0912345678` verifies as `+886912345678`. Consumes the OTP and returns an access token and refresh token. Creates the user if the number is new, otherwise signs the existing user in\n**Side effects**: the OTP is consumed on success; a new user (with a random bot avatar) is created if needed; `lastLoginAt` is updated. After 5 wrong codes the OTP is deleted and a new one must be requested\n**Errors**:\n- 400 `auth.phone.invalid`: the number is not in a supported format (see send-otp)\n- 401 `auth.otp.invalid_or_expired`: no OTP exists for this number (never sent, expired, or already used)\n- 401 `auth.invalid_otp`: the code is wrong\n- 401 `auth.otp.too_many_attempts`: 5th wrong code; the OTP is discarded\n- 403 `auth.account_banned`: the user is suspended (`active=false`)",
 				"operationId": "phoneVerifyOtp",
 				"requestBody": {
 					"content": {
@@ -3954,7 +3954,7 @@
 			"post": {
 				"tags": ["Auth"],
 				"summary": "Send phone OTP",
-				"description": "**Auth**: public\n**Precondition**: for `type` \"login\" (the default) the phone number must already be registered\n**Behavior**: generates a 6-digit OTP, stores it with a TTL (default 180 s) and sends it by SMS. `type` is \"login\" or \"signup\"\n**Side effects**: sends an SMS; replaces any previous OTP for this number. A resend is refused during the cooldown (default 180 s)\n**Errors**:\n- 400 `auth.otp.resend_cooldown`: an OTP was sent too recently; the message states the seconds left\n- 400 `auth.phone.not_registered`: `type` is \"login\" and the number is not registered\n- 400 `auth.sms.send_failed`: the SMS provider rejected the message",
+				"description": "**Auth**: public\n**Precondition**: for `type` \"login\" (the default) the phone number must already be registered\n**Behavior**: normalizes the number to E.164 (`0912345678` and `+886912345678` are the same number), generates a 6-digit OTP, stores it with a TTL (default 180 s) and sends it by SMS. `type` is \"login\" or \"signup\"\n**Side effects**: sends an SMS; replaces any previous OTP for this number. A resend is refused during the cooldown (default 180 s)\n**Errors**:\n- 400 `auth.phone.invalid`: the number is neither a Taiwan mobile number (`09` + 8 digits) nor `+` country code and number (8-15 digits)\n- 400 `auth.otp.resend_cooldown`: an OTP was sent too recently; the message states the seconds left\n- 400 `auth.phone.not_registered`: `type` is \"login\" and the number is not registered\n- 400 `auth.sms.send_failed`: the SMS provider rejected the message",
 				"operationId": "phoneSendOtp",
 				"requestBody": {
 					"content": {
@@ -6694,7 +6694,7 @@
 			"delete": {
 				"tags": ["Vote"],
 				"summary": "Retract a Ballot by option",
-				"description": "**Auth**: required\n**Precondition**: the Poll is Open (not Scheduled, not Ended)\n**Behavior**: kept for compatibility; withdraws the caller's Ballot only if it chose `optionId` (same effect as a Retraction then). Succeeds without change when the caller's Ballot chose another option or none exists. Deprecated: use `DELETE /api/votes/{voteId}/vote`.\n**Side effects**: Turnout -1 when a Ballot was removed.\n**Errors**:\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is INVITE_ONLY and the caller is neither its owner nor an Invitee\n- 400 `vote.ended`: the Poll has Ended; Ballots are frozen\n- 400 `vote.not_allowed`: the Poll is still Scheduled\n",
+				"description": "**Auth**: required\n**Precondition**: the Poll is Open (not Scheduled, not Ended)\n**Behavior**: kept for compatibility; withdraws the caller's Ballot only if it chose `optionId` (same effect as a Retraction then). Succeeds without change when the caller's Ballot chose another option or none exists. Deprecated: use `DELETE /api/votes/{voteId}/vote`.\n**Side effects**: Turnout -1 when a Ballot was removed.\n**Errors**:\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is INVITE_ONLY and the caller is neither its owner nor an Invitee\n- 400 `vote.ended`: the Poll has Ended; Ballots are frozen\n- 400 `vote.not_allowed`: the Poll is still Scheduled\n- 429 `common.rate_limited`: more than 30 Ballot writes (cast, Retract, remove Selection) by the caller within 60 seconds; no `Retry-After`\n",
 				"operationId": "removeVote",
 				"parameters": [
 					{
@@ -7290,14 +7290,14 @@
 						"maxItems": 100,
 						"minItems": 0,
 						"type": "array",
-						"description": "Email addresses to invite, for people who may not have an account yet; only for an INVITE_ONLY Poll (otherwise 400 `vote.invitee.not_invite_only`). At most 100; null elements and invalid addresses are rejected. Addresses are lower-cased and trimmed like sign-in does; duplicates and the owner's own address are ignored. Each address is listed as entered and gets an invitation email; an active account's user gets access right away, any other address once someone verifies it at sign-up / sign-in. On edit the list replaces the Invitees added by email (matched by address); null keeps them",
+						"description": "Email addresses to invite, for people who may not have an account yet; only for an INVITE_ONLY Poll (otherwise 400 `vote.invitee.not_invite_only`). At most 100; null elements and invalid addresses are rejected. Addresses are normalized like sign-in does: lower-cased, trimmed, Gmail in canonical form; duplicates and the owner's own address are ignored. Each address is listed as entered and gets an invitation email; an active account's user gets access right away, any other address once someone verifies it at sign-up / sign-in. On edit the list replaces the Invitees added by email (matched by address); null keeps them",
 						"nullable": true,
 						"example": ["carol@example.com"],
 						"items": {
 							"maxLength": 254,
 							"minLength": 0,
 							"type": "string",
-							"description": "Email addresses to invite, for people who may not have an account yet; only for an INVITE_ONLY Poll (otherwise 400 `vote.invitee.not_invite_only`). At most 100; null elements and invalid addresses are rejected. Addresses are lower-cased and trimmed like sign-in does; duplicates and the owner's own address are ignored. Each address is listed as entered and gets an invitation email; an active account's user gets access right away, any other address once someone verifies it at sign-up / sign-in. On edit the list replaces the Invitees added by email (matched by address); null keeps them",
+							"description": "Email addresses to invite, for people who may not have an account yet; only for an INVITE_ONLY Poll (otherwise 400 `vote.invitee.not_invite_only`). At most 100; null elements and invalid addresses are rejected. Addresses are normalized like sign-in does: lower-cased, trimmed, Gmail in canonical form; duplicates and the owner's own address are ignored. Each address is listed as entered and gets an invitation email; an active account's user gets access right away, any other address once someone verifies it at sign-up / sign-in. On edit the list replaces the Invitees added by email (matched by address); null keeps them",
 							"format": "email",
 							"nullable": true,
 							"example": "[\"carol@example.com\"]"
@@ -7785,14 +7785,14 @@
 						"maxItems": 100,
 						"minItems": 0,
 						"type": "array",
-						"description": "Up to 100 email addresses to invite; null elements and invalid addresses are rejected. Lower-cased and trimmed like sign-in does; addresses already invited, duplicates and the owner's own address are ignored. Each address is listed as entered and gets an invitation email; an active account's user gets access right away, any other address once someone verifies it at sign-up / sign-in",
+						"description": "Up to 100 email addresses to invite; null elements and invalid addresses are rejected. Normalized like sign-in does (lower-cased, trimmed, Gmail in canonical form); addresses already invited, duplicates and the owner's own address are ignored. Each address is listed as entered and gets an invitation email; an active account's user gets access right away, any other address once someone verifies it at sign-up / sign-in",
 						"nullable": true,
 						"example": ["carol@example.com"],
 						"items": {
 							"maxLength": 254,
 							"minLength": 0,
 							"type": "string",
-							"description": "Up to 100 email addresses to invite; null elements and invalid addresses are rejected. Lower-cased and trimmed like sign-in does; addresses already invited, duplicates and the owner's own address are ignored. Each address is listed as entered and gets an invitation email; an active account's user gets access right away, any other address once someone verifies it at sign-up / sign-in",
+							"description": "Up to 100 email addresses to invite; null elements and invalid addresses are rejected. Normalized like sign-in does (lower-cased, trimmed, Gmail in canonical form); addresses already invited, duplicates and the owner's own address are ignored. Each address is listed as entered and gets an invitation email; an active account's user gets access right away, any other address once someone verifies it at sign-up / sign-in",
 							"format": "email",
 							"nullable": true,
 							"example": "[\"carol@example.com\"]"
@@ -8031,14 +8031,14 @@
 						"maxItems": 100,
 						"minItems": 0,
 						"type": "array",
-						"description": "Up to 100 email addresses to add; null elements and invalid addresses are rejected. Lower-cased and trimmed like sign-in does; addresses already in the Group, duplicates and the owner's own address are ignored. Each address is listed as entered, whether or not it belongs to an account; nobody is notified",
+						"description": "Up to 100 email addresses to add; null elements and invalid addresses are rejected. Normalized like sign-in does (lower-cased, trimmed, Gmail in canonical form); addresses already in the Group, duplicates and the owner's own address are ignored. Each address is listed as entered, whether or not it belongs to an account; nobody is notified",
 						"nullable": true,
 						"example": ["carol@example.com"],
 						"items": {
 							"maxLength": 254,
 							"minLength": 0,
 							"type": "string",
-							"description": "Up to 100 email addresses to add; null elements and invalid addresses are rejected. Lower-cased and trimmed like sign-in does; addresses already in the Group, duplicates and the owner's own address are ignored. Each address is listed as entered, whether or not it belongs to an account; nobody is notified",
+							"description": "Up to 100 email addresses to add; null elements and invalid addresses are rejected. Normalized like sign-in does (lower-cased, trimmed, Gmail in canonical form); addresses already in the Group, duplicates and the owner's own address are ignored. Each address is listed as entered, whether or not it belongs to an account; nobody is notified",
 							"format": "email",
 							"nullable": true,
 							"example": "[\"carol@example.com\"]"
@@ -8077,7 +8077,7 @@
 				"properties": {
 					"email": {
 						"type": "string",
-						"description": "Email address; the server lower-cases and trims it. Required in practice: a missing or blank value yields 400 auth.identifier.required",
+						"description": "Email address; the server lower-cases and trims it, and stores a Gmail address in canonical form (no +tag or dots, domain gmail.com). Required in practice: a missing or blank value yields 400 auth.identifier.required",
 						"format": "email",
 						"example": "user@example.com"
 					},
@@ -8109,7 +8109,7 @@
 				"properties": {
 					"phone": {
 						"type": "string",
-						"description": "Phone number",
+						"description": "Phone number: a Taiwan mobile number (09xxxxxxxx) or E.164 (+ country code and number). Spaces, '-', '(' and ')' are ignored; stored and matched as E.164",
 						"example": "0912345678"
 					},
 					"code": {
@@ -8126,7 +8126,7 @@
 				"properties": {
 					"phone": {
 						"type": "string",
-						"description": "Phone number",
+						"description": "Phone number: a Taiwan mobile number (09xxxxxxxx) or E.164 (+ country code and number). Spaces, '-', '(' and ')' are ignored; stored and matched as E.164",
 						"example": "0912345678"
 					},
 					"type": {
@@ -9246,9 +9246,9 @@
 					},
 					"phoneNumber": {
 						"type": "string",
-						"description": "Phone number. Null for users who signed up by email or OAuth and never added a phone",
+						"description": "Phone number in E.164. Null for users who signed up by email or OAuth and never added a phone",
 						"nullable": true,
-						"example": "0912345678"
+						"example": "+886912345678"
 					}
 				},
 				"description": "Basic user info included in a login response",
