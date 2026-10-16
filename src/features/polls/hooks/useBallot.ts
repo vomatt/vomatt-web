@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 
 import { useLanguage } from '@/contexts/LanguageContext';
 
-import { type ActionResult, isPollEnded } from '../errors';
+import { type ActionResult, isPollEnded, isRateLimited } from '../errors';
 import type { Poll } from '../schema';
 import { castBallot, getMyBallot, retractBallot } from '../service';
 import { derivePollStatus, getTurnout, shiftCount } from '../status';
@@ -100,7 +100,7 @@ export function useBallot(poll: Poll, { isAuthed, onPollEnded }: Options) {
 				onPollEnded();
 				return 'ended';
 			}
-			toast.error(failureMessage);
+			toast.error(isRateLimited(result) ? t('poll.tooManyVotes') : failureMessage);
 			return 'failed';
 		},
 		[hasServerBallot, myOptionId, onPollEnded, poll.id, t]
