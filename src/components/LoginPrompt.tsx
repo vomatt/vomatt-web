@@ -23,19 +23,20 @@ export function LoginPrompt({ className, redirectTo, sessionExpired }: LoginProm
 	return (
 		<div
 			className={cn(
-				'rounded-xl border border-border bg-card p-5 h-fit max-w-[240px] hidden lg:block',
+				// From xl up it fits beside the full 640px feed and the sidebar
+				'rounded-xl border border-border bg-card p-5 h-fit w-[280px] shrink-0 hidden xl:block',
 				className
 			)}
 		>
-			<h4 className="text-sm font-semibold text-foreground">
+			<h4 className="item-title font-semibold text-foreground">
 				{t('loginPrompt.title')}
 			</h4>
-			<p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
+			<p className="text-[15px] text-muted-foreground mt-1.5 leading-relaxed">
 				{t('loginPrompt.subtitle')}
 			</p>
 			<NextLink
 				href={href}
-				className={buttonVariants({ size: 'sm', className: 'mt-4 w-full' })}
+				className={buttonVariants({ size: 'sm', className: 'mt-5 w-full' })}
 			>
 				{t('loginPrompt.ctaLabel')}
 			</NextLink>

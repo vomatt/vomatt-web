@@ -19,7 +19,7 @@ export default async function Page({ searchParams }: Props) {
 		<div className="px-contain flex justify-center gap-8 py-0">
 			<Suspense
 				fallback={
-					<div className="w-full max-w-[560px] py-4">
+					<div className="w-full max-w-feed py-4">
 						<PollListSkeleton />
 					</div>
 				}

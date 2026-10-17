@@ -4,7 +4,7 @@ How the vomatt UI is built. `PRODUCT.md` says why (users, brand, principles, acc
 
 ## Color
 
-Warm canvas, ink actions, one accent. Use the semantic tokens as Tailwind classes, never raw `oklch()`/hex values. Every token has a dark value in `.dark`.
+Cool canvas, ink actions, one accent. Use the semantic tokens as Tailwind classes, never raw `oklch()`/hex values. Every token has a dark value in `.dark`.
 
 | Role | Token | Use for |
 |---|---|---|
@@ -16,11 +16,11 @@ Warm canvas, ink actions, one accent. Use the semantic tokens as Tailwind classe
 | Quiet text | `muted-foreground` | Meta, hints, secondary copy |
 | Lines | `border`, `border-strong` | `border` for cards, rows, dividers and outline buttons; `border-strong` for fields and hover |
 | Controls | `input` | Checkbox marks and switch tracks: the 3:1 boundary of small controls |
-| Your choice | `volt`, `volt-tint` | Only for the viewer's own choice and unread markers. Never decoration |
+| Volt | `volt`, `volt-foreground`, `volt-tint` | The create action (`Button variant="create"`: a Volt icon on ink in light, a Volt button in dark), the active nav icon, the viewer's own choice and unread markers. Never decoration |
 | Poll status | `status-scheduled/open/closing/ended` | Status chip tints, always with a text label |
 | Error | `destructive` | Validation and destructive actions |
 
-The `sidebar-*` tokens alias the base tokens; change the base, not the alias.
+`sidebar` is one step deeper than the canvas, divided by a 1px `sidebar-border`; the other `sidebar-*` tokens alias the base tokens, so change the base, not the alias.
 
 ## Type
 
@@ -29,8 +29,9 @@ The `sidebar-*` tokens alias the base tokens; change the base, not the alias.
   - Page titles: `display-heading text-[32px] md:text-[44px]`
   - Auth titles: `display-heading text-[32px]`
   - Person names: `display-heading text-[28px]`
-- **Poll title** (card and preview): `text-[22px] leading-tight tracking-[-0.02em]`, `md:text-2xl` on cards.
-- **Body** `text-[15px]`; **meta** `text-[13px]`; **chip** `text-[11px]` uppercase semibold.
+- **Poll title** (card and preview): `text-[22px] leading-tight tracking-[-0.02em]`; cards add `font-medium md:text-[26px]`.
+- **Item title** (list rows, side cards): the `item-title` utility (17px, -0.01em); weight and leading go beside it.
+- **Body** `text-[15px]` (card descriptions `text-base`); **meta** `text-[13px]`; **chip** `text-[11px]` uppercase semibold.
 - Inputs are `text-base` on phones so iOS doesn't zoom.
 
 ## Shape and layout
@@ -38,7 +39,8 @@ The `sidebar-*` tokens alias the base tokens; change the base, not the alias.
 - Borders stay quiet: 1px, `border` by default. Fields are `border-strong` on a `field` fill and turn `card` white on focus; the strong focus outline carries the 3:1 contrast. Only the selected ballot row and a winning result get an ink border.
 - Radius: `rounded-xl` for cards, ballot rows and panels; `rounded-lg` for buttons and inputs; `rounded-full` for chips, pills and avatars.
 - Page container: `px-contain mx-auto max-w-2xl py-6` for lists (Explore, My polls, Notifications, Profile); `max-w-5xl` for a poll page; `max-w-3xl` for Account.
-- Desktop gets the collapsible `AppSidebar`; mobile gets the fixed `TabBar` (64px plus the safe-area inset). Both hide on `/login`. There is one create action: the sidebar header button and the TabBar's center ink square.
+- The home feed column is `max-w-feed` (640px, `--container-feed`).
+- Desktop gets the collapsible `AppSidebar`; mobile gets the fixed `TabBar` (64px plus the safe-area inset). Both hide on `/login`. There is one create action, `Button variant="create"`: the sidebar's button and the TabBar's center square.
 - The poll creator is full screen on phones and a 560px dialog from `sm` up.
 - Touch targets are at least 44px (`h-11`); the `sm` sizes shrink to 36px from `md` up only.
 

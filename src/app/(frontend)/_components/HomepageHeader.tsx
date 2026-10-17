@@ -35,7 +35,7 @@ export function HomepageHeader({ tags, activeTag }: HomepageHeaderProps) {
 								scroll={false}
 								aria-current={isActive ? 'page' : undefined}
 								className={cn(
-									'block rounded-md px-3 py-2 text-sm font-medium transition-colors',
+									'flex min-h-11 items-center rounded-md px-3 text-[15px] font-medium transition-colors',
 									isActive ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
 								)}
 							>

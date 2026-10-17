@@ -26,8 +26,8 @@ type TabBarProps = {
 	username?: string;
 };
 
-// The center tab is the primary action: an ink square, the "Create a poll" action
-const createClassName = cn(buttonVariants(), 'w-13 px-0');
+// The center tab is the primary action: the create button as a square, the "Create a poll" action
+const createClassName = cn(buttonVariants({ variant: 'create' }), 'w-13 px-0');
 const cellClassName = 'flex-1 h-full flex justify-center items-center';
 
 export function TabBar({ className, userSession, username }: TabBarProps) {

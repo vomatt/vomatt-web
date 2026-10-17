@@ -67,7 +67,7 @@ export function PollFeedList({
 
 	return (
 		<div
-			className={cn('flex-1 min-h-[var(--h-main)] max-w-[560px]', className)}
+			className={cn('flex-1 min-h-[var(--h-main)] max-w-feed', className)}
 		>
 			{header}
 
