@@ -100,14 +100,14 @@ describe('VotersDialog', () => {
 		expect(await screen.findByText('No one to show.')).toBeInTheDocument();
 	});
 
-	it('explains when Voter Visibility hides the list, without asking again', async () => {
+	it('explains when the list is hidden, without asking again', async () => {
 		mockGetVoters.mockResolvedValue({ ok: false, status: 403, errorCode: 'vote.voters.hidden', message: 'no' });
 		render(<Harness />);
 		fireEvent.click(screen.getByRole('button', { name: 'Tabs' }));
-		expect(await screen.findByText("You can't see who voted in this poll.")).toBeInTheDocument();
+		expect(await screen.findByText(/The voter list for this poll is hidden/)).toBeInTheDocument();
 		fireEvent.click(screen.getByRole('button', { name: 'Close' }));
 		fireEvent.click(screen.getByRole('button', { name: 'Spaces' }));
-		expect(await screen.findByText("You can't see who voted in this poll.")).toBeInTheDocument();
+		expect(await screen.findByText(/The voter list for this poll is hidden/)).toBeInTheDocument();
 		expect(mockGetVoters).toHaveBeenCalledTimes(1);
 	});
 

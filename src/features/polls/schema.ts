@@ -178,6 +178,8 @@ export const PollSchema = z.object({
 	participantCount: z.number().int().optional(),
 	commentCount: z.number().int().optional(),
 	myOptionId: z.string().nullable().optional(),
+	/** Whether the viewer's Ballot is left out of the voter list; null without a Ballot. */
+	myBallotAnonymous: z.boolean().nullish(),
 	/**
 	 * Only set on My Polls: an unread Invitation (`status=open`) or an unread
 	 * Ended Notification (`status=ended`).

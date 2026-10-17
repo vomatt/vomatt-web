@@ -240,11 +240,16 @@ function invalidatePoll(id: string, { lists = false } = {}) {
  * Casts a Ballot, or replaces the existing one. Resolves to the Poll, which
  * has already Ended when this was the last Invitee's Ballot of an Invite-only Poll.
  */
-export async function castBallot(pollId: string, optionId: string): Promise<ActionResult<Poll>> {
+export async function castBallot(
+	pollId: string,
+	optionId: string,
+	/** Omitted keeps the current Ballot's flag, or the account default for a first Ballot. */
+	anonymous?: boolean
+): Promise<ActionResult<Poll>> {
 	return attempt(async () => {
 		const poll = await apiClient(`/votes/${pollId}/vote`, {
 			method: 'POST',
-			body: JSON.stringify({ optionIds: [optionId] }),
+			body: JSON.stringify({ optionIds: [optionId], anonymous }),
 		});
 		invalidatePoll(pollId);
 		return PollSchema.parse(poll);

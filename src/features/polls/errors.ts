@@ -14,6 +14,11 @@ export function isRateLimited(result: ActionResult<unknown>) {
 	return !result.ok && result.status === 429;
 }
 
+/** The Poll stayed busy with other changes for 3 seconds; nothing was recorded. */
+export function isBusy(result: ActionResult<unknown>) {
+	return !result.ok && result.errorCode === 'common.conflict';
+}
+
 /** Results are sealed while the Poll is Open; `/results` answers 403. */
 export function isSealed(result: ActionResult<unknown>) {
 	return !result.ok && result.status === 403;

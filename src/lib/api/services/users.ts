@@ -56,7 +56,12 @@ export async function getMyProfile(): Promise<MyProfile> {
 }
 
 /** Omitted fields stay as they are. */
-export async function updateProfile(data: { username?: string; displayName?: string; bio?: string }) {
+export async function updateProfile(data: {
+  username?: string;
+  displayName?: string;
+  bio?: string;
+  anonymousBallotByDefault?: boolean;
+}) {
   const profile = await apiClient<UserProfile>('/users/me', {
     method: 'PATCH',
     body: JSON.stringify(data),

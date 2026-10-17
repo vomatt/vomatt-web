@@ -55,6 +55,9 @@ jest.mock('@/components/auth/AuthDialog', () => ({
 	},
 }));
 
+// Base UI's Switch dispatches a PointerEvent on click
+window.PointerEvent = window.PointerEvent || (MouseEvent as any);
+
 const HOUR = 3600_000;
 const iso = (offset: number) => new Date(Date.now() + offset).toISOString();
 
@@ -206,6 +209,30 @@ describe('PollCard state B · Open, has Ballot', () => {
 		);
 		// The stamp lifts off with an exit animation
 		await waitFor(() => expect(screen.queryByText('Your vote')).not.toBeInTheDocument());
+	});
+
+	it('lets a voter hide an existing Ballot from the voter list', async () => {
+		mockCastBallot.mockResolvedValue({
+			ok: true,
+			data: { ...openPoll, myOptionId: 'opt-sun', myBallotAnonymous: true },
+		});
+		render(
+			<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun', myBallotAnonymous: false }} viewerId="user-voter" />
+		);
+		const toggle = screen.getByRole('switch', { name: 'Hide my name from voter lists' });
+		fireEvent.click(toggle);
+		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-sun', true);
+		await waitFor(() => expect(toggle).toBeChecked());
+	});
+
+	it('offers no anonymity switch when nobody can see voters', () => {
+		render(
+			<PollCard
+				poll={{ ...openPoll, myOptionId: 'opt-sun', myBallotAnonymous: false, voterVisibility: 'nobody' }}
+				viewerId="user-voter"
+			/>
+		);
+		expect(screen.queryByRole('switch')).not.toBeInTheDocument();
 	});
 
 	it('Keep cancels the withdraw confirm', () => {

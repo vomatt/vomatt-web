@@ -118,3 +118,62 @@ describe('useBallot outcomes', () => {
 		expect(mockGetMyBallot).not.toHaveBeenCalled();
 	});
 });
+
+describe('useBallot anonymity', () => {
+	beforeEach(() => jest.clearAllMocks());
+
+	const voted = { ...poll, myOptionId: 'opt-a', myBallotAnonymous: false, participantCount: 1 } as Poll;
+
+	it('takes whether the Ballot is Anonymous from the cast response', async () => {
+		mockCastBallot.mockResolvedValue({ ok: true, data: { ...voted, myBallotAnonymous: true } });
+		const { result } = setup();
+		expect(result.current.anonymous).toBeNull();
+		await act(async () => {
+			await result.current.cast('opt-a');
+		});
+		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-a');
+		expect(result.current.anonymous).toBe(true);
+	});
+
+	it('recasts the same option to make the Ballot Anonymous', async () => {
+		mockCastBallot.mockResolvedValue({ ok: true, data: { ...voted, myBallotAnonymous: true } });
+		const { result } = renderHook(() => useBallot(voted, { isAuthed: true, onPollEnded: jest.fn() }));
+		let outcome: string | undefined;
+		await act(async () => {
+			outcome = await result.current.setAnonymous(true);
+		});
+		expect(outcome).toBe('saved');
+		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-a', true);
+		expect(result.current.anonymous).toBe(true);
+		expect(result.current.turnout).toBe(1);
+	});
+
+	it('rolls the flag back when the change fails', async () => {
+		mockCastBallot.mockResolvedValue({ ok: false, status: 500, message: 'boom' });
+		const { result } = renderHook(() => useBallot(voted, { isAuthed: true, onPollEnded: jest.fn() }));
+		await act(async () => {
+			await result.current.setAnonymous(true);
+		});
+		expect(result.current.anonymous).toBe(false);
+		expect(result.current.myOptionId).toBe('opt-a');
+	});
+
+	it('forgets the flag once the Ballot is withdrawn', async () => {
+		mockRetractBallot.mockResolvedValue({ ok: true });
+		const { result } = renderHook(() => useBallot(voted, { isAuthed: true, onPollEnded: jest.fn() }));
+		await act(async () => {
+			await result.current.retract();
+		});
+		expect(result.current.anonymous).toBeNull();
+	});
+
+	it('asks the voter to retry when the Poll is busy', async () => {
+		const { toast } = jest.requireMock('sonner');
+		mockCastBallot.mockResolvedValue({ ok: false, status: 409, errorCode: 'common.conflict', message: 'Poll is busy, retry' });
+		const { result } = setup();
+		await act(async () => {
+			await result.current.cast('opt-a');
+		});
+		expect(toast.error).toHaveBeenCalledWith('Poll is busy, retry');
+	});
+});

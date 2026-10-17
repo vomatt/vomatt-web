@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import AccountPage from '@/app/(frontend)/[slug]/_components/AccountPage';
 import type { MyProfile, UserProfile } from '@/types/user';
@@ -14,6 +14,9 @@ jest.mock('@/lib/api/services/users', () => ({
 jest.mock('@/features/polls/service', () => ({ getUserPolls: jest.fn() }));
 jest.mock('@/features/avatars/service', () => ({ chooseAvatar: jest.fn() }));
 jest.mock('@/features/groups/GroupsPanel', () => ({ GroupsPanel: () => <p>Groups panel</p> }));
+
+// Base UI's Switch dispatches a PointerEvent on click
+window.PointerEvent = window.PointerEvent || (MouseEvent as any);
 
 const publicProfile: UserProfile = {
 	username: 'mei',
@@ -47,6 +50,7 @@ const myProfile: MyProfile = {
 	totalVotes: 12,
 	visibilitySettings: { points: true },
 	avatarUrl: 'bot:boba',
+	anonymousBallotByDefault: false,
 };
 
 const insights = { peopleReached: 40, majorityRate: 50, awaitingResults: 0 };
@@ -103,6 +107,19 @@ describe('AccountPage', () => {
 		expect(screen.getByRole('button', { name: 'Change avatar' })).toBeInTheDocument();
 		fireEvent.click(screen.getByRole('tab', { name: 'Settings' }));
 		expect(screen.queryByRole('heading', { name: 'Avatar' })).not.toBeInTheDocument();
+	});
+
+	it('lets the owner vote anonymously by default from Settings', async () => {
+		const { editProfile } = jest.requireMock('@/lib/api/services/users');
+		editProfile.mockResolvedValue({ ok: true });
+		render(<AccountPage isOwn profile={myProfile} myPolls={[]} history={[]} insights={insights} />);
+
+		fireEvent.click(screen.getByRole('tab', { name: 'Settings' }));
+		const toggle = screen.getByRole('switch', { name: 'Vote anonymously by default' });
+		expect(toggle).not.toBeChecked();
+		fireEvent.click(toggle);
+		expect(editProfile).toHaveBeenCalledWith({ anonymousBallotByDefault: true });
+		await waitFor(() => expect(toggle).toBeChecked());
 	});
 
 	it("doesn't let visitors change the avatar", () => {

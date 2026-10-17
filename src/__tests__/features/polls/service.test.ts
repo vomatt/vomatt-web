@@ -331,6 +331,15 @@ describe('castBallot()', () => {
 		expect(revalidateTag).toHaveBeenCalledWith('poll:poll-1', { expire: 0 });
 	});
 
+	it('sends whether the Ballot is Anonymous when given', async () => {
+		mockApiClient.mockResolvedValue(newPoll);
+		await castBallot('poll-1', 'opt-1', true);
+		expect(mockApiClient).toHaveBeenCalledWith('/votes/poll-1/vote', {
+			method: 'POST',
+			body: JSON.stringify({ optionIds: ['opt-1'], anonymous: true }),
+		});
+	});
+
 	it('does not read vote.not_allowed (not open yet) as ended', async () => {
 		mockApiClient.mockRejectedValue(
 			new ApiError('Not open', 400, { errorCode: 'vote.not_allowed' })
