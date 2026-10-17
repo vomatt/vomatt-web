@@ -189,6 +189,7 @@ export async function proxy(request: NextRequest) {
 	return response;
 }
 export const config = {
-	// Static avatars skip it: each image would otherwise run a token refresh
-	matcher: ['/((?!api|_next/static|_next/image|favicon.ico|avatars/).*)'],
+	// Static avatars skip it: each image would otherwise run a token refresh.
+	// .well-known files are fetched by Apple's CDN and need no cookies or language.
+	matcher: ['/((?!api|_next/static|_next/image|favicon.ico|avatars/|\\.well-known/).*)'],
 };

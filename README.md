@@ -57,6 +57,7 @@ Sign-in codes are emailed; with email disabled locally, read the code from Redis
 | `SESSION_SECRET` | Yes | 64 random chars | **Must equal the API's `JWT_SECRET`.** Used to verify access tokens. A mismatch signs everyone out on every request. Server-only; never prefix with `NEXT_PUBLIC_`. |
 | `SITE_URL` | Yes | `https://vomatt.com` | Public origin, no trailing slash. Used for metadata, Open Graph and canonical URLs; the site errors if it is missing. |
 | `API_LOG` | No | `1` | Logs each API request/response from the server. On by default in `npm run dev` (`0` silences it); off in deployments unless `1` (e.g. a Preview scoped to the `dev` branch, read in Vercel Runtime Logs). |
+| `IOS_APP_IDS` | No | `ABCDE12345.com.vomatt.app` | iOS universal links: comma-separated `<TeamID>.<bundle ID>` values served in `/.well-known/apple-app-site-association`, so `/poll/<id>` and `/<username>` links open the app. Unset: that file 404s and links stay on the web. Set it in Production (the domain in the app's `applinks:` entitlement). |
 | `NEXT_PUBLIC_SANITY_API_VERSION` | No | `2025-08-08` | Sanity API version; defaults to `2025-08-08`. |
 
 Not needed (leave unset): `DATABASE_URL`, `PAYLOAD_SECRET` (Payload was removed);
