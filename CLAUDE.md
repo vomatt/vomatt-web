@@ -47,7 +47,7 @@ Render Portable Text with `@/components/CustomPortableText`; build image URLs wi
 
 `src/lib/api/` contains the entire data layer:
 
-- **`tokens.ts`** — shared by the proxy and server code: `verifyAccessToken` (HS256/384/512), `requestTokenRefresh` (deduped; returns `ok | rejected | unavailable`), `buildAuthCookies`. Tokens live in httpOnly cookies (`accessToken`, `refreshToken`); lifetimes follow the backend (access 1h, refresh 30d, rotated on every refresh).
+- **`tokens.ts`** — shared by the proxy and server code: `verifyAccessToken` (HS256/384/512), `requestTokenRefresh` (deduped; returns `ok | rejected | unavailable`), `buildAuthCookies`. Tokens live in httpOnly cookies (`accessToken`, `refreshToken`); lifetimes follow the backend (access 15m, refresh 30d, rotated on every refresh).
 - **`auth.ts`** — `server-only` cookie helpers (`getTokens`, `setAuthTokens`, `clearAuthTokens`). Never make it `'use server'`: every export would become a callable Server Action.
 - **Refresh happens only in `src/proxy.tsx`**, which writes rotated cookies to both the request and the response. The backend revokes every session when a used refresh token comes back, so nothing else may refresh.
 - **`client.ts`** — `apiClient<T>()` (authenticated; throws `AuthError` on 401, `ApiError` with `data.errorCode` otherwise; `auth: 'optional'` falls back to `publicFetch`) and `publicFetch<T>()`. Both unwrap the `ApiResponse` envelope.

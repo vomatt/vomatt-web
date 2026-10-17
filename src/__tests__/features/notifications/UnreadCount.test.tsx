@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MarkNotificationRead } from '@/features/notifications/MarkNotificationRead';
 import { NotificationList } from '@/features/notifications/NotificationList';
 import {
+	formatUnreadCount,
 	UNREAD_POLL_MS,
 	UnreadCountProvider,
 	useUnreadCount,
@@ -156,5 +157,15 @@ describe('NotificationList', () => {
 			/>
 		);
 		expect(screen.getByText('Cancelled')).toBeInTheDocument();
+	});
+});
+
+describe('formatUnreadCount', () => {
+	it('shows 100, the API\'s cap for "100 or more", as 99+', () => {
+		expect(formatUnreadCount(100)).toBe('99+');
+	});
+
+	it('shows exact counts below the cap', () => {
+		expect(formatUnreadCount(99)).toBe('99');
 	});
 });

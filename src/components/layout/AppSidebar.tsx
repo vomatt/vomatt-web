@@ -39,7 +39,7 @@ import {
 } from '@/components/ui/Sidebar';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
-import { useUnreadCount } from '@/features/notifications/UnreadCountProvider';
+import { formatUnreadCount, useUnreadCount } from '@/features/notifications/UnreadCountProvider';
 import { signout } from '@/lib/api/services/auth';
 import { isActivePath, profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
@@ -153,7 +153,7 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 											<span className="text-[15px] font-medium capitalize">{t(item.title)}</span>
 											{badge > 0 && (
 												<span className="ml-auto min-w-6 rounded-full bg-secondary px-1.5 text-center font-mono text-xs leading-6 text-foreground tabular-nums">
-													{badge > 99 ? '99+' : badge}
+													{formatUnreadCount(badge)}
 												</span>
 											)}
 										</SidebarMenuButton>

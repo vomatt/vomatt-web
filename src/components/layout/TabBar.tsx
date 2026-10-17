@@ -11,7 +11,7 @@ import {
 	Search,
 	Star,
 } from '@/components/ui/SvgIcons';
-import { useUnreadCount } from '@/features/notifications/UnreadCountProvider';
+import { formatUnreadCount, useUnreadCount } from '@/features/notifications/UnreadCountProvider';
 import { UnreadDot } from '@/features/notifications/UnreadDot';
 import { isActivePath, profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
@@ -54,7 +54,7 @@ export function TabBar({ className, userSession, username }: TabBarProps) {
 			icon: (
 				<span className="relative">
 					<Star />
-					{unreadCount > 0 && <UnreadDot label={`${unreadCount}`} className="absolute -right-1 -top-1" />}
+					{unreadCount > 0 && <UnreadDot label={formatUnreadCount(unreadCount)} className="absolute -right-1 -top-1" />}
 				</span>
 			),
 		},

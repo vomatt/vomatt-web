@@ -7,6 +7,11 @@ import { getUnreadCount } from './service';
 /** The API has no push: poll while the tab is visible, and on coming back to it. */
 export const UNREAD_POLL_MS = 60_000;
 
+/** The API stops counting at 100, which means 100 or more. */
+export function formatUnreadCount(count: number) {
+	return count > 99 ? '99+' : String(count);
+}
+
 type UnreadCount = {
 	/** Unread Ended Notifications; 0 when signed out or not loaded yet. */
 	count: number;
