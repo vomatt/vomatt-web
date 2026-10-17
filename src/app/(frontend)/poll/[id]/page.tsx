@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { cache, Suspense } from 'react';
 
 import { LoginPrompt } from '@/components/LoginPrompt';
+import { T } from '@/components/T';
 import { buttonVariants } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { ArrowLeft } from '@/components/ui/SvgIcons';
@@ -88,7 +89,9 @@ async function PollDetail({ id }: { id: string }) {
 				sessionExpired={lookup.reason === 'session-rejected'}
 			/>
 		) : (
-			<p className="text-muted-foreground">Poll not found.</p>
+			<p className="text-muted-foreground">
+				<T k="pollDetail.notFound" />
+			</p>
 		);
 	}
 
@@ -103,9 +106,15 @@ async function PollDetail({ id }: { id: string }) {
 			: invited);
 
 	return (
-		<div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
+		<div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
 			{hasNotification && <MarkNotificationRead pollId={poll.id} />}
-			<PollCard poll={lookup.poll} viewerId={user?.sub} defaultShowComments deletedHref="/my-polls" />
+			<PollCard
+				poll={lookup.poll}
+				viewerId={user?.sub}
+				defaultShowComments
+				deletedHref="/my-polls"
+				headingLevel="h1"
+			/>
 			<div className="lg:sticky lg:top-6">
 				<PollAbout poll={lookup.poll} />
 			</div>

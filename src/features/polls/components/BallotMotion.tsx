@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'motion/react';
+import { m } from 'motion/react';
 import { useId } from 'react';
 
 import { cn } from '@/lib/utils';
@@ -10,7 +10,8 @@ import { chipClassName } from '../chip';
 // Motion pieces for the paper-ballot metaphor: mark a box, drop the ballot
 // in the box, see it marked as yours. Reduced motion is handled by <MotionProvider>.
 
-const INK = { type: 'spring', stiffness: 520, damping: 32 } as const;
+// Critically damped: settles without overshoot
+const INK = { type: 'spring', stiffness: 520, damping: 46 } as const;
 
 /** The square on a paper ballot; a check is drawn in when marked. */
 export function BallotMark({ checked }: { checked: boolean }) {
@@ -23,7 +24,7 @@ export function BallotMark({ checked }: { checked: boolean }) {
 			)}
 		>
 			<svg viewBox="0 0 16 16" className="size-3" fill="none">
-				<motion.path
+				<m.path
 					d="M3 8.5 6.5 12 13 4.5"
 					stroke="currentColor"
 					strokeWidth={2.2}
@@ -41,7 +42,7 @@ export function BallotMark({ checked }: { checked: boolean }) {
 /** Marks the option the viewer voted for: a volt pill whose check draws in. */
 export function VotedStamp({ label }: { label: string }) {
 	return (
-		<motion.span
+		<m.span
 			initial={{ opacity: 0, scale: 0.85 }}
 			animate={{ opacity: 1, scale: 1 }}
 			exit={{ opacity: 0, scale: 0.85, transition: { duration: 0.15 } }}
@@ -52,7 +53,7 @@ export function VotedStamp({ label }: { label: string }) {
 			)}
 		>
 			<svg viewBox="0 0 16 16" className="size-3" fill="none" aria-hidden>
-				<motion.path
+				<m.path
 					d="M3 8.5 6.5 12 13 4.5"
 					stroke="currentColor"
 					strokeWidth={2.4}
@@ -64,7 +65,7 @@ export function VotedStamp({ label }: { label: string }) {
 				/>
 			</svg>
 			{label}
-		</motion.span>
+		</m.span>
 	);
 }
 
@@ -80,7 +81,7 @@ export function BallotBoxIcon({ className }: { className?: string }) {
 				</clipPath>
 			</defs>
 			<g clipPath={`url(#${clipId})`}>
-				<motion.rect
+				<m.rect
 					x="8"
 					width="8"
 					height="9"
@@ -98,18 +99,15 @@ export function BallotBoxIcon({ className }: { className?: string }) {
 	);
 }
 
-/** Highlight behind the selected option; slides between options and breathes while a request is out. */
+/** Highlight behind the selected option; slides between options and dims while a request is out. */
 export function SelectionHighlight({ layoutId, inTransit = false }: { layoutId: string; inTransit?: boolean }) {
 	return (
-		<motion.span
+		<m.span
 			layoutId={layoutId}
 			aria-hidden
 			className="absolute inset-0 rounded-xl border-[1.5px] border-primary bg-volt-tint"
-			animate={{ opacity: inTransit ? [1, 0.45, 1] : 1 }}
-			transition={{
-				layout: INK,
-				opacity: inTransit ? { duration: 1.1, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.15 },
-			}}
+			animate={{ opacity: inTransit ? 0.55 : 1 }}
+			transition={{ layout: INK, opacity: { duration: 0.15 } }}
 		/>
 	);
 }

@@ -59,9 +59,9 @@ describe('NotificationList', () => {
 
 	it('clears an Invitation\'s unread dot when it is opened', () => {
 		render(<NotificationList initialPage={{ items: [], nextCursor: null }} invitations={[invitation]} />);
-		expect(screen.getByLabelText('Unread')).toBeInTheDocument();
+		expect(screen.getByText('Unread')).toBeInTheDocument();
 		fireEvent.click(screen.getByText(invitation.title));
-		expect(screen.queryByLabelText('Unread')).not.toBeInTheDocument();
+		expect(screen.queryByText('Unread')).not.toBeInTheDocument();
 	});
 
 	it('shows the empty state only when there is nothing at all', () => {

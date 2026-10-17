@@ -22,12 +22,13 @@ export async function Layout({ children }: LayoutProps) {
 	return (
 		<SidebarProvider>
 			<UnreadCountProvider signedIn={!!userSession}>
-				<AdaSkip />
-				<AppSidebar userSession={userSession} profile={profile} />
-				<Main>
-					<MotionProvider>{children}</MotionProvider>
-				</Main>
-				<TabBar userSession={userSession} username={profile?.username} />
+				{/* Wraps the nav too: the poll creator opens from the sidebar and TabBar */}
+				<MotionProvider>
+					<AdaSkip />
+					<AppSidebar userSession={userSession} profile={profile} />
+					<Main>{children}</Main>
+					<TabBar userSession={userSession} username={profile?.username} />
+				</MotionProvider>
 			</UnreadCountProvider>
 		</SidebarProvider>
 	);

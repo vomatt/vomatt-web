@@ -1,7 +1,6 @@
 'use client';
 
-import { motion } from 'motion/react';
-import dynamic from 'next/dynamic';
+import { m } from 'motion/react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useInView } from 'react-intersection-observer';
@@ -9,15 +8,12 @@ import { useInView } from 'react-intersection-observer';
 import { Button, buttonVariants } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { CreatePollTrigger } from '@/features/polls/components/CreatePollTrigger';
 import { PollCard } from '@/features/polls/components/PollCard';
 import type { Poll } from '@/features/polls/schema';
 import { getFeed } from '@/features/polls/service';
 import { mergeById } from '@/lib/api/cursor';
 import { cn } from '@/lib/utils';
-
-const PollCreator = dynamic(() =>
-	import('@/features/polls/components/PollCreator').then((m) => m.PollCreator)
-);
 
 type PollFeedListProps = {
 	className?: string;
@@ -38,6 +34,8 @@ export function PollFeedList({
 	const { t } = useLanguage();
 	// Seeded from the server's first page; a new first page remounts the list (see page.tsx)
 	const [polls, setPolls] = useState(initialPage?.items ?? []);
+	// The server-rendered page shows at once; only cards loaded later fade in
+	const [firstPageCount] = useState(polls.length);
 	const [nextCursor, setNextCursor] = useState(initialPage?.nextCursor ?? null);
 	const [isLoading, setIsLoading] = useState(false);
 	const [loadFailed, setLoadFailed] = useState(false);
@@ -88,9 +86,9 @@ export function PollFeedList({
 						{t(tag ? 'homePage.topicEmpty' : 'homePage.feedListNoData')}
 					</h2>
 					{viewerId ? (
-						<PollCreator
-							triggerChildren={<Button>{t('homePage.createFirst')}</Button>}
-						/>
+						<CreatePollTrigger>
+							<Button>{t('homePage.createFirst')}</Button>
+						</CreatePollTrigger>
 					) : (
 						<Link href="/login" className={buttonVariants()}>
 							{t('homePage.joinToCreate')}
@@ -104,9 +102,9 @@ export function PollFeedList({
 				className="relative flex w-full flex-col gap-3 py-4"
 			>
 				{polls.map((poll, index) => (
-					<motion.div
+					<m.div
 						key={poll.id}
-						initial={{ opacity: 0, y: 12 }}
+						initial={index < firstPageCount ? false : { opacity: 0, y: 12 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{
 							duration: 0.3,
@@ -114,7 +112,7 @@ export function PollFeedList({
 						}}
 					>
 						<PollCard poll={poll} viewerId={viewerId} />
-					</motion.div>
+					</m.div>
 				))}
 			</div>
 

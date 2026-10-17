@@ -1,5 +1,4 @@
 'use client';
-import dynamic from 'next/dynamic';
 import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -11,15 +10,13 @@ import {
 	Search,
 	Star,
 } from '@/components/ui/SvgIcons';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { formatUnreadCount, useUnreadCount } from '@/features/notifications/UnreadCountProvider';
 import { UnreadDot } from '@/features/notifications/UnreadDot';
+import { CreatePollTrigger } from '@/features/polls/components/CreatePollTrigger';
 import { isActivePath, profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
-const PollCreator = dynamic(
-	() => import('@/features/polls/components/PollCreator').then((m) => ({ default: m.PollCreator })),
-	{ ssr: false }
-);
 type TabBarProps = {
 	className?: string;
 	userSession?: any;
@@ -32,34 +29,35 @@ const cellClassName = 'flex-1 h-full flex justify-center items-center';
 
 export function TabBar({ className, userSession, username }: TabBarProps) {
 	const pathname = usePathname();
+	const { t } = useLanguage();
 	const { count: unreadCount } = useUnreadCount();
 	// The create action sits between these two halves
 	const leftLinks = [
 		{
-			title: 'Home',
+			title: t('navigation.home'),
 			href: '/',
 			icon: <Home />,
 		},
 		{
-			title: 'Explore',
+			title: t('common.explore'),
 			href: '/explore',
 			icon: <Search />,
 		},
 	];
 	const rightLinks = [
 		{
-			title: 'My Polls',
+			title: t('common.myPolls'),
 			// Unread results are marked in My Polls' Ended tab
 			href: '/my-polls',
 			icon: (
 				<span className="relative">
 					<Star />
-					{unreadCount > 0 && <UnreadDot label={formatUnreadCount(unreadCount)} className="absolute -right-1 -top-1" />}
+					{unreadCount > 0 && <UnreadDot label={`${formatUnreadCount(unreadCount)} ${t('notifications.unread')}`} className="absolute -right-1 -top-1" />}
 				</span>
 			),
 		},
 		{
-			title: 'Account',
+			title: t('navigation.profile'),
 			// /account redirects to the profile; link there directly so the tab shows as active
 			href: username ? profileHref(username) : '/account',
 			icon: <CircleUser />,
@@ -75,10 +73,8 @@ export function TabBar({ className, userSession, username }: TabBarProps) {
 			<NextLink
 				key={href}
 				href={href}
-				aria-label={title}
 				aria-current={isActive ? 'page' : undefined}
 				className={cellClassName}
-				title={title}
 			>
 				<span
 					className={cn(
@@ -90,12 +86,15 @@ export function TabBar({ className, userSession, username }: TabBarProps) {
 				>
 					{icon}
 				</span>
+				{/* Text, not aria-label, so an unread count inside the icon is read out too */}
+				<span className="sr-only">{title}</span>
 			</NextLink>
 		);
 	};
 
 	return (
 		<nav
+			data-tabbar
 			className={cn(
 				'[--tabbar-height:64px] fixed bottom-0 w-full flex justify-between items-center h-[calc(var(--tabbar-height)+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] bg-card border-t border-border md:hidden',
 				className
@@ -103,17 +102,15 @@ export function TabBar({ className, userSession, username }: TabBarProps) {
 		>
 			{leftLinks.map(renderLink)}
 			{userSession ? (
-				<div className={cellClassName} title="Create Vote">
-					<PollCreator
-						triggerChildren={
-							<button type="button" aria-label="Create Vote" className={createClassName}>
-								<Plus className="size-5.5" />
-							</button>
-						}
-					/>
+				<div className={cellClassName}>
+					<CreatePollTrigger>
+						<button type="button" aria-label={t('common.createPoll')} className={createClassName}>
+							<Plus className="size-5.5" />
+						</button>
+					</CreatePollTrigger>
 				</div>
 			) : (
-				<NextLink href="/login" aria-label="Create Vote" className={cellClassName} title="Create Vote">
+				<NextLink href="/login" aria-label={t('common.createPoll')} className={cellClassName}>
 					<span className={createClassName}>
 						<Plus className="size-5.5" />
 					</span>

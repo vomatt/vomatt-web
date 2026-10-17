@@ -142,10 +142,10 @@ describe('NotificationList', () => {
 
 	it('clears the dot when opened, leaving the marking to the poll page', () => {
 		render(<NotificationList initialPage={{ items: [poll], nextCursor: null }} invitations={[]} />);
-		expect(screen.getByLabelText('Unread')).toBeInTheDocument();
+		expect(screen.getByText('Unread')).toBeInTheDocument();
 
 		fireEvent.click(screen.getByText('Lunch?'));
-		expect(screen.queryByLabelText('Unread')).not.toBeInTheDocument();
+		expect(screen.queryByText('Unread')).not.toBeInTheDocument();
 		expect(mockMarkRead).not.toHaveBeenCalled();
 	});
 

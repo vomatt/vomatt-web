@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'motion/react';
+import { m } from 'motion/react';
 import Link from 'next/link';
 
 import BrandLogo from '@/components/BrandLogo';
@@ -40,7 +40,7 @@ export default function AuthContainer({
 				<Link href="/" className="block w-24 py-5 text-foreground md:hidden">
 					<BrandLogo />
 				</Link>
-				<motion.div
+				<m.div
 					key={type}
 					initial="hide"
 					animate="show"
@@ -49,7 +49,7 @@ export default function AuthContainer({
 					className={cn('pt-6 pb-10 md:py-16', className)}
 				>
 					{children}
-				</motion.div>
+				</m.div>
 			</div>
 		</div>
 	);

@@ -4,7 +4,7 @@ How the vomatt UI is built. `PRODUCT.md` says why (users, brand, principles, acc
 
 ## Color
 
-Cool canvas, ink actions, one accent. Use the semantic tokens as Tailwind classes, never raw `oklch()`/hex values. Every token has a dark value in `.dark`.
+Cool canvas, ink actions, one accent. Use the semantic tokens as Tailwind classes, never raw `oklch()`/hex values. Every token has a dark value in `.dark`, but dark mode is not switched on yet: `ThemeProvider` is not mounted, so the app is light-only.
 
 | Role | Token | Use for |
 |---|---|---|
@@ -14,8 +14,8 @@ Cool canvas, ink actions, one accent. Use the semantic tokens as Tailwind classe
 | Field | `field` | Fill of text fields at rest; it is what marks them as fields |
 | Ink | `foreground`, `primary` | Text and the primary action (same ink) |
 | Quiet text | `muted-foreground` | Meta, hints, secondary copy |
-| Lines | `border`, `border-strong` | `border` for cards, rows, dividers and outline buttons; `border-strong` for fields and hover |
-| Controls | `input` | Checkbox marks and switch tracks: the 3:1 boundary of small controls |
+| Lines | `border`, `border-strong` | `border` for cards, rows, dividers and outline buttons; `border-strong` for hover |
+| Controls | `input` | Text field borders, checkbox marks and switch tracks: the 3:1 boundary a control needs at rest |
 | Volt | `volt`, `volt-foreground`, `volt-tint` | The create action (`Button variant="create"`: a Volt icon on ink in light, a Volt button in dark), the active nav icon, the viewer's own choice and unread markers. Never decoration |
 | Poll status | `status-scheduled/open/closing/ended` | Status chip tints, always with a text label |
 | Error | `destructive` | Validation and destructive actions |
@@ -36,7 +36,7 @@ Cool canvas, ink actions, one accent. Use the semantic tokens as Tailwind classe
 
 ## Shape and layout
 
-- Borders stay quiet: 1px, `border` by default. Fields are `border-strong` on a `field` fill and turn `card` white on focus; the strong focus outline carries the 3:1 contrast. Only the selected ballot row and a winning result get an ink border.
+- Borders stay quiet: 1px, `border` by default. Fields are `input` on a `field` fill (the border carries the 3:1 contrast at rest) and turn `card` white on focus. Only the selected ballot row and a winning result get an ink border.
 - Radius: `rounded-xl` for cards, ballot rows and panels; `rounded-lg` for buttons and inputs; `rounded-full` for chips, pills and avatars.
 - Page container: `px-contain mx-auto max-w-2xl py-6` for lists (Explore, My polls, Notifications, Profile); `max-w-5xl` for a poll page; `max-w-3xl` for Account.
 - The home feed column is `max-w-feed` (640px, `--container-feed`).

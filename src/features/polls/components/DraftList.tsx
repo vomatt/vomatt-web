@@ -5,9 +5,11 @@ import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { cn } from '@/lib/utils';
 
 import { deleteDraft, listDrafts, type PollDraft } from '../drafts';
 import { formatPollDate } from '../format';
+import { pollRowFrameClassName } from './PollListItem';
 
 const PollCreator = dynamic(() => import('./PollCreator').then((m) => m.PollCreator));
 
@@ -39,7 +41,7 @@ export function DraftList() {
 				{drafts.map((draft) => (
 					<li
 						key={draft.id}
-						className="flex items-center justify-between gap-4 p-4 rounded-xl border border-border/60 bg-card"
+						className={cn(pollRowFrameClassName, 'flex items-center justify-between gap-4')}
 					>
 						<div className="min-w-0">
 							<p className="truncate text-foreground">

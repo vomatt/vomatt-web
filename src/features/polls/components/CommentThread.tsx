@@ -1,7 +1,7 @@
 'use client';
 
-import { AnimatePresence, motion } from 'motion/react';
-import { useState } from 'react';
+import { AnimatePresence, m } from 'motion/react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/Button';
@@ -21,6 +21,9 @@ import { CreateCommentRequestSchema } from '../schema';
 
 const COMMENT_MAX = CreateCommentRequestSchema.shape.text.maxLength ?? 2000;
 const COUNTER_FROM = COMMENT_MAX - 200;
+// Small text links with a 44px tall hit area; the negative margins keep the row compact, so rows
+// around them need at least 16px (space-y-4) between them or the hit areas overlap
+const actionClassName = 'inline-flex min-h-11 -my-3.5 -mx-1.5 items-center px-1.5';
 
 type CommentThreadProps = {
 	thread: CommentsState;
@@ -34,7 +37,13 @@ export function CommentThread({ thread, viewerId, requireAuth }: CommentThreadPr
 	const { t } = useLanguage();
 
 	return (
-		<section aria-label={t('comments.title')} className="space-y-4 border-t border-border/60 px-5 py-4">
+		// tabIndex lets focus land here after a comment is deleted
+		<section
+			aria-label={t('comments.title')}
+			data-comment-thread
+			tabIndex={-1}
+			className="space-y-4 border-t border-border/60 px-5 py-4 outline-none"
+		>
 			<Composer
 				placeholder={t('comments.placeholder')}
 				requireAuth={requireAuth}
@@ -68,7 +77,7 @@ export function CommentThread({ thread, viewerId, requireAuth }: CommentThreadPr
 			<ul className="space-y-4">
 				<AnimatePresence initial={false}>
 					{thread.comments.map((comment) => (
-						<motion.li
+						<m.li
 							key={comment.id}
 							layout
 							initial={{ opacity: 0, y: -8 }}
@@ -82,7 +91,7 @@ export function CommentThread({ thread, viewerId, requireAuth }: CommentThreadPr
 								thread={thread}
 								requireAuth={requireAuth}
 							/>
-						</motion.li>
+						</m.li>
 					))}
 				</AnimatePresence>
 			</ul>
@@ -214,12 +223,12 @@ function CommentItem(props: Omit<CommentItemProps, 'onReply'>) {
 	}
 
 	return (
-		<div className="space-y-3">
+		<div className="space-y-4">
 			<CommentBody {...props} onReply={() => openComposer()} />
 			{(replyCount > 0 || replyList || replyPrefix !== null) && (
-				<div className="ml-11 space-y-3 border-l border-border/60 pl-3">
+				<div className="ml-11 space-y-4 border-l border-border/60 pl-3">
 					{replyList && (
-						<ul className="space-y-3">
+						<ul className="space-y-4">
 							{replyList.items.map((reply) => (
 								<li key={reply.id}>
 									<CommentBody
@@ -237,7 +246,8 @@ function CommentItem(props: Omit<CommentItemProps, 'onReply'>) {
 					{repliesAction && (
 						<button
 							type="button"
-							className="text-xs font-medium text-muted-foreground hover:text-foreground"
+							// Takes its full 44px in the stack, so it never shares a hit area with a neighbor
+							className="-mx-1.5 inline-flex min-h-11 items-center px-1.5 text-xs font-medium text-muted-foreground hover:text-foreground"
 							onClick={() => thread.loadReplies(comment.id)}
 						>
 							{repliesAction}
@@ -272,6 +282,15 @@ function CommentBody({ comment, viewerId, thread, requireAuth, onReply }: Commen
 	const [isEditing, setIsEditing] = useState(false);
 	const [draft, setDraft] = useState(comment.text ?? '');
 	const [confirmingDelete, setConfirmingDelete] = useState(false);
+	// The control that unmounted when an edit or delete closes gets focus back once it's rendered again
+	const returnFocus = useRef<'edit' | 'delete' | null>(null);
+	const editRef = useRef<HTMLButtonElement>(null);
+	const deleteRef = useRef<HTMLButtonElement>(null);
+	useEffect(() => {
+		if (!returnFocus.current) return;
+		(returnFocus.current === 'edit' ? editRef : deleteRef).current?.focus();
+		returnFocus.current = null;
+	});
 	const isPending = comment.id.startsWith('pending-');
 	const isOwn = !!viewerId && comment.userId === viewerId;
 	const likes = comment.likeCount ?? 0;
@@ -289,16 +308,26 @@ function CommentBody({ comment, viewerId, thread, requireAuth, onReply }: Commen
 	const saveEdit = async () => {
 		const text = draft.trim();
 		if (!text || text === comment.text) {
-			setIsEditing(false);
+			closeEdit();
 			return;
 		}
-		if (await thread.edit(comment.id, text)) setIsEditing(false);
+		if (await thread.edit(comment.id, text)) closeEdit();
 		else toast.error(t('comments.editFailed'));
 	};
 
-	const confirmDelete = async () => {
+	const closeEdit = () => {
+		returnFocus.current = 'edit';
+		setIsEditing(false);
+	};
+
+	const confirmDelete = async (event: React.MouseEvent<HTMLButtonElement>) => {
+		const threadEl = event.currentTarget.closest<HTMLElement>('[data-comment-thread]');
 		setConfirmingDelete(false);
-		if (!(await thread.remove(comment))) toast.error(t('comments.deleteFailed'));
+		if (await thread.remove(comment)) threadEl?.focus();
+		else {
+			deleteRef.current?.focus();
+			toast.error(t('comments.deleteFailed'));
+		}
 	};
 
 	return (
@@ -333,11 +362,11 @@ function CommentBody({ comment, viewerId, thread, requireAuth, onReply }: Commen
 							aria-label={t('comments.edit')}
 							maxLength={COMMENT_MAX}
 							rows={2}
-							className="resize-none text-sm"
+							className="resize-none"
 							autoFocus
 						/>
 						<div className="flex justify-end gap-1.5">
-							<Button size="sm" variant="ghost" onClick={() => setIsEditing(false)}>
+							<Button size="sm" variant="ghost" onClick={closeEdit}>
 								{t('common.cancel')}
 							</Button>
 							<Button size="sm" onClick={saveEdit}>
@@ -359,33 +388,44 @@ function CommentBody({ comment, viewerId, thread, requireAuth, onReply }: Commen
 							aria-label={t('comments.like')}
 							onClick={() => requireAuth(() => thread.toggleLike(comment))}
 							className={cn(
-								'flex items-center gap-1 transition-colors hover:text-foreground',
-								comment.likedByCurrentUser && 'text-rose-500 hover:text-rose-500'
+								actionClassName,
+								'gap-1 transition-colors hover:text-foreground',
+								comment.likedByCurrentUser && 'text-foreground'
 							)}
 						>
-							<motion.span
+							<m.span
 								key={comment.likedByCurrentUser ? 'liked' : 'unliked'}
 								initial={{ scale: comment.likedByCurrentUser ? 0.4 : 1 }}
 								animate={{ scale: 1 }}
-								transition={{ type: 'spring', stiffness: 600, damping: 12 }}
+								transition={{ duration: 0.2, ease: [0.25, 1, 0.5, 1] }}
 								className="inline-flex"
 							>
 								<Heart className={cn('size-3.5', comment.likedByCurrentUser && 'fill-current')} />
-							</motion.span>
+							</m.span>
 							{likes > 0 && <span className="tabular-nums">{likes}</span>}
 						</button>
 
 						{onReply && (
-							<button type="button" className="hover:text-foreground" onClick={() => onReply(author)}>
+							<button type="button" className={cn(actionClassName, 'hover:text-foreground')} onClick={() => onReply(author)}>
 								{t('comments.reply')}
 							</button>
 						)}
 						{isOwn && !confirmingDelete && (
 							<>
-								<button type="button" className="hover:text-foreground" onClick={() => setIsEditing(true)}>
+								<button
+									ref={editRef}
+									type="button"
+									className={cn(actionClassName, 'hover:text-foreground')}
+									onClick={() => setIsEditing(true)}
+								>
 									{t('comments.edit')}
 								</button>
-								<button type="button" className="hover:text-destructive" onClick={() => setConfirmingDelete(true)}>
+								<button
+									ref={deleteRef}
+									type="button"
+									className={cn(actionClassName, 'hover:text-destructive')}
+									onClick={() => setConfirmingDelete(true)}
+								>
 									{t('common.delete')}
 								</button>
 							</>
@@ -393,10 +433,17 @@ function CommentBody({ comment, viewerId, thread, requireAuth, onReply }: Commen
 						{confirmingDelete && (
 							<span role="group" aria-label={t('comments.deleteConfirm')} className="flex items-center gap-2">
 								<span>{t('comments.deleteConfirm')}</span>
-								<button type="button" className="font-medium text-destructive" onClick={confirmDelete}>
+								<button type="button" className={cn(actionClassName, 'font-medium text-destructive')} onClick={confirmDelete}>
 									{t('common.delete')}
 								</button>
-								<button type="button" className="hover:text-foreground" onClick={() => setConfirmingDelete(false)}>
+								<button
+									type="button"
+									className={cn(actionClassName, 'hover:text-foreground')}
+									onClick={() => {
+										returnFocus.current = 'delete';
+										setConfirmingDelete(false);
+									}}
+								>
 									{t('common.cancel')}
 								</button>
 							</span>

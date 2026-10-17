@@ -12,6 +12,7 @@ import { Layout } from '@/components/layout';
 import { CookieConsent } from '@/components/layout/CookieConsent';
 import { TooltipProvider } from '@/components/ui/Tooltip';
 import { LanguageProvider } from '@/contexts/LanguageContext';
+import { htmlLang } from '@/i18n-config';
 import { isComingSoon } from '@/lib/comingSoon';
 import { getServerLocale } from '@/lib/getServerLocale';
 import enTranslations from '@/locales/en.json';
@@ -98,7 +99,7 @@ export default async function RootLayout({
 	const comingSoon = settings?.comingSoon;
 
 	return (
-		<html lang={language === 'zh' ? 'zh-TW' : 'en'} className={clsx(geistSans.variable, geistMono.variable)}>
+		<html lang={htmlLang(language)} className={clsx(geistSans.variable, geistMono.variable)}>
 			<body className="text-foreground font-sans">
 				{isComingSoon(settings) ? (
 					<main className="h-screen flex flex-col justify-center items-center gap-5 px-contain text-center">
@@ -120,7 +121,14 @@ export default async function RootLayout({
 						<TooltipProvider>
 							<Layout>{children}</Layout>
 						</TooltipProvider>
-						<Toaster richColors closeButton position="bottom-center" />
+						<Toaster
+							richColors
+							closeButton
+							position="bottom-center"
+							// Above the TabBar on phones
+							offset={{ bottom: 'calc(var(--tabbar-space) + 24px)' }}
+							mobileOffset={{ bottom: 'calc(var(--tabbar-space) + 16px)' }}
+						/>
 						<CookieConsent integrations={settings?.integrations} />
 					</LanguageProvider>
 				)}

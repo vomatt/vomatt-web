@@ -9,3 +9,8 @@ export const i18n = {
 } as const;
 
 export type Locale = (typeof i18n)['locales'][number];
+
+/** The BCP 47 tag for `<html lang>`: our Chinese is Traditional, so fonts and voices pick zh-TW. */
+export function htmlLang(locale: string) {
+	return locale === 'zh' ? 'zh-TW' : locale;
+}

@@ -83,7 +83,7 @@ export function GroupsPanel() {
 	return (
 		<section className="space-y-4">
 			<div>
-				<h3 className="font-medium">{t('groups.title')}</h3>
+				<h2 className="font-medium">{t('groups.title')}</h2>
 				<p className="text-sm text-muted-foreground">{t('groups.intro')}</p>
 			</div>
 
@@ -224,7 +224,10 @@ function GroupDialog({
 
 	return (
 		<Dialog open onOpenChange={(open) => !open && onClose()}>
-			<DialogContent className="max-h-[85dvh] grid-rows-[auto_auto_minmax(0,1fr)_auto_auto] sm:max-w-md">
+			<DialogContent
+				closeLabel={t('common.close')}
+				className="max-h-[85dvh] grid-rows-[auto_auto_minmax(0,1fr)_auto_auto] sm:max-w-md"
+			>
 				<DialogHeader className="pr-8">
 					<DialogTitle className="truncate">{group.name}</DialogTitle>
 					<DialogDescription>{t('groups.dialogIntro')}</DialogDescription>

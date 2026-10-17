@@ -132,7 +132,7 @@ export function VotersDialog({ option, voters, onClose }: VotersDialogProps) {
 
 	return (
 		<Dialog open={!!option} onOpenChange={(open) => !open && onClose()}>
-			<DialogContent className="max-h-[80dvh] grid-rows-[auto_minmax(0,1fr)]">
+			<DialogContent closeLabel={t('common.close')} className="max-h-[80dvh] grid-rows-[auto_minmax(0,1fr)]">
 				<DialogHeader className="pr-8">
 					<DialogTitle className="leading-snug">{shown?.text}</DialogTitle>
 					<DialogDescription>

@@ -65,10 +65,10 @@ export default function EditProfileDialog({
 			}
 			// The profile lives at /[username], so a new username moves the page
 			if (usernameChanged) router.replace(profileHref(username));
-			toast.success('Profile updated');
+			toast.success(t('profile.updated'));
 			setOpen(false);
 		} catch {
-			toast.error('Something went wrong. Please try again.');
+			toast.error(t('common.errorBody'));
 		} finally {
 			setIsPending(false);
 		}
@@ -77,11 +77,11 @@ export default function EditProfileDialog({
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger render={<Button variant="outline" size="sm" />}>
-				Edit Profile
+				{t('profile.editProfile')}
 			</DialogTrigger>
-			<DialogContent className="sm:max-w-md">
+			<DialogContent className="sm:max-w-md" closeLabel={t('common.close')}>
 				<DialogHeader>
-					<DialogTitle>Edit Profile</DialogTitle>
+					<DialogTitle>{t('profile.editProfile')}</DialogTitle>
 				</DialogHeader>
 				<form id="edit-profile" onSubmit={handleSubmit} className="flex flex-col gap-4">
 					<div className="flex flex-col gap-1.5">
@@ -110,13 +110,13 @@ export default function EditProfileDialog({
 							htmlFor="displayName"
 							className="text-sm font-medium text-foreground"
 						>
-							Display Name
+							{t('profile.displayName')}
 						</label>
 						<Input
 							id="displayName"
 							value={displayName}
 							onChange={(e) => setDisplayName(e.target.value)}
-							placeholder="Your display name"
+							placeholder={t('profile.displayNamePlaceholder')}
 							maxLength={100}
 						/>
 					</div>
@@ -125,26 +125,26 @@ export default function EditProfileDialog({
 							htmlFor="bio"
 							className="text-sm font-medium text-foreground"
 						>
-							Bio
+							{t('profile.bio')}
 						</label>
 						<Textarea
 							id="bio"
 							value={bio}
 							onChange={(e) => setBio(e.target.value)}
-							placeholder="Tell people about yourself"
+							placeholder={t('profile.bioPlaceholder')}
 							maxLength={500}
 							rows={4}
 						/>
 					</div>
 				</form>
-				<DialogFooter showCloseButton>
+				<DialogFooter showCloseButton closeLabel={t('common.close')}>
 					<Button
 						type="submit"
 						form="edit-profile"
 						disabled={isPending}
 					>
 						{isPending ? <Spinner className="mr-2" /> : null}
-						Save Changes
+						{t('profile.saveChanges')}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

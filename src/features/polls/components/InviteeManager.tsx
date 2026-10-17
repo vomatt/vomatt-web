@@ -84,7 +84,10 @@ export function InviteeManager({ pollId, open, onOpenChange, onChanged }: Invite
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-h-[85dvh] grid-rows-[auto_minmax(0,1fr)_auto] sm:max-w-md">
+			<DialogContent
+				closeLabel={t('common.close')}
+				className="max-h-[85dvh] grid-rows-[auto_minmax(0,1fr)_auto] sm:max-w-md"
+			>
 				<DialogHeader className="pr-8">
 					<DialogTitle>{t('invitees.title')}</DialogTitle>
 					<DialogDescription>

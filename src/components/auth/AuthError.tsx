@@ -1,6 +1,6 @@
 'use client';
 
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, m } from 'motion/react';
 
 import { FieldError } from '@/components/ui/Field';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -18,7 +18,7 @@ export function AuthError({ error, className }: AuthErrorProps) {
 	return (
 		<AnimatePresence initial={false}>
 			{error && (
-				<motion.div
+				<m.div
 					key="error"
 					initial={{ height: 0, opacity: 0 }}
 					animate={{ height: 'auto', opacity: 1 }}
@@ -27,7 +27,7 @@ export function AuthError({ error, className }: AuthErrorProps) {
 					className="overflow-hidden"
 				>
 					<FieldError className={className}>{t(`authError.${error}`)}</FieldError>
-				</motion.div>
+				</m.div>
 			)}
 		</AnimatePresence>
 	);

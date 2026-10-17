@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
 
+import { T } from '@/components/T';
 import { getUserSession } from '@/data/auth';
 import { getMyPolls } from '@/features/polls/service';
 import { EMPTY_PAGE } from '@/lib/api/cursor';
@@ -14,7 +15,9 @@ export default async function MyPollsPage() {
 
 	return (
 		<div className="px-contain max-w-2xl mx-auto py-6">
-			<h1 className="mb-6 display-heading text-[32px] text-foreground md:text-[44px]">My Polls</h1>
+			<h1 className="mb-6 display-heading text-[32px] text-foreground md:text-[44px]">
+				<T k="myPolls.title" />
+			</h1>
 			<Suspense fallback={<MyPollsTabsSkeleton />}>
 				<MyPolls />
 			</Suspense>

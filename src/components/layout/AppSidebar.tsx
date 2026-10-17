@@ -1,31 +1,11 @@
 'use client';
 
-import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import BrandLogo from '@/components/BrandLogo';
 import { Button, buttonVariants } from '@/components/ui/Button';
 import { InitialAvatar } from '@/components/ui/InitialAvatar';
-import {
-	ArrowRight,
-	Bell,
-	Home,
-	LogOut,
-	PlusCircle,
-	Search,
-	TrendingUp,
-	User,
-} from '@/components/ui/SvgIcons';
-
-const PollCreator = dynamic(
-	() =>
-		import('@/features/polls/components/PollCreator').then((m) => ({
-			default: m.PollCreator,
-		})),
-	{ ssr: false }
-);
-
 import {
 	Sidebar,
 	SidebarContent,
@@ -37,9 +17,20 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from '@/components/ui/Sidebar';
+import {
+	ArrowRight,
+	Bell,
+	Home,
+	LogOut,
+	PlusCircle,
+	Search,
+	TrendingUp,
+	User,
+} from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { formatUnreadCount, useUnreadCount } from '@/features/notifications/UnreadCountProvider';
+import { CreatePollTrigger } from '@/features/polls/components/CreatePollTrigger';
 import { signout } from '@/lib/api/services/auth';
 import { isActivePath, profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
@@ -106,14 +97,12 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 			{/* Primary action */}
 			<div className="px-4 pb-4">
 				{userSession ? (
-					<PollCreator
-						triggerChildren={
-							<Button variant="create" className="w-full">
-								<PlusCircle />
-								{t('common.createPoll')}
-							</Button>
-						}
-					/>
+					<CreatePollTrigger>
+						<Button variant="create" className="w-full">
+							<PlusCircle />
+							{t('common.createPoll')}
+						</Button>
+					</CreatePollTrigger>
 				) : (
 					<Link href="/login" className={cn(buttonVariants({ variant: 'create' }), 'w-full')}>
 						<PlusCircle />

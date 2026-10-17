@@ -24,7 +24,12 @@
 		"comments": "留言",
 		"active": "進行中",
 		"ended": "已結束",
-		"invalidEmailAddress": "信箱格式錯誤"
+		"invalidEmailAddress": "信箱格式錯誤",
+		"errorBody": "發生了未預期的問題，請再試一次。",
+		"tryAgain": "再試一次",
+		"notFoundTitle": "找不到頁面",
+		"notFoundBody": "找不到你要的內容。",
+		"skipToContent": "跳到主要內容"
 	},
 	"navigation": {
 		"home": "首頁",
@@ -62,7 +67,8 @@
 		"invalidVerificationCode": "驗證碼錯誤",
 		"useAnotherEmail": "使用其他電子郵件",
 		"resendIn": "{time} 後可重新寄送",
-		"inputLabel": "6 位數驗證碼"
+		"inputLabel": "6 位數驗證碼",
+		"resendReady": "現在可以重新寄送驗證碼。"
 	},
 	"myPolls": {
 		"title": "我的投票",
@@ -129,7 +135,13 @@
 		"membership": "{level} 會員",
 		"followers": "追蹤者",
 		"following": "追蹤中",
-		"editProfile": "編輯個人資料"
+		"editProfile": "編輯個人資料",
+		"bio": "自我介紹",
+		"displayName": "顯示名稱",
+		"saveChanges": "儲存變更",
+		"displayNamePlaceholder": "你的顯示名稱",
+		"bioPlaceholder": "向大家介紹一下自己",
+		"updated": "個人資料已更新"
 	},
 	"notifications": {
 		"title": "通知",

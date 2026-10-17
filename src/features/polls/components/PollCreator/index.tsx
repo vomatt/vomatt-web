@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
-import { ReactElement, useEffect, useState } from 'react';
+import { ReactElement, type RefObject, useEffect, useState } from 'react';
 import {
 	Controller,
 	useFieldArray,
@@ -87,6 +87,8 @@ export interface PollCreatorProps {
 	open?: boolean;
 	onOpenChange?: (open: boolean) => void;
 	onSaved?: () => void;
+	/** Where focus returns on close when the creator has no trigger of its own. */
+	finalFocus?: RefObject<HTMLElement | null>;
 }
 
 function initialValues(poll?: Poll, draft?: PollDraft) {
@@ -107,6 +109,7 @@ export function PollCreator({
 	open: openProp,
 	onOpenChange,
 	onSaved,
+	finalFocus,
 }: PollCreatorProps) {
 	const { t, currentLanguage } = useLanguage();
 	const router = useRouter();
@@ -241,8 +244,13 @@ export function PollCreator({
 		setEndPreset(key);
 	};
 
-	const errorText = (message?: string) =>
-		message ? <p className="text-[13px] text-destructive">{t(message)}</p> : null;
+	// The id lets the field point at its error with aria-describedby
+	const errorText = (id: string, message?: string) =>
+		message ? (
+			<p id={id} className="text-[13px] text-destructive">
+				{t(message)}
+			</p>
+		) : null;
 
 	const canAddOption =
 		fields.length < POLL_OPTIONS_LIMIT && options.every((option) => option.text.trim());
@@ -263,14 +271,11 @@ export function PollCreator({
 	return (
 		<>
 			<Dialog open={open} onOpenChange={handleOpenChange}>
-				{!isEdit && (
-					<DialogTrigger render={triggerChildren}>
-						{!triggerChildren && <Plus />}
-					</DialogTrigger>
-				)}
+				{!isEdit && triggerChildren && <DialogTrigger render={triggerChildren} />}
 				{/* Full screen on phones, a 560px dialog from sm up */}
 				<DialogContent
 					showCloseButton={false}
+					finalFocus={finalFocus}
 					className="flex h-dvh max-h-dvh max-w-none flex-col gap-0 rounded-none bg-background p-0 ring-0 sm:h-auto sm:max-h-[min(90dvh,780px)] sm:max-w-[560px] sm:rounded-xl sm:ring-1"
 				>
 					<div className="flex h-14 flex-none items-center justify-between gap-2 border-b border-border px-2 sm:px-3">
@@ -356,6 +361,7 @@ export function PollCreator({
 											className="min-h-24 resize-none text-xl leading-snug tracking-[-0.01em] md:text-xl"
 											maxLength={POLL_TITLE_MAX}
 											aria-invalid={!!errors.title}
+											aria-describedby={errors.title ? 'title-error' : undefined}
 											{...register('title')}
 										/>
 										<div className="flex items-start justify-between gap-3 text-[13px] text-muted-foreground">
@@ -364,7 +370,7 @@ export function PollCreator({
 												{title.length}/{POLL_TITLE_MAX}
 											</span>
 										</div>
-										{errorText(errors.title?.message)}
+										{errorText('title-error', errors.title?.message)}
 									</div>
 
 									{showContext ? (
@@ -404,6 +410,9 @@ export function PollCreator({
 														maxLength={POLL_OPTION_MAX}
 														enterKeyHint="next"
 														aria-invalid={!!errors.options?.[index]?.text}
+														aria-describedby={
+															errors.options?.[index]?.text ? `option-${index}-error` : undefined
+														}
 														{...register(`options.${index}.text`)}
 														onKeyDown={(e) => {
 															if (e.key !== 'Enter') return;
@@ -428,7 +437,7 @@ export function PollCreator({
 														</Button>
 													)}
 												</div>
-												{errorText(errors.options?.[index]?.text?.message)}
+												{errorText(`option-${index}-error`, errors.options?.[index]?.text?.message)}
 											</div>
 										))}
 										{fields.length < POLL_OPTIONS_LIMIT && (
@@ -489,9 +498,10 @@ export function PollCreator({
 														id="endTime"
 														type="datetime-local"
 														aria-invalid={!!errors.endTime}
+														aria-describedby={errors.endTime ? 'endTime-error' : undefined}
 														{...register('endTime', { onChange: () => setEndPreset(null) })}
 													/>
-													<div className="grid grid-cols-4 gap-2">
+													<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
 														{END_PRESETS.map(({ key, label, ms }) => (
 															<Button
 																key={key}
@@ -505,7 +515,7 @@ export function PollCreator({
 															</Button>
 														))}
 													</div>
-													{errorText(errors.endTime?.message)}
+													{errorText('endTime-error', errors.endTime?.message)}
 												</div>
 
 												<RadioCards
@@ -544,7 +554,7 @@ export function PollCreator({
 														<p className="text-[13px] text-muted-foreground">
 															{t('pollCreator.inviteesHint')}
 														</p>
-														{errorText(errors.invitees?.message)}
+														{errorText('invitees-error', errors.invitees?.message)}
 													</div>
 												)}
 

@@ -99,6 +99,37 @@ describe('CommentThread', () => {
 		await waitFor(() => expect(screen.queryByText('Mine')).not.toBeInTheDocument());
 	});
 
+	it('moves focus to the discussion after deleting, so it is not lost', async () => {
+		service.deleteComment.mockResolvedValue({ ok: true, data: undefined });
+		render(<Harness />);
+		await screen.findByText('Mine');
+
+		fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
+		fireEvent.click(within(screen.getByRole('group')).getByRole('button', { name: 'Delete' }));
+
+		await waitFor(() => expect(screen.getByRole('region', { name: 'Discussion' })).toHaveFocus());
+	});
+
+	it('returns focus to Delete when the delete is cancelled', async () => {
+		render(<Harness />);
+		await screen.findByText('Mine');
+
+		fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
+		fireEvent.click(within(screen.getByRole('group')).getByRole('button', { name: 'Cancel' }));
+
+		expect(screen.getByRole('button', { name: 'Delete' })).toHaveFocus();
+	});
+
+	it('returns focus to Edit when editing is cancelled', async () => {
+		render(<Harness />);
+		await screen.findByText('Mine');
+
+		fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
+		fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+		expect(screen.getByRole('button', { name: 'Edit' })).toHaveFocus();
+	});
+
 	it('loads replies on demand', async () => {
 		service.getComments.mockResolvedValue({
 			ok: true,

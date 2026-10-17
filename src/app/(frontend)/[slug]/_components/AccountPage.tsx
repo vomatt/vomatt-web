@@ -275,13 +275,17 @@ function Settings({
 		<div className="space-y-8">
 			<section className="space-y-3">
 				<div>
-					<h3 className="font-medium">{t('account.privacyTitle')}</h3>
+					<h2 className="font-medium">{t('account.privacyTitle')}</h2>
 					<p className="text-sm text-muted-foreground">{t('account.privacyBody')}</p>
 				</div>
 				<ul className="divide-y divide-border rounded-xl border border-border bg-card">
 					{VISIBILITY_FIELDS.map((field) => (
 						<li key={field} className="flex items-center justify-between gap-4 px-4 py-3">
-							<label htmlFor={`visibility-${field}`} className="text-sm">
+							{/* The whole row is the 44px touch target; the Switch alone is smaller */}
+							<label
+								htmlFor={`visibility-${field}`}
+								className="flex min-h-11 flex-1 cursor-pointer items-center text-sm"
+							>
 								{t(`account.field.${field}`)}
 							</label>
 							<Switch
@@ -295,14 +299,18 @@ function Settings({
 			</section>
 
 			<section className="flex items-center justify-between gap-4 rounded-xl border border-border bg-card p-4">
-				<div>
-					<label htmlFor="anonymous-default" className="font-medium">
+				<label htmlFor="anonymous-default" className="flex-1 cursor-pointer">
+					<span id="anonymous-default-label" className="block font-medium">
 						{t('account.anonymousDefault')}
-					</label>
-					<p className="text-sm text-muted-foreground">{t('account.anonymousDefaultBody')}</p>
-				</div>
+					</span>
+					<span id="anonymous-default-body" className="block text-sm text-muted-foreground">
+						{t('account.anonymousDefaultBody')}
+					</span>
+				</label>
 				<Switch
 					id="anonymous-default"
+					aria-labelledby="anonymous-default-label"
+					aria-describedby="anonymous-default-body"
 					checked={anonymousDefault}
 					onCheckedChange={toggleAnonymousDefault}
 				/>
@@ -310,7 +318,7 @@ function Settings({
 
 			<section className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4">
 				<div>
-					<h3 className="font-medium">{t('account.signOutTitle')}</h3>
+					<h2 className="font-medium">{t('account.signOutTitle')}</h2>
 					<p className="text-sm text-muted-foreground">{profile.email}</p>
 				</div>
 				<Button variant="outline" onClick={() => signout()}>
@@ -347,7 +355,7 @@ function DeleteAccount({ username }: { username: string }) {
 	return (
 		<section className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-destructive/30 bg-card p-4">
 			<div>
-				<h3 className="font-medium text-destructive">{t('account.deleteTitle')}</h3>
+				<h2 className="font-medium text-destructive">{t('account.deleteTitle')}</h2>
 				<p className="text-sm text-muted-foreground">{t('account.deleteBody')}</p>
 			</div>
 			<Button variant="destructive" onClick={() => setOpen(true)}>
@@ -371,7 +379,7 @@ function DeleteAccount({ username }: { username: string }) {
 						<AlertDialogAction
 							disabled={confirmation !== username || isDeleting}
 							onClick={remove}
-							className="bg-destructive text-white hover:bg-destructive/90"
+							variant="destructive"
 						>
 							{t('account.deleteCta')}
 						</AlertDialogAction>

@@ -24,7 +24,12 @@
 		"comments": "comments",
 		"active": "Active",
 		"ended": "Ended",
-		"invalidEmailAddress": "Invalid email address"
+		"invalidEmailAddress": "Invalid email address",
+		"errorBody": "Something unexpected happened. Try again.",
+		"tryAgain": "Try again",
+		"notFoundTitle": "Page not found",
+		"notFoundBody": "We couldn't find what you were looking for.",
+		"skipToContent": "Skip to content"
 	},
 	"navigation": {
 		"home": "Home",
@@ -61,7 +66,8 @@
 		"codeSent": "A new code is on its way.",
 		"useAnotherEmail": "Use a different email",
 		"resendIn": "Resend code in {time}",
-		"inputLabel": "6-digit verification code"
+		"inputLabel": "6-digit verification code",
+		"resendReady": "You can send a new code now."
 	},
 	"myPolls": {
 		"title": "My Polls",
@@ -133,7 +139,10 @@
 		"joinedAt": "Joined",
 		"totalVotes": "Votes",
 		"displayName": "Display Name",
-		"saveChanges": "Save Changes"
+		"saveChanges": "Save Changes",
+		"displayNamePlaceholder": "Your display name",
+		"bioPlaceholder": "Tell people about yourself",
+		"updated": "Profile updated"
 	},
 	"notifications": {
 		"title": "Notifications",

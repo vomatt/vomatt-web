@@ -23,7 +23,7 @@ export function AuthDialog({ open, onOpenChange, onAuthSuccess }: AuthDialogProp
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-md">
+			<DialogContent className="sm:max-w-md" closeLabel={t('common.close')}>
 				<DialogHeader className="sr-only">
 					<DialogTitle>{t('login.title')}</DialogTitle>
 					<DialogDescription>{t('login.dialogDescription')}</DialogDescription>

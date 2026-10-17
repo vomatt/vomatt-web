@@ -8,7 +8,7 @@ import React, {
 	useState,
 } from 'react';
 
-import { SUPPORTED_LANGUAGES } from '@/i18n-config';
+import { htmlLang, SUPPORTED_LANGUAGES } from '@/i18n-config';
 import { interpolate, type TranslationValues } from '@/lib/interpolate';
 import { LanguageCode } from '@/types';
 
@@ -121,7 +121,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
 	useEffect(() => {
 		if (hasPreloaded) {
 			// Server provided language + translations — just sync DOM attributes
-			document.documentElement.lang = currentLanguage;
+			document.documentElement.lang = htmlLang(currentLanguage);
 			document.documentElement.dir = RTL_LANGUAGES.includes(currentLanguage)
 				? 'rtl'
 				: 'ltr';
@@ -136,7 +136,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
 		setCurrentLanguage(detectedLanguage);
 		loadTranslations(detectedLanguage);
 		setIsInitialized(true);
-		document.documentElement.lang = detectedLanguage;
+		document.documentElement.lang = htmlLang(detectedLanguage);
 		document.documentElement.dir = RTL_LANGUAGES.includes(detectedLanguage)
 			? 'rtl'
 			: 'ltr';
@@ -144,7 +144,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
 
 	// Update HTML attributes when language changes
 	useEffect(() => {
-		document.documentElement.lang = currentLanguage;
+		document.documentElement.lang = htmlLang(currentLanguage);
 		document.documentElement.dir = RTL_LANGUAGES.includes(currentLanguage)
 			? 'rtl'
 			: 'ltr';

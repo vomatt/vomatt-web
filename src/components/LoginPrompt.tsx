@@ -28,9 +28,9 @@ export function LoginPrompt({ className, redirectTo, sessionExpired }: LoginProm
 				className
 			)}
 		>
-			<h4 className="item-title font-semibold text-foreground">
+			<h2 className="item-title font-semibold text-foreground">
 				{t('loginPrompt.title')}
-			</h4>
+			</h2>
 			<p className="text-[15px] text-muted-foreground mt-1.5 leading-relaxed">
 				{t('loginPrompt.subtitle')}
 			</p>

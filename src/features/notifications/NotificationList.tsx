@@ -77,7 +77,6 @@ export function NotificationList({
 						key={poll.id}
 						poll={poll}
 						onClick={() => open(poll)}
-						className={poll.unread ? 'border-foreground/40' : undefined}
 						meta={
 							<>
 								{unreadMarker(poll)}
@@ -101,7 +100,6 @@ export function NotificationList({
 								key={poll.id}
 								poll={poll}
 								onClick={() => open(poll)}
-								className={poll.unread ? 'border-foreground/40' : undefined}
 								aside={<StatusChip status={derivePollStatus(poll)} poll={poll} />}
 								meta={
 									<>

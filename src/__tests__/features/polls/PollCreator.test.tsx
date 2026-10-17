@@ -107,6 +107,14 @@ describe('PollCreator', () => {
 		expect(await screen.findByText('Keep the question to 200 characters.')).toBeInTheDocument();
 	});
 
+	it('points the question field at its error for screen readers', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		review();
+		await screen.findByText('Ask a question.');
+		expect(screen.getByLabelText(QUESTION)).toHaveAccessibleDescription('Ask a question.');
+	});
+
 	it('requires every option to be filled', async () => {
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();

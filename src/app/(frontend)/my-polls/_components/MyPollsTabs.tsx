@@ -47,7 +47,7 @@ function countLabel(list: { items: unknown[]; hasMore: boolean }) {
 function MyPollsTabList({ activeCount, endedCount }: { activeCount?: string; endedCount?: string }) {
 	const { t } = useLanguage();
 	return (
-		<TabsList variant="line" className="mb-4">
+		<TabsList variant="line">
 			<TabsTrigger value="active">
 				{t('myPolls.tabActive')}
 				{activeCount && ` (${activeCount})`}
@@ -64,7 +64,7 @@ function MyPollsTabList({ activeCount, endedCount }: { activeCount?: string; end
 /** The real tab list over placeholder rows, so the loaded tabs land in place. */
 export function MyPollsTabsSkeleton() {
 	return (
-		<Tabs value="active">
+		<Tabs value="active" className="gap-6">
 			<MyPollsTabList />
 			<TabsContent value="active">
 				<PollRowListSkeleton />
@@ -91,7 +91,7 @@ export default function MyPollsTabs({
 	const lists = { active: openList, ended: endedList };
 
 	return (
-		<Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as Tab)}>
+		<Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as Tab)} className="gap-6">
 			<MyPollsTabList activeCount={countLabel(openList)} endedCount={countLabel(endedList)} />
 
 			<TabsContent value="drafts" className="space-y-3">

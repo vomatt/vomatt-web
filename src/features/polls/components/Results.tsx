@@ -1,6 +1,6 @@
 'use client';
 
-import { animate, motion, useMotionValue, useReducedMotion, useTransform } from 'motion/react';
+import { animate, m, useMotionValue, useReducedMotion, useTransform } from 'motion/react';
 import { useEffect, useState } from 'react';
 
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -33,21 +33,21 @@ function CountUp({ value, delay }: { value: number; delay: number }) {
 		return () => controls.stop();
 	}, [count, delay, reduceMotion, value]);
 
-	return <motion.span aria-hidden>{label}</motion.span>;
+	return <m.span aria-hidden>{label}</m.span>;
 }
 
 function Crown() {
 	return (
-		<motion.svg
+		<m.svg
 			viewBox="0 0 16 16"
 			aria-hidden
 			className="mr-1.5 inline size-3.5 -translate-y-px text-foreground"
 			initial={{ scale: 0, rotate: -30 }}
 			animate={{ scale: 1, rotate: 0 }}
-			transition={{ type: 'spring', stiffness: 500, damping: 14, delay: BAR_DURATION }}
+			transition={{ duration: 0.3, ease: [0.25, 1, 0.5, 1], delay: BAR_DURATION }}
 		>
 			<path fill="currentColor" d="M2 5.5 5 8l3-5 3 5 3-2.5-1.2 7H3.2z" />
-		</motion.svg>
+		</m.svg>
 	);
 }
 
@@ -154,7 +154,7 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }:
 								isWinner ? 'border-foreground' : 'border-border'
 							)}
 						>
-							<motion.div
+							<m.div
 								aria-hidden
 								className={cn(
 									'absolute inset-0 origin-left',
@@ -167,7 +167,7 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }:
 							<RowContent
 								onClick={onSelectOption && row.votes > 0 ? () => onSelectOption(row) : undefined}
 							>
-								<span className={cn(isWinner && 'font-semibold')}>
+								<span className={cn('min-w-0 wrap-anywhere', isWinner && 'font-semibold')}>
 									{isWinner && <Crown />}
 									{row.text}
 									{row.id === myOptionId && (

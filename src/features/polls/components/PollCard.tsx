@@ -1,6 +1,6 @@
 'use client';
 
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, m } from 'motion/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useState } from 'react';
@@ -34,6 +34,8 @@ interface PollCardProps {
 	defaultShowComments?: boolean;
 	/** Where to go once the owner Deletes the Poll; without it the card just leaves the list. */
 	deletedHref?: string;
+	/** h1 when the card is the page (poll detail); h2 in a list under the page's h1. */
+	headingLevel?: 'h1' | 'h2';
 }
 
 /** Shows the Ballot until the Poll Ends, then the Results. Whether the viewer voted doesn't matter. */
@@ -42,6 +44,7 @@ export function PollCard({
 	viewerId,
 	defaultShowComments = false,
 	deletedHref,
+	headingLevel: Heading = 'h2',
 }: PollCardProps) {
 	const { currentLanguage } = useLanguage();
 	const isHydrated = useHydrated();
@@ -96,12 +99,13 @@ export function PollCard({
 	return (
 		<article className="group bg-card border border-border rounded-xl">
 			<div className="p-4 space-y-4 md:p-6">
-				<div className="flex items-center justify-between gap-3">
+				<div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
 					<div className="flex min-w-0 items-center gap-1.5 text-[13px] text-muted-foreground">
 						<UserChip
 							username={creatorUsername}
 							avatarUrl={poll.creatorAvatarUrl}
-							className="font-medium hover:text-foreground transition-colors"
+							// 44px tall hit area without growing the header row
+							className="-my-2.5 min-h-11 font-medium hover:text-foreground transition-colors"
 							avatarClassName="size-6"
 						/>
 						<time dateTime={createdAt} className="shrink-0 whitespace-nowrap">
@@ -114,12 +118,12 @@ export function PollCard({
 
 				<div>
 					<Link href={`/poll/${id}`}>
-						<h3 className="text-[22px] font-medium leading-tight tracking-[-0.02em] text-foreground hover:text-muted-foreground transition-colors md:text-[26px]">
+						<Heading className="wrap-anywhere text-[22px] font-medium leading-tight tracking-[-0.02em] text-foreground hover:text-muted-foreground transition-colors md:text-[26px]">
 							{title}
-						</h3>
+						</Heading>
 					</Link>
 					{description && (
-						<p className="mt-2 max-w-[65ch] text-base text-muted-foreground leading-relaxed">
+						<p className="mt-2 max-w-[65ch] wrap-anywhere text-base text-muted-foreground leading-relaxed">
 							{description}
 						</p>
 					)}
@@ -127,7 +131,7 @@ export function PollCard({
 
 				{/* When a Poll ends while open on screen, the Ballot gives way to the Results */}
 				<AnimatePresence mode="wait" initial={false}>
-					<motion.div
+					<m.div
 						key={status === 'ended' ? 'results' : 'ballot'}
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
@@ -150,7 +154,7 @@ export function PollCard({
 								requireAuth={requireAuth}
 							/>
 						)}
-					</motion.div>
+					</m.div>
 				</AnimatePresence>
 
 				{/* One fixed place, so a status change never remounts an open owner dialog */}

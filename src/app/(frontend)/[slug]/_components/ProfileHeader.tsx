@@ -46,7 +46,7 @@ export default function ProfileHeader({
 			<div className="min-w-0 flex-1">
 				<h1 className="truncate display-heading text-2xl md:text-[28px]">{name}</h1>
 				{profile.displayName && <p className="mt-1 font-mono text-sm text-muted-foreground">@{profile.username}</p>}
-				{profile.bio && <p className="mt-1 text-sm">{profile.bio}</p>}
+				{profile.bio && <p className="mt-1 wrap-anywhere text-sm">{profile.bio}</p>}
 				<p className="mt-1 text-[13px] text-muted-foreground">{details.join(' · ')}</p>
 			</div>
 			{action}

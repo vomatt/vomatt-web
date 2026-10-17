@@ -1,6 +1,6 @@
 'use client';
 
-import { AnimatePresence, motion, useAnimate } from 'motion/react';
+import { AnimatePresence, m, useAnimate } from 'motion/react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -151,7 +151,7 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 								className="peer sr-only"
 							/>
 							<BallotMark checked={isSelected} />
-							<span className="relative flex-1">{option.text}</span>
+							<span className="relative min-w-0 flex-1 wrap-anywhere">{option.text}</span>
 							<AnimatePresence>
 								{isMine && (
 									<span key="stamp" className="relative" title={t('poll.yourVote')}>
@@ -190,7 +190,7 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 
 			<AnimatePresence initial={false}>
 				{hasBallot && poll.endTime && isHydrated && (
-					<motion.div
+					<m.div
 						key="sealed"
 						initial={{ opacity: 0, y: -6 }}
 						animate={{ opacity: 1, y: 0 }}
@@ -203,7 +203,7 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 							<p>{t('poll.sealed', { date: formatPollDate(poll.endTime, currentLanguage) })}</p>
 							{visibilityHint && <p>{visibilityHint}</p>}
 						</div>
-					</motion.div>
+					</m.div>
 				)}
 			</AnimatePresence>
 

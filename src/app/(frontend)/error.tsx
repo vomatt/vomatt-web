@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 
 import { Button } from '@/components/ui/Button';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function Error({
 	error,
@@ -11,18 +12,20 @@ export default function Error({
 	error: Error & { digest?: string };
 	reset: () => void;
 }) {
+	const { t } = useLanguage();
+
 	useEffect(() => {
 		console.error(error);
 	}, [error]);
 
 	return (
 		<div className="flex flex-col items-center justify-center min-h-[50vh] gap-4 px-4 text-center">
-			<h2 className="text-xl font-semibold text-foreground">Something went wrong</h2>
+			<h1 className="text-xl font-semibold text-foreground">{t('common.error')}</h1>
 			<p className="text-sm text-muted-foreground max-w-sm">
-				{error.message || 'An unexpected error occurred. Please try again.'}
+				{error.message || t('common.errorBody')}
 			</p>
 			<Button variant="outline" onClick={reset}>
-				Try again
+				{t('common.tryAgain')}
 			</Button>
 		</div>
 	);

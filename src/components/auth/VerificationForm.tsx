@@ -147,8 +147,12 @@ export default function VerificationForm({
 				</Button>
 			</form>
 
+			{/* The countdown isn't live (it would be read out every second); this says once when resend opens up */}
+			<p className="sr-only" aria-live="polite">
+				{cooldown > 0 ? '' : t('verificationCode.resendReady')}
+			</p>
 			{cooldown > 0 ? (
-				<p className="text-sm text-muted-foreground tabular-nums" aria-live="polite">
+				<p className="text-sm text-muted-foreground tabular-nums">
 					{t('verificationCode.resendIn', { time: formatCountdown(cooldown) })}
 				</p>
 			) : (

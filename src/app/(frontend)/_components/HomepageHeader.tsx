@@ -20,32 +20,48 @@ export function HomepageHeader({ tags, activeTag }: HomepageHeaderProps) {
 		...tags.map((tag) => ({ slug: tag.slug, label: `#${tag.name}` })),
 	];
 
+	// A filtered feed is that topic's page; the topic may not be among the popular ones listed
+	const heading = activeTag
+		? (items.find((item) => item.slug === activeTag)?.label ?? `#${activeTag}`)
+		: t('navigation.home');
+
 	return (
-		<nav
-			aria-label={t('homePage.topics')}
-			className="sticky top-0 z-10 -mx-1 border-b border-border bg-background/95 backdrop-blur-sm"
-		>
-			<ul className="flex gap-1 overflow-x-auto px-1 py-1 [scrollbar-width:none]">
-				{items.map(({ slug, label }) => {
-					const isActive = slug === activeTag;
-					return (
-						<li key={slug ?? 'all'} className="shrink-0">
-							<Link
-								href={slug ? topicHref(slug) : '/'}
-								scroll={false}
-								aria-current={isActive ? 'page' : undefined}
-								className={cn(
-									'flex min-h-11 items-center rounded-md px-3 text-[15px] font-medium transition-colors',
-									isActive ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
-								)}
-							>
-								{label}
-								{isActive && <span className="mt-0.5 block h-0.5 rounded-full bg-foreground" />}
-							</Link>
-						</li>
-					);
-				})}
-			</ul>
-		</nav>
+		<>
+			{/* The feed has no visible title; the page still needs one for headings navigation */}
+			<h1 className="sr-only">{heading}</h1>
+			<nav
+				aria-label={t('homePage.topics')}
+				className="sticky top-0 z-10 -mx-1 border-b border-border bg-background"
+			>
+				<ul className="flex gap-1 overflow-x-auto px-1 py-1 [scrollbar-width:none]">
+					{items.map(({ slug, label }) => {
+						const isActive = slug === activeTag;
+						return (
+							<li key={slug ?? 'all'} className="shrink-0">
+								<Link
+									href={slug ? topicHref(slug) : '/'}
+									scroll={false}
+									aria-current={isActive ? 'page' : undefined}
+									className={cn(
+										'relative flex min-h-11 items-center rounded-md px-3 text-[15px] font-medium transition-colors',
+										isActive
+											? 'text-foreground'
+											: 'text-muted-foreground hover:text-foreground'
+									)}
+								>
+									{label}
+									{isActive && (
+										<span
+											aria-hidden
+											className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-foreground"
+										/>
+									)}
+								</Link>
+							</li>
+						);
+					})}
+				</ul>
+			</nav>
+		</>
 	);
 }
