@@ -167,6 +167,19 @@ describe('useBallot anonymity', () => {
 		expect(result.current.anonymous).toBeNull();
 	});
 
+	it('retries once when the Poll is busy', async () => {
+		mockCastBallot
+			.mockResolvedValueOnce({ ok: false, status: 409, errorCode: 'common.conflict', message: 'busy' })
+			.mockResolvedValueOnce({ ok: true, data: { ...voted, myBallotAnonymous: false } });
+		const { result } = setup();
+		let outcome: string | undefined;
+		await act(async () => {
+			outcome = await result.current.cast('opt-a');
+		});
+		expect(outcome).toBe('saved');
+		expect(mockCastBallot).toHaveBeenCalledTimes(2);
+	});
+
 	it('asks the voter to retry when the Poll is busy', async () => {
 		const { toast } = jest.requireMock('sonner');
 		mockCastBallot.mockResolvedValue({ ok: false, status: 409, errorCode: 'common.conflict', message: 'Poll is busy, retry' });

@@ -89,7 +89,9 @@ export function useBallot(poll: Poll, { isAuthed, onPollEnded }: Options) {
 			const turnoutDelta = (next ? 1 : 0) - (previous ? 1 : 0);
 			setTurnout((count) => shiftCount(count, turnoutDelta));
 
-			const result = await request();
+			let result = await request();
+			// Busy means nothing was recorded; the API asks for one retry
+			if (isBusy(result)) result = await request();
 			setIsPending(false);
 			if (result.ok) {
 				setAnonymousFlag(result.data?.myBallotAnonymous ?? null);
@@ -107,7 +109,7 @@ export function useBallot(poll: Poll, { isAuthed, onPollEnded }: Options) {
 				return 'ended';
 			}
 			if (isRateLimited(result)) toast.error(t('poll.tooManyVotes'));
-			// The API's own (localized) message: the Poll was busy, nothing was recorded, retry
+			// Still busy after the retry: the API's own (localized) message asks to try again
 			else if (isBusy(result)) toast.error(result.message);
 			else toast.error(failureMessage);
 			return 'failed';
