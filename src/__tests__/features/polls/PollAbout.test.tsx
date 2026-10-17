@@ -40,7 +40,9 @@ describe('PollAbout', () => {
 	});
 
 	it('says results are in when it ran to its Deadline', () => {
-		render(<PollAbout poll={{ ...poll, endTime: iso(-HOUR), deadline: iso(-HOUR) }} />);
+		// One timestamp: two iso() calls can land a millisecond apart and read as ended early
+		const ended = iso(-HOUR);
+		render(<PollAbout poll={{ ...poll, endTime: ended, deadline: ended }} />);
 		expect(screen.getByText('Voting has closed. Results are in.')).toBeInTheDocument();
 	});
 
