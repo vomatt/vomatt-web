@@ -53,7 +53,7 @@ Render Portable Text with `@/components/CustomPortableText`; build image URLs wi
 - **`client.ts`** — `apiClient<T>()` (authenticated; throws `AuthError` on 401, `ApiError` with `data.errorCode` otherwise; `auth: 'optional'` falls back to `publicFetch`) and `publicFetch<T>()`. Both unwrap the `ApiResponse` envelope.
 - **`services/`** — `auth.ts` (`requestOtp`, `verifyOtp`, `signout`) and `users.ts` are Server Actions (`'use server'`). Domain actions live in `src/features/<domain>/service.ts` (polls — incl. ballots, comments, invitees — groups, avatars, notifications) and return `ActionResult` (via `attempt()` in `lib/api/action.ts`) instead of throwing.
 
-The backend is `vomatt-api` (sibling repo): prefix `/api`; the contract is `api-docs.json` at the repo root (what the deployed API at `API_URL` serves from `/v3/api-docs`; flow docs in `vomatt-api/docs/frontend/`). Lists are cursor-paged: `{ items, nextCursor }` with `limit`/`cursor` params (`lib/api/cursor.ts`). Open questions from the integration are in `docs/release/api-integration-notes.md`; older backend gaps in `docs/release/backend-requests.md`.
+The backend is `vomatt-api` (sibling repo): prefix `/api`; the contract is `api-docs.json` at the repo root (what the deployed API at `API_URL` serves from `/v3/api-docs`; flow docs in `vomatt-api/docs/frontend/`). When checking or diffing `api-docs.json`, skip the admin endpoints (`/api/admin/**`, tags `Admin - Lookup` and `Admin Tag`): this app doesn't call them. Lists are cursor-paged: `{ items, nextCursor }` with `limit`/`cursor` params (`lib/api/cursor.ts`). Open questions from the integration are in `docs/release/api-integration-notes.md`; older backend gaps in `docs/release/backend-requests.md`.
 
 ### Internationalization
 
