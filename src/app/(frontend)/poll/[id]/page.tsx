@@ -8,11 +8,12 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { ArrowLeft } from '@/components/ui/SvgIcons';
 import { getUserSession } from '@/data/auth';
 import { MarkNotificationRead } from '@/features/notifications/MarkNotificationRead';
+import { InvitationPrompt } from '@/features/polls/components/InvitationPrompt';
 import { PollAbout } from '@/features/polls/components/PollAbout';
 import { PollCard } from '@/features/polls/components/PollCard';
 import { PollCardSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import type { Poll } from '@/features/polls/schema';
-import { getPoll } from '@/features/polls/service';
+import { getInviteOnlyCreator, getPoll } from '@/features/polls/service';
 import { derivePollStatus, isCancelled, isInvitee } from '@/features/polls/status';
 import { AuthError } from '@/lib/api/client';
 
@@ -77,7 +78,9 @@ async function PollDetail({ id }: { id: string }) {
 	const [lookup, user] = await Promise.all([lookupPoll(id), getUserSession()]);
 
 	if (!lookup.poll) {
-		// Signed out, a 404 may be an Invite-only Poll (e.g. from an invitation email)
+		// A 404 may be an Invite-only Poll this viewer can't open yet (e.g. from an invitation email)
+		const creator = lookup.reason === 'not-found' ? await getInviteOnlyCreator(id) : null;
+		if (creator) return <InvitationPrompt creator={creator} pollId={id} signedIn={!!user} />;
 		return lookup.reason !== 'not-found' || !user ? (
 			<LoginPrompt
 				className="block mx-auto max-w-sm"

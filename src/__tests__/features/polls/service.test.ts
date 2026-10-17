@@ -9,6 +9,7 @@ import {
 	getAllMyPolls,
 	getComments,
 	getFeed,
+	getInviteOnlyCreator,
 	getInvitees,
 	getMyBallot,
 	getMyPolls,
@@ -635,5 +636,23 @@ describe('postComment()', () => {
 			text: 'Agreed',
 			parentId: 'c1',
 		});
+	});
+});
+
+describe('getInviteOnlyCreator()', () => {
+	it("returns the owner of an Invite-only Poll from the public endpoint", async () => {
+		mockPublicFetch.mockResolvedValue({ username: 'alice', avatarUrl: 'bot:boba' });
+		expect(await getInviteOnlyCreator('poll-1')).toEqual({ username: 'alice', avatarUrl: 'bot:boba' });
+		expect(mockPublicFetch).toHaveBeenCalledWith('/votes/poll-1/creator');
+	});
+
+	it('returns null when it is no Invite-only Poll', async () => {
+		mockPublicFetch.mockRejectedValue(new ApiError('Not found', 404, { errorCode: 'vote.not_found' }));
+		expect(await getInviteOnlyCreator('poll-1')).toBeNull();
+	});
+
+	it('returns null for an ID the API rejects, like getPoll does', async () => {
+		mockPublicFetch.mockRejectedValue(new ApiError('Bad request', 400, { errorCode: 'common.validation_failed' }));
+		expect(await getInviteOnlyCreator('abc')).toBeNull();
 	});
 });

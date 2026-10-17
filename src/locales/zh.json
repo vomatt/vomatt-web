@@ -51,7 +51,7 @@
 		"subtitle": "輸入電子郵件，我們會寄送驗證碼給你。第一次使用？我們會自動為你建立帳號。",
 		"sessionExpired": "登入已過期，請重新登入。",
 		"dialogDescription": "使用電子郵件登入或註冊以繼續",
-		"sessionRevoked": "為了你的帳號安全，已登出所有裝置，請重新登入。"
+		"sessionRevoked": "為了你的帳號安全，已登出這個裝置，請重新登入。"
 	},
 	"verificationCode": {
 		"title": "請查看你的信箱",
@@ -240,6 +240,11 @@
 		"joinToCreate": "加入後即可發起投票"
 	},
 	"poll": {
+		"invitation": {
+			"title": "{username} 邀請你參加投票",
+			"signIn": "請用收到邀請的電子郵件地址登入。",
+			"wrongAccount": "這個帳號無法開啟此投票，請用收到邀請的電子郵件地址登入。"
+		},
 		"vote": "投票",
 		"updateVote": "更新投票",
 		"withdrawVote": "撤回投票",
@@ -309,7 +314,7 @@
 	"authError": {
 		"invalidCode": "驗證碼不正確，請確認信件後再試一次。",
 		"codeExpired": "驗證碼已過期，請重新取得。",
-		"tooManyAttempts": "錯誤次數過多，請 15 分鐘後再試。",
+		"tooManyAttempts": "錯誤次數過多，請稍候幾分鐘再試。",
 		"resendCooldown": "剛剛已寄出驗證碼，請稍候再試。",
 		"emailSendFailed": "無法寄送信件，請確認信箱後再試一次。",
 		"accountSuspended": "此帳號已被停權。",

@@ -150,7 +150,7 @@ export async function proxy(request: NextRequest) {
 	if (!hasValidSession && isProtectedPath) {
 		const loginUrl = new URL('/login', request.url);
 		loginUrl.searchParams.set('redirect', `${pathname}${request.nextUrl.search}`);
-		// `security`: the API signed this user out everywhere after seeing a reused token
+		// `security`: the API signed this session out after seeing a reused token
 		if (session.status === 'dead') {
 			loginUrl.searchParams.set('session_expired', session.suspicious ? 'security' : '1');
 		}
