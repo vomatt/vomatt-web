@@ -4,6 +4,7 @@ import { revalidateTag, updateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
+import { type ActionFailure, attempt } from '@/lib/api/action';
 import { clearAuthTokens } from '@/lib/api/auth';
 import { apiClient, ApiError, publicFetch } from '@/lib/api/client';
 import { PROFILES_TAG } from '@/lib/api/constants';
@@ -103,13 +104,11 @@ export async function updateVisibility(visibility: Record<string, boolean>) {
 /**
  * Permanently deletes the signed-in user's account; the backend also
  * revokes every session. Resolves only on failure: success redirects home.
+ * A refusal carries the API's errorCode (e.g. 409 `admin.last_admin`).
  */
-export async function deleteMyAccount(): Promise<{ ok: false; message: string }> {
-  try {
-    await deleteUser((await getMyProfile()).id);
-  } catch (error) {
-    return { ok: false, message: error instanceof Error ? error.message : 'Request failed' };
-  }
+export async function deleteMyAccount(): Promise<ActionFailure> {
+  const result = await attempt(async () => deleteUser((await getMyProfile()).id));
+  if (!result.ok) return result;
   await clearAuthTokens();
   redirect('/?account_deleted=1');
 }

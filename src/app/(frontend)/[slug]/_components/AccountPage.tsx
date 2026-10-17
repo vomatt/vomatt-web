@@ -323,6 +323,12 @@ function Settings({
 	);
 }
 
+/** Deletion refusals with their own copy; anything else shows the API's message. */
+const DELETE_ERROR_KEYS: Record<string, string> = {
+	'admin.last_admin': 'account.deleteLastAdmin',
+	'common.conflict': 'common.busy',
+};
+
 function DeleteAccount({ username }: { username: string }) {
 	const { t } = useLanguage();
 	const [open, setOpen] = useState(false);
@@ -334,7 +340,8 @@ function DeleteAccount({ username }: { username: string }) {
 		// Only returns on failure; success redirects
 		const result = await deleteMyAccount();
 		setIsDeleting(false);
-		if (result) toast.error(result.message);
+		const key = result.errorCode && DELETE_ERROR_KEYS[result.errorCode];
+		toast.error(key ? t(key) : result.message || t('common.error'));
 	};
 
 	return (

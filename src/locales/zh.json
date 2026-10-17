@@ -1,5 +1,6 @@
 {
 	"common": {
+		"busy": "目前有其他變更正在進行，請稍後再試。",
 		"home": "首頁",
 		"createPoll": "建立投票",
 		"myPolls": "我的投票",
@@ -399,6 +400,7 @@
 		"deleteConfirmTitle": "確定要刪除帳號？",
 		"deleteConfirmBody": "請輸入 {username} 以確認，帳號將被永久刪除。",
 		"deleteConfirmLabel": "輸入你的使用者名稱以確認",
+		"deleteLastAdmin": "你是唯一的管理員，請先將其他人設為管理員再刪除帳號。",
 		"tabGroups": "群組"
 	},
 	"cookieConsent": {

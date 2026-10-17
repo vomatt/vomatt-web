@@ -1,4 +1,4 @@
-import { apiClient, publicFetch } from '@/lib/api/client';
+import { apiClient, ApiError, publicFetch } from '@/lib/api/client';
 import {
   deleteMyAccount,
   deleteUser,
@@ -18,12 +18,24 @@ jest.mock('next/cache', () => ({
 const mockClearAuthTokens = jest.fn();
 jest.mock('@/lib/api/auth', () => ({ clearAuthTokens: () => mockClearAuthTokens() }));
 const mockRedirect = jest.fn();
-jest.mock('next/navigation', () => ({ redirect: (...a: unknown[]) => mockRedirect(...a) }));
+jest.mock('next/navigation', () => ({
+  redirect: (...a: unknown[]) => mockRedirect(...a),
+  unstable_rethrow: jest.fn(),
+}));
 
 jest.mock('@/lib/api/client', () => ({
   apiClient: jest.fn(),
   publicFetch: jest.fn(),
-  ApiError: class ApiError extends Error {},
+  ApiError: class ApiError extends Error {
+    constructor(
+      message: string,
+      public statusCode: number,
+      public data?: any
+    ) {
+      super(message);
+    }
+  },
+  AuthError: class AuthError extends Error {},
   API_BASE_PATH: '/api',
 }));
 
@@ -160,6 +172,20 @@ describe('deleteMyAccount()', () => {
     mockClearAuthTokens.mockClear();
     mockApiClient.mockRejectedValueOnce(new Error('nope'));
     expect(await deleteMyAccount()).toEqual({ ok: false, message: 'nope' });
+    expect(mockClearAuthTokens).not.toHaveBeenCalled();
+  });
+
+  it("returns the API's errorCode, e.g. when the caller is the only active admin", async () => {
+    mockClearAuthTokens.mockClear();
+    mockApiClient
+      .mockResolvedValueOnce({ id: 'user-7' })
+      .mockRejectedValueOnce(new ApiError('Last admin', 409, { errorCode: 'admin.last_admin' }));
+    expect(await deleteMyAccount()).toEqual({
+      ok: false,
+      status: 409,
+      errorCode: 'admin.last_admin',
+      message: 'Last admin',
+    });
     expect(mockClearAuthTokens).not.toHaveBeenCalled();
   });
 });

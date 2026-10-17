@@ -1,5 +1,6 @@
 {
 	"common": {
+		"busy": "Another change is in progress. Try again in a moment.",
 		"home": "home",
 		"createPoll": "Create a poll",
 		"myPolls": "My Polls",
@@ -403,6 +404,7 @@
 		"deleteConfirmTitle": "Delete your account?",
 		"deleteConfirmBody": "Type {username} to confirm. Your account will be removed permanently.",
 		"deleteConfirmLabel": "Type your username to confirm",
+		"deleteLastAdmin": "You are the only active admin. Make someone else an admin before deleting your account.",
 		"tabGroups": "Groups"
 	},
 	"cookieConsent": {

@@ -1,10 +1,12 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { toast } from 'sonner';
 
 import AccountPage from '@/app/(frontend)/[slug]/_components/AccountPage';
 import type { MyProfile, UserProfile } from '@/types/user';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 jest.mock('next/navigation', () => ({ useRouter: () => ({ replace: jest.fn(), refresh: jest.fn() }) }));
+jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn() } }));
 jest.mock('@/lib/api/services/auth', () => ({ signout: jest.fn() }));
 jest.mock('@/lib/api/services/users', () => ({
 	deleteMyAccount: jest.fn(),
@@ -137,6 +139,23 @@ describe('AccountPage', () => {
 			answers[1]({ ok: false, message: '' });
 		});
 		expect(toggle).not.toBeChecked();
+	});
+
+	it.each([
+		['admin.last_admin', 'You are the only active admin. Make someone else an admin before deleting your account.'],
+		['common.conflict', 'Another change is in progress. Try again in a moment.'],
+	])('explains a refused deletion (%s)', async (errorCode, message) => {
+		const { deleteMyAccount } = jest.requireMock('@/lib/api/services/users');
+		deleteMyAccount.mockResolvedValue({ ok: false, status: 409, errorCode, message: 'raw' });
+		render(<AccountPage isOwn profile={myProfile} myPolls={[]} history={[]} insights={insights} />);
+
+		fireEvent.click(screen.getByRole('tab', { name: 'Settings' }));
+		fireEvent.click(screen.getByRole('button', { name: 'Delete account' }));
+		fireEvent.change(screen.getByRole('textbox', { name: 'Type your username to confirm' }), {
+			target: { value: 'mei' },
+		});
+		fireEvent.click(screen.getAllByRole('button', { name: 'Delete account' }).at(-1)!);
+		await waitFor(() => expect(toast.error).toHaveBeenCalledWith(message));
 	});
 
 	it("doesn't let visitors change the avatar", () => {
