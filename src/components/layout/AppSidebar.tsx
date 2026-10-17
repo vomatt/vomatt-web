@@ -150,9 +150,9 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 											)}
 										>
 											<item.icon className="size-5 shrink-0" />
-											<span className="text-[15px] font-medium capitalize">{t(item.title)}</span>
+											<span className="text-sm font-medium capitalize">{t(item.title)}</span>
 											{badge > 0 && (
-												<span className="ml-auto min-w-6 rounded-full bg-volt px-1.5 text-center ring-1 ring-inset ring-volt-foreground/20 font-mono text-xs leading-6 text-volt-foreground tabular-nums">
+												<span className="ml-auto min-w-5 rounded-full bg-primary px-1.5 text-center font-mono text-[11px] leading-5 text-primary-foreground tabular-nums">
 													{formatUnreadCount(badge)}
 												</span>
 											)}
@@ -185,7 +185,7 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 							)}
 
 							<div className="flex-1 min-w-0">
-								<p className="text-sm font-semibold text-sidebar-foreground leading-tight truncate">
+								<p className="text-[13px] font-medium text-sidebar-foreground leading-tight truncate">
 									{profile?.displayName || profile?.username}
 								</p>
 								{profile?.displayName &&
@@ -203,7 +203,7 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 					<div className="rounded-xl border border-sidebar-border bg-card p-1">
 						<Link
 							href="/login"
-							className="flex items-center gap-2.5 w-full min-h-11 px-3 rounded-lg text-muted-foreground hover:text-sidebar-foreground hover:bg-surface-soft transition-colors text-[15px]"
+							className="flex items-center gap-2.5 w-full min-h-11 px-3 rounded-lg text-muted-foreground hover:text-sidebar-foreground hover:bg-surface-soft transition-colors text-sm"
 						>
 							<User className="size-4 shrink-0" />
 							<span className="font-medium">Sign in</span>
