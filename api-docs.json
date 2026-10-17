@@ -3590,7 +3590,7 @@
 			"post": {
 				"tags": ["Auth"],
 				"summary": "Verify email OTP and sign in",
-				"description": "**Auth**: public\n**Precondition**: an OTP was sent to this email via `POST /api/auth/send-otp` and has not expired\n**Behavior**: consumes the OTP and returns an access token and refresh token. Creates the user if the email is new (signup), otherwise signs the existing user in. If `checkRole` is \"true\", the account must already exist and be an admin, and this is checked before the OTP is consumed\n**Side effects**: the OTP is consumed on success; a new user (with a random bot avatar) is created and a welcome email sent on signup; `lastLoginAt` is updated. The 5th wrong code deletes the OTP and locks the identifier for 15 minutes; while locked, sending or verifying an OTP is refused\n**Errors**:\n- 400 `auth.identifier.required`: `email` is missing or blank\n- 401 `auth.otp.invalid_or_expired`: no OTP exists for this email (never sent, expired, or already used)\n- 401 `auth.invalid_otp`: the code is wrong\n- 401 `auth.otp.too_many_attempts`: 5th wrong code, or the identifier is locked (even a correct code is refused for 15 minutes)\n- 403 `auth.admin.forbidden`: `checkRole` is \"true\" and the account is not an existing admin\n- 403 `auth.account_banned`: the user is suspended (`active=false`)",
+				"description": "**Auth**: public\n**Precondition**: an OTP was sent to this email via `POST /api/auth/send-otp` and has not expired\n**Behavior**: consumes the OTP and returns an access token and refresh token. Creates the user if the email is new (signup), otherwise signs the existing user in. If `checkRole` is \"true\", the account must already exist and be an admin, and this is checked before the OTP is consumed\n**Side effects**: the OTP is consumed on success; a new user (with a random bot avatar) is created and a welcome email sent on signup; `lastLoginAt` is updated. Wrong codes are counted per email and client IP; resending does not reset the count. The 3rd wrong code locks this email for the caller's IP for 5 minutes, doubling on each further lockout (10, 20, 40 minutes...) up to 24 hours; the doubling is forgotten 24 hours after the last lock ends, and a successful sign-in from that IP resets it. While locked, sending or verifying an OTP from that IP is refused; other IPs are not affected and the OTP stays valid. One OTP allows 10 guesses in total across all IPs; after the 10th wrong guess it no longer verifies and a new OTP can be requested only after 15 minutes\n**Errors**:\n- 400 `auth.identifier.required`: `email` is missing or blank\n- 401 `auth.otp.invalid_or_expired`: no OTP exists for this email (never sent, expired, already used, or its 10 guesses are used up)\n- 401 `auth.invalid_otp`: the code is wrong\n- 401 `auth.otp.too_many_attempts`: 3rd wrong code, or this identifier is locked for the caller's IP (even a correct code is refused until the lock ends)\n- 403 `auth.admin.forbidden`: `checkRole` is \"true\" and the account is not an existing admin\n- 403 `auth.account_banned`: the user is suspended (`active=false`)",
 				"operationId": "verifyOtp",
 				"requestBody": {
 					"content": {
@@ -3699,7 +3699,7 @@
 			"post": {
 				"tags": ["Auth"],
 				"summary": "Send email OTP",
-				"description": "**Auth**: public\n**Precondition**: none; the same endpoint serves login and signup (the server picks which by whether the email is registered)\n**Behavior**: generates a 6-digit OTP, stores it with a TTL (default 180 s) and emails it. The email is lower-cased and trimmed; a Gmail address (gmail.com / googlemail.com) also loses its +tag and dots and moves to gmail.com. If `checkRole` is \"true\", only an existing admin account may request an OTP (admin console login)\n**Side effects**: sends an email; replaces any previous OTP for this address. A resend is refused during the cooldown (default 180 s)\n**Errors**:\n- 400 `auth.identifier.required`: `email` is missing or blank\n- 400 `auth.otp.resend_cooldown`: an OTP was sent too recently; the message states the seconds left\n- 400 `auth.email.send_failed`: the email provider rejected the message\n- 401 `auth.otp.too_many_attempts`: the identifier is locked for 15 minutes after 5 wrong codes\n- 403 `auth.admin.forbidden`: `checkRole` is \"true\" and the account is not an admin",
+				"description": "**Auth**: public\n**Precondition**: none; the same endpoint serves login and signup (the server picks which by whether the email is registered)\n**Behavior**: generates a 6-digit OTP, stores it with a TTL (default 180 s) and emails it. The email is lower-cased and trimmed; a Gmail address (gmail.com / googlemail.com) also loses its +tag and dots and moves to gmail.com. If `checkRole` is \"true\", only an existing admin account may request an OTP (admin console login)\n**Side effects**: sends an email; replaces any previous OTP for this address. A resend is refused during the cooldown (default 180 s)\n**Errors**:\n- 400 `auth.identifier.required`: `email` is missing or blank\n- 400 `auth.otp.resend_cooldown`: an OTP was sent too recently; the message states the seconds left\n- 400 `auth.email.send_failed`: the email provider rejected the message; the OTP is dropped and a resend is allowed after 30 s\n- 401 `auth.otp.too_many_attempts`: this email is locked for the caller's IP after 3 wrong codes (5 minutes, doubling on each further lockout, up to 24 hours); other IPs are not affected\n- 403 `auth.admin.forbidden`: `checkRole` is \"true\" and the account is not an admin",
 				"operationId": "sendOtp",
 				"requestBody": {
 					"content": {
@@ -3777,7 +3777,7 @@
 			"post": {
 				"tags": ["Auth"],
 				"summary": "Refresh access token",
-				"description": "**Auth**: public (authenticated by the refresh token in the body, not by the Authorization header)\n**Precondition**: a refresh token from a previous login or refresh\n**Behavior**: rotates the refresh token: the old one is spent and a new access token and refresh token are returned. The response `user` is null; keep the user info from login. Roles are re-read from the database, so a role change takes effect on refresh. A second call with the same old token within the grace window (default 10 s) returns the same new pair instead of failing, so concurrent refreshes are safe\n**Side effects**: the old refresh token is spent. If a spent token is presented again after the grace window, all of the user's refresh tokens are revoked. If the user is missing or suspended, all their refresh tokens are revoked too\n**Errors**:\n- 401 `auth.refresh_token.invalid`: the token is unknown, expired, revoked, or its user is missing or suspended\n- 401 `auth.suspicious_login`: a spent token was reused; every session of the user is now terminated",
+				"description": "**Auth**: public (authenticated by the refresh token in the body, not by the Authorization header)\n**Precondition**: a refresh token from a previous login or refresh\n**Behavior**: rotates the refresh token: the old one is spent and a new access token and refresh token are returned. The response `user` is null; keep the user info from login. Roles are re-read from the database, so a role change takes effect on refresh. A second call with the same old token within the grace window (default 10 s) returns the same new pair instead of failing, so concurrent refreshes are safe\n**Side effects**: the old refresh token is spent. If a spent token is presented again after the grace window, that sign-in is ended: its latest refresh token can no longer be refreshed (401 `auth.refresh_token.invalid`), so it must sign in again once its access token expires; the user's other devices stay signed in. If the user is missing or suspended, all their refresh tokens are revoked too\n**Errors**:\n- 401 `auth.refresh_token.invalid`: the token is unknown, expired, revoked, or its user is missing or suspended\n- 401 `auth.suspicious_login`: a spent token was reused after the grace window; the session it belonged to is now signed out",
 				"operationId": "refresh",
 				"requestBody": {
 					"content": {
@@ -3820,9 +3820,9 @@
 								"example": {
 									"success": false,
 									"data": null,
-									"message": "Security alert: suspicious login detected. All sessions have been terminated, please log in again",
+									"message": "Security alert: this session was refreshed twice, so it has been signed out. Please log in again",
 									"errorCode": "auth.suspicious_login",
-									"error": "Security alert: suspicious login detected. All sessions have been terminated, please log in again"
+									"error": "Security alert: this session was refreshed twice, so it has been signed out. Please log in again"
 								}
 							}
 						}
@@ -3861,7 +3861,7 @@
 			"post": {
 				"tags": ["Auth"],
 				"summary": "Verify phone OTP and sign in",
-				"description": "**Auth**: public\n**Precondition**: an OTP was sent to this number via `POST /api/auth/phone/send-otp` and has not expired\n**Behavior**: normalizes the number to E.164 like send-otp, so an OTP sent to `0912345678` verifies as `+886912345678`. Consumes the OTP and returns an access token and refresh token. Creates the user if the number is new, otherwise signs the existing user in\n**Side effects**: the OTP is consumed on success; a new user (with a random bot avatar) is created if needed; `lastLoginAt` is updated. The 5th wrong code deletes the OTP and locks the identifier for 15 minutes; while locked, sending or verifying an OTP is refused\n**Errors**:\n- 400 `auth.phone.invalid`: the number is not in a supported format (see send-otp)\n- 401 `auth.otp.invalid_or_expired`: no OTP exists for this number (never sent, expired, or already used)\n- 401 `auth.invalid_otp`: the code is wrong\n- 401 `auth.otp.too_many_attempts`: 5th wrong code, or the identifier is locked (even a correct code is refused for 15 minutes)\n- 403 `auth.account_banned`: the user is suspended (`active=false`)",
+				"description": "**Auth**: public\n**Precondition**: an OTP was sent to this number via `POST /api/auth/phone/send-otp` and has not expired\n**Behavior**: normalizes the number to E.164 like send-otp, so an OTP sent to `0912345678` verifies as `+886912345678`. Consumes the OTP and returns an access token and refresh token. Creates the user if the number is new, otherwise signs the existing user in\n**Side effects**: the OTP is consumed on success; a new user (with a random bot avatar) is created if needed; `lastLoginAt` is updated. Wrong codes are counted per number and client IP; resending does not reset the count. The 3rd wrong code locks this number for the caller's IP for 5 minutes, doubling on each further lockout (10, 20, 40 minutes...) up to 24 hours; the doubling is forgotten 24 hours after the last lock ends, and a successful sign-in from that IP resets it. While locked, sending or verifying an OTP from that IP is refused; other IPs are not affected and the OTP stays valid. One OTP allows 10 guesses in total across all IPs; after the 10th wrong guess it no longer verifies and a new OTP can be requested only after 15 minutes\n**Errors**:\n- 400 `auth.phone.invalid`: the number is not in a supported format (see send-otp)\n- 401 `auth.otp.invalid_or_expired`: no OTP exists for this number (never sent, expired, already used, or its 10 guesses are used up)\n- 401 `auth.invalid_otp`: the code is wrong\n- 401 `auth.otp.too_many_attempts`: 3rd wrong code, or this identifier is locked for the caller's IP (even a correct code is refused until the lock ends)\n- 403 `auth.account_banned`: the user is suspended (`active=false`)",
 				"operationId": "phoneVerifyOtp",
 				"requestBody": {
 					"content": {
@@ -3968,7 +3968,7 @@
 			"post": {
 				"tags": ["Auth"],
 				"summary": "Send phone OTP",
-				"description": "**Auth**: public\n**Precondition**: for `type` \"login\" (the default) the phone number must already be registered\n**Behavior**: normalizes the number to E.164 (`0912345678` and `+886912345678` are the same number), generates a 6-digit OTP, stores it with a TTL (default 180 s) and sends it by SMS. `type` is \"login\" or \"signup\"\n**Side effects**: sends an SMS; replaces any previous OTP for this number. A resend is refused during the cooldown (default 180 s)\n**Errors**:\n- 400 `auth.phone.invalid`: the number is neither a Taiwan mobile number (`09` + 8 digits) nor `+` country code and number (8-15 digits)\n- 400 `auth.otp.resend_cooldown`: an OTP was sent too recently; the message states the seconds left\n- 400 `auth.phone.not_registered`: `type` is \"login\" and the number is not registered\n- 400 `auth.sms.send_failed`: the SMS provider rejected the message\n- 401 `auth.otp.too_many_attempts`: the identifier is locked for 15 minutes after 5 wrong codes",
+				"description": "**Auth**: public\n**Precondition**: for `type` \"login\" (the default) the phone number must already be registered\n**Behavior**: normalizes the number to E.164 (`0912345678` and `+886912345678` are the same number), generates a 6-digit OTP, stores it with a TTL (default 180 s) and sends it by SMS. `type` is \"login\" or \"signup\"\n**Side effects**: sends an SMS; replaces any previous OTP for this number. A resend is refused during the cooldown (default 180 s)\n**Errors**:\n- 400 `auth.phone.invalid`: the number is neither a Taiwan mobile number (`09` + 8 digits) nor `+` country code and number (8-15 digits)\n- 400 `auth.otp.resend_cooldown`: an OTP was sent too recently; the message states the seconds left\n- 400 `auth.phone.not_registered`: `type` is \"login\" and the number is not registered\n- 400 `auth.sms.send_failed`: the SMS provider rejected the message; the OTP is dropped and a resend is allowed after 30 s\n- 401 `auth.otp.too_many_attempts`: this number is locked for the caller's IP after 3 wrong codes (5 minutes, doubling on each further lockout, up to 24 hours); other IPs are not affected",
 				"operationId": "phoneSendOtp",
 				"requestBody": {
 					"content": {
@@ -5597,6 +5597,75 @@
 					}
 				},
 				"deprecated": true
+			}
+		},
+		"/api/votes/{voteId}/creator": {
+			"get": {
+				"tags": ["Vote"],
+				"summary": "Get the owner of an Invite-only Poll",
+				"description": "**Auth**: public (login is ignored)\n**Precondition**: the Poll is INVITE_ONLY and not Deleted\n**Behavior**: returns only the owner's `username` and `avatarUrl`, so an Invitation link can show \"<username> invited you\" to a caller who cannot open the Poll yet (signed out, or signed in but not yet an Invitee). Reveals nothing else about the Poll.\n**Side effects**: none\n**Errors**:\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is PUBLIC / UNLISTED\n",
+				"operationId": "getInviteOnlyCreator",
+				"parameters": [
+					{
+						"name": "voteId",
+						"in": "path",
+						"description": "Poll ID",
+						"required": true,
+						"schema": { "type": "string" },
+						"example": "0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Success",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponseVoteCreatorResponse"
+								},
+								"examples": {
+									"Invite-only Poll owner": {
+										"description": "Invite-only Poll owner",
+										"value": {
+											"success": true,
+											"data": { "username": "alice", "avatarUrl": "bot:boba" },
+											"message": null,
+											"errorCode": null,
+											"error": null
+										}
+									}
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)",
+						"content": {
+							"application/json": {
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
+								"example": null
+							}
+						}
+					},
+					"404": {
+						"description": "Resource not found (errorCode e.g. `vote.not_found`)",
+						"content": {
+							"application/json": {
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
+								"example": null
+							}
+						}
+					},
+					"429": {
+						"description": "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)",
+						"content": {
+							"application/json": {
+								"schema": { "$ref": "#/components/schemas/ErrorResponse" },
+								"example": null
+							}
+						}
+					}
+				}
 			}
 		},
 		"/api/votes/{voteId}/comments/{commentId}/replies": {
@@ -8596,6 +8665,36 @@
 				"description": "Cursor-paged list container; pass `nextCursor` back as `cursor` to fetch the next page",
 				"nullable": true
 			},
+			"ApiResponseVoteCreatorResponse": {
+				"type": "object",
+				"properties": {
+					"success": {
+						"type": "boolean",
+						"description": "true on success, false on error",
+						"example": true
+					},
+					"data": { "$ref": "#/components/schemas/VoteCreatorResponse" },
+					"message": {
+						"type": "string",
+						"description": "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",
+						"nullable": true,
+						"example": "Operation completed"
+					},
+					"errorCode": {
+						"type": "string",
+						"description": "Stable machine-readable error code (lowercase, dot-separated); branch on this, not on `message`. Null on success",
+						"nullable": true,
+						"example": "vote.not_found"
+					},
+					"error": {
+						"type": "string",
+						"description": "Legacy duplicate of `message` on errors; null on success. Use `message` instead",
+						"nullable": true,
+						"example": "Poll not found"
+					}
+				},
+				"description": "Envelope of every API response, success or error"
+			},
 			"ApiResponseListLookupDto": {
 				"type": "object",
 				"properties": {
@@ -9053,6 +9152,24 @@
 					}
 				},
 				"description": "Cursor-paged list container; pass `nextCursor` back as `cursor` to fetch the next page",
+				"nullable": true
+			},
+			"VoteCreatorResponse": {
+				"type": "object",
+				"properties": {
+					"username": {
+						"type": "string",
+						"description": "Username of the Poll owner",
+						"example": "alice"
+					},
+					"avatarUrl": {
+						"type": "string",
+						"description": "Avatar as `bot:<kind>` (the bot cast). Older accounts may hold an image URL; null if never set",
+						"nullable": true,
+						"example": "bot:boba"
+					}
+				},
+				"description": "Owner of an Invite-only Poll, shown on an Invitation link before the caller can reach the Poll",
 				"nullable": true
 			},
 			"ApiResponseCursorResponseVoterResponse": {

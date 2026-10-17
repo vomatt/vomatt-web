@@ -51,7 +51,7 @@
 		"subtitle": "Enter your email and we'll send you a code. New here? We'll create your account.",
 		"sessionExpired": "Your session expired. Please log in again.",
 		"dialogDescription": "Log in or sign up with your email to continue",
-		"sessionRevoked": "For your security, you were signed out on all devices. Please sign in again."
+		"sessionRevoked": "For your security, you were signed out on this device. Please sign in again."
 	},
 	"verificationCode": {
 		"title": "Check your email",
@@ -244,6 +244,11 @@
 		"joinToCreate": "Join to start a poll"
 	},
 	"poll": {
+		"invitation": {
+			"title": "{username} invited you to a poll",
+			"signIn": "Log in with the email address the invitation was sent to.",
+			"wrongAccount": "This account can't open it. Log in with the email address the invitation was sent to."
+		},
 		"vote": "Vote",
 		"updateVote": "Update vote",
 		"withdrawVote": "Withdraw vote",
@@ -313,7 +318,7 @@
 	"authError": {
 		"invalidCode": "That code is not right. Check the email and try again.",
 		"codeExpired": "This code has expired. Request a new one.",
-		"tooManyAttempts": "Too many wrong attempts. Try again in 15 minutes.",
+		"tooManyAttempts": "Too many wrong attempts. Wait a few minutes, then try again.",
 		"resendCooldown": "A code was sent recently. Please wait before requesting another.",
 		"emailSendFailed": "We could not send the email. Check the address and try again.",
 		"accountSuspended": "This account has been suspended.",

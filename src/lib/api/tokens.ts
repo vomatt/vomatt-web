@@ -46,8 +46,8 @@ export function isExpiringSoon(payload: AccessTokenPayload, now = Date.now()) {
 
 /**
  * `rejected`: the backend refused the refresh token, so the session is over.
- * `suspicious` means it saw a used token come back and signed the user out
- * on every device. `unavailable`: the backend couldn't be asked; the session
+ * `suspicious` means it saw a used token come back and signed this session
+ * out (other devices stay signed in). `unavailable`: the backend couldn't be asked; the session
  * may still be fine.
  */
 export type RefreshResult =
