@@ -26,9 +26,6 @@ export function StatusChip({ status, poll }: StatusChipProps) {
 	const isHydrated = useHydrated();
 	const { startTime, endTime } = poll;
 
-	// Labels depend on the browser's clock and time zone
-	if (!isHydrated) return null;
-
 	let label: string;
 	if (status === 'scheduled') {
 		label = t('poll.chipOpens', { date: formatPollDate(startTime, currentLanguage) });
@@ -42,6 +39,12 @@ export function StatusChip({ status, poll }: StatusChipProps) {
 		label = t('poll.chipEndsIn', { distance: formatFromNow(endTime, currentLanguage) });
 	} else {
 		label = t('poll.chipEnds', { date: formatPollDate(endTime, currentLanguage) });
+	}
+
+	// Labels depend on the browser's clock and time zone; hold the chip's
+	// height until then so the row doesn't grow after hydration
+	if (!isHydrated) {
+		return <span aria-hidden className={cn(chipClassName, 'invisible')}>&nbsp;</span>;
 	}
 
 	return (

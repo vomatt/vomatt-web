@@ -1,6 +1,6 @@
 import { Skeleton } from '@/components/ui/Skeleton';
 import { ballotHistory, computeInsights } from '@/features/account/insights';
-import { PollListSkeleton } from '@/features/polls/components/PollCardSkeleton';
+import { PollRowListSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import type { Poll } from '@/features/polls/schema';
 import { getAllMyPolls } from '@/features/polls/service';
 import type { CursorPage } from '@/lib/api/cursor';
@@ -51,7 +51,7 @@ export function ProfileSkeleton() {
 			<Skeleton className="h-20 rounded-xl" />
 			<div>
 				<Skeleton className="mb-4 h-8 w-40" />
-				<PollListSkeleton />
+				<PollRowListSkeleton className="space-y-3" />
 			</div>
 		</div>
 	);

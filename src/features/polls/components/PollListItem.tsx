@@ -5,6 +5,9 @@ import { cn } from '@/lib/utils';
 
 import type { Poll } from '../schema';
 
+/** The row's frame, shared with its skeleton so the two stay the same size. */
+export const pollRowFrameClassName = 'rounded-xl border border-border bg-card p-4';
+
 type PollListItemProps = {
 	poll: Pick<Poll, 'id' | 'title'>;
 	/** The muted line under the title. */
@@ -23,7 +26,8 @@ export function PollListItem({ poll, meta, aside, onClick, className }: PollList
 				href={`/poll/${poll.id}`}
 				onClick={onClick}
 				className={cn(
-					'group flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-4 transition-colors hover:border-border-strong',
+					pollRowFrameClassName,
+					'group flex items-center gap-3 transition-colors hover:border-border-strong',
 					className
 				)}
 			>

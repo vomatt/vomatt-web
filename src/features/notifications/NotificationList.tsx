@@ -22,6 +22,17 @@ const fetchPage = (cursor: string) => getMyPolls('ended', cursor, NOTIFICATIONS_
 const markRead = (polls: Poll[], id: string) =>
 	polls.map((poll) => (poll.id === id ? { ...poll, unread: false } : poll));
 
+/** The page's title and intro; rendered outside the list's Suspense boundary. */
+export function NotificationsHeader() {
+	const { t } = useLanguage();
+	return (
+		<div>
+			<h1 className="display-heading text-[32px] text-foreground md:text-[44px]">{t('notifications.title')}</h1>
+			<p className="mt-2 text-[15px] text-muted-foreground">{t('notifications.intro')}</p>
+		</div>
+	);
+}
+
 export function NotificationList({
 	initialPage,
 	invitations: initialInvitations,
@@ -81,11 +92,6 @@ export function NotificationList({
 
 	return (
 		<div className="space-y-4">
-			<div>
-				<h1 className="display-heading text-[32px] text-foreground md:text-[44px]">{t('notifications.title')}</h1>
-				<p className="mt-2 text-[15px] text-muted-foreground">{t('notifications.intro')}</p>
-			</div>
-
 			{hasInvitations && (
 				<section className="space-y-3">
 					<h2 className="font-medium">{t('notifications.invitations')}</h2>

@@ -3,8 +3,8 @@ import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
 
 import { getUserSession } from '@/data/auth';
-import { NotificationList } from '@/features/notifications/NotificationList';
-import { PollListSkeleton } from '@/features/polls/components/PollCardSkeleton';
+import { NotificationList, NotificationsHeader } from '@/features/notifications/NotificationList';
+import { PollRowListSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import { NOTIFICATIONS_PAGE_SIZE } from '@/features/polls/constants';
 import { getAllMyPolls, getMyPolls } from '@/features/polls/service';
 import { isInvitee } from '@/features/polls/status';
@@ -16,8 +16,10 @@ export default async function NotificationsPage() {
 	if (!user) redirect('/login?redirect=/notifications');
 
 	return (
-		<div className="px-contain max-w-2xl mx-auto py-6">
-			<Suspense fallback={<PollListSkeleton />}>
+		<div className="px-contain max-w-2xl mx-auto space-y-4 py-6">
+			<NotificationsHeader />
+			{/* Most Notifications are results, which carry no status chip */}
+			<Suspense fallback={<PollRowListSkeleton chip={false} />}>
 				<Notifications viewerId={user.sub} />
 			</Suspense>
 		</div>

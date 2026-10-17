@@ -34,9 +34,19 @@ beforeEach(() => {
 });
 afterEach(() => jest.useRealTimers());
 
+/** Renders the view and waits for the streamed first page to land. */
+async function renderView(...args: Parameters<typeof render>) {
+	// Rendered inside an awaited act, so the suspended list can resolve
+	let view!: ReturnType<typeof render>;
+	await act(async () => {
+		view = render(...args);
+	});
+	return view;
+}
+
 describe('ExploreView', () => {
 	it('shows the server page without refetching it', async () => {
-		render(<ExploreView initialPage={{ items: [poll('p1', 'Lunch?')], nextCursor: null }} tags={[]} />);
+		await renderView(<ExploreView initialPage={Promise.resolve({ items: [poll('p1', 'Lunch?')], nextCursor: null })} tags={[]} />);
 		await act(async () => jest.advanceTimersByTime(1000));
 		expect(screen.getByText('Lunch?')).toBeInTheDocument();
 		expect(mockGetPolls).not.toHaveBeenCalled();
@@ -44,7 +54,7 @@ describe('ExploreView', () => {
 
 	it('refetches from the first page when the filter changes', async () => {
 		mockGetPolls.mockResolvedValue({ items: [poll('p2', 'Dinner?')], nextCursor: null });
-		render(<ExploreView initialPage={{ items: [poll('p1', 'Lunch?')], nextCursor: null }} tags={[]} />);
+		await renderView(<ExploreView initialPage={Promise.resolve({ items: [poll('p1', 'Lunch?')], nextCursor: null })} tags={[]} />);
 
 		fireEvent.click(screen.getByRole('button', { name: 'Ended' }));
 		await act(async () => jest.advanceTimersByTime(300));
@@ -55,7 +65,7 @@ describe('ExploreView', () => {
 
 	it('waits for a pause in typing and skips one-character searches', async () => {
 		mockGetPolls.mockResolvedValue({ items: [], nextCursor: null });
-		render(<ExploreView initialPage={{ items: [], nextCursor: null }} tags={[]} />);
+		await renderView(<ExploreView initialPage={Promise.resolve({ items: [], nextCursor: null })} tags={[]} />);
 		const box = screen.getByRole('searchbox');
 
 		fireEvent.change(box, { target: { value: 'l' } });
@@ -71,7 +81,7 @@ describe('ExploreView', () => {
 
 	it('sorts open polls by most voted', async () => {
 		mockGetPolls.mockResolvedValue({ items: [], nextCursor: null });
-		render(<ExploreView initialPage={{ items: [], nextCursor: null }} tags={[]} />);
+		await renderView(<ExploreView initialPage={Promise.resolve({ items: [], nextCursor: null })} tags={[]} />);
 		fireEvent.click(screen.getByRole('button', { name: 'Most voted' }));
 		await act(async () => jest.advanceTimersByTime(300));
 		expect(mockGetPolls).toHaveBeenCalledWith({ status: 'open', sort: 'top', q: undefined }, null, 20);
@@ -79,12 +89,41 @@ describe('ExploreView', () => {
 
 	it('loads more of the listed polls until the new sort\'s first page arrives', async () => {
 		mockGetPolls.mockResolvedValue({ items: [poll('p2', 'Dinner?')], nextCursor: null });
-		render(<ExploreView initialPage={{ items: [poll('p1', 'Lunch?')], nextCursor: 'c1' }} tags={[]} />);
+		await renderView(<ExploreView initialPage={Promise.resolve({ items: [poll('p1', 'Lunch?')], nextCursor: 'c1' })} tags={[]} />);
 
 		fireEvent.click(screen.getByRole('button', { name: 'Most voted' }));
 		fireEvent.click(screen.getByRole('button', { name: 'Load more' }));
 		// The cursor belongs to the newest ordering, so it goes back with that query
 		expect(mockGetPolls).toHaveBeenCalledWith({ status: 'open', sort: 'newest', q: undefined }, 'c1', 20);
 		await act(async () => jest.advanceTimersByTime(300));
+	});
+
+	it('keeps the previous results, inert, while a new query loads', async () => {
+		mockGetPolls.mockReturnValue(new Promise(() => {}));
+		await renderView(<ExploreView initialPage={Promise.resolve({ items: [poll('p1', 'Lunch?')], nextCursor: null })} tags={[]} />);
+
+		fireEvent.click(screen.getByRole('button', { name: 'Ended' }));
+		await act(async () => jest.advanceTimersByTime(300));
+
+		const results = screen.getByText('Lunch?').closest('[aria-busy]');
+		expect(results).toHaveAttribute('aria-busy', 'true');
+		expect(results).toHaveAttribute('inert');
+	});
+
+	it('fetches a filter picked before the first page arrived', async () => {
+		mockGetPolls.mockResolvedValue({ items: [poll('p2', 'Dinner?')], nextCursor: null });
+		let resolveFirst!: (page: { items: Poll[]; nextCursor: null }) => void;
+		const firstPage = new Promise<{ items: Poll[]; nextCursor: null }>((resolve) => (resolveFirst = resolve));
+		await renderView(<ExploreView initialPage={firstPage} tags={[]} />);
+
+		// The filters render before the list streams in
+		await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Ended' })));
+		await act(async () => resolveFirst({ items: [poll('p1', 'Lunch?')], nextCursor: null }));
+		// Once to reveal the streamed list, once for the search debounce it then starts
+		await act(async () => jest.advanceTimersByTime(300));
+		await act(async () => jest.advanceTimersByTime(300));
+
+		expect(mockGetPolls).toHaveBeenCalledWith({ status: 'ended', sort: undefined, q: undefined }, null, 20);
+		expect(await screen.findByText('Dinner?')).toBeInTheDocument();
 	});
 });

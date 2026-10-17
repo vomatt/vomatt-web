@@ -226,6 +226,11 @@
 		@apply border-border outline-ring/50;
 	}
 
+	/* Content doesn't jump sideways when a page grows past the viewport */
+	html {
+		scrollbar-gutter: stable;
+	}
+
 	body {
 		@apply bg-background text-foreground;
 	}

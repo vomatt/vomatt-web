@@ -2,6 +2,9 @@
 
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { cn } from '@/lib/utils';
+
+import { pollRowFrameClassName } from './PollListItem';
 
 /** Placeholder with the PollCard's shape, shown while a page's data loads. */
 export function PollCardSkeleton({ options = 3 }: { options?: number }) {
@@ -26,6 +29,26 @@ export function PollCardSkeleton({ options = 3 }: { options?: number }) {
 					<Skeleton className="h-8 w-16" />
 				</div>
 			</div>
+		</div>
+	);
+}
+
+/**
+ * Placeholder rows with PollListItem's shape: chip, title, meta line. Match the
+ * list's row spacing with `className`, and drop the chip for rows without one.
+ */
+export function PollRowListSkeleton({ chip = true, className }: { chip?: boolean; className?: string }) {
+	const { t } = useLanguage();
+	return (
+		<div role="status" aria-busy className={cn('space-y-2', className)}>
+			<span className="sr-only">{t('common.loading')}</span>
+			{Array.from({ length: 5 }, (_, i) => (
+				<div key={i} aria-hidden className={cn(pollRowFrameClassName, 'space-y-1.5')}>
+					{chip && <Skeleton className="h-5 w-24 rounded-full" />}
+					<Skeleton className="h-6 w-3/4" />
+					<Skeleton className="h-5 w-28" />
+				</div>
+			))}
 		</div>
 	);
 }

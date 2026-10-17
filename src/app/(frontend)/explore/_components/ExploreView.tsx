@@ -1,14 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, use, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { LoadMore } from '@/components/LoadMore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Spinner } from '@/components/ui/Spinner';
 import { Search } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { PollRowListSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import { PollListItem } from '@/features/polls/components/PollListItem';
 import { StatusChip } from '@/features/polls/components/StatusChip';
 import { EXPLORE_PAGE_SIZE, SEARCH_DEBOUNCE_MS, SEARCH_MIN_LENGTH } from '@/features/polls/constants';
@@ -19,6 +19,7 @@ import { UserChip } from '@/features/profiles/UserChip';
 import { useCursorList } from '@/hooks/useCursorList';
 import type { CursorPage } from '@/lib/api/cursor';
 import { topicHref } from '@/lib/routes';
+import { cn } from '@/lib/utils';
 
 type Status = 'open' | 'ended';
 type Sort = 'newest' | 'closing' | 'top';
@@ -54,50 +55,19 @@ export function ExploreView({
 	tags,
 }: {
 	/** Open Polls, newest first; null when the API couldn't be reached. */
-	initialPage: CursorPage<Poll> | null;
+	initialPage: Promise<CursorPage<Poll> | null>;
 	tags: TagDto[];
 }) {
 	const { t } = useLanguage();
 	const [query, setQuery] = useState('');
 	const [status, setStatus] = useState<Status>('open');
 	const [sort, setSort] = useState<Sort>('newest');
-	const [isSearching, setIsSearching] = useState(false);
-	const [searchFailed, setSearchFailed] = useState(initialPage === null);
 
 	// Memoized on its fields, so keystrokes that don't change the query don't refetch
 	const { sort: apiSort, q } = toExploreQuery(query, status, sort);
 	const apiQuery = useMemo(() => ({ status, sort: apiSort, q }), [status, apiSort, q]);
-	const fetchPage = useCallback(
-		(cursor: string) => getPolls(apiQuery, cursor, EXPLORE_PAGE_SIZE),
-		[apiQuery]
-	);
-	const list = useCursorList(initialPage, fetchPage);
-	const { reset } = list;
-
-	// A new query starts from its own first page; typing waits for a pause.
-	// The server already rendered the first page of the initial query.
-	const initialQuery = useRef(apiQuery);
-	useEffect(() => {
-		if (apiQuery === initialQuery.current) return;
-		let ignore = false;
-		const timer = setTimeout(async () => {
-			setIsSearching(true);
-			try {
-				const page = await getPolls(apiQuery, null, EXPLORE_PAGE_SIZE);
-				if (ignore) return;
-				reset(page);
-				setSearchFailed(false);
-			} catch {
-				if (!ignore) setSearchFailed(true);
-			} finally {
-				if (!ignore) setIsSearching(false);
-			}
-		}, SEARCH_DEBOUNCE_MS);
-		return () => {
-			ignore = true;
-			clearTimeout(timer);
-		};
-	}, [apiQuery, reset]);
+	// The query the server's first page answers
+	const [initialQuery] = useState(apiQuery);
 
 	return (
 		<div className="space-y-8">
@@ -144,20 +114,85 @@ export function ExploreView({
 						<Pill active={status === 'open'} onClick={() => setStatus('open')}>{t('explore.filterActive')}</Pill>
 						<Pill active={status === 'ended'} onClick={() => setStatus('ended')}>{t('explore.filterEnded')}</Pill>
 					</div>
-					{status === 'open' && (
-						<div className="flex gap-1.5" role="group" aria-label={t('explore.sort')}>
-							<Pill active={sort === 'newest'} onClick={() => setSort('newest')}>{t('explore.sortNewest')}</Pill>
-							<Pill active={sort === 'closing'} onClick={() => setSort('closing')}>{t('explore.sortEnding')}</Pill>
-							<Pill active={sort === 'top'} onClick={() => setSort('top')}>{t('explore.sortTop')}</Pill>
-						</div>
-					)}
+					{/* Hidden, not removed, for Ended Polls: the row keeps its height when it wraps */}
+					<div
+						className={cn('flex gap-1.5', status !== 'open' && 'invisible')}
+						role="group"
+						aria-label={t('explore.sort')}
+					>
+						<Pill active={sort === 'newest'} onClick={() => setSort('newest')}>{t('explore.sortNewest')}</Pill>
+						<Pill active={sort === 'closing'} onClick={() => setSort('closing')}>{t('explore.sortEnding')}</Pill>
+						<Pill active={sort === 'top'} onClick={() => setSort('top')}>{t('explore.sortTop')}</Pill>
+					</div>
 				</div>
 
-				{isSearching ? (
-					<div className="flex justify-center py-12">
-						<Spinner />
-					</div>
-				) : searchFailed ? (
+				{/* Filters and search render at once; only the results wait for the server */}
+				<Suspense fallback={<PollRowListSkeleton />}>
+					<ExploreResults initialPage={initialPage} initialQuery={initialQuery} apiQuery={apiQuery} />
+				</Suspense>
+				{query.trim().length > 0 && query.trim().length < SEARCH_MIN_LENGTH && (
+					<p className="text-center text-xs text-muted-foreground">{t('explore.searchTooShort')}</p>
+				)}
+			</section>
+		</div>
+	);
+}
+
+/** The listed Polls for `apiQuery`; a new query starts from its own first page. */
+function ExploreResults({
+	initialPage,
+	initialQuery,
+	apiQuery,
+}: {
+	initialPage: Promise<CursorPage<Poll> | null>;
+	/** The query `initialPage` answers, so it isn't fetched again. */
+	initialQuery: PollListQuery;
+	apiQuery: PollListQuery;
+}) {
+	const { t } = useLanguage();
+	const firstPage = use(initialPage);
+	const [isSearching, setIsSearching] = useState(false);
+	const [searchFailed, setSearchFailed] = useState(firstPage === null);
+	const fetchPage = useCallback(
+		(cursor: string) => getPolls(apiQuery, cursor, EXPLORE_PAGE_SIZE),
+		[apiQuery]
+	);
+	const list = useCursorList(firstPage, fetchPage);
+	const { reset } = list;
+
+	// Typing waits for a pause. A filter changed before the first page arrived
+	// differs from `initialQuery`, so it's fetched on mount.
+	useEffect(() => {
+		if (apiQuery === initialQuery) return;
+		let ignore = false;
+		const timer = setTimeout(async () => {
+			setIsSearching(true);
+			try {
+				const page = await getPolls(apiQuery, null, EXPLORE_PAGE_SIZE);
+				if (ignore) return;
+				reset(page);
+				setSearchFailed(false);
+			} catch {
+				if (!ignore) setSearchFailed(true);
+			} finally {
+				if (!ignore) setIsSearching(false);
+			}
+		}, SEARCH_DEBOUNCE_MS);
+		return () => {
+			ignore = true;
+			clearTimeout(timer);
+		};
+	}, [apiQuery, initialQuery, reset]);
+
+	return (
+		<>
+			{/* The previous results stay, dimmed, until the new ones arrive */}
+			<div
+				aria-busy={isSearching}
+				inert={isSearching}
+				className={cn('transition-opacity', isSearching && 'opacity-50')}
+			>
+				{searchFailed ? (
 					<p className="py-12 text-center text-sm text-muted-foreground">{t('explore.loadFailed')}</p>
 				) : list.items.length === 0 ? (
 					<p className="py-12 text-center text-sm text-muted-foreground">{t('explore.noResults')}</p>
@@ -183,11 +218,8 @@ export function ExploreView({
 						))}
 					</ul>
 				)}
-				{!isSearching && !searchFailed && <LoadMore list={list} />}
-				{query.trim().length > 0 && query.trim().length < SEARCH_MIN_LENGTH && (
-					<p className="text-center text-xs text-muted-foreground">{t('explore.searchTooShort')}</p>
-				)}
-			</section>
-		</div>
+			</div>
+			{!isSearching && !searchFailed && <LoadMore list={list} />}
+		</>
 	);
 }

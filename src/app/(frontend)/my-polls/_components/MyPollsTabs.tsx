@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UnreadDot } from '@/features/notifications/UnreadDot';
 import { DraftList } from '@/features/polls/components/DraftList';
+import { PollRowListSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import { PollListItem } from '@/features/polls/components/PollListItem';
 import { StatusChip } from '@/features/polls/components/StatusChip';
 import { Poll } from '@/features/polls/schema';
@@ -42,6 +43,36 @@ function countLabel(list: { items: unknown[]; hasMore: boolean }) {
 	return `${list.items.length}${list.hasMore ? '+' : ''}`;
 }
 
+/** The tabs themselves; counts are left out while the lists load. */
+function MyPollsTabList({ activeCount, endedCount }: { activeCount?: string; endedCount?: string }) {
+	const { t } = useLanguage();
+	return (
+		<TabsList variant="line" className="mb-4">
+			<TabsTrigger value="active">
+				{t('myPolls.tabActive')}
+				{activeCount && ` (${activeCount})`}
+			</TabsTrigger>
+			<TabsTrigger value="drafts">{t('myPolls.tabDrafts')}</TabsTrigger>
+			<TabsTrigger value="ended">
+				{t('myPolls.tabEnded')}
+				{endedCount && ` (${endedCount})`}
+			</TabsTrigger>
+		</TabsList>
+	);
+}
+
+/** The real tab list over placeholder rows, so the loaded tabs land in place. */
+export function MyPollsTabsSkeleton() {
+	return (
+		<Tabs value="active">
+			<MyPollsTabList />
+			<TabsContent value="active">
+				<PollRowListSkeleton />
+			</TabsContent>
+		</Tabs>
+	);
+}
+
 /**
  * Active: Scheduled and Open Polls the user created, plus Open ones they voted
  * in. Ended: Ended and Cancelled ones of either kind.
@@ -61,15 +92,7 @@ export default function MyPollsTabs({
 
 	return (
 		<Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as Tab)}>
-			<TabsList variant="line" className="mb-4">
-				<TabsTrigger value="active">
-					{t('myPolls.tabActive')} ({countLabel(openList)})
-				</TabsTrigger>
-				<TabsTrigger value="drafts">{t('myPolls.tabDrafts')}</TabsTrigger>
-				<TabsTrigger value="ended">
-					{t('myPolls.tabEnded')} ({countLabel(endedList)})
-				</TabsTrigger>
-			</TabsList>
+			<MyPollsTabList activeCount={countLabel(openList)} endedCount={countLabel(endedList)} />
 
 			<TabsContent value="drafts" className="space-y-3">
 				<DraftList />
