@@ -168,7 +168,11 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 			{/* Nobody sees the voter list on a 'nobody' Poll, so there is nothing to hide from */}
 			{hasBallot && anonymous !== null && poll.voterVisibility !== 'nobody' && (
 				<div className="flex items-center justify-between gap-3">
-					<label htmlFor={`anonymous-${poll.id}`} className="text-[13px] text-muted-foreground">
+					{/* The whole row is the 44px touch target; the Switch alone is smaller */}
+					<label
+						htmlFor={`anonymous-${poll.id}`}
+						className="flex min-h-11 flex-1 cursor-pointer items-center text-[13px] text-muted-foreground"
+					>
 						{t('poll.anonymousToggle')}
 					</label>
 					<Switch

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import AccountPage from '@/app/(frontend)/[slug]/_components/AccountPage';
 import type { MyProfile, UserProfile } from '@/types/user';
@@ -120,6 +120,23 @@ describe('AccountPage', () => {
 		fireEvent.click(toggle);
 		expect(editProfile).toHaveBeenCalledWith({ anonymousBallotByDefault: true });
 		await waitFor(() => expect(toggle).toBeChecked());
+	});
+
+	it('falls back to the saved default when quick toggles both fail', async () => {
+		const { editProfile } = jest.requireMock('@/lib/api/services/users');
+		const answers: ((value: { ok: boolean; message: string }) => void)[] = [];
+		editProfile.mockImplementation(() => new Promise((resolve) => answers.push(resolve)));
+		render(<AccountPage isOwn profile={myProfile} myPolls={[]} history={[]} insights={insights} />);
+
+		fireEvent.click(screen.getByRole('tab', { name: 'Settings' }));
+		const toggle = screen.getByRole('switch', { name: 'Vote anonymously by default' });
+		fireEvent.click(toggle);
+		fireEvent.click(toggle);
+		await act(async () => {
+			answers[0]({ ok: false, message: '' });
+			answers[1]({ ok: false, message: '' });
+		});
+		expect(toggle).not.toBeChecked();
 	});
 
 	it("doesn't let visitors change the avatar", () => {

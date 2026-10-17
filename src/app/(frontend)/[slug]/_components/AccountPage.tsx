@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import {
@@ -246,12 +246,16 @@ function Settings({
 }) {
 	const { t } = useLanguage();
 	const [anonymousDefault, setAnonymousDefault] = useState(profile.anonymousBallotByDefault);
+	// The last value the server confirmed; quick toggles can answer out of order
+	const savedAnonymousDefault = useRef(profile.anonymousBallotByDefault);
 
 	const toggleAnonymousDefault = async (value: boolean) => {
 		setAnonymousDefault(value);
 		const result = await editProfile({ anonymousBallotByDefault: value });
-		if (!result.ok) {
-			setAnonymousDefault(!value);
+		if (result.ok) {
+			savedAnonymousDefault.current = value;
+		} else {
+			setAnonymousDefault(savedAnonymousDefault.current);
 			toast.error(result.message || t('account.saveFailed'));
 		}
 	};

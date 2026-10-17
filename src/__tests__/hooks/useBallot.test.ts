@@ -12,8 +12,10 @@ jest.mock('@/features/polls/service', () => ({
 	castBallot: (...args: unknown[]) => mockCastBallot(...args),
 	retractBallot: (...args: unknown[]) => mockRetractBallot(...args),
 	getMyBallot: (...args: unknown[]) => mockGetMyBallot(...args),
+	getPoll: (...args: unknown[]) => mockGetPoll(...args),
 }));
 const mockGetMyBallot = jest.fn().mockResolvedValue(null);
+const mockGetPoll = jest.fn().mockResolvedValue(null);
 
 const poll = {
 	id: 'poll-1',
@@ -165,6 +167,18 @@ describe('useBallot anonymity', () => {
 			await result.current.retract();
 		});
 		expect(result.current.anonymous).toBeNull();
+	});
+
+	it('learns whether the Ballot is Anonymous when a guest signs in on the card', async () => {
+		mockGetMyBallot.mockResolvedValue('opt-a');
+		mockGetPoll.mockResolvedValue({ ...voted, myBallotAnonymous: true });
+		const { result, rerender } = renderHook(
+			({ isAuthed }) => useBallot(poll, { isAuthed, onPollEnded: jest.fn() }),
+			{ initialProps: { isAuthed: false } }
+		);
+		rerender({ isAuthed: true });
+		await waitFor(() => expect(result.current.anonymous).toBe(true));
+		expect(result.current.myOptionId).toBe('opt-a');
 	});
 
 	it('retries once when the Poll is busy', async () => {

@@ -70,7 +70,8 @@ export async function updateProfile(data: {
     // Expire without re-rendering: this page's URL is the old username, which now 404s.
     // The caller navigates to the new URL instead.
     revalidateTag(PROFILES_TAG, { expire: 0 });
-  } else {
+  } else if (Object.keys(data).some((field) => field !== 'anonymousBallotByDefault')) {
+    // The Ballot default is private: no cached public profile shows it
     updateTag(PROFILES_TAG);
   }
   return profile;

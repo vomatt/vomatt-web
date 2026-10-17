@@ -225,6 +225,15 @@ describe('PollCard state B · Open, has Ballot', () => {
 		await waitFor(() => expect(toggle).toBeChecked());
 	});
 
+	it('toggles anonymity from its label too, a full-height touch target', () => {
+		mockCastBallot.mockResolvedValue({ ok: true, data: { ...openPoll, myOptionId: 'opt-sun', myBallotAnonymous: true } });
+		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun', myBallotAnonymous: false }} viewerId="user-voter" />);
+		const label = screen.getByText('Hide my name from voter lists');
+		expect(label).toHaveClass('min-h-11');
+		fireEvent.click(label);
+		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-sun', true);
+	});
+
 	it('offers no anonymity switch when nobody can see voters', () => {
 		render(
 			<PollCard

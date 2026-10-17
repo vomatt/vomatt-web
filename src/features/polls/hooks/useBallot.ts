@@ -7,7 +7,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 import { type ActionResult, isBusy, isPollEnded, isRateLimited } from '../errors';
 import type { Poll } from '../schema';
-import { castBallot, getMyBallot, retractBallot } from '../service';
+import { castBallot, getMyBallot, getPoll, retractBallot } from '../service';
 import { derivePollStatus, getTurnout, shiftCount } from '../status';
 
 export type BallotOutcome = 'saved' | 'failed' | 'ended';
@@ -64,6 +64,12 @@ export function useBallot(poll: Poll, { isAuthed, onPollEnded }: Options) {
 			if (ignore || hasActed.current || !optionId) return;
 			setMyOptionId(optionId);
 			setSelected((current) => current ?? optionId);
+			// The status call doesn't say whether the Ballot is Anonymous; the Poll does
+			getPoll(poll.id)
+				.catch(() => null)
+				.then((fresh) => {
+					if (!ignore && !hasActed.current) setAnonymousFlag(fresh?.myBallotAnonymous ?? null);
+				});
 		});
 		return () => {
 			ignore = true;
