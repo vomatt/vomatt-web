@@ -56,7 +56,12 @@ export async function getMyProfile(): Promise<MyProfile> {
 }
 
 /** Omitted fields stay as they are. */
-export async function updateProfile(data: { username?: string; displayName?: string; bio?: string }) {
+export async function updateProfile(data: {
+  username?: string;
+  displayName?: string;
+  bio?: string;
+  anonymousBallotByDefault?: boolean;
+}) {
   const profile = await apiClient<UserProfile>('/users/me', {
     method: 'PATCH',
     body: JSON.stringify(data),
@@ -65,7 +70,8 @@ export async function updateProfile(data: { username?: string; displayName?: str
     // Expire without re-rendering: this page's URL is the old username, which now 404s.
     // The caller navigates to the new URL instead.
     revalidateTag(PROFILES_TAG, { expire: 0 });
-  } else {
+  } else if (Object.keys(data).some((field) => field !== 'anonymousBallotByDefault')) {
+    // The Ballot default is private: no cached public profile shows it
     updateTag(PROFILES_TAG);
   }
   return profile;

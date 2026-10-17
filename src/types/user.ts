@@ -35,6 +35,8 @@ export interface MyProfile {
 	totalPolls: number;
 	totalVotes: number;
 	visibilitySettings: Record<string, boolean>;
+	/** Whether a first Ballot is Anonymous unless the voter says otherwise. */
+	anonymousBallotByDefault: boolean;
 	avatarUrl: string | null; // `bot:<kind>`; older accounts may hold an image URL
 }
 

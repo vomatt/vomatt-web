@@ -5,9 +5,9 @@ import { toast } from 'sonner';
 
 import { useLanguage } from '@/contexts/LanguageContext';
 
-import { type ActionResult, isPollEnded, isRateLimited } from '../errors';
+import { type ActionResult, isBusy, isPollEnded, isRateLimited } from '../errors';
 import type { Poll } from '../schema';
-import { castBallot, getMyBallot, retractBallot } from '../service';
+import { castBallot, getMyBallot, getPoll, retractBallot } from '../service';
 import { derivePollStatus, getTurnout, shiftCount } from '../status';
 
 export type BallotOutcome = 'saved' | 'failed' | 'ended';
@@ -31,6 +31,8 @@ export function useBallot(poll: Poll, { isAuthed, onPollEnded }: Options) {
 	const [prevPoll, setPrevPoll] = useState(poll);
 	const [myOptionId, setMyOptionId] = useState(poll.myOptionId ?? null);
 	const [selected, setSelected] = useState(poll.myOptionId ?? null);
+	// Null while there is no Ballot, or while it is not known whether it is Anonymous
+	const [anonymous, setAnonymousFlag] = useState(poll.myBallotAnonymous ?? null);
 	const [turnout, setTurnout] = useState(getTurnout(poll));
 	const [isPending, setIsPending] = useState(false);
 	// A guest's Poll says null for "no Ballot", which means nothing once they sign in here
@@ -47,6 +49,7 @@ export function useBallot(poll: Poll, { isAuthed, onPollEnded }: Options) {
 		if (poll.myOptionId !== undefined) {
 			setMyOptionId(poll.myOptionId);
 			setSelected(poll.myOptionId);
+			setAnonymousFlag(poll.myBallotAnonymous ?? null);
 		}
 	}
 
@@ -61,6 +64,12 @@ export function useBallot(poll: Poll, { isAuthed, onPollEnded }: Options) {
 			if (ignore || hasActed.current || !optionId) return;
 			setMyOptionId(optionId);
 			setSelected((current) => current ?? optionId);
+			// The status call doesn't say whether the Ballot is Anonymous; the Poll does
+			getPoll(poll.id)
+				.catch(() => null)
+				.then((fresh) => {
+					if (!ignore && !hasActed.current) setAnonymousFlag(fresh?.myBallotAnonymous ?? null);
+				});
 		});
 		return () => {
 			ignore = true;
@@ -77,6 +86,7 @@ export function useBallot(poll: Poll, { isAuthed, onPollEnded }: Options) {
 			setIsPending(true);
 			setMyOptionId(next);
 			setSelected(next);
+			const previousAnonymous = anonymous;
 
 			// Right after sign-in the existing Ballot isn't loaded yet; Turnout depends on it
 			const known = isBallotKnown.current || hasServerBallot;
@@ -85,25 +95,32 @@ export function useBallot(poll: Poll, { isAuthed, onPollEnded }: Options) {
 			const turnoutDelta = (next ? 1 : 0) - (previous ? 1 : 0);
 			setTurnout((count) => shiftCount(count, turnoutDelta));
 
-			const result = await request();
+			let result = await request();
+			// Busy means nothing was recorded; the API asks for one retry
+			if (isBusy(result)) result = await request();
 			setIsPending(false);
 			if (result.ok) {
+				setAnonymousFlag(result.data?.myBallotAnonymous ?? null);
 				if (result.data && derivePollStatus(result.data) === 'ended') onPollEnded(result.data);
 				return 'saved';
 			}
 
 			setMyOptionId(previous);
 			setSelected(previous);
+			setAnonymousFlag(previousAnonymous);
 			setTurnout((count) => shiftCount(count, -turnoutDelta));
 			if (isPollEnded(result)) {
 				toast(t('poll.justEnded'));
 				onPollEnded();
 				return 'ended';
 			}
-			toast.error(isRateLimited(result) ? t('poll.tooManyVotes') : failureMessage);
+			if (isRateLimited(result)) toast.error(t('poll.tooManyVotes'));
+			// Still busy after the retry: the API's own (localized) message asks to try again
+			else if (isBusy(result)) toast.error(result.message);
+			else toast.error(failureMessage);
 			return 'failed';
 		},
-		[hasServerBallot, myOptionId, onPollEnded, poll.id, t]
+		[anonymous, hasServerBallot, myOptionId, onPollEnded, poll.id, t]
 	);
 
 	/** Casts a first Ballot or replaces the current one. Resolves to the outcome. */
@@ -120,7 +137,26 @@ export function useBallot(poll: Poll, { isAuthed, onPollEnded }: Options) {
 		return run(() => retractBallot(poll.id), null, t('poll.withdrawFailed'));
 	}, [myOptionId, poll.id, run, t]);
 
-	return { myOptionId, selected, setSelected, turnout, isPending, cast, retract };
+	/** Recasts the current option to add or drop the Ballot from the voter list. */
+	const setAnonymous = useCallback(
+		(value: boolean) => {
+			setAnonymousFlag(value);
+			return run(() => castBallot(poll.id, myOptionId!, value), myOptionId, t('poll.voteFailed'));
+		},
+		[myOptionId, poll.id, run, t]
+	);
+
+	return {
+		myOptionId,
+		selected,
+		setSelected,
+		anonymous,
+		setAnonymous,
+		turnout,
+		isPending,
+		cast,
+		retract,
+	};
 }
 
 export type BallotState = ReturnType<typeof useBallot>;

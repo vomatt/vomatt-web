@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/Button';
+import { Switch } from '@/components/ui/Switch';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useHydrated } from '@/hooks/useHydrated';
 import { cn } from '@/lib/utils';
@@ -27,7 +28,7 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 	const { t, currentLanguage } = useLanguage();
 	const isHydrated = useHydrated();
 	const [confirmingWithdraw, setConfirmingWithdraw] = useState(false);
-	const { myOptionId, selected, setSelected, isPending } = ballot;
+	const { myOptionId, selected, setSelected, anonymous, setAnonymous, isPending } = ballot;
 	const isScheduled = status === 'scheduled';
 	const hasBallot = myOptionId !== null;
 	const level = visibilityLevel(poll);
@@ -163,6 +164,25 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 					);
 				})}
 			</fieldset>
+
+			{/* Nobody sees the voter list on a 'nobody' Poll, so there is nothing to hide from */}
+			{hasBallot && anonymous !== null && poll.voterVisibility !== 'nobody' && (
+				<div className="flex items-center justify-between gap-3">
+					{/* The whole row is the 44px touch target; the Switch alone is smaller */}
+					<label
+						htmlFor={`anonymous-${poll.id}`}
+						className="flex min-h-11 flex-1 cursor-pointer items-center text-[13px] text-muted-foreground"
+					>
+						{t('poll.anonymousToggle')}
+					</label>
+					<Switch
+						id={`anonymous-${poll.id}`}
+						checked={anonymous}
+						disabled={isPending}
+						onCheckedChange={setAnonymous}
+					/>
+				</div>
+			)}
 
 			{!hasBallot && !isScheduled && visibilityHint && (
 				<p className="text-[13px] text-muted-foreground">{visibilityHint}</p>

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import {
@@ -28,7 +28,7 @@ import type { Poll } from '@/features/polls/schema';
 import { derivePollStatus, getTurnout } from '@/features/polls/status';
 import type { CursorPage } from '@/lib/api/cursor';
 import { signout } from '@/lib/api/services/auth';
-import { deleteMyAccount, updateVisibility } from '@/lib/api/services/users';
+import { deleteMyAccount, editProfile, updateVisibility } from '@/lib/api/services/users';
 import { cn } from '@/lib/utils';
 import type { MyProfile, UserProfile } from '@/types/user';
 
@@ -245,6 +245,20 @@ function Settings({
 	setVisibility: (visibility: Record<string, boolean>) => void;
 }) {
 	const { t } = useLanguage();
+	const [anonymousDefault, setAnonymousDefault] = useState(profile.anonymousBallotByDefault);
+	// The last value the server confirmed; quick toggles can answer out of order
+	const savedAnonymousDefault = useRef(profile.anonymousBallotByDefault);
+
+	const toggleAnonymousDefault = async (value: boolean) => {
+		setAnonymousDefault(value);
+		const result = await editProfile({ anonymousBallotByDefault: value });
+		if (result.ok) {
+			savedAnonymousDefault.current = value;
+		} else {
+			setAnonymousDefault(savedAnonymousDefault.current);
+			toast.error(result.message || t('account.saveFailed'));
+		}
+	};
 
 	const toggle = async (field: string, value: boolean) => {
 		const previous = visibility;
@@ -278,6 +292,20 @@ function Settings({
 						</li>
 					))}
 				</ul>
+			</section>
+
+			<section className="flex items-center justify-between gap-4 rounded-xl border border-border bg-card p-4">
+				<div>
+					<label htmlFor="anonymous-default" className="font-medium">
+						{t('account.anonymousDefault')}
+					</label>
+					<p className="text-sm text-muted-foreground">{t('account.anonymousDefaultBody')}</p>
+				</div>
+				<Switch
+					id="anonymous-default"
+					checked={anonymousDefault}
+					onCheckedChange={toggleAnonymousDefault}
+				/>
 			</section>
 
 			<section className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4">

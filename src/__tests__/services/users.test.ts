@@ -94,6 +94,12 @@ describe('editProfile()', () => {
     });
   });
 
+  it('leaves cached profiles alone for the private Ballot default', async () => {
+    expect(await editProfile({ anonymousBallotByDefault: true })).toEqual({ ok: true });
+    expect(mockUpdateTag).not.toHaveBeenCalled();
+    expect(mockRevalidateTag).not.toHaveBeenCalled();
+  });
+
   it('re-renders cached profiles when the username stays', async () => {
     expect(await editProfile({ displayName: 'Alice' })).toEqual({ ok: true });
     expect(mockUpdateTag).toHaveBeenCalledWith('profiles');
