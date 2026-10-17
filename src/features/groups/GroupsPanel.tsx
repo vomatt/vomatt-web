@@ -117,7 +117,7 @@ export function GroupsPanel() {
 								className="group flex w-full items-center gap-3 rounded-xl border border-border bg-card px-4 py-4 text-left transition-colors hover:border-border-strong"
 							>
 								<span className="min-w-0 flex-1">
-									<span className="block truncate text-[17px] tracking-[-0.01em]">{group.name}</span>
+									<span className="item-title block truncate">{group.name}</span>
 									<span className="block text-[13px] tabular-nums text-muted-foreground">
 										{group.memberCount === 1
 											? t('groups.memberCountOne')

@@ -33,7 +33,7 @@ export function PollListItem({ poll, meta, aside, onClick, className }: PollList
 			>
 				<div className="min-w-0 flex-1 space-y-1.5">
 					{aside && <div className="flex">{aside}</div>}
-					<p className="line-clamp-2 text-[17px] leading-snug tracking-[-0.01em] text-foreground">
+					<p className="item-title line-clamp-2 leading-snug text-foreground">
 						{poll.title}
 					</p>
 					<p className="text-[13px] tabular-nums text-muted-foreground">{meta}</p>

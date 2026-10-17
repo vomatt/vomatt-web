@@ -92,12 +92,12 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 	const accountHref = profile ? profileHref(profile.username) : '/account';
 
 	return (
-		<Sidebar className="border-none">
+		<Sidebar className="border-sidebar-border">
 			{/* Header */}
 			<SidebarHeader className="px-5 pt-5 pb-5">
 				<Link
 					href="/"
-					className="block w-24 text-foreground hover:text-foreground/70 transition-colors"
+					className="block w-24 text-sidebar-foreground hover:text-sidebar-foreground/70 transition-colors"
 				>
 					<BrandLogo />
 				</Link>
@@ -108,14 +108,14 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 				{userSession ? (
 					<PollCreator
 						triggerChildren={
-							<Button className="w-full">
+							<Button variant="create" className="w-full">
 								<PlusCircle />
 								{t('common.createPoll')}
 							</Button>
 						}
 					/>
 				) : (
-					<Link href="/login" className={cn(buttonVariants(), 'w-full')}>
+					<Link href="/login" className={cn(buttonVariants({ variant: 'create' }), 'w-full')}>
 						<PlusCircle />
 						{t('common.createPoll')}
 					</Link>
@@ -152,7 +152,7 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 											<item.icon className="size-5 shrink-0" />
 											<span className="text-[15px] font-medium capitalize">{t(item.title)}</span>
 											{badge > 0 && (
-												<span className="ml-auto min-w-6 rounded-full bg-secondary px-1.5 text-center font-mono text-xs leading-6 text-foreground tabular-nums">
+												<span className="ml-auto min-w-6 rounded-full bg-volt px-1.5 text-center ring-1 ring-inset ring-volt-foreground/20 font-mono text-xs leading-6 text-volt-foreground tabular-nums">
 													{badge > 99 ? '99+' : badge}
 												</span>
 											)}
@@ -203,7 +203,7 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 					<div className="rounded-xl border border-sidebar-border bg-card p-1">
 						<Link
 							href="/login"
-							className="flex items-center gap-2.5 w-full min-h-11 px-3 rounded-lg text-muted-foreground hover:text-sidebar-foreground hover:bg-surface-soft transition-colors text-sm"
+							className="flex items-center gap-2.5 w-full min-h-11 px-3 rounded-lg text-muted-foreground hover:text-sidebar-foreground hover:bg-surface-soft transition-colors text-[15px]"
 						>
 							<User className="size-4 shrink-0" />
 							<span className="font-medium">Sign in</span>

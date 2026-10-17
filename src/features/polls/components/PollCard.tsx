@@ -114,12 +114,12 @@ export function PollCard({
 
 				<div>
 					<Link href={`/poll/${id}`}>
-						<h3 className="text-[22px] font-normal leading-tight tracking-[-0.02em] text-foreground hover:text-muted-foreground transition-colors md:text-2xl">
+						<h3 className="text-[22px] font-medium leading-tight tracking-[-0.02em] text-foreground hover:text-muted-foreground transition-colors md:text-[26px]">
 							{title}
 						</h3>
 					</Link>
 					{description && (
-						<p className="mt-2 max-w-[65ch] text-[15px] text-muted-foreground leading-relaxed">
+						<p className="mt-2 max-w-[65ch] text-base text-muted-foreground leading-relaxed">
 							{description}
 						</p>
 					)}

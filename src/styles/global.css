@@ -44,32 +44,39 @@
 @custom-variant data-vertical (&:where([data-orientation="vertical"]));
 
 :root {
-	/* vomatt brand: warm canvas, ink actions, Volt for "your choice" highlights */
-	--background: oklch(0.969 0.007 106.5);
-	--foreground: oklch(0.251 0.009 97.7);
-	--card: oklch(1 0 0);
-	--card-foreground: oklch(0.251 0.009 97.7);
-	--popover: oklch(1 0 0);
-	--popover-foreground: oklch(0.251 0.009 97.7);
-	--primary: oklch(0.251 0.009 97.7);
-	--primary-hover: oklch(0.344 0.010 99.2);
-	--primary-foreground: oklch(0.969 0.007 106.5);
-	--secondary: oklch(0.924 0.008 98.9);
-	--secondary-foreground: oklch(0.251 0.009 97.7);
-	--muted: oklch(0.948 0.008 98.9);
-	--muted-foreground: oklch(0.486 0.013 89.8);
-	--accent: oklch(0.948 0.008 98.9);
-	--accent-foreground: oklch(0.251 0.009 97.7);
+	/* vomatt brand: cool canvas, ink actions, Volt for the create action and "yours" */
+	--background: oklch(0.975 0.003 265);
+	--foreground: oklch(0.205 0.014 265);
+	--card: oklch(0.995 0.002 265);
+	--card-foreground: oklch(0.205 0.014 265);
+	--popover: oklch(0.995 0.002 265);
+	--popover-foreground: oklch(0.205 0.014 265);
+	--primary: oklch(0.205 0.014 265);
+	--primary-hover: oklch(0.31 0.018 265);
+	--primary-foreground: oklch(0.985 0.002 265);
+	--secondary: oklch(0.935 0.005 265);
+	--secondary-foreground: oklch(0.205 0.014 265);
+	--muted: oklch(0.955 0.004 265);
+	--muted-foreground: oklch(0.47 0.014 265);
+	--accent: oklch(0.955 0.004 265);
+	--accent-foreground: oklch(0.205 0.014 265);
 	--destructive: oklch(0.501 0.178 28.7);
 	--destructive-foreground: oklch(0.501 0.178 28.7);
-	--border: oklch(0.915 0.009 100);
-	--border-strong: oklch(0.841 0.013 96.5);
-	--input: oklch(0.640 0.014 91.6);
-	--ring: oklch(0.251 0.009 97.7);
-	--surface-soft: oklch(0.984 0.004 106.5);
-	--field: oklch(0.948 0.008 98.9);
+	--border: oklch(0.915 0.005 265);
+	--border-strong: oklch(0.85 0.008 265);
+	--input: oklch(0.62 0.012 265);
+	--ring: oklch(0.205 0.014 265);
+	--surface-soft: oklch(0.985 0.003 265);
+	--field: oklch(0.955 0.004 265);
 	--volt: oklch(0.946 0.153 118);
-	--volt-tint: oklch(0.982 0.040 116.3);
+	/* Ink on Volt in both themes: a literal, since var(--foreground) turns light in .dark */
+	--volt-foreground: oklch(0.205 0.014 265);
+	--volt-tint: oklch(0.975 0.045 118);
+	/* The create action: ink with a Volt icon on light, a Volt button on dark */
+	--create: var(--primary);
+	--create-hover: var(--primary-hover);
+	--create-foreground: var(--primary-foreground);
+	--create-icon: var(--volt);
 	--status-scheduled: oklch(0.914 0.017 304.8);
 	--status-open: oklch(0.917 0.024 145.4);
 	--status-closing: oklch(0.909 0.030 52.7);
@@ -87,7 +94,8 @@
 	--chart-4: oklch(0.828 0.189 84.429);
 	--chart-5: oklch(0.769 0.188 70.08);
 	--radius: 0.5rem;
-	--sidebar: var(--background);
+	/* The sidebar is one step deeper than the canvas; everything else aliases the base */
+	--sidebar: oklch(0.96 0.004 265);
 	--sidebar-foreground: var(--foreground);
 	--sidebar-primary: var(--primary);
 	--sidebar-primary-foreground: var(--primary-foreground);
@@ -105,31 +113,35 @@
 }
 
 .dark {
-	--background: oklch(0.199 0.006 106.9);
-	--foreground: oklch(0.942 0.008 98.9);
-	--card: oklch(0.235 0.008 95.4);
-	--card-foreground: oklch(0.942 0.008 98.9);
-	--popover: oklch(0.235 0.008 95.4);
-	--popover-foreground: oklch(0.942 0.008 98.9);
-	--primary: oklch(0.942 0.008 98.9);
-	--primary-hover: oklch(0.85 0.008 98.9);
-	--primary-foreground: oklch(0.199 0.006 106.9);
-	--secondary: oklch(0.296 0.009 97.6);
-	--secondary-foreground: oklch(0.942 0.008 98.9);
-	--muted: oklch(0.280 0.009 97.7);
-	--muted-foreground: oklch(0.766 0.013 96.5);
-	--accent: oklch(0.280 0.009 97.7);
-	--accent-foreground: oklch(0.942 0.008 98.9);
+	--background: oklch(0.185 0.008 265);
+	--foreground: oklch(0.945 0.004 265);
+	--card: oklch(0.225 0.010 265);
+	--card-foreground: oklch(0.945 0.004 265);
+	--popover: oklch(0.225 0.010 265);
+	--popover-foreground: oklch(0.945 0.004 265);
+	--primary: oklch(0.945 0.004 265);
+	--primary-hover: oklch(0.85 0.006 265);
+	--primary-foreground: oklch(0.185 0.008 265);
+	--secondary: oklch(0.29 0.010 265);
+	--secondary-foreground: oklch(0.945 0.004 265);
+	--muted: oklch(0.27 0.010 265);
+	--muted-foreground: oklch(0.76 0.010 265);
+	--accent: oklch(0.27 0.010 265);
+	--accent-foreground: oklch(0.945 0.004 265);
 	--destructive: oklch(0.834 0.068 22);
 	--destructive-foreground: oklch(0.834 0.068 22);
-	--border: oklch(0.296 0.009 97.6);
-	--border-strong: oklch(0.4 0.01 97.6);
-	--input: oklch(0.55 0.012 95);
-	--ring: oklch(0.942 0.008 98.9);
-	--surface-soft: oklch(0.22 0.007 100);
-	--field: oklch(0.280 0.009 97.7);
+	--border: oklch(0.29 0.010 265);
+	--border-strong: oklch(0.39 0.012 265);
+	--input: oklch(0.55 0.012 265);
+	--ring: oklch(0.945 0.004 265);
+	--surface-soft: oklch(0.205 0.009 265);
+	--field: oklch(0.27 0.010 265);
 	--volt: oklch(0.946 0.153 118);
 	--volt-tint: oklch(0.32 0.05 118);
+	--create: var(--volt);
+	--create-hover: color-mix(in oklch, var(--volt) 85%, transparent);
+	--create-foreground: var(--volt-foreground);
+	--create-icon: var(--volt-foreground);
 	--status-scheduled: oklch(0.36 0.04 304.8);
 	--status-open: oklch(0.36 0.05 145.4);
 	--status-closing: oklch(0.36 0.05 52.7);
@@ -139,7 +151,7 @@
 	--chart-3: oklch(0.769 0.188 70.08);
 	--chart-4: oklch(0.627 0.265 303.9);
 	--chart-5: oklch(0.645 0.246 16.439);
-	--sidebar: var(--background);
+	--sidebar: oklch(0.165 0.008 265);
 	--sidebar-foreground: var(--foreground);
 	--sidebar-primary: var(--primary);
 	--sidebar-primary-foreground: var(--primary-foreground);
@@ -197,7 +209,12 @@
 	--color-surface-soft: var(--surface-soft);
 	--color-field: var(--field);
 	--color-volt: var(--volt);
+	--color-volt-foreground: var(--volt-foreground);
 	--color-volt-tint: var(--volt-tint);
+	--color-create: var(--create);
+	--color-create-hover: var(--create-hover);
+	--color-create-foreground: var(--create-foreground);
+	--color-create-icon: var(--create-icon);
 	--color-status-scheduled: var(--status-scheduled);
 	--color-status-open: var(--status-open);
 	--color-status-closing: var(--status-closing);
@@ -214,6 +231,8 @@
 
 	--spacing-contain: max(1vw, 16px);
 	--spacing-header: var(--header-height);
+	/* The home feed column; the feed and its loading skeleton share it */
+	--container-feed: 640px;
 	--z-index-header: 48;
 	--z-index-overlay: 49;
 	--z-index-dialog: 50;
@@ -286,6 +305,12 @@
 	font-weight: 400;
 	line-height: 1.25;
 	letter-spacing: -0.03em;
+}
+
+/* Titles in list rows and side cards; weight and leading go beside it */
+@utility item-title {
+	font-size: 17px;
+	letter-spacing: -0.01em;
 }
 
 @utility empty-state {

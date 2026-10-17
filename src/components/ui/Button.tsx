@@ -10,6 +10,9 @@ const buttonVariants = cva(
 			variant: {
 				default:
 					'bg-primary text-primary-foreground hover:bg-primary-hover disabled:bg-secondary disabled:text-muted-foreground disabled:opacity-100',
+				// The create action only; its colours per theme are the --create tokens
+				create:
+					'bg-create text-create-foreground hover:bg-create-hover [&_svg]:text-create-icon disabled:bg-secondary disabled:text-muted-foreground disabled:opacity-100 disabled:[&_svg]:text-muted-foreground',
 				outline:
 					'border-border bg-card hover:border-border-strong hover:bg-surface-soft hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground',
 				secondary:
