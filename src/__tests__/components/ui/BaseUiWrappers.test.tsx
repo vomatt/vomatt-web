@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { createEvent, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import Link from 'next/link';
 
 import {
@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/AlertDialog';
 import { Button } from '@/components/ui/Button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/Dialog';
-import { SidebarMenuButton, SidebarProvider } from '@/components/ui/Sidebar';
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider } from '@/components/ui/Sidebar';
 import { Switch } from '@/components/ui/Switch';
 import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 
@@ -157,5 +157,58 @@ describe('Base UI wrappers', () => {
 		expect(screen.getByRole('link', { name: 'Me' })).not.toHaveAttribute(
 			'data-active'
 		);
+	});
+	describe('SidebarMenu hover mark', () => {
+		function renderMenu() {
+			render(
+				<SidebarMenu>
+					<SidebarMenuItem>Home</SidebarMenuItem>
+					<SidebarMenuItem>Explore</SidebarMenuItem>
+				</SidebarMenu>
+			);
+			const [home, explore] = screen.getAllByRole('listitem');
+			home.getBoundingClientRect = () => ({ top: 0, height: 44 }) as DOMRect;
+			explore.getBoundingClientRect = () => ({ top: 46, height: 44 }) as DOMRect;
+			const mark = () => document.querySelector<HTMLElement>('[data-slot=sidebar-menu-hover-mark]');
+			return { home, explore, menu: screen.getByRole('list'), mark };
+		}
+
+		it('follows the hovered item and fades out on leave', () => {
+			const { home, explore, menu, mark } = renderMenu();
+			fireEvent.pointerOver(home);
+			expect(mark()!.style.top).toBe('0px');
+			fireEvent.pointerOver(explore);
+			expect(mark()!.style.top).toBe('46px');
+			expect(mark()!.style.height).toBe('44px');
+			expect(mark()).toHaveClass('transition-[top,height,opacity]');
+			fireEvent.pointerLeave(menu);
+			expect(mark()).toHaveClass('opacity-0');
+		});
+
+		it('appears in place, without sliding, when the pointer comes back', () => {
+			const { home, explore, menu, mark } = renderMenu();
+			fireEvent.pointerOver(home);
+			fireEvent.pointerLeave(menu);
+			fireEvent.pointerOver(explore);
+			expect(mark()!.style.top).toBe('46px');
+			expect(mark()).not.toHaveClass('opacity-0');
+			expect(mark()).toHaveClass('transition-opacity');
+			expect(mark()).not.toHaveClass('transition-[top,height,opacity]');
+		});
+
+		it('ignores touch', () => {
+			const { home, mark } = renderMenu();
+			// The polyfilled PointerEvent drops pointerType from its init
+			const tap = createEvent.pointerOver(home);
+			Object.defineProperty(tap, 'pointerType', { value: 'touch' });
+			fireEvent(home, tap);
+			expect(mark()).toBeNull();
+		});
+
+		it('stays out of the list for assistive tech', () => {
+			const { home } = renderMenu();
+			fireEvent.pointerOver(home);
+			expect(screen.getAllByRole('listitem')).toHaveLength(2);
+		});
 	});
 });
