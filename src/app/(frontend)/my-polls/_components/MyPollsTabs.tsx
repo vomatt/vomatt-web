@@ -2,7 +2,7 @@
 import { useState } from 'react';
 
 import { LoadMore } from '@/components/LoadMore';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
+import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UnreadDot } from '@/features/notifications/UnreadDot';
 import { DraftList } from '@/features/polls/components/DraftList';
@@ -57,6 +57,7 @@ function MyPollsTabList({ activeCount, endedCount }: { activeCount?: string; end
 				{t('myPolls.tabEnded')}
 				{endedCount && ` (${endedCount})`}
 			</TabsTrigger>
+			<TabsIndicator />
 		</TabsList>
 	);
 }

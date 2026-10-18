@@ -23,6 +23,7 @@ import {
 	TooltipTrigger,
 } from '@/components/ui/Tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useHoverMark } from '@/hooks/useHoverMark';
 import { cn } from '@/lib/utils';
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state';
@@ -452,14 +453,39 @@ function SidebarGroupContent({
 	);
 }
 
-function SidebarMenu({ className, ...props }: React.ComponentProps<'ul'>) {
+/** A soft highlight glides to the item under the pointer, like the tabs' hover mark. */
+function SidebarMenu({ className, onPointerOver, onPointerLeave, children, ...props }: React.ComponentProps<'ul'>) {
+	const hover = useHoverMark('[data-slot=sidebar-menu-item]', 'y');
 	return (
 		<ul
 			data-slot="sidebar-menu"
 			data-sidebar="menu"
-			className={cn('flex w-full min-w-0 flex-col gap-0', className)}
+			className={cn('relative flex w-full min-w-0 flex-col gap-0', className)}
+			onPointerOver={(event) => {
+				onPointerOver?.(event);
+				hover.onPointerOver(event);
+			}}
+			onPointerLeave={(event) => {
+				onPointerLeave?.(event);
+				hover.onPointerLeave();
+			}}
 			{...props}
-		/>
+		>
+			{hover.mark.rect && (
+				<li
+					aria-hidden
+					role="presentation"
+					data-slot="sidebar-menu-hover-mark"
+					className={cn(
+						'pointer-events-none absolute inset-x-0 rounded-lg bg-sidebar-accent/60 duration-200 ease-out motion-reduce:transition-none',
+						hover.mark.entering ? 'transition-opacity' : 'transition-[top,height,opacity]',
+						!hover.mark.visible && 'opacity-0'
+					)}
+					style={{ top: hover.mark.rect.offset, height: hover.mark.rect.size }}
+				/>
+			)}
+			{children}
+		</ul>
 	);
 }
 
@@ -475,11 +501,11 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<'li'>) {
 }
 
 const sidebarMenuButtonVariants = cva(
-	'peer/menu-button group/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-open:hover:bg-sidebar-accent data-open:hover:text-sidebar-accent-foreground data-active:bg-sidebar-accent data-active:font-medium data-active:text-sidebar-accent-foreground [&_svg]:size-4 [&_svg]:shrink-0 [&>span:last-child]:truncate',
+	'peer/menu-button group/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-open:hover:bg-sidebar-accent data-open:hover:text-sidebar-accent-foreground data-active:bg-sidebar-accent data-active:font-medium data-active:text-sidebar-accent-foreground [&_svg]:size-4 [&_svg]:shrink-0 [&>span:last-child]:truncate',
 	{
 		variants: {
 			variant: {
-				default: 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+				default: 'hover:text-sidebar-accent-foreground',
 				outline:
 					'bg-background shadow-[0_0_0_1px_hsl(var(--sidebar-border))] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_hsl(var(--sidebar-accent))]',
 			},
