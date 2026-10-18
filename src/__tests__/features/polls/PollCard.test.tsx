@@ -191,6 +191,51 @@ describe('PollCard state B · Open, has Ballot', () => {
 		expect(screen.getByText('128 voted')).toBeInTheDocument();
 	});
 
+	it('keeps the vote button busy, not greyed, while the Ballot is going in', async () => {
+		let finish!: (value: unknown) => void;
+		mockCastBallot.mockReturnValue(new Promise((resolve) => (finish = resolve)));
+		render(<PollCard poll={openPoll} viewerId="user-voter" />);
+		vote('Saturday');
+
+		// The button the voter tapped is the one that shows the Ballot going in
+		const voteButton = screen.getByRole('button', { name: /Vote/ });
+		expect(voteButton).toHaveAttribute('aria-busy', 'true');
+		expect(voteButton).not.toHaveAttribute('disabled');
+
+		await act(async () => finish({ ok: true }));
+		expect(screen.getByRole('button', { name: 'Update vote' })).not.toHaveAttribute('aria-busy');
+	});
+
+	it('marks Update vote busy while a changed vote is out', () => {
+		mockCastBallot.mockReturnValue(new Promise(() => {}));
+		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerId="user-voter" />);
+		fireEvent.click(screen.getByLabelText(/Friday/));
+		fireEvent.click(screen.getByRole('button', { name: 'Update vote' }));
+		expect(screen.getByRole('button', { name: /Update vote/ })).toHaveAttribute('aria-busy', 'true');
+	});
+
+	it('clears the busy state and rolls back when the vote request rejects', async () => {
+		mockCastBallot.mockRejectedValue(new Error('network down'));
+		const { container } = render(<PollCard poll={openPoll} viewerId="user-voter" />);
+		vote('Saturday');
+		expect(container.querySelector('[aria-busy]')).not.toBeNull();
+		await waitFor(() => expect(container.querySelector('[aria-busy]')).toBeNull());
+		// The vote is rolled back like any failed request
+		expect(screen.getByRole('button', { name: 'Vote' })).toBeInTheDocument();
+		expect(screen.getByText('128 voted')).toBeInTheDocument();
+	});
+
+	it('does not mark Vote busy while a withdrawal is out', async () => {
+		mockRetractBallot.mockReturnValue(new Promise(() => {}));
+		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerId="user-voter" />);
+		fireEvent.click(screen.getByRole('button', { name: 'Withdraw vote' }));
+		fireEvent.click(screen.getByRole('button', { name: 'Withdraw' }));
+
+		const voteButton = await screen.findByRole('button', { name: 'Vote' });
+		expect(voteButton).not.toHaveAttribute('aria-busy');
+		expect(voteButton).toBeDisabled();
+	});
+
 	it('asks before withdrawing, then returns to state A and lowers Turnout', async () => {
 		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerId="user-voter" />);
 

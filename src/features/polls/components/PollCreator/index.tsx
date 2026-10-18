@@ -12,7 +12,6 @@ import {
 } from 'react-hook-form';
 import { toast } from 'sonner';
 
-import { ButtonLoading } from '@/components/ButtonLoading';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -589,14 +588,13 @@ export function PollCreator({
 									</Button>
 								)}
 								{review ? (
-									<ButtonLoading
+									<Button
 										type="submit"
 										className="flex-1 sm:ml-auto sm:max-w-48"
-										disabled={isSubmitting}
-										isLoading={isSubmitting}
+										loading={isSubmitting}
 									>
 										{t(isEdit ? 'pollCreator.saveChanges' : 'pollCreator.publish')}
-									</ButtonLoading>
+									</Button>
 								) : (
 									<Button type="submit" className="flex-1 sm:ml-auto sm:max-w-40">
 										{t('pollCreator.review')}

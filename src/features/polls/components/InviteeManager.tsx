@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
-import { ButtonLoading } from '@/components/ButtonLoading';
+import { Button } from '@/components/ui/Button';
 import {
 	Dialog,
 	DialogContent,
@@ -127,14 +127,14 @@ export function InviteeManager({ pollId, open, onOpenChange, onChanged }: Invite
 					<Label htmlFor="add-invitees">{t('invitees.addLabel')}</Label>
 					<InviteePicker id="add-invitees" withGroups value={selection} onChange={setSelection} />
 					<div className="flex justify-end">
-						<ButtonLoading
+						<Button
 							type="button"
-							disabled={isSelectionEmpty(selection) || isAdding}
-							isLoading={isAdding}
+							disabled={isSelectionEmpty(selection)}
+							loading={isAdding}
 							onClick={add}
 						>
 							{t('invitees.add')}
-						</ButtonLoading>
+						</Button>
 					</div>
 				</div>
 			</DialogContent>

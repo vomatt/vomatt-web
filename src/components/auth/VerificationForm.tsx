@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 
-import { ButtonLoading } from '@/components/ButtonLoading';
 import { Button } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -132,14 +131,14 @@ export default function VerificationForm({
 					</InputOTP>
 					<AuthError error={error} />
 				</Field>
-				<ButtonLoading
+				<Button
 					type="submit"
 					className="w-full"
-					isLoading={isLoading}
+					loading={isLoading}
 					disabled={code.length !== CODE_LENGTH}
 				>
 					{t('common.continue')}
-				</ButtonLoading>
+				</Button>
 			</form>
 
 			{/* The countdown isn't live (it would be read out every second); this says once when resend opens up */}
@@ -153,14 +152,9 @@ export default function VerificationForm({
 						{t('verificationCode.resendIn', { time: formatCountdown(cooldown) })}
 					</p>
 				) : (
-					<ButtonLoading
-						variant="link"
-						isLoading={isResending}
-						disabled={isResending}
-						onClick={resend}
-					>
+					<Button variant="link" loading={isResending} onClick={resend}>
 						{t('verificationCode.resendVerificationCode')}
-					</ButtonLoading>
+					</Button>
 				)}
 				{/* Locked while a code is checked, or a late success would sign in the old address */}
 				<Button type="button" variant="link" disabled={isLoading} onClick={onEditEmail}>

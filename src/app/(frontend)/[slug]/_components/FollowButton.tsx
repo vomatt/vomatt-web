@@ -66,7 +66,7 @@ export default function FollowButton({
         variant={isFollowing ? 'outline' : 'default'}
         size="sm"
         onClick={handleToggle}
-        disabled={isPending}
+        loading={isPending}
       >
         {isFollowing ? 'Unfollow' : 'Follow'}
       </Button>

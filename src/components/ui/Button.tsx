@@ -1,10 +1,11 @@
 import { Button as ButtonPrimitive } from '@base-ui/react/button';
 import { cva, type VariantProps } from 'class-variance-authority';
 
+import { Spinner } from '@/components/ui/Spinner';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-	"group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-ring active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+	"group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-[color,background-color,border-color,opacity,translate] outline-none select-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-ring active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 data-loading:pointer-events-none data-loading:relative data-loading:[-webkit-text-fill-color:transparent] data-loading:[&>:not([data-slot=button-loading])]:opacity-0 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
 	{
 		variants: {
 			variant: {
@@ -47,18 +48,40 @@ const buttonVariants = cva(
 	}
 );
 
+/**
+ * `loading` keeps the button's own colours (it is busy, not unavailable), keeps focus on it,
+ * ignores clicks and submits, and lays the spinner (or `loadingIcon`) over the label so the width holds.
+ * The label is hidden in place, not wrapped, so its children are not remounted.
+ */
 function Button({
 	className,
 	variant = 'default',
 	size = 'default',
+	loading = false,
+	loadingIcon,
+	disabled,
+	focusableWhenDisabled,
+	children,
 	...props
-}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
+}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants> & { loading?: boolean; loadingIcon?: React.ReactNode }) {
 	return (
 		<ButtonPrimitive
 			data-slot="button"
+			data-loading={loading || undefined}
+			aria-busy={loading || undefined}
+			disabled={disabled || loading}
+			focusableWhenDisabled={focusableWhenDisabled || loading}
 			className={cn(buttonVariants({ variant, size, className }))}
 			{...props}
-		/>
+		>
+			{children}
+			{loading && (
+				<span data-slot="button-loading" role="status" className="absolute inset-0 grid place-items-center">
+					{loadingIcon ?? <Spinner role="presentation" aria-hidden />}
+					<span className="sr-only">Loading</span>
+				</span>
+			)}
+		</ButtonPrimitive>
 	);
 }
 

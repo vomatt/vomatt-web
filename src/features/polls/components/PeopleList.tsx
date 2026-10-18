@@ -1,7 +1,7 @@
 'use client';
 
+import { Button } from '@/components/ui/Button';
 import { InitialAvatar } from '@/components/ui/InitialAvatar';
-import { Spinner } from '@/components/ui/Spinner';
 import { X } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserChip } from '@/features/profiles/UserChip';
@@ -52,15 +52,17 @@ export function PeopleList<P extends Person>({
 						{note ? (
 							<span className="text-[13px] text-muted-foreground">{note}</span>
 						) : (
-							<button
-								type="button"
+							<Button
+								variant="ghost"
+								size="icon"
 								aria-label={t('invitees.remove', { name })}
 								disabled={disabled}
+								loading={removingKey === key}
 								onClick={() => onRemove(person)}
-								className="grid size-11 place-items-center rounded-lg text-muted-foreground hover:text-destructive disabled:opacity-50"
+								className="text-muted-foreground hover:text-destructive"
 							>
-								{removingKey === key ? <Spinner /> : <X className="size-4" />}
-							</button>
+								<X className="size-4" />
+							</Button>
 						)}
 					</li>
 				);
