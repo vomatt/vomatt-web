@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 
-import { MailCheckIcon } from '@/components/ui/animate-icon/MailCheck';
 import { Button } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -89,19 +88,18 @@ export default function VerificationForm({
 
 	return (
 		<div className="flex flex-col">
-			<span className="mb-5 grid size-12 place-items-center rounded-full border border-foreground/20 bg-volt text-foreground">
-				<MailCheckIcon className="size-6" />
-			</span>
 			<h1 className="mb-3 display-heading text-[32px]">{t('verificationCode.title')}</h1>
 			<p className="mb-8 text-base leading-relaxed text-muted-foreground">
-				{t('verificationCode.subtitle')} <strong className="break-all font-medium text-foreground">{email}</strong>
+				{t('verificationCode.subtitle')}{' '}
+				{/* Own line, so a long address wraps whole instead of splitting mid-word */}
+				<strong className="block font-medium text-foreground wrap-anywhere">{email}</strong>
 			</p>
 			<form
 				onSubmit={(event) => {
 					event.preventDefault();
 					submit(code);
 				}}
-				className="w-full mb-8"
+				className="w-full mb-4"
 			>
 				<Field className="mb-6">
 					<InputOTP
@@ -135,14 +133,11 @@ export default function VerificationForm({
 				</Field>
 				<Button
 					type="submit"
-					className="w-full mb-3"
+					className="w-full"
 					loading={isLoading}
 					disabled={code.length !== CODE_LENGTH}
 				>
 					{t('common.continue')}
-				</Button>
-				<Button type="button" className="w-full" onClick={onEditEmail} variant="outline">
-					{t('verificationCode.useAnotherEmail')}
 				</Button>
 			</form>
 
@@ -150,22 +145,24 @@ export default function VerificationForm({
 			<p className="sr-only" aria-live="polite">
 				{cooldown > 0 ? '' : t('verificationCode.resendReady')}
 			</p>
-			{cooldown > 0 ? (
-				<p className="text-sm text-muted-foreground tabular-nums">
-					{t('verificationCode.resendIn', { time: formatCountdown(cooldown) })}
-				</p>
-			) : (
-				<Button
-					className="h-11 justify-start px-0 underline"
-					variant="link"
-					loading={isResending}
-					onClick={resend}
-				>
-					{t('verificationCode.resendVerificationCode')}
+			{/* Both ways out of a missing code sit together, quieter than Continue */}
+			<div className="flex flex-wrap items-center justify-between gap-x-4">
+				{cooldown > 0 ? (
+					<p className="flex h-11 items-center text-sm text-muted-foreground tabular-nums">
+						{t('verificationCode.resendIn', { time: formatCountdown(cooldown) })}
+					</p>
+				) : (
+					<Button variant="link" loading={isResending} onClick={resend}>
+						{t('verificationCode.resendVerificationCode')}
+					</Button>
+				)}
+				{/* Locked while a code is checked, or a late success would sign in the old address */}
+				<Button type="button" variant="link" disabled={isLoading} onClick={onEditEmail}>
+					{t('verificationCode.useAnotherEmail')}
 				</Button>
-			)}
+			</div>
 			{resent && (
-				<p className="text-sm mt-2 text-positive" role="status">
+				<p className="text-sm text-positive" role="status">
 					{t('verificationCode.codeSent')}
 				</p>
 			)}
