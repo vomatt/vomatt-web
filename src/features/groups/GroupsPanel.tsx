@@ -21,6 +21,7 @@ import { InviteePicker } from '@/features/polls/components/InviteePicker';
 import { PeopleList } from '@/features/polls/components/PeopleList';
 import { EMPTY_INVITEES, isSelectionEmpty, personKey } from '@/features/polls/invitees';
 import type { ActionResult } from '@/lib/api/action';
+import { apiErrorText } from '@/lib/api/error-text';
 
 import { type Group, GROUP_NAME_MAX,type GroupMember } from './schema';
 import {
@@ -62,7 +63,7 @@ export function GroupsPanel() {
 		const result = await createGroup(trimmed);
 		setIsCreating(false);
 		if (!result.ok) {
-			toast.error(result.message || t('groups.saveFailed'));
+			toast.error(apiErrorText(t, result, 'groups.saveFailed'));
 			return;
 		}
 		setGroups((list) => [...(list ?? []), result.data].sort((a, b) => a.name.localeCompare(b.name)));
@@ -184,7 +185,7 @@ function GroupDialog({
 		const result = await request();
 		setPending(null);
 		if (result.ok) return result.data;
-		toast.error(result.message || t('groups.saveFailed'));
+		toast.error(apiErrorText(t, result, 'groups.saveFailed'));
 		return null;
 	};
 

@@ -26,7 +26,7 @@ export function AuthError({ error, className }: AuthErrorProps) {
 					transition={{ duration: 0.2, ease: 'easeOut' }}
 					className="overflow-hidden"
 				>
-					<FieldError className={className}>{t(`authError.${error}`)}</FieldError>
+					<FieldError className={className}>{t(error.startsWith('apiError.') ? error : `authError.${error}`)}</FieldError>
 				</m.div>
 			)}
 		</AnimatePresence>

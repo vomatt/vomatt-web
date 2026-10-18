@@ -673,5 +673,176 @@
 				"trait": "捲尾巴"
 			}
 		}
+	},
+	"apiError": {
+		"common": {
+			"bad_request": "請求格式錯誤",
+			"internal_error": "伺服器錯誤，請稍後再試",
+			"service_unavailable": "服務暫時無法使用，請稍後再試",
+			"unauthorized": "未授權的請求",
+			"forbidden": "沒有權限執行此操作",
+			"rate_limited": "請求過於頻繁，請稍後再試",
+			"conflict": "資源衝突，請重試",
+			"validation_failed": "輸入資料驗證失敗",
+			"missing_param": "缺少必要參數：{0}",
+			"type_mismatch": "參數格式錯誤：{0}",
+			"invalid_status": "無效的狀態：{0}",
+			"invalid_sort": "無效的排序：{0}",
+			"cursor_invalid": "分頁 cursor 無效"
+		},
+		"auth": {
+			"token": {
+				"invalid": "Token 無效",
+				"expired": "登入已過期，請重新登入"
+			},
+			"invalid_otp": "驗證碼錯誤",
+			"otp": {
+				"invalid_or_expired": "驗證碼錯誤或已過期",
+				"too_many_attempts": "驗證次數過多，請稍後再試",
+				"resend_cooldown": "請等 {0} 秒後再重新發送"
+			},
+			"admin": {
+				"forbidden": "此帳號無管理員權限"
+			},
+			"identifier": {
+				"required": "請提供 email 或手機號碼"
+			},
+			"email": {
+				"send_failed": "郵件發送失敗：{0}"
+			},
+			"phone": {
+				"not_registered": "此手機號碼尚未註冊",
+				"invalid": "手機號碼格式錯誤，請輸入 09 開頭的台灣手機號碼或含國碼的號碼（例如 +886912345678）"
+			},
+			"sms": {
+				"send_failed": "簡訊發送失敗：{0}"
+			},
+			"refresh_token": {
+				"invalid": "Refresh token 無效或已過期"
+			},
+			"suspicious_login": "安全性警告：此登入階段被重複更新，已將其登出，請重新登入",
+			"google": {
+				"not_configured": "Google OAuth 尚未設定",
+				"no_email": "Google 驗證失敗：無法取得用戶信箱",
+				"invalid_audience": "Google 驗證失敗：audience 不正確"
+			},
+			"line": {
+				"not_configured": "LINE Login 尚未設定",
+				"token_exchange_failed": "LINE token 交換失敗",
+				"profile_failed": "LINE 用戶資料取得失敗"
+			},
+			"apple": {
+				"invalid_token": "Apple token 格式無效",
+				"key_not_found": "Apple 驗證失敗：找不到對應公鑰",
+				"invalid_signature": "Apple 驗證失敗：簽名無效",
+				"invalid_issuer": "Apple 驗證失敗：發行者不正確",
+				"invalid_audience": "Apple 驗證失敗：audience 不正確",
+				"token_expired": "Apple 驗證失敗：token 已過期",
+				"no_email": "Apple 驗證失敗：無法取得用戶信箱",
+				"login_failed": "Apple 登入失敗",
+				"not_configured": "Apple 登入尚未設定"
+			},
+			"email_not_verified": "此 OAuth 帳號的 email 尚未驗證，無法登入或合併既有帳號",
+			"account_banned": "此帳號已被停權，無法登入"
+		},
+		"user": {
+			"not_found": "找不到此用戶",
+			"username": {
+				"taken": "使用者名稱已被使用"
+			},
+			"delete": {
+				"forbidden": "只能刪除自己的帳號"
+			}
+		},
+		"vote": {
+			"not_found": "找不到投票",
+			"option": {
+				"not_found": "找不到投票選項",
+				"not_in_vote": "選項不屬於此投票"
+			},
+			"not_allowed": "投票尚未開始或已結束",
+			"ended": "投票已結束，無法再投票或撤回",
+			"results": {
+				"sealed": "投票結束前無法查看結果"
+			},
+			"voters": {
+				"hidden": "你沒有權限查看此投票的投票者"
+			},
+			"not_editable": "只能在投票開始前編輯",
+			"list": {
+				"sort_not_allowed": "已結束的投票固定依結束時間排序，不可指定 sort"
+			},
+			"search": {
+				"query_too_short": "搜尋字串至少需要 2 個字"
+			},
+			"multiple": {
+				"not_allowed": "此投票不允許複選"
+			},
+			"end_time": {
+				"past": "結束時間不可早於現在",
+				"before_start": "結束時間不可早於開始時間"
+			},
+			"forbidden": "只有投票建立者可執行此操作",
+			"delete": {
+				"window_passed": "投票發布超過 {0} 分鐘後，只有尚未開始的投票可以刪除"
+			},
+			"close": {
+				"public_not_allowed": "公開投票不可提早結束，會持續到截止時間",
+				"scheduled": "尚未開始的投票無法結束，請改為刪除"
+			},
+			"invitee": {
+				"not_invite_only": "只有僅限受邀者的投票可以設定受邀者",
+				"ids_invalid": "部分受邀使用者不存在或已停權",
+				"has_ballot": "已投票的受邀者無法移除"
+			},
+			"options": {
+				"min": "至少需要 {0} 個選項",
+				"max": "最多只能有 {0} 個選項"
+			},
+			"duration": {
+				"exceeded": "投票期間不可超過 {0} 天"
+			}
+		},
+		"comment": {
+			"not_found": "找不到留言",
+			"forbidden": "只能修改或刪除自己的留言",
+			"parent": {
+				"invalid": "要回覆的留言不存在或不屬於此投票"
+			}
+		},
+		"notification": {
+			"not_found": "找不到此通知"
+		},
+		"group": {
+			"not_found": "找不到群組",
+			"max_reached": "最多只能建立 {0} 個群組",
+			"members": {
+				"max": "每個群組最多 {0} 位成員"
+			},
+			"member": {
+				"ids_invalid": "部分使用者不存在或已停權"
+			}
+		},
+		"tag": {
+			"not_found": "找不到標籤",
+			"name": {
+				"exists": "標籤名稱已存在：{0}"
+			},
+			"slug": {
+				"exists": "標籤 slug 已存在：{0}"
+			},
+			"in_use": "標籤仍被投票使用，無法刪除",
+			"ids": {
+				"invalid": "部分標籤 ID 不存在"
+			}
+		},
+		"lookup": {
+			"not_found": "找不到字典資料",
+			"exists": "字典資料已存在：{0}/{1}"
+		},
+		"admin": {
+			"self_action_forbidden": "不能停權自己或移除自己的管理員角色",
+			"last_admin": "不能移除最後一位管理員"
+		}
 	}
 }

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useLanguage } from '@/contexts/LanguageContext';
+import { apiErrorText } from '@/lib/api/error-text';
 
 import { type ActionResult, isBusy, isPollEnded, isRateLimited } from '../errors';
 import type { Poll } from '../schema';
@@ -115,8 +116,8 @@ export function useBallot(poll: Poll, { isAuthed, onPollEnded }: Options) {
 				return 'ended';
 			}
 			if (isRateLimited(result)) toast.error(t('poll.tooManyVotes'));
-			// Still busy after the retry: the API's own (localized) message asks to try again
-			else if (isBusy(result)) toast.error(result.message);
+			// Still busy after the retry: common.conflict shows common.busy
+			else if (isBusy(result)) toast.error(apiErrorText(t, result));
 			else toast.error(failureMessage);
 			return 'failed';
 		},

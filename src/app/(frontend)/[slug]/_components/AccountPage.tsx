@@ -27,6 +27,7 @@ import { StatusChip } from '@/features/polls/components/StatusChip';
 import type { Poll } from '@/features/polls/schema';
 import { derivePollStatus, getTurnout } from '@/features/polls/status';
 import type { CursorPage } from '@/lib/api/cursor';
+import { apiErrorText } from '@/lib/api/error-text';
 import { signout } from '@/lib/api/services/auth';
 import { deleteMyAccount, editProfile, updateVisibility } from '@/lib/api/services/users';
 import { cn } from '@/lib/utils';
@@ -256,7 +257,7 @@ function Settings({
 			savedAnonymousDefault.current = value;
 		} else {
 			setAnonymousDefault(savedAnonymousDefault.current);
-			toast.error(result.message || t('account.saveFailed'));
+			toast.error(apiErrorText(t, result, 'account.saveFailed'));
 		}
 	};
 
@@ -331,10 +332,9 @@ function Settings({
 	);
 }
 
-/** Deletion refusals with their own copy; anything else shows the API's message. */
+/** Deletion refusals with their own copy; anything else goes through apiErrorText. */
 const DELETE_ERROR_KEYS: Record<string, string> = {
 	'admin.last_admin': 'account.deleteLastAdmin',
-	'common.conflict': 'common.busy',
 };
 
 function DeleteAccount({ username }: { username: string }) {
@@ -349,7 +349,7 @@ function DeleteAccount({ username }: { username: string }) {
 		const result = await deleteMyAccount();
 		setIsDeleting(false);
 		const key = result.errorCode && DELETE_ERROR_KEYS[result.errorCode];
-		toast.error(key ? t(key) : result.message || t('common.error'));
+		toast.error(key ? t(key) : apiErrorText(t, result));
 	};
 
 	return (

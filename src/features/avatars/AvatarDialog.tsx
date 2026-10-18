@@ -16,6 +16,7 @@ import {
 import { Spinner } from '@/components/ui/Spinner';
 import { Pencil } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { apiErrorText } from '@/lib/api/error-text';
 import { cn } from '@/lib/utils';
 
 import { BotAvatar } from './BotAvatar';
@@ -65,7 +66,7 @@ export function AvatarDialog({
 		try {
 			const result = await chooseAvatar(selected);
 			if (!result.ok) {
-				toast.error(result.message);
+				toast.error(apiErrorText(t, result));
 				return;
 			}
 			setOpen(false);
