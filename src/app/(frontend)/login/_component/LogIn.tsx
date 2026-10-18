@@ -16,9 +16,9 @@ export function LogIn({ policyMessage }: { policyMessage?: PortableTextBlock[] |
 	const sessionExpired = searchParams.get('session_expired');
 
 	return (
-		<AuthContainer type="STATUS_LOG_IN">
+		<AuthContainer>
 			{sessionExpired && (
-				<p role="status" className="mb-6 rounded-lg border border-border bg-card px-3.5 py-3 text-sm text-muted-foreground">
+				<p role="status" className="mb-6 rounded-lg border border-border bg-card px-3.5 py-3 text-sm text-foreground">
 					{t(sessionExpired === 'security' ? 'login.sessionRevoked' : 'login.sessionExpired')}
 				</p>
 			)}
