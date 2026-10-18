@@ -18,6 +18,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { Textarea } from '@/components/ui/Textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { isValidUsername, USERNAME_MAX_LENGTH } from '@/features/account/username';
+import { apiErrorText } from '@/lib/api/error-text';
 import { editProfile } from '@/lib/api/services/users';
 import { profileHref } from '@/lib/routes';
 
@@ -60,7 +61,7 @@ export default function EditProfileDialog({
 				bio,
 			});
 			if (!result.ok) {
-				toast.error(result.message);
+				toast.error(apiErrorText(t, result));
 				return;
 			}
 			// The profile lives at /[username], so a new username moves the page

@@ -677,5 +677,176 @@
 				"trait": "Taiwan dog, curly tail"
 			}
 		}
+	},
+	"apiError": {
+		"common": {
+			"bad_request": "Bad request format",
+			"internal_error": "Internal server error, please try again later",
+			"service_unavailable": "Service temporarily unavailable, please try again later",
+			"unauthorized": "Unauthorized request",
+			"forbidden": "You do not have permission to perform this action",
+			"rate_limited": "Too many requests, please try again later",
+			"conflict": "Resource conflict, please try again",
+			"validation_failed": "Validation failed",
+			"missing_param": "Missing required parameter: {0}",
+			"type_mismatch": "Invalid parameter format: {0}",
+			"invalid_status": "Invalid status: {0}",
+			"invalid_sort": "Invalid sort: {0}",
+			"cursor_invalid": "Invalid pagination cursor"
+		},
+		"auth": {
+			"token": {
+				"invalid": "Invalid token",
+				"expired": "Session expired, please log in again"
+			},
+			"invalid_otp": "Invalid verification code",
+			"otp": {
+				"invalid_or_expired": "Verification code is invalid or has expired",
+				"too_many_attempts": "Too many attempts, please try again later",
+				"resend_cooldown": "Please wait {0} seconds before resending"
+			},
+			"admin": {
+				"forbidden": "This account does not have admin privileges"
+			},
+			"identifier": {
+				"required": "Please provide an email or phone number"
+			},
+			"email": {
+				"send_failed": "Email delivery failed: {0}"
+			},
+			"phone": {
+				"not_registered": "This phone number is not registered",
+				"invalid": "Invalid phone number. Use a Taiwan mobile number starting with 09 or a number with a country code (e.g. +886912345678)"
+			},
+			"sms": {
+				"send_failed": "SMS delivery failed: {0}"
+			},
+			"refresh_token": {
+				"invalid": "Refresh token is invalid or has expired"
+			},
+			"suspicious_login": "Security alert: this session was refreshed twice, so it has been signed out. Please log in again",
+			"google": {
+				"not_configured": "Google OAuth is not configured",
+				"no_email": "Google verification failed: unable to retrieve email",
+				"invalid_audience": "Google verification failed: incorrect audience"
+			},
+			"line": {
+				"not_configured": "LINE Login is not configured",
+				"token_exchange_failed": "LINE token exchange failed",
+				"profile_failed": "Failed to retrieve LINE profile"
+			},
+			"apple": {
+				"invalid_token": "Invalid Apple token format",
+				"key_not_found": "Apple verification failed: matching public key not found",
+				"invalid_signature": "Apple verification failed: invalid signature",
+				"invalid_issuer": "Apple verification failed: incorrect issuer",
+				"invalid_audience": "Apple verification failed: incorrect audience",
+				"token_expired": "Apple verification failed: token has expired",
+				"no_email": "Apple verification failed: unable to retrieve email",
+				"login_failed": "Apple login failed",
+				"not_configured": "Apple Sign In is not configured"
+			},
+			"email_not_verified": "This OAuth account's email is not verified; cannot sign in or merge an existing account",
+			"account_banned": "This account has been banned and cannot sign in"
+		},
+		"user": {
+			"not_found": "User not found",
+			"username": {
+				"taken": "Username already taken"
+			},
+			"delete": {
+				"forbidden": "You can only delete your own account"
+			}
+		},
+		"vote": {
+			"not_found": "Vote not found",
+			"option": {
+				"not_found": "Vote option not found",
+				"not_in_vote": "Option does not belong to this vote"
+			},
+			"not_allowed": "Voting period has ended or not started",
+			"ended": "This poll has ended; ballots can no longer be cast or retracted",
+			"results": {
+				"sealed": "Results are sealed until the poll ends"
+			},
+			"voters": {
+				"hidden": "You are not allowed to see who voted in this poll"
+			},
+			"not_editable": "A poll can only be edited before it opens",
+			"list": {
+				"sort_not_allowed": "Ended polls are always ordered by end time; sort is not allowed"
+			},
+			"search": {
+				"query_too_short": "Search query must be at least 2 characters"
+			},
+			"multiple": {
+				"not_allowed": "Multiple choices not allowed for this vote"
+			},
+			"end_time": {
+				"past": "End time cannot be in the past",
+				"before_start": "End time cannot be before start time"
+			},
+			"forbidden": "Only the vote creator can perform this action",
+			"delete": {
+				"window_passed": "A Poll can only be deleted while it is scheduled or within {0} minutes of posting"
+			},
+			"close": {
+				"public_not_allowed": "A Public Poll cannot be closed early; it runs until its deadline",
+				"scheduled": "A scheduled Poll cannot be closed; delete it instead"
+			},
+			"invitee": {
+				"not_invite_only": "Invitees can only be set on an Invite-only Poll",
+				"ids_invalid": "One or more invited users do not exist or are suspended",
+				"has_ballot": "An Invitee who holds a Ballot cannot be removed"
+			},
+			"options": {
+				"min": "Minimum {0} options required",
+				"max": "Maximum {0} options allowed"
+			},
+			"duration": {
+				"exceeded": "Vote duration cannot exceed {0} days"
+			}
+		},
+		"comment": {
+			"not_found": "Comment not found",
+			"forbidden": "You can only modify your own comments",
+			"parent": {
+				"invalid": "The comment being replied to does not exist in this poll"
+			}
+		},
+		"notification": {
+			"not_found": "Notification not found"
+		},
+		"group": {
+			"not_found": "Group not found",
+			"max_reached": "You can keep at most {0} Groups",
+			"members": {
+				"max": "A Group can hold at most {0} members"
+			},
+			"member": {
+				"ids_invalid": "One or more users do not exist or are suspended"
+			}
+		},
+		"tag": {
+			"not_found": "Tag not found",
+			"name": {
+				"exists": "Tag name already exists: {0}"
+			},
+			"slug": {
+				"exists": "Slug already exists: {0}"
+			},
+			"in_use": "Cannot delete tag that is referenced by votes",
+			"ids": {
+				"invalid": "Some tag IDs do not exist"
+			}
+		},
+		"lookup": {
+			"not_found": "Lookup not found",
+			"exists": "Dictionary item already exists: {0}/{1}"
+		},
+		"admin": {
+			"self_action_forbidden": "You cannot suspend yourself or remove your own admin role",
+			"last_admin": "Cannot remove the last active admin"
+		}
 	}
 }

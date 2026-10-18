@@ -52,12 +52,12 @@ describe('AvatarDialog', () => {
 		expect(screen.getByRole('button', { name: 'Choose Boba' })).toHaveAttribute('aria-pressed', 'true');
 	});
 
-	it("keeps the choice unsaved and shows the API's message when saving fails", async () => {
-		mockChooseAvatar.mockResolvedValue({ ok: false, message: 'Nope' });
+	it("keeps the choice unsaved and shows the error when saving fails", async () => {
+		mockChooseAvatar.mockResolvedValue({ ok: false, errorCode: 'common.rate_limited', message: 'raw' });
 		openDialog('bot:boba');
 		choose('Mazu');
 		fireEvent.click(screen.getByRole('button', { name: 'Save avatar' }));
-		await waitFor(() => expect(mockToastError).toHaveBeenCalledWith('Nope'));
+		await waitFor(() => expect(mockToastError).toHaveBeenCalledWith('Too many requests, please try again later'));
 		expect(screen.getByRole('button', { name: 'Save avatar' })).toBeEnabled();
 	});
 

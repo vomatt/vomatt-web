@@ -82,7 +82,7 @@ describe('InviteeManager', () => {
 		mockRemoveInvitee.mockResolvedValue({ ok: false, errorCode: 'vote.ended', message: 'The poll has ended' });
 		setup();
 		fireEvent.click(await screen.findByRole('button', { name: 'Remove dave@example.com' }));
-		await waitFor(() => expect(toast.error).toHaveBeenCalledWith('The poll has ended'));
+		await waitFor(() => expect(toast.error).toHaveBeenCalledWith('This poll has ended; ballots can no longer be cast or retracted'));
 		expect(screen.getByText('dave@example.com')).toBeInTheDocument();
 	});
 });

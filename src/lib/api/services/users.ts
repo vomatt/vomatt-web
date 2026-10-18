@@ -78,17 +78,13 @@ export async function updateProfile(data: {
   return profile;
 }
 
-/** updateProfile for forms that show the API's (localized) error message. */
+/** updateProfile for forms that show the API's errorCode or (localized) message. */
 export async function editProfile(
   data: Parameters<typeof updateProfile>[0]
-): Promise<{ ok: true } | { ok: false; message: string }> {
-  try {
-    await updateProfile(data);
-  } catch (error) {
-    // Returned, not thrown: production hides thrown Server Action messages
-    return { ok: false, message: error instanceof Error ? error.message : 'Request failed' };
-  }
-  return { ok: true };
+): Promise<{ ok: true } | ActionFailure> {
+  // Returned, not thrown: production hides thrown Server Action messages
+  const result = await attempt(() => updateProfile(data));
+  return result.ok ? { ok: true } : result;
 }
 
 export async function updateVisibility(visibility: Record<string, boolean>) {

@@ -36,6 +36,7 @@ import { Label } from '@/components/ui/Label';
 import { ArrowLeft, Plus, X } from '@/components/ui/SvgIcons';
 import { Textarea } from '@/components/ui/Textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { apiErrorText } from '@/lib/api/error-text';
 
 import { deleteDraft, type PollDraft, saveDraft } from '../../drafts';
 import { formatPollDate } from '../../format';
@@ -217,7 +218,7 @@ export function PollCreator({
 			const input = formToInput(values);
 			const result = isEdit ? await updatePoll(poll.id, input) : await createPoll(input);
 			if (!result.ok) {
-				setError('root', { message: result.message });
+				setError('root', { message: apiErrorText(t, result) });
 				return;
 			}
 			if (draft) deleteDraft(draft.id);

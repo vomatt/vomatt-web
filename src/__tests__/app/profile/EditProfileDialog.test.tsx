@@ -51,12 +51,12 @@ describe('EditProfileDialog', () => {
 		expect(mockReplace).not.toHaveBeenCalled();
 	});
 
-	it("shows the API's message and stays open when saving fails", async () => {
-		mockEditProfile.mockResolvedValue({ ok: false, message: 'Username taken' });
+	it("shows the error and stays open when saving fails", async () => {
+		mockEditProfile.mockResolvedValue({ ok: false, errorCode: 'user.username.taken', message: 'raw' });
 		open();
 		fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'bob' } });
 		save();
-		await waitFor(() => expect(mockToastError).toHaveBeenCalledWith('Username taken'));
+		await waitFor(() => expect(mockToastError).toHaveBeenCalledWith('Username already taken'));
 		expect(mockReplace).not.toHaveBeenCalled();
 		expect(screen.getByRole('button', { name: 'Save Changes' })).toBeInTheDocument();
 	});

@@ -201,6 +201,6 @@ describe('useBallot anonymity', () => {
 		await act(async () => {
 			await result.current.cast('opt-a');
 		});
-		expect(toast.error).toHaveBeenCalledWith('Poll is busy, retry');
+		expect(toast.error).toHaveBeenCalledWith('Another change is in progress. Try again in a moment.');
 	});
 });

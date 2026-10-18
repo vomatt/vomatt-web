@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/AlertDialog';
 import { Button } from '@/components/ui/Button';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { apiErrorText } from '@/lib/api/error-text';
 
 import type { Poll } from '../schema';
 import { closePoll, deletePoll } from '../service';
@@ -71,7 +72,7 @@ export function OwnerActions({
 		const result = await deletePoll(poll.id);
 		if (!result.ok) {
 			// The API explains a passed delete window
-			toast.error(result.message || t('poll.deleteFailed'));
+			toast.error(apiErrorText(t, result, 'poll.deleteFailed'));
 			return;
 		}
 		toast(t('poll.deleted'));
@@ -81,7 +82,7 @@ export function OwnerActions({
 	const end = async () => {
 		const result = await closePoll(poll.id);
 		if (result.ok) onChanged();
-		else toast.error(result.message || t('poll.endFailed'));
+		else toast.error(apiErrorText(t, result, 'poll.endFailed'));
 	};
 
 	// The dialog keeps its text while it animates out

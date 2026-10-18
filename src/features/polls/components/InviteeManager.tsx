@@ -14,6 +14,7 @@ import {
 import { Label } from '@/components/ui/Label';
 import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { apiErrorText } from '@/lib/api/error-text';
 
 import { EMPTY_INVITEES, isSelectionEmpty, personKey, selectionToInput } from '../invitees';
 import type { Invitee } from '../schema';
@@ -60,7 +61,7 @@ export function InviteeManager({ pollId, open, onOpenChange, onChanged }: Invite
 		const result = await addInvitees(pollId, selectionToInput(selection));
 		setIsAdding(false);
 		if (!result.ok) {
-			toast.error(result.message || t('invitees.addFailed'));
+			toast.error(apiErrorText(t, result, 'invitees.addFailed'));
 			return;
 		}
 		setInvitees(result.data);
@@ -73,7 +74,7 @@ export function InviteeManager({ pollId, open, onOpenChange, onChanged }: Invite
 		const result = await removeInvitee(pollId, invitee);
 		setRemoving(null);
 		if (!result.ok) {
-			toast.error(result.message || t('invitees.removeFailed'));
+			toast.error(apiErrorText(t, result, 'invitees.removeFailed'));
 			return;
 		}
 		setInvitees(result.data);

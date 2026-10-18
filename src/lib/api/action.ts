@@ -26,7 +26,7 @@ function toFailure(error: unknown): ActionFailure {
 		};
 	}
 	if (error instanceof AuthError) {
-		return { ok: false, status: error.statusCode, message: error.message };
+		return { ok: false, status: error.statusCode, errorCode: 'auth.token.expired', message: error.message };
 	}
 	return { ok: false, message: error instanceof Error ? error.message : 'Request failed' };
 }
