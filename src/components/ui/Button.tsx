@@ -21,7 +21,8 @@ const buttonVariants = cva(
 					'hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50',
 				destructive:
 					'bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40',
-				link: 'text-primary underline-offset-4 hover:underline',
+				// Underlined at rest so it never reads as a link by colour alone
+				link: 'text-primary underline underline-offset-4',
 			},
 			size: {
 				default:
@@ -37,6 +38,8 @@ const buttonVariants = cva(
 				'icon-lg': 'size-12',
 			},
 		},
+		// After the size classes, so a link lines up with the text beside it
+		compoundVariants: [{ variant: 'link', className: 'px-0' }],
 		defaultVariants: {
 			variant: 'default',
 			size: 'default',

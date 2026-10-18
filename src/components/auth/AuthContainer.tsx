@@ -1,21 +1,17 @@
 'use client';
 
-import { m } from 'motion/react';
 import Link from 'next/link';
 
 import BrandLogo from '@/components/BrandLogo';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { fadeAnim } from '@/lib/animate';
 import { cn } from '@/lib/utils';
 
 export type AuthContainerType = {
-	type: string;
 	className?: string;
 	children: React.ReactNode;
 };
 
 export default function AuthContainer({
-	type,
 	className,
 	children,
 }: AuthContainerType) {
@@ -33,23 +29,21 @@ export default function AuthContainer({
 					</p>
 					<p className="text-lg leading-relaxed text-muted-foreground">{t('login.brandBody')}</p>
 				</div>
-				<span aria-hidden />
+				<ul className="max-w-md divide-y divide-border border-t border-border text-[15px] text-muted-foreground">
+					{(['brandRuleSealed', 'brandRuleOneVote', 'brandRuleResults'] as const).map((key) => (
+						<li key={key} className="py-3">
+							{t(`login.${key}`)}
+						</li>
+					))}
+				</ul>
 			</section>
 
 			<div className="mx-auto flex w-full max-w-sm flex-col px-4 md:justify-center md:px-0">
 				<Link href="/" className="block w-24 py-5 text-foreground md:hidden">
 					<BrandLogo />
 				</Link>
-				<m.div
-					key={type}
-					initial="hide"
-					animate="show"
-					exit="hide"
-					variants={fadeAnim}
-					className={cn('pt-6 pb-10 md:py-16', className)}
-				>
-					{children}
-				</m.div>
+				{/* No mount fade: the form must be visible in the server HTML, not after hydration */}
+				<div className={cn('pt-6 pb-10 md:py-16', className)}>{children}</div>
 			</div>
 		</div>
 	);

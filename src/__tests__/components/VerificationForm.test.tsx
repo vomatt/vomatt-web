@@ -53,6 +53,23 @@ describe('VerificationForm', () => {
 		expect(onEditEmail).toHaveBeenCalled();
 	});
 
+	it('locks the email change while a code is being checked', async () => {
+		let finish: (value: { status: 'OK' }) => void = () => {};
+		renderForm({ onSubmitCode: jest.fn(() => new Promise((resolve) => (finish = resolve))) });
+		fillOTP('123456');
+		const change = screen.getByRole('button', { name: 'verificationCode.useAnotherEmail' });
+		await waitFor(() => expect(change).toBeDisabled());
+		await act(async () => finish({ status: 'OK' }));
+		expect(change).toBeEnabled();
+	});
+
+	it('reads the subtitle and the address as separate words', () => {
+		renderForm();
+		expect(screen.getByText(/verificationCode\.subtitle/).textContent).toBe(
+			'verificationCode.subtitle test@example.com'
+		);
+	});
+
 	it('only offers resend after the cooldown, then restarts it', async () => {
 		jest.useFakeTimers();
 		try {
