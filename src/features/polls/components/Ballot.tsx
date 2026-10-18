@@ -28,9 +28,11 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 	const { t, currentLanguage } = useLanguage();
 	const isHydrated = useHydrated();
 	const [confirmingWithdraw, setConfirmingWithdraw] = useState(false);
-	const { myOptionId, selected, setSelected, anonymous, setAnonymous, isPending } = ballot;
+	const { myOptionId, selected, setSelected, anonymous, setAnonymous, isPending, pendingAction } = ballot;
 	const isScheduled = status === 'scheduled';
 	const hasBallot = myOptionId !== null;
+	// The Ballot shows at once, but the Vote button stays (busy) until the first vote is in
+	const showsVoteAction = !hasBallot || pendingAction === 'vote';
 	const level = visibilityLevel(poll);
 	const visibilityHint = level && t(`poll.visibility.${level}`);
 
@@ -82,7 +84,7 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 				</div>
 			</>
 		);
-	} else if (hasBallot) {
+	} else if (!showsVoteAction) {
 		actions = (
 			<>
 				<Button
@@ -98,9 +100,10 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 					size="sm"
 					variant="outline"
 					disabled={isPending || !selected || selected === myOptionId}
+					loading={pendingAction === 'update'}
+					loadingIcon={<BallotBoxIcon className="size-4" />}
 					onClick={castSelected}
 				>
-					{isPending && <BallotBoxIcon className="size-4" />}
 					{t('poll.updateVote')}
 				</Button>
 			</>
@@ -111,10 +114,11 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 				<span className="text-[13px] text-muted-foreground">{t('poll.revealHint')}</span>
 				<Button
 					disabled={isPending || !selected}
+					loading={pendingAction === 'vote'}
+					loadingIcon={<BallotBoxIcon className="size-4" />}
 					onClick={castSelected}
 					className="w-full transition-transform active:scale-95 sm:w-auto sm:min-w-32"
 				>
-					{isPending && <BallotBoxIcon className="size-4" />}
 					{t('poll.vote')}
 				</Button>
 			</>

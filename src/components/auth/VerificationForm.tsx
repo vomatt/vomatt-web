@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 
-import { ButtonLoading } from '@/components/ButtonLoading';
 import { MailCheckIcon } from '@/components/ui/animate-icon/MailCheck';
 import { Button } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
@@ -134,14 +133,14 @@ export default function VerificationForm({
 					</InputOTP>
 					<AuthError error={error} />
 				</Field>
-				<ButtonLoading
+				<Button
 					type="submit"
 					className="w-full mb-3"
-					isLoading={isLoading}
+					loading={isLoading}
 					disabled={code.length !== CODE_LENGTH}
 				>
 					{t('common.continue')}
-				</ButtonLoading>
+				</Button>
 				<Button type="button" className="w-full" onClick={onEditEmail} variant="outline">
 					{t('verificationCode.useAnotherEmail')}
 				</Button>
@@ -156,15 +155,14 @@ export default function VerificationForm({
 					{t('verificationCode.resendIn', { time: formatCountdown(cooldown) })}
 				</p>
 			) : (
-				<ButtonLoading
+				<Button
 					className="h-11 justify-start px-0 underline"
 					variant="link"
-					isLoading={isResending}
-					disabled={isResending}
+					loading={isResending}
 					onClick={resend}
 				>
 					{t('verificationCode.resendVerificationCode')}
-				</ButtonLoading>
+				</Button>
 			)}
 			{resent && (
 				<p className="text-sm mt-2 text-positive" role="status">

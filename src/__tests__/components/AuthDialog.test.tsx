@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import { AuthDialog } from '@/components/auth/AuthDialog';
 
@@ -71,6 +71,21 @@ describe('AuthDialog', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'auth.continueWithEmail' }));
 
 		expect(await screen.findByRole('alert')).toHaveTextContent('authError.rateLimited');
+	});
+
+	it('sends one code however often the email step is submitted', async () => {
+		mockRequestOtp.mockReturnValue(new Promise(() => {}));
+		render(<AuthDialog {...baseProps} />);
+		fireEvent.change(screen.getByLabelText('common.email'), { target: { value: 'a@b.co' } });
+		fireEvent.click(screen.getByRole('button', { name: 'auth.continueWithEmail' }));
+
+		const button = await screen.findByRole('button', { name: /auth\.continueWithEmail/, busy: true });
+		// Validation is async, so give a second submit time to reach requestOtp
+		await act(async () => {
+			fireEvent.click(button);
+			await new Promise((resolve) => setTimeout(resolve, 50));
+		});
+		expect(mockRequestOtp).toHaveBeenCalledTimes(1);
 	});
 
 	it('signs in an existing user: email → code → success', async () => {

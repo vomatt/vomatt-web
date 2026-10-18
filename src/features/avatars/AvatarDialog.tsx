@@ -13,7 +13,6 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from '@/components/ui/Dialog';
-import { Spinner } from '@/components/ui/Spinner';
 import { Pencil } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
@@ -151,8 +150,7 @@ export function AvatarDialog({
 				</div>
 
 				<DialogFooter showCloseButton closeLabel={t('common.close')}>
-					<Button onClick={save} disabled={unchanged || isSaving}>
-						{isSaving && <Spinner className="mr-2" />}
+					<Button onClick={save} disabled={unchanged} loading={isSaving}>
 						{t('avatar.save')}
 					</Button>
 				</DialogFooter>

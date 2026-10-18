@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
-import { ButtonLoading } from '@/components/ButtonLoading';
 import { Button } from '@/components/ui/Button';
 import {
 	Dialog,
@@ -95,9 +94,9 @@ export function GroupsPanel() {
 					value={name}
 					onChange={(e) => setName(e.target.value)}
 				/>
-				<ButtonLoading type="submit" disabled={!name.trim() || isCreating} isLoading={isCreating}>
+				<Button type="submit" disabled={!name.trim()} loading={isCreating}>
 					{t('groups.create')}
-				</ButtonLoading>
+				</Button>
 			</form>
 
 			{groups === null && !loadFailed && (
@@ -243,14 +242,14 @@ function GroupDialog({
 							onChange={(e) => setName(e.target.value)}
 						/>
 					</div>
-					<ButtonLoading
+					<Button
 						type="submit"
 						variant="outline"
 						disabled={!trimmed || trimmed === group.name || pending !== null}
-						isLoading={pending === 'rename'}
+						loading={pending === 'rename'}
 					>
 						{t('groups.rename')}
-					</ButtonLoading>
+					</Button>
 				</form>
 
 				<div className="-mx-4 overflow-y-auto px-4">
@@ -278,14 +277,14 @@ function GroupDialog({
 					<Label htmlFor="add-members">{t('groups.addLabel')}</Label>
 					<InviteePicker id="add-members" value={selection} onChange={setSelection} />
 					<div className="flex justify-end">
-						<ButtonLoading
+						<Button
 							type="button"
 							disabled={isSelectionEmpty(selection) || pending !== null}
-							isLoading={pending === 'add'}
+							loading={pending === 'add'}
 							onClick={add}
 						>
 							{t('groups.add')}
-						</ButtonLoading>
+						</Button>
 					</div>
 				</div>
 
@@ -297,15 +296,15 @@ function GroupDialog({
 								<Button size="sm" variant="ghost" onClick={() => setConfirmingDelete(false)}>
 									{t('common.cancel')}
 								</Button>
-								<ButtonLoading
+								<Button
 									size="sm"
 									variant="destructive"
 									disabled={pending !== null}
-									isLoading={pending === 'delete'}
+									loading={pending === 'delete'}
 									onClick={destroy}
 								>
 									{t('groups.delete')}
-								</ButtonLoading>
+								</Button>
 							</div>
 						</>
 					) : (

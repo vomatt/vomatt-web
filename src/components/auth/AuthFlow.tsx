@@ -4,7 +4,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
-import { ButtonLoading } from '@/components/ButtonLoading';
 import { Button } from '@/components/ui/Button';
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/Field';
 import { Input } from '@/components/ui/Input';
@@ -104,9 +103,9 @@ function EmailStep({
 						</Field>
 					)}
 				/>
-				<ButtonLoading className="w-full" type="submit" isLoading={form.formState.isSubmitting}>
+				<Button className="w-full" type="submit" loading={form.formState.isSubmitting}>
 					{t('auth.continueWithEmail')}
-				</ButtonLoading>
+				</Button>
 				<AuthError error={error} className="mt-3" />
 			</form>
 		</>
@@ -165,9 +164,9 @@ function ProfileStep({
 						</Field>
 					)}
 				/>
-				<ButtonLoading className="w-full mb-3" type="submit" isLoading={form.formState.isSubmitting}>
+				<Button className="w-full mb-3" type="submit" loading={form.formState.isSubmitting}>
 					{t('onboarding.finish')}
-				</ButtonLoading>
+				</Button>
 				<Button type="button" variant="ghost" className="w-full" onClick={onDone}>
 					{t('onboarding.skip')}
 				</Button>

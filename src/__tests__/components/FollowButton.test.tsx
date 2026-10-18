@@ -89,7 +89,7 @@ describe('FollowButton', () => {
       />
     );
     fireEvent.click(screen.getByRole('button', { name: /^follow$/i }));
-    expect(screen.getByRole('button', { name: /follow/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /follow/i })).toHaveAttribute('aria-busy', 'true');
     await act(async () => { resolve(); });
   });
 });

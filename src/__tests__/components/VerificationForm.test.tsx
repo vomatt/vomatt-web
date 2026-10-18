@@ -38,6 +38,14 @@ describe('VerificationForm', () => {
 		await waitFor(() => expect(onSubmitCode).toHaveBeenCalledWith('123456'));
 	});
 
+	it('does not verify the code twice while the first check is out', async () => {
+		const { onSubmitCode } = renderForm({ onSubmitCode: jest.fn(() => new Promise<never>(() => {})) });
+		fillOTP('123456');
+		const button = await screen.findByRole('button', { name: /common\.continue/, busy: true });
+		fireEvent.click(button);
+		expect(onSubmitCode).toHaveBeenCalledTimes(1);
+	});
+
 	it('shows the mapped error and clears the input on a wrong code', async () => {
 		renderForm({
 			onSubmitCode: jest.fn().mockResolvedValue({ status: 'ERROR', error: 'invalidCode' }),

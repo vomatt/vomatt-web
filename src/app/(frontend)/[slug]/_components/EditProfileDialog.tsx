@@ -14,7 +14,6 @@ import {
 	DialogTrigger,
 } from '@/components/ui/Dialog';
 import { Input } from '@/components/ui/Input';
-import { Spinner } from '@/components/ui/Spinner';
 import { Textarea } from '@/components/ui/Textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { isValidUsername, USERNAME_MAX_LENGTH } from '@/features/account/username';
@@ -141,9 +140,8 @@ export default function EditProfileDialog({
 					<Button
 						type="submit"
 						form="edit-profile"
-						disabled={isPending}
+						loading={isPending}
 					>
-						{isPending ? <Spinner className="mr-2" /> : null}
 						{t('profile.saveChanges')}
 					</Button>
 				</DialogFooter>
