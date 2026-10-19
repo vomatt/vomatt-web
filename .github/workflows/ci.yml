@@ -1,4 +1,5 @@
-# Required check for every PR, including the claude/sync-api one
+# Required check for every PR, including the claude/sync-api one. No `next build`:
+# it needs the Sanity env, and Vercel's preview deploy already builds every PR.
 name: CI
 
 on:
@@ -19,4 +20,3 @@ jobs:
       - run: npm run lint
       - run: npx tsc --noEmit
       - run: npm run test
-      - run: npm run build
