@@ -185,7 +185,7 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 									)}
 							</div>
 
-							<ArrowRight className="size-3.5 text-sidebar-foreground/30 group-hover:text-sidebar-foreground/60 transition-colors shrink-0" />
+							<ArrowRight className="size-3.5 text-sidebar-foreground/60 group-hover:text-sidebar-foreground transition-colors shrink-0" />
 						</Link>
 					</div>
 				) : (
