@@ -41,7 +41,7 @@ jobs:
         vercel-react-best-practices skill in .claude/skills/.
       VERIFY: npm run lint && npx tsc --noEmit && npm run test && npm run build
       # No gh or network tools: pushing and the PR happen in the last step
-      ALLOWED_TOOLS: Read,Edit,Write,Glob,Grep,Skill,Agent,Task,TodoWrite,Bash(git:*),Bash(npm:*),Bash(npx:*),Bash(ls:*),Bash(cat:*),Bash(head:*),Bash(tail:*),Bash(diff:*),Bash(jq:*),Bash(grep:*),Bash(find:*),Bash(sed:*),Bash(wc:*),Bash(mkdir:*),Bash(rm:*),Bash(mv:*),Bash(cp:*)
+      ALLOWED_TOOLS: Read,Edit,Write,Glob,Grep,Skill,Agent,Task,TodoWrite,Bash(git:*),Bash(npm:*),Bash(npx:*),Bash(ls:*),Bash(cat:*),Bash(head:*),Bash(tail:*),Bash(diff:*),Bash(jq:*),Bash(python3:*),Bash(grep:*),Bash(find:*),Bash(sed:*),Bash(wc:*),Bash(mkdir:*),Bash(rm:*),Bash(mv:*),Bash(cp:*)
     steps:
       # The payload lands in a checkout ref and in Claude's prompt
       - name: Validate payload
@@ -128,6 +128,9 @@ jobs:
                anything in scope left unimplemented and why, and
                https://github.com/vomatt/vomatt-api/commit/${{ env.API_SHA }} as the source.
 
+      # Both Claude steps write the same execution file; keep the sync's before the review overwrites it
+      - run: cp "${{ steps.sync.outputs.execution_file }}" "$RUNNER_TEMP/sync-execution.json"
+
       - name: Detect new commits
         id: changed
         env:
@@ -169,7 +172,7 @@ jobs:
       # the denied calls for widening ALLOWED_TOOLS.
       - name: Fail on denied tool calls
         env:
-          FILES: ${{ steps.sync.outputs.execution_file }} ${{ steps.review.outputs.execution_file }}
+          FILES: ${{ runner.temp }}/sync-execution.json ${{ steps.review.outputs.execution_file }}
         run: |
           failed=0
           for f in $FILES; do
