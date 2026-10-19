@@ -55,7 +55,8 @@ const myProfile: MyProfile = {
 	anonymousBallotByDefault: false,
 };
 
-const insights = { peopleReached: 40, majorityRate: 50, awaitingResults: 0 };
+const insights = { peopleReached: 40, majorityRate: 50 };
+const noPolls = { items: [], nextCursor: null };
 
 describe('AccountPage', () => {
 	it('shows a visitor the same header and stats, with only public fields', () => {
@@ -92,19 +93,31 @@ describe('AccountPage', () => {
 	});
 
 	it('shows the owner every field, stat and tab', () => {
-		render(<AccountPage isOwn profile={myProfile} myPolls={[]} history={[]} insights={insights} />);
+		render(<AccountPage isOwn profile={myProfile} polls={noPolls} insights={insights} />);
 
 		expect(screen.getByRole('heading', { level: 1, name: 'Mei' })).toBeInTheDocument();
 		expect(screen.getByText(/120 points/)).toBeInTheDocument();
 		// Location is hidden from visitors, so the owner's header leaves it out too
 		expect(screen.queryByText(/Taipei/)).not.toBeInTheDocument();
 		expect(screen.getByText('People reached')).toBeInTheDocument();
+		expect(screen.getByRole('tab', { name: 'Polls' })).toBeInTheDocument();
 		expect(screen.getByRole('tab', { name: 'Groups' })).toBeInTheDocument();
 		expect(screen.getByRole('tab', { name: 'Settings' })).toBeInTheDocument();
 	});
 
+	it("sends the owner's poll counts to My Polls, and keeps a visitor's static", () => {
+		const { unmount } = render(<AccountPage isOwn profile={myProfile} polls={noPolls} insights={insights} />);
+		expect(screen.getByRole('link', { name: /Votes cast/ })).toHaveAttribute('href', '/my-polls');
+		expect(screen.getByRole('link', { name: /Polls created/ })).toHaveAttribute('href', '/my-polls');
+		expect(screen.queryByRole('link', { name: /People reached/ })).not.toBeInTheDocument();
+		unmount();
+
+		render(<AccountPage isOwn={false} profile={publicProfile} polls={noPolls} isAuthenticated={false} />);
+		expect(screen.queryByRole('link', { name: /Votes cast/ })).not.toBeInTheDocument();
+	});
+
 	it('lets the owner change their avatar from the header, not from Settings', () => {
-		render(<AccountPage isOwn profile={myProfile} myPolls={[]} history={[]} insights={insights} />);
+		render(<AccountPage isOwn profile={myProfile} polls={noPolls} insights={insights} />);
 
 		expect(screen.getByRole('button', { name: 'Change avatar' })).toBeInTheDocument();
 		fireEvent.click(screen.getByRole('tab', { name: 'Settings' }));
@@ -114,7 +127,7 @@ describe('AccountPage', () => {
 	it('lets the owner vote anonymously by default from Settings', async () => {
 		const { editProfile } = jest.requireMock('@/lib/api/services/users');
 		editProfile.mockResolvedValue({ ok: true });
-		render(<AccountPage isOwn profile={myProfile} myPolls={[]} history={[]} insights={insights} />);
+		render(<AccountPage isOwn profile={myProfile} polls={noPolls} insights={insights} />);
 
 		fireEvent.click(screen.getByRole('tab', { name: 'Settings' }));
 		const toggle = screen.getByRole('switch', { name: 'Vote anonymously by default' });
@@ -128,7 +141,7 @@ describe('AccountPage', () => {
 		const { editProfile } = jest.requireMock('@/lib/api/services/users');
 		const answers: ((value: { ok: boolean; message: string }) => void)[] = [];
 		editProfile.mockImplementation(() => new Promise((resolve) => answers.push(resolve)));
-		render(<AccountPage isOwn profile={myProfile} myPolls={[]} history={[]} insights={insights} />);
+		render(<AccountPage isOwn profile={myProfile} polls={noPolls} insights={insights} />);
 
 		fireEvent.click(screen.getByRole('tab', { name: 'Settings' }));
 		const toggle = screen.getByRole('switch', { name: 'Vote anonymously by default' });
@@ -147,7 +160,7 @@ describe('AccountPage', () => {
 	])('explains a refused deletion (%s)', async (errorCode, message) => {
 		const { deleteMyAccount } = jest.requireMock('@/lib/api/services/users');
 		deleteMyAccount.mockResolvedValue({ ok: false, status: 409, errorCode, message: 'raw' });
-		render(<AccountPage isOwn profile={myProfile} myPolls={[]} history={[]} insights={insights} />);
+		render(<AccountPage isOwn profile={myProfile} polls={noPolls} insights={insights} />);
 
 		fireEvent.click(screen.getByRole('tab', { name: 'Settings' }));
 		fireEvent.click(screen.getByRole('button', { name: 'Delete account' }));

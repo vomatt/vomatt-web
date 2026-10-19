@@ -23,19 +23,23 @@ export async function PublicProfile({
 	return <AccountPage isOwn={false} profile={profile} polls={polls} isAuthenticated={isAuthenticated} />;
 }
 
-/** The signed-in user's own profile: their account page. */
+/** The signed-in user's own profile: the public page plus insights, Groups and Settings. */
 export async function OwnProfile({ profile }: { profile: MyProfile }) {
 	// Every Poll the user created or holds a Ballot in, so insights cover them all
 	const [open, ended] = await Promise.all([
 		getAllMyPolls('open').catch(() => []),
 		getAllMyPolls('ended').catch(() => []),
 	]);
-	const polls = [...open, ...ended];
-	const myPolls = polls.filter((poll) => poll.creatorId === profile.id);
-	const history = ballotHistory(polls);
-	const insights = computeInsights(myPolls, history);
+	const all = [...open, ...ended];
+	const myPolls = all.filter((poll) => poll.creatorId === profile.id);
+	const insights = computeInsights(myPolls, ballotHistory(all));
+	// The same list visitors get from /users/{username}/votes, most recently opened first, already in hand
+	const polls: CursorPage<Poll> = {
+		items: [...myPolls].sort((a, b) => Date.parse(b.startTime) - Date.parse(a.startTime)),
+		nextCursor: null,
+	};
 
-	return <AccountPage isOwn profile={profile} myPolls={myPolls} history={history} insights={insights} />;
+	return <AccountPage isOwn profile={profile} polls={polls} insights={insights} />;
 }
 
 export function ProfileSkeleton() {
@@ -51,7 +55,7 @@ export function ProfileSkeleton() {
 			<Skeleton className="h-20 rounded-xl" />
 			<div>
 				<Skeleton className="mb-4 h-8 w-40" />
-				<PollRowListSkeleton className="space-y-3" />
+				<PollRowListSkeleton />
 			</div>
 		</div>
 	);

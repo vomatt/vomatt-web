@@ -19,18 +19,18 @@ export default async function MyPollsPage() {
 				<T k="myPolls.title" />
 			</h1>
 			<Suspense fallback={<MyPollsTabsSkeleton />}>
-				<MyPolls />
+				<MyPolls userId={user.sub} />
 			</Suspense>
 		</div>
 	);
 }
 
-async function MyPolls() {
+async function MyPolls({ userId }: { userId: string }) {
 	// API unavailable — render empty lists instead of crashing
 	const [open, ended] = await Promise.all([
 		getMyPolls('open').catch(() => EMPTY_PAGE),
 		getMyPolls('ended').catch(() => EMPTY_PAGE),
 	]);
 
-	return <MyPollsTabs open={open} ended={ended} />;
+	return <MyPollsTabs open={open} ended={ended} userId={userId} />;
 }

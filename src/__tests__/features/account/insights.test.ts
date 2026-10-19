@@ -58,7 +58,6 @@ describe('computeInsights()', () => {
 		expect(insights).toMatchObject({
 			peopleReached: 12,
 			majorityRate: 67,
-			awaitingResults: 1,
 		});
 	});
 

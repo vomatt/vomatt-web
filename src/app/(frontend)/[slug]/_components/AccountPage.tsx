@@ -14,18 +14,14 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from '@/components/ui/AlertDialog';
-import { Button, buttonVariants } from '@/components/ui/Button';
+import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Switch } from '@/components/ui/Switch';
 import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
-import type { BallotRecord, Insights } from '@/features/account/insights';
+import type { Insights } from '@/features/account/insights';
 import { GroupsPanel } from '@/features/groups/GroupsPanel';
-import { chipClassName } from '@/features/polls/chip';
-import { PollListItem } from '@/features/polls/components/PollListItem';
-import { StatusChip } from '@/features/polls/components/StatusChip';
 import type { Poll } from '@/features/polls/schema';
-import { derivePollStatus, getTurnout } from '@/features/polls/status';
 import type { CursorPage } from '@/lib/api/cursor';
 import { apiErrorText } from '@/lib/api/error-text';
 import { signout } from '@/lib/api/services/auth';
@@ -40,8 +36,7 @@ import ProfilePollList from './ProfilePollList';
 type OwnView = {
 	isOwn: true;
 	profile: MyProfile;
-	myPolls: Poll[];
-	history: BallotRecord[];
+	polls: CursorPage<Poll>;
 	insights: Insights;
 };
 
@@ -52,7 +47,10 @@ type PublicView = {
 	isAuthenticated: boolean;
 };
 
-/** The owner sees everything; visitors see the same page minus private tabs and hidden fields. */
+/**
+ * The owner sees the page visitors see, plus their insights, Groups and
+ * Settings. Their poll lists live in My Polls, which the stat cards link to.
+ */
 export type AccountPageProps = OwnView | PublicView;
 
 /** Profile fields other people can see, in the order shown. */
@@ -75,6 +73,9 @@ export default function AccountPage(props: AccountPageProps) {
 				),
 			}
 		: profile;
+
+	// The owner's counts open My Polls, where the lists behind them live
+	const myPollsHref = props.isOwn ? '/my-polls' : undefined;
 
 	return (
 		<div className="px-contain mx-auto max-w-3xl space-y-8 py-6 md:py-10">
@@ -101,8 +102,8 @@ export default function AccountPage(props: AccountPageProps) {
 					props.isOwn && 'sm:grid-cols-4'
 				)}
 			>
-				<Stat label={t('account.votesCast')} value={profile.totalVotes} />
-				<Stat label={t('account.pollsCreated')} value={profile.totalPolls} />
+				<Stat label={t('account.votesCast')} value={profile.totalVotes} href={myPollsHref} />
+				<Stat label={t('account.pollsCreated')} value={profile.totalPolls} href={myPollsHref} />
 				{props.isOwn && (
 					<>
 						<Stat label={t('account.peopleReached')} value={props.insights.peopleReached} />
@@ -120,31 +121,20 @@ export default function AccountPage(props: AccountPageProps) {
 			</section>
 
 			{props.isOwn ? (
-				<Tabs defaultValue="activity">
+				<Tabs defaultValue="polls" className="gap-6">
 					<TabsList variant="line">
-						<TabsTrigger value="activity">
-							{t('account.tabActivity')}
-							{props.insights.awaitingResults > 0 && (
-								<span className="ml-1.5 rounded-full bg-volt px-1.5 font-mono text-[11px] text-foreground ring-1 ring-foreground/30">
-									{props.insights.awaitingResults}
-								</span>
-							)}
-						</TabsTrigger>
-						<TabsTrigger value="polls">{t('account.tabPolls')}</TabsTrigger>
+						<TabsTrigger value="polls">{t('profile.polls')}</TabsTrigger>
 						<TabsTrigger value="groups">{t('account.tabGroups')}</TabsTrigger>
 						<TabsTrigger value="settings">{t('account.tabSettings')}</TabsTrigger>
 						<TabsIndicator />
 					</TabsList>
-					<TabsContent value="activity" className="pt-4">
-						<Activity history={props.history} />
+					<TabsContent value="polls">
+						<ProfilePollList username={profile.username} initialPage={props.polls} />
 					</TabsContent>
-					<TabsContent value="polls" className="pt-4">
-						<MyPolls polls={props.myPolls} />
-					</TabsContent>
-					<TabsContent value="groups" className="pt-4">
+					<TabsContent value="groups">
 						<GroupsPanel />
 					</TabsContent>
-					<TabsContent value="settings" className="pt-4">
+					<TabsContent value="settings">
 						<Settings profile={props.profile} visibility={visibility} setVisibility={setVisibility} />
 					</TabsContent>
 				</Tabs>
@@ -158,81 +148,40 @@ export default function AccountPage(props: AccountPageProps) {
 	);
 }
 
-function Stat({ label, value, hint }: { label: string; value: number | string; hint?: string }) {
-	return (
-		<div className="bg-card p-4" title={hint}>
+function Stat({
+	label,
+	value,
+	hint,
+	href,
+}: {
+	label: string;
+	value: number | string;
+	hint?: string;
+	href?: string;
+}) {
+	const body = (
+		<>
 			<p className="font-mono text-[28px] leading-none tracking-tight tabular-nums">
 				{typeof value === 'number' ? value.toLocaleString() : value}
 			</p>
 			<p className="mt-2 text-[13px] text-muted-foreground">{label}</p>
+		</>
+	);
+	if (href) {
+		return (
+			<Link
+				href={href}
+				// Inset so the grid's overflow-hidden doesn't clip the ring
+				className="block bg-card p-4 outline-none transition-colors hover:bg-muted focus-visible:-outline-offset-2 focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring"
+			>
+				{body}
+			</Link>
+		);
+	}
+	return (
+		<div className="bg-card p-4" title={hint}>
+			{body}
 		</div>
-	);
-}
-
-const OUTCOME_STYLES = {
-	pending: 'bg-status-scheduled',
-	won: 'bg-status-open',
-	tied: 'bg-status-closing',
-	lost: 'bg-secondary',
-	unknown: 'bg-secondary',
-} as const;
-
-function Activity({ history }: { history: BallotRecord[] }) {
-	const { t } = useLanguage();
-	if (history.length === 0) {
-		return (
-			<div className="empty-state">
-				<p className="mb-4">{t('account.noVotes')}</p>
-				<Link href="/" className={buttonVariants()}>
-					{t('account.findPolls')}
-				</Link>
-			</div>
-		);
-	}
-	return (
-		<ul className="space-y-2">
-			{history.map(({ poll, choice, outcome }) => (
-				<PollListItem
-					key={poll.id}
-					poll={poll}
-					meta={
-						<>
-							{t('account.youChose')} <strong className="font-medium text-foreground">{choice}</strong>
-						</>
-					}
-					aside={
-						<span
-							className={cn(chipClassName, OUTCOME_STYLES[outcome])}
-						>
-							{t(`account.outcome.${outcome}`)}
-						</span>
-					}
-				/>
-			))}
-		</ul>
-	);
-}
-
-function MyPolls({ polls }: { polls: Poll[] }) {
-	const { t } = useLanguage();
-	if (polls.length === 0) {
-		return (
-			<p className="empty-state">
-				{t('account.noPolls')}
-			</p>
-		);
-	}
-	return (
-		<ul className="space-y-2">
-			{polls.map((poll) => (
-				<PollListItem
-					key={poll.id}
-					poll={poll}
-					meta={t('poll.voted', { count: (getTurnout(poll) ?? 0).toLocaleString() })}
-					aside={<StatusChip status={derivePollStatus(poll)} poll={poll} />}
-				/>
-			))}
-		</ul>
 	);
 }
 

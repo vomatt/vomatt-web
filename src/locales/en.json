@@ -83,7 +83,13 @@
 		"actionEnd": "End Poll",
 		"draftContinue": "Continue",
 		"draftSavedAt": "Saved {date}",
-		"untitledDraft": "Untitled poll"
+		"untitledDraft": "Untitled poll",
+		"youChose": "You chose",
+		"outcome": {
+			"won": "Your pick won",
+			"tied": "Tied for first",
+			"lost": "Outvoted"
+		}
 	},
 	"explore": {
 		"title": "Explore",
@@ -390,20 +396,7 @@
 		"majorityRate": "With the majority",
 		"majorityNone": "n/a",
 		"majorityHint": "How often your pick won or tied, among decided polls you voted in",
-		"tabActivity": "Your votes",
-		"tabPolls": "Your polls",
 		"tabSettings": "Settings",
-		"noVotes": "You haven't voted on any recent polls yet.",
-		"findPolls": "Find a poll",
-		"youChose": "You chose",
-		"noPolls": "You haven't started a poll yet.",
-		"outcome": {
-			"pending": "Results pending",
-			"won": "Your pick won",
-			"tied": "Tied for first",
-			"lost": "Outvoted",
-			"unknown": "Ended"
-		},
 		"privacyTitle": "What others can see",
 		"privacyBody": "Choose which profile details appear on your public profile.",
 		"anonymousDefault": "Vote anonymously by default",
