@@ -63,6 +63,8 @@ jobs:
           path: .vomatt-api
           fetch-depth: 0
       - run: ln -s "$GITHUB_WORKSPACE/.vomatt-api" "$GITHUB_WORKSPACE/../vomatt-api"
+      # A manual run defaults to `main`; pin the commit so the prompt and PR link name it
+      - run: echo "API_SHA=$(git -C .vomatt-api rev-parse HEAD)" >> "$GITHUB_ENV"
       # Keep the API checkout and the installed skill out of the PR's commits
       - run: printf '.vomatt-api/\n.claude/skills/\n.pr-body.md\n' >> .git/info/exclude
 
