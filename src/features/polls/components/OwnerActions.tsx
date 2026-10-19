@@ -102,8 +102,7 @@ export function OwnerActions({
 			{canDelete && (
 				<Button
 					size="sm"
-					variant="ghost"
-					className="text-destructive"
+					variant="ghost-destructive"
 					onClick={() => ask('delete')}
 				>
 					{t('poll.deletePoll')}

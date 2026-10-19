@@ -243,6 +243,13 @@
 	body {
 		@apply bg-background text-foreground;
 	}
+
+	/* Controls draw their own pressed state, so no gray tap flash under it */
+	button,
+	[role='button'],
+	a {
+		-webkit-tap-highlight-color: transparent;
+	}
 }
 
 /* Position */
