@@ -407,7 +407,6 @@ describe('createPoll() and updatePoll()', () => {
 			startTime: '2026-10-04T02:00:00.000Z',
 			endTime: '2026-10-07T14:00:00.000Z',
 			allowMultipleChoices: false,
-			anonymous: true,
 			voterVisibility: 'NOBODY',
 		});
 		expect(updateTag).toHaveBeenCalledWith('polls-feed');
@@ -449,7 +448,8 @@ describe('createPoll() and updatePoll()', () => {
 		const [url, init] = mockApiClient.mock.calls[0];
 		expect(url).toBe('/votes/poll-1');
 		expect(init!.method).toBe('PUT');
-		expect(JSON.parse(init!.body as string)).toMatchObject({ anonymous: false, voterVisibility: 'OWNER' });
+		expect(JSON.parse(init!.body as string)).toMatchObject({ voterVisibility: 'OWNER' });
+		expect(JSON.parse(init!.body as string)).not.toHaveProperty('anonymous');
 		expect(revalidateTag).toHaveBeenCalledWith('poll:poll-1', { expire: 0 });
 		expect(revalidateTag).toHaveBeenCalledWith('polls-feed', { expire: 0 });
 	});
