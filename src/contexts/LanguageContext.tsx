@@ -117,30 +117,16 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
 			setIsLoading(false);
 		}
 	};
-	// Initialize language on mount
+	// Without server-provided translations, pick the language on the client:
+	// Cookie > Browser Detection > Default. The effect below syncs the DOM attributes.
 	useEffect(() => {
-		if (hasPreloaded) {
-			// Server provided language + translations — just sync DOM attributes
-			document.documentElement.lang = htmlLang(currentLanguage);
-			document.documentElement.dir = RTL_LANGUAGES.includes(currentLanguage)
-				? 'rtl'
-				: 'ltr';
-			return;
-		}
-
-		// Client-side fallback: Cookie > Browser Detection > Default
-		const cookieLanguage = getLanguageFromCookie();
-		const browserLanguage = detectBrowserLanguage();
-		const detectedLanguage = cookieLanguage || browserLanguage;
-
+		if (hasPreloaded) return;
+		const detectedLanguage = getLanguageFromCookie() || detectBrowserLanguage();
+		// eslint-disable-next-line react-hooks/set-state-in-effect -- the cookie and browser language are only readable after hydration
 		setCurrentLanguage(detectedLanguage);
 		loadTranslations(detectedLanguage);
 		setIsInitialized(true);
-		document.documentElement.lang = htmlLang(detectedLanguage);
-		document.documentElement.dir = RTL_LANGUAGES.includes(detectedLanguage)
-			? 'rtl'
-			: 'ltr';
-	}, []);
+	}, [hasPreloaded]);
 
 	// Update HTML attributes when language changes
 	useEffect(() => {

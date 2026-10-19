@@ -25,7 +25,8 @@ export default function Announcement({ data }: AnnouncementProps) {
 	const { display, messages } = data || {};
 	const announcementRef = useRef<HTMLDivElement>(null);
 
-	const [isDisplay, setDisplay] = useState(false);
+	const isDisplay =
+		display === 'all' || (display === 'homepage' && pathname == '/');
 	const [activeBlock, setActiveBlock] = useState(0);
 	const [isAutoplay, setAutoplay] = useState(data?.autoplay);
 
@@ -54,13 +55,6 @@ export default function Announcement({ data }: AnnouncementProps) {
 	useEffect(() => {
 		announcementRef.current!.style.display = 'block';
 	}, []);
-
-	// determine whether to display announcement bar
-	useEffect(() => {
-		setDisplay(
-			display === 'all' || (display === 'homepage' && pathname == '/')
-		);
-	}, [display, pathname]);
 
 	// changes on display change
 	useEffect(() => {

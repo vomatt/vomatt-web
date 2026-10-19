@@ -35,6 +35,7 @@ export default function FollowersSheet({
 
   useEffect(() => {
     if (!open) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset before each fetch so a reopened sheet never shows stale users
     setFetchState('loading');
     setUsers([]);
     const fetchFn = type === 'followers' ? getFollowers : getFollowing;
