@@ -4,8 +4,10 @@ import { useState } from 'react';
 import { LoadMore } from '@/components/LoadMore';
 import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ballotChoice, ballotOutcome } from '@/features/account/insights';
 import { UnreadDot } from '@/features/notifications/UnreadDot';
 import { DraftList } from '@/features/polls/components/DraftList';
+import { isDecided, OutcomeChip } from '@/features/polls/components/OutcomeChip';
 import { PollRowListSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import { PollListItem } from '@/features/polls/components/PollListItem';
 import { StatusChip } from '@/features/polls/components/StatusChip';
@@ -13,6 +15,7 @@ import { Poll } from '@/features/polls/schema';
 import { getMyPolls } from '@/features/polls/service';
 import { derivePollStatus, getTurnout } from '@/features/polls/status';
 import { useCursorList } from '@/hooks/useCursorList';
+import { useHydrated } from '@/hooks/useHydrated';
 import type { CursorPage } from '@/lib/api/cursor';
 
 type Tab = 'active' | 'drafts' | 'ended';
@@ -20,8 +23,18 @@ type Tab = 'active' | 'drafts' | 'ended';
 const fetchOpen = (cursor: string) => getMyPolls('open', cursor);
 const fetchEnded = (cursor: string) => getMyPolls('ended', cursor);
 
-function PollRow({ poll }: { poll: Poll }) {
+/**
+ * A Poll the user asked shows its turnout. One they only voted in shows their
+ * pick and, once Ended, how it fared. An Invitation they haven't answered
+ * shows turnout like any other row.
+ */
+function PollRow({ poll, userId }: { poll: Poll; userId: string }) {
 	const { t } = useLanguage();
+	// The outcome depends on the clock, so decide it on the client like StatusChip does
+	const isHydrated = useHydrated();
+	const voted = poll.creatorId !== userId && !!poll.myOptionId;
+	const outcome = voted && isHydrated ? ballotOutcome(poll, poll.myOptionId!) : null;
+
 	return (
 		<PollListItem
 			poll={poll}
@@ -30,10 +43,22 @@ function PollRow({ poll }: { poll: Poll }) {
 					{poll.unread && (
 						<UnreadDot label={t('notifications.unread')} className="mr-1.5 align-middle" />
 					)}
-					{t('poll.voted', { count: (getTurnout(poll) ?? 0).toLocaleString() })}
+					{voted ? (
+						<>
+							{t('myPolls.youChose')}{' '}
+							<strong className="font-medium text-foreground">{ballotChoice(poll)}</strong>
+						</>
+					) : (
+						t('poll.voted', { count: (getTurnout(poll) ?? 0).toLocaleString() })
+					)}
 				</>
 			}
-			aside={<StatusChip status={derivePollStatus(poll)} poll={poll} />}
+			aside={
+				<>
+					<StatusChip status={derivePollStatus(poll)} poll={poll} />
+					{outcome && isDecided(outcome) && <OutcomeChip outcome={outcome} />}
+				</>
+			}
 		/>
 	);
 }
@@ -81,9 +106,12 @@ export function MyPollsTabsSkeleton() {
 export default function MyPollsTabs({
 	open,
 	ended,
+	userId,
 }: {
 	open: CursorPage<Poll>;
 	ended: CursorPage<Poll>;
+	/** The signed-in user, to tell their own Polls from ones they voted in. */
+	userId: string;
 }) {
 	const { t } = useLanguage();
 	const [activeTab, setActiveTab] = useState<Tab>('active');
@@ -105,7 +133,7 @@ export default function MyPollsTabs({
 					) : (
 						<ul className="space-y-2">
 							{lists[tab].items.map((poll) => (
-								<PollRow key={poll.id} poll={poll} />
+								<PollRow key={poll.id} poll={poll} userId={userId} />
 							))}
 						</ul>
 					)}

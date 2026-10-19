@@ -32,12 +32,12 @@ export function DraftList() {
 	};
 
 	if (drafts.length === 0) {
-		return <p className="text-muted-foreground text-center py-8">{t('myPolls.empty')}</p>;
+		return <p className="empty-state text-center">{t('myPolls.empty')}</p>;
 	}
 
 	return (
 		<>
-			<ul className="space-y-3">
+			<ul className="space-y-2">
 				{drafts.map((draft) => (
 					<li
 						key={draft.id}

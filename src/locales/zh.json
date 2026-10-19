@@ -84,7 +84,13 @@
 		"actionEnd": "結束投票",
 		"draftContinue": "繼續編輯",
 		"draftSavedAt": "儲存於 {date}",
-		"untitledDraft": "未命名投票"
+		"untitledDraft": "未命名投票",
+		"youChose": "你選擇了",
+		"outcome": {
+			"won": "你的選擇勝出",
+			"tied": "並列第一",
+			"lost": "未獲多數"
+		}
 	},
 	"explore": {
 		"title": "探索",
@@ -389,20 +395,7 @@
 		"majorityRate": "與多數一致",
 		"majorityNone": "尚無",
 		"majorityHint": "在已結束且你有參與的投票中，你的選擇勝出或並列的比例",
-		"tabActivity": "你的投票",
-		"tabPolls": "你發起的",
 		"tabSettings": "設定",
-		"noVotes": "你還沒有在最近的投票中投票。",
-		"findPolls": "找個投票",
-		"youChose": "你選擇了",
-		"noPolls": "你還沒有發起投票。",
-		"outcome": {
-			"pending": "等待結果",
-			"won": "你的選擇勝出",
-			"tied": "並列第一",
-			"lost": "未獲多數",
-			"unknown": "已結束"
-		},
 		"privacyTitle": "他人可見的資訊",
 		"privacyBody": "選擇哪些個人資料會顯示在你的公開個人頁。",
 		"anonymousDefault": "預設匿名投票",

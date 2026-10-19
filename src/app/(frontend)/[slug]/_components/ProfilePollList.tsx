@@ -30,7 +30,7 @@ export default function ProfilePollList({
 
 	return (
 		<>
-			<ul className="space-y-3">
+			<ul className="space-y-2">
 				{list.items.map((poll) => (
 					<PollListItem
 						key={poll.id}

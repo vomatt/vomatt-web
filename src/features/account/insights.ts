@@ -18,13 +18,18 @@ export function ballotOutcome(poll: Poll, optionId: string, now = Date.now()): B
 	return winners.length > 1 ? 'tied' : 'won';
 }
 
+/** The text of the option the viewer picked; empty when it is gone. */
+export function ballotChoice(poll: Poll): string {
+	return poll.options.find((option) => option.id === poll.myOptionId)?.text ?? '';
+}
+
 /** The viewer's Ballots among `polls`, newest first. */
 export function ballotHistory(polls: Poll[], now = Date.now()): BallotRecord[] {
 	return polls
 		.filter((poll): poll is Poll & { myOptionId: string } => !!poll.myOptionId)
 		.map((poll) => ({
 			poll,
-			choice: poll.options.find((option) => option.id === poll.myOptionId)?.text ?? '',
+			choice: ballotChoice(poll),
 			outcome: ballotOutcome(poll, poll.myOptionId, now),
 		}));
 }
@@ -34,7 +39,6 @@ export type Insights = {
 	peopleReached: number;
 	/** Share of decided Ballots where the pick won or tied, 0–100; null before any are decided. */
 	majorityRate: number | null;
-	awaitingResults: number;
 };
 
 export function computeInsights(
@@ -49,6 +53,5 @@ export function computeInsights(
 	return {
 		peopleReached: turnouts.reduce((sum, count) => sum + count, 0),
 		majorityRate,
-		awaitingResults: history.filter((record) => record.outcome === 'pending').length,
 	};
 }
