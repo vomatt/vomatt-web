@@ -119,7 +119,7 @@ export function AvatarDialog({
 					</Button>
 				</div>
 
-				<div className="-mx-4 space-y-5 overflow-y-auto px-4 pb-1">
+				<div className="-mx-4 space-y-5 overflow-y-auto overscroll-contain px-4 pb-1">
 					{(Object.keys(BOT_FAMILIES) as BotFamily[]).map((family) => (
 						<div key={family} className="space-y-2">
 							<p className="font-mono text-xs text-muted-foreground">

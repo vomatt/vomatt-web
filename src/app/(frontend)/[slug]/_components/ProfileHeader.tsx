@@ -44,12 +44,13 @@ export default function ProfileHeader({
 				<UserAvatar username={profile.username} avatarUrl={profile.avatarUrl} className="size-16" tooltip />
 			)}
 			<div className="min-w-0 flex-1">
-				<h1 className="truncate display-heading text-2xl md:text-[28px]">{name}</h1>
+				<h1 className="wrap-anywhere display-heading text-2xl md:text-[28px]">{name}</h1>
 				{profile.displayName && <p className="mt-1 font-mono text-sm text-muted-foreground">@{profile.username}</p>}
 				{profile.bio && <p className="mt-1 wrap-anywhere text-sm">{profile.bio}</p>}
 				<p className="mt-1 text-[13px] text-muted-foreground">{details.join(' · ')}</p>
 			</div>
-			{action}
+			{/* Own row on phones so the name keeps the width; empty:hidden drops it when the action renders nothing */}
+			<div className="basis-full empty:hidden sm:basis-auto">{action}</div>
 		</header>
 	);
 }

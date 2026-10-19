@@ -73,3 +73,4 @@ yarn.lock
 
 # TypeScript incremental build cache
 *.tsbuildinfo
+.gstack/

@@ -1,0 +1,10 @@
+# Verification-only override for ../vomatt-api/docker-compose.yml.
+# Keeps the verify stack off the ports a developer's own stack uses.
+services:
+  postgres:
+    ports: !reset []
+  redis:
+    ports: !reset []
+  api:
+    ports: !override
+      - "${VERIFY_API_PORT:-18080}:8080"

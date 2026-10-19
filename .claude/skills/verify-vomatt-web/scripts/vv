@@ -1,0 +1,130 @@
+#!/usr/bin/env bash
+# vv: run and drive an isolated vomatt-web + vomatt-api stack for verification.
+# Usage: vv <up|doctor|sync|otp|login|b|sql|down> [args]   (see ../SKILL.md)
+set -euo pipefail
+
+WEB_REPO="$(cd "$(dirname "$0")/../../../.." && pwd)"
+API_REPO="${VERIFY_API_REPO:-$WEB_REPO/../vomatt-api}"
+RUN_ID="${RUN_ID:-default}"
+WEB_PORT="${VERIFY_WEB_PORT:-3102}"
+export VERIFY_API_PORT="${VERIFY_API_PORT:-18080}"
+ROOT="$(cd /tmp && pwd -P)/vomatt-verify/$RUN_ID"   # resolved: macOS /tmp is a symlink
+EVIDENCE="$(cd /tmp && pwd -P)/vomatt-verify-evidence/$RUN_ID"
+CLONE="$ROOT/web"
+PROJECT="vomatt-verify-$RUN_ID"
+OVERRIDE="$WEB_REPO/.claude/skills/verify-vomatt-web/scripts/compose.verify.yml"
+# Must match JWT_SECRET in vomatt-api/docker-compose.yml
+JWT_SECRET="local-dev-only-jwt-secret-0123456789abcdef"
+B="${BROWSE_BIN:-$HOME/.claude/skills/gstack/browse/dist/browse}"
+export BROWSE_STATE_FILE="$ROOT/browse.json"
+
+compose() { (cd "$API_REPO" && docker compose -p "$PROJECT" -f docker-compose.yml -f "$OVERRIDE" "$@"); }
+die() { echo "vv: $*" >&2; exit 1; }
+web_pid() { lsof -tiTCP:"$WEB_PORT" -sTCP:LISTEN 2>/dev/null | head -1; }
+
+sync_clone() {
+	# next dev locks its project dir, so the verify server runs from a clone of the working tree
+	mkdir -p "$CLONE"
+	rsync -a --delete --exclude node_modules --exclude .next --exclude .git \
+		--exclude .claude/worktrees "$WEB_REPO/" "$CLONE/"
+	if [ ! -d "$CLONE/node_modules" ] || ! cmp -s "$WEB_REPO/package-lock.json" "$ROOT/package-lock.json"; then
+		rm -rf "$CLONE/node_modules"
+		cp -cR "$WEB_REPO/node_modules" "$CLONE/node_modules"   # APFS clone: instant, no extra disk
+		cp "$WEB_REPO/package-lock.json" "$ROOT/package-lock.json"
+	fi
+	git -C "$WEB_REPO" rev-parse HEAD > "$ROOT/web.rev"
+}
+
+cmd_up() {
+	[ -z "$(web_pid)" ] || die "port $WEB_PORT is already in use; pick VERIFY_WEB_PORT or run 'vv down'"
+	mkdir -p "$ROOT" "$EVIDENCE"
+	echo "vv: starting vomatt-api ($PROJECT, port $VERIFY_API_PORT)…"
+	compose up -d --build --wait >"$ROOT/api-up.log" 2>&1 || { tail -30 "$ROOT/api-up.log"; die "api failed to start"; }
+	echo "vv: cloning working tree to $CLONE…"
+	sync_clone
+	echo "vv: starting next dev on $WEB_PORT…"
+	(cd "$CLONE" && API_URL="http://localhost:$VERIFY_API_PORT" SESSION_SECRET="$JWT_SECRET" \
+		SITE_URL="http://localhost:$WEB_PORT" API_LOG=1 \
+		nohup node node_modules/next/dist/bin/next dev --port="$WEB_PORT" --turbopack >"$ROOT/web.log" 2>&1 &
+		echo $! >"$ROOT/web.pid")
+	for _ in $(seq 1 90); do
+		[ "$(curl -s -o /dev/null -m 90 -w '%{http_code}' "http://localhost:$WEB_PORT/login")" = 200 ] && break
+		grep -q 'Another next dev server' "$ROOT/web.log" && die "next refused to start: $(tail -5 "$ROOT/web.log")"
+		sleep 2
+	done
+	[ "$(curl -s -o /dev/null -m 30 -w '%{http_code}' "http://localhost:$WEB_PORT/login")" = 200 ] \
+		|| die "web never served /login; see $ROOT/web.log"
+	"$B" status >/dev/null
+	echo "vv: ready  web=http://localhost:$WEB_PORT  api=http://localhost:$VERIFY_API_PORT  evidence=$EVIDENCE"
+}
+
+cmd_doctor() {
+	local ok=1 pid cwd
+	[ -f "$ROOT/web.pid" ] || { echo "FAIL no run '$RUN_ID' (run 'vv up')"; exit 1; }
+	if [ "$(curl -s -m 5 "http://localhost:$VERIFY_API_PORT/actuator/health" | grep -o '"status":"UP"')" ]; then
+		echo "ok   api healthy on $VERIFY_API_PORT ($PROJECT)"
+	else echo "FAIL api not healthy on $VERIFY_API_PORT"; ok=0; fi
+	pid="$(web_pid)"
+	cwd="$( [ -n "$pid" ] && lsof -a -p "$pid" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p')"
+	case "$cwd" in
+	"$CLONE"*) echo "ok   web on $WEB_PORT runs from $CLONE (pid $pid)" ;;
+	*) echo "FAIL port $WEB_PORT is not our server (pid '${pid}', cwd '${cwd}')"; ok=0 ;;
+	esac
+	[ "$(curl -s -o /dev/null -m 30 -w '%{http_code}' "http://localhost:$WEB_PORT/login")" = 200 ] \
+		&& echo "ok   /login serves 200" || { echo "FAIL /login not 200"; ok=0; }
+	local changed
+	changed="$(rsync -an --delete --out-format='%n' --exclude node_modules --exclude .next --exclude .git \
+		--exclude .claude/worktrees "$WEB_REPO/" "$CLONE/" | { grep -v "/$" || true; } | wc -l | tr -d " ")"
+	[ "$changed" = 0 ] && echo "ok   clone matches working tree ($(cut -c1-8 "$ROOT/web.rev"))" \
+		|| { echo "FAIL clone is stale: $changed file(s) differ (run 'vv sync')"; ok=0; }
+	"$B" status 2>/dev/null | grep -q healthy && echo "ok   browser daemon healthy ($BROWSE_STATE_FILE)" \
+		|| { echo "FAIL browser daemon not healthy"; ok=0; }
+	[ $ok = 1 ] || exit 1
+}
+
+cmd_otp() {
+	[ $# = 1 ] || die "usage: vv otp <email>"
+	compose exec -T redis redis-cli GET "otp:email:$1" | sed -nE 's/.*"code":"([0-9]{6})".*/\1/p'
+}
+
+cmd_login() {
+	# Email-OTP sign-in through the real UI; finishes the profile step for new accounts.
+	[ $# = 1 ] || die "usage: vv login <email>"
+	local code
+	"$B" goto "http://localhost:$WEB_PORT/login" >/dev/null
+	"$B" fill '#authEmail' "$1" >/dev/null
+	"$B" click 'role=button[name="Continue with email"]' >/dev/null
+	"$B" wait 'text=Check your email' >/dev/null
+	code="$(cmd_otp "$1")"
+	[ -n "$code" ] || die "no OTP in redis for $1"
+	"$B" fill 'role=textbox[name="6-digit verification code"]' "$code" >/dev/null
+	for _ in $(seq 1 20); do
+		if "$B" is visible 'text=What should we call you?' 2>/dev/null | grep -q true; then
+			"$B" click 'role=button[name="Finish"]' >/dev/null
+		fi
+		case "$("$B" url)" in *"/login"*) sleep 0.5 ;; *) echo "vv: signed in as $1 → $("$B" url)"; return ;; esac
+	done
+	die "still on /login after entering the code"
+}
+
+cmd_sync() { sync_clone; echo "vv: clone synced; next dev hot-reloads it"; }
+cmd_b() { "$B" "$@"; }
+cmd_sql() { compose exec -T postgres psql -U postgres -v ON_ERROR_STOP=1 -c "$1"; }
+
+cmd_down() {
+	"$B" stop >/dev/null 2>&1 || true
+	if [ -f "$ROOT/web.pid" ]; then
+		local pid; pid="$(cat "$ROOT/web.pid")"
+		pkill -P "$pid" 2>/dev/null || true
+		kill "$pid" 2>/dev/null || true
+	fi
+	compose down -v >/dev/null 2>&1 || true
+	rm -rf "$ROOT"
+	echo "vv: run '$RUN_ID' removed; evidence kept in $EVIDENCE"
+}
+
+sub="${1:-}"; shift || true
+case "$sub" in
+up | doctor | sync | otp | login | b | sql | down) "cmd_$sub" "$@" ;;
+*) die "usage: vv <up|doctor|sync|otp|login|b|sql|down> [args]" ;;
+esac

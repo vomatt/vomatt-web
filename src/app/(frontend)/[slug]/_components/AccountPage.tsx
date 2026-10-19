@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/AlertDialog';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { ArrowRight } from '@/components/ui/SvgIcons';
 import { Switch } from '@/components/ui/Switch';
 import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -164,7 +165,11 @@ function Stat({
 			<p className="font-mono text-[28px] leading-none tracking-tight tabular-nums">
 				{typeof value === 'number' ? value.toLocaleString() : value}
 			</p>
-			<p className="mt-2 text-[13px] text-muted-foreground">{label}</p>
+			<p className="mt-2 flex items-center gap-1 text-[13px] text-muted-foreground">
+				{label}
+				{/* Marks the cards that open My Polls; hover alone doesn't show on touch */}
+				{href && <ArrowRight aria-hidden className="size-3.5 shrink-0" />}
+			</p>
 		</>
 	);
 	if (href) {
