@@ -159,7 +159,7 @@ export default function Announcement({ data }: AnnouncementProps) {
 			<style jsx>{`
 				.g-announcement {
 					--color: ${data?.textColor?.hex || '#FFFFFF'};
-					--background: ${data?.backgroundColor?.hex || '#000000'};
+					--announcement-background: ${data?.backgroundColor?.hex || '#000000'};
 					--emphasize: ${data?.emphasizeColor?.hex || '#D5FF00'};
 				}
 			`}</style>

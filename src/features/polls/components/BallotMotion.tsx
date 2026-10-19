@@ -20,11 +20,11 @@ export function BallotMark({ checked }: { checked: boolean }) {
 			aria-hidden
 			className={cn(
 				'relative grid size-[18px] shrink-0 place-items-center rounded-full border-[1.5px] transition-colors duration-150',
-				checked ? 'border-primary bg-primary' : 'border-input bg-card'
+				checked ? 'border-primary bg-primary text-volt dark:border-volt dark:bg-volt dark:text-volt-foreground' : 'border-input bg-card'
 			)}
 		>
 			<m.span
-				className="size-2 rounded-full bg-volt"
+				className="size-2 rounded-full bg-current"
 				initial={false}
 				animate={{ scale: checked ? 1 : 0, opacity: checked ? 1 : 0 }}
 				transition={{ duration: 0.22, ease: [0.25, 1, 0.5, 1] }}
@@ -43,7 +43,7 @@ export function VotedStamp({ label }: { label: string }) {
 			transition={INK}
 			className={cn(
 				chipClassName,
-				'shrink-0 select-none gap-1 border border-foreground/20 bg-volt pl-2 dark:text-background'
+				'shrink-0 select-none gap-1 border border-foreground/20 bg-volt pl-2 text-volt-foreground'
 			)}
 		>
 			<svg viewBox="0 0 16 16" className="size-3" fill="none" aria-hidden>

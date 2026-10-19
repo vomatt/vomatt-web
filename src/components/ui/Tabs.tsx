@@ -2,8 +2,9 @@
 
 import { Tabs as TabsPrimitive } from '@base-ui/react/tabs';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { createContext, useContext, useLayoutEffect, useState } from 'react';
+import { createContext, useContext } from 'react';
 
+import { type HoverMark, useHoverMark } from '@/hooks/useHoverMark';
 import { cn } from '@/lib/utils';
 
 function Tabs({
@@ -39,8 +40,8 @@ const tabsListVariants = cva(
 	}
 );
 
-/** The trigger under the pointer, for `TabsIndicator`'s hover mark. */
-const HoveredTabContext = createContext<HTMLElement | null>(null);
+/** Where the trigger under the pointer is, for `TabsIndicator`'s hover mark. */
+const HoverMarkContext = createContext<HoverMark | null>(null);
 
 function TabsList({
 	className,
@@ -50,7 +51,7 @@ function TabsList({
 	children,
 	...props
 }: TabsPrimitive.List.Props & VariantProps<typeof tabsListVariants>) {
-	const [hoveredTab, setHoveredTab] = useState<HTMLElement | null>(null);
+	const hover = useHoverMark('[data-slot=tabs-trigger]', 'x');
 	return (
 		<TabsPrimitive.List
 			data-slot="tabs-list"
@@ -58,16 +59,15 @@ function TabsList({
 			className={cn(tabsListVariants({ variant }), className)}
 			onPointerOver={(event) => {
 				onPointerOver?.(event);
-				const tab = (event.target as Element).closest<HTMLElement>('[data-slot=tabs-trigger]');
-				if (tab && !tab.hasAttribute('data-disabled')) setHoveredTab(tab);
+				hover.onPointerOver(event);
 			}}
 			onPointerLeave={(event) => {
 				onPointerLeave?.(event);
-				setHoveredTab(null);
+				hover.onPointerLeave();
 			}}
 			{...props}
 		>
-			<HoveredTabContext value={hoveredTab}>{children}</HoveredTabContext>
+			<HoverMarkContext value={hover.mark}>{children}</HoverMarkContext>
 		</TabsPrimitive.List>
 	);
 }
@@ -94,39 +94,20 @@ function TabsTrigger({ className, ...props }: TabsPrimitive.Tab.Props) {
  * the triggers' static underline. Hidden in vertical tabs, which keep theirs.
  */
 function TabsIndicator({ className, ...props }: TabsPrimitive.Indicator.Props) {
-	const hoveredTab = useContext(HoveredTabContext);
-	const [hoverRect, setHoverRect] = useState<{ left: number; width: number } | null>(null);
-
-	// Measured like Base UI measures the active tab, and again whenever the tab or list resizes
-	useLayoutEffect(() => {
-		const list = hoveredTab?.closest<HTMLElement>('[data-slot=tabs-list]');
-		if (!hoveredTab || !list) return;
-		const measure = () => {
-			const tabRect = hoveredTab.getBoundingClientRect();
-			const listRect = list.getBoundingClientRect();
-			setHoverRect({
-				left: tabRect.left - listRect.left + list.scrollLeft - list.clientLeft,
-				width: tabRect.width,
-			});
-		};
-		measure();
-		const observer = new ResizeObserver(measure);
-		observer.observe(hoveredTab);
-		observer.observe(list);
-		return () => observer.disconnect();
-	}, [hoveredTab]);
+	const hover = useContext(HoverMarkContext);
 
 	return (
 		<>
-			{hoverRect && (
+			{hover?.rect && (
 				<span
 					aria-hidden
 					data-slot="tabs-hover-indicator"
 					className={cn(
-						'absolute bottom-[-1px] h-0.5 bg-muted-foreground/40 transition-[left,width,opacity] duration-200 ease-out group-data-vertical/tabs:hidden motion-reduce:transition-none',
-						!hoveredTab && 'opacity-0'
+						'absolute bottom-[-1px] h-0.5 bg-muted-foreground/40 duration-200 ease-out group-data-vertical/tabs:hidden motion-reduce:transition-none',
+						hover.entering ? 'transition-opacity' : 'transition-[left,width,opacity]',
+						!hover.visible && 'opacity-0'
 					)}
-					style={hoverRect}
+					style={{ left: hover.rect.offset, width: hover.rect.size }}
 				/>
 			)}
 			<TabsPrimitive.Indicator

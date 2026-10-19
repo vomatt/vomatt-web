@@ -133,7 +133,7 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 											}
 											className={cn(
 												'group h-11 rounded-lg border border-transparent px-3 cursor-pointer transition-colors duration-150',
-												'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/60',
+												'text-muted-foreground hover:text-sidebar-foreground',
 												isActive &&
 													'border-sidebar-border bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent'
 											)}
@@ -185,7 +185,7 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 									)}
 							</div>
 
-							<ArrowRight className="size-3.5 text-sidebar-foreground/30 group-hover:text-sidebar-foreground/60 transition-colors shrink-0" />
+							<ArrowRight className="size-3.5 text-sidebar-foreground/60 group-hover:text-sidebar-foreground transition-colors shrink-0" />
 						</Link>
 					</div>
 				) : (
