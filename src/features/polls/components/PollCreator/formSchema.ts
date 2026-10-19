@@ -66,6 +66,20 @@ export const pollFormSchema = z
 				message: 'pollCreator.errors.inviteesRequired',
 			});
 		}
+		// Two options with the same text split one opinion into two counts
+		const seen = new Set<string>();
+		values.options.forEach(({ text }, index) => {
+			const key = text.trim().toLocaleLowerCase();
+			if (!key) return;
+			if (seen.has(key)) {
+				ctx.addIssue({
+					code: z.ZodIssueCode.custom,
+					path: ['options', index, 'text'],
+					message: 'pollCreator.errors.optionDuplicate',
+				});
+			}
+			seen.add(key);
+		});
 		const start = values.startTime ? Date.parse(values.startTime) : Date.now();
 		if (Date.parse(values.endTime) <= start) {
 			ctx.addIssue({
@@ -120,10 +134,15 @@ export function pollToForm(poll: Poll): PollFormValues {
 }
 
 /** `datetime-local` values carry no offset, so convert them to full ISO strings. */
+/** The question as one line: pasted line breaks become spaces. */
+export function toSingleLine(text: string) {
+	return text.replace(/\s*\n\s*/g, ' ').trim();
+}
+
 export function formToInput(values: PollFormValues): PollInput {
 	const description = values.description.trim();
 	return {
-		title: values.title.trim(),
+		title: toSingleLine(values.title),
 		description: description || undefined,
 		options: values.options.map(({ text }) => ({ text: text.trim() })),
 		startTime: (values.startTime ? new Date(values.startTime) : new Date()).toISOString(),

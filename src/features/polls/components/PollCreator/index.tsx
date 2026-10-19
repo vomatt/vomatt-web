@@ -2,7 +2,15 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
-import { ReactElement, type RefObject, useEffect, useState } from 'react';
+import {
+	type FormEvent,
+	type KeyboardEvent,
+	ReactElement,
+	type RefObject,
+	useEffect,
+	useRef,
+	useState,
+} from 'react';
 import {
 	Controller,
 	useFieldArray,
@@ -38,7 +46,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { apiErrorText } from '@/lib/api/error-text';
 
 import { deleteDraft, type PollDraft, saveDraft } from '../../drafts';
-import { formatPollDate } from '../../format';
+import { formatPollDate, joinSentences } from '../../format';
 import {
 	AudienceSchema,
 	type Poll,
@@ -61,6 +69,7 @@ import {
 	pollToForm,
 	TIMING_FIELDS,
 	toDateTimeInput,
+	toSingleLine,
 } from './formSchema';
 
 const HOUR = 3600_000;
@@ -94,6 +103,22 @@ export interface PollCreatorProps {
 function initialValues(poll?: Poll, draft?: PollDraft) {
 	if (poll) return pollToForm(poll);
 	return draft?.values ?? emptyPollForm();
+}
+
+/** Return alone: not Cmd/Ctrl+Return (submits), not Return that commits IME text. */
+function isPlainReturn(e: KeyboardEvent) {
+	return (
+		e.key === 'Enter' && !e.metaKey && !e.ctrlKey && !e.nativeEvent.isComposing && e.keyCode !== 229
+	);
+}
+
+/**
+ * Focus another field right away. react-hook-form's setFocus waits a tick,
+ * so keys typed in between would land in the field being left.
+ */
+function focusField(e: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>, name: string) {
+	const field = e.currentTarget.form?.elements.namedItem(name);
+	if (field instanceof HTMLElement) field.focus();
 }
 
 /** A `datetime-local` value as ISO, or null when empty or unparseable. */
@@ -130,7 +155,6 @@ export function PollCreator({
 		register,
 		control,
 		handleSubmit,
-		trigger,
 		reset,
 		getValues,
 		getFieldState,
@@ -147,6 +171,12 @@ export function PollCreator({
 		name: ['title', 'description', 'options', 'startTime', 'endTime', 'voterVisibility', 'audience'],
 	});
 	const isInviteOnly = audience === 'invite-only';
+	const titleRef = useRef<HTMLHeadingElement>(null);
+
+	// The write form unmounts on review; land on the step title so it is announced
+	useEffect(() => {
+		if (review) titleRef.current?.focus();
+	}, [review]);
 	const level = visibilityLevel({ voterVisibility, audience });
 
 	const setOpen = (value: boolean) => {
@@ -198,12 +228,7 @@ export function PollCreator({
 		if (TIMING_FIELDS.some((name) => getFieldState(name).invalid)) setShowSettings(true);
 	};
 
-	const goToReview = async () => {
-		if (!(await trigger())) {
-			revealTimingErrors();
-			return;
-		}
-		const values = getValues();
+	const showReview = (values: PollFormValues) => {
 		const now = Date.now();
 		// localToIso, not formToInput: a corrupt draft time must not throw here
 		const startTime = localToIso(values.startTime) ?? new Date(now).toISOString();
@@ -211,6 +236,9 @@ export function PollCreator({
 		const status = derivePollStatus({ active: true, votingActive: true, startTime, endTime }, now);
 		setReview({ status, startTime, endTime });
 	};
+
+	// handleSubmit, not trigger: it focuses the first error and re-validates fields as they change
+	const goToReview = (e: FormEvent) => handleSubmit(showReview, revealTimingErrors)(e);
 
 	const publish = handleSubmit(
 		async (values: PollFormValues) => {
@@ -244,6 +272,11 @@ export function PollCreator({
 		setEndPreset(key);
 	};
 
+	const reapplyPreset = () => {
+		const preset = END_PRESETS.find(({ key }) => key === endPreset);
+		if (preset) applyPreset(preset.key, preset.ms);
+	};
+
 	// The id lets the field point at its error with aria-describedby
 	const errorText = (id: string, message?: string) =>
 		message ? (
@@ -251,6 +284,8 @@ export function PollCreator({
 				{t(message)}
 			</p>
 		) : null;
+
+	const optionsError = fields.map((_, index) => errors.options?.[index]?.text?.message).find(Boolean);
 
 	const canAddOption =
 		fields.length < POLL_OPTIONS_LIMIT && options.every((option) => option.text.trim());
@@ -276,6 +311,8 @@ export function PollCreator({
 				<DialogContent
 					showCloseButton={false}
 					finalFocus={finalFocus}
+					// Writing the question is always the first step
+					initialFocus={() => document.getElementById('title')}
 					className="flex h-dvh max-h-dvh max-w-none flex-col gap-0 rounded-none bg-background p-0 ring-0 sm:h-auto sm:max-h-[min(90dvh,780px)] sm:max-w-[560px] sm:rounded-xl sm:ring-1"
 				>
 					<div className="flex h-14 flex-none items-center justify-between gap-2 border-b border-border px-2 sm:px-3">
@@ -289,7 +326,11 @@ export function PollCreator({
 								{t('common.cancel')}
 							</Button>
 						)}
-						<DialogTitle className="truncate text-base font-semibold">
+						<DialogTitle
+							ref={titleRef}
+							tabIndex={-1}
+							className="truncate text-base font-semibold outline-none"
+						>
 							{review
 								? t('pollCreator.reviewTitle')
 								: t(isEdit ? 'pollCreator.editTitle' : 'pollCreator.title')}
@@ -304,12 +345,18 @@ export function PollCreator({
 					<form
 						noValidate
 						className="flex min-h-0 flex-1 flex-col"
+						onKeyDown={(e) => {
+							if (e.key !== 'Enter' || !(e.metaKey || e.ctrlKey)) return;
+							e.preventDefault();
+							e.currentTarget.requestSubmit();
+						}}
 						onSubmit={(e) => {
 							if (review) {
-								publish(e);
+								// Cmd+Return can land while a publish is still out
+								if (isSubmitting) e.preventDefault();
+								else publish(e);
 							} else {
-								e.preventDefault();
-								goToReview();
+								goToReview(e);
 							}
 						}}
 					>
@@ -321,9 +368,11 @@ export function PollCreator({
 										<div className="space-y-4 rounded-xl border border-border bg-card p-4 sm:p-5">
 											<StatusChip status={review.status} poll={review} />
 											<div className="space-y-2">
-												<p className="text-[22px] leading-tight tracking-[-0.02em]">{title.trim()}</p>
+												<p className="text-[22px] leading-tight tracking-[-0.02em] wrap-anywhere">
+													{toSingleLine(title)}
+												</p>
 												{description?.trim() && (
-													<p className="text-[15px] leading-relaxed text-muted-foreground">
+													<p className="text-[15px] leading-relaxed text-muted-foreground wrap-anywhere">
 														{description.trim()}
 													</p>
 												)}
@@ -335,7 +384,7 @@ export function PollCreator({
 														className="flex min-h-12 items-center gap-3 rounded-xl border border-border px-4 py-2.5 text-base"
 													>
 														<BallotMark checked={false} />
-														{option.text.trim()}
+														<span className="min-w-0 flex-1 wrap-anywhere">{option.text.trim()}</span>
 													</li>
 												))}
 											</ul>
@@ -345,8 +394,11 @@ export function PollCreator({
 										<li>{t(`pollCreator.ruleAudience.${audience}`)}</li>
 										<li>{t('pollCreator.ruleSealed')}</li>
 										<li>
-											{t(`pollCreator.ruleVisibility.${level}`)}{' '}
-											{t('pollCreator.ruleFixed')}
+											{joinSentences(
+												currentLanguage,
+												t(`pollCreator.ruleVisibility.${level}`),
+												t('pollCreator.ruleFixed')
+											)}
 										</li>
 										<li>{t('pollCreator.ruleOneVote')}</li>
 									</ul>
@@ -362,7 +414,14 @@ export function PollCreator({
 											maxLength={POLL_TITLE_MAX}
 											aria-invalid={!!errors.title}
 											aria-describedby={errors.title ? 'title-error' : undefined}
+											enterKeyHint="next"
 											{...register('title')}
+											// The question is one line: Return moves on to the options
+											onKeyDown={(e) => {
+												if (!isPlainReturn(e)) return;
+												e.preventDefault();
+												focusField(e, 'options.0.text');
+											}}
 										/>
 										<div className="flex items-start justify-between gap-3 text-[13px] text-muted-foreground">
 											<span>{t('pollCreator.questionNote')}</span>
@@ -389,7 +448,7 @@ export function PollCreator({
 										<Button
 											type="button"
 											variant="ghost"
-											className="-mx-2 -my-4 px-2"
+											className="-mx-2 -mt-4 mb-2 px-2"
 											onClick={() => setShowContext(true)}
 										>
 											<Plus />
@@ -402,57 +461,52 @@ export function PollCreator({
 											{t('pollCreator.pollOptionsLabel')}
 										</legend>
 										{fields.map((field, index) => (
-											<div key={field.id} className="space-y-1">
-												<div className="flex items-center gap-2">
-													<Input
-														aria-label={`${t('pollCreator.optionsPlaceholder')} ${index + 1}`}
-														placeholder={`${t('pollCreator.optionsPlaceholder')} ${index + 1}`}
-														maxLength={POLL_OPTION_MAX}
-														enterKeyHint="next"
-														aria-invalid={!!errors.options?.[index]?.text}
-														aria-describedby={
-															errors.options?.[index]?.text ? `option-${index}-error` : undefined
-														}
-														{...register(`options.${index}.text`)}
-														onKeyDown={(e) => {
-															if (e.key !== 'Enter') return;
-															// Enter that commits IME text (Zhuyin etc.) isn't a new line;
-															// moving focus now would drop the composed text into the next option
-															if (e.nativeEvent.isComposing || e.keyCode === 229) return;
-															// Return adds the next option instead of submitting
-															e.preventDefault();
-															if (index === fields.length - 1 && canAddOption) append({ text: '' });
-														}}
-													/>
-													{fields.length > POLL_OPTIONS_MIN && (
-														<Button
-															type="button"
-															variant="ghost"
-															size="icon"
-															aria-label={t('pollCreator.removeOption')}
-															onClick={() => remove(index)}
-															className="text-muted-foreground hover:text-destructive"
-														>
-															<X className="size-4" />
-														</Button>
-													)}
-												</div>
-												{errorText(`option-${index}-error`, errors.options?.[index]?.text?.message)}
+											<div key={field.id} className="flex items-center gap-2">
+												<Input
+													aria-label={`${t('pollCreator.optionsPlaceholder')} ${index + 1}`}
+													placeholder={`${t('pollCreator.optionsPlaceholder')} ${index + 1}`}
+													maxLength={POLL_OPTION_MAX}
+													enterKeyHint="next"
+													aria-invalid={!!errors.options?.[index]?.text}
+													aria-describedby={errors.options?.[index]?.text ? 'options-error' : undefined}
+													{...register(`options.${index}.text`)}
+													onKeyDown={(e) => {
+														// Cmd/Ctrl+Return submits the form; Return that commits IME text (Zhuyin etc.) isn't one
+														if (!isPlainReturn(e)) return;
+														// Return moves to the next option, or adds one, instead of submitting
+														e.preventDefault();
+														if (index < fields.length - 1) focusField(e, `options.${index + 1}.text`);
+														else if (canAddOption) append({ text: '' });
+													}}
+												/>
+												{fields.length > POLL_OPTIONS_MIN && (
+													<Button
+														type="button"
+														variant="ghost"
+														size="icon"
+														aria-label={t('pollCreator.removeOption')}
+														onClick={() => remove(index)}
+														className="text-muted-foreground hover:text-destructive"
+													>
+														<X className="size-4" />
+													</Button>
+												)}
 											</div>
 										))}
+										{errorText('options-error', optionsError)}
 										{fields.length < POLL_OPTIONS_LIMIT && (
 											<Button
 												type="button"
 												variant="outline"
 												onClick={() => append({ text: '' })}
-												className="ml-[30px] w-[calc(100%-30px)] border-dashed bg-transparent"
+												className="w-full border-dashed bg-transparent"
 												disabled={!canAddOption}
 											>
 												<Plus />
 												{t('pollCreator.addOptionLabel')}
 											</Button>
 										)}
-										<p className="ml-[30px] text-[13px] text-muted-foreground">
+										<p className="text-[13px] text-muted-foreground">
 											{t('pollCreator.optionsHint')}
 										</p>
 									</fieldset>
@@ -468,11 +522,11 @@ export function PollCreator({
 											<span className="flex-1 space-y-0.5">
 												<span className="block text-[15px] font-medium">{summaryTop}</span>
 												<span className="block text-sm text-muted-foreground">
-													{t(`poll.audience.${audience}`)}
-													{' · '}
-													{t('pollCreator.summaryVisibility', {
-														level: t(`pollCreator.visibility.${level}`),
-													})}
+													{joinSentences(
+														currentLanguage,
+														t(`pollCreator.summaryAudience.${audience}`),
+														t(`pollCreator.ruleVisibility.${level}`)
+													)}
 												</span>
 											</span>
 											<span className="text-[15px] font-medium underline underline-offset-4">
@@ -484,11 +538,15 @@ export function PollCreator({
 											<section
 												id="poll-settings"
 												aria-label={t('pollCreator.settingsTitle')}
-												className="space-y-6 rounded-xl border border-border bg-surface-soft p-4"
+												className="space-y-6 pt-3"
 											>
 												<div className="space-y-2">
 													<Label htmlFor="startTime">{t('pollCreator.opensLabel')}</Label>
-													<Input id="startTime" type="datetime-local" {...register('startTime')} />
+													<Input
+														id="startTime"
+														type="datetime-local"
+														{...register('startTime', { onChange: reapplyPreset })}
+													/>
 													<p className="text-[13px] text-muted-foreground">{t('pollCreator.opensHint')}</p>
 												</div>
 
@@ -587,6 +645,17 @@ export function PollCreator({
 										{t('pollCreator.saveDraftLabel')}
 									</Button>
 								)}
+								{/* The header's Edit is out of thumb reach on a full-screen phone sheet */}
+								{review && (
+									<Button
+										type="button"
+										variant="ghost"
+										className="sm:hidden"
+										onClick={() => setReview(null)}
+									>
+										{t('common.edit')}
+									</Button>
+								)}
 								{review ? (
 									<Button
 										type="submit"
@@ -623,15 +692,16 @@ export function PollCreator({
 				) : (
 					<AlertDialogContent>
 						<AlertDialogHeader>
-							<AlertDialogTitle>Save to drafts?</AlertDialogTitle>
-							<AlertDialogDescription>
-								You have unsaved changes. Would you like to save this poll as a
-								draft before leaving?
-							</AlertDialogDescription>
+							<AlertDialogTitle>{t('pollCreator.keepDraftTitle')}</AlertDialogTitle>
+							<AlertDialogDescription>{t('pollCreator.keepDraftBody')}</AlertDialogDescription>
 						</AlertDialogHeader>
 						<AlertDialogFooter>
-							<AlertDialogCancel onClick={handleDiscard}>Discard</AlertDialogCancel>
-							<AlertDialogAction onClick={handleSaveDraft}>Save Draft</AlertDialogAction>
+							<AlertDialogCancel onClick={handleDiscard}>
+								{t('pollCreator.discardEdit')}
+							</AlertDialogCancel>
+							<AlertDialogAction onClick={handleSaveDraft}>
+								{t('pollCreator.keepDraft')}
+							</AlertDialogAction>
 						</AlertDialogFooter>
 					</AlertDialogContent>
 				)}
