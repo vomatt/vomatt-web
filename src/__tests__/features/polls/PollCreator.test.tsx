@@ -140,6 +140,51 @@ describe('PollCreator', () => {
 		expect(screen.getByLabelText('Option 2')).toHaveAccessibleDescription('Fill in every option.');
 	});
 
+	it('points each option at its own problem when they differ', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		fillPoll();
+		fireEvent.keyDown(screen.getByLabelText('Option 2'), { key: 'Enter' });
+		fireEvent.change(await screen.findByLabelText('Option 3'), { target: { value: 'option a' } });
+		fireEvent.keyDown(screen.getByLabelText('Option 3'), { key: 'Enter' });
+		await screen.findByLabelText('Option 4');
+		review();
+		await screen.findByText('Fill in every option.');
+		expect(screen.getByLabelText('Option 3')).toHaveAccessibleDescription('Each option must be different.');
+		expect(screen.getByLabelText('Option 4')).toHaveAccessibleDescription('Fill in every option.');
+	});
+
+	it('takes Add option to an empty option instead of adding another', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		fireEvent.change(screen.getByLabelText('Option 1'), { target: { value: 'Option A' } });
+		fireEvent.click(screen.getByRole('button', { name: 'Add option' }));
+		await waitFor(() => expect(screen.getByLabelText('Option 2')).toHaveFocus());
+		expect(screen.queryByLabelText('Option 3')).not.toBeInTheDocument();
+	});
+
+	it('reads the hints with their fields', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		expect(screen.getByLabelText(QUESTION)).toHaveAccessibleDescription(
+			'Specific, neutral questions get the most honest answers.'
+		);
+		openSettings();
+		expect(screen.getByRole('group', { name: 'Who can see and vote?' })).toHaveAccessibleDescription(
+			"You can't change this once the poll opens."
+		);
+	});
+
+	it('keeps focus in the list when an option is removed', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		fillPoll();
+		fireEvent.keyDown(screen.getByLabelText('Option 2'), { key: 'Enter' });
+		await screen.findByLabelText('Option 3');
+		fireEvent.click(screen.getByRole('button', { name: 'Remove option 3' }));
+		await waitFor(() => expect(screen.getByLabelText('Option 2')).toHaveFocus());
+	});
+
 	it('adds the next option when Return is pressed in the last one', async () => {
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();
@@ -303,8 +348,26 @@ describe('PollCreator', () => {
 		fireEvent.click(screen.getByRole('button', { name: /Done/ })); // fold it away again
 		review();
 		expect(await screen.findByText('Choose when the poll ends.')).toBeInTheDocument();
-		expect(screen.getByLabelText(END)).toBeInTheDocument();
+		await waitFor(() => expect(screen.getByLabelText(END)).toHaveFocus());
 		expect(mockCreatePoll).not.toHaveBeenCalled();
+	});
+
+	it('focuses a missing end time in settings that were never opened', async () => {
+		const draft = saveDraft({
+			title: 'Which is best?',
+			description: '',
+			options: [{ text: 'Option A' }, { text: 'Option B' }],
+			startTime: '',
+			endTime: '',
+			voterVisibility: 'owner',
+			audience: 'public',
+			invitees: { users: [], emails: [], groups: [] },
+		});
+		render(<PollCreator triggerChildren={TRIGGER} draft={draft} />);
+		await openDialog();
+		review();
+		await screen.findByText('Choose when the poll ends.');
+		await waitFor(() => expect(screen.getByLabelText(END)).toHaveFocus());
 	});
 
 	it('rejects an end before the start', async () => {
@@ -374,6 +437,7 @@ describe('PollCreator', () => {
 		fireEvent.click(screen.getAllByRole('button', { name: 'Edit' })[0]);
 		expect(await screen.findByLabelText(QUESTION)).toHaveValue('Which is best?');
 		expect(screen.getByLabelText('Option 2')).toHaveValue('Option B');
+		await waitFor(() => expect(screen.getByLabelText(QUESTION)).toHaveFocus());
 	});
 
 	it('offers Edit beside Publish, within thumb reach on phones', async () => {
@@ -463,6 +527,7 @@ describe('PollCreator', () => {
 		fireEvent.click(screen.getByLabelText(/Invite only/));
 		review();
 		expect(await screen.findByText('Invite at least one person or group.')).toBeInTheDocument();
+		expect(screen.getByLabelText('Invite people')).toHaveAccessibleDescription('Invite at least one person or group.');
 		expect(screen.queryByText('How voters will see it')).not.toBeInTheDocument();
 	});
 
@@ -485,8 +550,24 @@ describe('PollCreator', () => {
 		await toReview();
 		publish();
 
-		expect(await screen.findByRole('alert')).toHaveTextContent('Something went wrong');
+		await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Something went wrong'));
 		expect(screen.getByText('How voters will see it')).toBeInTheDocument();
+	});
+
+	it('announces the same publish error again on a second failure', async () => {
+		mockCreatePoll.mockResolvedValue({ ok: false, message: 'Something went wrong' });
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		fillPoll();
+		await toReview();
+		const alert = screen.getByRole('alert');
+		expect(alert).toBeEmptyDOMElement();
+		publish();
+		await waitFor(() => expect(alert).toHaveTextContent('Something went wrong'));
+		publish();
+		await waitFor(() => expect(mockCreatePoll).toHaveBeenCalledTimes(2));
+		expect(screen.getByRole('alert')).toBe(alert);
+		await waitFor(() => expect(alert).toHaveTextContent('Something went wrong'));
 	});
 
 	// ── Drafts ────────────────────────────────────────────────────────────────

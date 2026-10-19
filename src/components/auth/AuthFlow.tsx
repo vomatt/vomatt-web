@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 import { Button } from '@/components/ui/Button';
-import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/Field';
+import { Field, FieldLabel, FieldMessage } from '@/components/ui/Field';
 import { Input } from '@/components/ui/Input';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { AuthErrorKey } from '@/lib/api/auth-errors';
@@ -86,7 +86,7 @@ function EmailStep({
 					control={form.control}
 					name="email"
 					render={({ field, fieldState }) => (
-						<Field className="mb-5" data-invalid={fieldState.invalid}>
+						<Field className="mb-4" data-invalid={fieldState.invalid}>
 							<FieldLabel htmlFor="authEmail">{t('common.email')}</FieldLabel>
 							<Input
 								{...field}
@@ -95,11 +95,18 @@ function EmailStep({
 								autoComplete="email"
 								autoFocus
 								aria-invalid={fieldState.invalid}
+								aria-describedby={fieldState.invalid ? 'authEmail-error' : undefined}
 								placeholder="you@example.com"
 							/>
-							{fieldState.invalid && (
-								<FieldError>{t(`${fieldState.error?.message}`)}</FieldError>
-							)}
+							{/* A line stays reserved for the error, so it appears without moving the button */}
+							<FieldMessage
+								className="-mt-1.5 text-sm"
+								errors={
+									fieldState.error?.message
+										? [{ id: 'authEmail-error', text: t(fieldState.error.message) }]
+										: []
+								}
+							/>
 						</Field>
 					)}
 				/>
@@ -156,11 +163,18 @@ function ProfileStep({
 								autoFocus
 								maxLength={100}
 								aria-invalid={fieldState.invalid}
+								aria-describedby={fieldState.invalid ? 'authDisplayName-error' : 'authDisplayName-hint'}
 							/>
-							<FieldDescription>{t('onboarding.displayNameHint')}</FieldDescription>
-							{fieldState.invalid && (
-								<FieldError>{t(`${fieldState.error?.message}`)}</FieldError>
-							)}
+							<FieldMessage
+								className="text-sm leading-normal text-muted-foreground"
+								hint={t('onboarding.displayNameHint')}
+								hintId="authDisplayName-hint"
+								errors={
+									fieldState.error?.message
+										? [{ id: 'authDisplayName-error', text: t(fieldState.error.message) }]
+										: []
+								}
+							/>
 						</Field>
 					)}
 				/>

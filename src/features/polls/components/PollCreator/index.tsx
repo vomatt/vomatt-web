@@ -8,6 +8,7 @@ import {
 	ReactElement,
 	type RefObject,
 	useEffect,
+	useId,
 	useRef,
 	useState,
 } from 'react';
@@ -38,6 +39,7 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from '@/components/ui/Dialog';
+import { FieldMessage } from '@/components/ui/Field';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { ArrowLeft, Plus, X } from '@/components/ui/SvgIcons';
@@ -160,6 +162,7 @@ export function PollCreator({
 		getFieldState,
 		setValue,
 		setError,
+		setFocus,
 		formState: { errors, isDirty, isSubmitting },
 	} = useForm({
 		resolver: zodResolver(pollFormSchema),
@@ -228,6 +231,12 @@ export function PollCreator({
 		if (TIMING_FIELDS.some((name) => getFieldState(name).invalid)) setShowSettings(true);
 	};
 
+	// The review's buttons unmount with it, so focus would fall to the page: land on the question
+	const backToWriting = () => {
+		setReview(null);
+		setTimeout(() => setFocus('title'));
+	};
+
 	const showReview = (values: PollFormValues) => {
 		const now = Date.now();
 		// localToIso, not formToInput: a corrupt draft time must not throw here
@@ -277,15 +286,30 @@ export function PollCreator({
 		if (preset) applyPreset(preset.key, preset.ms);
 	};
 
-	// The id lets the field point at its error with aria-describedby
-	const errorText = (id: string, message?: string) =>
-		message ? (
-			<p id={id} className="text-[13px] text-destructive">
-				{t(message)}
-			</p>
-		) : null;
+	// Each distinct message once, translated, with an id for aria-describedby (the first takes `id` itself)
+	const fieldErrors = (id: string, messages: (string | undefined)[]) =>
+		[...new Set(messages.filter((key): key is string => !!key))].map((key, index) => ({
+			id: index ? `${id}-${index}` : id,
+			text: t(key),
+		}));
 
-	const optionsError = fields.map((_, index) => errors.options?.[index]?.text?.message).find(Boolean);
+	// One line under the list says each distinct problem once; every option points at its own
+	const optionMessages = [
+		...new Set(fields.flatMap((_, index) => errors.options?.[index]?.text?.message ?? [])),
+	];
+	const optionDescription = (index: number) => {
+		const message = errors.options?.[index]?.text?.message;
+		if (!message) return 'options-hint';
+		const at = optionMessages.indexOf(message);
+		return at ? `options-error-${at}` : 'options-error';
+	};
+
+	const addOption = () => {
+		// An empty option comes first: take the user there instead of adding another
+		const empty = options.findIndex((option) => !option.text.trim());
+		if (empty === -1) append({ text: '' });
+		else setFocus(`options.${empty}.text`);
+	};
 
 	const canAddOption =
 		fields.length < POLL_OPTIONS_LIMIT && options.every((option) => option.text.trim());
@@ -317,12 +341,12 @@ export function PollCreator({
 				>
 					<div className="flex h-14 flex-none items-center justify-between gap-2 border-b border-border px-2 sm:px-3">
 						{review ? (
-							<Button type="button" variant="ghost" onClick={() => setReview(null)}>
+							<Button key="edit" type="button" variant="ghost" onClick={backToWriting}>
 								<ArrowLeft />
 								{t('common.edit')}
 							</Button>
 						) : (
-							<Button type="button" variant="ghost" onClick={() => handleOpenChange(false)}>
+							<Button key="cancel" type="button" variant="ghost" onClick={() => handleOpenChange(false)}>
 								{t('common.cancel')}
 							</Button>
 						)}
@@ -413,7 +437,7 @@ export function PollCreator({
 											className="min-h-24 resize-none text-xl leading-snug tracking-[-0.01em] md:text-xl"
 											maxLength={POLL_TITLE_MAX}
 											aria-invalid={!!errors.title}
-											aria-describedby={errors.title ? 'title-error' : undefined}
+											aria-describedby={errors.title ? 'title-error' : 'title-hint'}
 											enterKeyHint="next"
 											{...register('title')}
 											// The question is one line: Return moves on to the options
@@ -424,12 +448,15 @@ export function PollCreator({
 											}}
 										/>
 										<div className="flex items-start justify-between gap-3 text-[13px] text-muted-foreground">
-											<span>{t('pollCreator.questionNote')}</span>
+											<FieldMessage
+												hint={t('pollCreator.questionNote')}
+												hintId="title-hint"
+												errors={fieldErrors('title-error', [errors.title?.message])}
+											/>
 											<span className="font-mono tabular-nums">
 												{title.length}/{POLL_TITLE_MAX}
 											</span>
 										</div>
-										{errorText('title-error', errors.title?.message)}
 									</div>
 
 									{showContext ? (
@@ -468,7 +495,7 @@ export function PollCreator({
 													maxLength={POLL_OPTION_MAX}
 													enterKeyHint="next"
 													aria-invalid={!!errors.options?.[index]?.text}
-													aria-describedby={errors.options?.[index]?.text ? 'options-error' : undefined}
+													aria-describedby={optionDescription(index)}
 													{...register(`options.${index}.text`)}
 													onKeyDown={(e) => {
 														// Cmd/Ctrl+Return submits the form; Return that commits IME text (Zhuyin etc.) isn't one
@@ -484,8 +511,12 @@ export function PollCreator({
 														type="button"
 														variant="ghost"
 														size="icon"
-														aria-label={t('pollCreator.removeOption')}
-														onClick={() => remove(index)}
+														aria-label={`${t('pollCreator.removeOption')} ${index + 1}`}
+														onClick={() => {
+															remove(index);
+															// The button leaves with its row: keep focus in the list
+															setTimeout(() => setFocus(`options.${Math.max(index - 1, 0)}.text`));
+														}}
 														className="text-muted-foreground hover:text-destructive"
 													>
 														<X className="size-4" />
@@ -493,21 +524,23 @@ export function PollCreator({
 												)}
 											</div>
 										))}
-										{errorText('options-error', optionsError)}
 										{fields.length < POLL_OPTIONS_LIMIT && (
 											<Button
 												type="button"
 												variant="outline"
-												onClick={() => append({ text: '' })}
+												onClick={addOption}
 												className="w-full border-dashed bg-transparent"
-												disabled={!canAddOption}
 											>
 												<Plus />
 												{t('pollCreator.addOptionLabel')}
 											</Button>
 										)}
 										<p className="text-[13px] text-muted-foreground">
-											{t('pollCreator.optionsHint')}
+											<FieldMessage
+												hint={t('pollCreator.optionsHint')}
+												hintId="options-hint"
+												errors={fieldErrors('options-error', optionMessages)}
+											/>
 										</p>
 									</fieldset>
 
@@ -545,9 +578,12 @@ export function PollCreator({
 													<Input
 														id="startTime"
 														type="datetime-local"
+														aria-describedby="startTime-hint"
 														{...register('startTime', { onChange: reapplyPreset })}
 													/>
-													<p className="text-[13px] text-muted-foreground">{t('pollCreator.opensHint')}</p>
+													<p id="startTime-hint" className="text-[13px] text-muted-foreground">
+														{t('pollCreator.opensHint')}
+													</p>
 												</div>
 
 												<div className="space-y-2">
@@ -573,7 +609,9 @@ export function PollCreator({
 															</Button>
 														))}
 													</div>
-													{errorText('endTime-error', errors.endTime?.message)}
+													<p className="text-[13px]">
+														<FieldMessage errors={fieldErrors('endTime-error', [errors.endTime?.message])} />
+													</p>
 												</div>
 
 												<RadioCards
@@ -601,6 +639,7 @@ export function PollCreator({
 																		value={field.value}
 																		onChange={field.onChange}
 																		invalid={!!errors.invitees}
+																		describedBy={errors.invitees ? 'invitees-error' : 'invitees-hint'}
 																	/>
 																) : (
 																	<p className="text-[13px] text-muted-foreground">
@@ -610,9 +649,12 @@ export function PollCreator({
 															}
 														/>
 														<p className="text-[13px] text-muted-foreground">
-															{t('pollCreator.inviteesHint')}
+															<FieldMessage
+																hint={t('pollCreator.inviteesHint')}
+																hintId="invitees-hint"
+																errors={fieldErrors('invitees-error', [errors.invitees?.message])}
+															/>
 														</p>
-														{errorText('invitees-error', errors.invitees?.message)}
 													</div>
 												)}
 
@@ -633,12 +675,11 @@ export function PollCreator({
 							)}
 						</div>
 
-						<div className="flex-none space-y-3 border-t border-border px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-6">
-							{review && errors.root?.message && (
-								<p role="alert" className="text-sm text-destructive">
-									{errors.root.message}
-								</p>
-							)}
+						<div className="flex-none border-t border-border px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-6">
+							{/* Rendered empty first, so a failed publish is announced every time, the same error included */}
+							<p role="alert" className="text-sm text-destructive not-empty:mb-3">
+								{review && errors.root?.message}
+							</p>
 							<div className="flex items-center gap-3">
 								{!review && !isEdit && (
 									<Button type="button" variant="ghost" onClick={handleSaveDraft}>
@@ -651,7 +692,7 @@ export function PollCreator({
 										type="button"
 										variant="ghost"
 										className="sm:hidden"
-										onClick={() => setReview(null)}
+										onClick={backToWriting}
 									>
 										{t('common.edit')}
 									</Button>
@@ -720,8 +761,9 @@ type RadioCardsProps = {
 
 /** A radio group of bordered cards, each a label and a hint, for the folded settings. */
 function RadioCards({ legend, note, input, options }: RadioCardsProps) {
+	const noteId = useId();
 	return (
-		<fieldset className="space-y-2">
+		<fieldset className="space-y-2" aria-describedby={noteId}>
 			<legend className="mb-2 text-sm font-medium">{legend}</legend>
 			{options.map(({ value, label, hint }) => (
 				<label
@@ -740,7 +782,9 @@ function RadioCards({ legend, note, input, options }: RadioCardsProps) {
 					</span>
 				</label>
 			))}
-			<p className="pt-1 text-[13px] text-muted-foreground">{note}</p>
+			<p id={noteId} className="pt-1 text-[13px] text-muted-foreground">
+				{note}
+			</p>
 		</fieldset>
 	);
 }
