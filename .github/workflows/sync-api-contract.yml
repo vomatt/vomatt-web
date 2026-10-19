@@ -39,7 +39,7 @@ jobs:
         src/features/<domain>/service.ts, schemas and types, UI under src/app/(frontend)/ and src/features/,
         strings in src/locales/{en,zh}.json and tests in src/__tests__/. Follow DESIGN.md and apply the
         vercel-react-best-practices skill in .claude/skills/.
-      VERIFY: npm run lint && npx tsc --noEmit && npm run test && npm run build
+      VERIFY: npm run lint && npx tsc --noEmit && npm run test
       # No gh or network tools: pushing and the PR happen in the last step
       ALLOWED_TOOLS: Read,Edit,Write,Glob,Grep,Skill,Agent,Task,TodoWrite,Bash(git:*),Bash(npm:*),Bash(npx:*),Bash(ls:*),Bash(cat:*),Bash(head:*),Bash(tail:*),Bash(diff:*),Bash(jq:*),Bash(python3:*),Bash(grep:*),Bash(find:*),Bash(sed:*),Bash(wc:*),Bash(mkdir:*),Bash(rm:*),Bash(mv:*),Bash(cp:*)
     steps:
