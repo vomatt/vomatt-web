@@ -337,7 +337,7 @@ export function PollCreator({
 					finalFocus={finalFocus}
 					// Writing the question is always the first step
 					initialFocus={() => document.getElementById('title')}
-					className="flex h-dvh max-h-dvh max-w-none flex-col gap-0 rounded-none bg-background p-0 ring-0 sm:h-auto sm:max-h-[min(90dvh,780px)] sm:max-w-[560px] sm:rounded-xl sm:ring-1"
+					className="flex h-dvh max-h-dvh max-w-none flex-col gap-0 rounded-none border-0 bg-background p-0 ring-0 sm:h-auto sm:max-h-[min(90dvh,780px)] sm:max-w-[560px] sm:rounded-xl sm:border sm:ring-1"
 				>
 					<div className="flex h-14 flex-none items-center justify-between gap-2 border-b border-border px-2 sm:px-3">
 						{review ? (

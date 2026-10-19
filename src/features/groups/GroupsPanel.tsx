@@ -114,7 +114,7 @@ export function GroupsPanel() {
 							<button
 								type="button"
 								onClick={() => setOpenId(group.id)}
-								className="group flex w-full items-center gap-3 rounded-xl border border-border bg-card px-4 py-4 text-left transition-colors hover:border-border-strong"
+								className="flex w-full items-center gap-3 rounded-xl border border-border bg-card px-4 py-4 text-left transition-colors hover:border-border-strong"
 							>
 								<span className="min-w-0 flex-1">
 									<span className="item-title block truncate">{group.name}</span>
@@ -126,7 +126,7 @@ export function GroupsPanel() {
 								</span>
 								<ArrowRight
 									aria-hidden
-									className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+									className="size-4 shrink-0 text-muted-foreground"
 								/>
 							</button>
 						</li>
@@ -253,7 +253,7 @@ function GroupDialog({
 					</Button>
 				</form>
 
-				<div className="-mx-4 overflow-y-auto px-4">
+				<div className="-mx-4 overflow-y-auto overscroll-contain px-4">
 					{members === null && !loadFailed && (
 						<div className="flex justify-center py-4">
 							<Spinner />
@@ -311,8 +311,7 @@ function GroupDialog({
 					) : (
 						<Button
 							size="sm"
-							variant="ghost"
-							className="text-destructive"
+							variant="ghost-destructive"
 							onClick={() => setConfirmingDelete(true)}
 						>
 							{t('groups.delete')}
