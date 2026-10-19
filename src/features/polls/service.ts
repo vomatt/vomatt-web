@@ -48,7 +48,6 @@ function toRequestBody(input: PollInput) {
 		startTime: input.startTime,
 		endTime: input.endTime,
 		allowMultipleChoices: false,
-		anonymous: input.voterVisibility === 'nobody',
 		voterVisibility: toApiVoterVisibility(input.voterVisibility),
 		audience: input.audience && toApiAudience(input.audience),
 		// Other Audiences send no lists: the API rejects them, and switching away removes the Invitees
