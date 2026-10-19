@@ -1,8 +1,9 @@
 'use client';
 
-import { AnimatePresence, m } from 'motion/react';
+import { AnimatePresence } from 'motion/react';
 
 import { FieldError } from '@/components/ui/Field';
+import { Unfold } from '@/components/Unfold';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { AuthErrorKey } from '@/lib/api/auth-errors';
 
@@ -18,16 +19,9 @@ export function AuthError({ error, className }: AuthErrorProps) {
 	return (
 		<AnimatePresence initial={false}>
 			{error && (
-				<m.div
-					key="error"
-					initial={{ height: 0, opacity: 0 }}
-					animate={{ height: 'auto', opacity: 1 }}
-					exit={{ height: 0, opacity: 0 }}
-					transition={{ duration: 0.2, ease: 'easeOut' }}
-					className="overflow-hidden"
-				>
+				<Unfold key="error">
 					<FieldError className={className}>{t(error.startsWith('apiError.') ? error : `authError.${error}`)}</FieldError>
-				</m.div>
+				</Unfold>
 			)}
 		</AnimatePresence>
 	);
