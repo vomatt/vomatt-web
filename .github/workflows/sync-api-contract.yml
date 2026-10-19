@@ -116,10 +116,15 @@ jobs:
                already covered by this repo, not only this diff. If the previous commit is empty, rely on that check.
             2. If nothing in scope needs a code change (wording-only doc edits included), stop without committing.
             3. Otherwise update the code, tests included, following CLAUDE.md and the existing patterns.
+               When a new or changed endpoint backs something a user does, build or update its screen too:
+               start from the closest existing screen and reuse its layout, components, navigation and design
+               tokens (DESIGN.md where present), put the entry point where similar features live, and cover
+               loading, empty and error states. Add no new design patterns or dependencies.
             4. Run `${{ env.VERIFY }}` and fix until it passes.
             5. Run the /simplify skill on your changes, then run the verify command again.
             6. Commit following this repo's commit conventions (CLAUDE.md, `git log`). Do not push.
-            7. Write the PR description to .pr-body.md: the endpoints and behaviors changed,
+            7. Write the PR description to .pr-body.md: the endpoints and behaviors changed, the screens added or
+               changed and which existing screen each one follows,
                anything in scope left unimplemented and why, and
                https://github.com/vomatt/vomatt-api/commit/${{ env.API_SHA }} as the source.
 
