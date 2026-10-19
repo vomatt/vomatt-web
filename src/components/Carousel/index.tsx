@@ -2,7 +2,7 @@ import clsx from 'clsx';
 import Autoplay from 'embla-carousel-autoplay';
 import useEmblaCarousel from 'embla-carousel-react';
 import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import { NextButton, PrevButton } from './nav-button';
 
@@ -33,7 +33,8 @@ const Carousel = ({
 	autoplayDuration = 3000,
 	isAutoplay = false,
 }: CarouselProps) => {
-	const autoplay = useRef(
+	// Created once; a ref would be read during render when passed to useEmblaCarousel
+	const [autoplay] = useState(() =>
 		Autoplay(
 			{
 				delay: autoplayDuration,
@@ -51,7 +52,7 @@ const Carousel = ({
 			loop: isLoop,
 			containScroll: 'trimSnaps',
 		},
-		[WheelGesturesPlugin(), autoplay.current]
+		[WheelGesturesPlugin(), autoplay]
 	);
 
 	const [prevBtnEnabled, setPrevBtnEnabled] = useState(false);
@@ -69,7 +70,11 @@ const Carousel = ({
 		if (!embla) return;
 
 		embla.on('select', onSelect);
+		// eslint-disable-next-line react-hooks/set-state-in-effect -- the buttons start from embla's state, which exists only after mount
 		onSelect();
+		return () => {
+			embla.off('select', onSelect);
+		};
 	}, [embla, onSelect]);
 
 	return (

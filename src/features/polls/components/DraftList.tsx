@@ -20,6 +20,7 @@ export function DraftList() {
 	const [resuming, setResuming] = useState<PollDraft | null>(null);
 
 	// Local storage is only readable after hydration
+	// eslint-disable-next-line react-hooks/set-state-in-effect -- reading it during render would mismatch the server HTML
 	useEffect(() => setDrafts(listDrafts()), []);
 
 	const remove = (id: string) => {

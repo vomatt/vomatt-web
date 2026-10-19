@@ -334,6 +334,7 @@ export function PollCreator({
 
 	const applyPreset = (key: string, ms: number) => {
 		const start = getValues('startTime');
+		// eslint-disable-next-line react-hooks/purity -- only called from event handlers, never during render
 		const base = start ? Date.parse(start) : Date.now();
 		setValue('endTime', toDateTimeInput(new Date(base + ms)), {
 			shouldDirty: true,
