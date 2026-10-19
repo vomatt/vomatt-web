@@ -20,7 +20,7 @@ export function BallotMark({ checked }: { checked: boolean }) {
 			aria-hidden
 			className={cn(
 				'relative grid size-[18px] shrink-0 place-items-center rounded-[4px] border-[1.5px] transition-colors duration-150',
-				checked ? 'border-primary bg-primary text-volt' : 'border-input bg-card'
+				checked ? 'border-primary bg-primary text-volt dark:border-volt dark:bg-volt dark:text-volt-foreground' : 'border-input bg-card'
 			)}
 		>
 			<svg viewBox="0 0 16 16" className="size-3" fill="none">
@@ -49,7 +49,7 @@ export function VotedStamp({ label }: { label: string }) {
 			transition={INK}
 			className={cn(
 				chipClassName,
-				'shrink-0 select-none gap-1 border border-foreground/20 bg-volt pl-2 dark:text-background'
+				'shrink-0 select-none gap-1 border border-foreground/20 bg-volt pl-2 text-volt-foreground'
 			)}
 		>
 			<svg viewBox="0 0 16 16" className="size-3" fill="none" aria-hidden>

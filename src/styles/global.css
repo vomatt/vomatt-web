@@ -106,7 +106,7 @@
 	--sidebar-border: var(--border);
 	--sidebar-ring: var(--ring);
 
-	--positive: oklch(0.55 0.17 145);
+	--positive: oklch(0.51 0.15 145);
 	--negative: oklch(0.55 0.20 25);
 	--neutral: oklch(0.55 0.06 260);
 
