@@ -30,13 +30,22 @@ type InviteePickerProps = {
 	/** For the field's label. */
 	id?: string;
 	invalid?: boolean;
+	/** The id of the field's error text. */
+	describedBy?: string;
 };
 
 /**
  * Picks people by username (search) or email, and optionally whole Groups.
  * Emails are kept the way the API compares them: trimmed and lower-cased.
  */
-export function InviteePicker({ value, onChange, withGroups = false, id, invalid }: InviteePickerProps) {
+export function InviteePicker({
+	value,
+	onChange,
+	withGroups = false,
+	id,
+	invalid,
+	describedBy,
+}: InviteePickerProps) {
 	const { t } = useLanguage();
 	const [query, setQuery] = useState('');
 	const [results, setResults] = useState<Results>({ term: '', users: [] });
@@ -174,6 +183,7 @@ export function InviteePicker({ value, onChange, withGroups = false, id, invalid
 					placeholder={t('invitees.placeholder')}
 					value={query}
 					aria-invalid={invalid}
+					aria-describedby={describedBy}
 					onChange={(e) => setQuery(e.target.value)}
 					onKeyDown={handleKeyDown}
 				/>

@@ -7,34 +7,28 @@ import { cn } from '@/lib/utils';
 
 import { chipClassName } from '../chip';
 
-// Motion pieces for the paper-ballot metaphor: mark a box, drop the ballot
+// Motion pieces for the paper-ballot metaphor: mark your choice, drop the ballot
 // in the box, see it marked as yours. Reduced motion is handled by <MotionProvider>.
 
 // Critically damped: settles without overshoot
 const INK = { type: 'spring', stiffness: 520, damping: 46 } as const;
 
-/** The square on a paper ballot; a check is drawn in when marked. */
+/** A radio circle: polls are single-choice, so a dot fills in when marked. */
 export function BallotMark({ checked }: { checked: boolean }) {
 	return (
 		<span
 			aria-hidden
 			className={cn(
-				'relative grid size-[18px] shrink-0 place-items-center rounded-[4px] border-[1.5px] transition-colors duration-150',
+				'relative grid size-[18px] shrink-0 place-items-center rounded-full border-[1.5px] transition-colors duration-150',
 				checked ? 'border-primary bg-primary text-volt dark:border-volt dark:bg-volt dark:text-volt-foreground' : 'border-input bg-card'
 			)}
 		>
-			<svg viewBox="0 0 16 16" className="size-3" fill="none">
-				<m.path
-					d="M3 8.5 6.5 12 13 4.5"
-					stroke="currentColor"
-					strokeWidth={2.2}
-					strokeLinecap="round"
-					strokeLinejoin="round"
-					initial={false}
-					animate={{ pathLength: checked ? 1 : 0, opacity: checked ? 1 : 0 }}
-					transition={{ duration: 0.22, ease: 'easeOut' }}
-				/>
-			</svg>
+			<m.span
+				className="size-2 rounded-full bg-current"
+				initial={false}
+				animate={{ scale: checked ? 1 : 0, opacity: checked ? 1 : 0 }}
+				transition={{ duration: 0.22, ease: [0.25, 1, 0.5, 1] }}
+			/>
 		</span>
 	);
 }

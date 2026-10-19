@@ -1,7 +1,7 @@
 'use client';
 
 import { cva, type VariantProps } from 'class-variance-authority';
-import { useMemo } from 'react';
+import { Fragment, useMemo } from 'react';
 
 import { Label } from '@/components/ui/Label';
 import { Separator } from '@/components/ui/Separator';
@@ -230,6 +230,54 @@ function FieldError({
 	);
 }
 
+/**
+ * A field's hint and its errors share one space, so an error never moves the layout:
+ * the hint fades out and the error rises into its place. Point the control's
+ * aria-describedby at the shown error's id, or at `hintId` while there is none.
+ */
+function FieldMessage({
+	hint,
+	hintId,
+	errors = [],
+	className,
+}: {
+	hint?: React.ReactNode;
+	hintId?: string;
+	/** Already translated; each distinct text once. */
+	errors?: { id: string; text: string }[];
+	className?: string;
+}) {
+	const invalid = errors.length > 0;
+	return (
+		<span
+			data-slot="field-message"
+			className={cn('grid min-h-lh *:col-start-1 *:row-start-1', className)}
+		>
+			<span
+				id={hintId}
+				aria-hidden={invalid || undefined}
+				className={cn('transition-opacity duration-150 ease-out', invalid && 'opacity-0')}
+			>
+				{hint}
+			</span>
+			{/* Rendered empty first, so a screen reader hears each error as it appears */}
+			<span aria-live="polite" className="text-destructive">
+				{errors.map(({ id, text }, index) => (
+					<Fragment key={text}>
+						{index > 0 && ' '}
+						<span
+							id={id}
+							className="inline-block transition-[opacity,translate,filter] duration-200 ease-out starting:opacity-0 motion-safe:starting:translate-y-1 motion-safe:starting:blur-xs"
+						>
+							{text}
+						</span>
+					</Fragment>
+				))}
+			</span>
+		</span>
+	);
+}
+
 export {
 	Field,
 	FieldContent,
@@ -238,6 +286,7 @@ export {
 	FieldGroup,
 	FieldLabel,
 	FieldLegend,
+	FieldMessage,
 	FieldSeparator,
 	FieldSet,
 	FieldTitle,

@@ -45,3 +45,8 @@ export function formatFromNow(iso: string, language: LanguageCode) {
 		locale: DATE_FNS_LOCALES[language],
 	});
 }
+
+/** Sentences as one paragraph: a space between them in English, none after Chinese 。 */
+export function joinSentences(language: LanguageCode, ...sentences: string[]) {
+	return sentences.join(language === 'zh' ? '' : ' ');
+}
