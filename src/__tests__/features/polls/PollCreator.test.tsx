@@ -1,5 +1,8 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render as rtlRender, screen, waitFor } from '@testing-library/react';
+import { MotionGlobalConfig } from 'motion/react';
+import type { ReactElement } from 'react';
 
+import { MotionProvider } from '@/components/MotionProvider';
 import { PollCreator } from '@/features/polls/components/PollCreator';
 import { listDrafts, saveDraft } from '@/features/polls/drafts';
 import { Poll } from '@/features/polls/schema';
@@ -19,6 +22,10 @@ jest.mock('@/lib/api/services/users', () => ({
 }));
 const mockGetGroups = jest.fn();
 jest.mock('@/features/groups/service', () => ({ getGroups: () => mockGetGroups() }));
+
+// Render as the app does, so steps and sections that leave are removed; skip the durations
+MotionGlobalConfig.skipAnimations = true;
+const render = (ui: ReactElement) => rtlRender(ui, { wrapper: MotionProvider });
 
 const mockCreatePoll = createPoll as jest.Mock;
 const mockUpdatePoll = updatePoll as jest.Mock;
@@ -95,6 +102,7 @@ describe('PollCreator', () => {
 		expect(screen.queryByLabelText(/Context/)).not.toBeInTheDocument();
 		fireEvent.click(screen.getByRole('button', { name: 'Add context (optional)' }));
 		expect(screen.getByLabelText(/Context/)).toBeInTheDocument();
+		await waitFor(() => expect(screen.getByLabelText(/Context/)).toHaveFocus());
 	});
 
 	it('requires a question before review', async () => {
@@ -723,5 +731,43 @@ describe('PollCreator', () => {
 		fireEvent.click(await screen.findByRole('button', { name: 'Discard' }));
 		expect(onOpenChange).toHaveBeenCalledWith(false);
 		expect(listDrafts()).toEqual([]);
+	});
+});
+
+describe('PollCreator with animations running', () => {
+	beforeEach(() => {
+		MotionGlobalConfig.skipAnimations = false;
+	});
+	afterEach(() => {
+		MotionGlobalConfig.skipAnimations = true;
+	});
+
+	it('keeps the leaving step out of reach while it fades, then removes it', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		fillPoll();
+		review();
+		await screen.findByText('How voters will see it');
+		expect(screen.getByLabelText(QUESTION).closest('[inert]')).not.toBeNull();
+		await waitFor(() => expect(screen.queryByLabelText(QUESTION)).not.toBeInTheDocument());
+	});
+
+	it('keeps focus in the question after review fades away', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		fillPoll();
+		await toReview();
+		await waitFor(() => expect(screen.queryByLabelText(QUESTION)).not.toBeInTheDocument());
+		fireEvent.click(screen.getAllByRole('button', { name: 'Edit' })[0]);
+		await waitFor(() => expect(screen.getByLabelText(QUESTION)).toHaveFocus());
+		await waitFor(() => expect(screen.queryByText('How voters will see it')).not.toBeInTheDocument());
+		expect(screen.getByLabelText(QUESTION)).toHaveFocus();
+	});
+
+	it('carries focus into the context field while it unfolds', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		fireEvent.click(screen.getByRole('button', { name: 'Add context (optional)' }));
+		await waitFor(() => expect(screen.getByLabelText(/Context/)).toHaveFocus());
 	});
 });
