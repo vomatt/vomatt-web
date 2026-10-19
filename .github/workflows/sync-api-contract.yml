@@ -1,6 +1,8 @@
-# Runs when vomatt-api's contract (docs/frontend/openapi.json) changes on main:
-# Claude adds the matching web features, cleans them up, reviews them and
-# opens a PR. Triggered by vomatt-api's notify-web-contract workflow.
+# Runs when vomatt-api's contract or frontend docs (docs/frontend/**) change on main.
+# Claude syncs the change on the rolling branch claude/sync-api, a second fresh
+# session reviews it, and the branch's PR is opened or updated. Merging stays manual.
+# Triggered by vomatt-api's notify-clients workflow. Same template in every client;
+# only SYNC_SCOPE, VERIFY and the toolchain steps differ.
 name: Sync API contract
 
 on:
@@ -11,27 +13,47 @@ on:
       sha:
         description: vomatt-api commit to sync against (default main)
         required: false
+      before:
+        description: Previous vomatt-api commit to diff from (optional)
+        required: false
 
 concurrency:
   group: sync-api-contract
   cancel-in-progress: false
 
 permissions:
-  contents: write
-  pull-requests: write
-  id-token: write
+  contents: read
 
 jobs:
   sync:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     env:
       API_SHA: ${{ github.event.client_payload.sha || inputs.sha || 'main' }}
-      API_BEFORE: ${{ github.event.client_payload.before || '' }}
+      API_BEFORE: ${{ github.event.client_payload.before || inputs.before || '' }}
+      # Pushes and PRs made with github.token don't trigger the PR's CI, so no fallback to it
+      GH_TOKEN: ${{ secrets.SYNC_PR_TOKEN }}
+      SYNC_SCOPE: >-
+        Every non-admin path and field. Skip the admin endpoints (`/api/admin/**`, tags `Admin - Lookup`
+        and `Admin Tag`) as CLAUDE.md describes. Code lives in src/lib/api/services/,
+        src/features/<domain>/service.ts, schemas and types, UI under src/app/(frontend)/ and src/features/,
+        strings in src/locales/{en,zh}.json and tests in src/__tests__/. Follow DESIGN.md and apply the
+        vercel-react-best-practices skill in .claude/skills/.
+      VERIFY: npm run lint && npx tsc --noEmit && npm run test && npm run build
+      # No gh or network tools: pushing and the PR happen in the last step
+      ALLOWED_TOOLS: Read,Edit,Write,Glob,Grep,Skill,Agent,Task,TodoWrite,Bash(git:*),Bash(npm:*),Bash(npx:*),Bash(ls:*),Bash(cat:*),Bash(head:*),Bash(tail:*),Bash(diff:*),Bash(jq:*),Bash(grep:*),Bash(find:*),Bash(sed:*),Bash(wc:*),Bash(mkdir:*),Bash(rm:*),Bash(mv:*),Bash(cp:*)
     steps:
+      # The payload lands in a checkout ref and in Claude's prompt
+      - name: Validate payload
+        run: |
+          [ -n "$GH_TOKEN" ] || { echo "::error::SYNC_PR_TOKEN secret is not set"; exit 1; }
+          [[ "$API_SHA" =~ ^([0-9a-f]{7,40}|main)$ && "$API_BEFORE" =~ ^([0-9a-f]{7,40})?$ ]] \
+            || { echo "::error::Invalid sha or before in the dispatch payload"; exit 1; }
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ env.GH_TOKEN }}
 
       # CLAUDE.md reads the contract from ../vomatt-api
       - uses: actions/checkout@v4
@@ -40,8 +62,9 @@ jobs:
           ref: ${{ env.API_SHA }}
           path: .vomatt-api
           fetch-depth: 0
-          token: ${{ secrets.API_READ_TOKEN || github.token }}
       - run: ln -s "$GITHUB_WORKSPACE/.vomatt-api" "$GITHUB_WORKSPACE/../vomatt-api"
+      # Keep the API checkout and the installed skill out of the PR's commits
+      - run: printf '.vomatt-api/\n.claude/skills/\n.pr-body.md\n' >> .git/info/exclude
 
       - name: Install vercel-react-best-practices skill
         run: |
@@ -56,31 +79,96 @@ jobs:
           cache: npm
       - run: npm ci
 
-      - uses: anthropics/claude-code-action@v1
+      # Continue the open sync branch, or start one from main. A conflicting merge
+      # is left in progress for Claude to resolve.
+      - name: Check out claude/sync-api
+        id: prep
+        run: |
+          git config user.name "Claude"
+          git config user.email "noreply@anthropic.com"
+          if git ls-remote --exit-code --heads origin claude/sync-api >/dev/null; then
+            git switch -c claude/sync-api origin/claude/sync-api
+            git merge --no-edit origin/main || true
+          else
+            git switch -c claude/sync-api
+          fi
+          echo "start=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Sync
+        id: sync
+        uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          claude_args: --max-turns 200
+          github_token: ${{ env.GH_TOKEN }}
           show_full_output: true
+          # Without an allowlist every git and write command is denied
+          claude_args: --max-turns 200 --allowedTools "${{ env.ALLOWED_TOOLS }}"
           prompt: |
-            vomatt-api changed its API contract. The new contract is ../vomatt-api/docs/frontend/openapi.json
-            at commit ${{ env.API_SHA }} (previous main: "${{ env.API_BEFORE }}").
+            Sync this repo with vomatt-api's API contract and frontend docs. vomatt-api is checked out at
+            ../vomatt-api at commit ${{ env.API_SHA }}; the previous main was "${{ env.API_BEFORE }}" (may be empty).
+            You are on branch claude/sync-api. If `git status` shows a merge in progress, resolve the conflicts
+            and commit the merge first.
 
-            1. Find what changed for this app: run
-               `git -C ../vomatt-api diff ${{ env.API_BEFORE }} ${{ env.API_SHA }} -- docs/frontend/openapi.json docs/frontend/CHANGELOG.md`
-               (if the previous commit is empty or unknown, compare the contract with api-docs.json). A queued
-               sync can be dropped, so also check that the contract's non-admin paths and fields are covered by
-               src/lib/api/services/ and src/features/*/service.ts, not only this diff. Skip the admin endpoints
-               (`/api/admin/**`, tags `Admin - Lookup` and `Admin Tag`) as described in CLAUDE.md.
-            2. If nothing relevant changed, stop without creating a branch or PR.
-            3. Otherwise create a branch `sync/api-<sha>`, where <sha> is `git -C ../vomatt-api rev-parse --short HEAD`, and update the web app
-               to match: services in src/lib/api/services/ and src/features/<domain>/service.ts, schemas and types,
-               UI under src/app/(frontend)/ and src/features/, strings in src/locales/{en,zh}.json, and tests in
-               src/__tests__/. Follow CLAUDE.md, DESIGN.md and the existing patterns, and apply the
-               vercel-react-best-practices skill in .claude/skills/ (do not commit that skill folder).
-            4. Run the /simplify skill on your changes, then the /code-review skill, and fix what they find.
-            5. `npm run lint`, `npx tsc --noEmit`, `npm run test` and `npm run build` must pass.
-            6. Commit with a plain English, imperative subject that names the vomatt-api PR (e.g.
-               "Follow vomatt-api #50: ..."), push, and open a PR against main with `gh pr create` describing
-               the contract changes covered.
+            Scope for this repo: ${{ env.SYNC_SCOPE }}
+
+            1. Find what changed: `git -C ../vomatt-api diff ${{ env.API_BEFORE }} ${{ env.API_SHA }} -- docs/frontend/`.
+               A queued sync can be dropped, so also check that the in-scope contract at ${{ env.API_SHA }} is
+               already covered by this repo, not only this diff. If the previous commit is empty, rely on that check.
+            2. If nothing in scope needs a code change (wording-only doc edits included), stop without committing.
+            3. Otherwise update the code, tests included, following CLAUDE.md and the existing patterns.
+            4. Run `${{ env.VERIFY }}` and fix until it passes.
+            5. Run the /simplify skill on your changes, then run the verify command again.
+            6. Commit following this repo's commit conventions (CLAUDE.md, `git log`). Do not push.
+            7. Write the PR description to .pr-body.md: the endpoints and behaviors changed,
+               anything in scope left unimplemented and why, and
+               https://github.com/vomatt/vomatt-api/commit/${{ env.API_SHA }} as the source.
+
+      - name: Detect new commits
+        id: changed
         env:
-          GH_TOKEN: ${{ github.token }}
+          START: ${{ steps.prep.outputs.start }}
+        run: echo "changed=$([ "$(git rev-parse HEAD)" != "$START" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      # A separate session, so the review starts from a fresh context
+      - name: Review
+        id: review
+        if: steps.changed.outputs.changed == 'true'
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ env.GH_TOKEN }}
+          show_full_output: true
+          claude_args: --max-turns 120 --allowedTools "${{ env.ALLOWED_TOOLS }}"
+          prompt: |
+            Branch claude/sync-api syncs this repo with vomatt-api. Run the /code-review skill on the changes
+            since origin/main (`origin/main...HEAD`), fix every real finding, run `${{ env.VERIFY }}` until it
+            passes, and commit the fixes following this repo's commit conventions. Do not push.
+            If you fixed anything, append a "Review" section listing the fixes to .pr-body.md.
+
+      - name: Push and open or update the PR
+        if: steps.changed.outputs.changed == 'true'
+        env:
+          BODY: ${{ github.workspace }}/.pr-body.md
+        run: |
+          [ -s "$BODY" ] || echo "Sync with https://github.com/vomatt/vomatt-api/commit/$API_SHA" > "$BODY"
+          git push origin claude/sync-api
+          if [ "$(gh pr view claude/sync-api --json state -q .state 2>/dev/null)" = OPEN ]; then
+            gh pr comment claude/sync-api --body-file "$BODY"
+          else
+            gh pr create --base main --head claude/sync-api --title "Sync with vomatt-api" --body-file "$BODY"
+          fi
+          echo "PR: $(gh pr view claude/sync-api --json url -q .url)" >> "$GITHUB_STEP_SUMMARY"
+
+      # A denied tool call still ends the action green, so a run that changed nothing
+      # would look fine. Runs last so committed work is pushed first; the log lists
+      # the denied calls for widening ALLOWED_TOOLS.
+      - name: Fail on denied tool calls
+        env:
+          FILES: ${{ steps.sync.outputs.execution_file }} ${{ steps.review.outputs.execution_file }}
+        run: |
+          failed=0
+          for f in $FILES; do
+            denied=$(jq -c '[.[] | select(.type == "result")][-1].permission_denials // [] | .[] | {tool_name, tool_input}' "$f")
+            [ -z "$denied" ] || { echo "::error::Denied tool calls in $f"; echo "$denied"; failed=1; }
+          done
+          exit "$failed"
