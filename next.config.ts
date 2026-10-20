@@ -1,7 +1,7 @@
 import type { NextConfig } from 'next';
 import * as path from 'path';
 
-const studioUrl = process.env.NEXT_PUBLIC_SANITY_STUDIO_URL;
+const studioUrl = process.env.NEXT_PUBLIC_SANITY_STUDIO_URL?.replace(/\/+$/, '');
 
 const nextConfig: NextConfig = {
 	reactStrictMode: true,
@@ -26,7 +26,10 @@ const nextConfig: NextConfig = {
 			{ source: '/profile/:username', destination: '/:username', permanent: true },
 			// The Studio moved to vomatt-admin
 			...(studioUrl
-				? [{ source: '/sanity/:path*', destination: `${studioUrl}/:path*`, permanent: false }]
+				? [
+						{ source: '/sanity', destination: studioUrl, permanent: false },
+						{ source: '/sanity/:path+', destination: `${studioUrl}/:path+`, permanent: false },
+					]
 				: []),
 		];
 	},

@@ -2,16 +2,6 @@ import { type ClassValue, clsx } from 'clsx';
 import type { NextRequest } from 'next/server';
 import { twMerge } from 'tailwind-merge';
 
-import {
-	Facebook,
-	Github,
-	Instagram,
-	Linkedin,
-	Spotify,
-	XTwitter,
-	Youtube,
-} from '@/components/ui/SvgIcons';
-
 // ***UTILITIES / GET***
 
 export function cn(...inputs: ClassValue[]) {
@@ -411,27 +401,6 @@ export function hasArrayValue(arr: any[] | undefined) {
 	if (!arr) return false;
 
 	return Array.isArray(arr) && arr.length > 0;
-}
-
-export function getIcon(icon: string) {
-	switch (icon) {
-		case 'facebook':
-			return Facebook;
-		case 'instagram':
-			return Instagram;
-		case 'linkedin':
-			return Linkedin;
-		case 'spotify':
-			return Spotify;
-		case 'x':
-			return XTwitter;
-		case 'youTube':
-			return Youtube;
-		case 'github':
-			return Github;
-		default:
-			return null;
-	}
 }
 
 export const resolveHref = ({
