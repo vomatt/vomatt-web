@@ -115,7 +115,7 @@ export function AvatarDialog({
 						<p className="font-medium md:text-lg">
 							{t(`avatar.bots.${selected}.name`)}
 						</p>
-						<p className="text-[13px] text-muted-foreground">
+						<p className="text-[12px] text-muted-foreground">
 							{t(`avatar.bots.${selected}.trait`)}
 						</p>
 					</div>

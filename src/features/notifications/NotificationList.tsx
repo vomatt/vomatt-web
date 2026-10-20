@@ -27,8 +27,8 @@ export function NotificationsHeader() {
 	const { t } = useLanguage();
 	return (
 		<div>
-			<h1 className="display-heading text-[32px] text-foreground md:text-[44px]">{t('notifications.title')}</h1>
-			<p className="mt-2 text-[15px] text-muted-foreground">{t('notifications.intro')}</p>
+			<h1 className="display-heading text-[30px] text-foreground md:text-[40px]">{t('notifications.title')}</h1>
+			<p className="mt-2 text-[14px] text-muted-foreground">{t('notifications.intro')}</p>
 		</div>
 	);
 }

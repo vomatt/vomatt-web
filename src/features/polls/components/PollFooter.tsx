@@ -27,7 +27,7 @@ export function PollFooter({
 	const share = useSharePoll();
 
 	return (
-		<div className="flex items-center gap-4 border-t border-border px-4 py-1 text-[13px] text-muted-foreground md:px-6">
+		<div className="flex items-center gap-4 border-t border-border px-4 py-1 text-[12px] text-muted-foreground md:px-6">
 			{turnout !== undefined && (
 				<span className="font-mono tabular-nums">
 					{t('poll.voted', { count: turnout.toLocaleString() })}

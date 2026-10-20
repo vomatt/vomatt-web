@@ -15,7 +15,7 @@ export default async function MyPollsPage() {
 
 	return (
 		<div className="px-contain max-w-2xl mx-auto py-6">
-			<h1 className="mb-6 display-heading text-[32px] text-foreground md:text-[44px]">
+			<h1 className="mb-6 display-heading text-[30px] text-foreground md:text-[40px]">
 				<T k="myPolls.title" />
 			</h1>
 			<Suspense fallback={<MyPollsTabsSkeleton />}>

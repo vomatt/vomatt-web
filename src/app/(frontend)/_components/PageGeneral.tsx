@@ -11,7 +11,7 @@ export default function PageGeneral({ data, children }: { data: any; children?: 
 	if (layout === 'editor') {
 		return (
 			<article className="page-general px-contain mx-auto max-w-3xl py-6 md:py-10">
-				<h1 className="mb-6 display-heading text-[32px] text-foreground md:text-[44px]">{title}</h1>
+				<h1 className="mb-6 display-heading text-[30px] text-foreground md:text-[40px]">{title}</h1>
 				<div className="text-sm leading-relaxed [&_a]:underline [&_a]:underline-offset-2 [&_h2]:mt-8 [&_h2]:mb-2 [&_h2]:text-lg [&_h2]:font-medium [&_li]:mt-1 [&_ol]:mt-3 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mt-3 [&_ul]:mt-3 [&_ul]:list-disc [&_ul]:pl-5">
 					{content && <CustomPortableText blocks={content} />}
 				</div>

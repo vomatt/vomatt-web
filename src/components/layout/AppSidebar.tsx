@@ -29,7 +29,10 @@ import {
 } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
-import { formatUnreadCount, useUnreadCount } from '@/features/notifications/UnreadCountProvider';
+import {
+	formatUnreadCount,
+	useUnreadCount,
+} from '@/features/notifications/UnreadCountProvider';
 import { CreatePollTrigger } from '@/features/polls/components/CreatePollTrigger';
 import { signout } from '@/lib/api/services/auth';
 import { isActivePath, profileHref } from '@/lib/routes';
@@ -82,7 +85,12 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 	// /account redirects to the profile; link there directly so the card shows as active
 	const accountHref = profile ? profileHref(profile.username) : '/account';
 	// Settings is reached from the profile, so the card stays active there too
-	const accountCurrent = pathname === accountHref ? 'page' : pathname === '/settings' ? 'true' : undefined;
+	const accountCurrent =
+		pathname === accountHref
+			? 'page'
+			: pathname === '/settings'
+				? 'true'
+				: undefined;
 
 	return (
 		<Sidebar className="border-sidebar-border">
@@ -108,7 +116,10 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 						</Button>
 					</CreatePollTrigger>
 				) : (
-					<Link href="/login" className={cn(buttonVariants({ variant: 'create' }), 'w-full')}>
+					<Link
+						href="/login"
+						className={cn(buttonVariants({ variant: 'create' }), 'w-full')}
+					>
 						<PlusCircle />
 						{t('common.createPoll')}
 					</Link>
@@ -136,17 +147,18 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 												/>
 											}
 											className={cn(
-												'group h-11 rounded-lg border border-transparent px-3 cursor-pointer transition-colors duration-150',
+												'group h-9 rounded-lg px-3 cursor-pointer transition-colors duration-150',
 												'text-muted-foreground hover:text-sidebar-foreground',
-												// The ink border marks the current item without relying on the pale fill
 												isActive &&
-													'border-foreground bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent'
+													'bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent'
 											)}
 										>
 											<item.icon className="size-5 shrink-0" />
-											<span className="text-sm font-medium capitalize">{t(item.title)}</span>
+											<span className="text-sm font-medium capitalize">
+												{t(item.title)}
+											</span>
 											{badge > 0 && (
-												<span className="ml-auto min-w-5 rounded-full bg-primary px-1.5 text-center font-mono text-[11px] leading-5 text-primary-foreground tabular-nums">
+												<span className="ml-auto min-w-5 rounded-full bg-primary px-1.5 text-center font-mono text-[10px] leading-5 text-primary-foreground tabular-nums">
 													{formatUnreadCount(badge)}
 												</span>
 											)}
@@ -179,16 +191,25 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 							)}
 						>
 							{profile ? (
-								<UserAvatar username={profile.username} avatarUrl={profile.avatarUrl} className="size-9" />
+								<UserAvatar
+									username={profile.username}
+									avatarUrl={profile.avatarUrl}
+									className="size-9"
+								/>
 							) : (
 								// The profile failed to load; there's no name to draw from
-								<InitialAvatar name="U" className="size-9 bg-sidebar-primary text-sidebar-primary-foreground" />
+								<InitialAvatar
+									name="U"
+									className="size-9 bg-sidebar-primary text-sidebar-primary-foreground"
+								/>
 							)}
 
 							<div className="flex-1 min-w-0">
-								<p className="text-[13px] font-medium text-sidebar-foreground leading-tight truncate">
+								<p className="text-[12px] font-medium text-sidebar-foreground leading-tight truncate">
 									{/* Without a profile there's no name; say where the link goes */}
-									{profile?.displayName || profile?.username || t('navigation.profile')}
+									{profile?.displayName ||
+										profile?.username ||
+										t('navigation.profile')}
 								</p>
 								{profile?.displayName &&
 									profile.displayName !== profile.username && (

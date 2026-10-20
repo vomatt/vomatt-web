@@ -471,11 +471,11 @@ export function PollCreator({
 													<div className="space-y-4 rounded-xl border border-border bg-card p-4 sm:p-5">
 														<StatusChip status={review.status} poll={review} />
 														<div className="space-y-2">
-															<p className="text-[22px] leading-tight tracking-[-0.02em] wrap-anywhere">
+															<p className="text-[21px] leading-tight tracking-[-0.02em] wrap-anywhere">
 																{toSingleLine(title)}
 															</p>
 															{description?.trim() && (
-																<p className="text-[15px] leading-relaxed text-muted-foreground wrap-anywhere">
+																<p className="text-[14px] leading-relaxed text-muted-foreground wrap-anywhere">
 																	{description.trim()}
 																</p>
 															)}
@@ -493,7 +493,7 @@ export function PollCreator({
 														</ul>
 													</div>
 												</div>
-												<ul className="space-y-3 text-[15px] leading-relaxed">
+												<ul className="space-y-3 text-[14px] leading-relaxed">
 													<li>{t(`pollCreator.ruleAudience.${audience}`)}</li>
 													<li>{t('pollCreator.ruleSealed')}</li>
 													<li>
@@ -526,7 +526,7 @@ export function PollCreator({
 															focusField(e, 'options.0.text');
 														}}
 													/>
-													<div className="flex items-start justify-between gap-3 text-[13px] text-muted-foreground">
+													<div className="flex items-start justify-between gap-3 text-[12px] text-muted-foreground">
 														<FieldMessage
 															hint={t('pollCreator.questionNote')}
 															hintId="title-hint"
@@ -623,7 +623,7 @@ export function PollCreator({
 															{t('pollCreator.addOptionLabel')}
 														</Button>
 													)}
-													<p className="text-[13px] text-muted-foreground">
+													<p className="text-[12px] text-muted-foreground">
 														<FieldMessage
 															hint={t('pollCreator.optionsHint')}
 															hintId="options-hint"
@@ -641,7 +641,7 @@ export function PollCreator({
 														className="flex min-h-16 w-full items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-left transition-colors hover:border-border-strong"
 													>
 														<span className="flex-1 space-y-0.5">
-															<span className="block text-[15px] font-medium">{summaryTop}</span>
+															<span className="block text-[14px] font-medium">{summaryTop}</span>
 															<span className="block text-sm text-muted-foreground">
 																{joinSentences(
 																	currentLanguage,
@@ -650,7 +650,7 @@ export function PollCreator({
 																)}
 															</span>
 														</span>
-														<span className="text-[15px] font-medium underline underline-offset-4">
+														<span className="text-[14px] font-medium underline underline-offset-4">
 															{showSettings ? t('pollCreator.settingsDone') : t('pollCreator.settingsChange')}
 														</span>
 													</button>
@@ -671,7 +671,7 @@ export function PollCreator({
 																			aria-describedby="startTime-hint"
 																			{...register('startTime', { onChange: reapplyPreset })}
 																		/>
-																		<p id="startTime-hint" className="text-[13px] text-muted-foreground">
+																		<p id="startTime-hint" className="text-[12px] text-muted-foreground">
 																			{t('pollCreator.opensHint')}
 																		</p>
 																	</div>
@@ -699,7 +699,7 @@ export function PollCreator({
 																				</Button>
 																			))}
 																		</div>
-																		<p className="text-[13px]">
+																		<p className="text-[12px]">
 																			<FieldMessage errors={fieldErrors('endTime-error', [errors.endTime?.message])} />
 																		</p>
 																	</div>
@@ -732,13 +732,13 @@ export function PollCreator({
 																							describedBy={errors.invitees ? 'invitees-error' : 'invitees-hint'}
 																						/>
 																					) : (
-																						<p className="text-[13px] text-muted-foreground">
+																						<p className="text-[12px] text-muted-foreground">
 																							{t('pollCreator.inviteesManaged')}
 																						</p>
 																					)
 																				}
 																			/>
-																			<p className="text-[13px] text-muted-foreground">
+																			<p className="text-[12px] text-muted-foreground">
 																				<FieldMessage
 																					hint={t('pollCreator.inviteesHint')}
 																					hintId="invitees-hint"
@@ -863,7 +863,7 @@ function RadioCards({ legend, note, input, options }: RadioCardsProps) {
 			{options.map(({ value, label, hint }) => (
 				<label
 					key={value}
-					className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-[15px] transition-colors hover:border-border-strong has-[:checked]:border-foreground has-[:checked]:bg-volt-tint has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring"
+					className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-[14px] transition-colors hover:border-border-strong has-[:checked]:border-foreground has-[:checked]:bg-volt-tint has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring"
 				>
 					<input
 						type="radio"
@@ -877,7 +877,7 @@ function RadioCards({ legend, note, input, options }: RadioCardsProps) {
 					</span>
 				</label>
 			))}
-			<p id={noteId} className="pt-1 text-[13px] text-muted-foreground">
+			<p id={noteId} className="pt-1 text-[12px] text-muted-foreground">
 				{note}
 			</p>
 		</fieldset>

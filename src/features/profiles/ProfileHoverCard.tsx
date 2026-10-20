@@ -113,8 +113,8 @@ function ProfileCardBody({
 				{/* The page's avatarUrl is fresher than the cached profile */}
 				<UserAvatar username={username} avatarUrl={avatarUrl ?? profile?.avatarUrl} className="size-11" />
 				<div className="min-w-0">
-					<p className="truncate text-[15px] font-medium">{displayName || username}</p>
-					{displayName && <p className="truncate font-mono text-[13px] text-muted-foreground">@{username}</p>}
+					<p className="truncate text-[14px] font-medium">{displayName || username}</p>
+					{displayName && <p className="truncate font-mono text-[12px] text-muted-foreground">@{username}</p>}
 				</div>
 			</div>
 			{state.status === 'loading' && (
@@ -123,13 +123,13 @@ function ProfileCardBody({
 					<Skeleton className="h-3 w-2/3" />
 				</div>
 			)}
-			{state.status === 'failed' && <p className="text-[13px] text-muted-foreground">{t('profile.cardFailed')}</p>}
+			{state.status === 'failed' && <p className="text-[12px] text-muted-foreground">{t('profile.cardFailed')}</p>}
 			{state.status === 'ready' && !profile && (
-				<p className="text-[13px] text-muted-foreground">{t('profile.notFoundTitle')}</p>
+				<p className="text-[12px] text-muted-foreground">{t('profile.notFoundTitle')}</p>
 			)}
-			{profile?.bio && <p className="line-clamp-3 text-[13px]">{profile.bio}</p>}
+			{profile?.bio && <p className="line-clamp-3 text-[12px]">{profile.bio}</p>}
 			{profile && (
-				<p className="flex flex-wrap gap-x-3 text-[13px] text-muted-foreground">
+				<p className="flex flex-wrap gap-x-3 text-[12px] text-muted-foreground">
 					{profileDetails(profile, t, currentLanguage).map((part) => (
 						<span key={part.field} className="whitespace-nowrap">
 							{part.text}

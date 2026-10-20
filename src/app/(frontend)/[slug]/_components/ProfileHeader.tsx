@@ -101,7 +101,7 @@ export default function ProfileHeader({
 						className={cn(
 							// Capped measure (~68 characters): the column runs ~87 wide between md and lg, and
 							// Geist's wide 0 makes `ch` overshoot, so the cap is in rem
-							'mt-3 max-w-[30rem] wrap-anywhere whitespace-pre-line text-[15px]',
+							'mt-3 max-w-[30rem] wrap-anywhere whitespace-pre-line text-[14px]',
 							isHidden('bio') && 'text-muted-foreground'
 						)}
 					>
@@ -112,7 +112,7 @@ export default function ProfileHeader({
 					</p>
 				)}
 				{/* Details, then counts: a row each, items set apart by space and kept whole when they wrap */}
-				<div className="mt-3 space-y-1 text-[13px] text-muted-foreground tabular-nums">
+				<div className="mt-3 space-y-1 text-[12px] text-muted-foreground tabular-nums">
 					<div className="flex flex-wrap gap-x-4 gap-y-1">
 						{shownDetails.map((part) => (
 							<span key={part.field} className="wrap-anywhere">
@@ -123,7 +123,7 @@ export default function ProfileHeader({
 					{meta && <div className="flex flex-wrap gap-x-4 gap-y-1">{meta}</div>}
 				</div>
 				{hiddenItems.length > 0 && (
-					<p className="mt-2 wrap-anywhere text-[13px] text-muted-foreground">
+					<p className="mt-2 wrap-anywhere text-[12px] text-muted-foreground">
 						<EyeOff
 							aria-hidden
 							className="mr-1.5 inline size-3.5 align-[-0.125em]"

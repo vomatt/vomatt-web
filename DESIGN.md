@@ -26,13 +26,13 @@ Cool canvas, ink actions, one accent. Use the semantic tokens as Tailwind classe
 
 - **Geist** (`font-sans`) for everything, with PingFang TC / Microsoft JhengHei / Noto Sans TC fallbacks for Traditional Chinese. **Geist Mono** (`font-mono`, `tabular-nums`) for counts, times and handles.
 - **Display**: the `display-heading` utility sets weight 400, leading 1.25 and -0.03em tracking; the size goes beside it.
-  - Page titles: `display-heading text-[32px] md:text-[44px]`
-  - Auth titles: `display-heading text-[32px]`
+  - Page titles: `display-heading text-[30px] md:text-[40px]`
+  - Auth titles: `display-heading text-[30px]`
   - Person names: `display-heading text-2xl`
-- **Poll title** (card and preview): `text-[22px] leading-tight tracking-[-0.02em]`; cards add `font-medium md:text-[26px]`.
-- **Item title** (list rows, side cards): the `item-title` utility (17px, -0.01em); weight and leading go beside it.
-- **Body** `text-[15px]` (card descriptions `text-base`); **meta** `text-[13px]`; **chip** `text-[11px]` uppercase semibold.
-- Inputs are `text-base` on phones so iOS doesn't zoom.
+- **Poll title** (card and preview): `text-[21px] leading-tight tracking-[-0.02em]`; cards add `font-medium md:text-[25px]`.
+- **Item title** (list rows, side cards): the `item-title` utility (16px, -0.01em); weight and leading go beside it.
+- **Body** `text-[14px]` (card descriptions `text-base`); **meta** `text-[12px]`; **chip** `text-[10px]` uppercase semibold.
+- Inputs are `text-[16px]` on phones so iOS doesn't zoom (`text-base` is 15px).
 
 ## Shape and layout
 

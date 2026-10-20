@@ -170,6 +170,17 @@
 	--font-family-serif: ui-serif, New York Small, New York, Georgia, Times New Roman, Times, serif;
 	--font-chinese-traditional: PingFang TC, Microsoft JhengHei;
 
+	/* One px under Tailwind's default steps; phone inputs pin 16px so iOS doesn't zoom */
+	--text-xs: 0.6875rem;
+	--text-sm: 0.8125rem;
+	--text-base: 0.9375rem;
+	--text-lg: 1.0625rem;
+	--text-xl: 1.1875rem;
+	--text-2xl: 1.4375rem;
+	--text-3xl: 1.8125rem;
+	--text-5xl: 2.875rem;
+	--text-6xl: 3.5rem;
+
 	--color-sidebar-ring: var(--sidebar-ring);
 	--color-sidebar-border: var(--sidebar-border);
 	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -298,12 +309,12 @@
 
 /* Titles in list rows and side cards; weight and leading go beside it */
 @utility item-title {
-	font-size: 17px;
+	font-size: 16px;
 	letter-spacing: -0.01em;
 }
 
 @utility empty-state {
-	@apply rounded-xl border border-dashed border-border-strong bg-surface-soft px-5 py-8 text-[15px] text-muted-foreground;
+	@apply rounded-xl border border-dashed border-border-strong bg-surface-soft px-5 py-8 text-[14px] text-muted-foreground;
 }
 
 @layer utilities {

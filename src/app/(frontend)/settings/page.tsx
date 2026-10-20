@@ -20,7 +20,7 @@ export default async function SettingsPage() {
 
 	return (
 		<div className="px-contain mx-auto max-w-2xl py-6">
-			<h1 className="mb-6 display-heading text-[32px] text-foreground md:text-[44px]">
+			<h1 className="mb-6 display-heading text-[30px] text-foreground md:text-[40px]">
 				<T k="navigation.settings" />
 			</h1>
 			<AccountSettings profile={profile} />

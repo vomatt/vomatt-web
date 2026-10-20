@@ -88,7 +88,7 @@ export default function VerificationForm({
 
 	return (
 		<div className="flex flex-col">
-			<h1 className="mb-3 display-heading text-[32px]">{t('verificationCode.title')}</h1>
+			<h1 className="mb-3 display-heading text-[30px]">{t('verificationCode.title')}</h1>
 			<p className="mb-8 text-base leading-relaxed text-muted-foreground">
 				{t('verificationCode.subtitle')}{' '}
 				{/* Own line, so a long address wraps whole instead of splitting mid-word */}

@@ -36,7 +36,7 @@ export function PollListItem({ poll, meta, aside, onClick, className }: PollList
 					<p className="item-title line-clamp-2 leading-snug text-foreground">
 						{poll.title}
 					</p>
-					<p className="text-[13px] tabular-nums text-muted-foreground">{meta}</p>
+					<p className="text-[12px] tabular-nums text-muted-foreground">{meta}</p>
 				</div>
 				<ArrowRight
 					aria-hidden

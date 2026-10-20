@@ -150,7 +150,7 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }:
 						<li
 							key={row.id}
 							className={cn(
-								'relative overflow-hidden rounded-xl border text-[15px]',
+								'relative overflow-hidden rounded-xl border text-[14px]',
 								isWinner ? 'border-foreground' : 'border-border'
 							)}
 						>
@@ -171,12 +171,12 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }:
 									{isWinner && <Crown />}
 									{row.text}
 									{row.id === myOptionId && (
-										<span className="ml-2 rounded-full border border-foreground/20 bg-volt px-2 py-px align-[1px] text-[11px] font-semibold text-volt-foreground">
+										<span className="ml-2 rounded-full border border-foreground/20 bg-volt px-2 py-px align-[1px] text-[10px] font-semibold text-volt-foreground">
 											{t('poll.yourVoteShort')}
 										</span>
 									)}
 								</span>
-								<span className="shrink-0 font-mono text-[13px] tabular-nums">
+								<span className="shrink-0 font-mono text-[12px] tabular-nums">
 									<span className="sr-only">{percent}%</span>
 									<CountUp value={percent} delay={delay} />
 									<span className="ml-1.5 text-xs text-muted-foreground">{row.votes}</span>
@@ -186,7 +186,7 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }:
 					);
 				})}
 			</ul>
-			<p className="text-[13px] text-muted-foreground">
+			<p className="text-[12px] text-muted-foreground">
 				{caption}
 				{onSelectOption && winners.length > 0 && <span className="block">{t('poll.votersHint')}</span>}
 			</p>

@@ -71,7 +71,7 @@ export function ExploreView({
 
 	return (
 		<div className="space-y-8">
-			<h1 className="display-heading text-[32px] text-foreground md:text-[44px]">{t('explore.title')}</h1>
+			<h1 className="display-heading text-[30px] text-foreground md:text-[40px]">{t('explore.title')}</h1>
 
 			{tags.length > 0 && (
 				<section aria-labelledby="explore-topics" className="space-y-3">
@@ -105,7 +105,7 @@ export function ExploreView({
 						onChange={(e) => setQuery(e.target.value)}
 						placeholder={t('explore.searchPlaceholder')}
 						aria-label={t('explore.searchPlaceholder')}
-						className="pl-10 pr-4 md:text-[15px]"
+						className="pl-10 pr-4 md:text-[14px]"
 					/>
 				</div>
 

@@ -24,7 +24,7 @@ export function InvitationPrompt({ creator, pollId, signedIn }: InvitationPrompt
 			<h1 className="item-title mt-3 font-semibold text-foreground">
 				{t('poll.invitation.title', { username: creator.username })}
 			</h1>
-			<p className="mt-1.5 text-[15px] leading-relaxed text-muted-foreground">
+			<p className="mt-1.5 text-[14px] leading-relaxed text-muted-foreground">
 				{t(signedIn ? 'poll.invitation.wrongAccount' : 'poll.invitation.signIn')}
 			</p>
 			{!signedIn && (

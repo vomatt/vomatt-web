@@ -73,7 +73,7 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 	} else if (confirmingWithdraw) {
 		actions = (
 			<>
-				<span className="text-[13px]">{t('poll.withdrawConfirm')}</span>
+				<span className="text-[12px]">{t('poll.withdrawConfirm')}</span>
 				<div className="flex gap-1.5">
 					<Button size="sm" variant="ghost" onClick={() => setConfirmingWithdraw(false)}>
 						{t('poll.keep')}
@@ -111,7 +111,7 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 	} else {
 		actions = (
 			<>
-				<span className="text-[13px] text-muted-foreground">{t('poll.revealHint')}</span>
+				<span className="text-[12px] text-muted-foreground">{t('poll.revealHint')}</span>
 				<Button
 					disabled={isPending || !selected}
 					loading={pendingAction === 'vote'}
@@ -175,7 +175,7 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 					{/* The whole row is the 44px touch target; the Switch alone is smaller */}
 					<label
 						htmlFor={`anonymous-${poll.id}`}
-						className="flex min-h-11 flex-1 cursor-pointer items-center text-[13px] text-muted-foreground"
+						className="flex min-h-11 flex-1 cursor-pointer items-center text-[12px] text-muted-foreground"
 					>
 						{t('poll.anonymousToggle')}
 					</label>
@@ -189,7 +189,7 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 			)}
 
 			{!hasBallot && !isScheduled && visibilityHint && (
-				<p className="text-[13px] text-muted-foreground">{visibilityHint}</p>
+				<p className="text-[12px] text-muted-foreground">{visibilityHint}</p>
 			)}
 
 			<AnimatePresence initial={false}>
@@ -200,7 +200,7 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 						animate={{ opacity: 1, y: 0 }}
 						exit={{ opacity: 0, y: -6, transition: { duration: 0.15 } }}
 						transition={{ duration: 0.25, ease: 'easeOut' }}
-						className="flex items-start gap-2.5 rounded-lg border border-border bg-surface-soft px-3.5 py-3 text-[13px] text-muted-foreground"
+						className="flex items-start gap-2.5 rounded-lg border border-border bg-surface-soft px-3.5 py-3 text-[12px] text-muted-foreground"
 					>
 						<BallotBoxIcon className="mt-0.5 shrink-0 text-foreground" />
 						<div className="flex flex-col gap-1">

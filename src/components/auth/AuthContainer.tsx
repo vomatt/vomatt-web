@@ -29,7 +29,7 @@ export default function AuthContainer({
 					</p>
 					<p className="text-lg leading-relaxed text-muted-foreground">{t('login.brandBody')}</p>
 				</div>
-				<ul className="max-w-md divide-y divide-border border-t border-border text-[15px] text-muted-foreground">
+				<ul className="max-w-md divide-y divide-border border-t border-border text-[14px] text-muted-foreground">
 					{(['brandRuleSealed', 'brandRuleOneVote', 'brandRuleResults'] as const).map((key) => (
 						<li key={key} className="py-3">
 							{t(`login.${key}`)}

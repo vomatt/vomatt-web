@@ -147,7 +147,7 @@ export function VotersDialog({ option, voters, onClose }: VotersDialogProps) {
 									<UserChip
 										username={voter.username}
 										avatarUrl={voter.avatarUrl}
-										className="-mx-2 flex min-h-11 gap-3 rounded-lg px-2 text-[15px] hover:bg-muted"
+										className="-mx-2 flex min-h-11 gap-3 rounded-lg px-2 text-[14px] hover:bg-muted"
 									/>
 								</li>
 							))}
@@ -159,13 +159,13 @@ export function VotersDialog({ option, voters, onClose }: VotersDialogProps) {
 						</div>
 					)}
 					{truncated && (
-						<p className="py-2 text-[13px] text-muted-foreground">
+						<p className="py-2 text-[12px] text-muted-foreground">
 							{t('poll.votersTruncated', { count: voters.voters.length })}
 						</p>
 					)}
-					{empty && <p className="py-2 text-[13px] text-muted-foreground">{t('poll.votersNone')}</p>}
+					{empty && <p className="py-2 text-[12px] text-muted-foreground">{t('poll.votersNone')}</p>}
 					{failed && (
-						<p className="py-2 text-[13px] text-muted-foreground">
+						<p className="py-2 text-[12px] text-muted-foreground">
 							{t(voters.status === 'hidden' ? 'poll.votersHidden' : 'poll.votersFailed')}
 						</p>
 					)}

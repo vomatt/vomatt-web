@@ -20,11 +20,11 @@ export default function ProfileNotFound() {
 			<div className="flex size-16 items-center justify-center rounded-full bg-secondary text-muted-foreground">
 				<User size="2em" aria-hidden />
 			</div>
-			<h1 className="display-heading mt-6 text-[28px] text-foreground">
+			<h1 className="display-heading mt-6 text-[27px] text-foreground">
 				{t(handle ? 'profile.notFoundTitle' : 'profile.pageNotFoundTitle')}
 			</h1>
-			{handle && <p className="mt-1 font-mono text-[13px] text-muted-foreground">@{handle}</p>}
-			<p className="mt-4 max-w-sm text-[15px] text-muted-foreground">
+			{handle && <p className="mt-1 font-mono text-[12px] text-muted-foreground">@{handle}</p>}
+			<p className="mt-4 max-w-sm text-[14px] text-muted-foreground">
 				{t(handle ? 'profile.notFoundBody' : 'profile.pageNotFoundBody')}
 			</p>
 			<div className="mt-8 flex flex-wrap justify-center gap-2">

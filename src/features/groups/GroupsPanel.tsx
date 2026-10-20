@@ -163,7 +163,7 @@ export function GroupsPanel() {
 							>
 								<span className="min-w-0 flex-1">
 									<span className="item-title block truncate">{group.name}</span>
-									<span className="block text-[13px] tabular-nums text-muted-foreground">
+									<span className="block text-[12px] tabular-nums text-muted-foreground">
 										{countText(t, 'groups.memberCount', group.memberCount, currentLanguage)}
 									</span>
 								</span>
@@ -364,7 +364,7 @@ function GroupDialog({
 						</div>
 					)}
 					{loadFailed && (
-						<div className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2 text-[13px] text-muted-foreground">
+						<div className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2 text-[12px] text-muted-foreground">
 							<p>{t('groups.membersFailed')}</p>
 							<Button variant="outline" size="sm" loading={retrying} onClick={retryMembers}>
 								{t('common.tryAgain')}
@@ -372,7 +372,7 @@ function GroupDialog({
 						</div>
 					)}
 					{members?.length === 0 && (
-						<p className="py-2 text-[13px] text-muted-foreground">{t('groups.noMembers')}</p>
+						<p className="py-2 text-[12px] text-muted-foreground">{t('groups.noMembers')}</p>
 					)}
 					{!!members?.length && (
 						<PeopleList
@@ -417,7 +417,7 @@ function GroupDialog({
 				<div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4">
 					{confirmingDelete ? (
 						<>
-							<span id="group-delete-question" className="text-[13px]">
+							<span id="group-delete-question" className="text-[12px]">
 								{t('groups.deleteConfirm')}
 							</span>
 							<div className="flex gap-1.5">
