@@ -99,7 +99,9 @@ export default function ProfileHeader({
 				{profile.bio && (
 					<p
 						className={cn(
-							'mt-3 wrap-anywhere whitespace-pre-line text-[15px]',
+							// Capped measure (~68 characters): the column runs ~87 wide between md and lg, and
+							// Geist's wide 0 makes `ch` overshoot, so the cap is in rem
+							'mt-3 max-w-[30rem] wrap-anywhere whitespace-pre-line text-[15px]',
 							isHidden('bio') && 'text-muted-foreground'
 						)}
 					>

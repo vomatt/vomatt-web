@@ -60,7 +60,7 @@ describe('useBallot outcomes', () => {
 			outcome = await result.current.cast('opt-a');
 		});
 		expect(outcome).toBe('failed');
-		expect(toast.error).toHaveBeenCalledWith("You're voting too fast. Wait a minute and try again.");
+		expect(toast.error).toHaveBeenCalledWith("You’re voting too fast. Wait a minute and try again.");
 	});
 
 	it('tells the voter to slow down when a withdrawal is rate limited', async () => {
@@ -76,7 +76,7 @@ describe('useBallot outcomes', () => {
 			outcome = await result.current.retract();
 		});
 		expect(outcome).toBe('failed');
-		expect(toast.error).toHaveBeenCalledWith("You're voting too fast. Wait a minute and try again.");
+		expect(toast.error).toHaveBeenCalledWith("You’re voting too fast. Wait a minute and try again.");
 	});
 
 	it('resolves ended when the poll closed meanwhile', async () => {

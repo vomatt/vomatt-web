@@ -68,7 +68,7 @@ describe('AvatarDialog', () => {
 		openDialog('bot:boba');
 		choose('Mazu');
 		fireEvent.click(screen.getByRole('button', { name: 'Save avatar' }));
-		await waitFor(() => expect(mockToastError).toHaveBeenCalledWith("Couldn't save. Try again.", { duration: Infinity }));
+		await waitFor(() => expect(mockToastError).toHaveBeenCalledWith("Couldn’t save. Try again.", { duration: Infinity }));
 		expect(screen.getByRole('button', { name: 'Save avatar' })).toBeEnabled();
 	});
 

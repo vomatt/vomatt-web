@@ -4,6 +4,7 @@ import { AlertDialog as AlertDialogPrimitive } from '@base-ui/react/alert-dialog
 import * as React from 'react';
 
 import { Button } from '@/components/ui/Button';
+import { dialogTitleClasses } from '@/components/ui/Dialog';
 import { cn } from '@/lib/utils';
 
 function AlertDialog({ ...props }: AlertDialogPrimitive.Root.Props) {
@@ -64,7 +65,7 @@ function AlertDialogHeader({
 	return (
 		<div
 			data-slot="alert-dialog-header"
-			className={cn('flex flex-col gap-2 text-center sm:text-left', className)}
+			className={cn('flex flex-col gap-2 text-start', className)}
 			{...props}
 		/>
 	);
@@ -93,7 +94,7 @@ function AlertDialogTitle({
 	return (
 		<AlertDialogPrimitive.Title
 			data-slot="alert-dialog-title"
-			className={cn('text-lg font-semibold', className)}
+			className={cn(dialogTitleClasses, className)}
 			{...props}
 		/>
 	);

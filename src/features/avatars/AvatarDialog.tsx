@@ -127,7 +127,7 @@ export function AvatarDialog({
 				<div className="-mx-4 space-y-5 overflow-y-auto overscroll-contain px-4 pb-1">
 					{(Object.keys(BOT_FAMILIES) as BotFamily[]).map((family) => (
 						<div key={family} className="space-y-2">
-							<p className="font-mono text-xs text-muted-foreground">
+							<p className="text-xs text-muted-foreground">
 								{t(`avatar.families.${family}`)}
 							</p>
 							<div className="grid grid-cols-[repeat(auto-fill,minmax(44px,1fr))] gap-1.5 md:grid-cols-[repeat(auto-fill,minmax(72px,1fr))] md:gap-2">

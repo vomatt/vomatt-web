@@ -115,6 +115,6 @@ describe('VotersDialog', () => {
 		mockGetVoters.mockResolvedValue({ ok: false, status: 500, message: 'down' });
 		render(<Harness />);
 		fireEvent.click(screen.getByRole('button', { name: 'Tabs' }));
-		expect(await screen.findByText("Couldn't load who voted.")).toBeInTheDocument();
+		expect(await screen.findByText("Couldn’t load who voted.")).toBeInTheDocument();
 	});
 });

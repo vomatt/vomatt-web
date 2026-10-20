@@ -241,7 +241,7 @@ describe('PollCard state B · Open, has Ballot', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: 'Withdraw vote' }));
 		expect(
-			screen.getByText("Withdraw your vote? You won't be counted or notified.")
+			screen.getByText("Withdraw your vote? You won’t be counted or notified.")
 		).toBeInTheDocument();
 		expect(mockRetractBallot).not.toHaveBeenCalled();
 
@@ -557,7 +557,7 @@ describe('PollCard state D · Ended', () => {
 		mockGetResults.mockResolvedValue({ ok: false, status: 403, message: 'sealed' });
 		render(<PollCard poll={{ ...endedPoll, options: openPoll.options }} />);
 		await waitFor(() => expect(mockGetPoll).toHaveBeenCalledWith('poll-1'));
-		expect(await screen.findByText("Couldn't load the results.")).toBeInTheDocument();
+		expect(await screen.findByText("Couldn’t load the results.")).toBeInTheDocument();
 	});
 });
 

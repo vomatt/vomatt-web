@@ -18,7 +18,7 @@ describe('InvitationPrompt', () => {
 
 	it('tells a signed-in visitor to use the invited address instead', () => {
 		render(<InvitationPrompt creator={creator} pollId="poll-1" signedIn />);
-		expect(screen.getByText(/This account can't open it/)).toBeInTheDocument();
+		expect(screen.getByText(/This account can’t open it/)).toBeInTheDocument();
 		expect(screen.queryByRole('link', { name: 'Log in' })).not.toBeInTheDocument();
 	});
 });

@@ -28,7 +28,7 @@ Cool canvas, ink actions, one accent. Use the semantic tokens as Tailwind classe
 - **Display**: the `display-heading` utility sets weight 400, leading 1.25 and -0.03em tracking; the size goes beside it.
   - Page titles: `display-heading text-[32px] md:text-[44px]`
   - Auth titles: `display-heading text-[32px]`
-  - Person names: `display-heading text-2xl md:text-[28px]`
+  - Person names: `display-heading text-2xl`
 - **Poll title** (card and preview): `text-[22px] leading-tight tracking-[-0.02em]`; cards add `font-medium md:text-[26px]`.
 - **Item title** (list rows, side cards): the `item-title` utility (17px, -0.01em); weight and leading go beside it.
 - **Body** `text-[15px]` (card descriptions `text-base`); **meta** `text-[13px]`; **chip** `text-[11px]` uppercase semibold.

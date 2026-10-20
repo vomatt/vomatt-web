@@ -14,14 +14,14 @@ describe('ProfileNotFound', () => {
 	it('names the missing username', () => {
 		mockPathname = '/old_name';
 		render(<ProfileNotFound />);
-		expect(screen.getByRole('heading', { name: "This profile doesn't exist" })).toBeInTheDocument();
+		expect(screen.getByRole('heading', { name: "This profile doesn’t exist" })).toBeInTheDocument();
 		expect(screen.getByText('@old_name')).toBeInTheDocument();
 	});
 
 	it('uses page wording for a slug that cannot be a username', () => {
 		mockPathname = '/About-Us';
 		render(<ProfileNotFound />);
-		expect(screen.getByRole('heading', { name: "This page doesn't exist" })).toBeInTheDocument();
+		expect(screen.getByRole('heading', { name: "This page doesn’t exist" })).toBeInTheDocument();
 		expect(screen.queryByText(/^@/)).not.toBeInTheDocument();
 	});
 

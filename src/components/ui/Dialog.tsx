@@ -121,14 +121,14 @@ function DialogFooter({
 	);
 }
 
+// Shared with AlertDialogTitle so both dialog titles stay the same role
+const dialogTitleClasses = 'cn-font-heading text-base leading-snug font-medium';
+
 function DialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
 	return (
 		<DialogPrimitive.Title
 			data-slot="dialog-title"
-			className={cn(
-				'cn-font-heading text-base leading-none font-medium',
-				className
-			)}
+			className={cn(dialogTitleClasses, className)}
 			{...props}
 		/>
 	);
@@ -160,5 +160,6 @@ export {
 	DialogOverlay,
 	DialogPortal,
 	DialogTitle,
+	dialogTitleClasses,
 	DialogTrigger,
 };

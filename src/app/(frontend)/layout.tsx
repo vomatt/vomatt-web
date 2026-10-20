@@ -100,7 +100,7 @@ export default async function RootLayout({
 
 	return (
 		<html lang={htmlLang(language)} className={clsx(geistSans.variable, geistMono.variable)}>
-			<body className="text-foreground font-sans">
+			<body className="text-foreground font-sans antialiased">
 				{isComingSoon(settings) ? (
 					<main className="h-screen flex flex-col justify-center items-center gap-5 px-contain text-center">
 						<div className="md:w-40 text-secondary-foreground w-28">

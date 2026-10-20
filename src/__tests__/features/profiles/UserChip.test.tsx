@@ -62,7 +62,7 @@ describe('UserChip', () => {
 		fetchMock.mockResolvedValueOnce(json(null, 500));
 		render(<UserChip username="lin" />);
 		await userEvent.hover(screen.getByRole('link', { name: 'lin' }));
-		expect(await screen.findByText("Couldn't load this profile.")).toBeInTheDocument();
+		expect(await screen.findByText("Couldn’t load this profile.")).toBeInTheDocument();
 	});
 
 	it('keeps clicks in the card from reaching a link around it', async () => {

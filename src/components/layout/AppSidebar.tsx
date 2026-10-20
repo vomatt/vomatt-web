@@ -165,8 +165,8 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 					<div
 						className={cn(
 							'rounded-xl border bg-card overflow-hidden',
-							// The ink border marks the current card, the way a selected ballot row is marked
-							accountCurrent ? 'border-foreground' : 'border-sidebar-border'
+							// A firmer border marks the current card; aria-current carries it for screen readers
+							accountCurrent ? 'border-border-strong' : 'border-sidebar-border'
 						)}
 					>
 						<Link

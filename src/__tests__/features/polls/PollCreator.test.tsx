@@ -179,7 +179,7 @@ describe('PollCreator', () => {
 		);
 		openSettings();
 		expect(screen.getByRole('group', { name: 'Who can see and vote?' })).toHaveAccessibleDescription(
-			"You can't change this once the poll opens."
+			"You can’t change this once the poll opens."
 		);
 	});
 
@@ -322,7 +322,7 @@ describe('PollCreator', () => {
 		openSettings();
 		expect(screen.getByLabelText(/Only me/)).toBeChecked();
 		expect(
-			screen.getByText("You can't change this once the poll opens. Voters see it before they vote.")
+			screen.getByText("You can’t change this once the poll opens. Voters see it before they vote.")
 		).toBeInTheDocument();
 		expect(screen.queryByRole('switch')).not.toBeInTheDocument();
 	});

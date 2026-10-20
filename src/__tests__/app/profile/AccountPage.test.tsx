@@ -124,6 +124,13 @@ describe('AccountPage', () => {
 		expect(screen.getByRole('link', { name: 'Change in Settings' })).toHaveAttribute('href', '/settings');
 	});
 
+	it("lists a hidden membership level in the owner's note", () => {
+		const hidden = { ...myProfile, membershipLevel: 'Gold', visibilitySettings: { points: true, membershipLevel: false } };
+		render(<AccountPage isOwn profile={hidden} polls={noPolls} insights={insights} />);
+
+		expect(paragraph(/^Only you see: Taipei and Gold\u00a0member\. Change in Settings$/)).toBeInTheDocument();
+	});
+
 	it('shows the display name and bio when the settings leave them out (public by default)', () => {
 		render(<AccountPage isOwn profile={{ ...myProfile, visibilitySettings: {} }} polls={noPolls} insights={insights} />);
 
@@ -167,7 +174,7 @@ describe('AccountPage', () => {
 	it("says the owner's polls couldn't load, leaves out turnout, and retries", () => {
 		render(<AccountPage isOwn profile={myProfile} polls={null} insights={null} />);
 
-		expect(screen.getByText("Couldn't load polls.")).toBeInTheDocument();
+		expect(screen.getByText("Couldn’t load polls.")).toBeInTheDocument();
 		expect(screen.queryByText('No polls yet.')).not.toBeInTheDocument();
 		expect(screen.queryByText(/votes\s+on\s+your\s+polls/)).not.toBeInTheDocument();
 		fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
@@ -177,7 +184,7 @@ describe('AccountPage', () => {
 	it("tells a visitor the polls couldn't load rather than that there are none", () => {
 		render(<AccountPage isOwn={false} profile={publicProfile} polls={null} isAuthenticated={false} />);
 
-		expect(screen.getByText("Couldn't load polls.")).toBeInTheDocument();
+		expect(screen.getByText("Couldn’t load polls.")).toBeInTheDocument();
 		expect(screen.queryByText('No polls yet.')).not.toBeInTheDocument();
 	});
 

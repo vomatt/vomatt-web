@@ -93,7 +93,7 @@ describe('AccountSettings', () => {
 		expect(location).not.toBeChecked();
 		// The failure doesn't undo Bio's save
 		expect(bio).not.toBeChecked();
-		expect(toast.error).toHaveBeenCalledWith("Couldn't save. Try again.", { duration: Infinity });
+		expect(toast.error).toHaveBeenCalledWith("Couldn’t save. Try again.", { duration: Infinity });
 	});
 
 	it('shows the delete button as busy while the account is deleted', async () => {
@@ -121,7 +121,7 @@ describe('AccountSettings', () => {
 		});
 		fireEvent.click(screen.getAllByRole('button', { name: 'Delete account' }).at(-1)!);
 		await waitFor(() =>
-			expect(toast.error).toHaveBeenCalledWith("Couldn't delete your account. It's still active; try again.", { duration: Infinity })
+			expect(toast.error).toHaveBeenCalledWith("Couldn’t delete your account. It’s still active; try again.", { duration: Infinity })
 		);
 	});
 
