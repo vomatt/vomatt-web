@@ -14,8 +14,6 @@ const config: Config = {
 	collectCoverageFrom: [
 		'src/**/*.{ts,tsx}',
 		'!src/**/*.d.ts',
-		'!src/sanity/schemaTypes/**',
-		'!src/sanity/deskStructure/**',
 		'!src/__mocks__/**',
 	],
 };

@@ -1,4 +1,4 @@
-import { defineQuery } from 'next-sanity';
+import { defineQuery } from 'groq';
 
 export const homeID = defineQuery(`*[_type == "pHome"][0]._id`);
 // Base queries for common fields

@@ -24,7 +24,7 @@ never calls the API directly, so its CORS list doesn't need the web origin.
       still lists Payload and has no Sanity packages; Vercel prefers it over `package-lock.json`, so
       the install fails or installs the wrong dependencies.
 - [ ] The deployed API must run current vomatt-api `main` (api-integration-notes E1).
-- [ ] Sanity → API → CORS origins: add the production domain (with credentials) so `/sanity` works.
+- [ ] Set `NEXT_PUBLIC_SANITY_STUDIO_URL` to the vomatt-admin Studio so `/sanity` redirects there (Studio CORS is set up in vomatt-admin).
 
 ## Before launch
 

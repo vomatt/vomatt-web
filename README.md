@@ -1,8 +1,8 @@
 # Vomatt — web
 
-Public voting platform. This repo is the Next.js 16 front end with an embedded Sanity Studio at
-`/sanity`. App data (polls, ballots, comments, accounts) comes from
-[vomatt-api](../vomatt-api); site content (settings, pages, the coming-soon switch) comes from Sanity.
+Public voting platform. This repo is the Next.js 16 front end. App data (polls, ballots, comments,
+accounts) comes from [vomatt-api](../vomatt-api); site content (settings, pages, the coming-soon
+switch) comes from Sanity. Editors use the Sanity Studio in [vomatt-admin](../vomatt-admin).
 
 ```
 Browser ──► vomatt-web (Vercel) ──► vomatt-api   (server-side only, Bearer token from httpOnly cookies)
@@ -25,7 +25,7 @@ npm run dev
 ```
 
 - Site: http://localhost:3002 (the dev server uses Turbopack on port 3002)
-- Studio: http://localhost:3002/sanity (log in with your Sanity account)
+- Studio: run [vomatt-admin](../vomatt-admin) (http://localhost:3003/sanity)
 
 Local development always shows the full site; the coming-soon page only applies in production.
 
@@ -35,10 +35,8 @@ Local development always shows the full site; the coming-soon page only applies 
 2. Put its project ID and dataset in `NEXT_PUBLIC_SANITY_PROJECT_ID` / `NEXT_PUBLIC_SANITY_DATASET`.
 3. **Dataset visibility must be Public** (manage → Datasets). The site reads published content
    without a token.
-4. **API → CORS origins**: add every origin the Studio runs on, with *Allow credentials*:
-   `http://localhost:3002`, your production domain, and your Vercel preview domain pattern if
-   editors use previews.
-5. Open `/sanity` and publish **Settings → General** (site title, share image, favicon, coming soon).
+4. In the vomatt-admin Studio, publish **Settings → General** (site title, share image, favicon,
+   coming soon). Studio CORS origins are set up in vomatt-admin.
 
 ### vomatt-api
 
@@ -59,9 +57,10 @@ Sign-in codes are emailed; with email disabled locally, read the code from Redis
 | `API_LOG` | No | `1` | Logs each API request/response from the server. On by default in `npm run dev` (`0` silences it); off in deployments unless `1` (e.g. a Preview scoped to the `dev` branch, read in Vercel Runtime Logs). |
 | `IOS_APP_IDS` | No | `ABCDE12345.com.vomatt.app` | iOS universal links: comma-separated `<TeamID>.<bundle ID>` values served in `/.well-known/apple-app-site-association`, so `/poll/<id>` and `/<username>` links open the app. Unset: that file 404s and links stay on the web. Set it in Production (the domain in the app's `applinks:` entitlement). |
 | `NEXT_PUBLIC_SANITY_API_VERSION` | No | `2025-08-08` | Sanity API version; defaults to `2025-08-08`. |
+| `NEXT_PUBLIC_SANITY_STUDIO_URL` | No | `https://admin.vomatt.com/sanity` | vomatt-admin's Studio URL. When set, `/sanity` redirects there. |
 
 Not needed (leave unset): `DATABASE_URL`, `PAYLOAD_SECRET` (Payload was removed);
-`SANITY_API_READ_TOKEN`, `SANITY_REVALIDATE_SECRET`, `NEXT_PUBLIC_SANITY_STUDIO_URL`
+`SANITY_API_READ_TOKEN`, `SANITY_REVALIDATE_SECRET`
 (read in code but nothing depends on them yet); `SANITY_STUDIO_PREVIEW_ORIGIN` (the Presentation
 tool was removed);
 `NEXT_PUBLIC_API_URL` (the followers/following sheet calls this site's own `/api` routes when it is
@@ -83,8 +82,8 @@ The browser never calls the API directly, so its `CORS_ALLOWED_ORIGINS` doesn't 
    - Preview: same keys; `SITE_URL` can be the preview's domain, `API_URL` a staging API.
    - Mark `SESSION_SECRET` as **Sensitive**.
    - Variables are read at build time too, so **redeploy** after changing them.
-4. **Domain:** add it under Project → Domains, then add it to the Sanity CORS origins.
-5. **Deploy**, then open `https://<domain>/sanity`, sign in, and check that
+4. **Domain:** add it under Project → Domains.
+5. **Deploy**, then in the vomatt-admin Studio check that
    **Settings → General → Coming soon** is set the way you want (it is on until you turn it off).
 
 ### Going live
@@ -129,9 +128,5 @@ npm run generate:openapi  # regenerate openapi.json from the Zod schemas
   `JWT_SECRET`.
 - **Feed is empty, requests go to `//api/...`** — `API_URL` has a trailing slash or a path.
 - **Site errors on every page with "Invalid URL"** — `SITE_URL` is missing.
-- **Studio says "CORS origin not allowed"** — add the domain in Sanity manage → API → CORS
-  origins, with credentials.
 - **Sanity content doesn't appear** — the dataset is private, or the project ID/dataset are wrong.
-- **`Failed to communicate with the Sanity API`** in the CLI — run `npx sanity logout` then
-  `npx sanity login`.
 - **Can't sign in on production** — the API's email isn't configured, so codes are never sent.

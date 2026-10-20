@@ -1,6 +1,6 @@
-import { createClient } from 'next-sanity';
+import { createClient } from '@sanity/client';
 
-import { apiVersion, dataset, projectId, studioUrl } from '../env';
+import { apiVersion, dataset, projectId } from '../env';
 
 export const client = createClient({
 	projectId,
@@ -8,8 +8,5 @@ export const client = createClient({
 	apiVersion,
 	useCdn: true, // Set to false if statically generating pages, using ISR or tag-based revalidation
 	perspective: 'published',
-	stega: {
-		studioUrl,
-	},
 	requestTagPrefix: 'website',
 });

@@ -22,17 +22,17 @@ npx jest src/__tests__/components/PollCard.test.tsx
 
 ## Architecture
 
-**vomatt** is a public voting/poll platform built on Next.js 16 App Router + Sanity (CMS content) + vomatt-api (app data).
+**vomatt** is a public voting/poll platform built on Next.js 16 App Router + Sanity (CMS content) + vomatt-api (app data). The Sanity Studio and its schemas live in `vomatt-admin` (sibling repo); this app only reads published content.
 
 ### Route Groups
 
 - `src/app/(frontend)/` — customer-facing UI. `layout.tsx` fetches the `settingsGeneral` Sanity singleton for site-wide metadata and applies language detection from cookies/headers.
-- `src/app/(sanity)/` — embedded Sanity Studio at `/sanity` (`sanity.config.ts`).
+- `/sanity` redirects to vomatt-admin's Studio when `NEXT_PUBLIC_SANITY_STUDIO_URL` is set (`next.config.ts`).
 - `src/app/api/` — thin API route handlers (user-related endpoints).
 
 ### Sanity CMS
 
-Studio config in `sanity.config.ts`; schemas in `src/sanity/schemaTypes/` (singletons like `settingsGeneral`, `pSignUp`, `pHome`; documents like `pGeneral`). Content is not localized.
+Schemas live in vomatt-admin `src/sanity/schemaTypes/` (singletons like `settingsGeneral`, `pSignUp`, `pHome`; documents like `pGeneral`); GROQ queries here depend on them, so check both when a schema changes. Read side here: `src/sanity/{env.ts,lib/client.ts,lib/live.ts,lib/image.ts,lib/queries.ts}` on `@sanity/client` + `groq` (not `next-sanity`, which pulls in the Studio). Content is not localized.
 
 Fetch pattern (published content, revalidated every 60s — no read token or webhook):
 ```ts
@@ -78,6 +78,7 @@ Sanity fetches revalidate every 60s (`src/sanity/lib/live.ts`); there is no publ
 ```
 NEXT_PUBLIC_SANITY_PROJECT_ID  # Sanity project
 NEXT_PUBLIC_SANITY_DATASET     # Sanity dataset
+NEXT_PUBLIC_SANITY_STUDIO_URL  # Optional: vomatt-admin Studio URL; /sanity redirects there
 SESSION_SECRET   # Must equal the API's JWT_SECRET (HMAC-SHA)
 SITE_URL         # Frontend URL, no trailing slash; required (metadataBase)
 API_URL          # vomatt-api origin, no path (e.g. http://localhost:8080)
@@ -91,8 +92,7 @@ Template and Vercel setup: `.env.example`, `README.md`. The production site show
 | What | Where |
 |------|-------|
 | Global CSS / design tokens | `src/styles/global.css` |
-| Sanity Studio config | `sanity.config.ts` |
-| Sanity schemas / queries | `src/sanity/schemaTypes/`, `src/sanity/lib/queries.ts` |
+| Sanity queries (schemas in vomatt-admin) | `src/sanity/lib/queries.ts` |
 | API client + token logic | `src/lib/api/client.ts`, `src/lib/api/auth.ts` |
 | Poll domain (schema, status, service) | `src/features/polls/` |
 | Sidebar | `src/components/layout/AppSidebar.tsx` |

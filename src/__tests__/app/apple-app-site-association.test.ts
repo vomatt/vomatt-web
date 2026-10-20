@@ -7,7 +7,7 @@ const sanityFetchMock = jest.fn();
 jest.mock('@/sanity/lib/live', () => ({
 	sanityFetch: (...args: unknown[]) => sanityFetchMock(...args),
 }));
-// next-sanity is ESM only
+// groq is ESM only
 jest.mock('@/sanity/lib/queries', () => ({ pageGeneralSlugsQuery: 'slugs' }));
 
 import { GET } from '@/app/.well-known/apple-app-site-association/route';

@@ -1,4 +1,4 @@
-import type { QueryParams } from 'next-sanity';
+import type { QueryParams } from '@sanity/client';
 
 // Published content only, refreshed at most once a minute (no read token or webhook is configured).
 export async function sanityFetch({

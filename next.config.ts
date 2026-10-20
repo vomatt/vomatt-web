@@ -1,6 +1,8 @@
 import type { NextConfig } from 'next';
 import * as path from 'path';
 
+const studioUrl = process.env.NEXT_PUBLIC_SANITY_STUDIO_URL;
+
 const nextConfig: NextConfig = {
 	reactStrictMode: true,
 	sassOptions: {
@@ -22,6 +24,10 @@ const nextConfig: NextConfig = {
 			{ source: '/signup', destination: '/login', permanent: true },
 			// Profiles moved to the root, next to Sanity pages
 			{ source: '/profile/:username', destination: '/:username', permanent: true },
+			// The Studio moved to vomatt-admin
+			...(studioUrl
+				? [{ source: '/sanity/:path*', destination: `${studioUrl}/:path*`, permanent: false }]
+				: []),
 		];
 	},
 	async headers() {
