@@ -1,4 +1,4 @@
-import { ballotHistory, ballotOutcome, computeInsights } from '@/features/account/insights';
+import { ballotOutcome, computeInsights } from '@/features/account/insights';
 import type { Poll } from '@/features/polls/schema';
 
 const NOW = Date.parse('2026-10-05T12:00:00Z');
@@ -34,34 +34,13 @@ describe('ballotOutcome()', () => {
 	});
 });
 
-describe('ballotHistory()', () => {
-	it('keeps only polls the viewer voted in, with the chosen text', () => {
-		const history = ballotHistory([poll('x', { a: 1, b: 0 }, false, 'b'), poll('y', null, false)], NOW);
-		expect(history).toHaveLength(1);
-		expect(history[0]).toMatchObject({ choice: 'B', outcome: 'pending' });
-	});
-});
-
 describe('computeInsights()', () => {
-	const history = ballotHistory(
-		[
-			poll('w1', { a: 3, b: 1 }, true, 'a'),
-			poll('w2', { a: 3, b: 1 }, true, 'a'),
-			poll('l1', { a: 3, b: 1 }, true, 'b'),
-			poll('open', { a: 0, b: 0 }, false, 'a'),
-		],
-		NOW
-	);
-
-	it('summarises reach and the majority rate', () => {
-		const insights = computeInsights([poll('mine', { a: 8, b: 4 }, true)], history);
-		expect(insights).toMatchObject({
-			peopleReached: 12,
-			majorityRate: 67,
-		});
+	it('sums the turnout of the user\'s polls', () => {
+		const insights = computeInsights([poll('a', { a: 8, b: 4 }, true), poll('b', { a: 1, b: 2 }, false)]);
+		expect(insights).toEqual({ turnout: 15 });
 	});
 
-	it('has no majority rate before anything is decided', () => {
-		expect(computeInsights([], []).majorityRate).toBeNull();
+	it('is zero with no polls', () => {
+		expect(computeInsights([]).turnout).toBe(0);
 	});
 });

@@ -3,12 +3,6 @@ import { derivePollStatus, getTurnout, getWinners } from '@/features/polls/statu
 
 export type BallotOutcome = 'pending' | 'won' | 'tied' | 'lost' | 'unknown';
 
-export type BallotRecord = {
-	poll: Poll;
-	choice: string;
-	outcome: BallotOutcome;
-};
-
 /** Whether the viewer's pick won an Ended Poll; `pending` while it is still open. */
 export function ballotOutcome(poll: Poll, optionId: string, now = Date.now()): BallotOutcome {
 	if (derivePollStatus(poll, now) !== 'ended') return 'pending';
@@ -23,35 +17,11 @@ export function ballotChoice(poll: Poll): string {
 	return poll.options.find((option) => option.id === poll.myOptionId)?.text ?? '';
 }
 
-/** The viewer's Ballots among `polls`, newest first. */
-export function ballotHistory(polls: Poll[], now = Date.now()): BallotRecord[] {
-	return polls
-		.filter((poll): poll is Poll & { myOptionId: string } => !!poll.myOptionId)
-		.map((poll) => ({
-			poll,
-			choice: ballotChoice(poll),
-			outcome: ballotOutcome(poll, poll.myOptionId, now),
-		}));
-}
-
 export type Insights = {
 	/** People who voted on the user's polls. */
-	peopleReached: number;
-	/** Share of decided Ballots where the pick won or tied, 0–100; null before any are decided. */
-	majorityRate: number | null;
+	turnout: number;
 };
 
-export function computeInsights(
-	myPolls: Poll[],
-	history: BallotRecord[]
-): Insights {
-	const decided = history.filter((record) => record.outcome !== 'pending' && record.outcome !== 'unknown');
-	const withMajority = decided.filter((record) => record.outcome !== 'lost').length;
-	const turnouts = myPolls.map((poll) => getTurnout(poll) ?? 0);
-	const majorityRate = decided.length ? Math.round((withMajority / decided.length) * 100) : null;
-
-	return {
-		peopleReached: turnouts.reduce((sum, count) => sum + count, 0),
-		majorityRate,
-	};
+export function computeInsights(myPolls: Poll[]): Insights {
+	return { turnout: myPolls.reduce((sum, poll) => sum + (getTurnout(poll) ?? 0), 0) };
 }

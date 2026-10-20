@@ -61,18 +61,23 @@ export function AvatarDialog({
 	};
 
 	const save = async () => {
+		// Enabled even when unchanged, so it never drops focus; nothing to save just closes
+		if (unchanged) {
+			setOpen(false);
+			return;
+		}
 		setIsSaving(true);
 		try {
 			const result = await chooseAvatar(selected);
 			if (!result.ok) {
-				toast.error(apiErrorText(t, result));
+				toast.error(apiErrorText(t, result, 'account.saveFailed'), { duration: Infinity });
 				return;
 			}
 			setOpen(false);
 			toast.success(t('avatar.savedToast'));
 		} catch {
 			// The action itself returns failures; this is the request to it failing (e.g. offline)
-			toast.error(t('account.saveFailed'));
+			toast.error(t('account.saveFailed'), { duration: Infinity });
 		} finally {
 			setIsSaving(false);
 		}
@@ -136,9 +141,10 @@ export function AvatarDialog({
 										})}
 										onClick={() => setSelected(kind)}
 										className={cn(
-											'aspect-square rounded-full p-0.5 transition-shadow',
+											'aspect-square rounded-full p-0.5 transition-shadow outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring',
 											kind === selected
-												? 'bg-foreground ring-4 ring-volt'
+												? // Forced colors drop the ring and fill; the outline survives as the selection
+													'bg-foreground ring-4 ring-volt forced-colors:outline-2 forced-colors:outline-offset-2 forced-colors:outline-solid'
 												: 'hover:bg-border-strong'
 										)}
 									>
@@ -151,7 +157,7 @@ export function AvatarDialog({
 				</div>
 
 				<DialogFooter showCloseButton closeLabel={t('common.close')}>
-					<Button onClick={save} disabled={unchanged} loading={isSaving}>
+					<Button onClick={save} loading={isSaving}>
 						{t('avatar.save')}
 					</Button>
 				</DialogFooter>

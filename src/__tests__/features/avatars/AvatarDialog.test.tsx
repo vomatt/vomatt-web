@@ -31,7 +31,9 @@ describe('AvatarDialog', () => {
 			'aria-pressed',
 			'true'
 		);
-		expect(screen.getByRole('button', { name: 'Save avatar' })).toBeDisabled();
+		// Enabled even when unchanged; saving nothing just closes
+		fireEvent.click(screen.getByRole('button', { name: 'Save avatar' }));
+		expect(mockChooseAvatar).not.toHaveBeenCalled();
 	});
 
 	it('saves the picked bot and closes', async () => {
@@ -57,7 +59,7 @@ describe('AvatarDialog', () => {
 		openDialog('bot:boba');
 		choose('Mazu');
 		fireEvent.click(screen.getByRole('button', { name: 'Save avatar' }));
-		await waitFor(() => expect(mockToastError).toHaveBeenCalledWith('Too many requests, please try again later'));
+		await waitFor(() => expect(mockToastError).toHaveBeenCalledWith('Too many requests, please try again later', { duration: Infinity }));
 		expect(screen.getByRole('button', { name: 'Save avatar' })).toBeEnabled();
 	});
 
@@ -66,7 +68,7 @@ describe('AvatarDialog', () => {
 		openDialog('bot:boba');
 		choose('Mazu');
 		fireEvent.click(screen.getByRole('button', { name: 'Save avatar' }));
-		await waitFor(() => expect(mockToastError).toHaveBeenCalledWith("Couldn't save. Try again."));
+		await waitFor(() => expect(mockToastError).toHaveBeenCalledWith("Couldn't save. Try again.", { duration: Infinity }));
 		expect(screen.getByRole('button', { name: 'Save avatar' })).toBeEnabled();
 	});
 

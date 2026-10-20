@@ -188,7 +188,7 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }:
 			</ul>
 			<p className="text-[13px] text-muted-foreground">
 				{caption}
-				{onSelectOption && winners.length > 0 && <> · {t('poll.votersHint')}</>}
+				{onSelectOption && winners.length > 0 && <span className="block">{t('poll.votersHint')}</span>}
 			</p>
 		</div>
 	);

@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 
-import { Button } from '@/components/ui/Button';
+import { Button, buttonVariants } from '@/components/ui/Button';
 
 describe('Button loading', () => {
 	it('marks the button busy and keeps its label in the accessible name', () => {
@@ -89,5 +89,13 @@ describe('Button loading', () => {
 		expect(button).not.toHaveAttribute('aria-disabled');
 		fireEvent.click(button);
 		expect(onClick).toHaveBeenCalledTimes(1);
+	});
+});
+
+describe('buttonVariants', () => {
+	it("lets the variant's border win over the base's, for a Link styled as a button", () => {
+		const classes = buttonVariants({ variant: 'outline' }).split(' ');
+		expect(classes).toContain('border-border');
+		expect(classes).not.toContain('border-transparent');
 	});
 });

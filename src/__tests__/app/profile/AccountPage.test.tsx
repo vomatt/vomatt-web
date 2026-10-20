@@ -1,24 +1,16 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { toast } from 'sonner';
+import { fireEvent, render, screen } from '@testing-library/react';
 
 import AccountPage from '@/app/(frontend)/[slug]/_components/AccountPage';
 import type { MyProfile, UserProfile } from '@/types/user';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
-jest.mock('next/navigation', () => ({ useRouter: () => ({ replace: jest.fn(), refresh: jest.fn() }) }));
+const mockRefresh = jest.fn();
+jest.mock('next/navigation', () => ({ useRouter: () => ({ replace: jest.fn(), refresh: mockRefresh }) }));
 jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn() } }));
-jest.mock('@/lib/api/services/auth', () => ({ signout: jest.fn() }));
-jest.mock('@/lib/api/services/users', () => ({
-	deleteMyAccount: jest.fn(),
-	updateVisibility: jest.fn(),
-	editProfile: jest.fn(),
-}));
+jest.mock('@/lib/api/services/users', () => ({ editProfile: jest.fn() }));
 jest.mock('@/features/polls/service', () => ({ getUserPolls: jest.fn() }));
 jest.mock('@/features/avatars/service', () => ({ chooseAvatar: jest.fn() }));
 jest.mock('@/features/groups/GroupsPanel', () => ({ GroupsPanel: () => <p>Groups panel</p> }));
-
-// Base UI's Switch dispatches a PointerEvent on click
-window.PointerEvent = window.PointerEvent || (MouseEvent as any);
 
 const publicProfile: UserProfile = {
 	username: 'mei',
@@ -55,8 +47,19 @@ const myProfile: MyProfile = {
 	anonymousBallotByDefault: false,
 };
 
-const insights = { peopleReached: 40, majorityRate: 50 };
+const insights = { turnout: 40 };
 const noPolls = { items: [], nextCursor: null };
+
+/** Header items keep their words together with no-break spaces. */
+const nb = (text: string) => text.replace(/ /g, '\u00a0');
+
+/** The paragraph whose whole text matches, across its inline links and spans. */
+const paragraph = (text: RegExp) =>
+	screen.getByText((_, element) => element?.tagName === 'P' && text.test(element.textContent ?? ''));
+
+/** The items of the header row holding `text` (the details row or the counts row), in order; getByText reads no-break spaces as spaces. */
+const rowOf = (text: string | RegExp) =>
+	[...screen.getByText(text).parentElement!.children].map((item) => item.textContent);
 
 describe('AccountPage', () => {
 	it('shows a visitor the same header and stats, with only public fields', () => {
@@ -70,10 +73,12 @@ describe('AccountPage', () => {
 		);
 
 		expect(screen.getByRole('heading', { level: 1, name: 'mei' })).toBeInTheDocument();
-		expect(screen.getByText(/Taipei · Joined/)).toBeInTheDocument();
+		expect(rowOf('Joined Aug 2026')).toEqual([nb('Taipei'), nb('Joined Aug 2026')]);
+		expect(rowOf('Voted in 12 public polls')).toEqual([nb('Voted in 12 public polls'), nb('3 public polls created')]);
 		expect(screen.queryByText(/points/)).not.toBeInTheDocument();
-		expect(screen.getByText('Votes cast')).toBeInTheDocument();
-		expect(screen.getByText('Polls created')).toBeInTheDocument();
+		expect(screen.queryByText(/Only you can see/)).not.toBeInTheDocument();
+		expect(screen.getByText('Voted in 12 public polls')).toBeInTheDocument();
+		expect(screen.getByText('3 public polls created')).toBeInTheDocument();
 	});
 
 	it('hides owner-only stats, tabs and actions from visitors', () => {
@@ -86,7 +91,7 @@ describe('AccountPage', () => {
 			/>
 		);
 
-		expect(screen.queryByText('People reached')).not.toBeInTheDocument();
+		expect(screen.queryByText(/votes\s+on\s+your\s+polls/)).not.toBeInTheDocument();
 		expect(screen.queryByRole('tab')).not.toBeInTheDocument();
 		expect(screen.queryByRole('button', { name: /edit/i })).not.toBeInTheDocument();
 		expect(screen.getByRole('heading', { level: 2, name: 'Polls' })).toBeInTheDocument();
@@ -97,78 +102,94 @@ describe('AccountPage', () => {
 
 		expect(screen.getByRole('heading', { level: 1, name: 'Mei' })).toBeInTheDocument();
 		expect(screen.getByText(/120 points/)).toBeInTheDocument();
-		// Location is hidden from visitors, so the owner's header leaves it out too
-		expect(screen.queryByText(/Taipei/)).not.toBeInTheDocument();
-		expect(screen.getByText('People reached')).toBeInTheDocument();
+		// Location is hidden from visitors: it leaves the details line for the owner's note
+		expect(paragraph(/^Only you see: Taipei\. Change in Settings$/)).toBeInTheDocument();
+		expect(rowOf('Joined Aug 2026')).toEqual([nb('120 points'), nb('Joined Aug 2026')]);
+		expect(rowOf('Voted in 12 public polls')).toEqual([nb('Voted in 12 public polls'), nb('3 public polls created'), nb('40 votes on your polls')]);
+		expect(screen.getByText('40 votes on your polls')).toBeInTheDocument();
+		expect(screen.queryByText(/majority/i)).not.toBeInTheDocument();
 		expect(screen.getByRole('tab', { name: 'Polls' })).toBeInTheDocument();
 		expect(screen.getByRole('tab', { name: 'Groups' })).toBeInTheDocument();
-		expect(screen.getByRole('tab', { name: 'Settings' })).toBeInTheDocument();
+		expect(screen.getByRole('link', { name: 'Settings' })).toHaveAttribute('href', '/settings');
+		expect(screen.queryByRole('tab', { name: 'Settings' })).not.toBeInTheDocument();
+	});
+
+	it('shows the owner their hidden display name and bio, marked, with a link to Settings', () => {
+		const hidden = { ...myProfile, visibilitySettings: { displayName: false, bio: false } };
+		render(<AccountPage isOwn profile={hidden} polls={noPolls} insights={insights} />);
+
+		expect(screen.getByRole('heading', { level: 1, name: 'Mei (Only you can see this)' })).toBeInTheDocument();
+		expect(screen.getByText(/Poll enthusiast/)).toHaveTextContent('Poll enthusiast(Only you can see this)');
+		expect(paragraph(/^Only you see: Display\u00a0name, Bio, Taipei, and 120\u00a0points\. Change in Settings$/)).toBeInTheDocument();
+		expect(screen.getByRole('link', { name: 'Change in Settings' })).toHaveAttribute('href', '/settings');
+	});
+
+	it('shows the display name and bio when the settings leave them out (public by default)', () => {
+		render(<AccountPage isOwn profile={{ ...myProfile, visibilitySettings: {} }} polls={noPolls} insights={insights} />);
+
+		expect(screen.getByRole('heading', { level: 1, name: 'Mei' })).toBeInTheDocument();
+		// Exact text: no "only you" marker on either
+		expect(screen.getByText('Poll enthusiast')).toBeInTheDocument();
+	});
+
+	it('uses the singular for a count of one', () => {
+		const single = { ...myProfile, totalVotes: 1, totalPolls: 1 };
+		render(<AccountPage isOwn profile={single} polls={noPolls} insights={{ turnout: 1 }} />);
+
+		expect(screen.getByRole('link', { name: nb('Voted in 1 public poll') })).toBeInTheDocument();
+		expect(screen.getByRole('link', { name: nb('1 public poll created') })).toBeInTheDocument();
+		expect(screen.getByText('1 vote on your polls')).toBeInTheDocument();
+	});
+
+	it('groups large counts by locale', () => {
+		render(<AccountPage isOwn profile={{ ...myProfile, totalVotes: 1200 }} polls={noPolls} insights={insights} />);
+
+		expect(screen.getByRole('link', { name: nb('Voted in 1,200 public polls') })).toBeInTheDocument();
 	});
 
 	it("sends the owner's poll counts to My Polls, and keeps a visitor's static", () => {
 		const { unmount } = render(<AccountPage isOwn profile={myProfile} polls={noPolls} insights={insights} />);
-		expect(screen.getByRole('link', { name: /Votes cast/ })).toHaveAttribute('href', '/my-polls');
-		expect(screen.getByRole('link', { name: /Polls created/ })).toHaveAttribute('href', '/my-polls');
-		expect(screen.queryByRole('link', { name: /People reached/ })).not.toBeInTheDocument();
+		expect(screen.getByRole('link', { name: nb('Voted in 12 public polls') })).toHaveAttribute('href', '/my-polls');
+		expect(screen.getByRole('link', { name: nb('3 public polls created') })).toHaveAttribute('href', '/my-polls');
+		expect(screen.queryByRole('link', { name: /votes\s+on\s+your\s+polls/ })).not.toBeInTheDocument();
 		unmount();
 
 		render(<AccountPage isOwn={false} profile={publicProfile} polls={noPolls} isAuthenticated={false} />);
-		expect(screen.queryByRole('link', { name: /Votes cast/ })).not.toBeInTheDocument();
+		expect(screen.queryByRole('link', { name: /public\s+polls/ })).not.toBeInTheDocument();
 	});
 
-	it('lets the owner change their avatar from the header, not from Settings', () => {
+	it('lets the owner change their avatar from the header', () => {
 		render(<AccountPage isOwn profile={myProfile} polls={noPolls} insights={insights} />);
 
 		expect(screen.getByRole('button', { name: 'Change avatar' })).toBeInTheDocument();
-		fireEvent.click(screen.getByRole('tab', { name: 'Settings' }));
-		expect(screen.queryByRole('heading', { name: 'Avatar' })).not.toBeInTheDocument();
 	});
 
-	it('lets the owner vote anonymously by default from Settings', async () => {
-		const { editProfile } = jest.requireMock('@/lib/api/services/users');
-		editProfile.mockResolvedValue({ ok: true });
-		render(<AccountPage isOwn profile={myProfile} polls={noPolls} insights={insights} />);
+	it("says the owner's polls couldn't load, leaves out turnout, and retries", () => {
+		render(<AccountPage isOwn profile={myProfile} polls={null} insights={null} />);
 
-		fireEvent.click(screen.getByRole('tab', { name: 'Settings' }));
-		const toggle = screen.getByRole('switch', { name: 'Vote anonymously by default' });
-		expect(toggle).not.toBeChecked();
-		fireEvent.click(toggle);
-		expect(editProfile).toHaveBeenCalledWith({ anonymousBallotByDefault: true });
-		await waitFor(() => expect(toggle).toBeChecked());
+		expect(screen.getByText("Couldn't load polls.")).toBeInTheDocument();
+		expect(screen.queryByText('No polls yet.')).not.toBeInTheDocument();
+		expect(screen.queryByText(/votes\s+on\s+your\s+polls/)).not.toBeInTheDocument();
+		fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+		expect(mockRefresh).toHaveBeenCalled();
 	});
 
-	it('falls back to the saved default when quick toggles both fail', async () => {
-		const { editProfile } = jest.requireMock('@/lib/api/services/users');
-		const answers: ((value: { ok: boolean; message: string }) => void)[] = [];
-		editProfile.mockImplementation(() => new Promise((resolve) => answers.push(resolve)));
-		render(<AccountPage isOwn profile={myProfile} polls={noPolls} insights={insights} />);
+	it("tells a visitor the polls couldn't load rather than that there are none", () => {
+		render(<AccountPage isOwn={false} profile={publicProfile} polls={null} isAuthenticated={false} />);
 
-		fireEvent.click(screen.getByRole('tab', { name: 'Settings' }));
-		const toggle = screen.getByRole('switch', { name: 'Vote anonymously by default' });
-		fireEvent.click(toggle);
-		fireEvent.click(toggle);
-		await act(async () => {
-			answers[0]({ ok: false, message: '' });
-			answers[1]({ ok: false, message: '' });
-		});
-		expect(toggle).not.toBeChecked();
+		expect(screen.getByText("Couldn't load polls.")).toBeInTheDocument();
+		expect(screen.queryByText('No polls yet.')).not.toBeInTheDocument();
 	});
 
-	it.each([
-		['admin.last_admin', 'You are the only active admin. Make someone else an admin before deleting your account.'],
-		['common.conflict', 'Another change is in progress. Try again in a moment.'],
-	])('explains a refused deletion (%s)', async (errorCode, message) => {
-		const { deleteMyAccount } = jest.requireMock('@/lib/api/services/users');
-		deleteMyAccount.mockResolvedValue({ ok: false, status: 409, errorCode, message: 'raw' });
-		render(<AccountPage isOwn profile={myProfile} polls={noPolls} insights={insights} />);
+	it('offers the owner the create action on an empty list, and not a visitor', () => {
+		const { unmount } = render(<AccountPage isOwn profile={myProfile} polls={noPolls} insights={insights} />);
+		expect(screen.getByText("Your polls show up here once they open.")).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Create a poll' })).toBeInTheDocument();
+		unmount();
 
-		fireEvent.click(screen.getByRole('tab', { name: 'Settings' }));
-		fireEvent.click(screen.getByRole('button', { name: 'Delete account' }));
-		fireEvent.change(screen.getByRole('textbox', { name: 'Type your username to confirm' }), {
-			target: { value: 'mei' },
-		});
-		fireEvent.click(screen.getAllByRole('button', { name: 'Delete account' }).at(-1)!);
-		await waitFor(() => expect(toast.error).toHaveBeenCalledWith(message));
+		render(<AccountPage isOwn={false} profile={publicProfile} polls={noPolls} isAuthenticated />);
+		expect(screen.getByText('No polls yet.')).toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Create a poll' })).not.toBeInTheDocument();
 	});
 
 	it("doesn't let visitors change the avatar", () => {

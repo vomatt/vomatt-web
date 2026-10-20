@@ -1,5 +1,5 @@
 import { Skeleton } from '@/components/ui/Skeleton';
-import { ballotHistory, computeInsights } from '@/features/account/insights';
+import { computeInsights } from '@/features/account/insights';
 import { PollRowListSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import type { Poll } from '@/features/polls/schema';
 import { getAllMyPolls } from '@/features/polls/service';
@@ -15,7 +15,8 @@ export async function PublicProfile({
 	isAuthenticated,
 }: {
 	profile: UserProfile;
-	polls: Promise<CursorPage<Poll>>;
+	/** Resolves to null when the polls couldn't load */
+	polls: Promise<CursorPage<Poll> | null>;
 	isAuthenticated: boolean;
 }) {
 	const polls = await pollsPromise;
@@ -25,14 +26,14 @@ export async function PublicProfile({
 
 /** The signed-in user's own profile: the public page plus insights, Groups and Settings. */
 export async function OwnProfile({ profile }: { profile: MyProfile }) {
-	// Every Poll the user created or holds a Ballot in, so insights cover them all
-	const [open, ended] = await Promise.all([
-		getAllMyPolls('open').catch(() => []),
-		getAllMyPolls('ended').catch(() => []),
-	]);
-	const all = [...open, ...ended];
-	const myPolls = all.filter((poll) => poll.creatorId === profile.id);
-	const insights = computeInsights(myPolls, ballotHistory(all));
+	// Every Poll the user created or holds a Ballot in; the ones they created feed the list and turnout
+	const pages = await Promise.all([getAllMyPolls('open'), getAllMyPolls('ended')]).catch(() => null);
+	if (!pages) {
+		// Not an empty list: the page says it couldn't load and leaves out turnout
+		return <AccountPage isOwn profile={profile} polls={null} insights={null} />;
+	}
+	const myPolls = pages.flat().filter((poll) => poll.creatorId === profile.id);
+	const insights = computeInsights(myPolls);
 	// The same list visitors get from /users/{username}/votes, most recently opened first, already in hand
 	const polls: CursorPage<Poll> = {
 		items: [...myPolls].sort((a, b) => Date.parse(b.startTime) - Date.parse(a.startTime)),
@@ -50,9 +51,9 @@ export function ProfileSkeleton() {
 				<div className="flex-1 space-y-2">
 					<Skeleton className="h-8 w-48" />
 					<Skeleton className="h-3.5 w-24" />
+					<Skeleton className="h-3.5 w-56" />
 				</div>
 			</div>
-			<Skeleton className="h-20 rounded-xl" />
 			<div>
 				<Skeleton className="mb-4 h-8 w-40" />
 				<PollRowListSkeleton />

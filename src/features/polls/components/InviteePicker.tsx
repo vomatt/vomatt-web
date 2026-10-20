@@ -163,8 +163,11 @@ export function InviteePicker({
 									aria-pressed={picked}
 									className="rounded-full"
 									onClick={() => toggleGroup(group)}
+									// The count is set apart visually; the label says what it counts
+									aria-label={t('invitees.groupPill', { name: group.name, count: group.memberCount })}
 								>
-									{t('invitees.groupPill', { name: group.name, count: group.memberCount })}
+									{group.name}
+									<span className="ml-1 font-mono tabular-nums">{group.memberCount}</span>
 								</Button>
 							);
 						})}

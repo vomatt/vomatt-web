@@ -9,6 +9,7 @@ if (!document.elementFromPoint) {
 
 jest.mock('@/contexts/LanguageContext', () => ({
 	useLanguage: () => ({ t: (key: string) => key }),
+	useOptionalTranslate: () => (key: string) => key,
 }));
 
 beforeEach(() => {

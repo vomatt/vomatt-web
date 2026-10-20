@@ -506,7 +506,7 @@ describe('PollCreator', () => {
 		openSettings();
 		fireEvent.click(screen.getByLabelText(/Invite only/));
 
-		fireEvent.click(await screen.findByRole('button', { name: 'Book club · 3' }));
+		fireEvent.click(await screen.findByRole('button', { name: 'Book club, 3 members' }));
 		const field = screen.getByLabelText('Invite people');
 		fireEvent.change(field, { target: { value: 'bo' } });
 		fireEvent.click(await screen.findByRole('button', { name: /bob/ }));

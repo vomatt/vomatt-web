@@ -81,14 +81,18 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 
 	// /account redirects to the profile; link there directly so the card shows as active
 	const accountHref = profile ? profileHref(profile.username) : '/account';
+	// Settings is reached from the profile, so the card stays active there too
+	const accountCurrent = pathname === accountHref ? 'page' : pathname === '/settings' ? 'true' : undefined;
 
 	return (
 		<Sidebar className="border-sidebar-border">
 			{/* Header */}
 			<SidebarHeader className="px-5 pt-5 pb-5">
+				{/* The logo is an unlabeled svg, so the link carries the brand name */}
 				<Link
 					href="/"
-					className="block w-24 text-sidebar-foreground hover:text-sidebar-foreground/70 transition-colors"
+					aria-label="vomatt"
+					className="block w-24 text-sidebar-foreground hover:text-sidebar-foreground/70 transition-colors outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
 				>
 					<BrandLogo />
 				</Link>
@@ -134,8 +138,9 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 											className={cn(
 												'group h-11 rounded-lg border border-transparent px-3 cursor-pointer transition-colors duration-150',
 												'text-muted-foreground hover:text-sidebar-foreground',
+												// The ink border marks the current item without relying on the pale fill
 												isActive &&
-													'border-sidebar-border bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent'
+													'border-foreground bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent'
 											)}
 										>
 											<item.icon className="size-5 shrink-0" />
@@ -157,13 +162,20 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 			{/* Footer */}
 			<SidebarFooter className="px-3 py-10">
 				{userSession ? (
-					<div className="rounded-xl border border-sidebar-border bg-card overflow-hidden">
+					<div
+						className={cn(
+							'rounded-xl border bg-card overflow-hidden',
+							// The ink border marks the current card, the way a selected ballot row is marked
+							accountCurrent ? 'border-foreground' : 'border-sidebar-border'
+						)}
+					>
 						<Link
 							href={accountHref}
+							aria-current={accountCurrent}
 							className={cn(
-								'group flex items-center gap-3 p-3 transition-colors',
-								'hover:bg-surface-soft',
-								pathname === accountHref && 'bg-surface-soft'
+								'group flex items-center gap-3 p-3 transition-colors hover:bg-surface-soft',
+								// Inset so the card's overflow-hidden doesn't clip the ring
+								'outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring'
 							)}
 						>
 							{profile ? (
@@ -175,7 +187,8 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 
 							<div className="flex-1 min-w-0">
 								<p className="text-[13px] font-medium text-sidebar-foreground leading-tight truncate">
-									{profile?.displayName || profile?.username}
+									{/* Without a profile there's no name; say where the link goes */}
+									{profile?.displayName || profile?.username || t('navigation.profile')}
 								</p>
 								{profile?.displayName &&
 									profile.displayName !== profile.username && (
@@ -185,17 +198,20 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 									)}
 							</div>
 
-							<ArrowRight className="size-3.5 text-sidebar-foreground/60 group-hover:text-sidebar-foreground transition-colors shrink-0" />
+							<ArrowRight
+								aria-hidden
+								className="size-3.5 text-sidebar-foreground/60 group-hover:text-sidebar-foreground transition-colors shrink-0"
+							/>
 						</Link>
 					</div>
 				) : (
 					<div className="rounded-xl border border-sidebar-border bg-card p-1">
 						<Link
 							href="/login"
-							className="flex items-center gap-2.5 w-full min-h-11 px-3 rounded-lg text-muted-foreground hover:text-sidebar-foreground hover:bg-surface-soft transition-colors text-sm"
+							className="flex items-center gap-2.5 w-full min-h-11 px-3 rounded-lg text-muted-foreground hover:text-sidebar-foreground hover:bg-surface-soft transition-colors text-sm outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
 						>
 							<User className="size-4 shrink-0" />
-							<span className="font-medium">Sign in</span>
+							<span className="font-medium">{t('loginPrompt.ctaLabel')}</span>
 						</Link>
 					</div>
 				)}

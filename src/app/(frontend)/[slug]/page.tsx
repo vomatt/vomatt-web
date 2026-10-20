@@ -6,7 +6,6 @@ import { CookieSettingsButton } from '@/components/layout/CookieConsent';
 import { getMyProfile } from '@/data/auth';
 import { isOwnUsername, usernameFromSlug } from '@/features/account/username';
 import { getUserPolls } from '@/features/polls/service';
-import { EMPTY_PAGE } from '@/lib/api/cursor';
 import { getUserProfile } from '@/lib/api/services/users';
 import defineMetadata from '@/lib/defineMetadata';
 import { sanityFetch } from '@/sanity/lib/live';
@@ -71,7 +70,7 @@ export default async function PageSlugRoute(props: Props) {
 	}
 
 	// Started now so polls load alongside the profile lookup
-	const polls = getUserPolls(username).catch(() => EMPTY_PAGE);
+	const polls = getUserPolls(username).catch(() => null);
 	// Checked before streaming so an unknown slug still answers 404
 	const profile = await getUserProfile(username);
 	if (!profile) notFound();

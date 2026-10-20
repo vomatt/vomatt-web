@@ -129,8 +129,12 @@ function ProfileCardBody({
 			)}
 			{profile?.bio && <p className="line-clamp-3 text-[13px]">{profile.bio}</p>}
 			{profile && (
-				<p className="text-[13px] text-muted-foreground">
-					{profileDetails(profile, t, currentLanguage).join(' · ')}
+				<p className="flex flex-wrap gap-x-3 text-[13px] text-muted-foreground">
+					{profileDetails(profile, t, currentLanguage).map((part) => (
+						<span key={part.field} className="whitespace-nowrap">
+							{part.text}
+						</span>
+					))}
 				</p>
 			)}
 		</div>

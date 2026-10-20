@@ -29,6 +29,9 @@ const LanguageContext = createContext<LanguageContextType | undefined>(
 	undefined
 );
 
+/** The active `t`, or null outside a LanguageProvider (e.g. the Sanity studio) for shared primitives. */
+export const useOptionalTranslate = () => useContext(LanguageContext)?.t ?? null;
+
 // Hook to use language context
 export const useLanguage = () => {
 	const context = useContext(LanguageContext);

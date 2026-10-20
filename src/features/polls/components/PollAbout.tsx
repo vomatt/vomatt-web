@@ -81,16 +81,18 @@ export function PollAbout({ poll }: { poll: Poll }) {
 					<span className="font-mono text-3xl tracking-tight tabular-nums">{turnout.toLocaleString()}</span>{' '}
 					<span className="text-muted-foreground">
 						{t('pollDetail.participants')}
-						{poll.inviteeCount != null &&
-							` · ${t('pollDetail.invited', { count: poll.inviteeCount.toLocaleString() })}`}
+						{poll.inviteeCount != null && (
+							<span className="ml-3 whitespace-nowrap">
+								{t('pollDetail.invited', { count: poll.inviteeCount.toLocaleString() })}
+							</span>
+						)}
 					</span>
 				</p>
 			)}
 
 			{(poll.audience === 'unlisted' || poll.audience === 'invite-only') && (
 				<p className="leading-relaxed text-muted-foreground">
-					<span className="font-medium text-foreground">{t(`poll.audience.${poll.audience}`)}</span>
-					{' · '}
+					<span className="block font-medium text-foreground">{t(`poll.audience.${poll.audience}`)}</span>
 					{t(`pollDetail.audience.${poll.audience}`)}
 				</p>
 			)}

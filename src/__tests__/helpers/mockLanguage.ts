@@ -10,3 +10,6 @@ export function useLanguage() {
 	};
 	return { t, currentLanguage: 'en' as const };
 }
+
+/** useOptionalTranslate() inside a provider: the same English `t`. */
+export const useOptionalTranslate = () => useLanguage().t;

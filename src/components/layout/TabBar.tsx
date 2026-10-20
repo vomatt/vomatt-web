@@ -25,12 +25,15 @@ type TabBarProps = {
 
 // The center tab is the primary action: the create button as a square, the "Create a poll" action
 const createClassName = cn(buttonVariants({ variant: 'create' }), 'w-13 px-0');
-const cellClassName = 'flex-1 h-full flex justify-center items-center';
+const cellClassName =
+	'flex-1 h-full flex justify-center items-center outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring';
 
 export function TabBar({ className, userSession, username }: TabBarProps) {
 	const pathname = usePathname();
 	const { t } = useLanguage();
 	const { count: unreadCount } = useUnreadCount();
+	// /account redirects to the profile; link there directly so the tab shows as active
+	const profileTabHref = username ? profileHref(username) : '/account';
 	// The create action sits between these two halves
 	const leftLinks = [
 		{
@@ -58,8 +61,7 @@ export function TabBar({ className, userSession, username }: TabBarProps) {
 		},
 		{
 			title: t('navigation.profile'),
-			// /account redirects to the profile; link there directly so the tab shows as active
-			href: username ? profileHref(username) : '/account',
+			href: profileTabHref,
 			icon: <CircleUser />,
 		},
 	];
@@ -68,19 +70,22 @@ export function TabBar({ className, userSession, username }: TabBarProps) {
 	if (routeToHide.includes(pathname)) return null;
 
 	const renderLink = ({ href, title, icon }: (typeof leftLinks)[number]) => {
-		const isActive = isActivePath(pathname, href);
+		const isPage = isActivePath(pathname, href);
+		// Settings is reached from the profile, so the profile tab stays active there: the current section, not the page
+		const isActive = isPage || (href === profileTabHref && pathname === '/settings');
 		return (
 			<NextLink
 				key={href}
 				href={href}
-				aria-current={isActive ? 'page' : undefined}
+				aria-current={isPage ? 'page' : isActive ? 'true' : undefined}
 				className={cellClassName}
 			>
 				<span
 					className={cn(
 						'flex size-12 items-center justify-center [&_svg]:size-6',
 						isActive
-							? 'text-foreground shadow-[inset_0_-2px_0_var(--foreground)]'
+							? // Forced colors drop the shadow bar; the border takes its place
+								'text-foreground shadow-[inset_0_-2px_0_var(--foreground)] forced-colors:border-b-2'
 							: 'text-muted-foreground'
 					)}
 				>

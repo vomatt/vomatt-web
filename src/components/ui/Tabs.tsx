@@ -127,7 +127,11 @@ function TabsContent({ className, ...props }: TabsPrimitive.Panel.Props) {
 	return (
 		<TabsPrimitive.Panel
 			data-slot="tabs-content"
-			className={cn('flex-1 text-sm outline-none', className)}
+			// The open panel is a tab stop (Base UI sets tabIndex 0), so it needs the shared focus ring
+			className={cn(
+				'flex-1 rounded-lg text-sm outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring',
+				className
+			)}
 			{...props}
 		/>
 	);

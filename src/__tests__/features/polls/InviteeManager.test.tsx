@@ -39,7 +39,7 @@ describe('InviteeManager', () => {
 		setup();
 		expect(await screen.findByText('bob')).toBeInTheDocument();
 		expect(screen.getByText('dave@example.com')).toBeInTheDocument();
-		expect(screen.getByText('2 invited · 1 voted')).toBeInTheDocument();
+		expect(screen.getByText('2 invited, 1 voted')).toBeInTheDocument();
 		// Someone who voted can't be removed
 		expect(screen.queryByRole('button', { name: 'Remove bob' })).not.toBeInTheDocument();
 		expect(mockGetInvitees).toHaveBeenCalledWith('poll-1');
@@ -74,7 +74,7 @@ describe('InviteeManager', () => {
 				groupIds: [],
 			})
 		);
-		expect(await screen.findByText('3 invited · 1 voted')).toBeInTheDocument();
+		expect(await screen.findByText('3 invited, 1 voted')).toBeInTheDocument();
 		expect(onChanged).toHaveBeenCalled();
 	});
 
