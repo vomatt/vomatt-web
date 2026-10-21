@@ -67,9 +67,9 @@ export default function EditProfileDialog({
 	const [usernameInput, focusUsername] = useFocusAfterRender<HTMLInputElement>();
 
 	// The input lowercases, so a legacy mixed-case username isn't renamed by a case-only edit
+	const usernameChanged = username.toLowerCase() !== initialUsername.toLowerCase();
 	// A birthday can't be cleared, so an emptied field means unchanged
 	const birthdayChanged = birthday !== '' && birthday !== initialBirthday;
-	const usernameChanged = username.toLowerCase() !== initialUsername.toLowerCase();
 
 	const openChange = (next: boolean) => {
 		// Each visit starts from the saved profile, not abandoned edits
@@ -135,8 +135,8 @@ export default function EditProfileDialog({
 				username: usernameChanged ? username : undefined,
 				displayName,
 				bio,
-				firstName,
-				lastName,
+				firstName: firstName !== initialFirstName ? firstName : undefined,
+				lastName: lastName !== initialLastName ? lastName : undefined,
 				birthday: birthdayChanged ? birthday : undefined,
 			});
 			if (!result.ok) {

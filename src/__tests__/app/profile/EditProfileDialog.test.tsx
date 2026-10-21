@@ -43,8 +43,8 @@ describe('EditProfileDialog', () => {
 		expect(mockEditProfile).toHaveBeenCalledTimes(1);
 		expect(mockEditProfile).toHaveBeenCalledWith({ username: 'mei_lin', displayName: 'Mei Lin',
 			bio: '',
-			firstName: '',
-			lastName: '',
+			firstName: undefined,
+			lastName: undefined,
 			birthday: undefined,
 		});
 	});
@@ -64,7 +64,7 @@ describe('EditProfileDialog', () => {
 			displayName: 'Mei',
 			bio: '',
 			firstName: 'Mei',
-			lastName: '',
+			lastName: undefined,
 			birthday: '1990-05-01',
 		});
 	});
@@ -77,8 +77,8 @@ describe('EditProfileDialog', () => {
 		await waitFor(() => expect(mockEditProfile).toHaveBeenCalled());
 		expect(mockEditProfile).toHaveBeenCalledWith({ username: undefined, displayName: 'Mei',
 			bio: 'hi',
-			firstName: '',
-			lastName: '',
+			firstName: undefined,
+			lastName: undefined,
 			birthday: undefined,
 		});
 		expect(mockReplace).not.toHaveBeenCalled();

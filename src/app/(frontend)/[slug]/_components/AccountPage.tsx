@@ -67,7 +67,7 @@ export default function AccountPage(props: AccountPageProps) {
 								initialBio={profile.bio ?? ''}
 								initialFirstName={props.profile.firstName ?? ''}
 								initialLastName={props.profile.lastName ?? ''}
-								initialBirthday={props.profile.birthday ?? ''}
+								initialBirthday={profile.birthday ?? ''}
 							/>
 							<Link href="/settings" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
 								{t('navigation.settings')}
