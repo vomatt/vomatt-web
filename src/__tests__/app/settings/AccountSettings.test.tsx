@@ -23,6 +23,7 @@ const myProfile: MyProfile = {
 	phoneNumber: null,
 	firstName: null,
 	lastName: null,
+	birthday: null,
 	displayName: 'Mei',
 	bio: 'Poll enthusiast',
 	location: 'Taipei',

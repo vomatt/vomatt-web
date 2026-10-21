@@ -155,6 +155,10 @@
 		"saveChanges": "儲存變更",
 		"displayNamePlaceholder": "你的顯示名稱",
 		"bioPlaceholder": "向大家介紹一下自己",
+		"firstName": "名字",
+		"lastName": "姓氏",
+		"birthday": "生日",
+		"birthdayInvalid": "請選擇 1900 年至昨天之間的日期。",
 		"updated": "個人資料已更新"
 	},
 	"notifications": {
@@ -413,7 +417,8 @@
 			"bio": "自我介紹",
 			"location": "地區",
 			"points": "點數",
-			"membershipLevel": "會員等級"
+			"membershipLevel": "會員等級",
+			"birthday": "生日"
 		},
 		"saveFailed": "儲存失敗，請再試一次。",
 		"signOutTitle": "目前登入",

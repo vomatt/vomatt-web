@@ -61,6 +61,10 @@ export async function updateProfile(data: {
   username?: string;
   displayName?: string;
   bio?: string;
+  firstName?: string;
+  lastName?: string;
+  /** yyyy-MM-dd; cannot be cleared */
+  birthday?: string;
   anonymousBallotByDefault?: boolean;
 }) {
   const profile = await apiClient<UserProfile>('/users/me', {
