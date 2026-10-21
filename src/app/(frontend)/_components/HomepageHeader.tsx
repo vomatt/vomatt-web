@@ -31,7 +31,7 @@ export function HomepageHeader({ tags, activeTag }: HomepageHeaderProps) {
 			<h1 className="sr-only">{heading}</h1>
 			<nav
 				aria-label={t('homePage.topics')}
-				className="sticky top-0 z-10 -mx-1 border-b border-border bg-background"
+				className="sticky top-header-space-0 z-10 -mx-1 translate-y-[calc(var(--header-offset)-var(--header-height))] motion-safe:transition-transform motion-safe:duration-200 border-b border-border bg-background"
 			>
 				<ul className="flex gap-1 overflow-x-auto px-1 py-1 [scrollbar-width:none]">
 					{items.map(({ slug, label }) => {

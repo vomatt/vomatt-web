@@ -41,6 +41,9 @@ export const resolveHref = ({
 	}
 };
 
+/** Pages that render without the app chrome (sidebar, phone header, TabBar). */
+export const isChromeless = (pathname: string) => pathname === '/login';
+
 /** A user's profile; it shares the root with Sanity pages. */
 export const profileHref = (username: string) => `/${encodeURIComponent(username)}`;
 

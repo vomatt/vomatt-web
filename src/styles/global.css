@@ -102,8 +102,10 @@
 
 	--positive: oklch(0.51 0.15 145);
 
-	--header-height: 70px;
-	--announcement-height: 0;
+	/* Room the phone Header takes, and where sticky bars sit below it (0 while it slides away); both set below */
+	--header-height: 0px;
+	--header-offset: 0px;
+	--announcement-height: 0px;
 	/* Room the fixed TabBar takes; set below only while it is shown */
 	--tabbar-space: 0px;
 }
@@ -113,6 +115,18 @@
 	:root:has([data-tabbar]) {
 		--tabbar-space: calc(64px + env(safe-area-inset-bottom));
 	}
+	:root:has([data-mobile-header]) {
+		--header-height: 56px;
+		--header-offset: var(--header-height);
+	}
+	:root:has([data-mobile-header][data-hidden]:not(:focus-within)) {
+		--header-offset: 0px;
+	}
+}
+
+/* Keep focused and linked-to targets clear of the phone header */
+html {
+	scroll-padding-top: var(--header-offset);
 }
 
 .dark {

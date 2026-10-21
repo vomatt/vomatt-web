@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-import BrandLogo from '@/components/BrandLogo';
+import { BrandLink } from '@/components/BrandLink';
 import { Button, buttonVariants } from '@/components/ui/Button';
 import { InitialAvatar } from '@/components/ui/InitialAvatar';
 import {
@@ -35,7 +35,7 @@ import {
 } from '@/features/notifications/UnreadCountProvider';
 import { CreatePollTrigger } from '@/features/polls/components/CreatePollTrigger';
 import { signout } from '@/lib/api/services/auth';
-import { isActivePath, profileHref } from '@/lib/routes';
+import { isActivePath, isChromeless, profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 import { MyProfile } from '@/types/user';
 
@@ -69,8 +69,6 @@ interface AppSidebarProps {
 	profile: MyProfile | null;
 }
 
-const hideSideBarFromPages = ['/login'];
-
 export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 	const { t } = useLanguage();
 	const pathname = usePathname();
@@ -80,7 +78,7 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 		signout();
 	}
 
-	if (hideSideBarFromPages.includes(pathname)) return null;
+	if (isChromeless(pathname)) return null;
 
 	// /account redirects to the profile; link there directly so the card shows as active
 	const accountHref = profile ? profileHref(profile.username) : '/account';
@@ -96,14 +94,7 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 		<Sidebar className="border-sidebar-border">
 			{/* Header */}
 			<SidebarHeader className="px-5 pt-5 pb-5">
-				{/* The logo is an unlabeled svg, so the link carries the brand name */}
-				<Link
-					href="/"
-					aria-label="vomatt"
-					className="block w-24 text-sidebar-foreground hover:text-sidebar-foreground/70 transition-colors outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
-				>
-					<BrandLogo />
-				</Link>
+				<BrandLink className="w-24 text-sidebar-foreground hover:text-sidebar-foreground/70 transition-colors" />
 			</SidebarHeader>
 
 			{/* Primary action */}
