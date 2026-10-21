@@ -7,6 +7,10 @@ import type { MyProfile } from '@/types/user';
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn() } }));
 jest.mock('@/lib/api/services/auth', () => ({ signout: jest.fn() }));
+jest.mock('@/features/blocks/service', () => ({
+	getBlockedUsers: jest.fn().mockResolvedValue({ ok: true, data: { items: [], nextCursor: null } }),
+	unblockUser: jest.fn(),
+}));
 jest.mock('@/lib/api/services/users', () => ({
 	deleteMyAccount: jest.fn(),
 	updateVisibility: jest.fn(),

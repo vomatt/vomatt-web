@@ -778,6 +778,9 @@
 			},
 			"delete": {
 				"forbidden": "You can only delete your own account"
+			},
+			"block": {
+				"self": "You can’t block yourself"
 			}
 		},
 		"vote": {
@@ -870,5 +873,20 @@
 			"self_action_forbidden": "You cannot suspend yourself or remove your own admin role",
 			"last_admin": "Cannot remove the last active admin"
 		}
+	},
+	"blocks": {
+		"title": "Blocked users",
+		"intro": "You won’t see their polls in feeds or their comments. They aren’t told, and nothing changes for them.",
+		"empty": "You haven’t blocked anyone.",
+		"loadFailed": "Couldn’t load blocked users.",
+		"unblock": "Unblock",
+		"unblocked": "Unblocked @{username}",
+		"unblockFailed": "Couldn’t unblock. Try again.",
+		"block": "Block",
+		"blocked": "Blocked @{username}",
+		"manage": "Manage blocked users",
+		"blockFailed": "Couldn’t block. Try again.",
+		"confirmTitle": "Block @{username}?",
+		"confirmBody": "Their polls and comments will no longer show up for you. They won’t be told. You can unblock them in Settings."
 	}
 }

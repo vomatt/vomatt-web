@@ -13,6 +13,7 @@ import type { CursorPage } from '@/lib/api/cursor';
 import { countText } from '@/lib/count';
 import type { MyProfile, UserProfile } from '@/types/user';
 
+import BlockButton from './BlockButton';
 import EditProfileDialog from './EditProfileDialog';
 import ProfileHeader, { FollowControls, keepWhole } from './ProfileHeader';
 import ProfilePollList from './ProfilePollList';
@@ -74,7 +75,10 @@ export default function AccountPage(props: AccountPageProps) {
 							</Link>
 						</div>
 					) : (
-						<FollowControls profile={props.profile} isAuthenticated={props.isAuthenticated} />
+						<div className="flex flex-wrap items-center gap-4">
+							<FollowControls profile={props.profile} isAuthenticated={props.isAuthenticated} />
+							{props.isAuthenticated && <BlockButton username={profile.username} />}
+						</div>
 					)
 				}
 				meta={
