@@ -30,12 +30,25 @@ interface EditProfileDialogProps {
 	initialUsername: string;
 	initialDisplayName: string;
 	initialBio: string;
+	initialFirstName: string;
+	initialLastName: string;
+	/** yyyy-MM-dd, or empty when never set */
+	initialBirthday: string;
 }
+
+const BIRTHDAY_MIN = '1900-01-01';
+
+/** Yesterday in Asia/Taipei as yyyy-MM-dd, the API's latest accepted birthday. */
+const latestBirthday = () =>
+	new Date(Date.now() - 86_400_000).toLocaleDateString('en-CA', { timeZone: 'Asia/Taipei' });
 
 export default function EditProfileDialog({
 	initialUsername,
 	initialDisplayName,
 	initialBio,
+	initialFirstName,
+	initialLastName,
+	initialBirthday,
 }: EditProfileDialogProps) {
 	const { t } = useLanguage();
 	const router = useRouter();
@@ -43,6 +56,10 @@ export default function EditProfileDialog({
 	const [username, setUsername] = useState(initialUsername);
 	const [displayName, setDisplayName] = useState(initialDisplayName);
 	const [bio, setBio] = useState(initialBio);
+	const [firstName, setFirstName] = useState(initialFirstName);
+	const [lastName, setLastName] = useState(initialLastName);
+	const [birthday, setBirthday] = useState(initialBirthday);
+	const [birthdayError, setBirthdayError] = useState(false);
 	const [usernameError, setUsernameError] = useState<string | null>(null);
 	// A new username breaks old links, so it takes a second step
 	const [confirming, setConfirming] = useState(false);
@@ -51,6 +68,8 @@ export default function EditProfileDialog({
 
 	// The input lowercases, so a legacy mixed-case username isn't renamed by a case-only edit
 	const usernameChanged = username.toLowerCase() !== initialUsername.toLowerCase();
+	// A birthday can't be cleared, so an emptied field means unchanged
+	const birthdayChanged = birthday !== '' && birthday !== initialBirthday;
 
 	const openChange = (next: boolean) => {
 		// Each visit starts from the saved profile, not abandoned edits
@@ -58,6 +77,10 @@ export default function EditProfileDialog({
 			setUsername(initialUsername);
 			setDisplayName(initialDisplayName);
 			setBio(initialBio);
+			setFirstName(initialFirstName);
+			setLastName(initialLastName);
+			setBirthday(initialBirthday);
+			setBirthdayError(false);
 			setUsernameError(null);
 			setConfirming(false);
 		}
@@ -86,7 +109,18 @@ export default function EditProfileDialog({
 			);
 			return;
 		}
-		if (!usernameChanged && displayName === initialDisplayName && bio === initialBio) {
+		if (birthdayChanged && (birthday < BIRTHDAY_MIN || birthday > latestBirthday())) {
+			setBirthdayError(true);
+			return;
+		}
+		if (
+			!usernameChanged &&
+			!birthdayChanged &&
+			displayName === initialDisplayName &&
+			bio === initialBio &&
+			firstName === initialFirstName &&
+			lastName === initialLastName
+		) {
 			setOpen(false);
 			return;
 		}
@@ -101,6 +135,9 @@ export default function EditProfileDialog({
 				username: usernameChanged ? username : undefined,
 				displayName,
 				bio,
+				firstName: firstName !== initialFirstName ? firstName : undefined,
+				lastName: lastName !== initialLastName ? lastName : undefined,
+				birthday: birthdayChanged ? birthday : undefined,
 			});
 			if (!result.ok) {
 				// A refused username belongs next to its field; anything else is a toast
@@ -208,6 +245,56 @@ export default function EditProfileDialog({
 									maxLength={500}
 									rows={4}
 								/>
+							</div>
+							<div className="grid grid-cols-2 gap-3">
+								<div className="flex flex-col gap-1.5">
+									<label htmlFor="firstName" className="text-sm font-medium text-foreground">
+										{t('profile.firstName')}
+									</label>
+									<Input
+										id="firstName"
+										value={firstName}
+										onChange={(e) => setFirstName(e.target.value)}
+										autoComplete="given-name"
+										maxLength={50}
+									/>
+								</div>
+								<div className="flex flex-col gap-1.5">
+									<label htmlFor="lastName" className="text-sm font-medium text-foreground">
+										{t('profile.lastName')}
+									</label>
+									<Input
+										id="lastName"
+										value={lastName}
+										onChange={(e) => setLastName(e.target.value)}
+										autoComplete="family-name"
+										maxLength={50}
+									/>
+								</div>
+							</div>
+							<div className="flex flex-col gap-1.5">
+								<label htmlFor="birthday" className="text-sm font-medium text-foreground">
+									{t('profile.birthday')}
+								</label>
+								<Input
+									id="birthday"
+									type="date"
+									value={birthday}
+									onChange={(e) => {
+										setBirthday(e.target.value);
+										setBirthdayError(false);
+									}}
+									min={BIRTHDAY_MIN}
+									max={latestBirthday()}
+									autoComplete="bday"
+									aria-invalid={birthdayError}
+									aria-describedby={birthdayError ? 'birthday-error' : undefined}
+								/>
+								{birthdayError && (
+									<p id="birthday-error" className="text-xs text-destructive">
+										{t('profile.birthdayInvalid')}
+									</p>
+								)}
 							</div>
 						</form>
 						<DialogFooter showCloseButton closeLabel={t('common.close')}>

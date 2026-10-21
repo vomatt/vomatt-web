@@ -18,7 +18,7 @@ beforeEach(() => {
 });
 
 function open(initialUsername = 'mei') {
-	render(<EditProfileDialog initialUsername={initialUsername} initialDisplayName="Mei" initialBio="" />);
+	render(<EditProfileDialog initialUsername={initialUsername} initialDisplayName="Mei" initialBio="" initialFirstName="" initialLastName="" initialBirthday="" />);
 	fireEvent.click(screen.getByRole('button', { name: 'Edit profile' }));
 }
 const save = () => fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
@@ -41,7 +41,32 @@ describe('EditProfileDialog', () => {
 		confirmRename();
 		await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/mei_lin'));
 		expect(mockEditProfile).toHaveBeenCalledTimes(1);
-		expect(mockEditProfile).toHaveBeenCalledWith({ username: 'mei_lin', displayName: 'Mei Lin', bio: '' });
+		expect(mockEditProfile).toHaveBeenCalledWith({ username: 'mei_lin', displayName: 'Mei Lin',
+			bio: '',
+			firstName: undefined,
+			lastName: undefined,
+			birthday: undefined,
+		});
+	});
+
+	it('saves names and a changed birthday, and rejects one out of range', async () => {
+		open();
+		fireEvent.change(screen.getByLabelText('First name'), { target: { value: 'Mei' } });
+		fireEvent.change(screen.getByLabelText('Birthday'), { target: { value: '1899-12-31' } });
+		save();
+		expect(await screen.findByText('Pick a date between 1900 and yesterday.')).toBeInTheDocument();
+		expect(mockEditProfile).not.toHaveBeenCalled();
+		fireEvent.change(screen.getByLabelText('Birthday'), { target: { value: '1990-05-01' } });
+		save();
+		await waitFor(() => expect(mockEditProfile).toHaveBeenCalled());
+		expect(mockEditProfile).toHaveBeenCalledWith({
+			username: undefined,
+			displayName: 'Mei',
+			bio: '',
+			firstName: 'Mei',
+			lastName: undefined,
+			birthday: '1990-05-01',
+		});
 	});
 
 	it("doesn't rename a legacy mixed-case username on a case-only edit", async () => {
@@ -50,7 +75,12 @@ describe('EditProfileDialog', () => {
 		fireEvent.change(screen.getByLabelText('Bio'), { target: { value: 'hi' } });
 		save();
 		await waitFor(() => expect(mockEditProfile).toHaveBeenCalled());
-		expect(mockEditProfile).toHaveBeenCalledWith({ username: undefined, displayName: 'Mei', bio: 'hi' });
+		expect(mockEditProfile).toHaveBeenCalledWith({ username: undefined, displayName: 'Mei',
+			bio: 'hi',
+			firstName: undefined,
+			lastName: undefined,
+			birthday: undefined,
+		});
 		expect(mockReplace).not.toHaveBeenCalled();
 	});
 

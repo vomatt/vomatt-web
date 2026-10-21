@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/Input';
 import { Switch } from '@/components/ui/Switch';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { isFieldPublic, VISIBILITY_FIELDS } from '@/features/account/visibility';
+import { BlockedUsersPanel } from '@/features/blocks/BlockedUsersPanel';
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
 import { apiErrorText } from '@/lib/api/error-text';
 import { signout } from '@/lib/api/services/auth';
@@ -110,6 +111,8 @@ export default function AccountSettings({ profile }: { profile: MyProfile }) {
 					onCheckedChange={toggleAnonymousDefault}
 				/>
 			</section>
+
+			<BlockedUsersPanel />
 
 			<section className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4">
 				<div>
