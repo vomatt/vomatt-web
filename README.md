@@ -7,7 +7,7 @@ switch) comes from Sanity. Editors use the Sanity Studio in [vomatt-admin](../vo
 ```
 Browser ──► vomatt-web (Vercel) ──► vomatt-api   (server-side only, Bearer token from httpOnly cookies)
                      │
-                     └────────────► Sanity       (published content, cached 60s)
+                     └────────────► Sanity       (published content, expired per change on publish)
 ```
 
 ## Requirements
@@ -56,12 +56,13 @@ Sign-in codes are emailed; with email disabled locally, read the code from Redis
 | `SITE_URL` | Yes | `https://vomatt.com` | Public origin, no trailing slash. Used for metadata, Open Graph and canonical URLs; the site errors if it is missing. |
 | `API_LOG` | No | `1` | Logs each API request/response from the server. On by default in `npm run dev` (`0` silences it); off in deployments unless `1` (e.g. a Preview scoped to the `dev` branch, read in Vercel Runtime Logs). |
 | `IOS_APP_IDS` | No | `ABCDE12345.com.vomatt.app` | iOS universal links: comma-separated `<TeamID>.<bundle ID>` values served in `/.well-known/apple-app-site-association`, so `/poll/<id>` and `/<username>` links open the app. Unset: that file 404s and links stay on the web. Set it in Production (the domain in the app's `applinks:` entitlement). |
+| `SANITY_REVALIDATE_SECRET` | No | 48 random chars | **Production only.** Lets vomatt-admin's Sanity Function expire just the changed Sanity content on publish (`POST /api/revalidate`); while set, Sanity content refreshes only hourly as a fallback. Same value as the function's `SANITY_REVALIDATE_SECRET` (`npx sanity functions env add invalidate-tags SANITY_REVALIDATE_SECRET <value>` in vomatt-admin). Outside Production (local dev, Previews, which the function never calls) edits show up within about a minute, set or not. |
 | `NEXT_PUBLIC_SANITY_API_VERSION` | No | `2025-08-08` | Sanity API version; defaults to `2025-08-08`. |
 | `NEXT_PUBLIC_SANITY_STUDIO_URL` | No | `https://admin.vomatt.com/sanity` | vomatt-admin's Studio URL, including its `/sanity` base path (not just the origin). When set, `/sanity` redirects there. |
 
 Not needed (leave unset): `DATABASE_URL`, `PAYLOAD_SECRET` (Payload was removed);
-`SANITY_API_READ_TOKEN`, `SANITY_REVALIDATE_SECRET`
-(read in code but nothing depends on them yet); `SANITY_STUDIO_PREVIEW_ORIGIN` (the Presentation
+`SANITY_API_READ_TOKEN`
+(read in code but nothing depends on it yet); `SANITY_STUDIO_PREVIEW_ORIGIN` (the Presentation
 tool was removed);
 `NEXT_PUBLIC_API_URL` (the followers/following sheet calls this site's own `/api` routes when it is
 unset).
@@ -90,7 +91,7 @@ The browser never calls the API directly, so its `CORS_ALLOWED_ORIGINS` doesn't 
 
 The production site shows only the coming-soon page until it is turned off in Sanity:
 **Settings → General → Coming soon → Show coming soon page** → off → **Publish**.
-Changes appear within about a minute (Sanity content is cached for 60s). Turn it back on the same
+Changes appear right after publishing (within a minute if `SANITY_REVALIDATE_SECRET` is unset). Turn it back on the same
 way. If Sanity can't be reached, the coming-soon page stays up. While it is on, search engines are
 told not to index the site.
 

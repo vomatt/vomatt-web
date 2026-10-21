@@ -1,12 +1,13 @@
 import { createClient } from '@sanity/client';
 
-import { apiVersion, dataset, projectId } from '../env';
+import { apiVersion, dataset, projectId, revalidatesOnPublish } from '../env';
 
 export const client = createClient({
 	projectId,
 	dataset,
 	apiVersion,
-	useCdn: true, // Set to false if statically generating pages, using ISR or tag-based revalidation
+	// A refetch right after publish must not get a stale CDN copy; timer-based refreshes can
+	useCdn: !revalidatesOnPublish(),
 	perspective: 'published',
 	requestTagPrefix: 'website',
 });
