@@ -45,6 +45,20 @@ describe('AvatarDialog', () => {
 		expect(mockChooseAvatar).toHaveBeenCalledWith('bear');
 	});
 
+	it('saves no character', async () => {
+		openDialog('bot:boba');
+		choose('Account icon');
+		expect(screen.getByText('Just you, no character')).toBeInTheDocument();
+		fireEvent.click(screen.getByRole('button', { name: 'Save avatar' }));
+		await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+		expect(mockChooseAvatar).toHaveBeenCalledWith('none');
+	});
+
+	it('shows the account icon as already saved', () => {
+		openDialog('bot:none');
+		expect(screen.getByRole('button', { name: 'Choose Account icon' })).toHaveAttribute('aria-pressed', 'true');
+	});
+
 	it('starts again from the saved bot after closing without saving', async () => {
 		openDialog('bot:boba');
 		choose('Mazu');

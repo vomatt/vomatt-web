@@ -25,15 +25,30 @@ export const BOT_TINTS: Record<BotKind, BotTint> = {
 	pheasant: 'sand', firefly: 'green', crab: 'peach', flyfish: 'sky', turtle: 'sky', dog: 'sand',
 };
 
+/** No character: the user chose the plain account icon, stored as `bot:none`. Never a default. */
+export const NO_BOT = 'none';
+
+/** What a user can choose: one of the cast, or no character. */
+export type AvatarChoice = BotKind | typeof NO_BOT;
+
 /** A chosen bot is stored in the user's `avatarUrl` as `bot:<kind>`. */
 const BOT_PREFIX = 'bot:';
 
-export function botAvatarUrl(kind: BotKind): string {
+export function botAvatarUrl(kind: AvatarChoice): string {
 	return BOT_PREFIX + kind;
 }
 
 export function isBotKind(value: string): value is BotKind {
 	return (BOT_KINDS as readonly string[]).includes(value);
+}
+
+export function isAvatarChoice(value: string): value is AvatarChoice {
+	return value === NO_BOT || isBotKind(value);
+}
+
+/** The locale key holding a choice's `name` and `trait`. */
+export function avatarCopyKey(choice: AvatarChoice): string {
+	return choice === NO_BOT ? 'avatar.none' : `avatar.bots.${choice}`;
 }
 
 /** The kind in a `bot:<kind>` value; null for anything else, including an unknown kind. */
@@ -57,9 +72,10 @@ export function defaultBotFor(username: string): BotKind {
 }
 
 /**
- * The bot to draw for a user: the one they chose, else their username's. Image
- * URLs that older accounts still hold are ignored: everyone is drawn as a bot.
+ * What to draw for a user: the bot they chose, the account icon if they chose no
+ * character, else their username's bot. Image URLs that older accounts still hold are ignored.
  */
-export function resolveAvatar(username: string, avatarUrl: string | null | undefined): BotKind {
+export function resolveAvatar(username: string, avatarUrl: string | null | undefined): AvatarChoice {
+	if (avatarUrl === botAvatarUrl(NO_BOT)) return NO_BOT;
 	return parseBotAvatar(avatarUrl) ?? defaultBotFor(username);
 }

@@ -494,10 +494,15 @@
 		"savedToast": "頭像已更新",
 		"choose": "選擇{name}",
 		"families": {
+			"plain": "不選角色",
 			"bites": "台灣小吃",
 			"guardians": "廟宇守護",
 			"visitors": "外星訪客",
 			"animals": "島上動物"
+		},
+		"none": {
+			"name": "帳號圖示",
+			"trait": "只有你，不用角色"
 		},
 		"bots": {
 			"boba": {

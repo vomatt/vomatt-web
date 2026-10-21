@@ -25,6 +25,14 @@ describe('chooseAvatar()', () => {
 		expect(mockUpdateTag).toHaveBeenCalledWith('profiles');
 	});
 
+	it('saves no character as bot:none', async () => {
+		expect((await chooseAvatar('none')).ok).toBe(true);
+		expect(mockApiClient).toHaveBeenCalledWith('/users/me', {
+			method: 'PATCH',
+			body: JSON.stringify({ avatarUrl: 'bot:none' }),
+		});
+	});
+
 	it.each(['unicorn', 'https://example.com/me.png'])('refuses %p without a request', async (kind) => {
 		expect((await chooseAvatar(kind)).ok).toBe(false);
 		expect(mockApiClient).not.toHaveBeenCalled();
