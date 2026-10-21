@@ -84,7 +84,11 @@ const PortableTextComponents: PortableTextComponentsType = {
 	},
 	marks: {
 		link: ({ value, children }) => {
-			return <CMSLink link={value}>{children}</CMSLink>;
+			return (
+				<CMSLink link={value} className="underline underline-offset-2">
+					{children}
+				</CMSLink>
+			);
 		},
 		callToAction: ({ value, children }) => {
 			return (
