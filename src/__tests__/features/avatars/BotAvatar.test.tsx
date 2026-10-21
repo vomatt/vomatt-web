@@ -13,9 +13,19 @@ describe('BotAvatar', () => {
 		expect(screen.getByText('A moon on its chest')).toBeInTheDocument();
 	});
 
-	it('draws the image alone by default', () => {
+	it('draws the flat image on a muted circle by default', () => {
 		const { container } = render(<BotAvatar kind="bear" />);
-		expect(container.querySelector('img')).toHaveAttribute('src', '/avatars/bear.svg');
+		const img = container.querySelector('img')!;
+		expect(img).toHaveAttribute('src', '/avatars/bear.svg');
+		expect(img).toHaveClass('rounded-full', 'bg-muted');
+		expect(img).not.toHaveClass('bg-avatar-stone');
 		expect(container.querySelector('[data-slot="tooltip-trigger"]')).toBeNull();
+	});
+
+	it('draws the Round 2 image on its tinted circle when asked', () => {
+		const { container } = render(<BotAvatar kind="bear" variant="round2" />);
+		const img = container.querySelector('img')!;
+		expect(img).toHaveAttribute('src', '/avatars/round2/bear.svg');
+		expect(img).toHaveClass('rounded-full', 'bg-avatar-stone');
 	});
 });

@@ -20,13 +20,21 @@ describe('the cast', () => {
 		Object.values(BOT_FAMILIES).forEach((kinds) => expect(kinds).toHaveLength(12));
 	});
 
-	it('gives every character a drawing, a tint and copy in both languages', () => {
+	it('gives every character a drawing in both sets, a tint and copy in both languages', () => {
 		BOT_KINDS.forEach((kind) => {
 			expect(existsSync(path.join(process.cwd(), 'public/avatars', `${kind}.svg`))).toBe(true);
+			expect(existsSync(path.join(process.cwd(), 'public/avatars/round2', `${kind}.svg`))).toBe(true);
 			expect(BOT_TINTS[kind]).toBeTruthy();
 			expect(en.avatar.bots[kind].name).toBeTruthy();
 			expect(zh.avatar.bots[kind].trait).toBeTruthy();
 		});
+	});
+
+	it('has copy in both languages for no character', () => {
+		expect(en.avatar.none.name).toBeTruthy();
+		expect(zh.avatar.none.trait).toBeTruthy();
+		expect(en.avatar.families.plain).toBeTruthy();
+		expect(zh.avatar.families.plain).toBeTruthy();
 	});
 });
 
@@ -35,7 +43,7 @@ describe('parseBotAvatar()', () => {
 		expect(parseBotAvatar(botAvatarUrl('mazu'))).toBe('mazu');
 	});
 
-	it.each([null, undefined, '', 'bot:', 'bot:unicorn', 'https://example.com/a.png'])(
+	it.each([null, undefined, '', 'bot:', 'bot:unicorn', 'bot:none', 'https://example.com/a.png'])(
 		'returns null for %p',
 		(value) => expect(parseBotAvatar(value)).toBeNull()
 	);
@@ -55,6 +63,10 @@ describe('defaultBotFor()', () => {
 describe('resolveAvatar()', () => {
 	it('uses a chosen bot', () => {
 		expect(resolveAvatar('mei', 'bot:dog')).toBe('dog');
+	});
+
+	it('uses the account icon when no character was chosen', () => {
+		expect(resolveAvatar('mei', 'bot:none')).toBe('none');
 	});
 
 	it.each([null, undefined, 'bot:unicorn', 'https://lh3.example.com/p.jpg', 'http://old.example.com/p.jpg'])(

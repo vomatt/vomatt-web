@@ -18,15 +18,20 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { apiErrorText } from '@/lib/api/error-text';
 import { cn } from '@/lib/utils';
 
-import { BotAvatar } from './BotAvatar';
 import {
+	type AvatarChoice,
+	avatarCopyKey,
 	BOT_FAMILIES,
 	BOT_KINDS,
 	type BotFamily,
-	type BotKind,
+	NO_BOT,
 	resolveAvatar,
 } from './catalog';
 import { chooseAvatar } from './service';
+import { ChosenAvatar } from './UserAvatar';
+
+const TILE_GRID =
+	'grid grid-cols-[repeat(auto-fill,minmax(44px,1fr))] gap-1.5 md:grid-cols-[repeat(auto-fill,minmax(72px,1fr))] md:gap-2';
 
 /**
  * The owner's avatar as a button that opens the cast to choose from.
@@ -45,7 +50,7 @@ export function AvatarDialog({
 	const [open, setOpen] = useState(false);
 	// What everyone sees now; saving refreshes the page, which passes the new avatarUrl
 	const saved = resolveAvatar(username, avatarUrl);
-	const [selected, setSelected] = useState<BotKind>(saved);
+	const [selected, setSelected] = useState<AvatarChoice>(saved);
 	const [isSaving, setIsSaving] = useState(false);
 	const unchanged = selected === saved;
 
@@ -83,13 +88,32 @@ export function AvatarDialog({
 		}
 	};
 
+	const renderTile = (kind: AvatarChoice) => (
+		<button
+			key={kind}
+			type="button"
+			aria-pressed={kind === selected}
+			aria-label={t('avatar.choose', { name: t(`${avatarCopyKey(kind)}.name`) })}
+			onClick={() => setSelected(kind)}
+			className={cn(
+				'aspect-square rounded-full p-0.5 transition-shadow outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring',
+				kind === selected
+					? // Forced colors drop the ring and fill; the outline survives as the selection
+						'bg-foreground ring-4 ring-volt forced-colors:outline-2 forced-colors:outline-offset-2 forced-colors:outline-solid'
+					: 'hover:bg-border-strong'
+			)}
+		>
+			<ChosenAvatar kind={kind} className="size-full" tooltip />
+		</button>
+	);
+
 	return (
 		<Dialog open={open} onOpenChange={openChange}>
 			<DialogTrigger
 				aria-label={t('avatar.change')}
 				className="group relative shrink-0 rounded-full outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:outline-solid"
 			>
-				<BotAvatar
+				<ChosenAvatar
 					kind={saved}
 					className={cn('transition-opacity group-hover:opacity-80', className)}
 				/>
@@ -107,16 +131,16 @@ export function AvatarDialog({
 				</DialogHeader>
 
 				<div className="flex items-center gap-4">
-					<BotAvatar
+					<ChosenAvatar
 						kind={selected}
 						className="size-16 md:size-28"
 					/>
 					<div className="min-w-0 flex-1" aria-live="polite">
 						<p className="font-medium md:text-lg">
-							{t(`avatar.bots.${selected}.name`)}
+							{t(`${avatarCopyKey(selected)}.name`)}
 						</p>
 						<p className="text-[12px] text-muted-foreground">
-							{t(`avatar.bots.${selected}.trait`)}
+							{t(`${avatarCopyKey(selected)}.trait`)}
 						</p>
 					</div>
 					<Button variant="outline" size="sm" onClick={surprise}>
@@ -125,33 +149,17 @@ export function AvatarDialog({
 				</div>
 
 				<div className="-mx-4 space-y-5 overflow-y-auto overscroll-contain px-4 pb-1">
+					{/* No character first, as its own group, then the cast */}
+					<div className="space-y-2">
+						<p className="text-xs text-muted-foreground">{t('avatar.families.plain')}</p>
+						<div className={TILE_GRID}>{renderTile(NO_BOT)}</div>
+					</div>
 					{(Object.keys(BOT_FAMILIES) as BotFamily[]).map((family) => (
 						<div key={family} className="space-y-2">
 							<p className="text-xs text-muted-foreground">
 								{t(`avatar.families.${family}`)}
 							</p>
-							<div className="grid grid-cols-[repeat(auto-fill,minmax(44px,1fr))] gap-1.5 md:grid-cols-[repeat(auto-fill,minmax(72px,1fr))] md:gap-2">
-								{BOT_FAMILIES[family].map((kind) => (
-									<button
-										key={kind}
-										type="button"
-										aria-pressed={kind === selected}
-										aria-label={t('avatar.choose', {
-											name: t(`avatar.bots.${kind}.name`),
-										})}
-										onClick={() => setSelected(kind)}
-										className={cn(
-											'aspect-square rounded-full p-0.5 transition-shadow outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring',
-											kind === selected
-												? // Forced colors drop the ring and fill; the outline survives as the selection
-													'bg-foreground ring-4 ring-volt forced-colors:outline-2 forced-colors:outline-offset-2 forced-colors:outline-solid'
-												: 'hover:bg-border-strong'
-										)}
-									>
-										<BotAvatar kind={kind} className="size-full" tooltip />
-									</button>
-								))}
-							</div>
+							<div className={TILE_GRID}>{BOT_FAMILIES[family].map(renderTile)}</div>
 						</div>
 					))}
 				</div>

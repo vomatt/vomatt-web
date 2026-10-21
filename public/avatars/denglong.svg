@@ -1,1 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g stroke="#25241F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M50 8 V16"/><path d="M50 78 V92 M44 90 V96 M56 90 V96"/><rect x="36" y="16" width="28" height="6" rx="2" fill="#ffffff" stroke="#25241F"/><rect x="38" y="72" width="24" height="6" rx="2" fill="#ffffff" stroke="#25241F"/><path transform="translate(3 3)" d="M22 46 C22 30 36 22 50 22 C64 22 78 30 78 46 C78 62 64 72 50 72 C36 72 22 62 22 46 Z" fill="#ffffff" stroke="none"/><path d="M22 46 C22 30 36 22 50 22 C64 22 78 30 78 46 C78 62 64 72 50 72 C36 72 22 62 22 46 Z" fill="#ffffff" stroke="#25241F"/><path d="M34 26 C28 36 28 56 34 66 M66 26 C72 36 72 56 66 66" stroke="#25241F" stroke-width="2" opacity="0.5"/><path d="M28 40 C30 32 36 27 44 25" opacity="0.4" stroke-width="2"/><circle cx="42" cy="44" r="3.4" fill="#25241F" stroke="none"/><circle cx="58" cy="44" r="3.4" fill="#25241F" stroke="none"/><path d="M46 52 Q50 55.5 54 52" stroke="#25241F"/><path d="M34 50 l3 -3 M38 51 l3 -3 M59 50 l3 -3 M63 51 l3 -3" stroke="#25241F" stroke-width="1.8" opacity="0.7"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g stroke="oklch(0.205 0.014 265)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none">
+<path d="M50 8 V16"/>
+<path d="M50 78 V92 M44 90 V96 M56 90 V96"/>
+<rect x="36" y="16" width="28" height="6" rx="2" fill="oklch(0.995 0.002 265)" stroke="oklch(0.205 0.014 265)" stroke-width="2.6"/>
+<rect x="38" y="72" width="24" height="6" rx="2" fill="oklch(0.995 0.002 265)" stroke="oklch(0.205 0.014 265)" stroke-width="2.6"/>
+<path d="M22 46 C22 30 36 22 50 22 C64 22 78 30 78 46 C78 62 64 72 50 72 C36 72 22 62 22 46 Z" fill="oklch(0.995 0.002 265)" stroke="oklch(0.205 0.014 265)" stroke-width="2.6"/>
+<path d="M35 30 C30 38 30 56 35 63 M65 30 C70 38 70 56 65 63" stroke="oklch(0.47 0.014 265)" stroke-width="2"/>
+<circle cx="42" cy="44" r="3.4" fill="oklch(0.205 0.014 265)" stroke="none"/><circle cx="58" cy="44" r="3.4" fill="oklch(0.205 0.014 265)" stroke="none"/>
+<path d="M46 52 Q50 55.5 54 52" stroke="oklch(0.205 0.014 265)"/>
+<circle cx="36.3" cy="49" r="3" fill="oklch(0.82 0.045 52.7)" stroke="none"/><circle cx="63.7" cy="49" r="3" fill="oklch(0.82 0.045 52.7)" stroke="none"/>
+</g></svg>

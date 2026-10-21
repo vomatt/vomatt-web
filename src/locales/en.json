@@ -500,10 +500,15 @@
 		"savedToast": "Avatar updated",
 		"choose": "Choose {name}",
 		"families": {
+			"plain": "No character",
 			"bites": "Taiwan bites",
 			"guardians": "Temple guardians",
 			"visitors": "Visitors",
 			"animals": "Island animals"
+		},
+		"none": {
+			"name": "Account icon",
+			"trait": "Just you, no character"
 		},
 		"bots": {
 			"boba": {
