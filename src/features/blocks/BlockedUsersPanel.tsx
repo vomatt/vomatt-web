@@ -45,7 +45,9 @@ export function BlockedUsersPanel() {
 		const result = await getBlockedUsers(nextCursor);
 		setLoadingMore(false);
 		if (!result.ok) {
-			toast.error(apiErrorText(t, result, 'blocks.loadFailed'), { duration: Infinity });
+			toast.error(apiErrorText(t, result, 'blocks.loadFailed'), {
+				duration: Infinity,
+			});
 			return;
 		}
 		setUsers((list) => mergeById(list ?? [], result.data.items));
@@ -57,7 +59,9 @@ export function BlockedUsersPanel() {
 		const result = await unblockUser(user.id);
 		setPendingId(null);
 		if (!result.ok) {
-			toast.error(apiErrorText(t, result, 'blocks.unblockFailed'), { duration: Infinity });
+			toast.error(apiErrorText(t, result, 'blocks.unblockFailed'), {
+				duration: Infinity,
+			});
 			return;
 		}
 		setUsers((list) => list?.filter((u) => u.id !== user.id) ?? null);
@@ -78,20 +82,37 @@ export function BlockedUsersPanel() {
 			{loadFailed && (
 				<div className="empty-state space-y-3">
 					<p>{t('blocks.loadFailed')}</p>
-					<Button variant="outline" size="sm" onClick={() => setAttempt((n) => n + 1)}>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => {
+							setLoadFailed(false);
+							setAttempt((n) => n + 1);
+						}}
+					>
 						{t('common.tryAgain')}
 					</Button>
 				</div>
 			)}
-			{users?.length === 0 && <p className="empty-state">{t('blocks.empty')}</p>}
+			{users?.length === 0 && (
+				<p className="empty-state">{t('blocks.empty')}</p>
+			)}
 			{!!users?.length && (
 				<ul className="divide-y divide-border rounded-xl border border-border bg-card">
 					{users.map((user) => (
 						<li key={user.id} className="flex items-center gap-3 px-4 py-3">
-							<UserAvatar username={user.username} avatarUrl={user.avatarUrl} className="size-10" />
+							<UserAvatar
+								username={user.username}
+								avatarUrl={user.avatarUrl}
+								className="size-10"
+							/>
 							<div className="min-w-0 flex-1">
-								<p className="truncate text-sm font-medium">{user.displayName ?? user.username}</p>
-								<p className="truncate font-mono text-xs text-muted-foreground">@{user.username}</p>
+								<p className="truncate text-sm font-medium">
+									{user.displayName ?? user.username}
+								</p>
+								<p className="truncate font-mono text-xs text-muted-foreground">
+									@{user.username}
+								</p>
 							</div>
 							<Button
 								variant="outline"
@@ -107,7 +128,12 @@ export function BlockedUsersPanel() {
 			)}
 			{nextCursor && (
 				<div className="flex justify-center">
-					<Button variant="outline" size="sm" loading={loadingMore} onClick={loadMore}>
+					<Button
+						variant="outline"
+						size="sm"
+						loading={loadingMore}
+						onClick={loadMore}
+					>
 						{t('common.loadMore')}
 					</Button>
 				</div>
