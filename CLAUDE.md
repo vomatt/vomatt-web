@@ -34,7 +34,7 @@ npx jest src/__tests__/components/PollCard.test.tsx
 
 Schemas live in vomatt-admin `src/sanity/schemaTypes/` (singletons like `settingsGeneral`, `pSignUp`, `pHome`; documents like `pGeneral`); GROQ queries here depend on them, so check both when a schema changes. Read side here: `src/sanity/{env.ts,lib/client.ts,lib/live.ts,lib/image.ts,lib/queries.ts}` on `@sanity/client` + `groq` (not `next-sanity`, which pulls in the Studio). Content is not localized.
 
-Fetch pattern (published content, revalidated every 60s — no read token or webhook):
+Fetch pattern (published content, cached per Sanity sync tag, expired on publish — no read token):
 ```ts
 import { sanityFetch } from '@/sanity/lib/live'
 import { pageGeneralQuery } from '@/sanity/lib/queries'
@@ -71,7 +71,7 @@ Locales: `en`, `zh` (Traditional Chinese; default `en`), strings in `src/locales
 
 ### ISR Revalidation
 
-Sanity fetches revalidate every 60s (`src/sanity/lib/live.ts`); there is no publish webhook yet.
+`sanityFetch` (`src/sanity/lib/live.ts`) fetches each query twice: a lookup (tag `sanity:sync-tags`) that returns the query's Sanity sync tags, then the content tagged `sanity:<syncTag>`. On publish, vomatt-admin's Sanity Function (`functions/invalidate-tags`, a Sync Tag Invalidate function) POSTs `{ syncTags }` to `/api/revalidate` with `Bearer SANITY_REVALIDATE_SECRET`, which expires the lookups and only those sync tags with `{ expire: 0 }` (Route Handlers can't use `updateTag`; `'max'` would serve one stale render). So only queries whose content changed refetch. In production with the secret set, the Sanity CDN is skipped and the cache also refreshes hourly (a fetch in flight during a publish can re-cache old content); elsewhere (local dev, Previews: the function only calls production) queries use the CDN and refresh every 60s.
 
 ## Environment Variables
 
@@ -82,6 +82,7 @@ NEXT_PUBLIC_SANITY_STUDIO_URL  # Optional: vomatt-admin Studio URL; /sanity redi
 SESSION_SECRET   # Must equal the API's JWT_SECRET (HMAC-SHA)
 SITE_URL         # Frontend URL, no trailing slash; required (metadataBase)
 API_URL          # vomatt-api origin, no path (e.g. http://localhost:8080)
+SANITY_REVALIDATE_SECRET  # Production only; same value as the invalidate-tags function's. Set in production: publish expires the cache, hourly fallback. Unset or not production: 60s refresh; unset also makes /api/revalidate reject all calls
 API_LOG          # Optional API request/response log: 0 silences it in dev, 1 enables it in a deployment
 ```
 

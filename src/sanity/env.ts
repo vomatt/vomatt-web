@@ -6,4 +6,8 @@ export const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
 
 export const useCdn = process.env.NODE_ENV === 'production';
 export const token = process.env.SANITY_API_READ_TOKEN;
-export const revalidateSecret = process.env.SANITY_REVALIDATE_SECRET;
+
+/** Only production receives vomatt-admin's invalidate-tags calls; elsewhere nothing expires the cache on publish. */
+export const revalidatesOnPublish = () =>
+	process.env.VERCEL_ENV === 'production' &&
+	Boolean(process.env.SANITY_REVALIDATE_SECRET);
