@@ -14,7 +14,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { formatUnreadCount, useUnreadCount } from '@/features/notifications/UnreadCountProvider';
 import { UnreadDot } from '@/features/notifications/UnreadDot';
 import { CreatePollTrigger } from '@/features/polls/components/CreatePollTrigger';
-import { isActivePath, profileHref } from '@/lib/routes';
+import { isActivePath, isChromeless, profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
 type TabBarProps = {
@@ -66,8 +66,7 @@ export function TabBar({ className, userSession, username }: TabBarProps) {
 		},
 	];
 
-	const routeToHide = ['/login'];
-	if (routeToHide.includes(pathname)) return null;
+	if (isChromeless(pathname)) return null;
 
 	const renderLink = ({ href, title, icon }: (typeof leftLinks)[number]) => {
 		const isPage = isActivePath(pathname, href);
