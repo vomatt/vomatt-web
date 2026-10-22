@@ -80,7 +80,7 @@
 	--create-icon: var(--highlight);
 	--status-scheduled: oklch(0.914 0.017 304.8);
 	--status-open: oklch(0.917 0.024 145.4);
-	--status-closing: oklch(0.912 0.032 12);
+	--status-closing: oklch(0.912 0.032 350);
 	--status-ended: oklch(0.904 0.040 86.1);
 	/* Avatar circles; the drawings are pictures, so they keep these in dark mode */
 	--avatar-sand: oklch(0.904 0.040 86.1);
@@ -153,7 +153,6 @@ html {
 	--surface-soft: oklch(0.205 0.009 265);
 	--overlay: oklch(0.1 0.01 265 / 0.6);
 	--field: oklch(0.27 0.010 265);
-	--highlight: oklch(0.78 0.15 58);
 	--highlight-tint: oklch(0.32 0.05 58);
 	--create: var(--highlight);
 	--create-hover: color-mix(in oklch, var(--highlight) 85%, transparent);
@@ -161,7 +160,7 @@ html {
 	--create-icon: var(--highlight-foreground);
 	--status-scheduled: oklch(0.36 0.04 304.8);
 	--status-open: oklch(0.36 0.05 145.4);
-	--status-closing: oklch(0.36 0.05 12);
+	--status-closing: oklch(0.36 0.05 350);
 	--status-ended: oklch(0.36 0.05 86.1);
 	--sidebar: oklch(0.165 0.008 265);
 	--sidebar-foreground: var(--foreground);
