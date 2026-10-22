@@ -129,11 +129,60 @@ describe('useBallot anonymity', () => {
 	it('takes whether the Ballot is Anonymous from the cast response', async () => {
 		mockCastBallot.mockResolvedValue({ ok: true, data: { ...voted, myBallotAnonymous: true } });
 		const { result } = setup();
-		expect(result.current.anonymous).toBeNull();
 		await act(async () => {
 			await result.current.cast('opt-a');
 		});
-		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-a');
+		expect(result.current.anonymous).toBe(true);
+	});
+
+	it('starts a first vote from the account default', async () => {
+		mockCastBallot.mockResolvedValue({ ok: true, data: { ...voted, myBallotAnonymous: true } });
+		const { result } = renderHook(() =>
+			useBallot(poll, { isAuthed: true, anonymousByDefault: true, onPollEnded: jest.fn() })
+		);
+		expect(result.current.anonymous).toBe(true);
+		await act(async () => {
+			await result.current.cast('opt-a');
+		});
+		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-a', true);
+	});
+
+	it('leaves a first vote to the API when the default is unknown', async () => {
+		mockCastBallot.mockResolvedValue({ ok: true, data: voted });
+		const { result } = setup();
+		expect(result.current.anonymous).toBe(false);
+		await act(async () => {
+			await result.current.cast('opt-a');
+		});
+		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-a', undefined);
+	});
+
+	it('holds a choice made before voting and casts it with the vote', async () => {
+		mockCastBallot.mockResolvedValue({ ok: true, data: { ...voted, myBallotAnonymous: true } });
+		const { result } = renderHook(() =>
+			useBallot(poll, { isAuthed: true, anonymousByDefault: false, onPollEnded: jest.fn() })
+		);
+		await act(async () => {
+			await result.current.setAnonymous(true);
+		});
+		expect(mockCastBallot).not.toHaveBeenCalled();
+		expect(result.current.anonymous).toBe(true);
+		await act(async () => {
+			await result.current.cast('opt-a');
+		});
+		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-a', true);
+	});
+
+	it('keeps a choice made before voting when the vote fails', async () => {
+		mockCastBallot.mockResolvedValue({ ok: false, status: 500, message: 'boom' });
+		const { result } = setup();
+		await act(async () => {
+			await result.current.setAnonymous(true);
+		});
+		await act(async () => {
+			await result.current.cast('opt-a');
+		});
+		expect(result.current.myOptionId).toBeNull();
 		expect(result.current.anonymous).toBe(true);
 	});
 
@@ -160,13 +209,16 @@ describe('useBallot anonymity', () => {
 		expect(result.current.myOptionId).toBe('opt-a');
 	});
 
-	it('forgets the flag once the Ballot is withdrawn', async () => {
+	it('goes back to the account default once the Ballot is withdrawn', async () => {
 		mockRetractBallot.mockResolvedValue({ ok: true });
-		const { result } = renderHook(() => useBallot(voted, { isAuthed: true, onPollEnded: jest.fn() }));
+		const anonymousBallot = { ...voted, myBallotAnonymous: true };
+		const { result } = renderHook(() =>
+			useBallot(anonymousBallot, { isAuthed: true, anonymousByDefault: false, onPollEnded: jest.fn() })
+		);
 		await act(async () => {
 			await result.current.retract();
 		});
-		expect(result.current.anonymous).toBeNull();
+		expect(result.current.anonymous).toBe(false);
 	});
 
 	it('learns whether the Ballot is Anonymous when a guest signs in on the card', async () => {
@@ -179,6 +231,82 @@ describe('useBallot anonymity', () => {
 		rerender({ isAuthed: true });
 		await waitFor(() => expect(result.current.anonymous).toBe(true));
 		expect(result.current.myOptionId).toBe('opt-a');
+	});
+
+	it('starts a vote after withdrawing from the account default, not the earlier choice', async () => {
+		mockCastBallot.mockResolvedValue({ ok: true, data: { ...voted, myBallotAnonymous: true } });
+		mockRetractBallot.mockResolvedValue({ ok: true });
+		const { result } = renderHook(() =>
+			useBallot(poll, { isAuthed: true, anonymousByDefault: false, onPollEnded: jest.fn() })
+		);
+		await act(async () => {
+			await result.current.setAnonymous(true);
+		});
+		await act(async () => {
+			await result.current.cast('opt-a');
+		});
+		await act(async () => {
+			await result.current.retract();
+		});
+		expect(result.current.anonymous).toBe(false);
+	});
+
+	it('keeps showing the Ballot’s flag while a withdrawal is in flight', async () => {
+		let resolve: (value: unknown) => void = () => {};
+		mockRetractBallot.mockReturnValue(new Promise((r) => (resolve = r)));
+		const anonymousBallot = { ...voted, myBallotAnonymous: true };
+		const { result } = renderHook(() =>
+			useBallot(anonymousBallot, { isAuthed: true, anonymousByDefault: false, onPollEnded: jest.fn() })
+		);
+		let pending: Promise<unknown> = Promise.resolve();
+		act(() => {
+			pending = result.current.retract();
+		});
+		await waitFor(() => expect(mockRetractBallot).toHaveBeenCalled());
+		expect(result.current.anonymous).toBe(true);
+		await act(async () => {
+			resolve({ ok: true });
+			await pending;
+		});
+		expect(result.current.anonymous).toBe(false);
+	});
+
+	it('shows no switch to a guest', () => {
+		const { result } = renderHook(() =>
+			useBallot(poll, { isAuthed: false, anonymousByDefault: true, onPollEnded: jest.fn() })
+		);
+		expect(result.current.anonymous).toBeNull();
+	});
+
+	it('shows the switch once, after the Ballot loads, when a guest signs in on the card', async () => {
+		mockGetMyBallot.mockResolvedValue('opt-a');
+		mockGetPoll.mockResolvedValue({ ...voted, myBallotAnonymous: true });
+		const seen: (boolean | null)[] = [];
+		const { result, rerender } = renderHook(
+			({ isAuthed }) => {
+				const state = useBallot(poll, { isAuthed, anonymousByDefault: false, onPollEnded: jest.fn() });
+				if (seen.at(-1) !== state.anonymous) seen.push(state.anonymous);
+				return state;
+			},
+			{ initialProps: { isAuthed: false } }
+		);
+		rerender({ isAuthed: true });
+		await waitFor(() => expect(result.current.anonymous).toBe(true));
+		expect(seen).toEqual([null, true]);
+	});
+
+	it('leaves the flag to the API when voting before a signed-in guest’s Ballot loads', async () => {
+		mockGetMyBallot.mockResolvedValue('opt-a');
+		mockCastBallot.mockResolvedValue({ ok: true, data: { ...voted, myBallotAnonymous: true } });
+		const { result, rerender } = renderHook(
+			({ isAuthed }) => useBallot(poll, { isAuthed, anonymousByDefault: false, onPollEnded: jest.fn() }),
+			{ initialProps: { isAuthed: false } }
+		);
+		rerender({ isAuthed: true });
+		await act(async () => {
+			await result.current.cast('opt-a');
+		});
+		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-a', undefined);
 	});
 
 	it('retries once when the Poll is busy', async () => {

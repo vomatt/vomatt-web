@@ -30,6 +30,8 @@ interface PollCardProps {
 	poll: Poll;
 	/** The signed-in viewer's user id (the session `sub`). */
 	viewerId?: string;
+	/** The viewer's `anonymousBallotByDefault`, which a first vote starts from. */
+	anonymousByDefault?: boolean;
 	/** The detail page opens the discussion right away. */
 	defaultShowComments?: boolean;
 	/** Where to go once the owner Deletes the Poll; without it the card just leaves the list. */
@@ -42,6 +44,7 @@ interface PollCardProps {
 export function PollCard({
 	poll: initialPoll,
 	viewerId,
+	anonymousByDefault,
 	defaultShowComments = false,
 	deletedHref,
 	headingLevel: Heading = 'h2',
@@ -67,7 +70,7 @@ export function PollCard({
 		(ended?: Poll) => (ended ? setPoll(ended) : refetch()),
 		[refetch]
 	);
-	const ballot = useBallot(poll, { isAuthed, onPollEnded: handlePollEnded });
+	const ballot = useBallot(poll, { isAuthed, anonymousByDefault, onPollEnded: handlePollEnded });
 	const status = derivePollStatus(poll);
 	const { id, title, description, creatorId, creatorUsername, createdAt } = poll;
 	const isOwner = !!viewerId && viewerId === creatorId;
