@@ -55,7 +55,7 @@ function toRequestBody(input: PollInput) {
 			input.invitees && {
 				inviteeIds: input.invitees.userIds,
 				inviteeEmails: input.invitees.emails,
-				groupIds: input.invitees.groupIds,
+				inviteListIds: input.invitees.inviteListIds,
 			}),
 	});
 }

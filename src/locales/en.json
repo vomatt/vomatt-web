@@ -221,7 +221,7 @@
 			"optionDuplicate": "Each option must be different.",
 			"endRequired": "Choose when the poll ends.",
 			"endBeforeStart": "The end must be after the poll opens.",
-			"inviteesRequired": "Invite at least one person or group."
+			"inviteesRequired": "Invite at least one person or invite list."
 		},
 		"discardEditTitle": "Discard your changes?",
 		"discardEditBody": "Your edits to this poll won’t be saved.",
@@ -437,7 +437,7 @@
 		"deleteConfirmLabel": "Type your username to confirm",
 		"deleteConfirmMismatch": "Type {username} to delete your account.",
 		"deleteLastAdmin": "You are the only active admin. Make someone else an admin before deleting your account.",
-		"tabGroups": "Groups"
+		"tabGroups": "Invite Lists"
 	},
 	"cookieConsent": {
 		"label": "Cookie consent",
@@ -458,7 +458,7 @@
 		"searchFailed": "Couldn’t search. Try again.",
 		"picked": "Invited",
 		"remove": "Remove {name}",
-		"groups": "Your groups",
+		"groups": "Your invite lists",
 		"groupPill": "{name}, {count} members",
 		"voted": "Voted",
 		"empty": "No one is invited yet.",
@@ -469,26 +469,26 @@
 		"removeFailed": "Couldn’t remove them. Try again."
 	},
 	"groups": {
-		"title": "Groups",
+		"title": "Invite Lists",
 		"intro": "Reusable lists of people to invite to Invite-only polls. Only you can see them, and nobody is told they’re in one.",
-		"nameLabel": "Group name",
-		"nameRequired": "Name the group first.",
+		"nameLabel": "Invite list name",
+		"nameRequired": "Name the invite list first.",
 		"addRequired": "Pick at least one person to add.",
 		"namePlaceholder": "e.g. Book club",
-		"create": "New group",
-		"empty": "No groups yet.",
-		"loadFailed": "Couldn’t load your groups.",
+		"create": "New invite list",
+		"empty": "No invite lists yet.",
+		"loadFailed": "Couldn’t load your invite lists.",
 		"memberCount": "{count} members",
 		"memberCount_one": "{count} member",
-		"dialogIntro": "Inviting a group invites its members at that moment. Later changes don’t affect polls already sent.",
+		"dialogIntro": "Inviting an invite list invites its members at that moment. Later changes don’t affect polls already sent.",
 		"rename": "Rename",
 		"members": "Members",
 		"noMembers": "No members yet.",
 		"membersFailed": "Couldn’t load the members.",
 		"addLabel": "Add people",
 		"add": "Add",
-		"delete": "Delete group",
-		"deleteConfirm": "Delete this group? Polls you invited it to keep their invitees.",
+		"delete": "Delete invite list",
+		"deleteConfirm": "Delete this invite list? Polls you invited it to keep their invitees.",
 		"saveFailed": "Couldn’t save. Try again."
 	},
 	"avatar": {
@@ -847,11 +847,11 @@
 		"notification": {
 			"not_found": "Notification not found"
 		},
-		"group": {
-			"not_found": "Group not found",
-			"max_reached": "You can keep at most {0} Groups",
+		"invite_list": {
+			"not_found": "Invite List not found",
+			"max_reached": "You can keep at most {0} Invite Lists",
 			"members": {
-				"max": "A Group can hold at most {0} members"
+				"max": "An Invite List can hold at most {0} members"
 			},
 			"member": {
 				"ids_invalid": "One or more users do not exist or are suspended"

@@ -523,7 +523,7 @@ describe('PollCreator', () => {
 		await waitFor(() => expect(mockCreatePoll).toHaveBeenCalled());
 		expect(mockCreatePoll.mock.calls[0][0]).toMatchObject({
 			audience: 'invite-only',
-			invitees: { userIds: ['u1'], emails: ['carol@example.com'], groupIds: ['g1'] },
+			invitees: { userIds: ['u1'], emails: ['carol@example.com'], inviteListIds: ['g1'] },
 		});
 	});
 
@@ -534,8 +534,8 @@ describe('PollCreator', () => {
 		openSettings();
 		fireEvent.click(screen.getByLabelText(/Invite only/));
 		review();
-		expect(await screen.findByText('Invite at least one person or group.')).toBeInTheDocument();
-		expect(screen.getByLabelText('Invite people')).toHaveAccessibleDescription('Invite at least one person or group.');
+		expect(await screen.findByText('Invite at least one person or invite list.')).toBeInTheDocument();
+		expect(screen.getByLabelText('Invite people')).toHaveAccessibleDescription('Invite at least one person or invite list.');
 		expect(screen.queryByText('How voters will see it')).not.toBeInTheDocument();
 	});
 
