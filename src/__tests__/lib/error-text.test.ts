@@ -11,7 +11,7 @@ describe('apiErrorText', () => {
 	});
 
 	it("keeps the API's filled-in message for a code with a {0} placeholder", () => {
-		const failure = { errorCode: 'group.max_reached', message: 'You can keep at most 50 Groups' };
+		const failure = { errorCode: 'invite_list.max_reached', message: 'You can keep at most 50 Groups' };
 		expect(apiErrorText(t, failure)).toBe('You can keep at most 50 Groups');
 	});
 

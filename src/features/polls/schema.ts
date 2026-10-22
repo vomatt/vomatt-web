@@ -251,7 +251,7 @@ export const UpdateCommentRequestSchema = z.object({
 export interface InviteesInput {
 	userIds: string[];
 	emails: string[];
-	groupIds: string[];
+	inviteListIds: string[];
 }
 
 /** What the creator hands to the service. Times are full ISO strings with an offset. */

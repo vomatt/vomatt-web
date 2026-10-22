@@ -416,25 +416,25 @@ describe('createPoll() and updatePoll()', () => {
 		await createPoll({
 			...input,
 			audience: 'unlisted',
-			invitees: { userIds: ['u1'], emails: [], groupIds: [] },
+			invitees: { userIds: ['u1'], emails: [], inviteListIds: [] },
 		});
 		const body = JSON.parse(mockApiClient.mock.calls[0][1]!.body as string);
 		expect(body.audience).toBe('UNLISTED');
 		expect(body).not.toHaveProperty('inviteeIds');
-		expect(body).not.toHaveProperty('groupIds');
+		expect(body).not.toHaveProperty('inviteListIds');
 	});
 
 	it('sends users, emails and Groups for an Invite-only Poll', async () => {
 		await createPoll({
 			...input,
 			audience: 'invite-only',
-			invitees: { userIds: ['u1'], emails: ['carol@example.com'], groupIds: ['g1'] },
+			invitees: { userIds: ['u1'], emails: ['carol@example.com'], inviteListIds: ['g1'] },
 		});
 		expect(JSON.parse(mockApiClient.mock.calls[0][1]!.body as string)).toMatchObject({
 			audience: 'INVITE_ONLY',
 			inviteeIds: ['u1'],
 			inviteeEmails: ['carol@example.com'],
-			groupIds: ['g1'],
+			inviteListIds: ['g1'],
 		});
 	});
 
@@ -508,7 +508,7 @@ describe('Invitees', () => {
 
 	it('adds users, emails and Groups and returns the full list', async () => {
 		mockApiClient.mockResolvedValue(invitees);
-		const result = await addInvitees('poll-1', { userIds: ['u1'], emails: ['dave@example.com'], groupIds: [] });
+		const result = await addInvitees('poll-1', { userIds: ['u1'], emails: ['dave@example.com'], inviteListIds: [] });
 		expect(result.ok && result.data[1].email).toBe('dave@example.com');
 		const [url, init] = mockApiClient.mock.calls[0];
 		expect(url).toBe('/votes/poll-1/invitees');
@@ -516,7 +516,7 @@ describe('Invitees', () => {
 		expect(JSON.parse(init!.body as string)).toEqual({
 			userIds: ['u1'],
 			emails: ['dave@example.com'],
-			groupIds: [],
+			inviteListIds: [],
 		});
 	});
 
