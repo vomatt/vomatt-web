@@ -863,7 +863,7 @@ function RadioCards({ legend, note, input, options }: RadioCardsProps) {
 			{options.map(({ value, label, hint }) => (
 				<label
 					key={value}
-					className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-[14px] transition-colors hover:border-border-strong has-[:checked]:border-foreground has-[:checked]:bg-volt-tint has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring"
+					className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-[14px] transition-colors hover:border-border-strong has-[:checked]:border-foreground has-[:checked]:bg-highlight-tint has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring"
 				>
 					<input
 						type="radio"

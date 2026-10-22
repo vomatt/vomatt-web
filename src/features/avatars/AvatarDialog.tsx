@@ -99,7 +99,7 @@ export function AvatarDialog({
 				'aspect-square rounded-full p-0.5 transition-shadow outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring',
 				kind === selected
 					? // Forced colors drop the ring and fill; the outline survives as the selection
-						'bg-foreground ring-4 ring-volt forced-colors:outline-2 forced-colors:outline-offset-2 forced-colors:outline-solid'
+						'bg-foreground ring-4 ring-highlight forced-colors:outline-2 forced-colors:outline-offset-2 forced-colors:outline-solid'
 					: 'hover:bg-border-strong'
 			)}
 		>
