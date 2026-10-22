@@ -474,7 +474,7 @@
 		"empty": "還沒有邀請名單。",
 		"loadFailed": "無法載入你的邀請名單。",
 		"memberCount": "{count} 位成員",
-		"dialogIntro": "邀請邀請名單時會邀請當下的成員，之後的變動不會影響已送出的投票。",
+		"dialogIntro": "邀請某份名單時，會邀請其當下的成員，之後的變動不會影響已送出的投票。",
 		"rename": "重新命名",
 		"members": "成員",
 		"noMembers": "還沒有成員。",

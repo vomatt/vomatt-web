@@ -480,7 +480,7 @@
 		"loadFailed": "Couldn’t load your invite lists.",
 		"memberCount": "{count} members",
 		"memberCount_one": "{count} member",
-		"dialogIntro": "Inviting an invite list invites its members at that moment. Later changes don’t affect polls already sent.",
+		"dialogIntro": "Inviting a list invites its members as they are right now. Later changes don’t affect polls already sent.",
 		"rename": "Rename",
 		"members": "Members",
 		"noMembers": "No members yet.",
