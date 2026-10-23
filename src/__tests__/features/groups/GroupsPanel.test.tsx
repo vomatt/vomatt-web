@@ -54,10 +54,10 @@ describe('GroupsPanel', () => {
 		mockService.getGroupMembers.mockResolvedValue({ ok: true, data: [] });
 		mockService.createGroup.mockResolvedValue({ ok: true, data: { ...bookClub, memberCount: 0 } });
 		render(<GroupsPanel />);
-		expect(await screen.findByText('No groups yet.')).toBeInTheDocument();
+		expect(await screen.findByText('No invite lists yet.')).toBeInTheDocument();
 
-		fireEvent.change(screen.getByLabelText('Group name'), { target: { value: '  Book club ' } });
-		fireEvent.click(screen.getByRole('button', { name: 'New group' }));
+		fireEvent.change(screen.getByLabelText('Invite list name'), { target: { value: '  Book club ' } });
+		fireEvent.click(screen.getByRole('button', { name: 'New invite list' }));
 
 		await waitFor(() => expect(mockService.createGroup).toHaveBeenCalledWith('Book club'));
 		expect(await screen.findByRole('dialog')).toBeInTheDocument();
@@ -65,11 +65,11 @@ describe('GroupsPanel', () => {
 	});
 
 	it('shows the API\'s reason when the group limit is reached', async () => {
-		mockService.createGroup.mockResolvedValue({ ok: false, errorCode: 'group.max_reached', message: 'At most 50' });
+		mockService.createGroup.mockResolvedValue({ ok: false, errorCode: 'invite_list.max_reached', message: 'At most 50' });
 		render(<GroupsPanel />);
 		await screen.findByText('Book club');
-		fireEvent.change(screen.getByLabelText('Group name'), { target: { value: 'One more' } });
-		fireEvent.click(screen.getByRole('button', { name: 'New group' }));
+		fireEvent.change(screen.getByLabelText('Invite list name'), { target: { value: 'One more' } });
+		fireEvent.click(screen.getByRole('button', { name: 'New invite list' }));
 		await waitFor(() => expect(toast.error).toHaveBeenCalledWith('At most 50', { duration: Infinity }));
 	});
 
@@ -112,7 +112,7 @@ describe('GroupsPanel', () => {
 		expect(rename).toBeEnabled();
 		fireEvent.click(rename);
 		expect(mockService.renameGroup).not.toHaveBeenCalled();
-		fireEvent.change(within(dialog).getByLabelText('Group name'), { target: { value: 'Readers' } });
+		fireEvent.change(within(dialog).getByLabelText('Invite list name'), { target: { value: 'Readers' } });
 		fireEvent.click(rename);
 		await waitFor(() => expect(mockService.renameGroup).toHaveBeenCalledWith('g1', 'Readers'));
 		expect(await screen.findByText('Readers', { selector: 'span' })).toBeInTheDocument();
@@ -122,11 +122,11 @@ describe('GroupsPanel', () => {
 		mockService.deleteGroup.mockResolvedValue({ ok: true, data: undefined });
 		render(<GroupsPanel />);
 		const dialog = await openBookClub();
-		fireEvent.click(within(dialog).getByRole('button', { name: 'Delete group' }));
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Delete invite list' }));
 		expect(within(dialog).getByText(/keep their invitees/)).toBeInTheDocument();
-		fireEvent.click(within(dialog).getByRole('button', { name: 'Delete group' }));
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Delete invite list' }));
 		await waitFor(() => expect(mockService.deleteGroup).toHaveBeenCalledWith('g1'));
-		expect(await screen.findByText('No groups yet.')).toBeInTheDocument();
+		expect(await screen.findByText('No invite lists yet.')).toBeInTheDocument();
 	});
 
 	it('offers Try again when the groups fail to load', async () => {
@@ -151,21 +151,21 @@ describe('GroupsPanel', () => {
 		render(<GroupsPanel />);
 		await screen.findByText('Book club');
 
-		const input = screen.getByRole('textbox', { name: 'Group name' });
-		fireEvent.click(screen.getByRole('button', { name: 'New group' }));
+		const input = screen.getByRole('textbox', { name: 'Invite list name' });
+		fireEvent.click(screen.getByRole('button', { name: 'New invite list' }));
 		expect(mockService.createGroup).not.toHaveBeenCalled();
-		expect(input).toHaveAccessibleDescription('Name the group first.');
+		expect(input).toHaveAccessibleDescription('Name the invite list first.');
 	});
 
 	it('says an empty name is missing instead of disabling Rename', async () => {
 		render(<GroupsPanel />);
 		const dialog = await openBookClub();
-		const input = within(dialog).getByLabelText('Group name');
+		const input = within(dialog).getByLabelText('Invite list name');
 		fireEvent.change(input, { target: { value: '  ' } });
 		fireEvent.click(within(dialog).getByRole('button', { name: 'Rename' }));
 
 		expect(mockService.renameGroup).not.toHaveBeenCalled();
-		expect(input).toHaveAccessibleDescription('Name the group first.');
+		expect(input).toHaveAccessibleDescription('Name the invite list first.');
 		await waitFor(() => expect(input).toHaveFocus());
 	});
 

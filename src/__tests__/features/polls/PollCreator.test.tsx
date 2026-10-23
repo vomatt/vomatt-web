@@ -193,6 +193,23 @@ describe('PollCreator', () => {
 		await waitFor(() => expect(screen.getByLabelText('Option 2')).toHaveFocus());
 	});
 
+	it('makes a removed option inert while it folds away, so a second click removes nothing more', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		fillPoll();
+		fireEvent.keyDown(screen.getByLabelText('Option 2'), { key: 'Enter' });
+		fireEvent.change(await screen.findByLabelText('Option 3'), { target: { value: 'Option C' } });
+		MotionGlobalConfig.skipAnimations = false;
+		try {
+			fireEvent.click(screen.getByRole('button', { name: 'Remove option 2' }));
+			const leaving = screen.getByDisplayValue('Option B');
+			expect(leaving.closest('[inert]')).not.toBeNull();
+			expect(screen.getByDisplayValue('Option C').closest('[inert]')).toBeNull();
+		} finally {
+			MotionGlobalConfig.skipAnimations = true;
+		}
+	});
+
 	it('adds the next option when Return is pressed in the last one', async () => {
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();
@@ -523,7 +540,7 @@ describe('PollCreator', () => {
 		await waitFor(() => expect(mockCreatePoll).toHaveBeenCalled());
 		expect(mockCreatePoll.mock.calls[0][0]).toMatchObject({
 			audience: 'invite-only',
-			invitees: { userIds: ['u1'], emails: ['carol@example.com'], groupIds: ['g1'] },
+			invitees: { userIds: ['u1'], emails: ['carol@example.com'], inviteListIds: ['g1'] },
 		});
 	});
 
@@ -534,8 +551,8 @@ describe('PollCreator', () => {
 		openSettings();
 		fireEvent.click(screen.getByLabelText(/Invite only/));
 		review();
-		expect(await screen.findByText('Invite at least one person or group.')).toBeInTheDocument();
-		expect(screen.getByLabelText('Invite people')).toHaveAccessibleDescription('Invite at least one person or group.');
+		expect(await screen.findByText('Invite at least one person or invite list.')).toBeInTheDocument();
+		expect(screen.getByLabelText('Invite people')).toHaveAccessibleDescription('Invite at least one person or invite list.');
 		expect(screen.queryByText('How voters will see it')).not.toBeInTheDocument();
 	});
 

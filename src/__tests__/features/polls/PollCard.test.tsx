@@ -131,6 +131,15 @@ describe('PollCard state A · Open, no Ballot', () => {
 		expect(screen.queryByText(/%/)).not.toBeInTheDocument();
 	});
 
+	it('offers the anonymity switch before voting, set from the account default', () => {
+		render(<PollCard poll={openPoll} viewerId="user-voter" anonymousByDefault />);
+		const toggle = screen.getByRole('switch', { name: 'Hide my name from voter lists' });
+		expect(toggle).toBeChecked();
+		fireEvent.click(toggle);
+		expect(toggle).not.toBeChecked();
+		expect(mockCastBallot).not.toHaveBeenCalled();
+	});
+
 	it('keeps Support sealed even when the API still sends counts', () => {
 		const withCounts: Poll = {
 			...openPoll,
@@ -154,7 +163,7 @@ describe('PollCard state B · Open, has Ballot', () => {
 		render(<PollCard poll={openPoll} viewerId="user-voter" />);
 		vote('Saturday');
 
-		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-sat');
+		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-sat', undefined);
 		expect(screen.getByText('129 voted')).toBeInTheDocument();
 		await waitFor(() => expect(screen.getByText('Your vote')).toBeInTheDocument());
 		expect(screen.getByText(/Results are sealed until/)).toBeInTheDocument();
@@ -573,7 +582,7 @@ describe('PollCard signed-out visitor', () => {
 			fireEvent.click(screen.getByText('Mock Auth Success'));
 		});
 
-		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-sun');
+		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-sun', undefined);
 		expect(screen.queryByTestId('auth-dialog')).not.toBeInTheDocument();
 	});
 
@@ -590,7 +599,7 @@ describe('PollCard signed-out visitor', () => {
 		// The viewer had already voted Friday on another device
 		await act(async () => answerLookup('opt-fri'));
 
-		await waitFor(() => expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-sun'));
+		await waitFor(() => expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-sun', undefined));
 		expect(screen.getByText('128 voted')).toBeInTheDocument();
 		expect(screen.getByLabelText(/Sunday/)).toBeChecked();
 	});

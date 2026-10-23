@@ -149,7 +149,7 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 												{t(item.title)}
 											</span>
 											{badge > 0 && (
-												<span className="ml-auto min-w-5 rounded-full bg-primary px-1.5 text-center font-mono text-[10px] leading-5 text-primary-foreground tabular-nums">
+												<span className="ml-auto min-w-5 rounded-full bg-highlight px-1.5 ring-1 ring-foreground/60 text-center font-mono text-[10px] font-semibold leading-5 text-highlight-foreground tabular-nums">
 													{formatUnreadCount(badge)}
 												</span>
 											)}

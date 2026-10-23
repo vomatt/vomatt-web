@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 
 import { LoginPrompt } from '@/components/LoginPrompt';
-import { getUserSession } from '@/data/auth';
+import { getMyProfile, getUserSession } from '@/data/auth';
 import { PollListSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import { getFeed, getPopularTags } from '@/features/polls/service';
 
@@ -32,8 +32,9 @@ export default async function Page({ searchParams }: Props) {
 
 /** Streams in behind the skeleton so the shell paints first. */
 async function Feed({ tag }: { tag: string | undefined }) {
-	const [user, firstPage, tags] = await Promise.all([
+	const [user, profile, firstPage, tags] = await Promise.all([
 		getUserSession(),
+		getMyProfile(),
 		getFeed(null, 10, tag).catch(() => null),
 		getPopularTags(),
 	]);
@@ -44,6 +45,7 @@ async function Feed({ tag }: { tag: string | undefined }) {
 				// Another topic, or a new poll at the top, starts a fresh list
 				key={`${tag ?? ''}:${firstPage?.items[0]?.id ?? ''}`}
 				viewerId={user?.sub}
+				anonymousByDefault={profile?.anonymousBallotByDefault}
 				initialPage={firstPage}
 				tag={tag}
 				header={<HomepageHeader tags={tags} activeTag={tag} />}

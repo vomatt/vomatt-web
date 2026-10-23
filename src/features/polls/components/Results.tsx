@@ -171,7 +171,7 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }:
 									{isWinner && <Crown />}
 									{row.text}
 									{row.id === myOptionId && (
-										<span className="ml-2 rounded-full border border-foreground/20 bg-volt px-2 py-px align-[1px] text-[10px] font-semibold text-volt-foreground">
+										<span className="ml-2 rounded-full border border-foreground/20 bg-highlight px-2 py-px align-[1px] text-[10px] font-semibold text-highlight-foreground">
 											{t('poll.yourVoteShort')}
 										</span>
 									)}

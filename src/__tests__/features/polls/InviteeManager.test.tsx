@@ -71,7 +71,7 @@ describe('InviteeManager', () => {
 			expect(mockAddInvitees).toHaveBeenCalledWith('poll-1', {
 				userIds: [],
 				emails: ['carol@example.com'],
-				groupIds: [],
+				inviteListIds: [],
 			})
 		);
 		expect(await screen.findByText('3 invited, 1 voted')).toBeInTheDocument();

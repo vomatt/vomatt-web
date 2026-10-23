@@ -575,43 +575,55 @@ export function PollCreator({
 													<legend className="mb-2 text-sm font-medium">
 														{t('pollCreator.pollOptionsLabel')}
 													</legend>
-													{fields.map((field, index) => (
-														<div key={field.id} className="flex items-center gap-2">
-															<Input
-																aria-label={`${t('pollCreator.optionsPlaceholder')} ${index + 1}`}
-																placeholder={`${t('pollCreator.optionsPlaceholder')} ${index + 1}`}
-																maxLength={POLL_OPTION_MAX}
-																enterKeyHint="next"
-																aria-invalid={!!errors.options?.[index]?.text}
-																aria-describedby={optionDescription(index)}
-																{...register(`options.${index}.text`)}
-																onKeyDown={(e) => {
-																	// Cmd/Ctrl+Return submits the form; Return that commits IME text (Zhuyin etc.) isn't one
-																	if (!isPlainReturn(e)) return;
-																	// Return moves to the next option, or adds one, instead of submitting
-																	e.preventDefault();
-																	if (index < fields.length - 1) focusField(e, `options.${index + 1}.text`);
-																	else if (canAddOption) append({ text: '' });
-																}}
-															/>
-															{fields.length > POLL_OPTIONS_MIN && (
-																<Button
-																	type="button"
-																	variant="ghost"
-																	size="icon"
-																	aria-label={`${t('pollCreator.removeOption')} ${index + 1}`}
-																	onClick={() => {
-																		remove(index);
-																		// The button leaves with its row: keep focus in the list
-																		setTimeout(() => setFocus(`options.${Math.max(index - 1, 0)}.text`));
-																	}}
-																	className="text-muted-foreground hover:text-destructive"
-																>
-																	<X className="size-4" />
-																</Button>
-															)}
-														</div>
-													))}
+													{/* -mb-2 takes back the last row's gap, which the fieldset already spaces */}
+													<div className="-mb-2">
+														<AnimatePresence initial={false}>
+															{fields.map((field, index) => (
+																<Unfold key={field.id}>
+																	{/* The gap is padding inside the fold, so it opens and closes with the row */}
+																	<div className="pb-2">
+																		<div className="relative">
+																			<Input
+																				aria-label={`${t('pollCreator.optionsPlaceholder')} ${index + 1}`}
+																				placeholder={`${t('pollCreator.optionsPlaceholder')} ${index + 1}`}
+																				maxLength={POLL_OPTION_MAX}
+																				enterKeyHint="next"
+																				aria-invalid={!!errors.options?.[index]?.text}
+																				aria-describedby={optionDescription(index)}
+																				{...register(`options.${index}.text`)}
+																				// Every row leaves room for the remove button, so adding a third option moves nothing
+																				className="pr-12"
+																				onKeyDown={(e) => {
+																					// Cmd/Ctrl+Return submits the form; Return that commits IME text (Zhuyin etc.) isn't one
+																					if (!isPlainReturn(e)) return;
+																					// Return moves to the next option, or adds one, instead of submitting
+																					e.preventDefault();
+																					if (index < fields.length - 1) focusField(e, `options.${index + 1}.text`);
+																					else if (canAddOption) append({ text: '' });
+																				}}
+																			/>
+																			{fields.length > POLL_OPTIONS_MIN && (
+																				<Button
+																					type="button"
+																					variant="ghost"
+																					size="icon"
+																					aria-label={`${t('pollCreator.removeOption')} ${index + 1}`}
+																					onClick={() => {
+																						remove(index);
+																						// The button leaves with its row: keep focus in the list
+																						setTimeout(() => setFocus(`options.${Math.max(index - 1, 0)}.text`));
+																					}}
+																					className="absolute inset-y-0 right-0.5 my-auto text-muted-foreground duration-150 animate-in fade-in zoom-in-75 motion-reduce:animate-none hover:bg-transparent hover:text-destructive"
+																				>
+																					<X className="size-4" />
+																				</Button>
+																			)}
+																		</div>
+																	</div>
+																</Unfold>
+															))}
+														</AnimatePresence>
+													</div>
 													{fields.length < POLL_OPTIONS_LIMIT && (
 														<Button
 															type="button"
@@ -863,7 +875,7 @@ function RadioCards({ legend, note, input, options }: RadioCardsProps) {
 			{options.map(({ value, label, hint }) => (
 				<label
 					key={value}
-					className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-[14px] transition-colors hover:border-border-strong has-[:checked]:border-foreground has-[:checked]:bg-volt-tint has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring"
+					className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-[14px] transition-colors hover:border-border-strong has-[:checked]:border-foreground has-[:checked]:bg-highlight-tint has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring"
 				>
 					<input
 						type="radio"

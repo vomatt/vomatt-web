@@ -219,7 +219,7 @@
 			"optionDuplicate": "每個選項都必須不同。",
 			"endRequired": "請選擇結束時間。",
 			"endBeforeStart": "結束時間必須晚於開始時間。",
-			"inviteesRequired": "請至少邀請一個人或群組。"
+			"inviteesRequired": "請至少邀請一個人或邀請名單。"
 		},
 		"discardEditTitle": "要捨棄變更嗎？",
 		"discardEditBody": "你對這個投票的修改不會被儲存。",
@@ -432,7 +432,7 @@
 		"deleteConfirmLabel": "輸入你的使用者名稱以確認",
 		"deleteConfirmMismatch": "請輸入 {username} 以刪除帳號。",
 		"deleteLastAdmin": "你是唯一的管理員，請先將其他人設為管理員再刪除帳號。",
-		"tabGroups": "群組"
+		"tabGroups": "邀請名單"
 	},
 	"cookieConsent": {
 		"label": "Cookie 同意",
@@ -453,7 +453,7 @@
 		"searchFailed": "無法搜尋，請再試一次。",
 		"picked": "已邀請",
 		"remove": "移除 {name}",
-		"groups": "你的群組",
+		"groups": "你的邀請名單",
 		"groupPill": "{name}，{count} 位成員",
 		"voted": "已投票",
 		"empty": "還沒有邀請任何人。",
@@ -464,25 +464,25 @@
 		"removeFailed": "無法移除，請再試一次。"
 	},
 	"groups": {
-		"title": "群組",
+		"title": "邀請名單",
 		"intro": "可重複使用的邀請名單，用於僅限受邀者的投票。只有你看得到，成員也不會被通知。",
-		"nameLabel": "群組名稱",
-		"nameRequired": "請先為群組命名。",
+		"nameLabel": "邀請名單名稱",
+		"nameRequired": "請先為邀請名單命名。",
 		"addRequired": "請至少選一個人加入。",
 		"namePlaceholder": "例如：讀書會",
-		"create": "新增群組",
-		"empty": "還沒有群組。",
-		"loadFailed": "無法載入你的群組。",
+		"create": "新增邀請名單",
+		"empty": "還沒有邀請名單。",
+		"loadFailed": "無法載入你的邀請名單。",
 		"memberCount": "{count} 位成員",
-		"dialogIntro": "邀請群組時會邀請當下的成員，之後的變動不會影響已送出的投票。",
+		"dialogIntro": "邀請某份名單時，會邀請其當下的成員，之後的變動不會影響已送出的投票。",
 		"rename": "重新命名",
 		"members": "成員",
 		"noMembers": "還沒有成員。",
 		"membersFailed": "無法載入成員。",
 		"addLabel": "新增成員",
 		"add": "新增",
-		"delete": "刪除群組",
-		"deleteConfirm": "要刪除這個群組嗎？已邀請過它的投票會保留受邀者。",
+		"delete": "刪除邀請名單",
+		"deleteConfirm": "要刪除這份邀請名單嗎？已邀請過它的投票會保留受邀者。",
 		"saveFailed": "無法儲存，請再試一次。"
 	},
 	"avatar": {
@@ -841,11 +841,11 @@
 		"notification": {
 			"not_found": "找不到此通知"
 		},
-		"group": {
-			"not_found": "找不到群組",
-			"max_reached": "最多只能建立 {0} 個群組",
+		"invite_list": {
+			"not_found": "找不到邀請名單",
+			"max_reached": "最多只能建立 {0} 份邀請名單",
 			"members": {
-				"max": "每個群組最多 {0} 位成員"
+				"max": "每份邀請名單最多 {0} 位成員"
 			},
 			"member": {
 				"ids_invalid": "部分使用者不存在或已停權"

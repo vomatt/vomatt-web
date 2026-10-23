@@ -12,18 +12,18 @@ import { type Group, type GroupMember, GroupMemberSchema, GroupSchema } from './
 const GroupList = z.array(GroupSchema);
 const MemberList = z.array(GroupMemberSchema);
 
-const groupPath = (groupId: string) => `/groups/${encodeURIComponent(groupId)}`;
+const groupPath = (groupId: string) => `/invite-lists/${encodeURIComponent(groupId)}`;
 
 /** The signed-in user's Groups, by name. */
 export async function getGroups(): Promise<ActionResult<Group[]>> {
-	return attempt(async () => GroupList.parse(await apiClient('/groups')));
+	return attempt(async () => GroupList.parse(await apiClient('/invite-lists')));
 }
 
-/** At most 50 Groups per owner (`group.max_reached`). */
+/** At most 50 Groups per owner (`invite_list.max_reached`). */
 export async function createGroup(name: string): Promise<ActionResult<Group>> {
 	return attempt(async () =>
 		GroupSchema.parse(
-			await apiClient('/groups', { method: 'POST', body: JSON.stringify({ name }) })
+			await apiClient('/invite-lists', { method: 'POST', body: JSON.stringify({ name }) })
 		)
 	);
 }
@@ -49,7 +49,7 @@ export async function getGroupMembers(groupId: string): Promise<ActionResult<Gro
 
 /**
  * Members already in the Group are ignored; nobody is notified. At most 100
- * members (`group.members.max`). Resolves to the full list.
+ * members (`invite_list.members.max`). Resolves to the full list.
  */
 export async function addGroupMembers(
 	groupId: string,

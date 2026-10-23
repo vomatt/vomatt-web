@@ -111,7 +111,7 @@ describe('AccountPage', () => {
 		expect(screen.getByText('40 votes on your polls')).toBeInTheDocument();
 		expect(screen.queryByText(/majority/i)).not.toBeInTheDocument();
 		expect(screen.getByRole('tab', { name: 'Polls' })).toBeInTheDocument();
-		expect(screen.getByRole('tab', { name: 'Groups' })).toBeInTheDocument();
+		expect(screen.getByRole('tab', { name: 'Invite Lists' })).toBeInTheDocument();
 		expect(screen.getByRole('link', { name: 'Settings' })).toHaveAttribute('href', '/settings');
 		expect(screen.queryByRole('tab', { name: 'Settings' })).not.toBeInTheDocument();
 	});

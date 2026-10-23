@@ -4,7 +4,7 @@ How the vomatt UI is built. `PRODUCT.md` says why (users, brand, principles, acc
 
 ## Color
 
-Cool canvas, ink actions, one accent. Use the semantic tokens as Tailwind classes, never raw `oklch()`/hex values. Every token has a dark value in `.dark`, but dark mode is not switched on yet: `ThemeProvider` is not mounted, so the app is light-only.
+Warm porcelain canvas, navy ink actions, one accent (Apricot). The canvas and lines carry a faint warm tint so the app feels bright and welcoming; the navy ink keeps it calm and trustworthy. Use the semantic tokens as Tailwind classes, never raw `oklch()`/hex values. Every token has a dark value in `.dark`, but dark mode is not switched on yet: `ThemeProvider` is not mounted, so the app is light-only.
 
 | Role | Token | Use for |
 |---|---|---|
@@ -16,7 +16,7 @@ Cool canvas, ink actions, one accent. Use the semantic tokens as Tailwind classe
 | Quiet text | `muted-foreground` | Meta, hints, secondary copy |
 | Lines | `border`, `border-strong` | `border` for cards, rows, dividers and outline buttons; `border-strong` for hover |
 | Controls | `input` | Text field borders, checkbox marks and switch tracks: the 3:1 boundary a control needs at rest |
-| Volt | `volt`, `volt-foreground`, `volt-tint` | The create action (`Button variant="create"`: a Volt icon on ink in light, a Volt button in dark), the active nav icon, the viewer's own choice and unread markers. Never decoration |
+| Highlight (Apricot) | `highlight`, `highlight-foreground`, `highlight-tint` | The create action (`Button variant="create"`: an Apricot icon on ink in light, an Apricot button in dark), the unread count and unread markers, the viewer's own choice (`highlight-tint` behind the selected row). Text on it is always `highlight-foreground` ink. Never decoration |
 | Poll status | `status-scheduled/open/closing/ended` | Status chip tints, always with a text label |
 | Error | `destructive` | Validation and destructive actions |
 

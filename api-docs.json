@@ -853,11 +853,11 @@
         },
         "type" : "object"
       },
-      "ApiResponseGroupResponse" : {
+      "ApiResponseInviteListResponse" : {
         "description" : "Envelope of every API response, success or error",
         "properties" : {
           "data" : {
-            "$ref" : "#/components/schemas/GroupResponse"
+            "$ref" : "#/components/schemas/InviteListResponse"
           },
           "error" : {
             "description" : "Legacy duplicate of `message` on errors; null on success. Use `message` instead",
@@ -885,13 +885,13 @@
         },
         "type" : "object"
       },
-      "ApiResponseListGroupMemberResponse" : {
+      "ApiResponseListInviteListMemberResponse" : {
         "description" : "Envelope of every API response, success or error",
         "properties" : {
           "data" : {
             "description" : "Response payload; null on errors (a few business errors carry structured data) and on operations without a result",
             "items" : {
-              "$ref" : "#/components/schemas/GroupMemberResponse"
+              "$ref" : "#/components/schemas/InviteListMemberResponse"
             },
             "nullable" : true,
             "type" : "array"
@@ -922,13 +922,13 @@
         },
         "type" : "object"
       },
-      "ApiResponseListGroupResponse" : {
+      "ApiResponseListInviteListResponse" : {
         "description" : "Envelope of every API response, success or error",
         "properties" : {
           "data" : {
             "description" : "Response payload; null on errors (a few business errors carry structured data) and on operations without a result",
             "items" : {
-              "$ref" : "#/components/schemas/GroupResponse"
+              "$ref" : "#/components/schemas/InviteListResponse"
             },
             "nullable" : true,
             "type" : "array"
@@ -2055,11 +2055,11 @@
             "format" : "date-time",
             "type" : "string"
           },
-          "groupIds" : {
-            "description" : "IDs of the caller's Groups (see `GET /api/groups`) whose current members to invite; only for an INVITE_ONLY Poll (otherwise 400 `vote.invitee.not_invite_only`). At most 20; null elements are rejected; a missing Group or someone else's is 404 `group.not_found`. Members added by ID join `inviteeIds` (suspended ones are skipped) and members added by email join `inviteeEmails`, by their stored address, with the same rules and invitation emails. The members are copied now: later Group changes never touch the Poll. On edit they are merged into whichever of `inviteeIds` / `inviteeEmails` is set, so an explicit `[]` plus `groupIds` replaces that kind of Invitee with the Groups' members (already-invited members are kept as they are); a null list keeps that kind of Invitee and adds the Groups' members on top",
+          "inviteListIds" : {
+            "description" : "IDs of the caller's Invite Lists (see `GET /api/invite-lists`) whose current members to invite; only for an INVITE_ONLY Poll (otherwise 400 `vote.invitee.not_invite_only`). At most 20; null elements are rejected; a missing Invite List or someone else's is 404 `invite_list.not_found`. Members added by ID join `inviteeIds` (suspended ones are skipped) and members added by email join `inviteeEmails`, by their stored address, with the same rules and invitation emails. The members are copied now: later Invite List changes never touch the Poll. On edit they are merged into whichever of `inviteeIds` / `inviteeEmails` is set, so an explicit `[]` plus `inviteListIds` replaces that kind of Invitee with the Invite Lists' members (already-invited members are kept as they are); a null list keeps that kind of Invitee and adds the Invite Lists' members on top",
             "example" : [ "0199f2b0-7a1c-7e45-9b3d-2c8f6a4e1d07" ],
             "items" : {
-              "description" : "IDs of the caller's Groups (see `GET /api/groups`) whose current members to invite; only for an INVITE_ONLY Poll (otherwise 400 `vote.invitee.not_invite_only`). At most 20; null elements are rejected; a missing Group or someone else's is 404 `group.not_found`. Members added by ID join `inviteeIds` (suspended ones are skipped) and members added by email join `inviteeEmails`, by their stored address, with the same rules and invitation emails. The members are copied now: later Group changes never touch the Poll. On edit they are merged into whichever of `inviteeIds` / `inviteeEmails` is set, so an explicit `[]` plus `groupIds` replaces that kind of Invitee with the Groups' members (already-invited members are kept as they are); a null list keeps that kind of Invitee and adds the Groups' members on top",
+              "description" : "IDs of the caller's Invite Lists (see `GET /api/invite-lists`) whose current members to invite; only for an INVITE_ONLY Poll (otherwise 400 `vote.invitee.not_invite_only`). At most 20; null elements are rejected; a missing Invite List or someone else's is 404 `invite_list.not_found`. Members added by ID join `inviteeIds` (suspended ones are skipped) and members added by email join `inviteeEmails`, by their stored address, with the same rules and invitation emails. The members are copied now: later Invite List changes never touch the Poll. On edit they are merged into whichever of `inviteeIds` / `inviteeEmails` is set, so an explicit `[]` plus `inviteListIds` replaces that kind of Invitee with the Invite Lists' members (already-invited members are kept as they are); a null list keeps that kind of Invitee and adds the Invite Lists' members on top",
               "format" : "uuid",
               "nullable" : true,
               "type" : "string"
@@ -2285,8 +2285,8 @@
         "required" : [ "idToken" ],
         "type" : "object"
       },
-      "GroupMemberResponse" : {
-        "description" : "A member of a Group: a user added by ID, or an email address (never revealing whether it belongs to an account)",
+      "InviteListMemberResponse" : {
+        "description" : "A member of an Invite List: a user added by ID, or an email address (never revealing whether it belongs to an account)",
         "nullable" : true,
         "properties" : {
           "addedAt" : {
@@ -2322,14 +2322,14 @@
         },
         "type" : "object"
       },
-      "GroupMembersRequest" : {
-        "description" : "Body to add members to a Group; at least one of `userIds` / `emails` must be non-empty",
+      "InviteListMembersRequest" : {
+        "description" : "Body to add members to an Invite List; at least one of `userIds` / `emails` must be non-empty",
         "properties" : {
           "emails" : {
-            "description" : "Up to 100 email addresses to add; null elements and invalid addresses are rejected. Normalized like sign-in does (lower-cased, trimmed, Gmail in canonical form); addresses already in the Group, duplicates and the owner's own address are ignored. Each address is listed as entered, whether or not it belongs to an account; nobody is notified",
+            "description" : "Up to 100 email addresses to add; null elements and invalid addresses are rejected. Normalized like sign-in does (lower-cased, trimmed, Gmail in canonical form); addresses already in the Invite List, duplicates and the owner's own address are ignored. Each address is listed as entered, whether or not it belongs to an account; nobody is notified",
             "example" : [ "carol@example.com" ],
             "items" : {
-              "description" : "Up to 100 email addresses to add; null elements and invalid addresses are rejected. Normalized like sign-in does (lower-cased, trimmed, Gmail in canonical form); addresses already in the Group, duplicates and the owner's own address are ignored. Each address is listed as entered, whether or not it belongs to an account; nobody is notified",
+              "description" : "Up to 100 email addresses to add; null elements and invalid addresses are rejected. Normalized like sign-in does (lower-cased, trimmed, Gmail in canonical form); addresses already in the Invite List, duplicates and the owner's own address are ignored. Each address is listed as entered, whether or not it belongs to an account; nobody is notified",
               "example" : "[\"carol@example.com\"]",
               "format" : "email",
               "maxLength" : 254,
@@ -2343,10 +2343,10 @@
             "type" : "array"
           },
           "userIds" : {
-            "description" : "Up to 100 User IDs to add (e.g. picked via `GET /api/users/search`); null elements are rejected. Members already in the Group, duplicates and the owner's own ID are ignored; unknown or suspended users are rejected with 400 `group.member.ids_invalid`",
+            "description" : "Up to 100 User IDs to add (e.g. picked via `GET /api/users/search`); null elements are rejected. Members already in the Invite List, duplicates and the owner's own ID are ignored; unknown or suspended users are rejected with 400 `invite_list.member.ids_invalid`",
             "example" : [ "0199f2a1-2c5d-7f13-9b0e-7d4a1e3f6c82" ],
             "items" : {
-              "description" : "Up to 100 User IDs to add (e.g. picked via `GET /api/users/search`); null elements are rejected. Members already in the Group, duplicates and the owner's own ID are ignored; unknown or suspended users are rejected with 400 `group.member.ids_invalid`",
+              "description" : "Up to 100 User IDs to add (e.g. picked via `GET /api/users/search`); null elements are rejected. Members already in the Invite List, duplicates and the owner's own ID are ignored; unknown or suspended users are rejected with 400 `invite_list.member.ids_invalid`",
               "format" : "uuid",
               "nullable" : true,
               "type" : "string"
@@ -2359,11 +2359,11 @@
         },
         "type" : "object"
       },
-      "GroupRequest" : {
-        "description" : "Body to create or rename a Group",
+      "InviteListRequest" : {
+        "description" : "Body to create or rename an Invite List",
         "properties" : {
           "name" : {
-            "description" : "Group name, up to 50 characters; leading and trailing spaces are trimmed. Names need not be unique",
+            "description" : "Invite List name, up to 50 characters; leading and trailing spaces are trimmed. Names need not be unique",
             "example" : "Book club",
             "maxLength" : 50,
             "minLength" : 0,
@@ -2373,18 +2373,18 @@
         "required" : [ "name" ],
         "type" : "object"
       },
-      "GroupResponse" : {
-        "description" : "A Group of the caller (only its owner ever sees it)",
+      "InviteListResponse" : {
+        "description" : "An Invite List of the caller (only its owner ever sees it)",
         "nullable" : true,
         "properties" : {
           "createdAt" : {
-            "description" : "When the Group was created",
+            "description" : "When the Invite List was created",
             "example" : "2026-10-09T15:20:31+08:00",
             "format" : "date-time",
             "type" : "string"
           },
           "id" : {
-            "description" : "Group ID; pass it in `groupIds` when creating or editing an Invite-only Poll or adding Invitees",
+            "description" : "Invite List ID; pass it in `inviteListIds` when creating or editing an Invite-only Poll or adding Invitees",
             "example" : "0199f2b0-7a1c-7e45-9b3d-2c8f6a4e1d07",
             "type" : "string"
           },
@@ -2395,7 +2395,7 @@
             "type" : "integer"
           },
           "name" : {
-            "description" : "Group name",
+            "description" : "Invite List name",
             "example" : "Book club",
             "type" : "string"
           }
@@ -2445,7 +2445,7 @@
         "type" : "object"
       },
       "InviteesRequest" : {
-        "description" : "Body to add Invitees to an Invite-only Poll; at least one of `userIds` / `emails` / `groupIds` must be non-empty",
+        "description" : "Body to add Invitees to an Invite-only Poll; at least one of `userIds` / `emails` / `inviteListIds` must be non-empty",
         "properties" : {
           "emails" : {
             "description" : "Up to 100 email addresses to invite; null elements and invalid addresses are rejected. Normalized like sign-in does (lower-cased, trimmed, Gmail in canonical form); addresses already invited, duplicates and the owner's own address are ignored. Each address is listed as entered and gets an invitation email; an active account's user gets access right away, any other address once someone verifies it at sign-up / sign-in",
@@ -2464,11 +2464,11 @@
             "nullable" : true,
             "type" : "array"
           },
-          "groupIds" : {
-            "description" : "Up to 20 IDs of the caller's Groups (see `GET /api/groups`) whose current members to invite; null elements are rejected and a missing Group or someone else's is 404 `group.not_found`. Members added by ID join `userIds` (suspended ones are skipped) and members added by email join `emails`, by their stored address, with the same rules and invitation emails. The members are copied now: later Group changes never touch the Poll",
+          "inviteListIds" : {
+            "description" : "Up to 20 IDs of the caller's Invite Lists (see `GET /api/invite-lists`) whose current members to invite; null elements are rejected and a missing Invite List or someone else's is 404 `invite_list.not_found`. Members added by ID join `userIds` (suspended ones are skipped) and members added by email join `emails`, by their stored address, with the same rules and invitation emails. The members are copied now: later Invite List changes never touch the Poll",
             "example" : [ "0199f2b0-7a1c-7e45-9b3d-2c8f6a4e1d07" ],
             "items" : {
-              "description" : "Up to 20 IDs of the caller's Groups (see `GET /api/groups`) whose current members to invite; null elements are rejected and a missing Group or someone else's is 404 `group.not_found`. Members added by ID join `userIds` (suspended ones are skipped) and members added by email join `emails`, by their stored address, with the same rules and invitation emails. The members are copied now: later Group changes never touch the Poll",
+              "description" : "Up to 20 IDs of the caller's Invite Lists (see `GET /api/invite-lists`) whose current members to invite; null elements are rejected and a missing Invite List or someone else's is 404 `invite_list.not_found`. Members added by ID join `userIds` (suspended ones are skipped) and members added by email join `emails`, by their stored address, with the same rules and invitation emails. The members are copied now: later Invite List changes never touch the Poll",
               "format" : "uuid",
               "nullable" : true,
               "type" : "string"
@@ -8774,17 +8774,17 @@
         "tags" : [ "Auth" ]
       }
     },
-    "/api/groups" : {
+    "/api/invite-lists" : {
       "get" : {
-        "description" : "**Auth**: required\n**Precondition**: none\n**Behavior**: the caller's Groups by name, each with its member count. Nobody else ever sees them, members included.\n**Side effects**: none\n**Errors**: none\n",
-        "operationId" : "getGroups",
+        "description" : "**Auth**: required\n**Precondition**: none\n**Behavior**: the caller's Invite Lists by name, each with its member count. Nobody else ever sees them, members included.\n**Side effects**: none\n**Errors**: none\n",
+        "operationId" : "getInviteLists",
         "responses" : {
           "200" : {
             "content" : {
               "application/json" : {
                 "examples" : {
-                  "Groups" : {
-                    "description" : "Groups",
+                  "Invite Lists" : {
+                    "description" : "Invite Lists",
                     "value" : {
                       "data" : [ {
                         "createdAt" : "2026-10-09T15:20:31+08:00",
@@ -8800,7 +8800,7 @@
                   }
                 },
                 "schema" : {
-                  "$ref" : "#/components/schemas/ApiResponseListGroupResponse"
+                  "$ref" : "#/components/schemas/ApiResponseListInviteListResponse"
                 }
               }
             },
@@ -8851,12 +8851,12 @@
             "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
           }
         },
-        "summary" : "List my Groups",
-        "tags" : [ "Group" ]
+        "summary" : "List my Invite Lists",
+        "tags" : [ "Invite List" ]
       },
       "post" : {
-        "description" : "**Auth**: required\n**Precondition**: the caller has fewer than 50 Groups\n**Behavior**: creates an empty Group owned by the caller; add members through `POST /api/groups/{groupId}/members`.\n**Side effects**: the creation is audit-logged.\n**Errors**:\n- 400 `group.max_reached`: the caller already has 50 Groups\n- 400 `common.validation_failed`: `name` is blank or longer than 50 characters\n- 404 `user.not_found`: the signed-in user no longer exists\n",
-        "operationId" : "createGroup",
+        "description" : "**Auth**: required\n**Precondition**: the caller has fewer than 50 Invite Lists\n**Behavior**: creates an empty Invite List owned by the caller; add members through `POST /api/invite-lists/{inviteListId}/members`.\n**Side effects**: the creation is audit-logged.\n**Errors**:\n- 400 `invite_list.max_reached`: the caller already has 50 InviteLists\n- 400 `common.validation_failed`: `name` is blank or longer than 50 characters\n- 404 `user.not_found`: the signed-in user no longer exists\n",
+        "operationId" : "createInviteList",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -8869,7 +8869,7 @@
                 }
               },
               "schema" : {
-                "$ref" : "#/components/schemas/GroupRequest"
+                "$ref" : "#/components/schemas/InviteListRequest"
               }
             }
           },
@@ -8880,8 +8880,8 @@
             "content" : {
               "application/json" : {
                 "examples" : {
-                  "Group" : {
-                    "description" : "Group",
+                  "Invite List" : {
+                    "description" : "Invite List",
                     "value" : {
                       "data" : {
                         "createdAt" : "2026-10-09T15:20:31+08:00",
@@ -8897,11 +8897,11 @@
                   }
                 },
                 "schema" : {
-                  "$ref" : "#/components/schemas/ApiResponseGroupResponse"
+                  "$ref" : "#/components/schemas/ApiResponseInviteListResponse"
                 }
               }
             },
-            "description" : "Group created"
+            "description" : "Invite List created"
           },
           "400" : {
             "content" : {
@@ -8948,19 +8948,19 @@
             "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
           }
         },
-        "summary" : "Create a Group",
-        "tags" : [ "Group" ]
+        "summary" : "Create an Invite List",
+        "tags" : [ "Invite List" ]
       }
     },
-    "/api/groups/{groupId}" : {
+    "/api/invite-lists/{inviteListId}" : {
       "delete" : {
-        "description" : "**Auth**: required (owner only)\n**Precondition**: none\n**Behavior**: deletes the Group and its members. Polls the Group was already invited into keep their Invitees.\n**Side effects**: nobody is notified; the action is audit-logged.\n**Errors**:\n- 404 `group.not_found`: the Group does not exist or belongs to someone else",
-        "operationId" : "deleteGroup",
+        "description" : "**Auth**: required (owner only)\n**Precondition**: none\n**Behavior**: deletes the Invite List and its members. Polls the Invite List was already invited into keep their Invitees.\n**Side effects**: nobody is notified; the action is audit-logged.\n**Errors**:\n- 404 `invite_list.not_found`: the Invite List does not exist or belongs to someone else",
+        "operationId" : "deleteInviteList",
         "parameters" : [ {
-          "description" : "Group ID",
+          "description" : "Invite List ID",
           "example" : "0199f2b0-7a1c-7e45-9b3d-2c8f6a4e1d07",
           "in" : "path",
-          "name" : "groupId",
+          "name" : "inviteListId",
           "required" : true,
           "schema" : {
             "type" : "string"
@@ -9031,13 +9031,13 @@
             "content" : {
               "application/json" : {
                 "examples" : {
-                  "group.not_found" : {
-                    "description" : "group.not_found",
+                  "invite_list.not_found" : {
+                    "description" : "invite_list.not_found",
                     "value" : {
                       "data" : null,
-                      "error" : "Group not found",
-                      "errorCode" : "group.not_found",
-                      "message" : "Group not found",
+                      "error" : "Invite List not found",
+                      "errorCode" : "invite_list.not_found",
+                      "message" : "Invite List not found",
                       "success" : false
                     }
                   }
@@ -9047,7 +9047,7 @@
                 }
               }
             },
-            "description" : "Group does not exist or belongs to someone else (`group.not_found`)"
+            "description" : "Invite List does not exist or belongs to someone else (`invite_list.not_found`)"
           },
           "429" : {
             "content" : {
@@ -9061,17 +9061,17 @@
             "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
           }
         },
-        "summary" : "Delete a Group",
-        "tags" : [ "Group" ]
+        "summary" : "Delete an Invite List",
+        "tags" : [ "Invite List" ]
       },
       "put" : {
-        "description" : "**Auth**: required (owner only)\n**Precondition**: none\n**Behavior**: renames the Group.\n**Side effects**: the action is audit-logged.\n**Errors**:\n- 400 `common.validation_failed`: `name` is blank or longer than 50 characters\n- 404 `group.not_found`: the Group does not exist or belongs to someone else",
-        "operationId" : "renameGroup",
+        "description" : "**Auth**: required (owner only)\n**Precondition**: none\n**Behavior**: renames the Invite List.\n**Side effects**: the action is audit-logged.\n**Errors**:\n- 400 `common.validation_failed`: `name` is blank or longer than 50 characters\n- 404 `invite_list.not_found`: the Invite List does not exist or belongs to someone else",
+        "operationId" : "renameInviteList",
         "parameters" : [ {
-          "description" : "Group ID",
+          "description" : "Invite List ID",
           "example" : "0199f2b0-7a1c-7e45-9b3d-2c8f6a4e1d07",
           "in" : "path",
-          "name" : "groupId",
+          "name" : "inviteListId",
           "required" : true,
           "schema" : {
             "type" : "string"
@@ -9089,7 +9089,7 @@
                 }
               },
               "schema" : {
-                "$ref" : "#/components/schemas/GroupRequest"
+                "$ref" : "#/components/schemas/InviteListRequest"
               }
             }
           },
@@ -9100,8 +9100,8 @@
             "content" : {
               "application/json" : {
                 "examples" : {
-                  "Group" : {
-                    "description" : "Group",
+                  "Invite List" : {
+                    "description" : "Invite List",
                     "value" : {
                       "data" : {
                         "createdAt" : "2026-10-09T15:20:31+08:00",
@@ -9117,7 +9117,7 @@
                   }
                 },
                 "schema" : {
-                  "$ref" : "#/components/schemas/ApiResponseGroupResponse"
+                  "$ref" : "#/components/schemas/ApiResponseInviteListResponse"
                 }
               }
             },
@@ -9160,13 +9160,13 @@
             "content" : {
               "application/json" : {
                 "examples" : {
-                  "group.not_found" : {
-                    "description" : "group.not_found",
+                  "invite_list.not_found" : {
+                    "description" : "invite_list.not_found",
                     "value" : {
                       "data" : null,
-                      "error" : "Group not found",
-                      "errorCode" : "group.not_found",
-                      "message" : "Group not found",
+                      "error" : "Invite List not found",
+                      "errorCode" : "invite_list.not_found",
+                      "message" : "Invite List not found",
                       "success" : false
                     }
                   }
@@ -9176,7 +9176,7 @@
                 }
               }
             },
-            "description" : "Group does not exist or belongs to someone else (`group.not_found`)"
+            "description" : "Invite List does not exist or belongs to someone else (`invite_list.not_found`)"
           },
           "429" : {
             "content" : {
@@ -9190,19 +9190,19 @@
             "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
           }
         },
-        "summary" : "Rename a Group",
-        "tags" : [ "Group" ]
+        "summary" : "Rename an Invite List",
+        "tags" : [ "Invite List" ]
       }
     },
-    "/api/groups/{groupId}/members" : {
+    "/api/invite-lists/{inviteListId}/members" : {
       "delete" : {
-        "description" : "**Auth**: required (owner only)\n**Precondition**: none\n**Behavior**: removes the member added by this address (normalized like sign-in does: lower-cased, trimmed, Gmail in canonical form), whether or not it belongs to an account. Idempotent: succeeds, changing nothing, when the address is not a member. Polls the Group was already invited into keep their Invitees. Returns the full member list.\n**Side effects**: the action is audit-logged.\n**Errors**:\n- 404 `group.not_found`: the Group does not exist or belongs to someone else",
+        "description" : "**Auth**: required (owner only)\n**Precondition**: none\n**Behavior**: removes the member added by this address (normalized like sign-in does: lower-cased, trimmed, Gmail in canonical form), whether or not it belongs to an account. Idempotent: succeeds, changing nothing, when the address is not a member. Polls the Invite List was already invited into keep their Invitees. Returns the full member list.\n**Side effects**: the action is audit-logged.\n**Errors**:\n- 404 `invite_list.not_found`: the Invite List does not exist or belongs to someone else",
         "operationId" : "removeEmailMember",
         "parameters" : [ {
-          "description" : "Group ID",
+          "description" : "Invite List ID",
           "example" : "0199f2b0-7a1c-7e45-9b3d-2c8f6a4e1d07",
           "in" : "path",
-          "name" : "groupId",
+          "name" : "inviteListId",
           "required" : true,
           "schema" : {
             "type" : "string"
@@ -9244,7 +9244,7 @@
                   }
                 },
                 "schema" : {
-                  "$ref" : "#/components/schemas/ApiResponseListGroupMemberResponse"
+                  "$ref" : "#/components/schemas/ApiResponseListInviteListMemberResponse"
                 }
               }
             },
@@ -9287,13 +9287,13 @@
             "content" : {
               "application/json" : {
                 "examples" : {
-                  "group.not_found" : {
-                    "description" : "group.not_found",
+                  "invite_list.not_found" : {
+                    "description" : "invite_list.not_found",
                     "value" : {
                       "data" : null,
-                      "error" : "Group not found",
-                      "errorCode" : "group.not_found",
-                      "message" : "Group not found",
+                      "error" : "Invite List not found",
+                      "errorCode" : "invite_list.not_found",
+                      "message" : "Invite List not found",
                       "success" : false
                     }
                   }
@@ -9303,7 +9303,7 @@
                 }
               }
             },
-            "description" : "Group does not exist or belongs to someone else (`group.not_found`)"
+            "description" : "Invite List does not exist or belongs to someone else (`invite_list.not_found`)"
           },
           "429" : {
             "content" : {
@@ -9317,17 +9317,17 @@
             "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
           }
         },
-        "summary" : "Remove an email Group member",
-        "tags" : [ "Group" ]
+        "summary" : "Remove an email Invite List member",
+        "tags" : [ "Invite List" ]
       },
       "get" : {
-        "description" : "**Auth**: required (owner only)\n**Precondition**: none\n**Behavior**: the Group's members, earliest added first. A member added by email is always listed by that address with `userId` / `username` null, whether or not the address belongs to an account.\n**Side effects**: none\n**Errors**:\n- 404 `group.not_found`: the Group does not exist or belongs to someone else",
+        "description" : "**Auth**: required (owner only)\n**Precondition**: none\n**Behavior**: the Invite List's members, earliest added first. A member added by email is always listed by that address with `userId` / `username` null, whether or not the address belongs to an account.\n**Side effects**: none\n**Errors**:\n- 404 `invite_list.not_found`: the Invite List does not exist or belongs to someone else",
         "operationId" : "getMembers",
         "parameters" : [ {
-          "description" : "Group ID",
+          "description" : "Invite List ID",
           "example" : "0199f2b0-7a1c-7e45-9b3d-2c8f6a4e1d07",
           "in" : "path",
-          "name" : "groupId",
+          "name" : "inviteListId",
           "required" : true,
           "schema" : {
             "type" : "string"
@@ -9360,7 +9360,7 @@
                   }
                 },
                 "schema" : {
-                  "$ref" : "#/components/schemas/ApiResponseListGroupMemberResponse"
+                  "$ref" : "#/components/schemas/ApiResponseListInviteListMemberResponse"
                 }
               }
             },
@@ -9403,13 +9403,13 @@
             "content" : {
               "application/json" : {
                 "examples" : {
-                  "group.not_found" : {
-                    "description" : "group.not_found",
+                  "invite_list.not_found" : {
+                    "description" : "invite_list.not_found",
                     "value" : {
                       "data" : null,
-                      "error" : "Group not found",
-                      "errorCode" : "group.not_found",
-                      "message" : "Group not found",
+                      "error" : "Invite List not found",
+                      "errorCode" : "invite_list.not_found",
+                      "message" : "Invite List not found",
                       "success" : false
                     }
                   }
@@ -9419,7 +9419,7 @@
                 }
               }
             },
-            "description" : "Group does not exist or belongs to someone else (`group.not_found`)"
+            "description" : "Invite List does not exist or belongs to someone else (`invite_list.not_found`)"
           },
           "429" : {
             "content" : {
@@ -9433,17 +9433,17 @@
             "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
           }
         },
-        "summary" : "List Group members",
-        "tags" : [ "Group" ]
+        "summary" : "List Invite List members",
+        "tags" : [ "Invite List" ]
       },
       "post" : {
-        "description" : "**Auth**: required (owner only)\n**Precondition**: the Group stays within 100 members\n**Behavior**: adds the users and email addresses as members. Members already in the Group, duplicates and the owner's own ID / address are ignored. An address is always listed as entered, whether or not it belongs to an account; once someone verifies it at sign-up / sign-in it is tied to that user, still listed by the address. Returns the full member list.\n**Side effects**: nobody is notified (members never learn about the Group); the action is audit-logged.\n**Errors**:\n- 400 `group.member.ids_invalid`: one of `userIds` is not an existing user or is suspended (`emails` never cause it)\n- 400 `group.members.max`: the Group would hold more than 100 members\n- 400 `common.validation_failed`: both `userIds` and `emails` are empty, one holds more than 100 entries, a null element or an invalid address\n- 404 `group.not_found`: the Group does not exist or belongs to someone else",
+        "description" : "**Auth**: required (owner only)\n**Precondition**: the Invite List stays within 100 members\n**Behavior**: adds the users and email addresses as members. Members already in the Invite List, duplicates and the owner's own ID / address are ignored. An address is always listed as entered, whether or not it belongs to an account; once someone verifies it at sign-up / sign-in it is tied to that user, still listed by the address. Returns the full member list.\n**Side effects**: nobody is notified (members never learn about the Invite List); the action is audit-logged.\n**Errors**:\n- 400 `invite_list.member.ids_invalid`: one of `userIds` is not an existing user or is suspended (`emails` never cause it)\n- 400 `invite_list.members.max`: the Invite List would hold more than 100 members\n- 400 `common.validation_failed`: both `userIds` and `emails` are empty, one holds more than 100 entries, a null element or an invalid address\n- 404 `invite_list.not_found`: the Invite List does not exist or belongs to someone else",
         "operationId" : "addMembers",
         "parameters" : [ {
-          "description" : "Group ID",
+          "description" : "Invite List ID",
           "example" : "0199f2b0-7a1c-7e45-9b3d-2c8f6a4e1d07",
           "in" : "path",
-          "name" : "groupId",
+          "name" : "inviteListId",
           "required" : true,
           "schema" : {
             "type" : "string"
@@ -9462,7 +9462,7 @@
                 }
               },
               "schema" : {
-                "$ref" : "#/components/schemas/GroupMembersRequest"
+                "$ref" : "#/components/schemas/InviteListMembersRequest"
               }
             }
           },
@@ -9495,7 +9495,7 @@
                   }
                 },
                 "schema" : {
-                  "$ref" : "#/components/schemas/ApiResponseListGroupMemberResponse"
+                  "$ref" : "#/components/schemas/ApiResponseListInviteListMemberResponse"
                 }
               }
             },
@@ -9538,13 +9538,13 @@
             "content" : {
               "application/json" : {
                 "examples" : {
-                  "group.not_found" : {
-                    "description" : "group.not_found",
+                  "invite_list.not_found" : {
+                    "description" : "invite_list.not_found",
                     "value" : {
                       "data" : null,
-                      "error" : "Group not found",
-                      "errorCode" : "group.not_found",
-                      "message" : "Group not found",
+                      "error" : "Invite List not found",
+                      "errorCode" : "invite_list.not_found",
+                      "message" : "Invite List not found",
                       "success" : false
                     }
                   }
@@ -9554,7 +9554,7 @@
                 }
               }
             },
-            "description" : "Group does not exist or belongs to someone else (`group.not_found`)"
+            "description" : "Invite List does not exist or belongs to someone else (`invite_list.not_found`)"
           },
           "429" : {
             "content" : {
@@ -9568,19 +9568,19 @@
             "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
           }
         },
-        "summary" : "Add Group members",
-        "tags" : [ "Group" ]
+        "summary" : "Add Invite List members",
+        "tags" : [ "Invite List" ]
       }
     },
-    "/api/groups/{groupId}/members/{userId}" : {
+    "/api/invite-lists/{inviteListId}/members/{userId}" : {
       "delete" : {
-        "description" : "**Auth**: required (owner only)\n**Precondition**: none\n**Behavior**: removes the member added by this user ID. Idempotent: succeeds, changing nothing, when the user is not a member added by ID; one added by email is removed through `DELETE /api/groups/{groupId}/members?email=`. Polls the Group was already invited into keep their Invitees. Returns the full member list.\n**Side effects**: the action is audit-logged.\n**Errors**:\n- 404 `group.not_found`: the Group does not exist or belongs to someone else",
+        "description" : "**Auth**: required (owner only)\n**Precondition**: none\n**Behavior**: removes the member added by this user ID. Idempotent: succeeds, changing nothing, when the user is not a member added by ID; one added by email is removed through `DELETE /api/invite-lists/{inviteListId}/members?email=`. Polls the Invite List was already invited into keep their Invitees. Returns the full member list.\n**Side effects**: the action is audit-logged.\n**Errors**:\n- 404 `invite_list.not_found`: the Invite List does not exist or belongs to someone else",
         "operationId" : "removeMember",
         "parameters" : [ {
-          "description" : "Group ID",
+          "description" : "Invite List ID",
           "example" : "0199f2b0-7a1c-7e45-9b3d-2c8f6a4e1d07",
           "in" : "path",
-          "name" : "groupId",
+          "name" : "inviteListId",
           "required" : true,
           "schema" : {
             "type" : "string"
@@ -9622,7 +9622,7 @@
                   }
                 },
                 "schema" : {
-                  "$ref" : "#/components/schemas/ApiResponseListGroupMemberResponse"
+                  "$ref" : "#/components/schemas/ApiResponseListInviteListMemberResponse"
                 }
               }
             },
@@ -9665,13 +9665,13 @@
             "content" : {
               "application/json" : {
                 "examples" : {
-                  "group.not_found" : {
-                    "description" : "group.not_found",
+                  "invite_list.not_found" : {
+                    "description" : "invite_list.not_found",
                     "value" : {
                       "data" : null,
-                      "error" : "Group not found",
-                      "errorCode" : "group.not_found",
-                      "message" : "Group not found",
+                      "error" : "Invite List not found",
+                      "errorCode" : "invite_list.not_found",
+                      "message" : "Invite List not found",
                       "success" : false
                     }
                   }
@@ -9681,7 +9681,7 @@
                 }
               }
             },
-            "description" : "Group does not exist or belongs to someone else (`group.not_found`)"
+            "description" : "Invite List does not exist or belongs to someone else (`invite_list.not_found`)"
           },
           "429" : {
             "content" : {
@@ -9695,8 +9695,8 @@
             "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
           }
         },
-        "summary" : "Remove a Group member",
-        "tags" : [ "Group" ]
+        "summary" : "Remove an Invite List member",
+        "tags" : [ "Invite List" ]
       }
     },
     "/api/lookups/frontend" : {
@@ -11681,7 +11681,7 @@
         "tags" : [ "Vote" ]
       },
       "post" : {
-        "description" : "**Auth**: required\n**Precondition**: none\n**Behavior**: creates a Poll owned by the caller. With no `startTime` (or a past one) the Poll is Open immediately; a future `startTime` makes it Scheduled until that time. `voterVisibility` defaults to OWNER (the deprecated `anonymous: true` without `voterVisibility` means NOBODY); `audience` defaults to PUBLIC. An UNLISTED Poll is reachable only through its link: it stays out of Feed / Explore / Search and the owner's profile, and is listed only in My Polls. An INVITE_ONLY Poll is reachable only by its owner and its Invitees: the users in `inviteeIds` and the addresses in `inviteeEmails` (duplicates and the owner's own ID / address are ignored; more can be added later); everyone else gets 404 `vote.not_found`. An address is always listed as entered, whether or not it belongs to an account; an active account's user gets access right away, any other address once someone verifies it at sign-up / sign-in. `groupIds` invites the current members of the caller's Groups: members added by ID join `inviteeIds` (suspended ones are skipped) and members added by email join `inviteeEmails` by their stored address; later Group changes never touch the Poll.\n**Side effects**: usage count of each attached tag +1 for a PUBLIC Poll (UNLISTED and INVITE_ONLY Polls are not counted); each Invitee tied to a user gets an unread Invitation notification (unread count, `unread` on My Polls `status=open`); each new email Invitee is sent an invitation email linking to the Poll (only when email is enabled) (at most once per address per Poll, even after removing and re-adding it, and at most `EMAIL_INVITATION_DAILY_LIMIT` (default 200) per owner per day; over the limit the Invitee is still added and only the email is skipped) and gets the Invitation notification once tied to a user; the creation is audit-logged.\n**Errors**:\n        - 400 `vote.invitee.not_invite_only`: `inviteeIds`, `inviteeEmails` or `groupIds` is not empty but `audience` is not INVITE_ONLY\n        - 400 `vote.invitee.ids_invalid`: one of `inviteeIds` is not an existing user or is suspended (`inviteeEmails` and `groupIds` never cause it)\n        - 400 `vote.multiple.not_allowed`: `allowMultipleChoices` is true\n        - 400 `vote.options.min`: fewer than 2 options\n        - 400 `vote.options.max`: more than 10 options\n        - 400 `vote.end_time.past`: `endTime` is in the past\n        - 400 `vote.end_time.before_start`: `endTime` is not after `startTime`\n        - 400 `vote.duration.exceeded`: `endTime` is more than 365 days after the start time\n        - 400 `tag.ids.invalid`: one of `tagIds` does not exist\n        - 400 `common.validation_failed`: a field breaks its size / required rule (first failing field only)\n- 404 `user.not_found`: the signed-in user no longer exists\n- 404 `group.not_found`: one of `groupIds` does not exist or belongs to someone else\n",
+        "description" : "**Auth**: required\n**Precondition**: none\n**Behavior**: creates a Poll owned by the caller. With no `startTime` (or a past one) the Poll is Open immediately; a future `startTime` makes it Scheduled until that time. `voterVisibility` defaults to OWNER (the deprecated `anonymous: true` without `voterVisibility` means NOBODY); `audience` defaults to PUBLIC. An UNLISTED Poll is reachable only through its link: it stays out of Feed / Explore / Search and the owner's profile, and is listed only in My Polls. An INVITE_ONLY Poll is reachable only by its owner and its Invitees: the users in `inviteeIds` and the addresses in `inviteeEmails` (duplicates and the owner's own ID / address are ignored; more can be added later); everyone else gets 404 `vote.not_found`. An address is always listed as entered, whether or not it belongs to an account; an active account's user gets access right away, any other address once someone verifies it at sign-up / sign-in. `inviteListIds` invites the current members of the caller's Invite Lists: members added by ID join `inviteeIds` (suspended ones are skipped) and members added by email join `inviteeEmails` by their stored address; later Invite List changes never touch the Poll.\n**Side effects**: usage count of each attached tag +1 for a PUBLIC Poll (UNLISTED and INVITE_ONLY Polls are not counted); each Invitee tied to a user gets an unread Invitation notification (unread count, `unread` on My Polls `status=open`); each new email Invitee is sent an invitation email linking to the Poll (only when email is enabled) (at most once per address per Poll, even after removing and re-adding it, and at most `EMAIL_INVITATION_DAILY_LIMIT` (default 200) per owner per day; over the limit the Invitee is still added and only the email is skipped) and gets the Invitation notification once tied to a user; the creation is audit-logged.\n**Errors**:\n        - 400 `vote.invitee.not_invite_only`: `inviteeIds`, `inviteeEmails` or `inviteListIds` is not empty but `audience` is not INVITE_ONLY\n        - 400 `vote.invitee.ids_invalid`: one of `inviteeIds` is not an existing user or is suspended (`inviteeEmails` and `inviteListIds` never cause it)\n        - 400 `vote.multiple.not_allowed`: `allowMultipleChoices` is true\n        - 400 `vote.options.min`: fewer than 2 options\n        - 400 `vote.options.max`: more than 10 options\n        - 400 `vote.end_time.past`: `endTime` is in the past\n        - 400 `vote.end_time.before_start`: `endTime` is not after `startTime`\n        - 400 `vote.duration.exceeded`: `endTime` is more than 365 days after the start time\n        - 400 `tag.ids.invalid`: one of `tagIds` does not exist\n        - 400 `common.validation_failed`: a field breaks its size / required rule (first failing field only)\n- 404 `user.not_found`: the signed-in user no longer exists\n- 404 `invite_list.not_found`: one of `inviteListIds` does not exist or belongs to someone else\n",
         "operationId" : "createVote",
         "requestBody" : {
           "content" : {
@@ -12273,7 +12273,7 @@
         "tags" : [ "Vote" ]
       },
       "put" : {
-        "description" : "**Auth**: required (owner only)\n**Precondition**: the Poll is Scheduled (its start time has not arrived)\n**Behavior**: replaces title, description, times, Voter Visibility, Audience, Invitees, tags and options with the body (same body and validation as create). An omitted `startTime`, `voterVisibility`, `anonymous`, `audience`, `inviteeIds` or `inviteeEmails` keeps the current value; the Poll does not open on edit. With no `voterVisibility`, the deprecated `anonymous: true` sets NOBODY and `anonymous: false` turns NOBODY back into OWNER. Audience can change only here, so it is fixed once the Poll is Open. `groupIds` expands the caller's Groups now: their members are merged into `inviteeIds` / `inviteeEmails` when that list is set, so an explicit `[]` plus `groupIds` replaces that kind of Invitee with the Groups' members (already-invited members are kept as they are); a null list keeps that kind of Invitee and adds the Groups' members on top.\n**Side effects**: all options are replaced, so option IDs change; tag usage counts are adjusted for added / removed tags and for an Audience change (only PUBLIC Polls are counted). `inviteeIds` replaces the Invitees added by ID and `inviteeEmails` those added by email (matched by address); an Audience other than INVITE_ONLY removes them all. Each new Invitee tied to a user gets an unread Invitation notification, including one removed and invited again; each newly added email Invitee is sent an invitation email (at most once per address per Poll, even after removing and re-adding it, and at most `EMAIL_INVITATION_DAILY_LIMIT` (default 200) per owner per day; over the limit the Invitee is still added and only the email is skipped).\n**Errors**:\n- 403 `vote.forbidden`: the caller is not the owner\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is INVITE_ONLY and the caller is neither its owner nor an Invitee\n- 400 `vote.not_editable`: the Poll is Open or Ended\n- 400 `vote.invitee.not_invite_only`: `inviteeIds`, `inviteeEmails` or `groupIds` is not empty but the resulting Audience is not INVITE_ONLY\n- 400 `vote.invitee.ids_invalid`: one of `inviteeIds` is not an existing user or is suspended (`inviteeEmails` and `groupIds` never cause it)\n- 400 `vote.multiple.not_allowed`: `allowMultipleChoices` is true\n- 400 `vote.options.min`: fewer than 2 options\n- 400 `vote.options.max`: more than 10 options\n- 400 `vote.end_time.past`: `endTime` is in the past\n- 400 `vote.end_time.before_start`: `endTime` is not after `startTime`\n- 400 `vote.duration.exceeded`: `endTime` is more than 365 days after the start time\n- 400 `tag.ids.invalid`: one of `tagIds` does not exist\n- 400 `common.validation_failed`: a field breaks its size / required rule (first failing field only)\n- 404 `group.not_found`: one of `groupIds` does not exist or belongs to someone else\n- 409 `common.conflict`: the Poll stayed busy with other changes for 3 seconds; nothing was changed, try again\n",
+        "description" : "**Auth**: required (owner only)\n**Precondition**: the Poll is Scheduled (its start time has not arrived)\n**Behavior**: replaces title, description, times, Voter Visibility, Audience, Invitees, tags and options with the body (same body and validation as create). An omitted `startTime`, `voterVisibility`, `anonymous`, `audience`, `inviteeIds` or `inviteeEmails` keeps the current value; the Poll does not open on edit. With no `voterVisibility`, the deprecated `anonymous: true` sets NOBODY and `anonymous: false` turns NOBODY back into OWNER. Audience can change only here, so it is fixed once the Poll is Open. `inviteListIds` expands the caller's Invite Lists now: their members are merged into `inviteeIds` / `inviteeEmails` when that list is set, so an explicit `[]` plus `inviteListIds` replaces that kind of Invitee with the Invite Lists' members (already-invited members are kept as they are); a null list keeps that kind of Invitee and adds the Invite Lists' members on top.\n**Side effects**: all options are replaced, so option IDs change; tag usage counts are adjusted for added / removed tags and for an Audience change (only PUBLIC Polls are counted). `inviteeIds` replaces the Invitees added by ID and `inviteeEmails` those added by email (matched by address); an Audience other than INVITE_ONLY removes them all. Each new Invitee tied to a user gets an unread Invitation notification, including one removed and invited again; each newly added email Invitee is sent an invitation email (at most once per address per Poll, even after removing and re-adding it, and at most `EMAIL_INVITATION_DAILY_LIMIT` (default 200) per owner per day; over the limit the Invitee is still added and only the email is skipped).\n**Errors**:\n- 403 `vote.forbidden`: the caller is not the owner\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is INVITE_ONLY and the caller is neither its owner nor an Invitee\n- 400 `vote.not_editable`: the Poll is Open or Ended\n- 400 `vote.invitee.not_invite_only`: `inviteeIds`, `inviteeEmails` or `inviteListIds` is not empty but the resulting Audience is not INVITE_ONLY\n- 400 `vote.invitee.ids_invalid`: one of `inviteeIds` is not an existing user or is suspended (`inviteeEmails` and `inviteListIds` never cause it)\n- 400 `vote.multiple.not_allowed`: `allowMultipleChoices` is true\n- 400 `vote.options.min`: fewer than 2 options\n- 400 `vote.options.max`: more than 10 options\n- 400 `vote.end_time.past`: `endTime` is in the past\n- 400 `vote.end_time.before_start`: `endTime` is not after `startTime`\n- 400 `vote.duration.exceeded`: `endTime` is more than 365 days after the start time\n- 400 `tag.ids.invalid`: one of `tagIds` does not exist\n- 400 `common.validation_failed`: a field breaks its size / required rule (first failing field only)\n- 404 `invite_list.not_found`: one of `inviteListIds` does not exist or belongs to someone else\n- 409 `common.conflict`: the Poll stayed busy with other changes for 3 seconds; nothing was changed, try again\n",
         "operationId" : "updateVote",
         "parameters" : [ {
           "description" : "Poll ID",
@@ -13737,7 +13737,7 @@
         "tags" : [ "Vote" ]
       },
       "post" : {
-        "description" : "**Auth**: required (owner only)\n**Precondition**: the Poll is INVITE_ONLY and Scheduled or Open (Invitees can still be added after it opened)\n**Behavior**: adds the users and email addresses as Invitees, so they can see the Poll, cast a Ballot and Comment, and find it in My Polls. Users or addresses already invited, duplicates and the owner's own ID / address are ignored. An address is always listed as entered, whether or not it belongs to an account; an active account's user gets access right away, any other address once someone verifies it at sign-up / sign-in. `groupIds` invites the current members of the caller's Groups: members added by ID join `userIds` (suspended ones are skipped) and members added by email join `emails` by their stored address; later Group changes never touch the Poll. Returns the full Invitee list.\n**Side effects**: `inviteeCount` grows (email Invitees included); each new Invitee tied to a user gets an unread Invitation notification (again unread for one removed and invited again) and later the Ended Notification; each new email Invitee is sent an invitation email (at most once per address per Poll, even after removing and re-adding it, and at most `EMAIL_INVITATION_DAILY_LIMIT` (default 200) per owner per day; over the limit the Invitee is still added and only the email is skipped) linking to the Poll (only when email is enabled) and gets both notifications once tied to a user; the action is audit-logged.\n**Errors**:\n- 400 `vote.invitee.not_invite_only`: the Poll is not INVITE_ONLY\n- 400 `vote.ended`: the Poll has Ended\n- 400 `vote.invitee.ids_invalid`: one of `userIds` is not an existing user or is suspended (`emails` and `groupIds` never cause it)\n- 400 `common.validation_failed`: `userIds`, `emails` and `groupIds` are all empty, `userIds` / `emails` hold more than 100 entries or `groupIds` more than 20, a null element or an invalid address\n- 403 `vote.forbidden`: the caller is not the owner\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is INVITE_ONLY and the caller is neither its owner nor an Invitee\n- 404 `group.not_found`: one of `groupIds` does not exist or belongs to someone else\n- 409 `common.conflict`: the Poll stayed busy with other changes for 3 seconds; nothing was changed, try again\n",
+        "description" : "**Auth**: required (owner only)\n**Precondition**: the Poll is INVITE_ONLY and Scheduled or Open (Invitees can still be added after it opened)\n**Behavior**: adds the users and email addresses as Invitees, so they can see the Poll, cast a Ballot and Comment, and find it in My Polls. Users or addresses already invited, duplicates and the owner's own ID / address are ignored. An address is always listed as entered, whether or not it belongs to an account; an active account's user gets access right away, any other address once someone verifies it at sign-up / sign-in. `inviteListIds` invites the current members of the caller's Invite Lists: members added by ID join `userIds` (suspended ones are skipped) and members added by email join `emails` by their stored address; later Invite List changes never touch the Poll. Returns the full Invitee list.\n**Side effects**: `inviteeCount` grows (email Invitees included); each new Invitee tied to a user gets an unread Invitation notification (again unread for one removed and invited again) and later the Ended Notification; each new email Invitee is sent an invitation email (at most once per address per Poll, even after removing and re-adding it, and at most `EMAIL_INVITATION_DAILY_LIMIT` (default 200) per owner per day; over the limit the Invitee is still added and only the email is skipped) linking to the Poll (only when email is enabled) and gets both notifications once tied to a user; the action is audit-logged.\n**Errors**:\n- 400 `vote.invitee.not_invite_only`: the Poll is not INVITE_ONLY\n- 400 `vote.ended`: the Poll has Ended\n- 400 `vote.invitee.ids_invalid`: one of `userIds` is not an existing user or is suspended (`emails` and `inviteListIds` never cause it)\n- 400 `common.validation_failed`: `userIds`, `emails` and `inviteListIds` are all empty, `userIds` / `emails` hold more than 100 entries or `inviteListIds` more than 20, a null element or an invalid address\n- 403 `vote.forbidden`: the caller is not the owner\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is INVITE_ONLY and the caller is neither its owner nor an Invitee\n- 404 `invite_list.not_found`: one of `inviteListIds` does not exist or belongs to someone else\n- 409 `common.conflict`: the Poll stayed busy with other changes for 3 seconds; nothing was changed, try again\n",
         "operationId" : "addInvitees",
         "parameters" : [ {
           "description" : "Poll ID",
@@ -13753,10 +13753,10 @@
           "content" : {
             "application/json" : {
               "examples" : {
-                "Invite a Group" : {
-                  "description" : "Invite a Group",
+                "Invite an Invite List" : {
+                  "description" : "Invite an Invite List",
                   "value" : {
-                    "groupIds" : [ "0199f2b0-7a1c-7e45-9b3d-2c8f6a4e1d07" ]
+                    "inviteListIds" : [ "0199f2b0-7a1c-7e45-9b3d-2c8f6a4e1d07" ]
                   }
                 },
                 "Invite carol and dave" : {
@@ -14908,9 +14908,6 @@
     "description" : "Admin-only tag management APIs",
     "name" : "Admin Tag"
   }, {
-    "description" : "Groups: the caller's private, reusable invite lists of users and email addresses",
-    "name" : "Group"
-  }, {
     "description" : "Poll APIs: create, edit, Close, cast / retract a Ballot, results, Participants, Feed / Explore / Search listing",
     "name" : "Vote"
   }, {
@@ -14925,6 +14922,9 @@
   }, {
     "description" : "Comments and Replies on a Poll (path segment `votes` = Poll)",
     "name" : "Vote Comment"
+  }, {
+    "description" : "Invite Lists: the caller's private, reusable invite lists of users and email addresses",
+    "name" : "Invite List"
   }, {
     "description" : "Invitations and Ended Notifications, derived when read (no push). The list itself is `GET /api/votes/my` (Invitations on `status=open`, Ended Notifications on `status=ended`), whose items carry `unread`",
     "name" : "Notification"

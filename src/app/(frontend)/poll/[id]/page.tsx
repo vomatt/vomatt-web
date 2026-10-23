@@ -7,7 +7,7 @@ import { T } from '@/components/T';
 import { buttonVariants } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { ArrowLeft } from '@/components/ui/SvgIcons';
-import { getUserSession } from '@/data/auth';
+import { getMyProfile, getUserSession } from '@/data/auth';
 import { MarkNotificationRead } from '@/features/notifications/MarkNotificationRead';
 import { InvitationPrompt } from '@/features/polls/components/InvitationPrompt';
 import { PollAbout } from '@/features/polls/components/PollAbout';
@@ -76,7 +76,7 @@ export default async function PollDetailPage({ params }: Props) {
 }
 
 async function PollDetail({ id }: { id: string }) {
-	const [lookup, user] = await Promise.all([lookupPoll(id), getUserSession()]);
+	const [lookup, user, profile] = await Promise.all([lookupPoll(id), getUserSession(), getMyProfile()]);
 
 	if (!lookup.poll) {
 		// A 404 may be an Invite-only Poll this viewer can't open yet (e.g. from an invitation email)
@@ -111,6 +111,7 @@ async function PollDetail({ id }: { id: string }) {
 			<PollCard
 				poll={lookup.poll}
 				viewerId={user?.sub}
+				anonymousByDefault={profile?.anonymousBallotByDefault}
 				defaultShowComments
 				deletedHref="/my-polls"
 				headingLevel="h1"

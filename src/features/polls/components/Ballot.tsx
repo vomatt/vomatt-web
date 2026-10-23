@@ -35,6 +35,9 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 	const showsVoteAction = !hasBallot || pendingAction === 'vote';
 	const level = visibilityLevel(poll);
 	const visibilityHint = level && t(`poll.visibility.${level}`);
+	const isSealed = hasBallot && !!poll.endTime;
+	// The date needs the viewer's time zone, so the sealed line waits for hydration
+	const sealedUntil = isSealed && isHydrated ? formatPollDate(poll.endTime!, currentLanguage) : '';
 
 	const [optionsRef, animateOptions] = useAnimate();
 	/** The options recoil when a request is rolled back. */
@@ -87,7 +90,9 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 	} else if (!showsVoteAction) {
 		actions = (
 			<>
+				{/* Keyed so React mounts new buttons instead of fading the Vote button's fill into these */}
 				<Button
+					key="withdraw"
 					size="sm"
 					variant="ghost"
 					className="text-muted-foreground"
@@ -97,6 +102,7 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 					{t('poll.withdrawVote')}
 				</Button>
 				<Button
+					key="update"
 					size="sm"
 					variant="outline"
 					disabled={isPending || !selected || selected === myOptionId}
@@ -111,13 +117,13 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 	} else {
 		actions = (
 			<>
-				<span className="text-[12px] text-muted-foreground">{t('poll.revealHint')}</span>
 				<Button
+					key="vote"
 					disabled={isPending || !selected}
 					loading={pendingAction === 'vote'}
 					loadingIcon={<BallotBoxIcon className="size-4" />}
 					onClick={castSelected}
-					className="w-full transition-transform active:scale-95 sm:w-auto sm:min-w-32"
+					className="w-full transition-transform active:scale-95 sm:ml-auto sm:w-auto sm:min-w-32"
 				>
 					{t('poll.vote')}
 				</Button>
@@ -170,7 +176,7 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 			</fieldset>
 
 			{/* Nobody sees the voter list on a 'nobody' Poll, so there is nothing to hide from */}
-			{hasBallot && anonymous !== null && poll.voterVisibility !== 'nobody' && (
+			{!isScheduled && anonymous !== null && poll.voterVisibility !== 'nobody' && (
 				<div className="flex items-center justify-between gap-3">
 					{/* The whole row is the 44px touch target; the Switch alone is smaller */}
 					<label
@@ -188,33 +194,34 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 				</div>
 			)}
 
-			{!hasBallot && !isScheduled && visibilityHint && (
-				<p className="text-[12px] text-muted-foreground">{visibilityHint}</p>
+			{/* One panel before and after voting, so casting swaps a line instead of growing the card */}
+			{!isScheduled && (
+				<div className="flex items-start gap-2.5 rounded-lg border border-border bg-surface-soft px-3.5 py-3 text-[12px] text-muted-foreground">
+					<BallotBoxIcon className="mt-0.5 shrink-0 text-foreground" />
+					<div className="relative flex min-w-0 flex-col gap-1">
+						<AnimatePresence mode="popLayout" initial={false}>
+							<m.p
+								key={isSealed ? 'sealed' : 'reveal'}
+								initial={{ opacity: 0, y: 4 }}
+								animate={{ opacity: 1, y: 0 }}
+								exit={{ opacity: 0, y: -4, transition: { duration: 0.12 } }}
+								transition={{ duration: 0.2, ease: 'easeOut' }}
+								// Holds its space until the date is known, instead of showing the pre-vote line
+								className={cn(isSealed && !isHydrated && 'invisible')}
+							>
+								{isSealed ? t('poll.sealed', { date: sealedUntil }) : t('poll.revealHint')}
+							</m.p>
+						</AnimatePresence>
+						{visibilityHint && <p>{visibilityHint}</p>}
+					</div>
+				</div>
 			)}
-
-			<AnimatePresence initial={false}>
-				{hasBallot && poll.endTime && isHydrated && (
-					<m.div
-						key="sealed"
-						initial={{ opacity: 0, y: -6 }}
-						animate={{ opacity: 1, y: 0 }}
-						exit={{ opacity: 0, y: -6, transition: { duration: 0.15 } }}
-						transition={{ duration: 0.25, ease: 'easeOut' }}
-						className="flex items-start gap-2.5 rounded-lg border border-border bg-surface-soft px-3.5 py-3 text-[12px] text-muted-foreground"
-					>
-						<BallotBoxIcon className="mt-0.5 shrink-0 text-foreground" />
-						<div className="flex flex-col gap-1">
-							<p>{t('poll.sealed', { date: formatPollDate(poll.endTime, currentLanguage) })}</p>
-							{visibilityHint && <p>{visibilityHint}</p>}
-						</div>
-					</m.div>
-				)}
-			</AnimatePresence>
 
 			<div
 				role={confirmingWithdraw ? 'group' : undefined}
 				aria-label={confirmingWithdraw ? t('poll.withdrawVote') : undefined}
-				className="flex flex-wrap items-center justify-between gap-2.5"
+				// As tall as the Vote button, so the smaller buttons after voting don't shrink the card
+				className="flex min-h-11 flex-wrap items-center justify-between gap-2.5"
 			>
 				{actions}
 			</div>

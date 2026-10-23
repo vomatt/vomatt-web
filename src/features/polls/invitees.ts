@@ -36,6 +36,6 @@ export function selectionToInput(selection: InviteeSelection): InviteesInput {
 	return {
 		userIds: selection.users.map((user) => user.id),
 		emails: selection.emails,
-		groupIds: selection.groups.map((group) => group.id),
+		inviteListIds: selection.groups.map((group) => group.id),
 	};
 }

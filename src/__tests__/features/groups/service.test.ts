@@ -37,39 +37,39 @@ beforeEach(() => jest.clearAllMocks());
 it('lists the Groups', async () => {
 	mockApiClient.mockResolvedValue([group]);
 	expect(await getGroups()).toEqual({ ok: true, data: [group] });
-	expect(mockApiClient).toHaveBeenCalledWith('/groups');
+	expect(mockApiClient).toHaveBeenCalledWith('/invite-lists');
 });
 
 it('creates and renames by name', async () => {
 	mockApiClient.mockResolvedValue(group);
 	await createGroup('Book club');
-	expect(mockApiClient).toHaveBeenCalledWith('/groups', {
+	expect(mockApiClient).toHaveBeenCalledWith('/invite-lists', {
 		method: 'POST',
 		body: JSON.stringify({ name: 'Book club' }),
 	});
 	await renameGroup('g1', 'Readers');
-	expect(mockApiClient).toHaveBeenLastCalledWith('/groups/g1', {
+	expect(mockApiClient).toHaveBeenLastCalledWith('/invite-lists/g1', {
 		method: 'PUT',
 		body: JSON.stringify({ name: 'Readers' }),
 	});
 });
 
 it('reports the Group limit without throwing', async () => {
-	mockApiClient.mockRejectedValue(new ApiError('Too many', 400, { errorCode: 'group.max_reached' }));
-	expect(await createGroup('One more')).toMatchObject({ ok: false, errorCode: 'group.max_reached' });
+	mockApiClient.mockRejectedValue(new ApiError('Too many', 400, { errorCode: 'invite_list.max_reached' }));
+	expect(await createGroup('One more')).toMatchObject({ ok: false, errorCode: 'invite_list.max_reached' });
 });
 
 it('deletes', async () => {
 	mockApiClient.mockResolvedValue(undefined);
 	expect(await deleteGroup('g1')).toEqual({ ok: true, data: undefined });
-	expect(mockApiClient).toHaveBeenCalledWith('/groups/g1', { method: 'DELETE' });
+	expect(mockApiClient).toHaveBeenCalledWith('/invite-lists/g1', { method: 'DELETE' });
 });
 
 it('lists and adds members', async () => {
 	mockApiClient.mockResolvedValue(members);
 	expect(await getGroupMembers('g1')).toEqual({ ok: true, data: members });
 	await addGroupMembers('g1', { userIds: ['u1'], emails: ['dave@example.com'] });
-	expect(mockApiClient).toHaveBeenLastCalledWith('/groups/g1/members', {
+	expect(mockApiClient).toHaveBeenLastCalledWith('/invite-lists/g1/members', {
 		method: 'POST',
 		body: JSON.stringify({ userIds: ['u1'], emails: ['dave@example.com'] }),
 	});
@@ -78,9 +78,9 @@ it('lists and adds members', async () => {
 it('removes a member by ID or by email', async () => {
 	mockApiClient.mockResolvedValue([]);
 	await removeGroupMember('g1', { userId: 'u1', email: null });
-	expect(mockApiClient).toHaveBeenLastCalledWith('/groups/g1/members/u1', { method: 'DELETE' });
+	expect(mockApiClient).toHaveBeenLastCalledWith('/invite-lists/g1/members/u1', { method: 'DELETE' });
 	await removeGroupMember('g1', { userId: null, email: 'dave@example.com' });
-	expect(mockApiClient).toHaveBeenLastCalledWith('/groups/g1/members?email=dave%40example.com', {
+	expect(mockApiClient).toHaveBeenLastCalledWith('/invite-lists/g1/members?email=dave%40example.com', {
 		method: 'DELETE',
 	});
 });
