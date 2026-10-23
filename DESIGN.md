@@ -71,7 +71,7 @@ If a building block doesn't fit, change its variant or add one. Don't override i
 
 ## Motion
 
-Motion is feedback, not decoration: ballot selection (`BallotMotion`), results counting up, the auth error sliding in, skeleton shimmer. `MotionProvider` sets `reducedMotion="user"`; CSS animations need their own `prefers-reduced-motion` fallback. No pulsing, no confetti, no backdrop blur over scrolling content.
+Motion is feedback, not decoration: ballot selection (`BallotMotion`), results counting up, the auth error sliding in, skeleton shimmer. `MotionProvider` sets `reducedMotion="user"`; CSS animations need their own `prefers-reduced-motion` fallback. No pulsing, no confetti, no backdrop blur over scrolling content (a modal's scrim, which stops the page, may blur it).
 
 ## Don'ts
 

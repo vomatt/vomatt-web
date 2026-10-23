@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { AppSidebar } from '@/components/layout/AppSidebar';
@@ -101,6 +101,26 @@ describe('AppSidebar more menu', () => {
 		expect(
 			screen.getByRole('menuitem', { name: 'navigation.reportProblem' })
 		).toBeInTheDocument();
+	});
+
+	it('glides the hover mark to the row under the pointer, and steps aside for the keyboard', async () => {
+		renderSidebar();
+		await userEvent.click(
+			screen.getByRole('button', { name: 'navigation.more' })
+		);
+		const settings = await screen.findByRole('menuitem', {
+			name: 'navigation.settings',
+		});
+		settings.getBoundingClientRect = () => ({ top: 40, height: 40 }) as DOMRect;
+		const mark = () =>
+			document.querySelector<HTMLElement>('[data-slot=more-menu-hover-mark]');
+
+		fireEvent.pointerOver(settings);
+		expect(mark()!.style.height).toBe('40px');
+		expect(mark()).not.toHaveClass('opacity-0');
+
+		fireEvent.keyDown(settings, { key: 'ArrowDown' });
+		expect(mark()).toHaveClass('opacity-0');
 	});
 
 	it('opens the report dialog from the menu', async () => {

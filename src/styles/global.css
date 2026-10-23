@@ -68,6 +68,8 @@
 	--surface-soft: oklch(0.982 0.002 248);
 	/* Scrim behind dialogs, sheets and drawers */
 	--overlay: oklch(0.2 0.02 262 / 0.35);
+	/* Heavier scrim, for dialogs that take over the page */
+	--overlay-strong: oklch(0.2 0.02 262 / 0.6);
 	--field: oklch(0.954 0.005 258);
 	--highlight: oklch(0.952 0.154 117.6);
 	/* Ink on Volt in both themes: a literal, since var(--foreground) turns light in .dark */
@@ -158,6 +160,7 @@ html {
 	--ring: oklch(0.958 0.009 265);
 	--surface-soft: oklch(0.21 0.034 269);
 	--overlay: oklch(0.1 0.01 265 / 0.6);
+	--overlay-strong: oklch(0.1 0.01 265 / 0.8);
 	--field: oklch(0.267 0.037 268);
 	--tide: oklch(0.769 0.102 185);
 	--tide-tint: oklch(0.290 0.035 190);
@@ -233,6 +236,7 @@ html {
 	--color-border-strong: var(--border-strong);
 	--color-surface-soft: var(--surface-soft);
 	--color-overlay: var(--overlay);
+	--color-overlay-strong: var(--overlay-strong);
 	--color-field: var(--field);
 	--color-highlight: var(--highlight);
 	--color-highlight-foreground: var(--highlight-foreground);

@@ -49,7 +49,11 @@ export function ReportProblemDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-md" closeLabel={t('common.close')}>
+			<DialogContent
+				className="sm:max-w-md"
+				overlayClassName="bg-overlay-strong backdrop-blur-md"
+				closeLabel={t('common.close')}
+			>
 				<DialogTitle className="text-center">{t('feedback.title')}</DialogTitle>
 				<form onSubmit={submit} className="grid gap-3">
 					<Textarea

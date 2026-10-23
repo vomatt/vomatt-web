@@ -4,7 +4,11 @@ import { Tabs as TabsPrimitive } from '@base-ui/react/tabs';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { createContext, useContext } from 'react';
 
-import { type HoverMark, useHoverMark } from '@/hooks/useHoverMark';
+import {
+	type HoverMark,
+	hoverMarkProps,
+	useHoverMark,
+} from '@/hooks/useHoverMark';
 import { cn } from '@/lib/utils';
 
 function Tabs({
@@ -102,12 +106,10 @@ function TabsIndicator({ className, ...props }: TabsPrimitive.Indicator.Props) {
 				<span
 					aria-hidden
 					data-slot="tabs-hover-indicator"
-					className={cn(
-						'absolute bottom-[-1px] h-0.5 bg-muted-foreground/40 duration-200 ease-out group-data-vertical/tabs:hidden motion-reduce:transition-none',
-						hover.entering ? 'transition-opacity' : 'transition-[left,width,opacity]',
-						!hover.visible && 'opacity-0'
+					{...hoverMarkProps(
+						hover,
+						'absolute bottom-[-1px] h-0.5 bg-muted-foreground/40 group-data-vertical/tabs:hidden'
 					)}
-					style={{ left: hover.rect.offset, width: hover.rect.size }}
 				/>
 			)}
 			<TabsPrimitive.Indicator
