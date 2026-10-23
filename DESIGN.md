@@ -4,7 +4,7 @@ How the vomatt UI is built. `PRODUCT.md` says why (users, brand, principles, acc
 
 ## Color
 
-Cool canvas, navy ink actions, two signals: Volt (`highlight`) marks what is yours, Tide marks what vomatt promises. The navy ink gives the lime a complementary hue, so the pairing reads as deliberate rather than loud; full-size ink-on-Volt appears once per screen, on the create action. Use the semantic tokens as Tailwind classes, never raw `oklch()`/hex values. Every token has a dark value in `.dark`, and dark mode follows the system: the root layout mounts `ThemeProvider` (next-themes, `defaultTheme="system"`), which puts `.dark` on `<html>` when `prefers-color-scheme` is dark.
+Cool canvas, navy ink actions, two signals: Volt (`highlight`) marks what is yours, Tide marks what vomatt promises. The navy ink gives the lime a complementary hue, so the pairing reads as deliberate rather than loud; full-size ink-on-Volt appears once per screen, on the create action. Use the semantic tokens as Tailwind classes, never raw `oklch()`/hex values. Every token has a dark value in `.dark`, and the theme defaults to light: the root layout mounts `ThemeProvider` (next-themes, `defaultTheme="light"`), which puts `.dark` on `<html>`. People switch Light, Dark or Auto (follows `prefers-color-scheme`) from the sidebar's More menu.
 
 | Role | Token | Use for |
 |---|---|---|

@@ -38,7 +38,12 @@
 		"settings": "Settings",
 		"logout": "Logout",
 		"howCountsTitle": "How vomatt counts",
-		"howCountsBody": "One vote per person. Ballots stay sealed while a poll is open, so nobody votes with the crowd."
+		"howCountsBody": "One vote per person. Ballots stay sealed while a poll is open, so nobody votes with the crowd.",
+		"more": "More",
+		"appearance": "Appearance",
+		"themeLight": "Light",
+		"themeDark": "Dark",
+		"themeAuto": "Auto"
 	},
 	"user": {
 		"profile": {
