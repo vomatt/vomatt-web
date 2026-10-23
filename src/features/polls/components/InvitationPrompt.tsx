@@ -19,9 +19,9 @@ export function InvitationPrompt({ creator, pollId, signedIn }: InvitationPrompt
 	const login = `/login?${new URLSearchParams({ redirect: `/poll/${pollId}` })}`;
 
 	return (
-		<div className="mx-auto max-w-sm rounded-xl border border-border bg-card p-5">
+		<div className="mx-auto max-w-sm rounded-2xl border border-border bg-card p-5">
 			<UserAvatar username={creator.username} avatarUrl={creator.avatarUrl} className="size-10" />
-			<h1 className="item-title mt-3 font-semibold text-foreground">
+			<h1 className="item-title mt-3 text-foreground">
 				{t('poll.invitation.title', { username: creator.username })}
 			</h1>
 			<p className="mt-1.5 text-[14px] leading-relaxed text-muted-foreground">

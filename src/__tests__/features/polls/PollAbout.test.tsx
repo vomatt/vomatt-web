@@ -55,6 +55,25 @@ describe('PollAbout', () => {
 		expect(screen.getByRole('button', { name: 'Share' })).toBeInTheDocument();
 	});
 
+	it('lists the rules of an Open Poll, with who will see each choice', () => {
+		render(<PollAbout poll={{ ...poll, voterVisibility: 'owner' }} />);
+		expect(screen.getByText('Ballots are sealed. Counts are revealed only when the poll ends.')).toBeInTheDocument();
+		expect(screen.getByText('One vote per person. You can change or withdraw it until the poll ends.')).toBeInTheDocument();
+		expect(screen.getByText('After it ends, only the poll owner can see what you chose.')).toBeInTheDocument();
+	});
+
+	it('leaves the rules out once a Poll has Ended', () => {
+		const ended = iso(-HOUR);
+		render(<PollAbout poll={{ ...poll, endTime: ended, deadline: ended }} />);
+		expect(screen.queryByText(/^Ballots are sealed/)).not.toBeInTheDocument();
+	});
+
+	it('shows how far through its voting window the Poll is', () => {
+		render(<PollAbout poll={poll} />);
+		// Opened 48h ago, ends in 24h
+		expect(screen.getByRole('progressbar', { name: 'Voting window' })).toHaveAttribute('aria-valuenow', '67');
+	});
+
 	it('says nothing about the Audience of a Public Poll', () => {
 		render(<PollAbout poll={{ ...poll, audience: 'public', inviteeCount: null }} />);
 		expect(screen.queryByText(/invited/)).not.toBeInTheDocument();

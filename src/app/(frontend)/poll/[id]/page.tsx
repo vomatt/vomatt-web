@@ -127,7 +127,7 @@ function PollDetailSkeleton() {
 	return (
 		<div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
 			<PollCardSkeleton options={4} />
-			<div className="space-y-5 rounded-xl border border-border bg-card p-5 lg:sticky lg:top-6">
+			<div className="space-y-5 rounded-2xl border border-border bg-card p-5 lg:sticky lg:top-6">
 				<div className="flex items-center gap-3">
 					<Skeleton className="size-9 rounded-full" />
 					<Skeleton className="h-4 w-24" />

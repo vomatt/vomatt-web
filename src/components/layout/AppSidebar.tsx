@@ -21,12 +21,14 @@ import {
 	ArrowRight,
 	Bell,
 	Home,
+	Lock,
 	LogOut,
 	PlusCircle,
 	Search,
 	TrendingUp,
 	User,
 } from '@/components/ui/SvgIcons';
+import { TidePanel } from '@/components/ui/TidePanel';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import {
@@ -160,6 +162,15 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 						</SidebarMenu>
 					</SidebarGroupContent>
 				</SidebarGroup>
+
+				{/* The rules in one line, where every page can see them */}
+				<TidePanel className="mx-1 mt-5 p-3.5 text-[12px] leading-relaxed">
+					<p className="mb-1 flex items-center gap-1.5 font-medium">
+						<Lock aria-hidden className="size-3.5 shrink-0 text-tide" />
+						{t('navigation.howCountsTitle')}
+					</p>
+					<p>{t('navigation.howCountsBody')}</p>
+				</TidePanel>
 			</SidebarContent>
 
 			{/* Footer */}

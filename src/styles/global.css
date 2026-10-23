@@ -94,7 +94,8 @@
 	--avatar-sky: oklch(0.92 0.03 230);
 	--avatar-peach: oklch(0.909 0.030 52.7);
 	--avatar-lavender: oklch(0.914 0.017 304.8);
-	--radius: 0.5rem;
+	/* Buttons; cards are rounded-2xl (16px), rows and fields rounded-xl (12px) */
+	--radius: 0.625rem;
 	/* The sidebar is one step deeper than the canvas; everything else aliases the base */
 	--sidebar: oklch(0.95 0.004 265);
 	--sidebar-foreground: var(--foreground);
@@ -326,16 +327,17 @@ html {
 	line-height: 0;
 }
 
-/* The redesign's display type: Geist 400, tight tracking */
+/* The redesign's display type: Geist 500, tight tracking */
 @utility display-heading {
-	font-weight: 400;
+	font-weight: 500;
 	line-height: 1.25;
 	letter-spacing: -0.03em;
 }
 
-/* Titles in list rows and side cards; weight and leading go beside it */
+/* Titles in list rows and side cards: 16px at weight 500; leading goes beside it */
 @utility item-title {
 	font-size: 16px;
+	font-weight: 500;
 	letter-spacing: -0.01em;
 }
 

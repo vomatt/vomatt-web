@@ -3,7 +3,9 @@
 import Link from 'next/link';
 
 import { Button } from '@/components/ui/Button';
-import { Share2 } from '@/components/ui/SvgIcons';
+import { Progress } from '@/components/ui/Progress';
+import { Eye, Lock, Share2, User } from '@/components/ui/SvgIcons';
+import { TideRule, TideRules } from '@/components/ui/TidePanel';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ProfileAvatar, ProfileName } from '@/features/profiles/UserChip';
 import { useHydrated } from '@/hooks/useHydrated';
@@ -12,15 +14,16 @@ import { topicHref } from '@/lib/routes';
 import { formatFromNow, formatPollDate } from '../format';
 import { useSharePoll } from '../hooks/useSharePoll';
 import type { Poll } from '../schema';
-import { derivePollStatus, endedEarly, getTurnout, timelineProgress } from '../status';
+import { derivePollStatus, endedEarly, getTurnout, timelineProgress, visibilityLevel } from '../status';
 
-/** The side panel on the detail page: who asked, the voting window, turnout and topics. */
+/** The side panel on the detail page: who asked, the voting window, turnout, topics and the rules. */
 export function PollAbout({ poll }: { poll: Poll }) {
 	const { t, currentLanguage } = useLanguage();
 	const isHydrated = useHydrated();
 	const status = derivePollStatus(poll);
 	const turnout = getTurnout(poll);
 	const progress = isHydrated ? timelineProgress(poll) : null;
+	const level = visibilityLevel(poll);
 
 	const share = useSharePoll();
 
@@ -38,7 +41,7 @@ export function PollAbout({ poll }: { poll: Poll }) {
 	};
 
 	return (
-		<aside className="space-y-5 rounded-xl border border-border bg-card p-5 text-sm md:p-6">
+		<aside className="space-y-5 rounded-2xl border border-border bg-card p-5 text-sm md:p-6">
 			<div className="flex items-center gap-3">
 				<ProfileAvatar username={poll.creatorUsername} avatarUrl={poll.creatorAvatarUrl} className="size-9" />
 				<div className="min-w-0">
@@ -58,19 +61,12 @@ export function PollAbout({ poll }: { poll: Poll }) {
 						{poll.endTime && <span>{formatPollDate(poll.endTime, currentLanguage)}</span>}
 					</div>
 					{progress !== null && (
-						<div
-							role="progressbar"
+						<Progress
+							variant="tide"
+							value={Math.round(progress)}
 							aria-label={t('pollDetail.timeline')}
-							aria-valuenow={Math.round(progress)}
-							aria-valuemin={0}
-							aria-valuemax={100}
-							className="h-1.5 overflow-hidden rounded-full bg-muted"
-						>
-							<div
-								className="h-full bg-primary"
-								style={{ width: `${progress}%` }}
-							/>
-						</div>
+							className="h-1.5"
+						/>
 					)}
 					<p className="font-medium">{statusLine()}</p>
 				</div>
@@ -113,7 +109,11 @@ export function PollAbout({ poll }: { poll: Poll }) {
 			)}
 
 			{status !== 'ended' && (
-				<p className="text-xs leading-relaxed text-muted-foreground">{t('pollDetail.sealedExplainer')}</p>
+				<TideRules>
+					<TideRule icon={Lock}>{t('pollDetail.ruleSealed')}</TideRule>
+					<TideRule icon={User}>{t('pollDetail.ruleOneVote')}</TideRule>
+					{level && <TideRule icon={Eye}>{t(`poll.visibility.${level}`)}</TideRule>}
+				</TideRules>
 			)}
 
 			<Button variant="outline" size="sm" className="w-full gap-2" onClick={() => share(poll)}>

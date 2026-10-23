@@ -10,6 +10,7 @@ import BrandLogo from '@/components/BrandLogo';
 import CustomPortableText from '@/components/CustomPortableText';
 import { Layout } from '@/components/layout';
 import { CookieConsent } from '@/components/layout/CookieConsent';
+import { ThemeProvider } from '@/components/ui/ThemeProvider';
 import { TooltipProvider } from '@/components/ui/Tooltip';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { htmlLang } from '@/i18n-config';
@@ -99,39 +100,44 @@ export default async function RootLayout({
 	const comingSoon = settings?.comingSoon;
 
 	return (
-		<html lang={htmlLang(language)} className={clsx(geistSans.variable, geistMono.variable)}>
+		// next-themes sets the theme class on <html> before React hydrates
+		<html lang={htmlLang(language)} className={clsx(geistSans.variable, geistMono.variable)} suppressHydrationWarning>
 			<body className="text-foreground font-sans antialiased">
-				{isComingSoon(settings) ? (
-					<main className="h-screen flex flex-col justify-center items-center gap-5 px-contain text-center">
-						<div className="md:w-40 text-secondary-foreground w-28">
-							<BrandLogo />
-						</div>
-						<h1 className="text-2xl">{comingSoon?.heading || 'Coming soon'}</h1>
-						{comingSoon?.message && (
-							<div className="max-w-md text-sm text-muted-foreground">
-								<CustomPortableText blocks={comingSoon.message} />
+				{/* The .dark tokens follow the system setting */}
+				<ThemeProvider>
+					{isComingSoon(settings) ? (
+						<main className="h-screen flex flex-col justify-center items-center gap-5 px-contain text-center">
+							<div className="md:w-40 text-secondary-foreground w-28">
+								<BrandLogo />
 							</div>
-						)}
-					</main>
-				) : (
-					<LanguageProvider
-						initialLanguage={language}
-						defaultTranslations={translations}
-					>
-						<TooltipProvider>
-							<Layout>{children}</Layout>
-						</TooltipProvider>
-						<Toaster
-							richColors
-							closeButton
-							position="bottom-center"
-							// Above the TabBar on phones
-							offset={{ bottom: 'calc(var(--tabbar-space) + 24px)' }}
-							mobileOffset={{ bottom: 'calc(var(--tabbar-space) + 16px)' }}
-						/>
-						<CookieConsent integrations={settings?.integrations} />
-					</LanguageProvider>
-				)}
+							<h1 className="text-2xl">{comingSoon?.heading || 'Coming soon'}</h1>
+							{comingSoon?.message && (
+								<div className="max-w-md text-sm text-muted-foreground">
+									<CustomPortableText blocks={comingSoon.message} />
+								</div>
+							)}
+						</main>
+					) : (
+						<LanguageProvider
+							initialLanguage={language}
+							defaultTranslations={translations}
+						>
+							<TooltipProvider>
+								<Layout>{children}</Layout>
+							</TooltipProvider>
+							<Toaster
+								theme="system"
+								richColors
+								closeButton
+								position="bottom-center"
+								// Above the TabBar on phones
+								offset={{ bottom: 'calc(var(--tabbar-space) + 24px)' }}
+								mobileOffset={{ bottom: 'calc(var(--tabbar-space) + 16px)' }}
+							/>
+							<CookieConsent integrations={settings?.integrations} />
+						</LanguageProvider>
+					)}
+				</ThemeProvider>
 			</body>
 		</html>
 	);

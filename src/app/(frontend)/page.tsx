@@ -6,6 +6,7 @@ import { PollListSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import { getFeed, getPopularTags } from '@/features/polls/service';
 
 import { HomepageHeader } from './_components/HomepageHeader';
+import { HomeRail } from './_components/HomeRail';
 import { PollFeedList } from './_components/PollFeedList';
 
 type Props = { searchParams: Promise<{ tag?: string | string[] }> };
@@ -16,7 +17,8 @@ export default async function Page({ searchParams }: Props) {
 	const tag = Array.isArray(tagParam) ? tagParam[0] : tagParam;
 
 	return (
-		<div className="px-contain flex justify-center gap-8 py-0">
+		// The rail sits beside the feed from xl up, where both fit next to the sidebar; below that it follows the feed
+		<div className="px-contain flex flex-col items-center gap-8 py-0 xl:flex-row xl:items-start xl:justify-center">
 			<Suspense
 				fallback={
 					<div className="w-full max-w-feed py-4">
@@ -50,7 +52,12 @@ async function Feed({ tag }: { tag: string | undefined }) {
 				tag={tag}
 				header={<HomepageHeader tags={tags} activeTag={tag} />}
 			/>
-			{!user && <LoginPrompt className="sticky top-[calc(var(--header-height)+1rem)]" />}
+			<aside className="flex w-full max-w-feed flex-col gap-4 pb-8 xl:sticky xl:top-[calc(var(--header-height)+1rem)] xl:w-[280px] xl:shrink-0 xl:py-4">
+				{!user && <LoginPrompt />}
+				<Suspense fallback={null}>
+					<HomeRail signedIn={!!user} />
+				</Suspense>
+			</aside>
 		</>
 	);
 }

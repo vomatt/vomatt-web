@@ -1,10 +1,26 @@
 'use client';
 
 import { Progress as ProgressPrimitive } from '@base-ui/react/progress';
+import { cva, type VariantProps } from 'class-variance-authority';
 
 import { cn } from '@/lib/utils';
 
-function Progress({ className, ...props }: ProgressPrimitive.Root.Props) {
+const indicatorVariants = cva('h-full transition-all', {
+	variants: {
+		variant: {
+			default: 'bg-primary',
+			// The voting window: time the seal holds, so it is Tide
+			tide: 'bg-tide',
+		},
+	},
+	defaultVariants: { variant: 'default' },
+});
+
+function Progress({
+	className,
+	variant,
+	...props
+}: ProgressPrimitive.Root.Props & VariantProps<typeof indicatorVariants>) {
 	return (
 		<ProgressPrimitive.Root
 			data-slot="progress"
@@ -15,10 +31,7 @@ function Progress({ className, ...props }: ProgressPrimitive.Root.Props) {
 			{...props}
 		>
 			{/* Base UI sizes the indicator with an inline width from `value` */}
-			<ProgressPrimitive.Indicator
-				data-slot="progress-indicator"
-				className="h-full bg-primary transition-all"
-			/>
+			<ProgressPrimitive.Indicator data-slot="progress-indicator" className={indicatorVariants({ variant })} />
 		</ProgressPrimitive.Root>
 	);
 }

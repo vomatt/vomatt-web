@@ -100,7 +100,7 @@ export function PollCard({
 	);
 
 	return (
-		<article className="group bg-card border border-border rounded-xl">
+		<article className="group bg-card border border-border rounded-2xl">
 			<div className="p-4 space-y-4 md:p-6">
 				<div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
 					<div className="flex min-w-0 items-center gap-1.5 text-[12px] text-muted-foreground">
