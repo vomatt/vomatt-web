@@ -23,7 +23,7 @@ import {
 	TooltipTrigger,
 } from '@/components/ui/Tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useHoverMark } from '@/hooks/useHoverMark';
+import { hoverMarkProps, useHoverMark } from '@/hooks/useHoverMark';
 import { cn } from '@/lib/utils';
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state';
@@ -476,12 +476,10 @@ function SidebarMenu({ className, onPointerOver, onPointerLeave, children, ...pr
 					aria-hidden
 					role="presentation"
 					data-slot="sidebar-menu-hover-mark"
-					className={cn(
-						'pointer-events-none absolute inset-x-0 rounded-lg bg-sidebar-accent/60 duration-200 ease-out motion-reduce:transition-none',
-						hover.mark.entering ? 'transition-opacity' : 'transition-[top,height,opacity]',
-						!hover.mark.visible && 'opacity-0'
+					{...hoverMarkProps(
+						hover.mark,
+						'pointer-events-none absolute inset-x-0 rounded-lg bg-sidebar-accent/60'
 					)}
-					style={{ top: hover.mark.rect.offset, height: hover.mark.rect.size }}
 				/>
 			)}
 			{children}

@@ -1,5 +1,7 @@
 import { type PointerEvent, useLayoutEffect, useRef, useState } from 'react';
 
+import { cn } from '@/lib/utils';
+
 export interface HoverMark {
 	/** Offset and size of the hovered item along the axis, inside the container's padding box. */
 	rect: { offset: number; size: number } | null;
@@ -7,6 +9,7 @@ export interface HoverMark {
 	visible: boolean;
 	/** The pointer just came in, so the mark appears in place instead of sliding from where it left. */
 	entering: boolean;
+	axis: 'x' | 'y';
 }
 
 /**
@@ -53,6 +56,20 @@ export function useHoverMark(itemSelector: string, axis: 'x' | 'y') {
 		setHovered(null);
 	}
 
-	const mark: HoverMark = { rect, visible: hovered !== null, entering };
+	const mark: HoverMark = { rect, visible: hovered !== null, entering, axis };
 	return { mark, onPointerOver, onPointerLeave };
+}
+
+/** Glide, fade and position for the mark element; `className` gives its look (fill, placement). */
+export function hoverMarkProps({ rect, visible, entering, axis }: HoverMark, className: string) {
+	const x = axis === 'x';
+	return {
+		className: cn(
+			className,
+			'duration-200 ease-out motion-reduce:transition-none',
+			entering ? 'transition-opacity' : x ? 'transition-[left,width,opacity]' : 'transition-[top,height,opacity]',
+			!visible && 'opacity-0'
+		),
+		style: rect ? (x ? { left: rect.offset, width: rect.size } : { top: rect.offset, height: rect.size }) : undefined,
+	};
 }

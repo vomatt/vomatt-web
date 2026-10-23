@@ -23,6 +23,13 @@ function renderDialog() {
 	return { onOpenChange };
 }
 
+it('dims the page behind it with the strong scrim', () => {
+	renderDialog();
+	expect(document.querySelector('[data-slot="dialog-overlay"]')).toHaveClass(
+		'bg-overlay-strong'
+	);
+});
+
 it('keeps Submit disabled until there is a message', async () => {
 	renderDialog();
 	const submit = screen.getByRole('button', { name: 'Submit' });
