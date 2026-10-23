@@ -30,6 +30,10 @@ jest.mock('@/lib/api/services/auth', () => ({
 	signout: jest.fn(),
 }));
 
+jest.mock('@/features/feedback/service', () => ({
+	reportProblem: jest.fn(),
+}));
+
 const mockSetTheme = jest.fn();
 jest.mock('next-themes', () => ({
 	useTheme: () => ({ theme: 'light', setTheme: mockSetTheme }),
@@ -87,13 +91,29 @@ describe('AppSidebar more menu', () => {
 		).toBeInTheDocument();
 	});
 
-	it('offers only appearance to guests', async () => {
+	it('offers appearance and reporting a problem to guests', async () => {
 		renderSidebar(null);
 		await userEvent.click(
 			screen.getByRole('button', { name: 'navigation.more' })
 		);
 		expect(await screen.findAllByRole('menuitemradio')).toHaveLength(3);
-		expect(screen.queryByRole('menuitem')).not.toBeInTheDocument();
+		expect(screen.getAllByRole('menuitem')).toHaveLength(1);
+		expect(
+			screen.getByRole('menuitem', { name: 'navigation.reportProblem' })
+		).toBeInTheDocument();
+	});
+
+	it('opens the report dialog from the menu', async () => {
+		renderSidebar();
+		await userEvent.click(
+			screen.getByRole('button', { name: 'navigation.more' })
+		);
+		await userEvent.click(
+			await screen.findByRole('menuitem', { name: 'navigation.reportProblem' })
+		);
+		expect(
+			await screen.findByRole('dialog', { name: 'feedback.title' })
+		).toBeInTheDocument();
 	});
 });
 
