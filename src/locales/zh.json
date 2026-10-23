@@ -750,7 +750,8 @@
 			"otp": {
 				"invalid_or_expired": "驗證碼錯誤或已過期",
 				"too_many_attempts": "驗證次數過多，請稍後再試",
-				"resend_cooldown": "請等 {0} 秒後再重新發送"
+				"resend_cooldown": "請等 {0} 秒後再重新發送",
+				"daily_limit": "今天發送的驗證碼次數已達上限，請明天再試"
 			},
 			"admin": {
 				"forbidden": "此帳號無管理員權限"

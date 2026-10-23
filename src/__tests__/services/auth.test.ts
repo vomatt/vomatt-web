@@ -53,6 +53,14 @@ describe('requestOtp()', () => {
 		expect(await requestOtp('a@example.com')).toEqual({ status: 'ERROR', error: 'rateLimited' });
 		expect(mockPublicFetch).toHaveBeenCalledTimes(1);
 	});
+
+	it('maps the daily send limit to its own copy', async () => {
+		mockPublicFetch.mockRejectedValueOnce(new ApiError('limit', 429, { errorCode: 'auth.otp.daily_limit' }));
+		expect(await requestOtp('a@example.com')).toEqual({
+			status: 'ERROR',
+			error: 'apiError.auth.otp.daily_limit',
+		});
+	});
 });
 
 describe('verifyOtp()', () => {
