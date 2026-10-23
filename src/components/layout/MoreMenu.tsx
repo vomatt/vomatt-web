@@ -74,14 +74,14 @@ export function MoreMenu({ signedIn }: { signedIn: boolean }) {
 							</Menu.RadioGroup>
 						</Menu.Group>
 						<Menu.Separator className="-mx-1.5 my-1.5 h-px bg-border" />
-						<Menu.Item
-							onClick={() => setReportOpen(true)}
-							className={itemClassName}
-						>
-							{t('navigation.reportProblem')}
-						</Menu.Item>
 						{signedIn && (
 							<>
+								<Menu.Item
+									onClick={() => setReportOpen(true)}
+									className={itemClassName}
+								>
+									{t('navigation.reportProblem')}
+								</Menu.Item>
 								<Menu.LinkItem
 									render={<Link href="/settings" />}
 									className={itemClassName}
@@ -99,7 +99,7 @@ export function MoreMenu({ signedIn }: { signedIn: boolean }) {
 					</Menu.Popup>
 				</Menu.Positioner>
 			</Menu.Portal>
-			<ReportProblemDialog open={reportOpen} onOpenChange={setReportOpen} />
+			{signedIn && <ReportProblemDialog open={reportOpen} onOpenChange={setReportOpen} />}
 		</Menu.Root>
 	);
 }

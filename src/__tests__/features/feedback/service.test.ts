@@ -1,5 +1,5 @@
 import { reportProblem } from '@/features/feedback/service';
-import { apiClient, ApiError, AuthError, publicFetch } from '@/lib/api/client';
+import { apiClient, ApiError } from '@/lib/api/client';
 
 jest.mock('next/navigation', () => ({ unstable_rethrow: jest.fn() }));
 jest.mock('@/lib/api/client', () => {
@@ -13,15 +13,14 @@ jest.mock('@/lib/api/client', () => {
 		}
 	}
 	class AuthError extends Error {}
-	return { apiClient: jest.fn(), publicFetch: jest.fn(), ApiError, AuthError };
+	return { apiClient: jest.fn(), ApiError, AuthError };
 });
 
 const mockApiClient = apiClient as jest.MockedFunction<typeof apiClient>;
-const mockPublicFetch = publicFetch as jest.MockedFunction<typeof publicFetch>;
 
 beforeEach(() => jest.resetAllMocks());
 
-it('posts the message, signed in or not', async () => {
+it('posts the message as feedback content', async () => {
 	mockApiClient.mockResolvedValue(undefined);
 	expect(await reportProblem('Votes vanish')).toEqual({
 		ok: true,
@@ -30,8 +29,7 @@ it('posts the message, signed in or not', async () => {
 	expect(mockApiClient).toHaveBeenCalledWith('/feedback', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ message: 'Votes vanish' }),
-		auth: 'optional',
+		body: JSON.stringify({ content: 'Votes vanish' }),
 	});
 });
 
@@ -53,18 +51,4 @@ it('refuses an empty or oversized message without calling the API', async () => 
 		ok: false,
 	});
 	expect(mockApiClient).not.toHaveBeenCalled();
-});
-
-it('sends signed out when the session is rejected', async () => {
-	mockApiClient.mockRejectedValue(new AuthError('expired'));
-	mockPublicFetch.mockResolvedValue(undefined);
-	expect(await reportProblem('Votes vanish')).toEqual({
-		ok: true,
-		data: undefined,
-	});
-	expect(mockPublicFetch).toHaveBeenCalledWith('/feedback', {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ message: 'Votes vanish' }),
-	});
 });
