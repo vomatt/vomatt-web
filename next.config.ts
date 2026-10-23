@@ -5,6 +5,9 @@ const studioUrl = process.env.NEXT_PUBLIC_SANITY_STUDIO_URL?.replace(/\/+$/, '')
 
 const nextConfig: NextConfig = {
 	reactStrictMode: true,
+	experimental: {
+		agentUpgrade: 'security',
+	},
 	sassOptions: {
 		includePaths: [path.join(__dirname, 'styles')],
 	},
