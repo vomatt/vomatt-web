@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 type PollFeedListProps = {
 	className?: string;
 	viewerId?: string;
+	anonymousByDefault?: boolean;
 	/** Server-rendered first page; null when it couldn't be loaded. */
 	initialPage: { items: Poll[]; nextCursor: string | null } | null;
 	tag?: string;
@@ -27,6 +28,7 @@ type PollFeedListProps = {
 export function PollFeedList({
 	className,
 	viewerId,
+	anonymousByDefault,
 	initialPage,
 	tag,
 	header,
@@ -65,7 +67,7 @@ export function PollFeedList({
 
 	return (
 		<div
-			className={cn('flex-1 min-h-[var(--h-main)] max-w-feed', className)}
+			className={cn('w-full flex-1 min-h-[var(--h-main)] max-w-feed', className)}
 		>
 			{header}
 
@@ -111,7 +113,7 @@ export function PollFeedList({
 							delay: Math.min(index % 10, 5) * 0.04,
 						}}
 					>
-						<PollCard poll={poll} viewerId={viewerId} />
+						<PollCard poll={poll} viewerId={viewerId} anonymousByDefault={anonymousByDefault} />
 					</m.div>
 				))}
 			</div>

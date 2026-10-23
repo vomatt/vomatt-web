@@ -90,8 +90,8 @@ describe('AuthDialog', () => {
 	});
 
 	it('signs in an existing user: email → code → success', async () => {
-		mockRequestOtp.mockResolvedValue({ status: 'SUCCESS', isNewUser: false });
-		mockVerifyOtp.mockResolvedValue({ status: 'SUCCESS' });
+		mockRequestOtp.mockResolvedValue({ status: 'SUCCESS' });
+		mockVerifyOtp.mockResolvedValue({ status: 'SUCCESS', isNewUser: false });
 		render(<AuthDialog {...baseProps} />);
 
 		await submitEmail();
@@ -102,8 +102,8 @@ describe('AuthDialog', () => {
 	});
 
 	it('asks a new user for a display name before finishing', async () => {
-		mockRequestOtp.mockResolvedValue({ status: 'SUCCESS', isNewUser: true });
-		mockVerifyOtp.mockResolvedValue({ status: 'SUCCESS' });
+		mockRequestOtp.mockResolvedValue({ status: 'SUCCESS' });
+		mockVerifyOtp.mockResolvedValue({ status: 'SUCCESS', isNewUser: true });
 		mockUpdateProfile.mockResolvedValue({});
 		render(<AuthDialog {...baseProps} />);
 
@@ -122,8 +122,8 @@ describe('AuthDialog', () => {
 	});
 
 	it('lets a new user skip the display name', async () => {
-		mockRequestOtp.mockResolvedValue({ status: 'SUCCESS', isNewUser: true });
-		mockVerifyOtp.mockResolvedValue({ status: 'SUCCESS' });
+		mockRequestOtp.mockResolvedValue({ status: 'SUCCESS' });
+		mockVerifyOtp.mockResolvedValue({ status: 'SUCCESS', isNewUser: true });
 		render(<AuthDialog {...baseProps} />);
 
 		await submitEmail();

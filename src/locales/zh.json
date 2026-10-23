@@ -36,7 +36,14 @@
 		"home": "首頁",
 		"profile": "個人資料",
 		"settings": "設定",
-		"logout": "登出"
+		"logout": "登出",
+		"howCountsTitle": "vomatt 如何計票",
+		"howCountsBody": "每人一票。投票進行中選票保持密封，沒有人會跟著群眾投票。",
+		"more": "更多",
+		"appearance": "外觀",
+		"themeLight": "淺色",
+		"themeDark": "深色",
+		"themeAuto": "自動"
 	},
 	"user": {
 		"profile": {
@@ -121,6 +128,8 @@
 		"participants": "人已投票",
 		"topics": "主題",
 		"sealedExplainer": "投票結束前結果保持密封，避免大家被即時票數影響。結束前你都可以更改或撤回你的票。",
+		"ruleSealed": "選票保持密封，投票結束後才公開票數。",
+		"ruleOneVote": "每人一票。投票結束前你都可以更改或撤回。",
 		"shareCta": "邀請其他人投票",
 		"endedEarly": "已提前結束，原定於 {date} 截止。",
 		"invited": "{count} 人受邀",
@@ -276,7 +285,9 @@
 		"feedFailed": "目前無法載入投票。",
 		"topicEmpty": "這個主題還沒有投票。",
 		"createFirst": "建立第一個投票",
-		"joinToCreate": "加入後即可發起投票"
+		"joinToCreate": "加入後即可發起投票",
+		"resultsIn": "結果出爐",
+		"closingSoon": "即將結束"
 	},
 	"poll": {
 		"invitation": {
@@ -294,6 +305,8 @@
 		"yourVoteShort": "你的選擇",
 		"revealHint": "投票結束後才會公開結果",
 		"sealed": "結果將於 {date} 公開，屆時會通知你。",
+		"sealedTitle": "已封存，謝謝你。",
+		"sealedTurnout": "{count} 人已投票，包括你",
 		"opensHint": "投票將於{distance}開始",
 		"voted": "{count} 人已投票",
 		"comments": "{count} 則留言",
@@ -331,6 +344,7 @@
 		"votersHidden": "這個投票的投票者名單已隱藏，以保護匿名投票，或是依照投票的公開設定。",
 		"votersTruncated": "這裡只能列出前 {count} 位投票者。",
 		"votersNone": "沒有可顯示的投票者。",
+		"votersChoicesHidden": "此投票含有匿名票，因此不顯示選擇。以下為所有參與者。",
 		"votersFailed": "無法載入投票者。",
 		"deletePoll": "刪除投票",
 		"deletePollTitle": "要刪除這個投票嗎？",
@@ -417,10 +431,13 @@
 			"bio": "自我介紹",
 			"location": "地區",
 			"points": "點數",
-			"membershipLevel": "會員等級",
-			"birthday": "生日"
+			"membershipLevel": "會員等級"
 		},
 		"saveFailed": "儲存失敗，請再試一次。",
+		"exportTitle": "下載我的資料",
+		"exportBody": "包含個人檔案、投票、留言與投票紀錄的 JSON 檔，每天可下載一次。",
+		"exportCta": "下載",
+		"exportFailed": "無法匯出資料，請再試一次。",
 		"signOutTitle": "目前登入",
 		"signOut": "登出",
 		"deleteTitle": "刪除帳號",

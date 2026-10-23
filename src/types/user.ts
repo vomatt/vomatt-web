@@ -9,7 +9,6 @@ export interface UserProfile {
 	location?: string | null;
 	points?: number | null;
 	membershipLevel?: string | null;
-	birthday?: string | null; // yyyy-MM-dd; null while hidden
 	avatarUrl: string | null; // `bot:<kind>`; older accounts may hold an image URL
 	// Absent until the backend ships follows; the UI hides them then.
 	followersCount?: number;

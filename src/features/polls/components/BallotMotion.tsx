@@ -20,7 +20,7 @@ export function BallotMark({ checked }: { checked: boolean }) {
 			aria-hidden
 			className={cn(
 				'relative grid size-[18px] shrink-0 place-items-center rounded-full border-[1.5px] transition-colors duration-150',
-				checked ? 'border-primary bg-primary text-volt dark:border-volt dark:bg-volt dark:text-volt-foreground' : 'border-input bg-card'
+				checked ? 'border-primary bg-primary text-highlight dark:border-highlight dark:bg-highlight dark:text-highlight-foreground' : 'border-input bg-card'
 			)}
 		>
 			<m.span
@@ -33,7 +33,7 @@ export function BallotMark({ checked }: { checked: boolean }) {
 	);
 }
 
-/** Marks the option the viewer voted for: a volt pill whose check draws in. */
+/** Marks the option the viewer voted for: a Volt pill whose check draws in. */
 export function VotedStamp({ label }: { label: string }) {
 	return (
 		<m.span
@@ -43,7 +43,7 @@ export function VotedStamp({ label }: { label: string }) {
 			transition={INK}
 			className={cn(
 				chipClassName,
-				'shrink-0 select-none gap-1 border border-foreground/20 bg-volt pl-2 text-volt-foreground'
+				'shrink-0 select-none gap-1 border border-foreground/20 bg-highlight pl-2 text-highlight-foreground'
 			)}
 		>
 			<svg viewBox="0 0 16 16" className="size-3" fill="none" aria-hidden>
@@ -99,7 +99,7 @@ export function SelectionHighlight({ layoutId, inTransit = false }: { layoutId: 
 		<m.span
 			layoutId={layoutId}
 			aria-hidden
-			className="absolute inset-0 rounded-xl border-[1.5px] border-primary bg-volt-tint"
+			className="absolute inset-0 rounded-xl border-[1.5px] border-primary bg-highlight-tint"
 			animate={{ opacity: inTransit ? 0.55 : 1 }}
 			transition={{ layout: INK, opacity: { duration: 0.15 } }}
 		/>

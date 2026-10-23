@@ -32,26 +32,19 @@ const bodyOf = (call: number) => JSON.parse(String(mockPublicFetch.mock.calls[ca
 
 describe('requestOtp()', () => {
 	it('normalises the email and sends a code', async () => {
-		mockPublicFetch.mockResolvedValueOnce({ exists: true }).mockResolvedValueOnce({ success: true });
+		mockPublicFetch.mockResolvedValueOnce({ success: true });
 
 		const res = await requestOtp('  Alice@Example.com ');
 
-		expect(mockPublicFetch.mock.calls[1][0]).toBe('/auth/send-otp');
-		expect(bodyOf(1)).toEqual({ email: 'alice@example.com' });
-		expect(res).toEqual({ status: 'SUCCESS', isNewUser: false });
-	});
-
-	it('reports a new email as a new user', async () => {
-		mockPublicFetch.mockResolvedValueOnce({ exists: false }).mockResolvedValueOnce({ success: true });
-		expect(await requestOtp('new@example.com')).toEqual({ status: 'SUCCESS', isNewUser: true });
+		expect(mockPublicFetch.mock.calls[0][0]).toBe('/auth/send-otp');
+		expect(bodyOf(0)).toEqual({ email: 'alice@example.com' });
+		expect(res).toEqual({ status: 'SUCCESS' });
 	});
 
 	it('maps the resend cooldown error', async () => {
-		mockPublicFetch
-			.mockResolvedValueOnce({ exists: true })
-			.mockRejectedValueOnce(
-				new ApiError('wait', 400, { errorCode: 'auth.otp.resend_cooldown' })
-			);
+		mockPublicFetch.mockRejectedValueOnce(
+			new ApiError('wait', 400, { errorCode: 'auth.otp.resend_cooldown' })
+		);
 		expect(await requestOtp('a@example.com')).toEqual({ status: 'ERROR', error: 'resendCooldown' });
 	});
 
@@ -71,7 +64,12 @@ describe('verifyOtp()', () => {
 		expect(mockPublicFetch.mock.calls[0][0]).toBe('/auth/verify-otp');
 		expect(bodyOf(0)).toEqual({ email: 'a@example.com', code: '123456' });
 		expect(authCookies.setAuthTokens).toHaveBeenCalledWith({ accessToken: 'a1', refreshToken: 'r1' });
-		expect(res).toEqual({ status: 'SUCCESS' });
+		expect(res).toEqual({ status: 'SUCCESS', isNewUser: false });
+	});
+
+	it('reports an account created by this sign-in', async () => {
+		mockPublicFetch.mockResolvedValueOnce({ token: 'a1', refreshToken: 'r1', isNewUser: true, user: {} });
+		expect(await verifyOtp('new@example.com', '123456')).toEqual({ status: 'SUCCESS', isNewUser: true });
 	});
 
 	it('maps a wrong code without storing tokens', async () => {

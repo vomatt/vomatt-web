@@ -193,6 +193,23 @@ describe('PollCreator', () => {
 		await waitFor(() => expect(screen.getByLabelText('Option 2')).toHaveFocus());
 	});
 
+	it('makes a removed option inert while it folds away, so a second click removes nothing more', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		fillPoll();
+		fireEvent.keyDown(screen.getByLabelText('Option 2'), { key: 'Enter' });
+		fireEvent.change(await screen.findByLabelText('Option 3'), { target: { value: 'Option C' } });
+		MotionGlobalConfig.skipAnimations = false;
+		try {
+			fireEvent.click(screen.getByRole('button', { name: 'Remove option 2' }));
+			const leaving = screen.getByDisplayValue('Option B');
+			expect(leaving.closest('[inert]')).not.toBeNull();
+			expect(screen.getByDisplayValue('Option C').closest('[inert]')).toBeNull();
+		} finally {
+			MotionGlobalConfig.skipAnimations = true;
+		}
+	});
+
 	it('adds the next option when Return is pressed in the last one', async () => {
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();

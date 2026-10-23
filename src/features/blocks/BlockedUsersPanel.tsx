@@ -98,7 +98,7 @@ export function BlockedUsersPanel() {
 				<p className="empty-state">{t('blocks.empty')}</p>
 			)}
 			{!!users?.length && (
-				<ul className="divide-y divide-border rounded-xl border border-border bg-card">
+				<ul className="divide-y divide-border rounded-2xl border border-border bg-card">
 					{users.map((user) => (
 						<li key={user.id} className="flex items-center gap-3 px-4 py-3">
 							<UserAvatar

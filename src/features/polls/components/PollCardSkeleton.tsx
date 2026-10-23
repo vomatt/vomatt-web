@@ -9,7 +9,7 @@ import { pollRowFrameClassName } from './PollListItem';
 /** Placeholder with the PollCard's shape, shown while a page's data loads. */
 export function PollCardSkeleton({ options = 3 }: { options?: number }) {
 	return (
-		<div aria-hidden className="rounded-xl border border-border bg-card">
+		<div aria-hidden className="rounded-2xl border border-border bg-card">
 			<div className="space-y-4 p-5">
 				<div className="flex items-center justify-between">
 					<Skeleton className="h-3.5 w-28" />
@@ -21,7 +21,7 @@ export function PollCardSkeleton({ options = 3 }: { options?: number }) {
 				</div>
 				<div className="space-y-1.5">
 					{Array.from({ length: options }, (_, i) => (
-						<Skeleton key={i} className="h-10 rounded-lg" />
+						<Skeleton key={i} className="h-10 rounded-xl" />
 					))}
 				</div>
 				<div className="flex items-center justify-between">

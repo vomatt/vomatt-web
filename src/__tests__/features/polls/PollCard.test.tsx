@@ -131,6 +131,15 @@ describe('PollCard state A · Open, no Ballot', () => {
 		expect(screen.queryByText(/%/)).not.toBeInTheDocument();
 	});
 
+	it('offers the anonymity switch before voting, set from the account default', () => {
+		render(<PollCard poll={openPoll} viewerId="user-voter" anonymousByDefault />);
+		const toggle = screen.getByRole('switch', { name: 'Hide my name from voter lists' });
+		expect(toggle).toBeChecked();
+		fireEvent.click(toggle);
+		expect(toggle).not.toBeChecked();
+		expect(mockCastBallot).not.toHaveBeenCalled();
+	});
+
 	it('keeps Support sealed even when the API still sends counts', () => {
 		const withCounts: Poll = {
 			...openPoll,
@@ -154,7 +163,7 @@ describe('PollCard state B · Open, has Ballot', () => {
 		render(<PollCard poll={openPoll} viewerId="user-voter" />);
 		vote('Saturday');
 
-		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-sat');
+		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-sat', undefined);
 		expect(screen.getByText('129 voted')).toBeInTheDocument();
 		await waitFor(() => expect(screen.getByText('Your vote')).toBeInTheDocument());
 		expect(screen.getByText(/Results are sealed until/)).toBeInTheDocument();
@@ -297,12 +306,51 @@ describe('PollCard state B · Open, has Ballot', () => {
 		expect(mockRetractBallot).not.toHaveBeenCalled();
 	});
 
-	it('toasts a success once the cast is saved', async () => {
+	it('shows the Seal in full once the cast is saved, instead of a toast', async () => {
 		mockCastBallot.mockResolvedValue({ ok: true });
 		render(<PollCard poll={openPoll} viewerId="user-voter" />);
 		vote('Friday');
 
-		await waitFor(() => expect(toast.success).toHaveBeenCalledWith('Vote cast.'));
+		await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Sealed. Thank you.'));
+		// The panel, besides the live region that reads it out
+		expect(screen.getByText('Sealed. Thank you.', { selector: ':not([role=status])' })).toBeInTheDocument();
+		expect(screen.getByText('129 voted, you included')).toBeInTheDocument();
+		expect(screen.getByText(/Results are sealed until/)).toBeInTheDocument();
+		expect(toast.success).not.toHaveBeenCalled();
+	});
+
+	it('folds the Seal to a row on a later visit', () => {
+		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerId="user-voter" />);
+
+		expect(screen.getByText(/Results are sealed until/)).toBeInTheDocument();
+		expect(screen.queryByText('Sealed. Thank you.')).not.toBeInTheDocument();
+		expect(screen.queryByText(/you included/)).not.toBeInTheDocument();
+		expect(screen.getByRole('status')).toBeEmptyDOMElement();
+	});
+
+	it('takes the Seal away and announces nothing once a vote is withdrawn', async () => {
+		mockCastBallot.mockResolvedValue({ ok: true });
+		mockRetractBallot.mockResolvedValue({ ok: true });
+		render(<PollCard poll={openPoll} viewerId="user-voter" />);
+		vote('Friday');
+		await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Sealed. Thank you.'));
+
+		fireEvent.click(screen.getByRole('button', { name: 'Withdraw vote' }));
+		fireEvent.click(screen.getByRole('button', { name: 'Withdraw' }));
+
+		await waitFor(() => expect(screen.getByText('Results are revealed when the poll ends')).toBeInTheDocument());
+		expect(screen.queryByText('Sealed. Thank you.')).not.toBeInTheDocument();
+		expect(screen.getByRole('status')).toBeEmptyDOMElement();
+	});
+
+	it('closes the Seal again when the cast fails', async () => {
+		mockCastBallot.mockResolvedValue({ ok: false, status: 500, message: 'boom' });
+		render(<PollCard poll={openPoll} viewerId="user-voter" />);
+		vote('Friday');
+
+		await waitFor(() => expect(toast.error).toHaveBeenCalled());
+		await waitFor(() => expect(screen.queryByText('Sealed. Thank you.')).not.toBeInTheDocument());
+		expect(screen.getByRole('status')).toBeEmptyDOMElement();
 	});
 
 	it('rolls back a failed cast', async () => {
@@ -573,7 +621,7 @@ describe('PollCard signed-out visitor', () => {
 			fireEvent.click(screen.getByText('Mock Auth Success'));
 		});
 
-		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-sun');
+		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-sun', undefined);
 		expect(screen.queryByTestId('auth-dialog')).not.toBeInTheDocument();
 	});
 
@@ -590,7 +638,7 @@ describe('PollCard signed-out visitor', () => {
 		// The viewer had already voted Friday on another device
 		await act(async () => answerLookup('opt-fri'));
 
-		await waitFor(() => expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-sun'));
+		await waitFor(() => expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-sun', undefined));
 		expect(screen.getByText('128 voted')).toBeInTheDocument();
 		expect(screen.getByLabelText(/Sunday/)).toBeChecked();
 	});
