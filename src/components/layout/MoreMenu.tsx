@@ -3,9 +3,11 @@
 import { Menu } from '@base-ui/react/menu';
 import Link from 'next/link';
 import { useTheme } from 'next-themes';
+import { useState } from 'react';
 
 import { Menu as MenuIcon, Moon, Sun } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ReportProblemDialog } from '@/features/feedback/ReportProblemDialog';
 import { signout } from '@/lib/api/services/auth';
 import { cn } from '@/lib/utils';
 
@@ -17,11 +19,12 @@ const themes = [
 ] as const;
 
 const itemClassName =
-	'flex w-full items-center min-h-10 px-3 rounded-lg text-sm font-medium outline-none cursor-pointer select-none data-highlighted:bg-surface-soft';
+	'flex w-full items-center min-h-10 px-3 rounded-lg text-sm font-medium outline-none cursor-pointer select-none transition-colors duration-150 data-highlighted:bg-surface-soft';
 
 export function MoreMenu({ signedIn }: { signedIn: boolean }) {
 	const { t } = useLanguage();
 	const { theme, setTheme } = useTheme();
+	const [reportOpen, setReportOpen] = useState(false);
 
 	return (
 		<Menu.Root>
@@ -59,8 +62,10 @@ export function MoreMenu({ signedIn }: { signedIn: boolean }) {
 										closeOnClick={false}
 										aria-label={t(label)}
 										className={cn(
-											'flex h-8 items-center justify-center rounded-md text-xs font-medium text-muted-foreground outline-none cursor-pointer select-none',
-											'data-highlighted:text-foreground data-checked:bg-popover data-checked:text-foreground data-checked:shadow-xs data-checked:ring-1 data-checked:ring-foreground/10'
+											'flex h-8 items-center justify-center rounded-md text-xs font-medium text-muted-foreground outline-none cursor-pointer select-none transition-[color,background-color,box-shadow] duration-150',
+											'data-highlighted:text-foreground data-highlighted:data-unchecked:bg-foreground/5',
+											// The viewer's own choice: Volt tint, as on a selected ballot row
+											'data-checked:bg-highlight-tint data-checked:text-foreground data-checked:shadow-xs data-checked:ring-1 data-checked:ring-foreground/15'
 										)}
 									>
 										{Icon ? <Icon aria-hidden className="size-4" /> : t(label)}
@@ -68,9 +73,15 @@ export function MoreMenu({ signedIn }: { signedIn: boolean }) {
 								))}
 							</Menu.RadioGroup>
 						</Menu.Group>
+						<Menu.Separator className="-mx-1.5 my-1.5 h-px bg-border" />
+						<Menu.Item
+							onClick={() => setReportOpen(true)}
+							className={itemClassName}
+						>
+							{t('navigation.reportProblem')}
+						</Menu.Item>
 						{signedIn && (
 							<>
-								<Menu.Separator className="-mx-1.5 my-1.5 h-px bg-border" />
 								<Menu.LinkItem
 									render={<Link href="/settings" />}
 									className={itemClassName}
@@ -88,6 +99,7 @@ export function MoreMenu({ signedIn }: { signedIn: boolean }) {
 					</Menu.Popup>
 				</Menu.Positioner>
 			</Menu.Portal>
+			<ReportProblemDialog open={reportOpen} onOpenChange={setReportOpen} />
 		</Menu.Root>
 	);
 }

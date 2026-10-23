@@ -43,7 +43,16 @@
 		"appearance": "Appearance",
 		"themeLight": "Light",
 		"themeDark": "Dark",
-		"themeAuto": "Auto"
+		"themeAuto": "Auto",
+		"reportProblem": "Report a problem"
+	},
+	"feedback": {
+		"title": "Report a problem",
+		"label": "Describe the problem",
+		"placeholder": "Please include as many details as possible…",
+		"submit": "Submit",
+		"sent": "Thanks. We got your report.",
+		"failed": "Couldn’t send your report. Try again."
 	},
 	"user": {
 		"profile": {

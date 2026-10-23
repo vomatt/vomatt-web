@@ -43,7 +43,16 @@
 		"appearance": "外觀",
 		"themeLight": "淺色",
 		"themeDark": "深色",
-		"themeAuto": "自動"
+		"themeAuto": "自動",
+		"reportProblem": "回報問題"
+	},
+	"feedback": {
+		"title": "回報問題",
+		"label": "描述問題",
+		"placeholder": "請盡量提供詳細資訊…",
+		"submit": "送出",
+		"sent": "謝謝，我們已收到你的回報。",
+		"failed": "無法送出回報，請再試一次。"
 	},
 	"user": {
 		"profile": {
