@@ -74,7 +74,7 @@ export default function AccountSettings({ profile }: { profile: MyProfile }) {
 					<h2 className="font-medium">{t('account.privacyTitle')}</h2>
 					<p className="text-sm text-muted-foreground">{t('account.privacyBody')}</p>
 				</div>
-				<ul className="divide-y divide-border rounded-xl border border-border bg-card">
+				<ul className="divide-y divide-border rounded-2xl border border-border bg-card">
 					{VISIBILITY_FIELDS.map((field) => (
 						<li key={field} className="flex items-center justify-between gap-4 px-4 py-3">
 							{/* The whole row is the 44px touch target; the Switch alone is smaller */}
@@ -94,7 +94,7 @@ export default function AccountSettings({ profile }: { profile: MyProfile }) {
 				</ul>
 			</section>
 
-			<section className="flex items-center justify-between gap-4 rounded-xl border border-border bg-card p-4">
+			<section className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4">
 				<label htmlFor="anonymous-default" className="flex-1 cursor-pointer">
 					<span id="anonymous-default-label" className="block font-medium">
 						{t('account.anonymousDefault')}
@@ -114,7 +114,7 @@ export default function AccountSettings({ profile }: { profile: MyProfile }) {
 
 			<BlockedUsersPanel />
 
-			<section className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4">
+			<section className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4">
 				<div>
 					<h2 className="font-medium">{t('account.signOutTitle')}</h2>
 					<p className="wrap-anywhere text-sm text-muted-foreground">{profile.email}</p>
@@ -158,7 +158,7 @@ function DeleteAccount({ username }: { username: string }) {
 	};
 
 	return (
-		<section className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-destructive/30 bg-card p-4">
+		<section className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-destructive/30 bg-card p-4">
 			<div>
 				<h2 className="font-medium text-destructive">{t('account.deleteTitle')}</h2>
 				<p className="text-sm text-muted-foreground">{t('account.deleteBody')}</p>

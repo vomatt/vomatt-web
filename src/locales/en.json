@@ -36,7 +36,9 @@
 		"home": "Home",
 		"profile": "Profile",
 		"settings": "Settings",
-		"logout": "Logout"
+		"logout": "Logout",
+		"howCountsTitle": "How vomatt counts",
+		"howCountsBody": "One vote per person. Ballots stay sealed while a poll is open, so nobody votes with the crowd."
 	},
 	"user": {
 		"profile": {
@@ -120,6 +122,8 @@
 		"participants": "people voted",
 		"topics": "Topics",
 		"sealedExplainer": "Votes stay sealed until the poll ends, so no one is swayed by the running count. You can change or withdraw your vote until then.",
+		"ruleSealed": "Ballots are sealed. Counts are revealed only when the poll ends.",
+		"ruleOneVote": "One vote per person. You can change or withdraw it until the poll ends.",
 		"shareCta": "Invite others to vote",
 		"endedEarly": "Ended early. It was set to close {date}.",
 		"invited": "{count} invited",
@@ -278,7 +282,9 @@
 		"feedFailed": "Couldn’t load polls right now.",
 		"topicEmpty": "No polls on this topic yet.",
 		"createFirst": "Create the first poll",
-		"joinToCreate": "Join to start a poll"
+		"joinToCreate": "Join to start a poll",
+		"resultsIn": "Results are in",
+		"closingSoon": "Closing soon"
 	},
 	"poll": {
 		"invitation": {
@@ -296,6 +302,8 @@
 		"yourVoteShort": "your vote",
 		"revealHint": "Results are revealed when the poll ends",
 		"sealed": "Results are sealed until {date}. We’ll notify you when they’re in.",
+		"sealedTitle": "Sealed. Thank you.",
+		"sealedTurnout": "{count} voted, you included",
 		"opensHint": "Voting opens {distance}",
 		"voted": "{count} voted",
 		"comments": "{count} comments",

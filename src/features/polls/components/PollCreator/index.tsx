@@ -46,8 +46,9 @@ import {
 import { FieldMessage } from '@/components/ui/Field';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { ArrowLeft, Plus, X } from '@/components/ui/SvgIcons';
+import { ArrowLeft, Eye, Lock, Plus, User, Users, X } from '@/components/ui/SvgIcons';
 import { Textarea } from '@/components/ui/Textarea';
+import { TideRule, TideRules } from '@/components/ui/TidePanel';
 import { ENTER, EXIT, Unfold } from '@/components/Unfold';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { apiErrorText } from '@/lib/api/error-text';
@@ -468,10 +469,10 @@ export function PollCreator({
 											<>
 												<div className="space-y-3">
 													<p className="text-sm font-medium">{t('pollCreator.reviewPreview')}</p>
-													<div className="space-y-4 rounded-xl border border-border bg-card p-4 sm:p-5">
+													<div className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-5">
 														<StatusChip status={review.status} poll={review} />
 														<div className="space-y-2">
-															<p className="text-[21px] leading-tight tracking-[-0.02em] wrap-anywhere">
+															<p className="text-[21px] font-medium leading-tight tracking-[-0.02em] wrap-anywhere">
 																{toSingleLine(title)}
 															</p>
 															{description?.trim() && (
@@ -493,18 +494,18 @@ export function PollCreator({
 														</ul>
 													</div>
 												</div>
-												<ul className="space-y-3 text-[14px] leading-relaxed">
-													<li>{t(`pollCreator.ruleAudience.${audience}`)}</li>
-													<li>{t('pollCreator.ruleSealed')}</li>
-													<li>
+												<TideRules>
+													<TideRule icon={Users}>{t(`pollCreator.ruleAudience.${audience}`)}</TideRule>
+													<TideRule icon={Lock}>{t('pollCreator.ruleSealed')}</TideRule>
+													<TideRule icon={Eye}>
 														{joinSentences(
 															currentLanguage,
 															t(`pollCreator.ruleVisibility.${level}`),
 															t('pollCreator.ruleFixed')
 														)}
-													</li>
-													<li>{t('pollCreator.ruleOneVote')}</li>
-												</ul>
+													</TideRule>
+													<TideRule icon={User}>{t('pollCreator.ruleOneVote')}</TideRule>
+												</TideRules>
 											</>
 										) : (
 											<>

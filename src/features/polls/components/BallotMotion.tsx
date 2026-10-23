@@ -33,7 +33,7 @@ export function BallotMark({ checked }: { checked: boolean }) {
 	);
 }
 
-/** Marks the option the viewer voted for: an Apricot pill whose check draws in. */
+/** Marks the option the viewer voted for: a Volt pill whose check draws in. */
 export function VotedStamp({ label }: { label: string }) {
 	return (
 		<m.span

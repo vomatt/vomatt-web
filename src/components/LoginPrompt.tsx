@@ -24,11 +24,11 @@ export function LoginPrompt({ className, redirectTo, sessionExpired }: LoginProm
 		<div
 			className={cn(
 				// From xl up it fits beside the full 640px feed and the sidebar
-				'rounded-xl border border-border bg-card p-5 h-fit w-[280px] shrink-0 hidden xl:block',
+				'rounded-2xl border border-border bg-card p-5 h-fit w-[280px] shrink-0 hidden xl:block',
 				className
 			)}
 		>
-			<h2 className="item-title font-semibold text-foreground">
+			<h2 className="item-title text-foreground">
 				{t('loginPrompt.title')}
 			</h2>
 			<p className="text-[14px] text-muted-foreground mt-1.5 leading-relaxed">

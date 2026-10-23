@@ -2,7 +2,6 @@
 
 import { AnimatePresence, m, useAnimate } from 'motion/react';
 import { useState } from 'react';
-import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/Button';
 import { Switch } from '@/components/ui/Switch';
@@ -15,6 +14,7 @@ import type { BallotState } from '../hooks/useBallot';
 import type { Poll } from '../schema';
 import { type PollStatus, visibilityLevel } from '../status';
 import { BallotBoxIcon, BallotMark, SelectionHighlight, VotedStamp } from './BallotMotion';
+import { Seal } from './Seal';
 
 type BallotProps = {
 	poll: Poll;
@@ -28,6 +28,10 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 	const { t, currentLanguage } = useLanguage();
 	const isHydrated = useHydrated();
 	const [confirmingWithdraw, setConfirmingWithdraw] = useState(false);
+	// The Seal shows in full once per cast, then folds to a row on later visits
+	const [justSealed, setJustSealed] = useState(false);
+	// Read out once a cast is saved, from a live region that is always mounted
+	const [announcement, setAnnouncement] = useState('');
 	const { myOptionId, selected, setSelected, anonymous, setAnonymous, isPending, pendingAction } = ballot;
 	const isScheduled = status === 'scheduled';
 	const hasBallot = myOptionId !== null;
@@ -49,17 +53,23 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 		requireAuth(async () => {
 			// A small tap on phones, like the ballot hitting the bottom of the box
 			navigator.vibrate?.(12);
+			// The Ballot shows as cast at once, so the Seal opens with it instead of after a row
+			const wasSealed = justSealed;
+			setJustSealed(true);
 			const outcome = await ballot.cast(selected);
 			if (outcome === 'saved') {
-				toast.success(t('poll.voteCast'));
-			} else if (outcome === 'failed') {
-				shake();
+				setAnnouncement(t('poll.sealedTitle'));
+			} else {
+				setJustSealed(wasSealed);
+				if (outcome === 'failed') shake();
 			}
 		});
 	};
 
 	const withdraw = async () => {
 		setConfirmingWithdraw(false);
+		setJustSealed(false);
+		setAnnouncement('');
 		if ((await ballot.retract()) === 'failed') shake();
 	};
 
@@ -194,28 +204,43 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 				</div>
 			)}
 
-			{/* One panel before and after voting, so casting swaps a line instead of growing the card */}
+			{/* Before voting, what happens to a Ballot; after, the Seal that keeps that promise */}
 			{!isScheduled && (
-				<div className="flex items-start gap-2.5 rounded-lg border border-border bg-surface-soft px-3.5 py-3 text-[12px] text-muted-foreground">
-					<BallotBoxIcon className="mt-0.5 shrink-0 text-foreground" />
-					<div className="relative flex min-w-0 flex-col gap-1">
-						<AnimatePresence mode="popLayout" initial={false}>
-							<m.p
-								key={isSealed ? 'sealed' : 'reveal'}
-								initial={{ opacity: 0, y: 4 }}
-								animate={{ opacity: 1, y: 0 }}
-								exit={{ opacity: 0, y: -4, transition: { duration: 0.12 } }}
-								transition={{ duration: 0.2, ease: 'easeOut' }}
-								// Holds its space until the date is known, instead of showing the pre-vote line
-								className={cn(isSealed && !isHydrated && 'invisible')}
-							>
-								{isSealed ? t('poll.sealed', { date: sealedUntil }) : t('poll.revealHint')}
-							</m.p>
-						</AnimatePresence>
-						{visibilityHint && <p>{visibilityHint}</p>}
-					</div>
-				</div>
+				<AnimatePresence mode="wait" initial={false}>
+					<m.div
+						key={hasBallot ? 'seal' : 'hint'}
+						initial={{ opacity: 0, y: 4 }}
+						animate={{ opacity: 1, y: 0 }}
+						exit={{ opacity: 0, y: -4, transition: { duration: 0.12 } }}
+						transition={{ duration: 0.2, ease: 'easeOut' }}
+					>
+						{hasBallot ? (
+							<Seal
+								full={justSealed}
+								sealedLine={
+									// Holds its space until the date is known
+									<p className={cn(isSealed && !isHydrated && 'invisible')}>
+										{isSealed ? t('poll.sealed', { date: sealedUntil }) : t('poll.revealHint')}
+									</p>
+								}
+								visibilityHint={visibilityHint}
+								turnout={ballot.turnout}
+							/>
+						) : (
+							<div className="flex items-start gap-2.5 rounded-xl border border-border bg-surface-soft px-3.5 py-3 text-[12px] text-muted-foreground">
+								<BallotBoxIcon className="mt-0.5 shrink-0 text-foreground" />
+								<div className="flex min-w-0 flex-col gap-1">
+									<p>{t('poll.revealHint')}</p>
+									{visibilityHint && <p>{visibilityHint}</p>}
+								</div>
+							</div>
+						)}
+					</m.div>
+				</AnimatePresence>
 			)}
+			<p role="status" aria-live="polite" className="sr-only">
+				{announcement}
+			</p>
 
 			<div
 				role={confirmingWithdraw ? 'group' : undefined}
