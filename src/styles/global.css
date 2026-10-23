@@ -44,36 +44,41 @@
 @custom-variant data-vertical (&:where([data-orientation="vertical"]));
 
 :root {
-	/* vomatt brand: warm porcelain canvas, navy ink actions, Apricot for the create action and "yours" */
-	--background: oklch(0.982 0.004 80);
-	--foreground: oklch(0.235 0.03 262);
-	--card: oklch(0.997 0.002 80);
-	--card-foreground: oklch(0.235 0.03 262);
-	--popover: oklch(0.997 0.002 80);
-	--popover-foreground: oklch(0.235 0.03 262);
-	--primary: oklch(0.235 0.03 262);
-	--primary-hover: oklch(0.33 0.04 262);
-	--primary-foreground: oklch(0.99 0.003 80);
-	--secondary: oklch(0.945 0.008 78);
-	--secondary-foreground: oklch(0.235 0.03 262);
-	--muted: oklch(0.96 0.006 80);
-	--muted-foreground: oklch(0.48 0.02 60);
-	--accent: oklch(0.96 0.006 80);
-	--accent-foreground: oklch(0.235 0.03 262);
+	/* vomatt brand: cool canvas, navy ink actions, Volt (highlight) for the create action and "yours", Tide for the promise */
+	--background: oklch(0.964 0.003 265);
+	--foreground: oklch(0.272 0.058 262.5);
+	--card: oklch(1 0 265);
+	--card-foreground: oklch(0.272 0.058 262.5);
+	--popover: oklch(1 0 265);
+	--popover-foreground: oklch(0.272 0.058 262.5);
+	--primary: oklch(0.272 0.058 262.5);
+	--primary-hover: oklch(0.36 0.06 262.5);
+	--primary-foreground: oklch(0.985 0.002 265);
+	--secondary: oklch(0.935 0.005 265);
+	--secondary-foreground: oklch(0.272 0.058 262.5);
+	--muted: oklch(0.955 0.004 265);
+	--muted-foreground: oklch(0.503 0.034 266);
+	--accent: oklch(0.955 0.004 265);
+	--accent-foreground: oklch(0.272 0.058 262.5);
 	--destructive: oklch(0.501 0.178 28.7);
-	--border: oklch(0.918 0.009 75);
-	--border-strong: oklch(0.855 0.013 70);
-	--input: oklch(0.62 0.016 70);
-	--ring: oklch(0.235 0.03 262);
-	--surface-soft: oklch(0.99 0.004 80);
+	--border: oklch(0.919 0.007 268);
+	--border-strong: oklch(0.844 0.012 265);
+	--input: oklch(0.652 0.019 264);
+	--ring: oklch(0.272 0.058 262.5);
+	--surface-soft: oklch(0.982 0.002 248);
 	/* Scrim behind dialogs, sheets and drawers */
 	--overlay: oklch(0.2 0.02 262 / 0.35);
-	--field: oklch(0.962 0.006 80);
-	--highlight: oklch(0.78 0.15 58);
-	/* Ink on Apricot in both themes: a literal, since var(--foreground) turns light in .dark */
-	--highlight-foreground: oklch(0.235 0.03 262);
-	--highlight-tint: oklch(0.966 0.03 62);
-	/* The create action: ink with an Apricot icon on light, an Apricot button on dark */
+	--field: oklch(0.954 0.005 258);
+	--highlight: oklch(0.952 0.154 117.6);
+	/* Ink on Volt in both themes: a literal, since var(--foreground) turns light in .dark */
+	--highlight-foreground: oklch(0.272 0.058 262.5);
+	/* Tide, the promise: the seal, the rules, the voting window. Never links or buttons */
+	--tide: oklch(0.588 0.097 184);
+	--tide-tint: oklch(0.963 0.018 184);
+	--tide-line: oklch(0.834 0.075 185);
+	--tide-foreground: oklch(0.439 0.073 186);
+	--highlight-tint: oklch(0.977 0.050 114.6);
+	/* The create action: ink with a Volt icon on light, a Volt button on dark */
 	--create: var(--primary);
 	--create-hover: var(--primary-hover);
 	--create-foreground: var(--primary-foreground);
@@ -91,7 +96,7 @@
 	--avatar-lavender: oklch(0.914 0.017 304.8);
 	--radius: 0.5rem;
 	/* The sidebar is one step deeper than the canvas; everything else aliases the base */
-	--sidebar: oklch(0.966 0.006 78);
+	--sidebar: oklch(0.95 0.004 265);
 	--sidebar-foreground: var(--foreground);
 	--sidebar-primary: var(--primary);
 	--sidebar-primary-foreground: var(--primary-foreground);
@@ -130,30 +135,34 @@ html {
 }
 
 .dark {
-	--background: oklch(0.185 0.008 265);
-	--foreground: oklch(0.945 0.004 265);
-	--card: oklch(0.225 0.010 265);
-	--card-foreground: oklch(0.945 0.004 265);
-	--popover: oklch(0.225 0.010 265);
-	--popover-foreground: oklch(0.945 0.004 265);
-	--primary: oklch(0.945 0.004 265);
-	--primary-hover: oklch(0.85 0.006 265);
-	--primary-foreground: oklch(0.185 0.008 265);
-	--secondary: oklch(0.29 0.010 265);
-	--secondary-foreground: oklch(0.945 0.004 265);
-	--muted: oklch(0.27 0.010 265);
-	--muted-foreground: oklch(0.76 0.010 265);
-	--accent: oklch(0.27 0.010 265);
-	--accent-foreground: oklch(0.945 0.004 265);
-	--destructive: oklch(0.834 0.068 22);
-	--border: oklch(0.29 0.010 265);
-	--border-strong: oklch(0.39 0.012 265);
-	--input: oklch(0.55 0.012 265);
-	--ring: oklch(0.945 0.004 265);
-	--surface-soft: oklch(0.205 0.009 265);
+	--background: oklch(0.190 0.032 269);
+	--foreground: oklch(0.958 0.009 265);
+	--card: oklch(0.230 0.036 269);
+	--card-foreground: oklch(0.958 0.009 265);
+	--popover: oklch(0.230 0.036 269);
+	--popover-foreground: oklch(0.958 0.009 265);
+	--primary: oklch(0.958 0.009 265);
+	--primary-hover: oklch(0.86 0.02 265);
+	--primary-foreground: oklch(0.190 0.032 269);
+	--secondary: oklch(0.30 0.04 268);
+	--secondary-foreground: oklch(0.958 0.009 265);
+	--muted: oklch(0.267 0.037 268);
+	--muted-foreground: oklch(0.751 0.030 268);
+	--accent: oklch(0.267 0.037 268);
+	--accent-foreground: oklch(0.958 0.009 265);
+	--destructive: oklch(0.771 0.104 25);
+	--border: oklch(0.316 0.045 268);
+	--border-strong: oklch(0.394 0.051 268);
+	--input: oklch(0.616 0.032 266);
+	--ring: oklch(0.958 0.009 265);
+	--surface-soft: oklch(0.21 0.034 269);
 	--overlay: oklch(0.1 0.01 265 / 0.6);
-	--field: oklch(0.27 0.010 265);
-	--highlight-tint: oklch(0.32 0.05 58);
+	--field: oklch(0.267 0.037 268);
+	--tide: oklch(0.769 0.102 185);
+	--tide-tint: oklch(0.290 0.035 190);
+	--tide-line: oklch(0.486 0.063 185);
+	--tide-foreground: oklch(0.859 0.083 185);
+	--highlight-tint: oklch(0.312 0.041 120);
 	--create: var(--highlight);
 	--create-hover: color-mix(in oklch, var(--highlight) 85%, transparent);
 	--create-foreground: var(--highlight-foreground);
@@ -162,7 +171,7 @@ html {
 	--status-open: oklch(0.36 0.05 145.4);
 	--status-closing: oklch(0.36 0.05 350);
 	--status-ended: oklch(0.36 0.05 86.1);
-	--sidebar: oklch(0.165 0.008 265);
+	--sidebar: oklch(0.17 0.03 269);
 	--sidebar-foreground: var(--foreground);
 	--sidebar-primary: var(--primary);
 	--sidebar-primary-foreground: var(--primary-foreground);
@@ -171,7 +180,7 @@ html {
 	--sidebar-border: var(--border);
 	--sidebar-ring: var(--ring);
 
-	--positive: oklch(0.65 0.17 145);
+	--positive: oklch(0.798 0.115 154);
 }
 
 @theme inline {
@@ -227,6 +236,10 @@ html {
 	--color-highlight: var(--highlight);
 	--color-highlight-foreground: var(--highlight-foreground);
 	--color-highlight-tint: var(--highlight-tint);
+	--color-tide: var(--tide);
+	--color-tide-tint: var(--tide-tint);
+	--color-tide-line: var(--tide-line);
+	--color-tide-foreground: var(--tide-foreground);
 	--color-create: var(--create);
 	--color-create-hover: var(--create-hover);
 	--color-create-foreground: var(--create-foreground);
