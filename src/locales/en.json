@@ -756,7 +756,8 @@
 			"otp": {
 				"invalid_or_expired": "Verification code is invalid or has expired",
 				"too_many_attempts": "Too many attempts, please try again later",
-				"resend_cooldown": "Please wait {0} seconds before resending"
+				"resend_cooldown": "Please wait {0} seconds before resending",
+				"daily_limit": "Too many codes requested today, please try again tomorrow"
 			},
 			"admin": {
 				"forbidden": "This account does not have admin privileges"

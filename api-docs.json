@@ -106,6 +106,38 @@
         },
         "type" : "object"
       },
+      "AdminFeedbackResponse" : {
+        "description" : "Feedback as seen in the back office",
+        "properties" : {
+          "content" : {
+            "description" : "Feedback text",
+            "example" : "Please add dark mode.",
+            "type" : "string"
+          },
+          "createdAt" : {
+            "description" : "When it was sent",
+            "example" : "2026-10-23T10:00:00+08:00",
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "id" : {
+            "description" : "Feedback ID (UUIDv7)",
+            "example" : "0199c3a2-7b5e-7c1d-9a4f-3e2b1d5c6f70",
+            "type" : "string"
+          },
+          "userId" : {
+            "description" : "Sender's user ID",
+            "example" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d47",
+            "type" : "string"
+          },
+          "username" : {
+            "description" : "Sender's username",
+            "example" : "alice",
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
       "AdminStatsResponse" : {
         "description" : "Back-office dashboard counts. Poll counts exclude Deleted Polls except `pollsDeleted`",
         "nullable" : true,
@@ -355,7 +387,7 @@
         "type" : "object"
       },
       "AdminUserResponse" : {
-        "description" : "An account as listed in the back office",
+        "description" : "An account as listed in the back office. Contact details are masked and names and birthday left out: the list is for finding an account, `GET /api/admin/users/{userId}` holds the full record",
         "properties" : {
           "active" : {
             "description" : "False when suspended",
@@ -365,13 +397,6 @@
           "authMethod" : {
             "description" : "How the account signs in: email_otp, phone_otp, google, line or apple",
             "example" : "email_otp",
-            "nullable" : true,
-            "type" : "string"
-          },
-          "birthday" : {
-            "description" : "Birthday (ISO date), shown regardless of the user's visibility settings; null when unset",
-            "example" : "1995-04-12",
-            "format" : "date",
             "nullable" : true,
             "type" : "string"
           },
@@ -388,14 +413,8 @@
             "type" : "string"
           },
           "email" : {
-            "description" : "Email; null for accounts registered by phone",
-            "example" : "alice@example.com",
-            "nullable" : true,
-            "type" : "string"
-          },
-          "firstName" : {
-            "description" : "First name; null when unset",
-            "example" : "Alice",
+            "description" : "Email, masked to its first character and domain; null for accounts registered by phone",
+            "example" : "a***@example.com",
             "nullable" : true,
             "type" : "string"
           },
@@ -411,15 +430,9 @@
             "nullable" : true,
             "type" : "string"
           },
-          "lastName" : {
-            "description" : "Last name; null when unset",
-            "example" : "Chen",
-            "nullable" : true,
-            "type" : "string"
-          },
           "phoneNumber" : {
-            "description" : "Phone number (E.164); null for accounts registered by email or OAuth",
-            "example" : "+886912345678",
+            "description" : "Phone number (E.164), masked to its first 3 characters and last 2 digits; null for accounts registered by email or OAuth",
+            "example" : "+88****78",
             "nullable" : true,
             "type" : "string"
           },
@@ -570,38 +583,6 @@
         "properties" : {
           "data" : {
             "$ref" : "#/components/schemas/AdminVoteResponse"
-          },
-          "error" : {
-            "description" : "Legacy duplicate of `message` on errors; null on success. Use `message` instead",
-            "example" : "Poll not found",
-            "nullable" : true,
-            "type" : "string"
-          },
-          "errorCode" : {
-            "description" : "Stable machine-readable error code (lowercase, dot-separated); branch on this, not on `message`. Null on success",
-            "example" : "vote.not_found",
-            "nullable" : true,
-            "type" : "string"
-          },
-          "message" : {
-            "description" : "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",
-            "example" : "Operation completed",
-            "nullable" : true,
-            "type" : "string"
-          },
-          "success" : {
-            "description" : "true on success, false on error",
-            "example" : true,
-            "type" : "boolean"
-          }
-        },
-        "type" : "object"
-      },
-      "ApiResponseAuthEmailExistsResponse" : {
-        "description" : "Envelope of every API response, success or error",
-        "properties" : {
-          "data" : {
-            "$ref" : "#/components/schemas/AuthEmailExistsResponse"
           },
           "error" : {
             "description" : "Legacy duplicate of `message` on errors; null on success. Use `message` instead",
@@ -1247,6 +1228,38 @@
         },
         "type" : "object"
       },
+      "ApiResponsePageResponseAdminFeedbackResponse" : {
+        "description" : "Envelope of every API response, success or error",
+        "properties" : {
+          "data" : {
+            "$ref" : "#/components/schemas/PageResponseAdminFeedbackResponse"
+          },
+          "error" : {
+            "description" : "Legacy duplicate of `message` on errors; null on success. Use `message` instead",
+            "example" : "Poll not found",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "errorCode" : {
+            "description" : "Stable machine-readable error code (lowercase, dot-separated); branch on this, not on `message`. Null on success",
+            "example" : "vote.not_found",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "message" : {
+            "description" : "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",
+            "example" : "Operation completed",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "success" : {
+            "description" : "true on success, false on error",
+            "example" : true,
+            "type" : "boolean"
+          }
+        },
+        "type" : "object"
+      },
       "ApiResponsePageResponseAdminUserBlockResponse" : {
         "description" : "Envelope of every API response, success or error",
         "properties" : {
@@ -1503,6 +1516,38 @@
         },
         "type" : "object"
       },
+      "ApiResponseUserDataExportResponse" : {
+        "description" : "Envelope of every API response, success or error",
+        "properties" : {
+          "data" : {
+            "$ref" : "#/components/schemas/UserDataExportResponse"
+          },
+          "error" : {
+            "description" : "Legacy duplicate of `message` on errors; null on success. Use `message` instead",
+            "example" : "Poll not found",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "errorCode" : {
+            "description" : "Stable machine-readable error code (lowercase, dot-separated); branch on this, not on `message`. Null on success",
+            "example" : "vote.not_found",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "message" : {
+            "description" : "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",
+            "example" : "Operation completed",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "success" : {
+            "description" : "true on success, false on error",
+            "example" : true,
+            "type" : "boolean"
+          }
+        },
+        "type" : "object"
+      },
       "ApiResponseUserProfileResponse" : {
         "description" : "Envelope of every API response, success or error",
         "properties" : {
@@ -1675,10 +1720,17 @@
           "idToken" : {
             "description" : "Identity token (JWT) issued by Apple",
             "example" : "eyJraWQiOiJZdXl1eVoxIiwiYWxnIjoiUlMyNTYifQ...",
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "nonce" : {
+            "description" : "The raw nonce this sign-in started with. The client sends its SHA-256 hex to Apple and the raw value here; the server checks the token's `nonce` claim against it, so a captured token cannot be replayed from another session",
+            "example" : "f3a9c2b4e1d8...",
+            "minLength" : 1,
             "type" : "string"
           }
         },
-        "required" : [ "idToken" ],
+        "required" : [ "idToken", "nonce" ],
         "type" : "object"
       },
       "AuditLogResponse" : {
@@ -1758,22 +1810,10 @@
             "type" : "string"
           },
           "username" : {
-            "description" : "Acting user's email at the time; null when unknown",
-            "example" : "admin@example.com",
+            "description" : "Acting user's username at the time; null when unknown (entries before 2026-10-23 hold the email)",
+            "example" : "admin",
             "nullable" : true,
             "type" : "string"
-          }
-        },
-        "type" : "object"
-      },
-      "AuthEmailExistsResponse" : {
-        "description" : "Result of the email registration check",
-        "nullable" : true,
-        "properties" : {
-          "exists" : {
-            "description" : "True if a user with this email is registered",
-            "example" : true,
-            "type" : "boolean"
           }
         },
         "type" : "object"
@@ -1782,6 +1822,12 @@
         "description" : "Response after a successful login, signup or token refresh",
         "nullable" : true,
         "properties" : {
+          "isNewUser" : {
+            "description" : "True when this sign-in is the account's first (it was just created), so the client can show signup wording. Null on POST /api/auth/refresh",
+            "example" : false,
+            "nullable" : true,
+            "type" : "boolean"
+          },
           "refreshToken" : {
             "description" : "Opaque refresh token, valid for 30 days by default. Use it with POST /api/auth/refresh when the access token expires. Single-use: every refresh returns a new one that replaces it",
             "example" : "8c7e3f4a-1234-5678-90ab-cdef12345678",
@@ -1798,17 +1844,34 @@
         },
         "type" : "object"
       },
-      "CheckEmailRequest" : {
-        "description" : "Request to check whether an email is registered",
+      "BallotExport" : {
+        "description" : "A Ballot the caller cast",
         "properties" : {
-          "email" : {
-            "description" : "Email address to check",
-            "example" : "user@example.com",
-            "format" : "email",
+          "anonymous" : {
+            "type" : "boolean"
+          },
+          "castAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "optionId" : {
+            "description" : "Chosen option; null once an Anonymous Ballot of an Ended Poll was sealed",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "optionText" : {
+            "nullable" : true,
+            "type" : "string"
+          },
+          "voteId" : {
+            "example" : "0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05",
+            "type" : "string"
+          },
+          "voteTitle" : {
+            "example" : "Lunch?",
             "type" : "string"
           }
         },
-        "required" : [ "email" ],
         "type" : "object"
       },
       "CommentDto" : {
@@ -1897,6 +1960,28 @@
         },
         "type" : "object"
       },
+      "CommentExport" : {
+        "description" : "A Comment the caller wrote",
+        "properties" : {
+          "createdAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "id" : {
+            "example" : "0199f2a5-1c2d-7e3f-8a4b-5c6d7e8f9a0b",
+            "type" : "string"
+          },
+          "text" : {
+            "type" : "string"
+          },
+          "voteId" : {
+            "description" : "Poll the Comment belongs to",
+            "example" : "0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05",
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
       "CreateCommentRequest" : {
         "properties" : {
           "parentId" : {
@@ -1915,6 +2000,19 @@
           }
         },
         "required" : [ "text" ],
+        "type" : "object"
+      },
+      "CreateFeedbackRequest" : {
+        "properties" : {
+          "content" : {
+            "description" : "Feedback text, not blank, max 2000 characters",
+            "example" : "Please add dark mode.",
+            "maxLength" : 2000,
+            "minLength" : 0,
+            "type" : "string"
+          }
+        },
+        "required" : [ "content" ],
         "type" : "object"
       },
       "CreateLookupRequest" : {
@@ -2105,6 +2203,7 @@
             "items" : {
               "$ref" : "#/components/schemas/VoteOptionRequest"
             },
+            "minItems" : 1,
             "type" : "array"
           },
           "startTime" : {
@@ -2273,12 +2372,31 @@
         },
         "type" : "object"
       },
+      "FeedbackExport" : {
+        "description" : "Feedback the caller sent",
+        "properties" : {
+          "content" : {
+            "example" : "Please add dark mode.",
+            "type" : "string"
+          },
+          "createdAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "id" : {
+            "example" : "0199c3a2-7b5e-7c1d-9a4f-3e2b1d5c6f70",
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
       "GoogleAuthRequest" : {
         "description" : "Google login request",
         "properties" : {
           "idToken" : {
             "description" : "ID token (JWT) issued by Google",
             "example" : "eyJhbGciOiJSUzI1NiIsImtpZCI6Ij...",
+            "minLength" : 1,
             "type" : "string"
           }
         },
@@ -2501,11 +2619,13 @@
           "code" : {
             "description" : "Authorization code returned by LINE after the user authorizes",
             "example" : "abc123def456",
+            "minLength" : 1,
             "type" : "string"
           },
           "redirectUri" : {
             "description" : "Redirect URI used in the LINE authorization request; must match the one registered with LINE",
             "example" : "https://app.example.com/auth/line/callback",
+            "minLength" : 1,
             "type" : "string"
           }
         },
@@ -2578,7 +2698,6 @@
       },
       "MyProfileResponse" : {
         "description" : "The caller's own profile; every field is returned regardless of visibility settings",
-        "nullable" : true,
         "properties" : {
           "active" : {
             "description" : "False when the account is suspended",
@@ -2741,6 +2860,38 @@
         },
         "type" : "object"
       },
+      "PageResponseAdminFeedbackResponse" : {
+        "description" : "Offset-style page container (page number and total count); most list endpoints use CursorResponse instead",
+        "nullable" : true,
+        "properties" : {
+          "content" : {
+            "description" : "Items of this page",
+            "items" : {
+              "$ref" : "#/components/schemas/AdminFeedbackResponse"
+            },
+            "type" : "array"
+          },
+          "limit" : {
+            "description" : "Page size",
+            "example" : 20,
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "page" : {
+            "description" : "Current page number (1-based)",
+            "example" : 1,
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "total" : {
+            "description" : "Total number of items across all pages",
+            "example" : 123,
+            "format" : "int64",
+            "type" : "integer"
+          }
+        },
+        "type" : "object"
+      },
       "PageResponseAdminUserBlockResponse" : {
         "description" : "Offset-style page container (page number and total count); most list endpoints use CursorResponse instead",
         "nullable" : true,
@@ -2875,6 +3026,7 @@
           "phone" : {
             "description" : "Phone number: a Taiwan mobile number (09xxxxxxxx) or E.164 (+ country code and number). Spaces, '-', '(' and ')' are ignored; stored and matched as E.164",
             "example" : "0912345678",
+            "minLength" : 1,
             "type" : "string"
           },
           "type" : {
@@ -2894,15 +3046,66 @@
           "code" : {
             "description" : "OTP code received by SMS",
             "example" : "123456",
+            "minLength" : 1,
             "type" : "string"
           },
           "phone" : {
             "description" : "Phone number: a Taiwan mobile number (09xxxxxxxx) or E.164 (+ country code and number). Spaces, '-', '(' and ')' are ignored; stored and matched as E.164",
             "example" : "0912345678",
+            "minLength" : 1,
             "type" : "string"
           }
         },
         "required" : [ "code", "phone" ],
+        "type" : "object"
+      },
+      "PollExport" : {
+        "description" : "A Poll the caller created",
+        "properties" : {
+          "audience" : {
+            "description" : "PUBLIC, UNLISTED or INVITE_ONLY",
+            "example" : "PUBLIC",
+            "type" : "string"
+          },
+          "createdAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "deleted" : {
+            "description" : "Whether the caller deleted it",
+            "type" : "boolean"
+          },
+          "description" : {
+            "nullable" : true,
+            "type" : "string"
+          },
+          "endTime" : {
+            "format" : "date-time",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "id" : {
+            "example" : "0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05",
+            "type" : "string"
+          },
+          "options" : {
+            "description" : "Option texts in display order",
+            "items" : {
+              "description" : "Option texts in display order",
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "startTime" : {
+            "format" : "date-time",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "title" : {
+            "example" : "Lunch?",
+            "type" : "string"
+          }
+        },
         "type" : "object"
       },
       "RefreshRequest" : {
@@ -2911,6 +3114,7 @@
           "refreshToken" : {
             "description" : "Refresh token from the latest login or refresh response; each refresh invalidates it and issues a new one",
             "example" : "8c7e3f4a-1234-5678-90ab-cdef12345678",
+            "minLength" : 1,
             "type" : "string"
           }
         },
@@ -3282,13 +3486,12 @@
         "properties" : {
           "visibility" : {
             "additionalProperties" : {
-              "description" : "Field name to visible flag. Allowed keys: email, firstName, lastName, birthday, location, points, displayName, bio, membershipLevel. Omitted fields keep their current setting; unknown keys are ignored",
+              "description" : "Field name to visible flag. Allowed keys: firstName, lastName, location, points, displayName, bio, membershipLevel. Omitted fields keep their current setting; unknown keys (including email and birthday, which are never public) are ignored",
               "example" : false,
               "type" : "boolean"
             },
-            "description" : "Field name to visible flag. Allowed keys: email, firstName, lastName, birthday, location, points, displayName, bio, membershipLevel. Omitted fields keep their current setting; unknown keys are ignored",
+            "description" : "Field name to visible flag. Allowed keys: firstName, lastName, location, points, displayName, bio, membershipLevel. Omitted fields keep their current setting; unknown keys (including email and birthday, which are never public) are ignored",
             "example" : {
-              "email" : false,
               "firstName" : true,
               "location" : false
             },
@@ -3296,6 +3499,62 @@
           }
         },
         "required" : [ "visibility" ],
+        "type" : "object"
+      },
+      "UserDataExportResponse" : {
+        "description" : "Export of the caller's own data: profile, preferences, Polls created, Comments written, Ballots cast and feedback sent",
+        "nullable" : true,
+        "properties" : {
+          "ballots" : {
+            "description" : "Ballots the caller holds, oldest first",
+            "items" : {
+              "$ref" : "#/components/schemas/BallotExport"
+            },
+            "type" : "array"
+          },
+          "comments" : {
+            "description" : "Comments the caller wrote that are not deleted",
+            "items" : {
+              "$ref" : "#/components/schemas/CommentExport"
+            },
+            "type" : "array"
+          },
+          "exportedAt" : {
+            "description" : "When the export was produced",
+            "example" : "2026-10-23T10:00:00+08:00",
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "feedback" : {
+            "description" : "Feedback the caller sent, oldest first",
+            "items" : {
+              "$ref" : "#/components/schemas/FeedbackExport"
+            },
+            "type" : "array"
+          },
+          "polls" : {
+            "description" : "Polls the caller created, newest first, Deleted ones included",
+            "items" : {
+              "$ref" : "#/components/schemas/PollExport"
+            },
+            "type" : "array"
+          },
+          "preferences" : {
+            "additionalProperties" : {
+              "description" : "Stored preferences by key (visibility settings, Ballot default)",
+              "example" : "{\"visibility.location\":\"true\"}",
+              "type" : "string"
+            },
+            "description" : "Stored preferences by key (visibility settings, Ballot default)",
+            "example" : {
+              "visibility.location" : "true"
+            },
+            "type" : "object"
+          },
+          "profile" : {
+            "$ref" : "#/components/schemas/MyProfileResponse"
+          }
+        },
         "type" : "object"
       },
       "UserDto" : {
@@ -3395,22 +3654,9 @@
             "nullable" : true,
             "type" : "string"
           },
-          "birthday" : {
-            "description" : "Birthday (ISO date); null when hidden (default) or not set",
-            "example" : "1995-04-12",
-            "format" : "date",
-            "nullable" : true,
-            "type" : "string"
-          },
           "displayName" : {
             "description" : "Display name; null if the owner hid it (public by default) or never set one",
             "example" : "Alice",
-            "nullable" : true,
-            "type" : "string"
-          },
-          "email" : {
-            "description" : "Email; null when the owner keeps it hidden (default) or has none",
-            "example" : "alice@example.com",
             "nullable" : true,
             "type" : "string"
           },
@@ -3481,10 +3727,10 @@
             "type" : "boolean"
           },
           "selectedOptions" : {
-            "description" : "Option IDs of the caller's Selection. Polls are single-choice, so it holds exactly one ID when `hasVoted` is true and is empty otherwise",
+            "description" : "Option IDs of the caller's Selection. Polls are single-choice, so it holds exactly one ID when `hasVoted` is true and is empty otherwise. Also empty for an Anonymous Ballot once its Poll has Ended and the Ballot was sealed (within a day of the end)",
             "example" : [ "0199f2a4-8d11-7c3e-b0a4-5e29c7d6f813" ],
             "items" : {
-              "description" : "Option IDs of the caller's Selection. Polls are single-choice, so it holds exactly one ID when `hasVoted` is true and is empty otherwise",
+              "description" : "Option IDs of the caller's Selection. Polls are single-choice, so it holds exactly one ID when `hasVoted` is true and is empty otherwise. Also empty for an Anonymous Ballot once its Poll has Ended and the Ballot was sealed (within a day of the end)",
               "example" : "[\"0199f2a4-8d11-7c3e-b0a4-5e29c7d6f813\"]",
               "type" : "string"
             },
@@ -3499,6 +3745,7 @@
           "code" : {
             "description" : "OTP code received by email",
             "example" : "123456",
+            "minLength" : 1,
             "type" : "string"
           },
           "email" : {
@@ -3656,6 +3903,7 @@
               "example" : "[\"0199f2a4-8d11-7c3e-b0a4-5e29c7d6f813\"]",
               "type" : "string"
             },
+            "minItems" : 1,
             "type" : "array"
           }
         },
@@ -3755,7 +4003,7 @@
             "type" : "boolean"
           },
           "myOptionId" : {
-            "description" : "ID of the option in the caller's Ballot. Null when the caller is not signed in, holds no Ballot in this Poll, or on the create response",
+            "description" : "ID of the option in the caller's Ballot. Null when the caller is not signed in, holds no Ballot in this Poll, on the create response, or when the caller's Anonymous Ballot was sealed after the Poll Ended (within a day of the end; `myBallotAnonymous` still says the caller took part)",
             "example" : "0199f2a4-8d11-7c3e-b0a4-5e29c7d6f813",
             "nullable" : true,
             "type" : "string"
@@ -3921,7 +4169,7 @@
         "type" : "object"
       },
       "VoterResponse" : {
-        "description" : "A Participant of an Ended Poll and the option they chose",
+        "description" : "A Participant of an Ended Poll and, when the Poll holds no Anonymous Ballot, the option they chose",
         "properties" : {
           "avatarUrl" : {
             "description" : "Avatar as `bot:<kind>` (the bot cast). Older accounts may hold an image URL; null if never set",
@@ -3930,8 +4178,9 @@
             "type" : "string"
           },
           "optionId" : {
-            "description" : "ID of the option the Participant chose",
+            "description" : "ID of the option the Participant chose. Null for every Participant while the Poll holds an Anonymous Ballot other than the caller's own, so the anonymous choices cannot be worked out from the named ones and the option totals",
             "example" : "0199f2a4-8d11-7c3e-b0a4-5e29c7d6f813",
+            "nullable" : true,
             "type" : "string"
           },
           "userId" : {
@@ -4406,6 +4655,121 @@
         },
         "summary" : "Delete Comment",
         "tags" : [ "Admin - Comment" ]
+      }
+    },
+    "/api/admin/feedback" : {
+      "get" : {
+        "description" : "**Auth**: admin (role ADMIN; 403 `common.forbidden` otherwise)\n**Precondition**: caller holds role ADMIN\n**Behavior**: offset page of feedback from all users, newest first; `userId` narrows it to one sender. `page` is 1-based (default 1), `limit` 1-50 (default 20)\n**Side effects**: written to the audit log (action `VIEW`, resource `FEEDBACK`, resource id = `userId` when given), since feedback text may hold personal data\n**Errors**:\n- 400 `common.type_mismatch`: `userId` is not a valid UUID",
+        "operationId" : "listFeedback",
+        "parameters" : [ {
+          "description" : "Only feedback from this user (UUID)",
+          "in" : "query",
+          "name" : "userId",
+          "required" : false,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        }, {
+          "description" : "Page number, 1-based (default 1)",
+          "in" : "query",
+          "name" : "page",
+          "required" : false,
+          "schema" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        }, {
+          "description" : "Page size (1-50, default 20)",
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "examples" : {
+                  "Feedback" : {
+                    "description" : "Feedback",
+                    "value" : {
+                      "data" : {
+                        "content" : [ {
+                          "content" : "Please add dark mode.",
+                          "createdAt" : "2026-10-23T10:00:00+08:00",
+                          "id" : "0199c3a2-7b5e-7c1d-9a4f-3e2b1d5c6f70",
+                          "userId" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d47",
+                          "username" : "alice"
+                        } ],
+                        "limit" : 20,
+                        "page" : 1,
+                        "total" : 1
+                      },
+                      "error" : null,
+                      "errorCode" : null,
+                      "message" : null,
+                      "success" : true
+                    }
+                  }
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResponsePageResponseAdminFeedbackResponse"
+                }
+              }
+            },
+            "description" : "Success"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Authenticated but not allowed (errorCode `common.forbidden`)"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          }
+        },
+        "summary" : "List feedback",
+        "tags" : [ "Admin - Feedback" ]
       }
     },
     "/api/admin/lookups" : {
@@ -5654,7 +6018,7 @@
     },
     "/api/admin/users" : {
       "get" : {
-        "description" : "**Auth**: admin (role ADMIN; 403 `common.forbidden` otherwise)\n**Precondition**: caller holds role ADMIN\n**Behavior**: offset page of every account, suspended included, newest first. `q` matches (case-insensitive contains) username, email, phone number, display name, first name, last name or full name (`firstName lastName`, `lastName firstName`, or `lastNamefirstName` with no space); `status` is `active` or `suspended`; `role` is `user`, `moderator` or `admin`. All filters are optional and combine with AND. `page` is 1-based (default 1), `limit` 1-50 (default 20)\n**Side effects**: none\n**Errors**:\n- 400 `common.invalid_status`: `status` is neither `active` nor `suspended`\n- 400 `common.validation_failed`: `role` is not `user`, `moderator` or `admin`",
+        "description" : "**Auth**: admin (role ADMIN; 403 `common.forbidden` otherwise)\n**Precondition**: caller holds role ADMIN\n**Behavior**: offset page of every account, suspended included, newest first. `q` matches (case-insensitive contains) username, email, phone number, display name, first name, last name or full name (`firstName lastName`, `lastName firstName`, or `lastNamefirstName` with no space); `status` is `active` or `suspended`; `role` is `user`, `moderator` or `admin`. All filters are optional and combine with AND. `page` is 1-based (default 1), `limit` 1-50 (default 20). Items carry masked `email` / `phoneNumber` and no names or birthday: open `GET /api/admin/users/{userId}` for the full record\n**Side effects**: none\n**Errors**:\n- 400 `common.invalid_status`: `status` is neither `active` nor `suspended`\n- 400 `common.validation_failed`: `role` is not `user`, `moderator` or `admin`",
         "operationId" : "listUsers",
         "parameters" : [ {
           "description" : "Text matched against username, email, phone number, display name, first name, last name and full name",
@@ -5714,14 +6078,11 @@
                         "content" : [ {
                           "active" : true,
                           "authMethod" : "email_otp",
-                          "birthday" : "1995-04-12",
                           "createdAt" : "2026-09-01T10:00:00+08:00",
                           "displayName" : "Alice",
-                          "email" : "alice@example.com",
-                          "firstName" : "Alice",
+                          "email" : "a***@example.com",
                           "id" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d47",
                           "lastLoginAt" : "2026-10-16T21:04:11+08:00",
-                          "lastName" : "Chen",
                           "phoneNumber" : null,
                           "roles" : [ "user" ],
                           "username" : "alice"
@@ -5875,7 +6236,7 @@
     },
     "/api/admin/users/{userId}" : {
       "get" : {
-        "description" : "**Auth**: admin (role ADMIN; 403 `common.forbidden` otherwise)\n**Precondition**: caller holds role ADMIN\n**Behavior**: returns the account with sign-in details, points and counts of Polls created (any Audience, Deleted included), Ballots held, Comments written (deleted included), users this user blocks (`blockingCount`) and users who block them (`blockedByCount`)\n**Side effects**: none\n**Errors**:\n- 400 `common.type_mismatch`: `userId` is not a valid UUID\n- 404 `user.not_found`: no account with this ID",
+        "description" : "**Auth**: admin (role ADMIN; 403 `common.forbidden` otherwise)\n**Precondition**: caller holds role ADMIN\n**Behavior**: returns the account with full contact details, names, birthday, sign-in details, points and counts of Polls created (any Audience, Deleted included), Ballots held, Comments written (deleted included), users this user blocks (`blockingCount`) and users who block them (`blockedByCount`)\n**Side effects**: the lookup is written to the audit log (action `VIEW`, resource `USER`), since it reveals personal data\n**Errors**:\n- 400 `common.type_mismatch`: `userId` is not a valid UUID\n- 404 `user.not_found`: no account with this ID",
         "operationId" : "getUser",
         "parameters" : [ {
           "description" : "User ID (UUIDv7)",
@@ -7536,7 +7897,7 @@
     },
     "/api/auth/admin/send-otp" : {
       "post" : {
-        "description" : "**Auth**: public\n**Precondition**: the email belongs to an existing, active account holding the admin role\n**Behavior**: like `POST /api/auth/send-otp` (6-digit OTP, TTL default 180 s, same email normalization), but only for admin accounts. Its OTPs, wrong-code counters, lockouts and resend cooldown are separate from the consumer login, so a code from `send-otp` does not work here and vice versa\n**Side effects**: sends an email; replaces any previous admin console OTP for this address. A resend is refused during the cooldown (default 180 s)\n**Errors**:\n- 400 `auth.identifier.required`: `email` is missing or blank\n- 400 `auth.otp.resend_cooldown`: an OTP was sent too recently; the message states the seconds left\n- 400 `auth.email.send_failed`: the email provider rejected the message; the OTP is dropped and a resend is allowed after 30 s\n- 401 `auth.otp.too_many_attempts`: this email is locked for the caller's IP after 3 wrong codes (5 minutes, doubling on each further lockout, up to 24 hours); other IPs are not affected\n- 403 `auth.admin.forbidden`: the email is not an existing admin account\n- 403 `auth.account_banned`: the admin is suspended (`active=false`); no OTP is sent",
+        "description" : "**Auth**: public\n**Precondition**: the email belongs to an existing, active account holding the admin role\n**Behavior**: like `POST /api/auth/send-otp` (6-digit OTP, TTL default 180 s, same email normalization), but only for admin accounts. Its OTPs, wrong-code counters, lockouts and resend cooldown are separate from the consumer login, so a code from `send-otp` does not work here and vice versa\n**Side effects**: sends an email; replaces any previous admin console OTP for this address. A resend is refused during the cooldown (default 180 s), and at most 20 OTPs are sent to one address per UTC day\n**Errors**:\n- 400 `auth.identifier.required`: `email` is missing or blank\n- 400 `auth.otp.resend_cooldown`: an OTP was sent too recently; the message states the seconds left\n- 400 `auth.email.send_failed`: the email provider rejected the message; the OTP is dropped and a resend is allowed after 30 s\n- 401 `auth.otp.too_many_attempts`: this email is locked for the caller's IP after 3 wrong codes (5 minutes, doubling on each further lockout, up to 24 hours); other IPs are not affected\n- 429 `auth.otp.daily_limit`: 20 OTPs were already sent to this address today (UTC)\n- 403 `auth.admin.forbidden`: the email is not an existing admin account\n- 403 `auth.account_banned`: the admin is suspended (`active=false`); no OTP is sent",
         "operationId" : "adminSendOtp",
         "requestBody" : {
           "content" : {
@@ -7650,6 +8011,7 @@
               "application/json" : {
                 "example" : {
                   "data" : {
+                    "isNewUser" : false,
                     "refreshToken" : "8c7e3f4a-1234-5678-90ab-cdef12345678",
                     "token" : "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwMTkwYThiMi0xMjM0LTc4OTAtYWJjZC1lZjAxMjM0NTY3ODkifQ.sig",
                     "user" : {
@@ -7748,14 +8110,15 @@
     },
     "/api/auth/apple" : {
       "post" : {
-        "description" : "**Auth**: public\n**Precondition**: the client obtained an Apple identity token (Sign in with Apple)\n**Behavior**: verifies the token signature against Apple's public keys, then its issuer, audience and expiry. Signs in the user with the token's email, creating it if new. `fullName` is used only when a new user is created. An existing account with the same email is reused only when Apple reports the email as verified\n**Side effects**: creates a user on first login, with a random bot avatar; `lastLoginAt` is updated\n**Errors**:\n- 400 `auth.apple.not_configured`: Apple login is not configured on the server\n- 401 `auth.apple.invalid_token`: the token is malformed or has no key ID\n- 401 `auth.apple.key_not_found`: no Apple public key matches the token\n- 401 `auth.apple.invalid_signature`: the signature does not verify\n- 401 `auth.apple.invalid_issuer`: the issuer is not Apple\n- 401 `auth.apple.invalid_audience`: the token was issued for a different client ID\n- 401 `auth.apple.token_expired`: the token has expired\n- 401 `auth.apple.no_email`: the token carries no email\n- 401 `auth.email_not_verified`: Apple reports the email as unverified\n- 401 `auth.apple.login_failed`: any other failure while processing the token\n- 403 `auth.account_banned`: the user is suspended (`active=false`)\n- 503 `common.service_unavailable`: Apple's key endpoint failed or returned an unusable response",
+        "description" : "**Auth**: public\n**Precondition**: the client generated a random `nonce`, passed its SHA-256 hex to Apple when starting Sign in with Apple, and obtained an identity token\n**Behavior**: verifies the token signature against Apple's public keys, then its issuer, audience, expiry and that its `nonce` claim equals SHA-256 of the given `nonce`. Each identity token signs in once; presenting it again is refused. Signs in the user with the token's email, creating it if new. `fullName` is used only when a new user is created. An existing account with the same email is reused only when Apple reports the email as verified\n**Side effects**: creates a user on first login, with a random bot avatar; `lastLoginAt` is updated; the token is marked used for 15 minutes\n**Errors**:\n- 400 `auth.apple.not_configured`: Apple login is not configured on the server\n- 401 `auth.apple.invalid_token`: the token is malformed or has no key ID\n- 401 `auth.apple.key_not_found`: no Apple public key matches the token\n- 401 `auth.apple.invalid_signature`: the signature does not verify\n- 401 `auth.apple.invalid_issuer`: the issuer is not Apple\n- 401 `auth.apple.invalid_audience`: the token was issued for a different client ID\n- 401 `auth.apple.token_expired`: the token has expired\n- 401 `auth.apple.invalid_nonce`: the token's `nonce` claim is missing or is not SHA-256 of the given `nonce`\n- 401 `auth.oauth.token_replayed`: this identity token was already used to sign in\n- 401 `auth.apple.no_email`: the token carries no email\n- 401 `auth.email_not_verified`: Apple reports the email as unverified\n- 401 `auth.apple.login_failed`: any other failure while processing the token\n- 403 `auth.account_banned`: the user is suspended (`active=false`)\n- 503 `common.service_unavailable`: Apple's key endpoint failed or returned an unusable response",
         "operationId" : "appleLogin",
         "requestBody" : {
           "content" : {
             "application/json" : {
               "example" : {
                 "fullName" : "Ming Wang",
-                "idToken" : "eyJraWQiOiJZdXl1eVoxIiwiYWxnIjoiUlMyNTYifQ..."
+                "idToken" : "eyJraWQiOiJZdXl1eVoxIiwiYWxnIjoiUlMyNTYifQ...",
+                "nonce" : "f3a9c2b4e1d8a7c6b5e4d3f2a1b0c9d8e7f6a5b4c3d2e1f0a9b8c7d6e5f4a3b2"
               },
               "schema" : {
                 "$ref" : "#/components/schemas/AppleAuthRequest"
@@ -7770,6 +8133,7 @@
               "application/json" : {
                 "example" : {
                   "data" : {
+                    "isNewUser" : false,
                     "refreshToken" : "8c7e3f4a-1234-5678-90ab-cdef12345678",
                     "token" : "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwMTkwYThiMi0xMjM0LTc4OTAtYWJjZC1lZjAxMjM0NTY3ODkifQ.sig",
                     "user" : {
@@ -7883,84 +8247,9 @@
         "tags" : [ "Auth" ]
       }
     },
-    "/api/auth/check-email" : {
-      "post" : {
-        "description" : "**Auth**: public\n**Precondition**: none\n**Behavior**: returns whether a user with this email exists (case-insensitive). Lets the client choose between login and signup wording\n**Side effects**: none\n**Errors**:\n- 400 `common.validation_failed`: `email` is blank or not a valid email",
-        "operationId" : "checkEmail",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "example" : {
-                "email" : "user@example.com"
-              },
-              "schema" : {
-                "$ref" : "#/components/schemas/CheckEmailRequest"
-              }
-            }
-          },
-          "required" : true
-        },
-        "responses" : {
-          "200" : {
-            "content" : {
-              "application/json" : {
-                "example" : {
-                  "data" : {
-                    "exists" : true
-                  },
-                  "error" : null,
-                  "errorCode" : null,
-                  "message" : null,
-                  "success" : true
-                },
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiResponseAuthEmailExistsResponse"
-                }
-              }
-            },
-            "description" : "Success"
-          },
-          "400" : {
-            "content" : {
-              "application/json" : {
-                "example" : null,
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
-          },
-          "404" : {
-            "content" : {
-              "application/json" : {
-                "example" : null,
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description" : "Resource not found (errorCode e.g. `vote.not_found`)"
-          },
-          "429" : {
-            "content" : {
-              "application/json" : {
-                "example" : null,
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
-          }
-        },
-        "summary" : "Check whether an email is registered",
-        "tags" : [ "Auth" ]
-      }
-    },
     "/api/auth/google" : {
       "post" : {
-        "description" : "**Auth**: public\n**Precondition**: the client obtained a Google ID token (Google Sign-In)\n**Behavior**: verifies the ID token signature against Google's public keys, then its issuer, audience and expiry. Signs in the user with that email, creating the user if new. An existing account with the same email is reused only when Google reports the email as verified\n**Side effects**: creates a user on first login, with a random bot avatar; `lastLoginAt` is updated\n**Errors**:\n- 400 `auth.google.not_configured`: Google login is not configured on the server\n- 401 `auth.google.no_email`: the token is invalid (malformed, bad signature, wrong issuer, expired) or carries no email\n- 401 `auth.google.invalid_audience`: the token was issued for a different client ID\n- 401 `auth.email_not_verified`: Google reports the email as unverified\n- 403 `auth.account_banned`: the user is suspended (`active=false`)\n- 503 `common.service_unavailable`: Google's key endpoint is unreachable",
+        "description" : "**Auth**: public\n**Precondition**: the client obtained a Google ID token (Google Sign-In)\n**Behavior**: verifies the ID token signature against Google's public keys, then its issuer, audience and expiry. Each ID token signs in once; presenting it again is refused. Signs in the user with that email, creating the user if new. An existing account with the same email is reused only when Google reports the email as verified\n**Side effects**: creates a user on first login, with a random bot avatar; `lastLoginAt` is updated; the token is marked used for 15 minutes\n**Errors**:\n- 400 `auth.google.not_configured`: Google login is not configured on the server\n- 401 `auth.google.no_email`: the token is invalid (malformed, bad signature, wrong issuer, expired) or carries no email\n- 401 `auth.google.invalid_audience`: the token was issued for a different client ID\n- 401 `auth.oauth.token_replayed`: this ID token was already used to sign in\n- 401 `auth.email_not_verified`: Google reports the email as unverified\n- 403 `auth.account_banned`: the user is suspended (`active=false`)\n- 503 `common.service_unavailable`: Google's key endpoint is unreachable",
         "operationId" : "googleLogin",
         "requestBody" : {
           "content" : {
@@ -7981,6 +8270,7 @@
               "application/json" : {
                 "example" : {
                   "data" : {
+                    "isNewUser" : false,
                     "refreshToken" : "8c7e3f4a-1234-5678-90ab-cdef12345678",
                     "token" : "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwMTkwYThiMi0xMjM0LTc4OTAtYWJjZC1lZjAxMjM0NTY3ODkifQ.sig",
                     "user" : {
@@ -8118,6 +8408,7 @@
               "application/json" : {
                 "example" : {
                   "data" : {
+                    "isNewUser" : false,
                     "refreshToken" : "8c7e3f4a-1234-5678-90ab-cdef12345678",
                     "token" : "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwMTkwYThiMi0xMjM0LTc4OTAtYWJjZC1lZjAxMjM0NTY3ODkifQ.sig",
                     "user" : {
@@ -8291,7 +8582,7 @@
     },
     "/api/auth/phone/send-otp" : {
       "post" : {
-        "description" : "**Auth**: public\n**Precondition**: for `type` \"login\" (the default) the phone number must already be registered\n**Behavior**: normalizes the number to E.164 (`0912345678` and `+886912345678` are the same number), generates a 6-digit OTP, stores it with a TTL (default 180 s) and sends it by SMS. `type` is \"login\" or \"signup\"\n**Side effects**: sends an SMS; replaces any previous OTP for this number. A resend is refused during the cooldown (default 180 s)\n**Errors**:\n- 400 `auth.phone.invalid`: the number is neither a Taiwan mobile number (`09` + 8 digits) nor `+` country code and number (8-15 digits)\n- 400 `auth.otp.resend_cooldown`: an OTP was sent too recently; the message states the seconds left\n- 400 `auth.phone.not_registered`: `type` is \"login\" and the number is not registered\n- 400 `auth.sms.send_failed`: the SMS provider rejected the message; the OTP is dropped and a resend is allowed after 30 s\n- 401 `auth.otp.too_many_attempts`: this number is locked for the caller's IP after 3 wrong codes (5 minutes, doubling on each further lockout, up to 24 hours); other IPs are not affected",
+        "description" : "**Auth**: public\n**Precondition**: for `type` \"login\" (the default) the phone number must already be registered\n**Behavior**: normalizes the number to E.164 (`0912345678` and `+886912345678` are the same number), generates a 6-digit OTP, stores it with a TTL (default 180 s) and sends it by SMS. `type` is \"login\" or \"signup\"\n**Side effects**: sends an SMS; replaces any previous OTP for this number. A resend is refused during the cooldown (default 180 s), and at most 5 OTPs are sent to one number per UTC day\n**Errors**:\n- 400 `auth.phone.invalid`: the number is neither a Taiwan mobile number (`09` + 8 digits) nor `+` country code and number (8-15 digits)\n- 400 `auth.otp.resend_cooldown`: an OTP was sent too recently; the message states the seconds left\n- 400 `auth.phone.not_registered`: `type` is \"login\" and the number is not registered\n- 400 `auth.sms.send_failed`: the SMS provider rejected the message; the OTP is dropped and a resend is allowed after 30 s\n- 401 `auth.otp.too_many_attempts`: this number is locked for the caller's IP after 3 wrong codes (5 minutes, doubling on each further lockout, up to 24 hours); other IPs are not affected\n- 429 `auth.otp.daily_limit`: 5 OTPs were already sent to this number today (UTC)",
         "operationId" : "phoneSendOtp",
         "requestBody" : {
           "content" : {
@@ -8389,6 +8680,7 @@
               "application/json" : {
                 "example" : {
                   "data" : {
+                    "isNewUser" : false,
                     "refreshToken" : "8c7e3f4a-1234-5678-90ab-cdef12345678",
                     "token" : "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwMTkwYThiMi0xMjM0LTc4OTAtYWJjZC1lZjAxMjM0NTY3ODkifQ.sig",
                     "user" : {
@@ -8508,6 +8800,7 @@
               "application/json" : {
                 "example" : {
                   "data" : {
+                    "isNewUser" : null,
                     "refreshToken" : "2f9d1c6e-7b3a-4c58-9e10-a4b5c6d7e8f9",
                     "token" : "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwMTkwYThiMi0xMjM0LTc4OTAtYWJjZC1lZjAxMjM0NTY3ODkifQ.sig",
                     "user" : null
@@ -8581,7 +8874,7 @@
     },
     "/api/auth/send-otp" : {
       "post" : {
-        "description" : "**Auth**: public\n**Precondition**: none; the same endpoint serves login and signup (the server picks which by whether the email is registered)\n**Behavior**: generates a 6-digit OTP, stores it with a TTL (default 180 s) and emails it. The email is lower-cased and trimmed; a Gmail address (gmail.com / googlemail.com) also loses its +tag and dots and moves to gmail.com. The admin console signs in with `POST /api/auth/admin/send-otp` instead\n**Side effects**: sends an email; replaces any previous OTP for this address. A resend is refused during the cooldown (default 180 s)\n**Errors**:\n- 400 `auth.identifier.required`: `email` is missing or blank\n- 400 `auth.otp.resend_cooldown`: an OTP was sent too recently; the message states the seconds left\n- 400 `auth.email.send_failed`: the email provider rejected the message; the OTP is dropped and a resend is allowed after 30 s\n- 401 `auth.otp.too_many_attempts`: this email is locked for the caller's IP after 3 wrong codes (5 minutes, doubling on each further lockout, up to 24 hours); other IPs are not affected",
+        "description" : "**Auth**: public\n**Precondition**: none; the same endpoint serves login and signup (the server picks which by whether the email is registered)\n**Behavior**: generates a 6-digit OTP, stores it with a TTL (default 180 s) and emails it. The email is lower-cased and trimmed; a Gmail address (gmail.com / googlemail.com) also loses its +tag and dots and moves to gmail.com. The admin console signs in with `POST /api/auth/admin/send-otp` instead\n**Side effects**: sends an email; replaces any previous OTP for this address. A resend is refused during the cooldown (default 180 s), and at most 20 OTPs are sent to one address per UTC day\n**Errors**:\n- 400 `auth.identifier.required`: `email` is missing or blank\n- 400 `auth.otp.resend_cooldown`: an OTP was sent too recently; the message states the seconds left\n- 400 `auth.email.send_failed`: the email provider rejected the message; the OTP is dropped and a resend is allowed after 30 s\n- 401 `auth.otp.too_many_attempts`: this email is locked for the caller's IP after 3 wrong codes (5 minutes, doubling on each further lockout, up to 24 hours); other IPs are not affected\n- 429 `auth.otp.daily_limit`: 20 OTPs were already sent to this address today (UTC)",
         "operationId" : "sendOtp",
         "requestBody" : {
           "content" : {
@@ -8656,7 +8949,7 @@
     },
     "/api/auth/verify-otp" : {
       "post" : {
-        "description" : "**Auth**: public\n**Precondition**: an OTP was sent to this email via `POST /api/auth/send-otp` and has not expired\n**Behavior**: consumes the OTP and returns an access token and refresh token. Creates the user if the email is new (signup), otherwise signs the existing user in. The tokens never grant the admin role, even for an admin account: the admin console signs in with `POST /api/auth/admin/verify-otp`\n**Side effects**: the OTP is consumed on success; a new user (with a random bot avatar) is created and a welcome email sent on signup; `lastLoginAt` is updated. Wrong codes are counted per email and client IP; resending does not reset the count. The 3rd wrong code locks this email for the caller's IP for 5 minutes, doubling on each further lockout (10, 20, 40 minutes...) up to 24 hours; the doubling is forgotten 24 hours after the last lock ends, and a successful sign-in from that IP resets it. While locked, sending or verifying an OTP from that IP is refused; other IPs are not affected and the OTP stays valid. One OTP allows 10 guesses in total across all IPs; after the 10th wrong guess it no longer verifies and a new OTP can be requested only after 15 minutes\n**Errors**:\n- 400 `auth.identifier.required`: `email` is missing or blank\n- 401 `auth.otp.invalid_or_expired`: no OTP exists for this email (never sent, expired, already used, or its 10 guesses are used up)\n- 401 `auth.invalid_otp`: the code is wrong\n- 401 `auth.otp.too_many_attempts`: 3rd wrong code, or this identifier is locked for the caller's IP (even a correct code is refused until the lock ends)\n- 403 `auth.account_banned`: the user is suspended (`active=false`)",
+        "description" : "**Auth**: public\n**Precondition**: an OTP was sent to this email via `POST /api/auth/send-otp` and has not expired\n**Behavior**: consumes the OTP and returns an access token and refresh token. Creates the user if the email is new (signup), otherwise signs the existing user in; `isNewUser` tells which, so the client needs no separate registration check. The tokens never grant the admin role, even for an admin account: the admin console signs in with `POST /api/auth/admin/verify-otp`\n**Side effects**: the OTP is consumed on success; a new user (with a random bot avatar) is created and a welcome email sent on signup; `lastLoginAt` is updated. Wrong codes are counted per email and client IP; resending does not reset the count. The 3rd wrong code locks this email for the caller's IP for 5 minutes, doubling on each further lockout (10, 20, 40 minutes...) up to 24 hours; the doubling is forgotten 24 hours after the last lock ends, and a successful sign-in from that IP resets it. While locked, sending or verifying an OTP from that IP is refused; other IPs are not affected and the OTP stays valid. One OTP allows 10 guesses in total across all IPs; after the 10th wrong guess it no longer verifies and a new OTP can be requested only after 15 minutes\n**Errors**:\n- 400 `auth.identifier.required`: `email` is missing or blank\n- 401 `auth.otp.invalid_or_expired`: no OTP exists for this email (never sent, expired, already used, or its 10 guesses are used up)\n- 401 `auth.invalid_otp`: the code is wrong\n- 401 `auth.otp.too_many_attempts`: 3rd wrong code, or this identifier is locked for the caller's IP (even a correct code is refused until the lock ends)\n- 403 `auth.account_banned`: the user is suspended (`active=false`)",
         "operationId" : "verifyOtp",
         "requestBody" : {
           "content" : {
@@ -8678,6 +8971,7 @@
               "application/json" : {
                 "example" : {
                   "data" : {
+                    "isNewUser" : false,
                     "refreshToken" : "8c7e3f4a-1234-5678-90ab-cdef12345678",
                     "token" : "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwMTkwYThiMi0xMjM0LTc4OTAtYWJjZC1lZjAxMjM0NTY3ODkifQ.sig",
                     "user" : {
@@ -8772,6 +9066,112 @@
         },
         "summary" : "Verify email OTP and sign in",
         "tags" : [ "Auth" ]
+      }
+    },
+    "/api/feedback" : {
+      "post" : {
+        "description" : "**Auth**: required\n**Precondition**: under the daily feedback limit (UTC day; 10 unless an admin set lookup `config` / `feedback_daily_limit`, a positive number or numeric string)\n**Behavior**: stores the text as feedback from the caller. Responds 201 with the new feedback id\n**Side effects**: counts toward the caller's daily feedback limit (only once stored)\n**Errors**:\n- 400 `common.validation_failed`: `content` is blank or longer than 2000 characters\n- 404 `user.not_found`: the signed-in user no longer exists\n- 429 `common.rate_limited`: daily feedback limit reached, or too many write requests from this IP",
+        "operationId" : "createFeedback",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "example" : {
+                "content" : "Please add dark mode."
+              },
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateFeedbackRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "data" : {
+                    "id" : "0199c3a2-7b5e-7c1d-9a4f-3e2b1d5c6f70",
+                    "message" : null,
+                    "status" : null,
+                    "success" : true
+                  },
+                  "error" : null,
+                  "errorCode" : null,
+                  "message" : null,
+                  "success" : true
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResponseSimpleResultResponse"
+                }
+              }
+            },
+            "description" : "Feedback stored; `id` is the new feedback id"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Authenticated but not allowed (errorCode `common.forbidden`)"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "data" : null,
+                  "error" : "User not found",
+                  "errorCode" : "user.not_found",
+                  "message" : "User not found",
+                  "success" : false
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Current user not found (errorCode `user.not_found`)"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          }
+        },
+        "summary" : "Send feedback",
+        "tags" : [ "Feedback" ]
       }
     },
     "/api/invite-lists" : {
@@ -10511,9 +10911,7 @@
                     "username" : "alice",
                     "visibilitySettings" : {
                       "bio" : true,
-                      "birthday" : false,
                       "displayName" : true,
-                      "email" : false,
                       "firstName" : false,
                       "lastName" : false,
                       "location" : false,
@@ -10619,9 +11017,7 @@
                   "data" : {
                     "avatarUrl" : "bot:boba",
                     "bio" : "Poll enthusiast",
-                    "birthday" : null,
                     "displayName" : "Alice C.",
-                    "email" : null,
                     "firstName" : "Alice",
                     "joinedAt" : "2026-08-01T10:00:00+08:00",
                     "lastName" : null,
@@ -11011,6 +11407,142 @@
         "tags" : [ "User" ]
       }
     },
+    "/api/users/me/export" : {
+      "get" : {
+        "description" : "**Auth**: required\n**Precondition**: not exported yet today (UTC)\n**Behavior**: returns everything stored about the caller in one JSON document: the profile (as `GET /api/users/me`), stored preferences, Polls the caller created (Deleted included, with option texts), Comments written (not deleted), Ballots cast (with the chosen option; an Anonymous Ballot of an Ended Poll has no option once sealed) and feedback sent. Nothing about other users is included.\n**Side effects**: none; counted toward the one export per UTC day\n**Errors**:\n- 404 `user.not_found`: the account no longer exists\n- 429 `common.rate_limited`: an export was already produced today",
+        "operationId" : "exportMyData",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "data" : {
+                    "ballots" : [ {
+                      "anonymous" : false,
+                      "castAt" : "2026-10-02T08:30:00+08:00",
+                      "optionId" : "0199f2a4-8d11-7c3e-b0a4-5e29c7d6f813",
+                      "optionText" : "Ramen",
+                      "voteId" : "0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05",
+                      "voteTitle" : "Lunch?"
+                    } ],
+                    "comments" : [ {
+                      "createdAt" : "2026-10-02T09:00:00+08:00",
+                      "id" : "0199f2a5-1c2d-7e3f-8a4b-5c6d7e8f9a0b",
+                      "text" : "Ramen!",
+                      "voteId" : "0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05"
+                    } ],
+                    "exportedAt" : "2026-10-23T10:00:00+08:00",
+                    "feedback" : [ {
+                      "content" : "Please add dark mode.",
+                      "createdAt" : "2026-10-03T10:00:00+08:00",
+                      "id" : "0199c3a2-7b5e-7c1d-9a4f-3e2b1d5c6f70"
+                    } ],
+                    "polls" : [ {
+                      "audience" : "PUBLIC",
+                      "createdAt" : "2026-10-01T12:00:00+08:00",
+                      "deleted" : false,
+                      "description" : null,
+                      "endTime" : "2026-10-08T12:00:00+08:00",
+                      "id" : "0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05",
+                      "options" : [ "Ramen", "Sushi" ],
+                      "startTime" : "2026-10-01T12:00:00+08:00",
+                      "title" : "Lunch?"
+                    } ],
+                    "preferences" : {
+                      "visibility.location" : "true"
+                    },
+                    "profile" : {
+                      "active" : true,
+                      "anonymousBallotByDefault" : false,
+                      "avatarUrl" : "bot:boba",
+                      "bio" : "Poll enthusiast",
+                      "birthday" : "1995-04-12",
+                      "displayName" : "Alice",
+                      "email" : "alice@example.com",
+                      "firstName" : "Alice",
+                      "id" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d47",
+                      "joinedAt" : "2026-08-01T10:00:00+08:00",
+                      "lastLoginAt" : "2026-10-09T09:15:00+08:00",
+                      "lastName" : "Chen",
+                      "location" : "Taipei",
+                      "membershipLevel" : "basic",
+                      "phoneNumber" : null,
+                      "points" : 120,
+                      "totalPolls" : 1,
+                      "totalVotes" : 1,
+                      "username" : "alice",
+                      "visibilitySettings" : {
+                        "bio" : true,
+                        "displayName" : true,
+                        "firstName" : false,
+                        "lastName" : false,
+                        "location" : true,
+                        "membershipLevel" : false,
+                        "points" : false
+                      }
+                    }
+                  },
+                  "error" : null,
+                  "errorCode" : null,
+                  "message" : null,
+                  "success" : true
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResponseUserDataExportResponse"
+                }
+              }
+            },
+            "description" : "Success"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Authenticated but not allowed (errorCode `common.forbidden`)"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          }
+        },
+        "summary" : "Export my data",
+        "tags" : [ "User" ]
+      }
+    },
     "/api/users/me/visibility" : {
       "patch" : {
         "description" : "**Auth**: required\n**Precondition**: none\n**Behavior**: sets which fields other users can see on the public profile. Send only the fields to change; omitted fields keep their current setting and unknown keys are ignored. Returns the complete settings map after the update (one boolean per controllable field).\n**Side effects**: persists the settings; takes effect immediately on `GET /api/users/{username}`\n**Errors**:\n- 400 `common.validation_failed`: `visibility` is missing\n- 404 `user.not_found`: the account no longer exists",
@@ -11032,9 +11564,7 @@
                 "example" : {
                   "data" : {
                     "bio" : true,
-                    "birthday" : false,
                     "displayName" : true,
-                    "email" : false,
                     "firstName" : true,
                     "lastName" : true,
                     "location" : false,
@@ -11232,7 +11762,7 @@
     },
     "/api/users/{userId}" : {
       "delete" : {
-        "description" : "**Auth**: required (own account; an active admin signed in through the admin console may delete any account)\n**Precondition**: `userId` is the caller's own id, or the caller holds an admin console token (`POST /api/auth/admin/verify-otp`) and is an active admin in the database\n**Behavior**: permanently deletes the account. The user's Ballots are removed and released from the stored option counts (this is a Retraction of every Ballot the user held).\n**Side effects**: once the deletion commits, all refresh tokens of the user are revoked, so the client must discard its tokens and sign out; the deletion is written to the audit log\n**Errors**:\n- 403 `user.delete.forbidden`: deleting another user's account without an admin console token, or without being an active admin in the database\n- 409 `admin.last_admin`: the account is the only active admin\n- 409 `common.conflict`: another admin change is in progress; retry\n- 404 `user.not_found`: no account with this id\n- 400 `common.bad_request`: `userId` is not a valid id (admin callers only; other callers get 403 first)",
+        "description" : "**Auth**: required (own account; an active admin signed in through the admin console may delete any account)\n**Precondition**: `userId` is the caller's own id, or the caller holds an admin console token (`POST /api/auth/admin/verify-otp`) and is an active admin in the database\n**Behavior**: permanently deletes the account. The user's Ballots are removed; in Polls that have not Ended they are also released from the stored option counts and Turnout (a Retraction of every open Ballot), while an Ended Poll's result stays as it closed.\n**Side effects**: once the deletion commits, all refresh tokens of the user are revoked, so the client must discard its tokens and sign out; the deletion is written to the audit log\n**Errors**:\n- 403 `user.delete.forbidden`: deleting another user's account without an admin console token, or without being an active admin in the database\n- 409 `admin.last_admin`: the account is the only active admin\n- 409 `common.conflict`: another admin change is in progress; retry\n- 404 `user.not_found`: no account with this id\n- 400 `common.bad_request`: `userId` is not a valid id (admin callers only; other callers get 403 first)",
         "operationId" : "deleteUser",
         "parameters" : [ {
           "description" : "Id of the account to delete",
@@ -11335,7 +11865,7 @@
     },
     "/api/users/{username}" : {
       "get" : {
-        "description" : "**Auth**: public (the response is the same whether or not the caller is signed in)\n**Precondition**: none\n**Behavior**: returns the public view of a user. `username`, `avatarUrl`, `joinedAt`, `totalPolls` and `totalVotes` (Public, non-Deleted Polls only) are always present (`avatarUrl` is `null` when never set). Every optional field is `null` unless the owner made it visible: `displayName` and `bio` are visible by default, `email`, `firstName`, `lastName`, `birthday`, `location`, `points` and `membershipLevel` are hidden by default. `totalPolls` counts only Polls that have opened (Open and Ended), matching `GET /api/users/{username}/votes`.\n**Side effects**: none\n**Errors**:\n- 404 `user.not_found`: no user has this username, or the user is suspended",
+        "description" : "**Auth**: public (the response is the same whether or not the caller is signed in)\n**Precondition**: none\n**Behavior**: returns the public view of a user. `username`, `avatarUrl`, `joinedAt`, `totalPolls` and `totalVotes` (Public, non-Deleted Polls only) are always present (`avatarUrl` is `null` when never set). Every optional field is `null` unless the owner made it visible: `displayName` and `bio` are visible by default, `firstName`, `lastName`, `location`, `points` and `membershipLevel` are hidden by default; email and birthday are never returned. `totalPolls` counts only Polls that have opened (Open and Ended), matching `GET /api/users/{username}/votes`.\n**Side effects**: none\n**Errors**:\n- 404 `user.not_found`: no user has this username, or the user is suspended",
         "operationId" : "getUserProfile",
         "parameters" : [ {
           "description" : "Username of the user to look up",
@@ -11355,9 +11885,7 @@
                   "data" : {
                     "avatarUrl" : "bot:boba",
                     "bio" : "Poll enthusiast",
-                    "birthday" : null,
                     "displayName" : "Alice",
-                    "email" : null,
                     "firstName" : "Alice",
                     "joinedAt" : "2026-08-01T10:00:00+08:00",
                     "lastName" : null,
@@ -14024,7 +14552,7 @@
     "/api/votes/{voteId}/my-vote-status" : {
       "get" : {
         "deprecated" : true,
-        "description" : "**Auth**: required\n**Precondition**: none\n**Behavior**: deprecated, use `myOptionId` in `GET /api/votes/{voteId}`. Tells whether the caller holds a Ballot in the Poll and which option it chose. Works in any Poll state.\n**Side effects**: none\n**Errors**:\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is INVITE_ONLY and the caller is neither its owner nor an Invitee\n",
+        "description" : "**Auth**: required\n**Precondition**: none\n**Behavior**: deprecated, use `myOptionId` in `GET /api/votes/{voteId}`. Tells whether the caller holds a Ballot in the Poll and which option it chose. Works in any Poll state; an Anonymous Ballot of an Ended Poll is sealed within a day of the end, after which `hasVoted` stays true but `selectedOptions` is empty.\n**Side effects**: none\n**Errors**:\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is INVITE_ONLY and the caller is neither its owner nor an Invitee\n",
         "operationId" : "getMyVoteStatus",
         "parameters" : [ {
           "description" : "Poll ID",
@@ -14752,7 +15280,7 @@
     },
     "/api/votes/{voteId}/voters" : {
       "get" : {
-        "description" : "**Auth**: required\n**Precondition**: the Poll has Ended, and its Voter Visibility allows the caller: NOBODY allows no one (not even the owner), OWNER allows only the owner, SIGNED_IN allows anyone who can see the Poll (for INVITE_ONLY: the owner and Invitees)\n**Behavior**: cursor-paged list of who chose which option, oldest Ballot first. Anonymous Ballots are left out, so the list can be shorter than `participantCount`. To keep them anonymous, the whole list is hidden (403 `vote.voters.hidden`) while the Poll holds 1 or 2 Anonymous Ballots other than the caller's own; with none, or with 3 or more, it is shown. `nextCursor` null means the last page; `limit` is clamped to 1-50 (default 20).\n**Side effects**: none\n**Errors**:\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is INVITE_ONLY and the caller is neither its owner nor an Invitee\n- 403 `vote.results.sealed`: the Poll is still Scheduled or Open\n- 403 `vote.voters.hidden`: Voter Visibility does not allow the caller, or the Poll holds 1 or 2 Anonymous Ballots other than the caller's own\n- 400 `common.cursor_invalid`: `cursor` is malformed or was issued by another list or another ordering of this list\n",
+        "description" : "**Auth**: required\n**Precondition**: the Poll has Ended, and its Voter Visibility allows the caller: NOBODY allows no one (not even the owner), OWNER allows only the owner, SIGNED_IN allows anyone who can see the Poll (for INVITE_ONLY: the owner and Invitees)\n**Behavior**: cursor-paged list of who took part, oldest Ballot first. Anonymous Ballots are left out, so the list can be shorter than `participantCount`. `optionId` is present only when the Poll holds no Anonymous Ballot other than the caller's own; otherwise it is null for every Participant, so the anonymous choices cannot be worked out from the named ones and the option totals. `nextCursor` null means the last page; `limit` is clamped to 1-50 (default 20).\n**Side effects**: none\n**Errors**:\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is INVITE_ONLY and the caller is neither its owner nor an Invitee\n- 403 `vote.results.sealed`: the Poll is still Scheduled or Open\n- 403 `vote.voters.hidden`: Voter Visibility does not allow the caller\n- 400 `common.cursor_invalid`: `cursor` is malformed or was issued by another list or another ordering of this list\n",
         "operationId" : "getVoters",
         "parameters" : [ {
           "description" : "Poll ID",
@@ -14932,10 +15460,16 @@
     "description" : "Poll moderation APIs (Admin)",
     "name" : "Admin - Poll"
   }, {
+    "description" : "Product feedback from signed-in users",
+    "name" : "Feedback"
+  }, {
     "description" : "Authentication: email OTP, phone OTP, Google / LINE / Apple login, admin console login, token refresh and logout. See docs/frontend/auth-flow.md for the end-to-end flows.",
     "name" : "Auth"
   }, {
     "description" : "Dashboard and audit log APIs (Admin)",
     "name" : "Admin - Overview"
+  }, {
+    "description" : "Reading user feedback (Admin)",
+    "name" : "Admin - Feedback"
   } ]
 }

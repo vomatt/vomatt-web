@@ -53,10 +53,7 @@ export function MoreMenu({ signedIn }: { signedIn: boolean }) {
 							<ThemeOptions />
 						</Menu.Group>
 						<Menu.Separator className="-mx-1.5 my-1.5 h-px bg-border" />
-						<MoreActions
-							signedIn={signedIn}
-							onReport={() => setReportOpen(true)}
-						/>
+						{signedIn && <MoreActions onReport={() => setReportOpen(true)} />}
 					</Menu.Popup>
 				</Menu.Positioner>
 			</Menu.Portal>
@@ -112,13 +109,7 @@ function ThemeOptions() {
 }
 
 /** Mounted only while the popup is open, so hovering re-renders just these rows. */
-function MoreActions({
-	signedIn,
-	onReport,
-}: {
-	signedIn: boolean;
-	onReport: () => void;
-}) {
+function MoreActions({ onReport }: { onReport: () => void }) {
 	const { t } = useLanguage();
 	const hover = useHoverMark('[role=menuitem]', 'y');
 
@@ -142,25 +133,21 @@ function MoreActions({
 			<Menu.Item onClick={onReport} className={itemClassName}>
 				{t('navigation.reportProblem')}
 			</Menu.Item>
-			{signedIn && (
-				<>
-					<Menu.LinkItem
-						render={<Link href="/settings" />}
-						className={itemClassName}
-					>
-						{t('navigation.settings')}
-					</Menu.LinkItem>
-					<Menu.Item
-						onClick={() => signout()}
-						className={cn(
-							itemClassName,
-							'text-destructive data-highlighted:text-destructive'
-						)}
-					>
-						{t('account.signOut')}
-					</Menu.Item>
-				</>
-			)}
+			<Menu.LinkItem
+				render={<Link href="/settings" />}
+				className={itemClassName}
+			>
+				{t('navigation.settings')}
+			</Menu.LinkItem>
+			<Menu.Item
+				onClick={() => signout()}
+				className={cn(
+					itemClassName,
+					'text-destructive data-highlighted:text-destructive'
+				)}
+			>
+				{t('account.signOut')}
+			</Menu.Item>
 		</div>
 	);
 }
