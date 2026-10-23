@@ -91,16 +91,13 @@ describe('AppSidebar more menu', () => {
 		).toBeInTheDocument();
 	});
 
-	it('offers appearance and reporting a problem to guests', async () => {
+	it('offers guests only the appearance choice', async () => {
 		renderSidebar(null);
 		await userEvent.click(
 			screen.getByRole('button', { name: 'navigation.more' })
 		);
 		expect(await screen.findAllByRole('menuitemradio')).toHaveLength(3);
-		expect(screen.getAllByRole('menuitem')).toHaveLength(1);
-		expect(
-			screen.getByRole('menuitem', { name: 'navigation.reportProblem' })
-		).toBeInTheDocument();
+		expect(screen.queryAllByRole('menuitem')).toHaveLength(0);
 	});
 
 	it('opens the report dialog from the menu', async () => {
