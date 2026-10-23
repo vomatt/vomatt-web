@@ -137,8 +137,12 @@ function ExportData() {
 
 	const download = async () => {
 		setIsExporting(true);
-		const result = await exportMyData();
-		setIsExporting(false);
+		let result: Awaited<ReturnType<typeof exportMyData>>;
+		try {
+			result = await exportMyData();
+		} finally {
+			setIsExporting(false);
+		}
 		if (!result.ok) {
 			toast.error(apiErrorText(t, result, 'account.exportFailed'), { duration: Infinity });
 			return;
@@ -147,8 +151,10 @@ function ExportData() {
 		const link = document.createElement('a');
 		link.href = url;
 		link.download = 'vomatt-data.json';
+		document.body.appendChild(link);
 		link.click();
-		URL.revokeObjectURL(url);
+		link.remove();
+		setTimeout(() => URL.revokeObjectURL(url), 1000);
 	};
 
 	return (

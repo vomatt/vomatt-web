@@ -72,7 +72,9 @@ export function useVoters(pollId: string, viewerKey: string) {
 	const load = useCallback(
 		async (option: { id: string; votes: number }) => {
 			const current = data.current;
+			// With choices withheld (null optionId) the dialog lists everyone, so read to the last page
 			const hasOption = (voters: VoterRow[]) =>
+				!voters.some((voter) => voter.optionId === null) &&
 				voters.filter((voter) => voter.optionId === option.id).length >= option.votes;
 			if (current.status === 'loading' || current.status === 'hidden') return;
 			if (current.status === 'ready') {
