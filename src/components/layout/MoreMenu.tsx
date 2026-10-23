@@ -99,7 +99,7 @@ export function MoreMenu({ signedIn }: { signedIn: boolean }) {
 					</Menu.Popup>
 				</Menu.Positioner>
 			</Menu.Portal>
-			{signedIn && <ReportProblemDialog open={reportOpen} onOpenChange={setReportOpen} />}
+			<ReportProblemDialog open={reportOpen} onOpenChange={setReportOpen} />
 		</Menu.Root>
 	);
 }
