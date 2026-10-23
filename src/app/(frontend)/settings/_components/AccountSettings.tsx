@@ -22,7 +22,7 @@ import { BlockedUsersPanel } from '@/features/blocks/BlockedUsersPanel';
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
 import { apiErrorText } from '@/lib/api/error-text';
 import { signout } from '@/lib/api/services/auth';
-import { deleteMyAccount, editProfile, updateVisibility } from '@/lib/api/services/users';
+import { deleteMyAccount, editProfile, exportMyData, updateVisibility } from '@/lib/api/services/users';
 import type { MyProfile } from '@/types/user';
 
 export default function AccountSettings({ profile }: { profile: MyProfile }) {
@@ -114,6 +114,8 @@ export default function AccountSettings({ profile }: { profile: MyProfile }) {
 
 			<BlockedUsersPanel />
 
+			<ExportData />
+
 			<section className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4">
 				<div>
 					<h2 className="font-medium">{t('account.signOutTitle')}</h2>
@@ -126,6 +128,45 @@ export default function AccountSettings({ profile }: { profile: MyProfile }) {
 
 			<DeleteAccount username={profile.username} />
 		</div>
+	);
+}
+
+function ExportData() {
+	const { t } = useLanguage();
+	const [isExporting, setIsExporting] = useState(false);
+
+	const download = async () => {
+		setIsExporting(true);
+		let result: Awaited<ReturnType<typeof exportMyData>>;
+		try {
+			result = await exportMyData();
+		} finally {
+			setIsExporting(false);
+		}
+		if (!result.ok) {
+			toast.error(apiErrorText(t, result, 'account.exportFailed'), { duration: Infinity });
+			return;
+		}
+		const url = URL.createObjectURL(new Blob([result.data], { type: 'application/json' }));
+		const link = document.createElement('a');
+		link.href = url;
+		link.download = 'vomatt-data.json';
+		document.body.appendChild(link);
+		link.click();
+		link.remove();
+		setTimeout(() => URL.revokeObjectURL(url), 1000);
+	};
+
+	return (
+		<section className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4">
+			<div>
+				<h2 className="font-medium">{t('account.exportTitle')}</h2>
+				<p className="text-sm text-muted-foreground">{t('account.exportBody')}</p>
+			</div>
+			<Button variant="outline" loading={isExporting} onClick={download}>
+				{t('account.exportCta')}
+			</Button>
+		</section>
 	);
 }
 

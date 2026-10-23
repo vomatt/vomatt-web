@@ -19,14 +19,12 @@ const SERVER_ERROR: AuthResult = { status: 'ERROR', error: 'serverError' };
 export function useAuthFlow() {
 	const [step, setStep] = useState<AuthStep>('email');
 	const [email, setEmail] = useState('');
-	const [isNewUser, setIsNewUser] = useState(false);
 
 	const submitEmail = useCallback(async (value: string): Promise<AuthResult> => {
 		try {
 			const res = await requestOtp(value);
 			if (res.status === 'ERROR') return res;
 			setEmail(value.trim());
-			setIsNewUser(res.isNewUser);
 			setStep('code');
 			return OK;
 		} catch {
@@ -49,7 +47,7 @@ export function useAuthFlow() {
 			try {
 				const res = await verifyOtp(email, code);
 				if (res.status === 'ERROR') return res;
-				if (isNewUser) {
+				if (res.isNewUser) {
 					setStep('profile');
 					return OK;
 				}
@@ -58,7 +56,7 @@ export function useAuthFlow() {
 				return SERVER_ERROR;
 			}
 		},
-		[email, isNewUser]
+		[email]
 	);
 
 	/** Saves the display name for a new account. The account already exists, so failure isn't fatal. */

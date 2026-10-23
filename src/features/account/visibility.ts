@@ -1,5 +1,5 @@
 /** Profile fields other people can see, in the order Settings lists them. */
-export const VISIBILITY_FIELDS = ['displayName', 'bio', 'location', 'points', 'membershipLevel', 'birthday'] as const;
+export const VISIBILITY_FIELDS = ['displayName', 'bio', 'location', 'points', 'membershipLevel'] as const;
 
 /** Public until the owner turns them off; the rest stay hidden until turned on (the API's defaults). */
 const PUBLIC_BY_DEFAULT: readonly string[] = ['displayName', 'bio'];

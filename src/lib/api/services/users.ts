@@ -4,7 +4,7 @@ import { revalidateTag, updateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
-import { type ActionFailure, attempt } from '@/lib/api/action';
+import { type ActionFailure, type ActionResult, attempt } from '@/lib/api/action';
 import { clearAuthTokens } from '@/lib/api/auth';
 import { apiClient, ApiError, publicFetch } from '@/lib/api/client';
 import { PROFILES_TAG } from '@/lib/api/constants';
@@ -99,6 +99,14 @@ export async function updateVisibility(visibility: Record<string, boolean>) {
   // Expire public profiles without re-rendering this page; the switch already shows the change
   revalidateTag(PROFILES_TAG, { expire: 0 });
   return settings;
+}
+
+/**
+ * Everything stored about the signed-in user, as the API's JSON text. Once per
+ * UTC day: a second call fails with 429 `common.rate_limited`.
+ */
+export async function exportMyData(): Promise<ActionResult<string>> {
+  return attempt(async () => JSON.stringify(await apiClient<unknown>('/users/me/export'), null, 2));
 }
 
 /**

@@ -27,27 +27,25 @@ function postJson(endpoint: string, body: unknown) {
 
 /**
  * Emails a one-time code. The same code signs in an existing account or
- * creates a new one, so `isNewUser` only changes the wording in the UI.
+ * creates a new one; the API says which only once the code is verified.
  */
-export async function requestOtp(
-	email: string
-): Promise<{ status: 'SUCCESS'; isNewUser: boolean } | AuthFailure> {
-	const normalized = email.trim().toLowerCase();
+export async function requestOtp(email: string): Promise<{ status: 'SUCCESS' } | AuthFailure> {
 	try {
-		// In order: a failed check must not leave a sent code and a running resend cooldown
-		const exists = await postJson('/auth/check-email', { email: normalized });
-		await postJson('/auth/send-otp', { email: normalized });
-		return { status: 'SUCCESS', isNewUser: exists?.exists === false };
+		await postJson('/auth/send-otp', { email: email.trim().toLowerCase() });
+		return { status: 'SUCCESS' };
 	} catch (error) {
 		return toFailure(error);
 	}
 }
 
-/** Verifies the code and starts the session. */
+/**
+ * Verifies the code and starts the session. `isNewUser` is true when this
+ * sign-in created the account.
+ */
 export async function verifyOtp(
 	email: string,
 	code: string
-): Promise<{ status: 'SUCCESS' } | AuthFailure> {
+): Promise<{ status: 'SUCCESS'; isNewUser: boolean } | AuthFailure> {
 	try {
 		const data = await postJson('/auth/verify-otp', {
 			email: email.trim().toLowerCase(),
@@ -56,7 +54,7 @@ export async function verifyOtp(
 		const tokens = readAuthTokens(data);
 		if (!tokens) return { status: 'ERROR', error: 'serverError' };
 		await setAuthTokens(tokens);
-		return { status: 'SUCCESS' };
+		return { status: 'SUCCESS', isNewUser: data?.isNewUser === true };
 	} catch (error) {
 		return toFailure(error);
 	}

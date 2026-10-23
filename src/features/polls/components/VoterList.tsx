@@ -72,7 +72,9 @@ export function useVoters(pollId: string, viewerKey: string) {
 	const load = useCallback(
 		async (option: { id: string; votes: number }) => {
 			const current = data.current;
+			// With choices withheld (null optionId) the dialog lists everyone, so read to the last page
 			const hasOption = (voters: VoterRow[]) =>
+				!voters.some((voter) => voter.optionId === null) &&
 				voters.filter((voter) => voter.optionId === option.id).length >= option.votes;
 			if (current.status === 'loading' || current.status === 'hidden') return;
 			if (current.status === 'ready') {
@@ -124,10 +126,12 @@ export function VotersDialog({ option, voters, onClose }: VotersDialogProps) {
 	const [shown, setShown] = useState(option);
 	if (option && option !== shown) setShown(option);
 
-	const chose = shown ? voters.voters.filter((voter) => voter.optionId === shown.id) : [];
+	// With an Anonymous Ballot in the Poll the API withholds every choice: list who took part instead
+	const choicesHidden = voters.voters.some((voter) => voter.optionId === null);
+	const chose = choicesHidden ? voters.voters : voters.voters.filter((voter) => voter.optionId === shown?.id);
 	const isLoading = voters.status === 'loading' || voters.status === 'idle';
 	const failed = voters.status === 'hidden' || voters.status === 'failed';
-	const truncated = voters.status === 'ready' && isCapped(voters) && chose.length < (shown?.votes ?? 0);
+	const truncated = voters.status === 'ready' && isCapped(voters) && (choicesHidden || chose.length < (shown?.votes ?? 0));
 	const empty = voters.status === 'ready' && chose.length === 0 && !truncated;
 
 	return (
@@ -140,6 +144,9 @@ export function VotersDialog({ option, voters, onClose }: VotersDialogProps) {
 					</DialogDescription>
 				</DialogHeader>
 				<div className="-mx-4 overflow-y-auto px-4">
+					{choicesHidden && (
+						<p className="pb-2 text-[12px] text-muted-foreground">{t('poll.votersChoicesHidden')}</p>
+					)}
 					{chose.length > 0 && (
 						<ul aria-label={t('poll.voters')} className="space-y-1">
 							{chose.map((voter) => (

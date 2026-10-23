@@ -125,7 +125,8 @@ export const VoterSchema = z.object({
 	userId: z.string(),
 	username: z.string(),
 	avatarUrl: z.string().nullish(),
-	optionId: z.string(),
+	/** Null for every Participant while the Poll holds an Anonymous Ballot other than the caller's. */
+	optionId: z.string().nullable(),
 	votedAt: DateTime,
 });
 

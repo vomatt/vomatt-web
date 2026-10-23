@@ -346,6 +346,7 @@
 		"votersHidden": "The voter list for this poll is hidden, to keep anonymous votes anonymous or because of its visibility setting.",
 		"votersTruncated": "Only the first {count} voters can be listed here.",
 		"votersNone": "No one to show.",
+		"votersChoicesHidden": "This poll has anonymous votes, so choices are hidden. Showing everyone who took part.",
 		"votersFailed": "Couldn’t load who voted.",
 		"deletePoll": "Delete poll",
 		"deletePollTitle": "Delete this poll?",
@@ -435,10 +436,13 @@
 			"bio": "Bio",
 			"location": "Location",
 			"points": "Points",
-			"membershipLevel": "Membership level",
-			"birthday": "Birthday"
+			"membershipLevel": "Membership level"
 		},
 		"saveFailed": "Couldn’t save. Try again.",
+		"exportTitle": "Download your data",
+		"exportBody": "A JSON file with your profile, polls, comments and votes. Available once a day.",
+		"exportCta": "Download",
+		"exportFailed": "Couldn’t export your data. Try again.",
 		"signOutTitle": "Signed in as",
 		"signOut": "Log out",
 		"deleteTitle": "Delete account",

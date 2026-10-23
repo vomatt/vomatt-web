@@ -15,6 +15,7 @@ jest.mock('@/lib/api/services/users', () => ({
 	deleteMyAccount: jest.fn(),
 	updateVisibility: jest.fn(),
 	editProfile: jest.fn(),
+	exportMyData: jest.fn(),
 }));
 
 // Base UI's Switch dispatches a PointerEvent on click
@@ -66,6 +67,23 @@ describe('AccountSettings', () => {
 		await waitFor(() =>
 			expect(screen.getByRole('status')).toHaveTextContent('New votes are anonymous by default.')
 		);
+	});
+
+	it('downloads the exported data, or shows why it failed', async () => {
+		const { exportMyData } = jest.requireMock('@/lib/api/services/users');
+		URL.createObjectURL = jest.fn(() => 'blob:x');
+		URL.revokeObjectURL = jest.fn();
+		const click = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+		render(<AccountSettings profile={myProfile} />);
+
+		exportMyData.mockResolvedValueOnce({ ok: true, data: '{}' });
+		fireEvent.click(screen.getByRole('button', { name: 'Download' }));
+		await waitFor(() => expect(click).toHaveBeenCalled());
+
+		exportMyData.mockResolvedValueOnce({ ok: false, status: 429, errorCode: 'common.rate_limited', message: 'x' });
+		fireEvent.click(screen.getByRole('button', { name: 'Download' }));
+		await waitFor(() => expect(toast.error).toHaveBeenCalled());
+		click.mockRestore();
 	});
 
 	it('announces a saved visibility change', async () => {

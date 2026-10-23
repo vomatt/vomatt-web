@@ -19,7 +19,7 @@ const defaultOptions: Option[] = [
 	{ id: 'o1', text: 'Tabs', votes: 2 },
 	{ id: 'o2', text: 'Spaces', votes: 1 },
 ];
-const voter = (userId: string, optionId: string) => ({
+const voter = (userId: string, optionId: string | null) => ({
 	userId,
 	username: userId,
 	optionId,
@@ -98,6 +98,17 @@ describe('VotersDialog', () => {
 		render(<Harness />);
 		fireEvent.click(screen.getByRole('button', { name: 'Spaces' }));
 		expect(await screen.findByText('No one to show.')).toBeInTheDocument();
+	});
+
+	it('lists everyone who took part when the API withholds the choices', async () => {
+		mockGetVoters.mockResolvedValue({
+			ok: true,
+			data: { items: [voter('mei', null), voter('klaus', null)], nextCursor: null },
+		});
+		render(<Harness />);
+		fireEvent.click(screen.getByRole('button', { name: 'Tabs' }));
+		expect(await screen.findByText(/choices are hidden/)).toBeInTheDocument();
+		expect(within(screen.getByRole('list', { name: 'Who voted' })).getAllByRole('listitem')).toHaveLength(2);
 	});
 
 	it('explains when the list is hidden, without asking again', async () => {

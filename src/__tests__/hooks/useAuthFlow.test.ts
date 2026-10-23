@@ -19,8 +19,8 @@ beforeEach(() => {
 	jest.clearAllMocks();
 });
 
-async function atCodeStep(isNewUser: boolean) {
-	mockRequestOtp.mockResolvedValue({ status: 'SUCCESS', isNewUser });
+async function atCodeStep() {
+	mockRequestOtp.mockResolvedValue({ status: 'SUCCESS' });
 	const hook = renderHook(() => useAuthFlow());
 	await act(async () => {
 		await hook.result.current.submitEmail('User@Test.com');
@@ -35,7 +35,7 @@ describe('useAuthFlow', () => {
 	});
 
 	it('moves to the code step once a code is sent', async () => {
-		const { result } = await atCodeStep(false);
+		const { result } = await atCodeStep();
 
 		expect(mockRequestOtp).toHaveBeenCalledWith('User@Test.com');
 		expect(result.current.step).toBe('code');
@@ -56,8 +56,8 @@ describe('useAuthFlow', () => {
 	});
 
 	it('finishes an existing user right after the code', async () => {
-		const { result } = await atCodeStep(false);
-		mockVerifyOtp.mockResolvedValue({ status: 'SUCCESS' });
+		const { result } = await atCodeStep();
+		mockVerifyOtp.mockResolvedValue({ status: 'SUCCESS', isNewUser: false });
 
 		let res: unknown;
 		await act(async () => {
@@ -70,8 +70,8 @@ describe('useAuthFlow', () => {
 	});
 
 	it('asks a new user for a display name after the code', async () => {
-		const { result } = await atCodeStep(true);
-		mockVerifyOtp.mockResolvedValue({ status: 'SUCCESS' });
+		const { result } = await atCodeStep();
+		mockVerifyOtp.mockResolvedValue({ status: 'SUCCESS', isNewUser: true });
 
 		let res: unknown;
 		await act(async () => {
@@ -83,7 +83,7 @@ describe('useAuthFlow', () => {
 	});
 
 	it('returns a wrong code error and stays on the code step', async () => {
-		const { result } = await atCodeStep(false);
+		const { result } = await atCodeStep();
 		mockVerifyOtp.mockResolvedValue({ status: 'ERROR', error: 'invalidCode' });
 
 		let res: unknown;
@@ -96,7 +96,7 @@ describe('useAuthFlow', () => {
 	});
 
 	it('resends to the same email', async () => {
-		const { result } = await atCodeStep(false);
+		const { result } = await atCodeStep();
 		await act(async () => {
 			await result.current.resendCode();
 		});
@@ -104,7 +104,7 @@ describe('useAuthFlow', () => {
 	});
 
 	it('saves the trimmed display name', async () => {
-		const { result } = await atCodeStep(true);
+		const { result } = await atCodeStep();
 		mockUpdateProfile.mockResolvedValue({});
 		await act(async () => {
 			await result.current.submitProfile('  Alice ');
@@ -113,7 +113,7 @@ describe('useAuthFlow', () => {
 	});
 
 	it('goes back to edit the email', async () => {
-		const { result } = await atCodeStep(false);
+		const { result } = await atCodeStep();
 		act(() => result.current.editEmail());
 		expect(result.current.step).toBe('email');
 	});
