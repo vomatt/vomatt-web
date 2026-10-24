@@ -16,7 +16,8 @@ Cool canvas, navy ink actions, two signals: Volt (`highlight`) marks what is you
 | Quiet text | `muted-foreground` | Meta, hints, secondary copy |
 | Lines | `border`, `border-strong` | `border` for cards, rows, dividers and outline buttons; `border-strong` for hover |
 | Controls | `input` | Text field borders, checkbox marks and switch tracks: the 3:1 boundary a control needs at rest |
-| Highlight (Volt) | `highlight`, `highlight-foreground`, `highlight-tint` | The create action (`Button variant="create"`: a Volt icon on ink in light, a Volt button in dark), the unread count and unread markers, the viewer's own choice (`highlight-tint` behind the selected row). Text on it is always `highlight-foreground` ink. Never decoration |
+| Highlight (Volt) | `highlight`, `highlight-foreground`, `highlight-tint` | The create action (`Button variant="create"`: a Volt icon on ink in light, a Volt button in dark), the viewer's own choice (`highlight-tint` behind the selected row), the Seal's check, the You chip. Text on it is always `highlight-foreground` ink. Never decoration, never a notification |
+| Alert | `alert`, `alert-foreground` | The unread count and `UnreadDot`: something asking to be looked at. White on red, so it reads as a notification. Never a button, a status or an error |
 | Tide | `tide`, `tide-tint`, `tide-line`, `tide-foreground` | The promise: the Seal after voting (`tide-tint` surface, `tide` ring, a Volt check), the rules ("How vomatt counts" in the sidebar, the poll page's About rules, the creator's rules summary), the voting-window bar (`Progress variant="tide"`). Never links, buttons, headers or hovers |
 | Poll status | `status-scheduled/open/closing/ended` | Status chip tints, always with a text label |
 | Error | `destructive` | Validation and destructive actions |

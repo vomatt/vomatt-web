@@ -61,6 +61,9 @@
 	--accent: oklch(0.955 0.004 265);
 	--accent-foreground: oklch(0.272 0.058 262.5);
 	--destructive: oklch(0.501 0.178 28.7);
+	/* Alert: a count or marker asking to be looked at (unread). White on red, never a button or a status */
+	--alert: oklch(0.55 0.20 27);
+	--alert-foreground: oklch(0.985 0.002 265);
 	--border: oklch(0.919 0.007 268);
 	--border-strong: oklch(0.844 0.012 265);
 	--input: oklch(0.652 0.019 264);
@@ -158,6 +161,8 @@ html:has([data-slot='tabs-list'][data-sticky]) {
 	--accent: oklch(0.267 0.037 268);
 	--accent-foreground: oklch(0.958 0.009 265);
 	--destructive: oklch(0.771 0.104 25);
+	--alert: oklch(0.55 0.19 27);
+	--alert-foreground: oklch(0.985 0.002 265);
 	--border: oklch(0.316 0.045 268);
 	--border-strong: oklch(0.394 0.051 268);
 	--input: oklch(0.616 0.032 266);
@@ -223,6 +228,8 @@ html:has([data-slot='tabs-list'][data-sticky]) {
 	--color-input: var(--input);
 	--color-border: var(--border);
 	--color-destructive: var(--destructive);
+	--color-alert: var(--alert);
+	--color-alert-foreground: var(--alert-foreground);
 	--color-accent-foreground: var(--accent-foreground);
 	--color-muted-foreground: var(--muted-foreground);
 	--color-muted: var(--muted);
