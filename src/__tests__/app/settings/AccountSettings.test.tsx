@@ -11,6 +11,10 @@ jest.mock('@/features/blocks/service', () => ({
 	getBlockedUsers: jest.fn().mockResolvedValue({ ok: true, data: { items: [], nextCursor: null } }),
 	unblockUser: jest.fn(),
 }));
+jest.mock('@/features/follows/service', () => ({
+	getFollowedUsers: jest.fn().mockResolvedValue({ ok: true, data: { items: [], nextCursor: null } }),
+	unfollowUser: jest.fn(),
+}));
 jest.mock('@/lib/api/services/users', () => ({
 	deleteMyAccount: jest.fn(),
 	updateVisibility: jest.fn(),

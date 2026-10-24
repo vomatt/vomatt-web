@@ -10,20 +10,32 @@ type HomepageHeaderProps = {
 	tags: TagDto[];
 	/** The selected topic's slug; none means every topic. */
 	activeTag?: string;
+	/** Signed-in viewers get a Following tab. */
+	signedIn?: boolean;
+	/** The Following tab is the selected one. */
+	following?: boolean;
 };
 
 /** Topic tabs over the feed. Each is a link, so a topic can be shared and server-rendered. */
-export function HomepageHeader({ tags, activeTag }: HomepageHeaderProps) {
+export function HomepageHeader({ tags, activeTag, signedIn, following }: HomepageHeaderProps) {
 	const { t } = useLanguage();
-	const items: { slug?: string; label: string }[] = [
-		{ label: t('homePage.allTopics') },
-		...tags.map((tag) => ({ slug: tag.slug, label: `#${tag.name}` })),
+	const items: { slug?: string; label: string; href: string; isActive?: boolean }[] = [
+		{ label: t('homePage.allTopics'), href: '/', isActive: !following && !activeTag },
+		...(signedIn ? [{ label: t('homePage.following'), href: '/following', isActive: following }] : []),
+		...tags.map((tag) => ({
+			slug: tag.slug,
+			label: `#${tag.name}`,
+			href: topicHref(tag.slug),
+			isActive: tag.slug === activeTag,
+		})),
 	];
 
 	// A filtered feed is that topic's page; the topic may not be among the popular ones listed
-	const heading = activeTag
-		? (items.find((item) => item.slug === activeTag)?.label ?? `#${activeTag}`)
-		: t('navigation.home');
+	const heading = following
+		? t('homePage.following')
+		: activeTag
+			? (items.find((item) => item.slug === activeTag)?.label ?? `#${activeTag}`)
+			: t('navigation.home');
 
 	return (
 		<>
@@ -34,12 +46,11 @@ export function HomepageHeader({ tags, activeTag }: HomepageHeaderProps) {
 				className="sticky follow-header z-10 -mx-1 border-b border-border bg-background"
 			>
 				<ul className="flex gap-1 overflow-x-auto px-1 py-1 [scrollbar-width:none]">
-					{items.map(({ slug, label }) => {
-						const isActive = slug === activeTag;
+					{items.map(({ label, href, isActive }) => {
 						return (
-							<li key={slug ?? 'all'} className="shrink-0">
+							<li key={href} className="shrink-0">
 								<Link
-									href={slug ? topicHref(slug) : '/'}
+									href={href}
 									scroll={false}
 									aria-current={isActive ? 'page' : undefined}
 									className={cn(

@@ -3,8 +3,8 @@
 import type { ActionResult } from '@/lib/api/action';
 import { attempt } from '@/lib/api/action';
 import { apiClient } from '@/lib/api/client';
-import { collectPages, type CursorPage, cursorPageSchema, pageParams } from '@/lib/api/cursor';
-import { searchUsers } from '@/lib/api/services/users';
+import { type CursorPage, cursorPageSchema, pageParams } from '@/lib/api/cursor';
+import { findUserByUsername } from '@/lib/api/find-user';
 import type { UserDto } from '@/schemas/user';
 import { UserDtoSchema } from '@/schemas/user';
 
@@ -31,19 +31,10 @@ export async function unblockUser(userId: string): Promise<ActionResult> {
 	});
 }
 
-/**
- * Public profiles carry no user ID, so find it through search (at most 5 pages
- * of matches) and block it. `found: false` when no such username turns up.
- */
+/** Blocks by username; `found: false` when no such username turns up. */
 export async function blockUserByUsername(username: string): Promise<ActionResult<{ found: boolean }>> {
 	return attempt(async () => {
-		const wanted = username.toLowerCase();
-		const isWanted = (user: UserDto) => user.username.toLowerCase() === wanted;
-		const { items } = await collectPages((cursor) => searchUsers(username, cursor ?? undefined, 50), {
-			maxPages: 5,
-			until: (users) => users.some(isWanted),
-		});
-		const user = items.find(isWanted);
+		const user = await findUserByUsername(username);
 		if (!user) return { found: false };
 		await apiClient(blockPath(user.id), { method: 'POST' });
 		return { found: true };

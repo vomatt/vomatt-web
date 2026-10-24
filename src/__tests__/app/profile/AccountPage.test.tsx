@@ -10,6 +10,7 @@ jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn() } }))
 jest.mock('@/lib/api/services/users', () => ({ editProfile: jest.fn() }));
 jest.mock('@/features/polls/service', () => ({ getUserPolls: jest.fn() }));
 jest.mock('@/features/blocks/service', () => ({ blockUserByUsername: jest.fn() }));
+jest.mock('@/features/follows/service', () => ({ followUserByUsername: jest.fn() }));
 jest.mock('@/features/avatars/service', () => ({ chooseAvatar: jest.fn() }));
 jest.mock('@/features/groups/GroupsPanel', () => ({ GroupsPanel: () => <p>Groups panel</p> }));
 
