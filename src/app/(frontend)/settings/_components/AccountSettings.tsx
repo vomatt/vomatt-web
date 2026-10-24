@@ -19,6 +19,7 @@ import { Switch } from '@/components/ui/Switch';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { isFieldPublic, VISIBILITY_FIELDS } from '@/features/account/visibility';
 import { BlockedUsersPanel } from '@/features/blocks/BlockedUsersPanel';
+import { FollowedUsersPanel } from '@/features/follows/FollowedUsersPanel';
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
 import { apiErrorText } from '@/lib/api/error-text';
 import { signout } from '@/lib/api/services/auth';
@@ -111,6 +112,8 @@ export default function AccountSettings({ profile }: { profile: MyProfile }) {
 					onCheckedChange={toggleAnonymousDefault}
 				/>
 			</section>
+
+			<FollowedUsersPanel />
 
 			<BlockedUsersPanel />
 

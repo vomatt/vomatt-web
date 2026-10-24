@@ -16,7 +16,8 @@ import type { MyProfile, UserProfile } from '@/types/user';
 
 import BlockButton from './BlockButton';
 import EditProfileDialog from './EditProfileDialog';
-import ProfileHeader, { FollowControls } from './ProfileHeader';
+import FollowUserButton from './FollowUserButton';
+import ProfileHeader,{ FollowControls } from './ProfileHeader';
 import ProfilePollList from './ProfilePollList';
 
 /** `polls` and `insights` are null when the polls couldn't load. */
@@ -78,7 +79,12 @@ export default function AccountPage(props: AccountPageProps) {
 					) : (
 						<div className="flex flex-wrap items-center gap-4">
 							<FollowControls profile={props.profile} isAuthenticated={props.isAuthenticated} />
-							{props.isAuthenticated && <BlockButton username={profile.username} />}
+							{props.isAuthenticated && (
+								<>
+									<FollowUserButton username={profile.username} />
+									<BlockButton username={profile.username} />
+								</>
+							)}
 						</div>
 					)
 				}

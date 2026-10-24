@@ -293,6 +293,9 @@
 	"homePage": {
 		"feedListNoData": "發起投票，引領群眾。",
 		"allTopics": "為你推薦",
+		"following": "追蹤中",
+		"followingEmpty": "你追蹤的人還沒有投票。",
+		"followingEmptyHint": "你追蹤的人所發起的進行中投票會顯示在這裡。到對方的個人檔案即可追蹤。",
 		"topics": "主題",
 		"feedFailed": "目前無法載入投票。",
 		"topicEmpty": "這個主題還沒有投票。",
@@ -914,5 +917,18 @@
 		"blockFailed": "無法封鎖，請再試一次。",
 		"confirmTitle": "要封鎖 @{username} 嗎？",
 		"confirmBody": "你將不再看到他們的投票與留言。對方不會收到通知。你可以在設定中解除封鎖。"
+	},
+	"follows": {
+		"title": "追蹤中的用戶",
+		"intro": "你追蹤的人所發起的進行中公開投票會顯示在「追蹤中」動態。對方不會收到通知，也沒有人能看到誰追蹤了他們。",
+		"empty": "你尚未追蹤任何人。",
+		"loadFailed": "無法載入追蹤中的用戶。",
+		"unfollow": "取消追蹤",
+		"unfollowed": "已取消追蹤 @{username}",
+		"unfollowFailed": "無法取消追蹤，請再試一次。",
+		"follow": "追蹤",
+		"followed": "已追蹤 @{username}",
+		"manage": "管理追蹤中的用戶",
+		"followFailed": "無法追蹤，請再試一次。"
 	}
 }

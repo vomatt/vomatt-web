@@ -295,6 +295,9 @@
 	"homePage": {
 		"feedListNoData": "Start the poll, lead the crowd.",
 		"allTopics": "For you",
+		"following": "Following",
+		"followingEmpty": "Nothing from people you follow yet.",
+		"followingEmptyHint": "Open polls by people you follow show up here. Follow someone from their profile.",
 		"topics": "Topics",
 		"feedFailed": "Couldn’t load polls right now.",
 		"topicEmpty": "No polls on this topic yet.",
@@ -918,5 +921,18 @@
 		"blockFailed": "Couldn’t block. Try again.",
 		"confirmTitle": "Block @{username}?",
 		"confirmBody": "Their polls and comments will no longer show up for you. They won’t be told. You can unblock them in Settings."
+	},
+	"follows": {
+		"title": "Following",
+		"intro": "Open public polls by people you follow appear in your Following feed. They aren’t told, and no one sees who follows them.",
+		"empty": "You aren’t following anyone.",
+		"loadFailed": "Couldn’t load followed users.",
+		"unfollow": "Unfollow",
+		"unfollowed": "Unfollowed @{username}",
+		"unfollowFailed": "Couldn’t unfollow. Try again.",
+		"follow": "Follow",
+		"followed": "Following @{username}",
+		"manage": "Manage who you follow",
+		"followFailed": "Couldn’t follow. Try again."
 	}
 }

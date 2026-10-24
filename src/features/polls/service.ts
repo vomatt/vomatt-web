@@ -114,7 +114,15 @@ export async function getFeed(cursor?: string | null, size = 10, tag?: string) {
 	return getPolls({ tag }, cursor, size, { asViewer: true });
 }
 
-const TagPage = cursorPageSchema(TagDtoSchema);
+/**
+ * Open public Polls by people the viewer follows, most recently opened first.
+ * Per viewer, so never from the shared cache; sign-in required.
+ */
+export async function getFollowingFeed(cursor?: string | null, size = 10) {
+	return PollPage.parse(await apiClient(`/votes/following?${pageParams(cursor, size)}`));
+}
+
+const TagPage =cursorPageSchema(TagDtoSchema);
 
 /** Most-used topics first, for the feed's topic tabs. Empty when the API is down. */
 export async function getPopularTags(size = 12): Promise<TagDto[]> {

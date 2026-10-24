@@ -50,7 +50,7 @@ async function Feed({ tag }: { tag: string | undefined }) {
 				anonymousByDefault={profile?.anonymousBallotByDefault}
 				initialPage={firstPage}
 				tag={tag}
-				header={<HomepageHeader tags={tags} activeTag={tag} />}
+				header={<HomepageHeader tags={tags} activeTag={tag} signedIn={!!user} />}
 			/>
 			<aside className="flex w-full max-w-feed flex-col gap-4 pb-8 xl:sticky xl:top-[calc(var(--header-height)+1rem)] xl:w-[280px] xl:shrink-0 xl:py-4">
 				{!user && <LoginPrompt />}

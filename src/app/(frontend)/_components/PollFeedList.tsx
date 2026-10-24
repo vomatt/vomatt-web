@@ -11,7 +11,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { CreatePollTrigger } from '@/features/polls/components/CreatePollTrigger';
 import { PollCard } from '@/features/polls/components/PollCard';
 import type { Poll } from '@/features/polls/schema';
-import { getFeed } from '@/features/polls/service';
+import { getFeed, getFollowingFeed } from '@/features/polls/service';
 import { mergeById } from '@/lib/api/cursor';
 import { cn } from '@/lib/utils';
 
@@ -22,6 +22,8 @@ type PollFeedListProps = {
 	/** Server-rendered first page; null when it couldn't be loaded. */
 	initialPage: { items: Poll[]; nextCursor: string | null } | null;
 	tag?: string;
+	/** Only Polls by followed people, instead of the home feed. */
+	following?: boolean;
 	header: React.ReactNode;
 };
 
@@ -31,6 +33,7 @@ export function PollFeedList({
 	anonymousByDefault,
 	initialPage,
 	tag,
+	following,
 	header,
 }: PollFeedListProps) {
 	const { t } = useLanguage();
@@ -47,7 +50,7 @@ export function PollFeedList({
 		setIsLoading(true);
 		setLoadFailed(false);
 		try {
-			const page = await getFeed(nextCursor, 10, tag);
+			const page = following ? await getFollowingFeed(nextCursor) : await getFeed(nextCursor, 10, tag);
 			setPolls((prev) => mergeById(prev, page.items));
 			setNextCursor(page.nextCursor);
 		} catch {
@@ -82,7 +85,14 @@ export function PollFeedList({
 				</div>
 			)}
 
-			{initialPage !== null && polls.length === 0 && (
+			{initialPage !== null && polls.length === 0 && following && (
+				<div className="flex flex-col items-center gap-3 py-20 text-center">
+					<h2 className="text-3xl">{t('homePage.followingEmpty')}</h2>
+					<p className="text-muted-foreground">{t('homePage.followingEmptyHint')}</p>
+				</div>
+			)}
+
+			{initialPage !== null && polls.length === 0 && !following && (
 				<div className="flex flex-col items-center gap-6 py-20 text-center">
 					<h2 className="text-3xl">
 						{t(tag ? 'homePage.topicEmpty' : 'homePage.feedListNoData')}
