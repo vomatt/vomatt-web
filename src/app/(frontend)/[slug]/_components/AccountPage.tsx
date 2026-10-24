@@ -17,7 +17,7 @@ import type { MyProfile, UserProfile } from '@/types/user';
 import BlockButton from './BlockButton';
 import EditProfileDialog from './EditProfileDialog';
 import FollowUserButton from './FollowUserButton';
-import ProfileHeader,{ FollowControls } from './ProfileHeader';
+import ProfileHeader, { FollowControls } from './ProfileHeader';
 import ProfilePollList from './ProfilePollList';
 
 /** `polls` and `insights` are null when the polls couldn't load. */

@@ -933,6 +933,7 @@
 		"follow": "Follow",
 		"followed": "Following @{username}",
 		"manage": "Manage who you follow",
-		"followFailed": "Couldn’t follow. Try again."
+		"followFailed": "Couldn’t follow. Try again.",
+		"notFound": "Couldn’t find that user to follow."
 	}
 }

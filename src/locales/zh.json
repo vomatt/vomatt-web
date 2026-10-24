@@ -929,6 +929,7 @@
 		"follow": "追蹤",
 		"followed": "已追蹤 @{username}",
 		"manage": "管理追蹤中的用戶",
-		"followFailed": "無法追蹤，請再試一次。"
+		"followFailed": "無法追蹤，請再試一次。",
+		"notFound": "找不到要追蹤的使用者。"
 	}
 }

@@ -19,9 +19,8 @@ export default function FollowUserButton({ username }: { username: string }) {
 		const result = await followUserByUsername(username);
 		setIsFollowing(false);
 		if (!result.ok || !result.data.found) {
-			toast.error(result.ok ? t('follows.followFailed') : apiErrorText(t, result, 'follows.followFailed'), {
-				duration: Infinity,
-			});
+			const message = result.ok ? t('follows.notFound') : apiErrorText(t, result, 'follows.followFailed');
+			toast.error(message, { duration: Infinity });
 			return;
 		}
 		toast.success(t('follows.followed', { username }), {

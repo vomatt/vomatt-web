@@ -122,7 +122,7 @@ export async function getFollowingFeed(cursor?: string | null, size = 10) {
 	return PollPage.parse(await apiClient(`/votes/following?${pageParams(cursor, size)}`));
 }
 
-const TagPage =cursorPageSchema(TagDtoSchema);
+const TagPage = cursorPageSchema(TagDtoSchema);
 
 /** Most-used topics first, for the feed's topic tabs. Empty when the API is down. */
 export async function getPopularTags(size = 12): Promise<TagDto[]> {

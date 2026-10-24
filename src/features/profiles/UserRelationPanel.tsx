@@ -35,14 +35,18 @@ export function UserRelationPanel({ ns, action, load, remove }: UserRelationPane
 
 	useEffect(() => {
 		let ignore = false;
-		load().then((result) => {
-			if (ignore) return;
-			setLoadFailed(!result.ok);
-			if (result.ok) {
-				setUsers(result.data.items);
-				setNextCursor(result.data.nextCursor);
-			}
-		});
+		load()
+			.then((result) => {
+				if (ignore) return;
+				setLoadFailed(!result.ok);
+				if (result.ok) {
+					setUsers(result.data.items);
+					setNextCursor(result.data.nextCursor);
+				}
+			})
+			.catch(() => {
+				if (!ignore) setLoadFailed(true);
+			});
 		return () => {
 			ignore = true;
 		};
