@@ -42,7 +42,7 @@ Cool canvas, navy ink actions, two signals: Volt (`highlight`) marks what is you
 - Radius: `rounded-2xl` (16px) for cards and panels (`PollCard`, side cards, the About panel, settings panels); `rounded-xl` (12px) for ballot rows, list rows, inputs and the Tide surfaces inside a card; `--radius` (10px) for buttons, set once in `Button`; `rounded-full` for chips, pills and avatars.
 - Page container: `px-contain mx-auto max-w-2xl py-6` for lists (Explore, My polls, Notifications, Profile); `max-w-5xl` for a poll page; `max-w-3xl` for Account.
 - The home feed column is `max-w-feed` (640px, `--container-feed`). From `xl` up a 280px rail sits to its right ("Results are in": Ended polls the viewer voted in, with unread dots; "Closing soon": Open polls ending within a day; the login prompt for guests); below `xl` the rail follows the feed.
-- Desktop gets the collapsible `AppSidebar`; mobile gets the fixed `TabBar` (64px plus the safe-area inset). Phones also get a fixed logo `Header` (56px) that slides up while scrolling down and returns on scroll up; sticky bars sit at `top-(--header-offset)` to follow it. All three hide on `/login`. There is one create action, `Button variant="create"`: the sidebar's button and the TabBar's center square.
+- Desktop gets the collapsible `AppSidebar`; mobile gets the fixed `TabBar` (64px plus the safe-area inset). Phones also get a fixed logo `Header` (56px) that slides up while scrolling down, returns on scroll up and is back on every new page; it eases over 400ms (`ease-header`). Bars that stick under it and slide with it use `sticky follow-header` (Home's topics; a page's own line tabs pass `sticky` to `TabsList`). The TabBar's profile tab shows the signed-in person's avatar. All three hide on `/login`. There is one create action, `Button variant="create"`: the sidebar's button and the TabBar's center square.
 - The poll creator is full screen on phones and a 560px dialog from `sm` up.
 - Touch targets are at least 44px (`h-11`); the `sm` sizes shrink to 36px from `md` up only.
 
@@ -65,6 +65,7 @@ Use these. Don't copy their classes into a new element.
 | Side card of polls (home rail) | `PollSideCard` with a heading key |
 | Progress (voting window) | `Progress variant="tide"` |
 | List row for a poll | `PollListItem` with `meta` and `aside` |
+| A person's counts | the profile's stats card: `rounded-2xl` `card` cells, a `font-mono` number over a 12px label |
 | Active nav link | `isActivePath(pathname, href)` from `lib/routes.ts` |
 
 If a building block doesn't fit, change its variant or add one. Don't override it at the call site.

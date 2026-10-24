@@ -23,8 +23,9 @@ export function Header() {
 		let lastY = window.scrollY;
 		function onScroll() {
 			const y = window.scrollY;
-			// At or past the end is iOS's bottom bounce, which scrolls back up on its own
-			if (y + window.innerHeight >= document.documentElement.scrollHeight) return;
+			// At or past the end is iOS's bottom bounce, which scrolls back up on its own. Not at the top: a new
+			// page that fits the screen is at its end there, and the scroll to it must bring the header back
+			if (y > NEAR_TOP && y + window.innerHeight >= document.documentElement.scrollHeight) return;
 			if (y > NEAR_TOP && Math.abs(y - lastY) < MIN_DELTA) return;
 			setHidden(y > NEAR_TOP && y > lastY);
 			lastY = y;
@@ -41,7 +42,7 @@ export function Header() {
 			data-hidden={(isMobile && hidden) || undefined}
 			className={cn(
 				'fixed inset-x-0 top-0 z-header flex h-header items-center border-b border-border bg-background px-contain md:hidden',
-				'motion-safe:transition-transform motion-safe:duration-200',
+				'motion-safe:transition-transform motion-safe:duration-400 motion-safe:ease-header',
 				// A keyboard user tabbing into it brings it back
 				'data-hidden:-translate-y-full data-hidden:focus-within:translate-y-0'
 			)}

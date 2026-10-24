@@ -72,7 +72,7 @@ function countLabel(list: { items: unknown[]; hasMore: boolean }) {
 function MyPollsTabList({ activeCount, endedCount }: { activeCount?: string; endedCount?: string }) {
 	const { t } = useLanguage();
 	return (
-		<TabsList variant="line">
+		<TabsList variant="line" sticky>
 			<TabsTrigger value="active">
 				{t('myPolls.tabActive')}
 				{activeCount && ` (${activeCount})`}

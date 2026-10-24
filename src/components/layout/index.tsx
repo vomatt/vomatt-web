@@ -29,7 +29,7 @@ export async function Layout({ children }: LayoutProps) {
 					<AppSidebar userSession={userSession} profile={profile} />
 					<Header />
 					<Main>{children}</Main>
-					<TabBar userSession={userSession} username={profile?.username} />
+					<TabBar userSession={userSession} username={profile?.username} avatarUrl={profile?.avatarUrl} />
 				</MotionProvider>
 			</UnreadCountProvider>
 		</SidebarProvider>

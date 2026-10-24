@@ -136,6 +136,10 @@
 html {
 	scroll-padding-top: var(--header-offset);
 }
+/* A sticky tab list (44px) sits under it too */
+html:has([data-slot='tabs-list'][data-sticky]) {
+	scroll-padding-top: calc(var(--header-offset) + 44px);
+}
 
 .dark {
 	--background: oklch(0.190 0.032 269);
@@ -265,6 +269,8 @@ html {
 	--spacing-header: var(--header-height);
 	/* The home feed column; the feed and its loading skeleton share it */
 	--container-feed: 640px;
+	/* The phone Header's slide and the sticky bars that follow it: unhurried, settling softly */
+	--ease-header: cubic-bezier(0.32, 0.72, 0, 1);
 	--z-index-header: 48;
 	--z-index-overlay: 49;
 	--z-index-dialog: 50;
@@ -309,6 +315,15 @@ html {
 @utility top-header-space-* {
 	top: calc(var(--header-height) + var(--announcement-height, 0) + --value(number) * var(--spacing));
 	top: calc(var(--header-height) + var(--announcement-height, 0) + --value([*]));
+}
+
+/* With `sticky`: a bar that sits under the phone Header and slides away with it (Home's topics, line tabs); top of the page from md up */
+@utility follow-header {
+	top: calc(var(--header-height) + var(--announcement-height, 0));
+	translate: 0 calc(var(--header-offset) - var(--header-height));
+	@media (prefers-reduced-motion: no-preference) {
+		transition: translate 400ms var(--ease-header);
+	}
 }
 
 @utility p-fill {

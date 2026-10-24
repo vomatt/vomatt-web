@@ -10,12 +10,13 @@ import { isFieldPublic, VISIBILITY_FIELDS } from '@/features/account/visibility'
 import { GroupsPanel } from '@/features/groups/GroupsPanel';
 import type { Poll } from '@/features/polls/schema';
 import type { CursorPage } from '@/lib/api/cursor';
-import { countText } from '@/lib/count';
+import { toPayloadLocale } from '@/lib/locale';
+import { cn } from '@/lib/utils';
 import type { MyProfile, UserProfile } from '@/types/user';
 
 import BlockButton from './BlockButton';
 import EditProfileDialog from './EditProfileDialog';
-import ProfileHeader, { FollowControls, keepWhole } from './ProfileHeader';
+import ProfileHeader, { FollowControls } from './ProfileHeader';
 import ProfilePollList from './ProfilePollList';
 
 /** `polls` and `insights` are null when the polls couldn't load. */
@@ -40,9 +41,8 @@ type PublicView = {
 export type AccountPageProps = OwnView | PublicView;
 
 export default function AccountPage(props: AccountPageProps) {
-	const { t, currentLanguage } = useLanguage();
+	const { t } = useLanguage();
 	const { profile } = props;
-	const count = (key: string, value: number) => countText(t, key, value, currentLanguage);
 	const visibility: Record<string, boolean> = props.isOwn ? (props.profile.visibilitySettings ?? {}) : {};
 
 	// Hidden fields that have a value; the owner's header shows them dimmed and marked
@@ -61,7 +61,8 @@ export default function AccountPage(props: AccountPageProps) {
 				hiddenFields={hiddenFields}
 				action={
 					props.isOwn ? (
-						<div className="flex gap-2">
+						// Equal halves on phones, where they span the column
+						<div className="flex gap-2 *:flex-1 md:*:flex-none">
 							<EditProfileDialog
 								initialUsername={profile.username}
 								initialDisplayName={profile.displayName ?? ''}
@@ -81,20 +82,20 @@ export default function AccountPage(props: AccountPageProps) {
 						</div>
 					)
 				}
-				meta={
-					<>
-						<Count text={count('account.votesCast', profile.totalVotes)} href={myPollsHref} />
-						<Count text={count('account.pollsCreated', profile.totalPolls)} href={myPollsHref} />
+				stats={
+					<ul className="grid auto-cols-fr grid-flow-col divide-x divide-border overflow-hidden rounded-2xl border border-border bg-card">
+						<Stat value={profile.totalVotes} label={t('profile.statVoted')} href={myPollsHref} />
+						<Stat value={profile.totalPolls} label={t('profile.statCreated')} href={myPollsHref} />
 						{props.isOwn && props.insights && (
-							<Count text={count('account.turnout', props.insights.turnout)} />
+							<Stat value={props.insights.turnout} label={t('profile.statTurnout')} />
 						)}
-					</>
+					</ul>
 				}
 			/>
 
 			{props.isOwn ? (
 				<Tabs defaultValue="polls" className="gap-6">
-					<TabsList variant="line">
+					<TabsList variant="line" sticky>
 						<TabsTrigger value="polls">{t('profile.polls')}</TabsTrigger>
 						<TabsTrigger value="groups">{t('account.tabGroups')}</TabsTrigger>
 						<TabsIndicator />
@@ -117,15 +118,33 @@ export default function AccountPage(props: AccountPageProps) {
 	);
 }
 
-/** One count in the header's details row, kept whole unless it's wider than the column; a link when it opens My Polls. */
-function Count({ text, href }: { text: string; href?: string }) {
-	if (!href) return <span className="wrap-anywhere">{keepWhole(text)}</span>;
+/** One cell of the counts card: the number over its label; a link when it opens My Polls. */
+function Stat({ value, label, href }: { value: number; label: string; href?: string }) {
+	const { currentLanguage } = useLanguage();
+	const content = (
+		<>
+			<span className="block font-mono text-xl tabular-nums text-foreground">
+				{value.toLocaleString(toPayloadLocale(currentLanguage))}
+			</span>
+			<span className="block text-[12px] leading-tight text-muted-foreground">{label}</span>
+		</>
+	);
+	const cell = 'flex h-full flex-col justify-center gap-0.5 px-3 py-3 text-center';
 	return (
-		<Link
-			href={href}
-			className="wrap-anywhere rounded-sm underline underline-offset-3 transition-colors hover:text-foreground outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
-		>
-			{keepWhole(text)}
-		</Link>
+		<li>
+			{href ? (
+				<Link
+					href={href}
+					className={cn(
+						cell,
+						'outline-none transition-colors hover:bg-surface-soft focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring'
+					)}
+				>
+					{content}
+				</Link>
+			) : (
+				<div className={cell}>{content}</div>
+			)}
+		</li>
 	);
 }

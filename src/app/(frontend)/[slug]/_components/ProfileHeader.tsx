@@ -37,14 +37,14 @@ type HeaderProfile = Pick<
 export default function ProfileHeader({
 	profile,
 	action,
-	meta,
+	stats,
 	isOwn = false,
 	hiddenFields = [],
 }: {
 	profile: HeaderProfile;
 	action?: ReactNode;
-	/** Counts shown in a row under the details, one element per count */
-	meta?: ReactNode;
+	/** The counts card, under the details */
+	stats?: ReactNode;
 	isOwn?: boolean;
 	/** Fields visitors don't see; only the owner's header passes them */
 	hiddenFields?: readonly string[];
@@ -64,22 +64,23 @@ export default function ProfileHeader({
 	];
 
 	return (
-		<header className="flex flex-wrap items-start gap-x-5 gap-y-4">
+		// Phones: identity, about, stats, then the actions as one row. From md the actions sit beside the name
+		<header className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 gap-y-5 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-5">
 			{isOwn ? (
 				<AvatarDialog
 					username={profile.username}
 					avatarUrl={profile.avatarUrl}
-					className="size-20"
+					className="size-18 md:size-20"
 				/>
 			) : (
 				<UserAvatar
 					username={profile.username}
 					avatarUrl={profile.avatarUrl}
-					className="size-20"
+					className="size-18 md:size-20"
 					tooltip
 				/>
 			)}
-			<div className="min-w-0 flex-1">
+			<div className="min-w-0">
 				<h1
 					className={cn(
 						'wrap-anywhere display-heading text-2xl',
@@ -96,12 +97,14 @@ export default function ProfileHeader({
 						@{profile.username}
 					</p>
 				)}
+			</div>
+			<div className="col-span-full space-y-3 empty:hidden">
 				{profile.bio && (
 					<p
 						className={cn(
 							// Capped measure (~68 characters): the column runs ~87 wide between md and lg, and
 							// Geist's wide 0 makes `ch` overshoot, so the cap is in rem
-							'mt-3 max-w-[30rem] wrap-anywhere whitespace-pre-line text-[14px]',
+							'max-w-[30rem] wrap-anywhere whitespace-pre-line text-[14px]',
 							isHidden('bio') && 'text-muted-foreground'
 						)}
 					>
@@ -111,19 +114,18 @@ export default function ProfileHeader({
 						)}
 					</p>
 				)}
-				{/* Details, then counts: a row each, items set apart by space and kept whole when they wrap */}
-				<div className="mt-3 space-y-1 text-[12px] text-muted-foreground tabular-nums">
-					<div className="flex flex-wrap gap-x-4 gap-y-1">
+				{/* Items set apart by space and kept whole when they wrap */}
+				{shownDetails.length > 0 && (
+					<div className="flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-muted-foreground tabular-nums">
 						{shownDetails.map((part) => (
 							<span key={part.field} className="wrap-anywhere">
 								{keepWhole(part.text)}
 							</span>
 						))}
 					</div>
-					{meta && <div className="flex flex-wrap gap-x-4 gap-y-1">{meta}</div>}
-				</div>
+				)}
 				{hiddenItems.length > 0 && (
-					<p className="mt-2 wrap-anywhere text-[12px] text-muted-foreground">
+					<p className="wrap-anywhere text-[12px] text-muted-foreground">
 						<EyeOff
 							aria-hidden
 							className="mr-1.5 inline size-3.5 align-[-0.125em]"
@@ -142,8 +144,9 @@ export default function ProfileHeader({
 					</p>
 				)}
 			</div>
-			{/* Own row until there's room beside the name with the sidebar open; empty:hidden drops it when the action renders nothing */}
-			<div className="basis-full empty:hidden lg:basis-auto">{action}</div>
+			{stats && <div className="col-span-full">{stats}</div>}
+			{/* Last in reading order; dropped when the action, or its wrapper's contents, render nothing */}
+			<div className="col-span-full empty:hidden has-[>:empty]:hidden md:col-span-1 md:col-start-3 md:row-start-1">{action}</div>
 		</header>
 	);
 }

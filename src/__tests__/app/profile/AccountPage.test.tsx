@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 
 import AccountPage from '@/app/(frontend)/[slug]/_components/AccountPage';
 import type { MyProfile, UserProfile } from '@/types/user';
@@ -59,9 +59,12 @@ const nb = (text: string) => text.replace(/ /g, '\u00a0');
 const paragraph = (text: RegExp) =>
 	screen.getByText((_, element) => element?.tagName === 'P' && text.test(element.textContent ?? ''));
 
-/** The items of the header row holding `text` (the details row or the counts row), in order; getByText reads no-break spaces as spaces. */
+/** The items of the header's details row holding `text`, in order; getByText reads no-break spaces as spaces. */
 const rowOf = (text: string | RegExp) =>
 	[...screen.getByText(text).parentElement!.children].map((item) => item.textContent);
+
+/** The counts card's cell with this label. */
+const stat = (label: string) => screen.getByText(label).closest('li');
 
 describe('AccountPage', () => {
 	it('shows a visitor the same header and stats, with only public fields', () => {
@@ -76,11 +79,10 @@ describe('AccountPage', () => {
 
 		expect(screen.getByRole('heading', { level: 1, name: 'mei' })).toBeInTheDocument();
 		expect(rowOf('Joined Aug 2026')).toEqual([nb('Taipei'), nb('Joined Aug 2026')]);
-		expect(rowOf('Voted in 12 public polls')).toEqual([nb('Voted in 12 public polls'), nb('3 public polls created')]);
 		expect(screen.queryByText(/points/)).not.toBeInTheDocument();
 		expect(screen.queryByText(/Only you can see/)).not.toBeInTheDocument();
-		expect(screen.getByText('Voted in 12 public polls')).toBeInTheDocument();
-		expect(screen.getByText('3 public polls created')).toBeInTheDocument();
+		expect(stat('Public polls voted in')).toHaveTextContent('12');
+		expect(stat('Public polls created')).toHaveTextContent('3');
 	});
 
 	it('hides owner-only stats, tabs and actions from visitors', () => {
@@ -93,7 +95,7 @@ describe('AccountPage', () => {
 			/>
 		);
 
-		expect(screen.queryByText(/votes\s+on\s+your\s+polls/)).not.toBeInTheDocument();
+		expect(screen.queryByText('Votes received')).not.toBeInTheDocument();
 		expect(screen.queryByRole('tab')).not.toBeInTheDocument();
 		expect(screen.queryByRole('button', { name: /edit/i })).not.toBeInTheDocument();
 		expect(screen.getByRole('heading', { level: 2, name: 'Polls' })).toBeInTheDocument();
@@ -107,8 +109,12 @@ describe('AccountPage', () => {
 		// Location is hidden from visitors: it leaves the details line for the owner's note
 		expect(paragraph(/^Only you see: Taipei\. Change in Settings$/)).toBeInTheDocument();
 		expect(rowOf('Joined Aug 2026')).toEqual([nb('120 points'), nb('Joined Aug 2026')]);
-		expect(rowOf('Voted in 12 public polls')).toEqual([nb('Voted in 12 public polls'), nb('3 public polls created'), nb('40 votes on your polls')]);
-		expect(screen.getByText('40 votes on your polls')).toBeInTheDocument();
+		const stats = within(stat('Public polls voted in')!.closest('ul')!).getAllByRole('listitem');
+		expect(stats.map((item) => item.textContent)).toEqual([
+			'12Public polls voted in',
+			'3Public polls created',
+			'40Votes received',
+		]);
 		expect(screen.queryByText(/majority/i)).not.toBeInTheDocument();
 		expect(screen.getByRole('tab', { name: 'Polls' })).toBeInTheDocument();
 		expect(screen.getByRole('tab', { name: 'Invite Lists' })).toBeInTheDocument();
@@ -141,30 +147,21 @@ describe('AccountPage', () => {
 		expect(screen.getByText('Poll enthusiast')).toBeInTheDocument();
 	});
 
-	it('uses the singular for a count of one', () => {
-		const single = { ...myProfile, totalVotes: 1, totalPolls: 1 };
-		render(<AccountPage isOwn profile={single} polls={noPolls} insights={{ turnout: 1 }} />);
-
-		expect(screen.getByRole('link', { name: nb('Voted in 1 public poll') })).toBeInTheDocument();
-		expect(screen.getByRole('link', { name: nb('1 public poll created') })).toBeInTheDocument();
-		expect(screen.getByText('1 vote on your polls')).toBeInTheDocument();
-	});
-
 	it('groups large counts by locale', () => {
 		render(<AccountPage isOwn profile={{ ...myProfile, totalVotes: 1200 }} polls={noPolls} insights={insights} />);
 
-		expect(screen.getByRole('link', { name: nb('Voted in 1,200 public polls') })).toBeInTheDocument();
+		expect(stat('Public polls voted in')).toHaveTextContent('1,200');
 	});
 
 	it("sends the owner's poll counts to My Polls, and keeps a visitor's static", () => {
 		const { unmount } = render(<AccountPage isOwn profile={myProfile} polls={noPolls} insights={insights} />);
-		expect(screen.getByRole('link', { name: nb('Voted in 12 public polls') })).toHaveAttribute('href', '/my-polls');
-		expect(screen.getByRole('link', { name: nb('3 public polls created') })).toHaveAttribute('href', '/my-polls');
-		expect(screen.queryByRole('link', { name: /votes\s+on\s+your\s+polls/ })).not.toBeInTheDocument();
+		expect(screen.getByRole('link', { name: '12 Public polls voted in' })).toHaveAttribute('href', '/my-polls');
+		expect(screen.getByRole('link', { name: '3 Public polls created' })).toHaveAttribute('href', '/my-polls');
+		expect(screen.queryByRole('link', { name: /Votes received/ })).not.toBeInTheDocument();
 		unmount();
 
 		render(<AccountPage isOwn={false} profile={publicProfile} polls={noPolls} isAuthenticated={false} />);
-		expect(screen.queryByRole('link', { name: /public\s+polls/ })).not.toBeInTheDocument();
+		expect(screen.queryByRole('link', { name: /Public polls voted in/ })).not.toBeInTheDocument();
 	});
 
 	it('lets the owner change their avatar from the header', () => {
@@ -178,7 +175,7 @@ describe('AccountPage', () => {
 
 		expect(screen.getByText("Couldn’t load polls.")).toBeInTheDocument();
 		expect(screen.queryByText('No polls yet.')).not.toBeInTheDocument();
-		expect(screen.queryByText(/votes\s+on\s+your\s+polls/)).not.toBeInTheDocument();
+		expect(screen.queryByText('Votes received')).not.toBeInTheDocument();
 		fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
 		expect(mockRefresh).toHaveBeenCalled();
 	});

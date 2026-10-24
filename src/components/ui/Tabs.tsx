@@ -37,6 +37,10 @@ const tabsListVariants = cva(
 				default: 'bg-muted',
 				line: 'w-full gap-0 border-b border-border bg-transparent p-0 group-data-horizontal/tabs:h-11',
 			},
+			// A page's own tabs: they stay under the phone Header as the list scrolls
+			sticky: {
+				true: 'sticky follow-header z-10 bg-background',
+			},
 		},
 		defaultVariants: {
 			variant: 'default',
@@ -50,6 +54,7 @@ const HoverMarkContext = createContext<HoverMark | null>(null);
 function TabsList({
 	className,
 	variant = 'default',
+	sticky,
 	onPointerOver,
 	onPointerLeave,
 	children,
@@ -60,7 +65,8 @@ function TabsList({
 		<TabsPrimitive.List
 			data-slot="tabs-list"
 			data-variant={variant}
-			className={cn(tabsListVariants({ variant }), className)}
+			data-sticky={sticky || undefined}
+			className={cn(tabsListVariants({ variant, sticky }), className)}
 			onPointerOver={(event) => {
 				onPointerOver?.(event);
 				hover.onPointerOver(event);
