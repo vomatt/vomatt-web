@@ -46,13 +46,16 @@ export async function OwnProfile({ profile }: { profile: MyProfile }) {
 export function ProfileSkeleton() {
 	return (
 		<div className="px-contain mx-auto max-w-3xl space-y-8 py-6 md:py-10">
-			<div className="flex items-center gap-4">
-				<Skeleton className="size-16 rounded-full" />
-				<div className="flex-1 space-y-2">
-					<Skeleton className="h-8 w-48" />
-					<Skeleton className="h-3.5 w-24" />
-					<Skeleton className="h-3.5 w-56" />
+			<div className="space-y-5">
+				<div className="flex items-center gap-4">
+					<Skeleton className="size-18 rounded-full md:size-20" />
+					<div className="flex-1 space-y-2">
+						<Skeleton className="h-8 w-48" />
+						<Skeleton className="h-3.5 w-24" />
+					</div>
 				</div>
+				<Skeleton className="h-3.5 w-56" />
+				<Skeleton className="h-[70px] rounded-2xl" />
 			</div>
 			<div>
 				<Skeleton className="mb-4 h-8 w-40" />

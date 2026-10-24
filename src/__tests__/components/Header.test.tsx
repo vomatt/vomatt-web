@@ -65,6 +65,24 @@ describe('Header', () => {
 		expect(header()).toHaveAttribute('data-hidden');
 	});
 
+	it('shows on a next page that fits the screen, scrolled back to the top', () => {
+		const { rerender } = render(<Header />);
+		scrollTo(400);
+		mockPathname = '/explore';
+		Object.defineProperty(document.documentElement, 'scrollHeight', { value: window.innerHeight, configurable: true });
+		rerender(<Header />);
+		scrollTo(0);
+		expect(header()).not.toHaveAttribute('data-hidden');
+	});
+
+	it('stays hidden on a navigation that keeps the scroll position', () => {
+		const { rerender } = render(<Header />);
+		scrollTo(400);
+		mockPathname = '/topic/food';
+		rerender(<Header />);
+		expect(header()).toHaveAttribute('data-hidden');
+	});
+
 	it('never hides on desktop, where the sidebar replaces it', () => {
 		mockIsMobile = false;
 		render(<Header />);

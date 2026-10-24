@@ -11,6 +11,7 @@ import {
 	Star,
 } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { formatUnreadCount, useUnreadCount } from '@/features/notifications/UnreadCountProvider';
 import { UnreadDot } from '@/features/notifications/UnreadDot';
 import { CreatePollTrigger } from '@/features/polls/components/CreatePollTrigger';
@@ -21,6 +22,7 @@ type TabBarProps = {
 	className?: string;
 	userSession?: any;
 	username?: string;
+	avatarUrl?: string | null;
 };
 
 // The center tab is the primary action: the create button as a square, the "Create a poll" action
@@ -28,7 +30,7 @@ const createClassName = cn(buttonVariants({ variant: 'create' }), 'w-13 px-0');
 const cellClassName =
 	'flex-1 h-full flex justify-center items-center outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring';
 
-export function TabBar({ className, userSession, username }: TabBarProps) {
+export function TabBar({ className, userSession, username, avatarUrl }: TabBarProps) {
 	const pathname = usePathname();
 	const { t } = useLanguage();
 	const { count: unreadCount } = useUnreadCount();
@@ -39,12 +41,12 @@ export function TabBar({ className, userSession, username }: TabBarProps) {
 		{
 			title: t('navigation.home'),
 			href: '/',
-			icon: <Home />,
+			icon: <Home className="size-6" />,
 		},
 		{
 			title: t('common.explore'),
 			href: '/explore',
-			icon: <Search />,
+			icon: <Search className="size-6" />,
 		},
 	];
 	const rightLinks = [
@@ -54,7 +56,7 @@ export function TabBar({ className, userSession, username }: TabBarProps) {
 			href: '/my-polls',
 			icon: (
 				<span className="relative">
-					<Star />
+					<Star className="size-6" />
 					{unreadCount > 0 && <UnreadDot label={`${formatUnreadCount(unreadCount)} ${t('notifications.unread')}`} className="absolute -right-1 -top-1" />}
 				</span>
 			),
@@ -62,7 +64,8 @@ export function TabBar({ className, userSession, username }: TabBarProps) {
 		{
 			title: t('navigation.profile'),
 			href: profileTabHref,
-			icon: <CircleUser />,
+			// Signed in, the tab is the person: the avatar they chose, as on their profile
+			icon: username ? <UserAvatar username={username} avatarUrl={avatarUrl} className="size-7" /> : <CircleUser className="size-6" />,
 		},
 	];
 
@@ -81,7 +84,7 @@ export function TabBar({ className, userSession, username }: TabBarProps) {
 			>
 				<span
 					className={cn(
-						'flex size-12 items-center justify-center [&_svg]:size-6',
+						'flex size-12 items-center justify-center',
 						isActive
 							? // Forced colors drop the shadow bar; the border takes its place
 								'text-foreground shadow-[inset_0_-2px_0_var(--foreground)] forced-colors:border-b-2'
