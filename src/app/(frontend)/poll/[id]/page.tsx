@@ -15,6 +15,7 @@ import { PollCard } from '@/features/polls/components/PollCard';
 import { PollCardSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import type { Poll } from '@/features/polls/schema';
 import { getInviteOnlyCreator, getPoll } from '@/features/polls/service';
+import { shareDescription } from '@/features/polls/sharePreview';
 import { derivePollStatus, isCancelled, isInvitee } from '@/features/polls/status';
 import { AuthError } from '@/lib/api/client';
 
@@ -41,13 +42,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 	const { poll } = await lookupPoll(id);
 	if (!poll) return { title: 'Vomatt' };
 
-	const description =
-		poll.description || poll.options.map((option) => option.text).join(' / ');
+	const description = shareDescription(poll);
 	return {
 		title: poll.title,
 		description,
 		openGraph: { title: poll.title, description, type: 'article' },
-		twitter: { card: 'summary', title: poll.title, description },
+		twitter: { card: 'summary_large_image', title: poll.title, description },
 	};
 }
 
