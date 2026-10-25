@@ -420,7 +420,20 @@
 		"viewReply": "查看 1 則回覆",
 		"viewReplies": "查看 {count} 則回覆",
 		"moreReplies": "顯示更多回覆",
-		"deleted": "此留言已刪除。"
+		"deleted": "此留言已刪除。",
+		"replying": "回覆中",
+		"replyingTo": "回覆",
+		"cancelReply": "取消回覆",
+		"editing": "編輯中",
+		"more": "更多",
+		"copyText": "複製文字",
+		"copyLink": "複製連結",
+		"textCopied": "已複製文字",
+		"linkCopied": "已複製連結",
+		"copyFailed": "無法複製。",
+		"deleteBody": "此操作無法復原。",
+		"deleteBodyReply": "它的 1 則回覆會留在討論中，顯示為已刪除的留言。此操作無法復原。",
+		"deleteBodyReplies": "它的 {count} 則回覆會留在討論中，顯示為已刪除的留言。此操作無法復原。"
 	},
 	"account": {
 		"usernameLabel": "使用者名稱",

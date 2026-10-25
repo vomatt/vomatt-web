@@ -1,6 +1,7 @@
 import { act, fireEvent, render, renderHook, screen, waitFor, within } from '@testing-library/react';
+import { useState } from 'react';
 
-import { CommentThread } from '@/features/polls/components/CommentThread';
+import { CommentThread, useCommentLink } from '@/features/polls/components/CommentThread';
 import { useComments } from '@/features/polls/hooks/useComments';
 
 jest.mock('next/link', () => {
@@ -9,7 +10,8 @@ jest.mock('next/link', () => {
 });
  
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
-jest.mock('sonner', () => ({ toast: { error: jest.fn() } }));
+jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn() } }));
+jest.mock('@/features/blocks/service', () => ({ blockUserByUsername: jest.fn() }));
 
 const service = {
 	getComments: jest.fn(),
@@ -56,7 +58,23 @@ const reply = {
 
 function Harness() {
 	const thread = useComments('poll-1', { enabled: true, initialTotal: 2 });
-	return <CommentThread thread={thread} viewerId="me" requireAuth={(action) => action()} />;
+	const [open, setOpen] = useState(true);
+	useCommentLink(thread);
+	return (
+		<>
+			<button type="button" onClick={() => setOpen((value) => !value)}>
+				Fold
+			</button>
+			{open && <CommentThread thread={thread} pollId="poll-1" viewerId="me" requireAuth={(action) => action()} />}
+		</>
+	);
+}
+
+/** Opens the "…" menu of the comment whose text this is and returns the menu. */
+async function openMenu(text: string) {
+	const article = screen.getByText(text).closest('article')!;
+	fireEvent.click(within(article).getAllByRole('button', { name: 'More' })[0]);
+	return screen.findByRole('menu');
 }
 
 describe('CommentThread', () => {
@@ -66,11 +84,20 @@ describe('CommentThread', () => {
 		expect(article.querySelector('img')).toHaveAttribute('src', '/avatars/bear.svg');
 	});
 
-	it('offers edit and delete only on the viewer\'s own comments', async () => {
+	it("offers edit and delete on the viewer's own comments, block on others'", async () => {
 		render(<Harness />);
 		await screen.findByText('Mine');
-		expect(screen.getAllByRole('button', { name: 'Edit' })).toHaveLength(1);
-		expect(screen.getAllByRole('button', { name: 'Delete' })).toHaveLength(1);
+
+		let menu = await openMenu('Mine');
+		expect(within(menu).getByRole('menuitem', { name: 'Edit' })).toBeInTheDocument();
+		expect(within(menu).getByRole('menuitem', { name: 'Delete' })).toBeInTheDocument();
+		expect(within(menu).queryByRole('menuitem', { name: 'Block' })).not.toBeInTheDocument();
+		fireEvent.keyDown(menu, { key: 'Escape' });
+		await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
+
+		menu = await openMenu('Theirs');
+		expect(within(menu).queryByRole('menuitem', { name: 'Edit' })).not.toBeInTheDocument();
+		expect(within(menu).getByRole('menuitem', { name: 'Block' })).toBeInTheDocument();
 	});
 
 	it('likes optimistically and rolls back on failure', async () => {
@@ -92,8 +119,10 @@ describe('CommentThread', () => {
 		render(<Harness />);
 		await screen.findByText('Mine');
 
-		fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
-		fireEvent.click(within(screen.getByRole('group')).getByRole('button', { name: 'Delete' }));
+		fireEvent.click(within(await openMenu('Mine')).getByRole('menuitem', { name: 'Delete' }));
+		const dialog = await screen.findByRole('alertdialog');
+		expect(dialog).toHaveTextContent('This can’t be undone.');
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Delete' }));
 
 		expect(service.deleteComment).toHaveBeenCalledWith('poll-1', 'c1');
 		await waitFor(() => expect(screen.queryByText('Mine')).not.toBeInTheDocument());
@@ -104,30 +133,33 @@ describe('CommentThread', () => {
 		render(<Harness />);
 		await screen.findByText('Mine');
 
-		fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
-		fireEvent.click(within(screen.getByRole('group')).getByRole('button', { name: 'Delete' }));
+		fireEvent.click(within(await openMenu('Mine')).getByRole('menuitem', { name: 'Delete' }));
+		fireEvent.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Delete' }));
 
 		await waitFor(() => expect(screen.getByRole('region', { name: 'Discussion' })).toHaveFocus());
 	});
 
-	it('returns focus to Delete when the delete is cancelled', async () => {
+	it('returns focus to the menu button when the delete is cancelled', async () => {
 		render(<Harness />);
 		await screen.findByText('Mine');
 
-		fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
-		fireEvent.click(within(screen.getByRole('group')).getByRole('button', { name: 'Cancel' }));
+		fireEvent.click(within(await openMenu('Mine')).getByRole('menuitem', { name: 'Delete' }));
+		fireEvent.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Cancel' }));
 
-		expect(screen.getByRole('button', { name: 'Delete' })).toHaveFocus();
+		const article = screen.getByText('Mine').closest('article')!;
+		await waitFor(() => expect(within(article).getByRole('button', { name: 'More' })).toHaveFocus());
 	});
 
-	it('returns focus to Edit when editing is cancelled', async () => {
+	it('edits in place and returns focus to the menu button when editing is cancelled', async () => {
 		render(<Harness />);
 		await screen.findByText('Mine');
 
-		fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
+		fireEvent.click(within(await openMenu('Mine')).getByRole('menuitem', { name: 'Edit' }));
+		expect(screen.getByRole('textbox', { name: 'Edit' })).toHaveValue('Mine');
 		fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
 
-		expect(screen.getByRole('button', { name: 'Edit' })).toHaveFocus();
+		const article = screen.getByText('Mine').closest('article')!;
+		await waitFor(() => expect(within(article).getByRole('button', { name: 'More' })).toHaveFocus());
 	});
 
 	it('loads replies on demand', async () => {
@@ -155,13 +187,155 @@ describe('CommentThread', () => {
 		await screen.findByText('A reply');
 
 		fireEvent.click(screen.getAllByRole('button', { name: 'Reply' })[1]);
+		expect(screen.getByText('Replying to')).toBeInTheDocument();
 		const box = screen.getByRole('textbox', { name: 'Write a reply…' });
-		expect(box).toHaveValue('@mei ');
-		fireEvent.change(box, { target: { value: '@mei agreed' } });
+		fireEvent.change(box, { target: { value: 'agreed' } });
 		fireEvent.submit(box.closest('form')!);
 
 		await waitFor(() => expect(service.postComment).toHaveBeenCalledWith('poll-1', '@mei agreed', 'c1'));
-		expect(await screen.findByText('@mei agreed')).toBeInTheDocument();
+		// The leading mention becomes an addressee chip that jumps to the reply it answers
+		const posted = await screen.findByText('agreed');
+		const chip = within(posted.closest('[id^=comment-]')!).getByRole('button', { name: 'Replying to mei' });
+		const target = screen.getByText('A reply').closest('[id^=comment-]')!;
+		target.scrollIntoView = jest.fn();
+		target.animate = jest.fn();
+		fireEvent.click(chip);
+		expect(target.scrollIntoView).toHaveBeenCalled();
+	});
+
+	describe('a reply to a reply', () => {
+		const answer = { ...reply, id: 'r2', userId: 'me', author: 'klaus', text: '@mei agreed' };
+
+		beforeEach(() => {
+			service.getComments.mockResolvedValue({
+				ok: true,
+				data: { items: [{ ...mine, replyCount: 2 }], nextCursor: null },
+			});
+			service.getReplies.mockResolvedValue({ ok: true, data: { items: [reply, answer], nextCursor: null } });
+		});
+
+		beforeEach(async () => {
+			render(<Harness />);
+			fireEvent.click(await screen.findByRole('button', { name: 'View 2 replies' }));
+		});
+
+		async function openReplyMenu(text: string) {
+			const item = (await screen.findByText(text)).closest<HTMLElement>('[id^=comment-]')!;
+			fireEvent.click(within(item).getByRole('button', { name: 'More' }));
+			return screen.findByRole('menu');
+		}
+
+		it('edits the text without the mention and keeps it on save', async () => {
+			service.updateComment.mockResolvedValue({ ok: true, data: { ...answer, text: '@mei fully agreed' } });
+			fireEvent.click(within(await openReplyMenu('agreed')).getByRole('menuitem', { name: 'Edit' }));
+
+			const box = screen.getByRole('textbox', { name: 'Edit' });
+			expect(box).toHaveValue('agreed');
+			fireEvent.change(box, { target: { value: 'fully agreed' } });
+			fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+			await waitFor(() => expect(service.updateComment).toHaveBeenCalledWith('poll-1', 'r2', '@mei fully agreed'));
+		});
+
+		it('does not save an edit that leaves the text as it was', async () => {
+			service.getReplies.mockResolvedValue({
+				ok: true,
+				data: { items: [reply, { ...answer, text: '@mei\nagreed' }], nextCursor: null },
+			});
+			fireEvent.click(within(await openReplyMenu('agreed')).getByRole('menuitem', { name: 'Edit' }));
+			fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+			await waitFor(() => expect(screen.queryByRole('textbox', { name: 'Edit' })).not.toBeInTheDocument());
+			expect(service.updateComment).not.toHaveBeenCalled();
+		});
+
+		it('takes the mention from the edit limit', async () => {
+			fireEvent.click(within(await openReplyMenu('agreed')).getByRole('menuitem', { name: 'Edit' }));
+			expect(screen.getByRole('textbox', { name: 'Edit' })).toHaveAttribute('maxLength', String(2000 - '@mei '.length));
+		});
+
+		it('copies the text without the mention, and a link that names the reply under its comment', async () => {
+			const writeText = jest.fn().mockResolvedValue(undefined);
+			Object.assign(navigator, { clipboard: { writeText } });
+			try {
+				fireEvent.click(within(await openReplyMenu('agreed')).getByRole('menuitem', { name: 'Copy text' }));
+				await waitFor(() => expect(writeText).toHaveBeenCalledWith('agreed'));
+				await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
+
+				fireEvent.click(within(await openReplyMenu('A reply')).getByRole('menuitem', { name: 'Copy link' }));
+				await waitFor(() => expect(writeText).toHaveBeenCalledWith('http://localhost/poll/poll-1#comment-c1/r1'));
+			} finally {
+				delete (navigator as { clipboard?: unknown }).clipboard;
+			}
+		});
+
+		it('counts the mention toward the length of a reply to a reply', async () => {
+			await screen.findByText('A reply');
+			fireEvent.click(screen.getAllByRole('button', { name: 'Reply' })[1]);
+			const box = screen.getByRole('textbox', { name: 'Write a reply…' });
+			fireEvent.change(box, { target: { value: 'x'.repeat(2000 - '@mei '.length + 1) } });
+
+			expect(screen.getByText(`${2000 - '@mei '.length + 1} / ${2000 - '@mei '.length}`)).toBeInTheDocument();
+			expect(within(box.closest('form')!).getByRole('button', { name: 'Reply' })).toBeDisabled();
+		});
+	});
+
+	it('keeps a leading mention as text when no earlier reply is by that author', async () => {
+		service.getComments.mockResolvedValue({
+			ok: true,
+			data: { items: [{ ...mine, replyCount: 1 }], nextCursor: null },
+		});
+		service.getReplies.mockResolvedValue({ ok: true, data: { items: [{ ...reply, text: '@everyone read this' }], nextCursor: null } });
+		render(<Harness />);
+		fireEvent.click(await screen.findByRole('button', { name: 'View 1 reply' }));
+
+		expect(await screen.findByText('@everyone read this')).toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'everyone' })).not.toBeInTheDocument();
+	});
+
+	it('shows the reply a copied link names once its comment and replies have loaded', async () => {
+		service.getComments.mockResolvedValue({
+			ok: true,
+			data: { items: [{ ...mine, replyCount: 1 }], nextCursor: null },
+		});
+		service.getReplies.mockResolvedValue({ ok: true, data: { items: [reply], nextCursor: null } });
+		const scrollIntoView = jest.fn(function (this: Element) {
+			return this.id;
+		});
+		const { scrollIntoView: realScroll, animate: realAnimate } = Element.prototype;
+		Element.prototype.scrollIntoView = scrollIntoView;
+		Element.prototype.animate = jest.fn();
+		window.location.hash = '#comment-c1/r1';
+		try {
+			render(<Harness />);
+			await waitFor(() => expect(scrollIntoView).toHaveBeenCalled());
+			expect(service.getReplies).toHaveBeenCalledWith('poll-1', 'c1', undefined);
+			expect(scrollIntoView.mock.contexts[0]).toHaveAttribute('id', 'comment-r1');
+
+			// Folding and reopening the discussion doesn't jump back to it
+			fireEvent.click(screen.getByRole('button', { name: 'Fold' }));
+			fireEvent.click(screen.getByRole('button', { name: 'Fold' }));
+			await screen.findByText('A reply');
+			expect(scrollIntoView).toHaveBeenCalledTimes(1);
+		} finally {
+			window.location.hash = '';
+			Element.prototype.scrollIntoView = realScroll;
+			Element.prototype.animate = realAnimate;
+		}
+	});
+
+	it('drops a blocked user’s comments from the list', async () => {
+		const { blockUserByUsername } = jest.requireMock('@/features/blocks/service');
+		blockUserByUsername.mockResolvedValue({ ok: true, data: { found: true } });
+		render(<Harness />);
+		await screen.findByText('Theirs');
+
+		fireEvent.click(within(await openMenu('Theirs')).getByRole('menuitem', { name: 'Block' }));
+		fireEvent.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Block' }));
+
+		await waitFor(() => expect(screen.queryByText('Theirs')).not.toBeInTheDocument());
+		expect(blockUserByUsername).toHaveBeenCalledWith('mei');
+		expect(service.getComments).toHaveBeenCalledTimes(1);
 	});
 
 	it('lists a new reply after the older ones it loads first', async () => {
@@ -257,6 +431,45 @@ describe('useComments', () => {
 			await result.current.loadReplies('c1');
 		});
 		expect(result.current.replies.c1).toMatchObject({ status: 'ready', items: [reply] });
+	});
+
+	it('drops a blocked author’s threads and replies, and stops counting those replies', async () => {
+		service.getComments.mockResolvedValue({
+			ok: true,
+			data: {
+				items: [
+					{ ...mine, replyCount: 2 },
+					theirs,
+					{ ...mine, id: 'c3', deleted: true, author: null, text: null, userId: null, replyCount: 1 },
+				],
+				nextCursor: null,
+			},
+		});
+		service.getReplies.mockImplementation((_poll: string, rootId: string) =>
+			Promise.resolve({
+				ok: true,
+				data: {
+					items:
+						rootId === 'c1'
+							? [reply, { ...reply, id: 'r2', userId: 'me', author: 'klaus' }]
+							: [{ ...reply, id: 'r3', parentId: 'c3' }],
+					nextCursor: null,
+				},
+			})
+		);
+		const { result } = renderHook(() => useComments('poll-1', { enabled: true }));
+		await waitFor(() => expect(result.current.status).toBe('ready'));
+		await act(async () => {
+			await result.current.loadReplies('c1');
+		});
+		await act(async () => {
+			await result.current.loadReplies('c3');
+		});
+
+		act(() => result.current.dropAuthor('mei'));
+		expect(result.current.comments.map((c) => c.id)).toEqual(['c1']);
+		expect(result.current.comments[0].replyCount).toBe(1);
+		expect(result.current.replies.c1.items.map((c) => c.id)).toEqual(['r2']);
 	});
 
 	it('files a reply under its top-level comment and counts it', async () => {

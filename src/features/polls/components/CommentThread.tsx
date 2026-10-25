@@ -1,49 +1,142 @@
 'use client';
 
+import { Menu } from '@base-ui/react/menu';
 import { AnimatePresence, m } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from '@/components/ui/AlertDialog';
 import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { Heart } from '@/components/ui/SvgIcons';
+import { Ban, Copy, Ellipsis, Heart, Link2, Pencil, Reply, Trash2, X } from '@/components/ui/SvgIcons';
 import { Textarea } from '@/components/ui/Textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
+import { BlockUserDialog } from '@/features/blocks/BlockUserDialog';
 import { ProfileAvatar, ProfileName } from '@/features/profiles/UserChip';
 import { useHydrated } from '@/hooks/useHydrated';
 import { cn } from '@/lib/utils';
 
+import { chipClassName } from '../chip';
 import { formatFromNow } from '../format';
 import type { CommentsState } from '../hooks/useComments';
 import type { Comment } from '../schema';
 import { CreateCommentRequestSchema } from '../schema';
+import { pollUrl } from '../url';
 
 const COMMENT_MAX = CreateCommentRequestSchema.shape.text.maxLength ?? 2000;
-const COUNTER_FROM = COMMENT_MAX - 200;
-// Small text links with a 44px tall hit area; the negative margins keep the row compact, so rows
-// around them need at least 16px (space-y-4) between them or the hit areas overlap
-const actionClassName = 'inline-flex min-h-11 -my-3.5 -mx-1.5 items-center px-1.5';
+// The counter shows once the text is this close to its limit
+const COUNTER_WITHIN = 200;
+
+/** A Reply to a reply is saved as `@name text`, so the mention takes from the text's limit. */
+function textMax(addressee: string | null) {
+	return COMMENT_MAX - (addressee ? `@${addressee} `.length : 0);
+}
+
+// Like and Reply are 32px pills (36px on phones); the ::before extends the hit area to 44px
+const pillClassName =
+	"relative inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium text-muted-foreground transition-colors before:absolute before:inset-x-0 before:-inset-y-1 before:content-[''] hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring md:h-8";
+const menuItemClassName =
+	'flex h-9 cursor-pointer select-none items-center gap-2.5 rounded-lg px-2.5 text-sm outline-none data-highlighted:bg-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring';
+
+/** The 2px line that runs down the avatar rail, and the elbow a reply branches off it with. */
+function Elbow({ continues }: { continues: boolean }) {
+	return (
+		<div aria-hidden className="relative w-8 shrink-0 self-stretch">
+			{continues && <div className="absolute top-0 left-[15px] h-full w-0.5 bg-border" />}
+			<div className="absolute -top-0.5 left-[15px] h-[18px] w-7 rounded-bl-xl border-b-2 border-l-2 border-border" />
+		</div>
+	);
+}
+
+/** A reply to a reply opens with `@name `; the chip shows who it answers and the text loses the mention. */
+function splitAddressee(text: string) {
+	const match = /^@([\w.-]+)\s+/.exec(text);
+	return match ? { addressee: match[1], text: text.slice(match[0].length) } : { addressee: null, text };
+}
+
+/** A comment's link: `#comment-<id>`, or `#comment-<rootId>/<replyId>` for a Reply, whose list loads on demand. */
+function commentHash(comment: Comment) {
+	return `#comment-${comment.parentId ? `${comment.parentId}/${comment.id}` : comment.id}`;
+}
+
+/** Scrolls a comment into view and flashes it, for a copied link or an addressee chip. */
+function showComment(id: string) {
+	const el = document.getElementById(`comment-${id}`);
+	if (!el) return;
+	el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+	el.animate([{ backgroundColor: 'var(--highlight-tint)' }, { backgroundColor: 'transparent' }], {
+		duration: 1200,
+		easing: 'ease-out',
+	});
+}
 
 type CommentThreadProps = {
 	thread: CommentsState;
+	/** The Poll the thread belongs to, for a comment's link. */
+	pollId: string;
 	/** The signed-in viewer's user id, to offer edit and delete on their comments. */
 	viewerId?: string;
 	requireAuth: (action: () => void) => void;
 };
 
+/**
+ * A copied link names a comment that loads after the page does; this shows it once it has. Call it
+ * where the thread lives, not in CommentThread, which unmounts when the discussion folds.
+ */
+export function useCommentLink(thread: CommentsState) {
+	const link = useRef<{ rootId: string; replyId?: string } | null>(null);
+	useEffect(() => {
+		const match = /^#comment-([^/]+)(?:\/(.+))?$/.exec(window.location.hash);
+		if (match) link.current = { rootId: match[1], replyId: match[2] };
+	}, []);
+	useEffect(() => {
+		const target = link.current;
+		if (!target || thread.status !== 'ready') return;
+		let id = target.rootId;
+		if (target.replyId && thread.comments.some((c) => c.id === target.rootId)) {
+			const replyList = thread.replies[target.rootId];
+			if (!replyList) {
+				thread.loadReplies(target.rootId);
+				return;
+			}
+			if (replyList.status === 'loading') return;
+			if (replyList.items.some((r) => r.id === target.replyId)) id = target.replyId;
+		}
+		link.current = null;
+		showComment(id);
+	});
+}
+
 /** Discussion under a Poll. Results stay sealed while it is open, so this is where people argue their case. */
-export function CommentThread({ thread, viewerId, requireAuth }: CommentThreadProps) {
+export function CommentThread({ thread, pollId, viewerId, requireAuth }: CommentThreadProps) {
 	const { t } = useLanguage();
 
 	return (
 		// tabIndex lets focus land here after a comment is deleted
 		<section
+			id="discussion"
 			aria-label={t('comments.title')}
 			data-comment-thread
 			tabIndex={-1}
-			className="space-y-4 border-t border-border/60 px-5 py-4 outline-none"
+			className="space-y-[18px] border-t border-border/60 px-5 py-5 outline-none"
 		>
+			<div className="flex items-baseline gap-2">
+				<h2 className="item-title">{t('comments.title')}</h2>
+				{thread.total !== undefined && (
+					<span className="font-mono text-[13px] text-muted-foreground tabular-nums">{thread.total}</span>
+				)}
+			</div>
+
 			<Composer
 				placeholder={t('comments.placeholder')}
 				requireAuth={requireAuth}
@@ -74,7 +167,7 @@ export function CommentThread({ thread, viewerId, requireAuth }: CommentThreadPr
 				<p className="text-sm text-muted-foreground">{t('comments.empty')}</p>
 			)}
 
-			<ul className="space-y-4">
+			<ul className="space-y-5">
 				<AnimatePresence initial={false}>
 					{thread.comments.map((comment) => (
 						<m.li
@@ -87,6 +180,7 @@ export function CommentThread({ thread, viewerId, requireAuth }: CommentThreadPr
 						>
 							<CommentItem
 								comment={comment}
+								pollId={pollId}
 								viewerId={viewerId}
 								thread={thread}
 								requireAuth={requireAuth}
@@ -100,7 +194,7 @@ export function CommentThread({ thread, viewerId, requireAuth }: CommentThreadPr
 				<Button
 					size="sm"
 					variant="ghost"
-					className="w-full text-muted-foreground"
+					className="w-full text-[13px] text-muted-foreground"
 					disabled={thread.isLoadingMore}
 					onClick={thread.loadMore}
 				>
@@ -111,25 +205,30 @@ export function CommentThread({ thread, viewerId, requireAuth }: CommentThreadPr
 	);
 }
 
+/** Who an inline Reply answers: the top-level Comment, or one of its Replies. */
+type ReplyTarget = { reply: Comment | null };
+
 function Composer({
 	onPost,
 	requireAuth,
 	placeholder,
-	initialText = '',
+	replyTarget,
 	onCancel,
 }: {
 	onPost: (text: string) => Promise<boolean>;
 	requireAuth: (action: () => void) => void;
 	placeholder: string;
-	initialText?: string;
-	/** Shown for an inline Reply composer. */
+	/** Set for an inline Reply composer; its reply (if any) is named above the field. */
+	replyTarget?: ReplyTarget;
 	onCancel?: () => void;
 }) {
 	const { t } = useLanguage();
-	const [text, setText] = useState(initialText);
+	const [text, setText] = useState('');
 	const [isPosting, setIsPosting] = useState(false);
 	const trimmed = text.trim();
-	const tooLong = text.length > COMMENT_MAX;
+	const addressee = replyTarget?.reply?.author ?? null;
+	const max = textMax(addressee);
+	const tooLong = text.length > max;
 
 	// Signed-out visitors sign in first; the text stays put if they back out
 	const submit = () => {
@@ -137,7 +236,7 @@ function Composer({
 		requireAuth(async () => {
 			setIsPosting(true);
 			setText('');
-			const ok = await onPost(trimmed);
+			const ok = await onPost(addressee ? `@${addressee} ${trimmed}` : trimmed);
 			setIsPosting(false);
 			if (!ok) setText(trimmed);
 		});
@@ -145,12 +244,31 @@ function Composer({
 
 	return (
 		<form
-			className="space-y-2"
+			className="flex flex-col gap-2"
 			onSubmit={(event) => {
 				event.preventDefault();
 				submit();
 			}}
 		>
+			{addressee && (
+				<div className="flex items-center gap-2 text-xs text-muted-foreground">
+					<Reply aria-hidden className="size-[13px] shrink-0" />
+					<span className="shrink-0 font-medium">
+						{t('comments.replyingTo')} <span className="text-foreground">{addressee}</span>
+					</span>
+					{replyTarget?.reply?.text && (
+						<span className="min-w-0 flex-1 truncate">· {splitAddressee(replyTarget.reply.text).text}</span>
+					)}
+					<button
+						type="button"
+						aria-label={t('comments.cancelReply')}
+						onClick={onCancel}
+						className="ml-auto flex size-7 shrink-0 items-center justify-center rounded-full hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring"
+					>
+						<X className="size-4" />
+					</button>
+				</div>
+			)}
 			<Textarea
 				value={text}
 				onChange={(event) => setText(event.target.value)}
@@ -164,17 +282,17 @@ function Composer({
 				aria-label={placeholder}
 				rows={2}
 				autoFocus={!!onCancel}
-				className="min-h-[60px] resize-none text-sm"
+				className="relative min-h-[60px] resize-none"
 			/>
-			<div className="flex items-center justify-end gap-3">
-				{text.length > COUNTER_FROM && (
+			<div className="flex items-center justify-end gap-1.5">
+				{text.length > max - COUNTER_WITHIN && (
 					<span
 						className={cn(
-							'font-mono text-xs tabular-nums',
+							'mr-auto font-mono text-xs tabular-nums',
 							tooLong ? 'text-destructive' : 'text-muted-foreground'
 						)}
 					>
-						{text.length}/{COMMENT_MAX}
+						{text.length} / {max}
 					</span>
 				)}
 				{onCancel && (
@@ -192,23 +310,20 @@ function Composer({
 
 type CommentItemProps = {
 	comment: Comment;
+	pollId: string;
 	viewerId?: string;
 	thread: CommentsState;
 	requireAuth: (action: () => void) => void;
-	/** Opens the top-level Comment's Reply composer, addressed to this author. */
-	onReply?: (author: string) => void;
 };
 
 /** A top-level Comment and its Replies. Replies are one level deep. */
-function CommentItem(props: Omit<CommentItemProps, 'onReply'>) {
-	const { comment, viewerId, thread, requireAuth } = props;
+function CommentItem({ comment, pollId, viewerId, thread, requireAuth }: CommentItemProps) {
 	const { t } = useLanguage();
 	// Replying to a Reply addresses its author; the API files it under this Comment
-	const [replyPrefix, setReplyPrefix] = useState<string | null>(null);
+	const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(null);
 	const replyList = thread.replies[comment.id];
 	const replyCount = comment.replyCount ?? 0;
-	const openComposer = (author?: string | null) =>
-		requireAuth(() => setReplyPrefix(author ? `@${author} ` : ''));
+	const openComposer = (reply: Comment | null) => requireAuth(() => setReplyTarget({ reply }));
 
 	// One button walks the Replies: view them, retry a failed page, or load more
 	let repliesAction: string | null = null;
@@ -222,74 +337,160 @@ function CommentItem(props: Omit<CommentItemProps, 'onReply'>) {
 		repliesAction = t('comments.moreReplies');
 	}
 
+	const replies = replyList?.items ?? [];
+	const isLoadingReplies = replyList?.status === 'loading';
+	// The rail runs from the root avatar down to whatever hangs off it last
+	const tail = [isLoadingReplies, !!repliesAction, replyTarget !== null].filter(Boolean).length;
+	const hasRail = replies.length + tail > 0;
+
+	/** The reply a reply's leading `@name` answers: the closest earlier one by that author. */
+	const findAddressee = (from: number, author: string) => {
+		for (let i = from - 1; i >= 0; i--) if (replies[i].author === author) return replies[i];
+		return undefined;
+	};
+
 	return (
-		<div className="space-y-4">
-			<CommentBody {...props} onReply={() => openComposer()} />
-			{(replyCount > 0 || replyList || replyPrefix !== null) && (
-				<div className="ml-11 space-y-4 border-l border-border/60 pl-3">
-					{replyList && (
-						<ul className="space-y-4">
-							{replyList.items.map((reply) => (
-								<li key={reply.id}>
-									<CommentBody
-										comment={reply}
-										viewerId={viewerId}
-										thread={thread}
-										requireAuth={requireAuth}
-										onReply={(author) => openComposer(author)}
-									/>
-								</li>
-							))}
-						</ul>
-					)}
-					{replyList?.status === 'loading' && <Skeleton className="h-10 rounded-lg" />}
-					{repliesAction && (
-						<button
-							type="button"
-							// Takes its full 44px in the stack, so it never shares a hit area with a neighbor
-							className="-mx-1.5 inline-flex min-h-11 items-center px-1.5 text-xs font-medium text-muted-foreground hover:text-foreground"
-							onClick={() => thread.loadReplies(comment.id)}
+		<article id={`comment-${comment.id}`} className="flex flex-col">
+			<div className="flex items-start gap-3">
+				<div className="flex w-8 shrink-0 flex-col items-center self-stretch">
+					<Avatar comment={comment} size="root" />
+					{hasRail && <div aria-hidden className="mt-1.5 w-0.5 flex-1 bg-border" />}
+				</div>
+				<CommentBody
+					comment={comment}
+					pollId={pollId}
+					viewerId={viewerId}
+					thread={thread}
+					requireAuth={requireAuth}
+					className={cn('pb-1.5', !hasRail && 'pb-0')}
+					replying={replyTarget !== null && replyTarget.reply === null}
+					onReply={() => openComposer(null)}
+				/>
+			</div>
+
+			{replies.map((reply, index) => {
+				const isTarget = replyTarget?.reply?.id === reply.id;
+				return (
+					<div key={reply.id} className="flex items-start gap-3">
+						<Elbow continues={index < replies.length - 1 || tail > 0} />
+						<div
+							id={`comment-${reply.id}`}
+							className={cn(
+								'flex min-w-0 flex-1 items-start gap-2.5 rounded-xl',
+								isTarget && '-mr-3 -ml-1 bg-highlight-tint py-1 pr-3 pl-1'
+							)}
 						>
-							{repliesAction}
-						</button>
-					)}
-					{replyPrefix !== null && (
+							<Avatar comment={reply} size="reply" />
+							<CommentBody
+								comment={reply}
+								pollId={pollId}
+								viewerId={viewerId}
+								thread={thread}
+								requireAuth={requireAuth}
+								className="pt-1.5 pb-1.5"
+								replying={isTarget}
+								onReply={() => openComposer(reply)}
+								findAddressee={(author) => findAddressee(index, author)}
+							/>
+						</div>
+					</div>
+				);
+			})}
+
+			{isLoadingReplies && (
+				<div className="flex items-start gap-3">
+					<Elbow continues={tail > 1} />
+					<Skeleton className="mt-1 h-10 flex-1 rounded-lg" />
+				</div>
+			)}
+
+			{repliesAction && (
+				<div className="flex items-center gap-3">
+					<Elbow continues={replyTarget !== null} />
+					<button
+						type="button"
+						className="mt-0.5 inline-flex h-9 items-center text-[13px] font-medium text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring"
+						onClick={() => thread.loadReplies(comment.id)}
+					>
+						{repliesAction}
+					</button>
+				</div>
+			)}
+
+			{replyTarget !== null && (
+				<div className="flex items-start gap-3">
+					<Elbow continues={false} />
+					<div className="min-w-0 flex-1 pt-1 pb-1.5">
 						<Composer
-							key={replyPrefix}
+							key={replyTarget.reply?.id ?? 'root'}
 							placeholder={t('comments.replyPlaceholder')}
-							initialText={replyPrefix}
+							replyTarget={replyTarget}
 							requireAuth={requireAuth}
-							onCancel={() => setReplyPrefix(null)}
+							onCancel={() => setReplyTarget(null)}
 							onPost={async (text) => {
 								// Show the thread the Reply lands in
 								if (!replyList && replyCount > 0) await thread.loadReplies(comment.id);
 								const ok = await thread.add(text, t('comments.you'), comment.id);
-								if (ok) setReplyPrefix(null);
+								if (ok) setReplyTarget(null);
 								else toast.error(t('comments.postFailed'));
 								return ok;
 							}}
 						/>
-					)}
+					</div>
 				</div>
 			)}
-		</div>
+		</article>
 	);
 }
 
-function CommentBody({ comment, viewerId, thread, requireAuth, onReply }: CommentItemProps) {
+/** The root avatar is 32px; a reply's is 24px, sitting on the elbow. */
+function Avatar({ comment, size }: { comment: Comment; size: 'root' | 'reply' }) {
+	const className = size === 'root' ? 'size-8' : 'mt-1 size-6';
+	if (comment.deleted || !comment.author) {
+		return <div aria-hidden className={cn('shrink-0 rounded-full border border-dashed border-border-strong', className)} />;
+	}
+	if (comment.id.startsWith('pending-')) {
+		return <UserAvatar username={comment.author} avatarUrl={comment.authorAvatarUrl} className={className} />;
+	}
+	return <ProfileAvatar username={comment.author} avatarUrl={comment.authorAvatarUrl} className={className} />;
+}
+
+type CommentBodyProps = CommentItemProps & {
+	className?: string;
+	/** The inline Reply composer is open, addressed to this comment. */
+	replying: boolean;
+	onReply: () => void;
+	/** On a reply: the earlier reply its leading `@name` answers, which turns the mention into a chip. */
+	findAddressee?: (author: string) => Comment | undefined;
+};
+
+function CommentBody({
+	comment,
+	pollId,
+	viewerId,
+	thread,
+	requireAuth,
+	className,
+	replying,
+	onReply,
+	findAddressee,
+}: CommentBodyProps) {
 	const { t, currentLanguage } = useLanguage();
 	const isHydrated = useHydrated();
 	const [isEditing, setIsEditing] = useState(false);
-	const [draft, setDraft] = useState(comment.text ?? '');
+	const [draft, setDraft] = useState('');
 	const [confirmingDelete, setConfirmingDelete] = useState(false);
-	// The control that unmounted when an edit or delete closes gets focus back once it's rendered again
-	const returnFocus = useRef<'edit' | 'delete' | null>(null);
-	const editRef = useRef<HTMLButtonElement>(null);
-	const deleteRef = useRef<HTMLButtonElement>(null);
+	const [confirmingBlock, setConfirmingBlock] = useState(false);
+	// The "…" button gets focus back once whatever the menu opened closes
+	const returnFocus = useRef(false);
+	const moreRef = useRef<HTMLButtonElement>(null);
+	// Closing the delete dialog returns focus to "…", except after a delete: the comment is gone, so
+	// focus lands on the discussion (the dialog only focuses tabbable elements, so it is done here)
+	const isDeleting = useRef(false);
 	useEffect(() => {
 		if (!returnFocus.current) return;
-		(returnFocus.current === 'edit' ? editRef : deleteRef).current?.focus();
-		returnFocus.current = null;
+		moreRef.current?.focus();
+		returnFocus.current = false;
 	});
 	const isPending = comment.id.startsWith('pending-');
 	const isOwn = !!viewerId && comment.userId === viewerId;
@@ -297,160 +498,256 @@ function CommentBody({ comment, viewerId, thread, requireAuth, onReply }: Commen
 
 	if (comment.deleted || !comment.author) {
 		return (
-			<article className="flex gap-3">
-				<div aria-hidden className="size-8 shrink-0 rounded-full border border-dashed border-border" />
-				<p className="pt-1.5 text-sm italic text-muted-foreground">{t('comments.deleted')}</p>
-			</article>
+			<p className={cn('min-w-0 flex-1 text-sm leading-8 text-muted-foreground italic', className)}>
+				{t('comments.deleted')}
+			</p>
 		);
 	}
 	const author = comment.author;
+	// A leading `@name` that answers an earlier reply shows as a chip; the text, its edits and copies leave it out
+	const mention = splitAddressee(comment.text ?? '');
+	const answered = mention.addressee ? findAddressee?.(mention.addressee) : undefined;
+	const addressee = answered ? mention.addressee : null;
+	const text = answered ? mention.text : (comment.text ?? '');
+
+	const openEdit = () => {
+		setDraft(text);
+		setIsEditing(true);
+	};
 
 	const saveEdit = async () => {
-		const text = draft.trim();
-		if (!text || text === comment.text) {
+		const body = draft.trim();
+		if (!body || body === text.trim()) {
 			closeEdit();
 			return;
 		}
-		if (await thread.edit(comment.id, text)) closeEdit();
+		const next = addressee ? `@${addressee} ${body}` : body;
+		if (await thread.edit(comment.id, next)) closeEdit();
 		else toast.error(t('comments.editFailed'));
 	};
 
 	const closeEdit = () => {
-		returnFocus.current = 'edit';
+		returnFocus.current = true;
 		setIsEditing(false);
 	};
 
-	const confirmDelete = async (event: React.MouseEvent<HTMLButtonElement>) => {
-		const threadEl = event.currentTarget.closest<HTMLElement>('[data-comment-thread]');
+	const confirmDelete = async () => {
+		const threadEl = moreRef.current?.closest<HTMLElement>('[data-comment-thread]');
+		isDeleting.current = true;
 		setConfirmingDelete(false);
-		if (await thread.remove(comment)) threadEl?.focus();
+		const ok = await thread.remove(comment);
+		isDeleting.current = false;
+		if (ok) threadEl?.focus();
 		else {
-			deleteRef.current?.focus();
+			moreRef.current?.focus();
 			toast.error(t('comments.deleteFailed'));
 		}
 	};
 
+	const copy = async (value: string, done: string) => {
+		try {
+			await navigator.clipboard.writeText(value);
+			toast.success(done);
+		} catch {
+			toast.error(t('comments.copyFailed'));
+		}
+	};
+
 	return (
-		<article className={cn('flex gap-3', isPending && 'opacity-60')}>
-			{isPending ? (
-				<UserAvatar username={author} avatarUrl={comment.authorAvatarUrl} />
-			) : (
-				<ProfileAvatar username={author} avatarUrl={comment.authorAvatarUrl} />
-			)}
-			<div className="min-w-0 flex-1">
-				<div className="flex flex-wrap items-baseline gap-x-2 text-xs">
-					{isPending ? (
-						<span className="font-medium text-foreground">{author}</span>
-					) : (
-						<ProfileName
-							username={author}
-							avatarUrl={comment.authorAvatarUrl}
-							className="font-medium text-foreground hover:underline"
-						/>
-					)}
-					<time dateTime={comment.createdAt} className="text-muted-foreground">
-						{isHydrated && formatFromNow(comment.createdAt, currentLanguage)}
-					</time>
-					{comment.edited && <span className="text-muted-foreground">{t('comments.edited')}</span>}
-				</div>
-
-				{isEditing ? (
-					<div className="mt-1.5 space-y-2">
-						<Textarea
-							value={draft}
-							onChange={(event) => setDraft(event.target.value)}
-							aria-label={t('comments.edit')}
-							maxLength={COMMENT_MAX}
-							rows={2}
-							className="resize-none"
-							autoFocus
-						/>
-						<div className="flex justify-end gap-1.5">
-							<Button size="sm" variant="ghost" onClick={closeEdit}>
-								{t('common.cancel')}
-							</Button>
-							<Button size="sm" onClick={saveEdit}>
-								{t('common.save')}
-							</Button>
-						</div>
-					</div>
+		<div className={cn('flex min-w-0 flex-1 flex-col gap-1', isPending && 'opacity-60', className)}>
+			<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+				{isPending ? (
+					<span className="text-[13px] font-medium text-foreground">{author}</span>
 				) : (
-					<p className="mt-0.5 whitespace-pre-wrap break-words text-sm leading-relaxed text-foreground/85">
-						{comment.text}
-					</p>
+					<ProfileName
+						username={author}
+						avatarUrl={comment.authorAvatarUrl}
+						className="text-[13px] font-medium text-foreground hover:underline"
+					/>
 				)}
-
-				{!isPending && !isEditing && (
-					<div className="mt-1.5 flex items-center gap-3 text-xs text-muted-foreground">
-						<button
-							type="button"
-							aria-pressed={!!comment.likedByCurrentUser}
-							aria-label={t('comments.like')}
-							onClick={() => requireAuth(() => thread.toggleLike(comment))}
-							className={cn(
-								actionClassName,
-								'gap-1 transition-colors hover:text-foreground',
-								comment.likedByCurrentUser && 'text-foreground'
-							)}
-						>
-							<m.span
-								key={comment.likedByCurrentUser ? 'liked' : 'unliked'}
-								initial={{ scale: comment.likedByCurrentUser ? 0.4 : 1 }}
-								animate={{ scale: 1 }}
-								transition={{ duration: 0.2, ease: [0.25, 1, 0.5, 1] }}
-								className="inline-flex"
-							>
-								<Heart className={cn('size-3.5', comment.likedByCurrentUser && 'fill-current')} />
-							</m.span>
-							{likes > 0 && <span className="tabular-nums">{likes}</span>}
-						</button>
-
-						{onReply && (
-							<button type="button" className={cn(actionClassName, 'hover:text-foreground')} onClick={() => onReply(author)}>
-								{t('comments.reply')}
-							</button>
-						)}
-						{isOwn && !confirmingDelete && (
-							<>
-								<button
-									ref={editRef}
-									type="button"
-									className={cn(actionClassName, 'hover:text-foreground')}
-									onClick={() => setIsEditing(true)}
-								>
-									{t('comments.edit')}
-								</button>
-								<button
-									ref={deleteRef}
-									type="button"
-									className={cn(actionClassName, 'hover:text-destructive')}
-									onClick={() => setConfirmingDelete(true)}
-								>
-									{t('common.delete')}
-								</button>
-							</>
-						)}
-						{confirmingDelete && (
-							<span role="group" aria-label={t('comments.deleteConfirm')} className="flex items-center gap-2">
-								<span>{t('comments.deleteConfirm')}</span>
-								<button type="button" className={cn(actionClassName, 'font-medium text-destructive')} onClick={confirmDelete}>
-									{t('common.delete')}
-								</button>
-								<button
-									type="button"
-									className={cn(actionClassName, 'hover:text-foreground')}
-									onClick={() => {
-										returnFocus.current = 'delete';
-										setConfirmingDelete(false);
-									}}
-								>
-									{t('common.cancel')}
-								</button>
-							</span>
-						)}
-					</div>
+				{isOwn && (
+					<span className={cn(chipClassName, 'bg-highlight px-[7px] leading-4 text-highlight-foreground')}>
+						{t('comments.you')}
+					</span>
+				)}
+				{isEditing ? (
+					<span>{t('comments.editing')}</span>
+				) : (
+					<>
+						<time dateTime={comment.createdAt} className="font-mono">
+							{isHydrated && formatFromNow(comment.createdAt, currentLanguage)}
+						</time>
+						{comment.edited && <span>{t('comments.edited')}</span>}
+					</>
 				)}
 			</div>
-		</article>
+
+			{isEditing ? (
+				<div className="mt-1 flex flex-col gap-2">
+					<Textarea
+						value={draft}
+						onChange={(event) => setDraft(event.target.value)}
+						aria-label={t('comments.edit')}
+						maxLength={textMax(addressee)}
+						rows={3}
+						className="resize-none"
+						autoFocus
+					/>
+					<div className="flex items-center gap-1.5">
+						<span className="mr-auto font-mono text-xs text-muted-foreground tabular-nums">
+							{draft.length} / {textMax(addressee)}
+						</span>
+						<Button size="sm" variant="ghost" onClick={closeEdit}>
+							{t('common.cancel')}
+						</Button>
+						<Button size="sm" onClick={saveEdit}>
+							{t('common.save')}
+						</Button>
+					</div>
+				</div>
+			) : (
+				<>
+					{addressee && (
+						<button
+							type="button"
+							aria-label={`${t('comments.replyingTo')} ${addressee}`}
+							onClick={() => answered && showComment(answered.id)}
+							className="inline-flex h-[22px] items-center gap-1.5 self-start rounded-full border border-border-strong pr-2 pl-1.5 text-xs font-medium text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring"
+						>
+							<Reply aria-hidden className="size-3" strokeWidth={2.2} />
+							{addressee}
+						</button>
+					)}
+					<p className="text-sm leading-[1.55] break-words whitespace-pre-wrap text-foreground">{text}</p>
+				</>
+			)}
+
+			{!isPending && !isEditing && (
+				<div className="-ml-2.5 mt-0.5 flex items-center gap-0.5">
+					<button
+						type="button"
+						aria-pressed={!!comment.likedByCurrentUser}
+						aria-label={t('comments.like')}
+						onClick={() => requireAuth(() => thread.toggleLike(comment))}
+						className={cn(pillClassName, comment.likedByCurrentUser && 'bg-highlight-tint text-foreground')}
+					>
+						<m.span
+							key={comment.likedByCurrentUser ? 'liked' : 'unliked'}
+							initial={{ scale: comment.likedByCurrentUser ? 0.4 : 1 }}
+							animate={{ scale: 1 }}
+							transition={{ duration: 0.2, ease: [0.25, 1, 0.5, 1] }}
+							className="inline-flex"
+						>
+							<Heart className={cn('size-[15px]', comment.likedByCurrentUser && 'fill-current')} strokeWidth={1.8} />
+						</m.span>
+						{likes > 0 && <span className="font-mono tabular-nums">{likes}</span>}
+					</button>
+
+					<button
+						type="button"
+						aria-pressed={replying}
+						onClick={onReply}
+						className={cn(pillClassName, replying && 'text-foreground')}
+					>
+						<Reply aria-hidden className="size-[15px]" strokeWidth={1.8} />
+						{replying ? t('comments.replying') : t('comments.reply')}
+					</button>
+
+					<Menu.Root>
+						<Menu.Trigger
+							ref={moreRef}
+							aria-label={t('comments.more')}
+							className={cn(pillClassName, 'w-9 justify-center px-0 data-popup-open:bg-field data-popup-open:text-foreground md:w-8')}
+						>
+							<Ellipsis className="size-4" fill="currentColor" />
+						</Menu.Trigger>
+						<Menu.Portal>
+							<Menu.Positioner side="bottom" align="start" sideOffset={4} className="z-50">
+								<Menu.Popup className="w-60 origin-(--transform-origin) rounded-xl bg-popover p-1.5 text-popover-foreground shadow-md ring-1 ring-foreground/10 transition-opacity duration-100 outline-none data-starting-style:opacity-0 data-ending-style:opacity-0">
+									{isOwn && (
+										<Menu.Item className={menuItemClassName} onClick={openEdit}>
+											<Pencil className="size-4" strokeWidth={1.8} />
+											{t('comments.edit')}
+										</Menu.Item>
+									)}
+									<Menu.Item className={menuItemClassName} onClick={() => copy(text, t('comments.textCopied'))}>
+										<Copy className="size-4" strokeWidth={1.8} />
+										{t('comments.copyText')}
+									</Menu.Item>
+									<Menu.Item
+										className={menuItemClassName}
+										onClick={() => copy(`${pollUrl(pollId)}${commentHash(comment)}`, t('comments.linkCopied'))}
+									>
+										<Link2 className="size-4" strokeWidth={1.8} />
+										{t('comments.copyLink')}
+									</Menu.Item>
+									<Menu.Separator className="mx-1 my-1.5 h-px bg-border" />
+									{isOwn ? (
+										<Menu.Item
+											className={cn(menuItemClassName, 'text-destructive')}
+											onClick={() => setConfirmingDelete(true)}
+										>
+											<Trash2 className="size-4" strokeWidth={1.8} />
+											{t('common.delete')}
+										</Menu.Item>
+									) : (
+										<Menu.Item
+											className={cn(menuItemClassName, 'text-destructive')}
+											onClick={() => requireAuth(() => setConfirmingBlock(true))}
+										>
+											<Ban className="size-4" strokeWidth={1.8} />
+											{t('blocks.block')}
+										</Menu.Item>
+									)}
+								</Menu.Popup>
+							</Menu.Positioner>
+						</Menu.Portal>
+					</Menu.Root>
+
+					<AlertDialog
+						open={confirmingDelete}
+						onOpenChange={setConfirmingDelete}
+					>
+						<AlertDialogContent finalFocus={() => (isDeleting.current ? false : moreRef.current)}>
+							<AlertDialogHeader>
+								<AlertDialogTitle>{t('comments.deleteConfirm')}</AlertDialogTitle>
+								<AlertDialogDescription>
+									{(comment.replyCount ?? 0) > 0
+										? t(comment.replyCount === 1 ? 'comments.deleteBodyReply' : 'comments.deleteBodyReplies', {
+												count: comment.replyCount ?? 0,
+											})
+										: t('comments.deleteBody')}
+								</AlertDialogDescription>
+							</AlertDialogHeader>
+							<blockquote className="line-clamp-3 rounded-xl border border-border bg-surface-soft px-3.5 py-2.5 text-sm leading-normal text-muted-foreground">
+								{text}
+							</blockquote>
+							<AlertDialogFooter>
+								<AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+								<AlertDialogAction variant="destructive" onClick={confirmDelete}>
+									{t('common.delete')}
+								</AlertDialogAction>
+							</AlertDialogFooter>
+						</AlertDialogContent>
+					</AlertDialog>
+
+					{!isOwn && (
+						<BlockUserDialog
+							username={author}
+							open={confirmingBlock}
+							onOpenChange={(open) => {
+								setConfirmingBlock(open);
+								if (!open) returnFocus.current = true;
+							}}
+							// Their comments leave the list, this one included, so focus moves to the discussion
+							onBlocked={() => {
+								moreRef.current?.closest<HTMLElement>('[data-comment-thread]')?.focus();
+								thread.dropAuthor(author);
+							}}
+						/>
+					)}
+				</div>
+			)}
+		</div>
 	);
 }
