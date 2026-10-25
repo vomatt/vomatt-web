@@ -1,8 +1,12 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
+import { FilterPills } from '@/components/FilterPills';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -14,28 +18,75 @@ import {
 	AlertDialogTitle,
 } from '@/components/ui/AlertDialog';
 import { Button } from '@/components/ui/Button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { Input } from '@/components/ui/Input';
+import { ChevronRight } from '@/components/ui/SvgIcons';
 import { Switch } from '@/components/ui/Switch';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { isFieldPublic, VISIBILITY_FIELDS } from '@/features/account/visibility';
 import { BlockedUsersPanel } from '@/features/blocks/BlockedUsersPanel';
 import { FollowedUsersPanel } from '@/features/follows/FollowedUsersPanel';
+import { GroupsPanel } from '@/features/groups/GroupsPanel';
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
+import { useHydrated } from '@/hooks/useHydrated';
+import { SUPPORTED_LANGUAGES } from '@/i18n-config';
 import { apiErrorText } from '@/lib/api/error-text';
 import { signout } from '@/lib/api/services/auth';
-import { deleteMyAccount, editProfile, exportMyData, updateVisibility } from '@/lib/api/services/users';
+import { deleteMyAccount, editProfile, exportMyData } from '@/lib/api/services/users';
+import { profileHref } from '@/lib/routes';
+import { cn } from '@/lib/utils';
+import type { LanguageCode } from '@/types';
 import type { MyProfile } from '@/types/user';
+
+/** The page's sections, in order; the On this page list links to each. */
+export const SETTINGS_SECTIONS = ['voting', 'appearance', 'privacy', 'account'] as const;
+
+const rowClassName = 'flex min-h-15 items-center gap-4 px-4.5 py-3';
+const rowLinkClassName = cn(
+	rowClassName,
+	'transition-colors hover:bg-surface-soft outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring'
+);
+
+function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
+	return (
+		<section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-20 space-y-2.5">
+			<h2 id={`${id}-title`} className="text-[16px] font-medium tracking-[-0.01em]">
+				{title}
+			</h2>
+			{children}
+		</section>
+	);
+}
+
+function Card({ children, className }: { children: React.ReactNode; className?: string }) {
+	return <div className={cn('divide-y divide-border rounded-2xl border border-border bg-card', className)}>{children}</div>;
+}
+
+function RowText({ title, body, id }: { title: React.ReactNode; body?: React.ReactNode; id?: string }) {
+	return (
+		<span className="min-w-0 flex-1">
+			<span id={id && `${id}-label`} className="block font-medium">
+				{title}
+			</span>
+			{body && (
+				<span id={id && `${id}-body`} className="block text-[13px] leading-snug text-muted-foreground">
+					{body}
+				</span>
+			)}
+		</span>
+	);
+}
 
 export default function AccountSettings({ profile }: { profile: MyProfile }) {
 	const { t } = useLanguage();
-	const [visibility, setVisibility] = useState<Record<string, boolean>>(profile.visibilitySettings ?? {});
-	// Last values the server confirmed, per field; a failed save rolls back only its own field
-	const savedVisibility = useRef(visibility);
 	const [anonymousDefault, setAnonymousDefault] = useState(profile.anonymousBallotByDefault);
 	// The last value the server confirmed; quick toggles can answer out of order
 	const savedAnonymousDefault = useRef(profile.anonymousBallotByDefault);
+	const [invitesOpen, setInvitesOpen] = useState(false);
 	// Read out by screen readers after each save; the switch itself shows the change
 	const [announcement, setAnnouncement] = useState('');
+	const visibility = profile.visibilitySettings ?? {};
+	const shownCount = VISIBILITY_FIELDS.filter((field) => isFieldPublic(visibility, field)).length;
 
 	const toggleAnonymousDefault = async (value: boolean) => {
 		setAnonymousDefault(value);
@@ -49,89 +100,142 @@ export default function AccountSettings({ profile }: { profile: MyProfile }) {
 		}
 	};
 
-	const toggle = async (field: string, value: boolean) => {
-		setVisibility((current) => ({ ...current, [field]: value }));
-		try {
-			const saved = (await updateVisibility({ [field]: value }))[field] ?? value;
-			savedVisibility.current = { ...savedVisibility.current, [field]: saved };
-			// Only this field: other switches may have saves of their own in flight
-			setVisibility((current) => ({ ...current, [field]: saved }));
-			setAnnouncement(
-				t(saved ? 'account.fieldVisible' : 'account.fieldHidden', { field: t(`account.field.${field}`) })
-			);
-		} catch {
-			setVisibility((current) => ({ ...current, [field]: isFieldPublic(savedVisibility.current, field) }));
-			toast.error(t('account.saveFailed'), { duration: Infinity });
-		}
-	};
-
 	return (
 		<div className="space-y-8">
 			<p role="status" className="sr-only">
 				{announcement}
 			</p>
-			<section className="space-y-3">
-				<div>
-					<h2 className="font-medium">{t('account.privacyTitle')}</h2>
-					<p className="text-sm text-muted-foreground">{t('account.privacyBody')}</p>
-				</div>
-				<ul className="divide-y divide-border rounded-2xl border border-border bg-card">
-					{VISIBILITY_FIELDS.map((field) => (
-						<li key={field} className="flex items-center justify-between gap-4 px-4 py-3">
-							{/* The whole row is the 44px touch target; the Switch alone is smaller */}
-							<label
-								htmlFor={`visibility-${field}`}
-								className="flex min-h-11 flex-1 cursor-pointer items-center text-sm"
-							>
-								{t(`account.field.${field}`)}
-							</label>
-							<Switch
-								id={`visibility-${field}`}
-								checked={isFieldPublic(visibility, field)}
-								onCheckedChange={(value) => toggle(field, value)}
-							/>
-						</li>
-					))}
-				</ul>
-			</section>
 
-			<section className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4">
-				<label htmlFor="anonymous-default" className="flex-1 cursor-pointer">
-					<span id="anonymous-default-label" className="block font-medium">
-						{t('account.anonymousDefault')}
-					</span>
-					<span id="anonymous-default-body" className="block text-sm text-muted-foreground">
-						{t('account.anonymousDefaultBody')}
-					</span>
-				</label>
-				<Switch
-					id="anonymous-default"
-					aria-labelledby="anonymous-default-label"
-					aria-describedby="anonymous-default-body"
-					checked={anonymousDefault}
-					onCheckedChange={toggleAnonymousDefault}
-				/>
-			</section>
+			<Section id="voting" title={t('settings.voting')}>
+				<Card>
+					<label htmlFor="anonymous-default" className={cn(rowClassName, 'cursor-pointer')}>
+						<RowText id="anonymous-default" title={t('account.anonymousDefault')} body={t('account.anonymousDefaultBody')} />
+						<Switch
+							id="anonymous-default"
+							aria-labelledby="anonymous-default-label"
+							aria-describedby="anonymous-default-body"
+							checked={anonymousDefault}
+							onCheckedChange={toggleAnonymousDefault}
+						/>
+					</label>
+					<button type="button" onClick={() => setInvitesOpen(true)} className={cn(rowLinkClassName, 'w-full text-left')}>
+						<RowText title={t('account.tabGroups')} body={t('settings.inviteListsBody')} />
+						<ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+					</button>
+				</Card>
+				<Dialog open={invitesOpen} onOpenChange={setInvitesOpen}>
+					<DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-lg" closeLabel={t('common.close')}>
+						<DialogHeader>
+							<DialogTitle>{t('account.tabGroups')}</DialogTitle>
+						</DialogHeader>
+						<GroupsPanel />
+					</DialogContent>
+				</Dialog>
+			</Section>
 
-			<FollowedUsersPanel />
+			<Section id="appearance" title={t('navigation.appearance')}>
+				<Card>
+					<div className={cn(rowClassName, 'flex-wrap')}>
+						<RowText title={t('settings.theme')} body={t('settings.themeBody')} />
+						<ThemeChoice />
+					</div>
+					<div className={cn(rowClassName, 'flex-wrap')}>
+						<RowText title={t('settings.language')} body={t('settings.languageBody')} />
+						<LanguageChoice />
+					</div>
+				</Card>
+			</Section>
 
-			<BlockedUsersPanel />
+			<Section id="privacy" title={t('settings.privacy')}>
+				<Card>
+					<Link href={`${profileHref(profile.username)}?edit=1`} className={rowLinkClassName}>
+						<RowText title={t('account.privacyTitle')} body={t('settings.whatOthersSeeBody')} />
+						<span className="text-[14px] text-muted-foreground">
+							{t('settings.shownCount', { shown: shownCount, total: VISIBILITY_FIELDS.length })}
+						</span>
+						<ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+					</Link>
+				</Card>
+				<FollowedUsersPanel />
+				<BlockedUsersPanel />
+			</Section>
 
-			<ExportData />
+			<Section id="account" title={t('settings.account')}>
+				<Card>
+					<div className={cn(rowClassName, 'flex-wrap')}>
+						<RowText title={t('account.signOutTitle')} body={<span className="wrap-anywhere">{profile.email ?? profile.phoneNumber}</span>} />
+						<Button variant="outline" onClick={() => signout()}>
+							{t('account.signOut')}
+						</Button>
+					</div>
+					<ExportData />
+				</Card>
+			</Section>
 
-			<section className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4">
-				<div>
-					<h2 className="font-medium">{t('account.signOutTitle')}</h2>
-					<p className="wrap-anywhere text-sm text-muted-foreground">{profile.email}</p>
-				</div>
-				<Button variant="outline" onClick={() => signout()}>
-					{t('account.signOut')}
-				</Button>
-			</section>
-
+			{/* Kept apart, at the end, and quiet until opened */}
 			<DeleteAccount username={profile.username} />
 		</div>
 	);
+}
+
+function ThemeChoice() {
+	const { t } = useLanguage();
+	const { theme, setTheme } = useTheme();
+	// The saved theme is only known in the browser
+	const isHydrated = useHydrated();
+	return (
+		<FilterPills
+			label={t('settings.theme')}
+			value={isHydrated ? (theme as 'system' | 'light' | 'dark') : undefined}
+			onChange={setTheme}
+			options={[
+				{ value: 'system', label: t('navigation.themeAuto') },
+				{ value: 'light', label: t('navigation.themeLight') },
+				{ value: 'dark', label: t('navigation.themeDark') },
+			]}
+		/>
+	);
+}
+
+/** Switches the language and re-renders the server parts in it. */
+export function LanguageChoice() {
+	const { t, currentLanguage, setLanguage } = useLanguage();
+	const router = useRouter();
+	return (
+		<FilterPills<LanguageCode>
+			label={t('settings.language')}
+			value={currentLanguage}
+			onChange={(language) => {
+				setLanguage(language);
+				router.refresh();
+			}}
+			options={(Object.keys(SUPPORTED_LANGUAGES) as LanguageCode[]).map((code) => ({
+				value: code,
+				label: SUPPORTED_LANGUAGES[code],
+				lang: code === 'zh' ? 'zh-Hant' : 'en',
+			}))}
+		/>
+	);
+}
+
+/** Highlights the section in view in the On this page list. */
+export function useSectionInView(ids: readonly string[]) {
+	const [current, setCurrent] = useState<string>(ids[0]);
+	useEffect(() => {
+		const observer = new IntersectionObserver(
+			(entries) => {
+				const visible = entries.filter((entry) => entry.isIntersecting);
+				if (visible[0]) setCurrent(visible[0].target.id);
+			},
+			{ rootMargin: '-20% 0px -70% 0px' }
+		);
+		for (const id of ids) {
+			const element = document.getElementById(id);
+			if (element) observer.observe(element);
+		}
+		return () => observer.disconnect();
+	}, [ids]);
+	return current;
 }
 
 function ExportData() {
@@ -161,15 +265,12 @@ function ExportData() {
 	};
 
 	return (
-		<section className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4">
-			<div>
-				<h2 className="font-medium">{t('account.exportTitle')}</h2>
-				<p className="text-sm text-muted-foreground">{t('account.exportBody')}</p>
-			</div>
+		<div className={cn(rowClassName, 'flex-wrap')}>
+			<RowText title={t('account.exportTitle')} body={t('account.exportBody')} />
 			<Button variant="outline" loading={isExporting} onClick={download}>
 				{t('account.exportCta')}
 			</Button>
-		</section>
+		</div>
 	);
 }
 
@@ -202,13 +303,18 @@ function DeleteAccount({ username }: { username: string }) {
 	};
 
 	return (
-		<section className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-destructive/30 bg-card p-4">
-			<div>
-				<h2 className="font-medium text-destructive">{t('account.deleteTitle')}</h2>
-				<p className="text-sm text-muted-foreground">{t('account.deleteBody')}</p>
-			</div>
-			<Button variant="destructive" onClick={() => setOpen(true)}>
-				{t('account.deleteCta')}
+		<section
+			aria-labelledby="delete-title"
+			className={cn(rowClassName, 'flex-wrap rounded-2xl border border-destructive/30 bg-card')}
+		>
+			<span className="min-w-0 flex-1">
+				<h2 id="delete-title" className="font-medium text-destructive">
+					{t('account.deleteTitle')}
+				</h2>
+				<span className="block text-[13px] leading-snug text-muted-foreground">{t('account.deleteBody')}</span>
+			</span>
+			<Button variant="outline" className="border-destructive/45 text-destructive hover:text-destructive" onClick={() => setOpen(true)}>
+				{t('account.deleteCtaEllipsis')}
 			</Button>
 			<AlertDialog open={open} onOpenChange={setOpen}>
 				<AlertDialogContent>
@@ -251,5 +357,42 @@ function DeleteAccount({ username }: { username: string }) {
 				</AlertDialogContent>
 			</AlertDialog>
 		</section>
+	);
+}
+
+const SECTION_TITLES: Record<(typeof SETTINGS_SECTIONS)[number], string> = {
+	voting: 'settings.voting',
+	appearance: 'navigation.appearance',
+	privacy: 'settings.privacy',
+	account: 'settings.account',
+};
+
+/** On this page: the sections as links, the one in view marked. */
+export function SettingsNav() {
+	const { t } = useLanguage();
+	const current = useSectionInView(SETTINGS_SECTIONS);
+	return (
+		<nav aria-labelledby="settings-nav" className="sticky top-8">
+			<p id="settings-nav" className="mb-2 text-[12px] font-medium text-muted-foreground">
+				{t('settings.onThisPage')}
+			</p>
+			<ul>
+				{SETTINGS_SECTIONS.map((id) => (
+					<li key={id}>
+						<a
+							href={`#${id}`}
+							aria-current={current === id ? 'location' : undefined}
+							className={cn(
+								'block border-l-2 border-border px-3 py-1.5 text-[14px] text-muted-foreground transition-colors hover:text-foreground',
+								'outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring',
+								current === id && 'border-foreground font-medium text-foreground'
+							)}
+						>
+							{t(SECTION_TITLES[id])}
+						</a>
+					</li>
+				))}
+			</ul>
+		</nav>
 	);
 }

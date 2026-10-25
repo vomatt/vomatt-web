@@ -1,4 +1,5 @@
 export interface UserProfile {
+	id: string;
 	username: string;
 	displayName: string | null;
 	bio: string | null;
@@ -10,10 +11,12 @@ export interface UserProfile {
 	points?: number | null;
 	membershipLevel?: string | null;
 	avatarUrl: string | null; // `bot:<kind>`; older accounts may hold an image URL
-	// Absent until the backend ships follows; the UI hides them then.
+	// Not sent yet (see docs/release/api-integration-notes.md, round 3); the UI shows each once it arrives
 	followersCount?: number;
 	followingCount?: number;
-	isFollowing?: boolean; // only present when request includes Authorization header
+	/** Whether the viewer follows / blocked this user: null signed out or on a cached fetch, false on their own profile. */
+	isFollowing?: boolean | null;
+	isBlocked?: boolean | null;
 }
 
 /** Response from GET /users/me — the authenticated user's own profile. */
@@ -39,10 +42,4 @@ export interface MyProfile {
 	/** Whether a first Ballot is Anonymous unless the voter says otherwise. */
 	anonymousBallotByDefault: boolean;
 	avatarUrl: string | null; // `bot:<kind>`; older accounts may hold an image URL
-}
-
-export interface UserSummary {
-	username: string;
-	displayName: string | null;
-	avatarUrl: string | null;
 }

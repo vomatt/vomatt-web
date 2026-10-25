@@ -3,10 +3,9 @@ import {
   deleteMyAccount,
   deleteUser,
   editProfile,
-  followUser,
   getUserProfile,
+  getUserProfileForViewer,
   searchUsers,
-  unfollowUser,
 } from '@/lib/api/services/users';
 
 const mockUpdateTag = jest.fn();
@@ -140,21 +139,16 @@ describe('deleteUser()', () => {
   });
 });
 
-describe('followUser()', () => {
-  it('sends POST to /users/{username}/follow', async () => {
-    await followUser('carol');
-    expect(mockApiClient).toHaveBeenCalledWith('/users/carol/follow', {
-      method: 'POST',
-    });
+describe('getUserProfileForViewer()', () => {
+  it('asks with the session, uncached, so the relation is the viewer\'s', async () => {
+    mockApiClient.mockResolvedValueOnce({ id: 'u1', username: 'mei', isFollowing: true });
+    expect(await getUserProfileForViewer('mei')).toMatchObject({ isFollowing: true });
+    expect(mockApiClient).toHaveBeenCalledWith('/users/mei', { auth: 'optional', cache: 'no-store' });
   });
-});
 
-describe('unfollowUser()', () => {
-  it('sends DELETE to /users/{username}/follow', async () => {
-    await unfollowUser('carol');
-    expect(mockApiClient).toHaveBeenCalledWith('/users/carol/follow', {
-      method: 'DELETE',
-    });
+  it('returns null for a username no one uses', async () => {
+    mockApiClient.mockRejectedValueOnce(new ApiError('gone', 404));
+    expect(await getUserProfileForViewer('nobody')).toBeNull();
   });
 });
 

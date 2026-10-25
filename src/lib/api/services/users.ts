@@ -24,6 +24,22 @@ export async function getUserProfile(username: string): Promise<UserProfile | nu
   }
 }
 
+/**
+ * The profile with the viewer's relation to it (`isFollowing`, `isBlocked`). Never cached:
+ * the relation depends on who asks. Null when no one uses the username.
+ */
+export async function getUserProfileForViewer(username: string): Promise<UserProfile | null> {
+  try {
+    return await apiClient<UserProfile>(`/users/${encodeURIComponent(username)}`, {
+      auth: 'optional',
+      cache: 'no-store',
+    });
+  } catch (error) {
+    if (error instanceof ApiError && error.statusCode === 404) return null;
+    throw error;
+  }
+}
+
 const UserSearchPage = cursorPageSchema(UserDtoSchema);
 
 /**
@@ -38,18 +54,6 @@ export async function searchUsers(username: string, cursor?: string, limit = 20)
 
 export async function deleteUser(userId: string) {
   return apiClient(`/users/${userId}`, { method: 'DELETE' });
-}
-
-export async function followUser(username: string) {
-  return apiClient(`/users/${encodeURIComponent(username)}/follow`, {
-    method: 'POST',
-  });
-}
-
-export async function unfollowUser(username: string) {
-  return apiClient(`/users/${encodeURIComponent(username)}/follow`, {
-    method: 'DELETE',
-  });
 }
 
 export async function getMyProfile(): Promise<MyProfile> {

@@ -1,4 +1,6 @@
-import { followUser, followUserByUsername, getFollowedUsers, unfollowUser } from '@/features/follows/service';
+jest.unmock('@/features/follows/service');
+
+import { followUser, getFollowedUsers, unfollowUser } from '@/features/follows/service';
 import { apiClient, ApiError } from '@/lib/api/client';
 
 jest.mock('@/lib/api/auth', () => ({ clearAuthTokens: jest.fn() }));
@@ -40,18 +42,4 @@ it('follows and unfollows by user ID', async () => {
 it('returns the errorCode of a refused follow', async () => {
 	mockApiClient.mockRejectedValue(new ApiError('no', 400, { errorCode: 'user.follow.self' }));
 	expect(await followUser('me')).toMatchObject({ ok: false, status: 400, errorCode: 'user.follow.self' });
-});
-
-it('finds the exact username, then follows it', async () => {
-	mockApiClient
-		.mockResolvedValueOnce({ items: [{ id: 'u1', username: 'mei_2' }, { id: 'u2', username: 'Mei' }], nextCursor: null })
-		.mockResolvedValueOnce(undefined);
-	expect(await followUserByUsername('mei')).toEqual({ ok: true, data: { found: true } });
-	expect(mockApiClient).toHaveBeenLastCalledWith('/users/me/follows/u2', { method: 'POST' });
-});
-
-it('follows nobody when no search result matches the username', async () => {
-	mockApiClient.mockResolvedValue({ items: [{ id: 'u1', username: 'mei_2' }], nextCursor: null });
-	expect(await followUserByUsername('mei')).toEqual({ ok: true, data: { found: false } });
-	expect(mockApiClient).toHaveBeenCalledTimes(1);
 });

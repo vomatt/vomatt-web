@@ -1,36 +1,11 @@
 import { redirect } from 'next/navigation';
-import { Suspense } from 'react';
 
-import { T } from '@/components/T';
-import { getUserSession } from '@/data/auth';
-import { getMyPolls } from '@/features/polls/service';
-import { EMPTY_PAGE } from '@/lib/api/cursor';
+import { getMyProfile } from '@/data/auth';
+import { profileHref } from '@/lib/routes';
 
-import MyPollsTabs, { MyPollsTabsSkeleton } from './_components/MyPollsTabs';
-
+// My Polls folded into Profile › Asked, where the owner's drafts and controls live now
 export default async function MyPollsPage() {
-	// Check auth before streaming the shell, so signed-out users get a real 307
-	const user = await getUserSession();
-	if (!user) redirect('/login');
-
-	return (
-		<div className="px-contain max-w-2xl mx-auto py-6">
-			<h1 className="mb-6 display-heading text-[30px] text-foreground md:text-[40px]">
-				<T k="myPolls.title" />
-			</h1>
-			<Suspense fallback={<MyPollsTabsSkeleton />}>
-				<MyPolls userId={user.sub} />
-			</Suspense>
-		</div>
-	);
-}
-
-async function MyPolls({ userId }: { userId: string }) {
-	// API unavailable — render empty lists instead of crashing
-	const [open, ended] = await Promise.all([
-		getMyPolls('open').catch(() => EMPTY_PAGE),
-		getMyPolls('ended').catch(() => EMPTY_PAGE),
-	]);
-
-	return <MyPollsTabs open={open} ended={ended} userId={userId} />;
+	const profile = await getMyProfile();
+	if (!profile) redirect('/login?redirect=/my-polls');
+	redirect(profileHref(profile.username));
 }

@@ -6,7 +6,7 @@ import { CookieSettingsButton } from '@/components/layout/CookieConsent';
 import { getMyProfile } from '@/data/auth';
 import { isOwnUsername, usernameFromSlug } from '@/features/account/username';
 import { getUserPolls } from '@/features/polls/service';
-import { getUserProfile } from '@/lib/api/services/users';
+import { getUserProfile, getUserProfileForViewer } from '@/lib/api/services/users';
 import defineMetadata from '@/lib/defineMetadata';
 import { sanityFetch } from '@/sanity/lib/live';
 import { pageGeneralQuery, pageGeneralSlugsQuery } from '@/sanity/lib/queries';
@@ -24,6 +24,7 @@ export async function generateStaticParams() {
 
 type Props = {
 	params: Promise<{ slug: string }>;
+	searchParams: Promise<{ view?: string; tab?: string; edit?: string }>;
 };
 
 // Sanity pages and user profiles share the root; a Sanity slug wins over a username
@@ -61,23 +62,26 @@ export default async function PageSlugRoute(props: Props) {
 
 	// The session only carries the user id, so compare usernames via the profile
 	const me = await getMyProfile();
-	if (isOwnUsername(me, username)) {
+	const { view, tab, edit } = await props.searchParams;
+	// `?view=public`: the owner sees their page as everyone else does
+	if (isOwnUsername(me, username) && view !== 'public') {
 		return (
 			<Suspense fallback={<ProfileSkeleton />}>
-				<OwnProfile profile={me} />
+				<OwnProfile profile={me} initialTab={tab === 'voted' ? 'voted' : 'asked'} openEdit={edit === '1'} />
 			</Suspense>
 		);
 	}
 
 	// Started now so polls load alongside the profile lookup
 	const polls = getUserPolls(username).catch(() => null);
-	// Checked before streaming so an unknown slug still answers 404
-	const profile = await getUserProfile(username);
+	// Checked before streaming so an unknown slug still answers 404. Signed in, the
+	// profile also says whether the viewer follows or blocked them, so it isn't cached
+	const profile = me ? await getUserProfileForViewer(username) : await getUserProfile(username);
 	if (!profile) notFound();
 
 	return (
 		<Suspense fallback={<ProfileSkeleton />}>
-			<PublicProfile profile={profile} polls={polls} isAuthenticated={!!me} />
+			<PublicProfile profile={profile} polls={polls} isAuthenticated={!!me} preview={isOwnUsername(me, username)} />
 		</Suspense>
 	);
 }

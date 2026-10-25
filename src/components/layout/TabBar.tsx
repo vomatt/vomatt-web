@@ -4,11 +4,11 @@ import { usePathname } from 'next/navigation';
 
 import { buttonVariants } from '@/components/ui/Button';
 import {
+	Bell,
 	CircleUser,
 	Home,
 	Plus,
 	Search,
-	Star,
 } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
@@ -51,12 +51,11 @@ export function TabBar({ className, userSession, username, avatarUrl }: TabBarPr
 	];
 	const rightLinks = [
 		{
-			title: t('common.myPolls'),
-			// Unread results are marked in My Polls' Ended tab
-			href: '/my-polls',
+			title: t('common.notifications'),
+			href: '/notifications',
 			icon: (
 				<span className="relative">
-					<Star className="size-6" />
+					<Bell className="size-6" />
 					{unreadCount > 0 && <UnreadDot label={`${formatUnreadCount(unreadCount)} ${t('notifications.unread')}`} className="absolute -right-1 -top-1" />}
 				</span>
 			),

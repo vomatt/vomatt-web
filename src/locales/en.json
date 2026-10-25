@@ -106,7 +106,10 @@
 			"won": "Your pick won",
 			"tied": "Tied for first",
 			"lost": "Outvoted"
-		}
+		},
+		"draftOptions": "{count} options",
+		"draftOptions_one": "{count} option",
+		"draftMore": "More for {title}"
 	},
 	"explore": {
 		"title": "Explore",
@@ -182,20 +185,89 @@
 		"lastName": "Last name",
 		"birthday": "Birthday",
 		"birthdayInvalid": "Pick a date between 1900 and yesterday.",
-		"updated": "Profile updated"
+		"updated": "Profile updated",
+		"askedCount": "{count} asked",
+		"askedCount_one": "{count} asked",
+		"followersCount": "{count} followers",
+		"followersCount_one": "{count} follower",
+		"followingCount": "{count} following",
+		"followingCount_one": "{count} following",
+		"wonBy": "{option} won",
+		"tieBetween": "Tie between {options}",
+		"endsAt": "ends {date}",
+		"resultsAt": "results {date}",
+		"new": "new",
+		"recordAsked": "polls asked",
+		"recordVoted": "polls voted in",
+		"recordReached": "people reached",
+		"recordPicksWon": "picks that won",
+		"recordAskedCount": "{count} polls asked",
+		"recordAskedCount_one": "{count} poll asked",
+		"recordVotedCount": "{count} voted in",
+		"recordVotedCount_one": "{count} voted in",
+		"tabAsked": "Asked",
+		"tabVoted": "Voted",
+		"askedUnread": "Results are in on your polls",
+		"filterLabel": "Show",
+		"filterAll": "All",
+		"filterOpen": "Open",
+		"filterSealed": "Sealed",
+		"filterDecided": "Decided",
+		"sectionOpen": "Open now",
+		"sectionSealed": "Sealed, waiting for results",
+		"onlyYouSeeThese": "only you see these",
+		"noDrafts": "No drafts. Save one from the poll creator.",
+		"noVotesYet": "Polls you vote in show up here, with what you chose. Only you see this list.",
+		"showMore": "Show more",
+		"everyoneSees": "What everyone sees",
+		"openPublicPage": "Open your public page",
+		"askedNoteTitle": "Everyone sees your Asked list",
+		"askedNoteBody": "The polls you asked are public, as on any profile. Drafts, the ••• menu and the unread dots are yours alone.",
+		"votedNoteTitle": "Your ballots are yours",
+		"votedNoteBody": "Your profile never lists the polls you voted in or what you chose. The lock marks everything only you see.",
+		"previewNote": "This is how others see your profile.",
+		"previewBack": "Back to your profile",
+		"moreFor": "More for @{username}",
+		"followingNoteTitle": "What following does",
+		"followingNoteBody": "Their polls join your Following feed. It never shows them how you voted, and you can undo it with one tap.",
+		"editIntro": "Each detail says who sees it. Change it right where you type.",
+		"avatarHint": "Choose your avatar by tapping it.",
+		"groupOnProfile": "On your profile",
+		"groupAboutYou": "About you",
+		"alwaysShown": "Always shown",
+		"realName": "Real name",
+		"onlyYouShort": "Only you",
+		"everyone": "Everyone",
+		"visibilityPill": "{field}: {state}. Change",
+		"notSet": "Not set",
+		"visibilitySavesHint": "Visibility changes save when you save.",
+		"notOpenYet": "Not open yet",
+		"visibilitySaveFailed": "Your details were saved, but who sees them wasn’t. Try again."
 	},
 	"notifications": {
 		"title": "Notifications",
 		"empty": "No notifications yet.",
 		"unread": "Unread",
-		"intro": "Invitations, and polls you created, voted in or were invited to that have ended.",
+		"intro": "Results of polls you asked or voted in, and invitations to vote.",
 		"markAllHint": "Opening a poll marks it read.",
 		"loadFailed": "Couldn’t load notifications.",
 		"ended": "Results are in",
 		"cancelled": "Cancelled",
-		"invitations": "Invitations",
-		"results": "Results",
-		"invitedBy": "{name} invited you"
+		"markAllRead": "Mark all read",
+		"caughtUp": "You’re all caught up.",
+		"day": {
+			"today": "Today",
+			"yesterday": "Yesterday",
+			"earlier": "Earlier"
+		},
+		"invitedYou": "{name} invited you",
+		"inviteOnly": "Invite only",
+		"view": "View",
+		"cancelledBy": "{title} was cancelled by {name}",
+		"neverCounted": "Your vote was never counted",
+		"railTitle": "Opening a poll marks it read",
+		"railBody": "Results rows stay until you open them, so a sealed promise is never lost in the list.",
+		"markAllFailed": "Some notifications couldn’t be marked read. Try again."
 	},
 	"pollCreator": {
 		"title": "New poll",
@@ -376,7 +448,10 @@
 			"public": "Public",
 			"unlisted": "Unlisted",
 			"invite-only": "Invite only"
-		}
+		},
+		"moreActions": "More actions for {title}",
+		"endNowEllipsis": "End poll now…",
+		"deletePollEllipsis": "Delete poll…"
 	},
 	"auth": {
 		"continueWithEmail": "Continue with email"
@@ -477,7 +552,8 @@
 		"deleteConfirmLabel": "Type your username to confirm",
 		"deleteConfirmMismatch": "Type {username} to delete your account.",
 		"deleteLastAdmin": "You are the only active admin. Make someone else an admin before deleting your account.",
-		"tabGroups": "Invite Lists"
+		"tabGroups": "Invite Lists",
+		"deleteCtaEllipsis": "Delete account…"
 	},
 	"cookieConsent": {
 		"label": "Cookie consent",
@@ -933,7 +1009,9 @@
 		"manage": "Manage blocked users",
 		"blockFailed": "Couldn’t block. Try again.",
 		"confirmTitle": "Block @{username}?",
-		"confirmBody": "Their polls and comments will no longer show up for you. They won’t be told. You can unblock them in Settings."
+		"confirmBody": "Their polls and comments will no longer show up for you. They won’t be told. You can unblock them in Settings.",
+		"blockedBadge": "Blocked",
+		"blockEllipsis": "Block…"
 	},
 	"follows": {
 		"title": "Following",
@@ -947,6 +1025,23 @@
 		"followed": "Following @{username}",
 		"manage": "Manage who you follow",
 		"followFailed": "Couldn’t follow. Try again.",
-		"notFound": "Couldn’t find that user to follow."
+		"notFound": "Couldn’t find that user to follow.",
+		"following": "Following",
+		"listFailed": "Couldn’t load this list.",
+		"listEmptyFollowers": "No followers yet.",
+		"listEmptyFollowing": "Not following anyone yet."
+	},
+	"settings": {
+		"voting": "Voting",
+		"inviteListsBody": "Reusable lists for Invite-only polls. Nobody is told they’re in one.",
+		"theme": "Theme",
+		"themeBody": "Auto follows your system. Also in the sidebar’s More menu.",
+		"language": "Language",
+		"languageBody": "English or 繁體中文.",
+		"privacy": "Privacy and safety",
+		"whatOthersSeeBody": "Set it beside each detail in Edit profile.",
+		"shownCount": "{shown} of {total} shown",
+		"account": "Account",
+		"onThisPage": "On this page"
 	}
 }

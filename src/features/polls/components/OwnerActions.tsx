@@ -1,5 +1,6 @@
 'use client';
 
+import { Menu } from '@base-ui/react/menu';
 import dynamic from 'next/dynamic';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -15,9 +16,12 @@ import {
 	AlertDialogTitle,
 } from '@/components/ui/AlertDialog';
 import { Button } from '@/components/ui/Button';
+import { Ellipsis, Pencil, Share2, Trash2, Users, X } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { apiErrorText } from '@/lib/api/error-text';
+import { cn } from '@/lib/utils';
 
+import { useSharePoll } from '../hooks/useSharePoll';
 import type { Poll } from '../schema';
 import { closePoll, deletePoll } from '../service';
 import type { PollStatus } from '../status';
@@ -33,6 +37,8 @@ type OwnerActionsProps = {
 	/** The Invitee count changed without the Poll Ending. */
 	onInviteeCount: (count: number) => void;
 	onDeleted: () => void;
+	/** `menu`: one ••• button for a list row, with Share added; `buttons` (default) for the poll card. */
+	variant?: 'buttons' | 'menu';
 };
 
 type Confirm = 'delete' | 'end';
@@ -59,6 +65,7 @@ export function OwnerActions({
 	onChanged,
 	onInviteeCount,
 	onDeleted,
+	variant = 'buttons',
 }: OwnerActionsProps) {
 	const { t } = useLanguage();
 	const [isEditing, setIsEditing] = useState(false);
@@ -97,33 +104,8 @@ export function OwnerActions({
 		else end();
 	};
 
-	return (
-		<div className="flex flex-wrap justify-end gap-1.5">
-			{canDelete && (
-				<Button
-					size="sm"
-					variant="ghost-destructive"
-					onClick={() => ask('delete')}
-				>
-					{t('poll.deletePoll')}
-				</Button>
-			)}
-			{canEnd && (
-				<Button size="sm" variant="outline" onClick={() => ask('end')}>
-					{t('poll.endNow')}
-				</Button>
-			)}
-			{canInvite && (
-				<Button size="sm" variant="outline" onClick={() => setIsInviting(true)}>
-					{t('invitees.title')}
-				</Button>
-			)}
-			{canEdit && (
-				<Button size="sm" variant="outline" onClick={() => setIsEditing(true)}>
-					{t('poll.edit')}
-				</Button>
-			)}
-
+	const dialogs = (
+		<>
 			{isEditing && (
 				<PollCreator poll={poll} open onOpenChange={setIsEditing} onSaved={onChanged} />
 			)}
@@ -162,6 +144,137 @@ export function OwnerActions({
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
+		</>
+	);
+
+	if (variant === 'menu') {
+		return (
+			<>
+				<OwnerMenu
+					poll={poll}
+					canEdit={canEdit}
+					canEnd={canEnd}
+					canInvite={canInvite}
+					canDelete={canDelete}
+					onEdit={() => setIsEditing(true)}
+					onEnd={() => ask('end')}
+					onInvite={() => setIsInviting(true)}
+					onDelete={() => ask('delete')}
+				/>
+				{dialogs}
+			</>
+		);
+	}
+
+	return (
+		<div className="flex flex-wrap justify-end gap-1.5">
+			{canDelete && (
+				<Button
+					size="sm"
+					variant="ghost-destructive"
+					onClick={() => ask('delete')}
+				>
+					{t('poll.deletePoll')}
+				</Button>
+			)}
+			{canEnd && (
+				<Button size="sm" variant="outline" onClick={() => ask('end')}>
+					{t('poll.endNow')}
+				</Button>
+			)}
+			{canInvite && (
+				<Button size="sm" variant="outline" onClick={() => setIsInviting(true)}>
+					{t('invitees.title')}
+				</Button>
+			)}
+			{canEdit && (
+				<Button size="sm" variant="outline" onClick={() => setIsEditing(true)}>
+					{t('poll.edit')}
+				</Button>
+			)}
+
+			{dialogs}
 		</div>
+	);
+}
+
+const menuItemClassName =
+	'flex min-h-10 w-full cursor-pointer select-none items-center gap-2.5 rounded-lg px-3 text-sm font-medium outline-none data-highlighted:bg-foreground/5 [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-muted-foreground';
+
+/** The ••• menu of a row in the owner's Asked list: their controls plus Share; destructive ones last. */
+function OwnerMenu({
+	poll,
+	canEdit,
+	canEnd,
+	canInvite,
+	canDelete,
+	onEdit,
+	onEnd,
+	onInvite,
+	onDelete,
+}: {
+	poll: Poll;
+	canEdit: boolean;
+	canEnd: boolean;
+	canInvite: boolean;
+	canDelete: boolean;
+	onEdit: () => void;
+	onEnd: () => void;
+	onInvite: () => void;
+	onDelete: () => void;
+}) {
+	const { t } = useLanguage();
+	const share = useSharePoll();
+
+	return (
+		<Menu.Root>
+			<Menu.Trigger
+				render={<Button variant="ghost" size="icon-sm" />}
+				aria-label={t('poll.moreActions', { title: poll.title })}
+				className="data-popup-open:bg-muted"
+			>
+				<Ellipsis aria-hidden />
+			</Menu.Trigger>
+			<Menu.Portal>
+				<Menu.Positioner side="bottom" align="end" sideOffset={4} className="z-50">
+					<Menu.Popup className="min-w-48 origin-(--transform-origin) rounded-xl bg-popover p-1.5 text-popover-foreground shadow-md ring-1 ring-foreground/10 outline-none transition-opacity duration-100 data-ending-style:opacity-0 data-starting-style:opacity-0">
+						{canEdit && (
+							<Menu.Item onClick={onEdit} className={menuItemClassName}>
+								<Pencil aria-hidden />
+								{t('poll.edit')}
+							</Menu.Item>
+						)}
+						{canEnd && (
+							<Menu.Item onClick={onEnd} className={menuItemClassName}>
+								<X aria-hidden />
+								{t('poll.endNowEllipsis')}
+							</Menu.Item>
+						)}
+						{canInvite && (
+							<Menu.Item onClick={onInvite} className={menuItemClassName}>
+								<Users aria-hidden />
+								{t('invitees.title')}
+							</Menu.Item>
+						)}
+						<Menu.Item onClick={() => share({ id: poll.id, title: poll.title })} className={menuItemClassName}>
+							<Share2 aria-hidden />
+							{t('poll.share')}
+						</Menu.Item>
+						{canDelete && (
+							<>
+								<Menu.Separator className="mx-1.5 my-1 h-px bg-border" />
+								<Menu.Item
+									onClick={onDelete}
+									className={cn(menuItemClassName, 'text-destructive [&_svg]:text-destructive')}
+								>
+									<Trash2 aria-hidden />
+									{t('poll.deletePollEllipsis')}
+								</Menu.Item>
+							</>
+						)}
+					</Menu.Popup>
+				</Menu.Positioner>
+			</Menu.Portal>
+		</Menu.Root>
 	);
 }

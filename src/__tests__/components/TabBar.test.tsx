@@ -31,4 +31,10 @@ describe('TabBar', () => {
 		expect(profileTab()).toHaveAttribute('href', '/account');
 		expect(profileTab().querySelector('img')).toBeNull();
 	});
+
+	it('reaches Notifications where My polls used to be', () => {
+		render(<TabBar userSession={{}} username="mei" />);
+		expect(screen.getByRole('link', { name: 'Notifications' })).toHaveAttribute('href', '/notifications');
+		expect(screen.queryByRole('link', { name: 'My Polls' })).not.toBeInTheDocument();
+	});
 });

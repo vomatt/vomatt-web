@@ -41,7 +41,7 @@ Cool canvas, navy ink actions, two signals: Volt (`highlight`) marks what is you
 
 - Borders stay quiet: 1px, `border` by default. Fields are `input` on a `field` fill (the border carries the 3:1 contrast at rest) and turn `card` white on focus. Only the selected ballot row and a winning result get an ink border.
 - Radius: `rounded-2xl` (16px) for cards and panels (`PollCard`, side cards, the About panel, settings panels); `rounded-xl` (12px) for ballot rows, list rows, inputs and the Tide surfaces inside a card; `--radius` (10px) for buttons, set once in `Button`; `rounded-full` for chips, pills and avatars.
-- Page container: `px-contain mx-auto max-w-2xl py-6` for lists (Explore, My polls, Notifications, Profile); `max-w-5xl` for a poll page; `max-w-3xl` for Account.
+- Page container: `px-contain mx-auto max-w-2xl py-6` for lists (Explore); `max-w-5xl` for a poll page. Profile and Notifications put a 720 / 680px main column beside a 280px rail from `xl` (`max-w-[1080px]` / `max-w-[1000px]`); Settings is a 680px column with an On this page list from `lg`.
 - The home feed column is `max-w-feed` (640px, `--container-feed`). From `xl` up a 280px rail sits to its right ("Results are in": Ended polls the viewer voted in, with unread dots; "Closing soon": Open polls ending within a day; the login prompt for guests); below `xl` the rail follows the feed.
 - Desktop gets the collapsible `AppSidebar`; mobile gets the fixed `TabBar` (64px plus the safe-area inset). Phones also get a fixed logo `Header` (56px) that slides up while scrolling down, returns on scroll up and is back on every new page; it eases over 400ms (`ease-header`). Bars that stick under it and slide with it use `sticky follow-header` (Home's topics; a page's own line tabs pass `sticky` to `TabsList`). The TabBar's profile tab shows the signed-in person's avatar. All three hide on `/login`. There is one create action, `Button variant="create"`: the sidebar's button and the TabBar's center square.
 - The poll creator is full screen on phones and a 560px dialog from `sm` up.
@@ -56,7 +56,11 @@ Use these. Don't copy their classes into a new element.
 | Any button or link styled as one | `Button`, or `buttonVariants()` on a `Link` |
 | Toggle pill or preset | `<Button size="sm" variant={active ? 'default' : 'outline'} aria-pressed={active}>`, add `rounded-full` for pills |
 | Text field | `Input`, `Textarea` (these already carry the focus outline) |
-| Underlined tabs | `<TabsList variant="line">` + `TabsTrigger`, no className overrides |
+| Underlined tabs | `<TabsList variant="line">` + `TabsTrigger`, no className overrides; `fit` sizes them to their labels so a row can hold filters beside them (the row draws the line) |
+| Filter pills over one list | `FilterPills` |
+| Follow a person | `FollowButton` (ink Follow; outline Following that offers Unfollow on hover); `BlockedBadge` once blocked |
+| A detail only the owner sees | `OnlyYouMarker` (the lock) beside it |
+| Rows on a profile | `AskedRow`, `VotedRow` and `ProfileSection` from `features/profiles/ProfileRows` |
 | Status of a poll | `StatusChip` with `derivePollStatus(poll)` |
 | Other small pill (e.g. ballot outcome) | `chipClassName` from `features/polls/chip.ts` + a `bg-*` tint |
 | Empty list | the `empty-state` utility (dashed `surface-soft` box) |
@@ -66,7 +70,7 @@ Use these. Don't copy their classes into a new element.
 | Side card of polls (home rail) | `PollSideCard` with a heading key |
 | Progress (voting window) | `Progress variant="tide"` |
 | List row for a poll | `PollListItem` with `meta` and `aside` |
-| A person's counts | the profile's stats card: `rounded-2xl` `card` cells, a `font-mono` number over a 12px label |
+| A person's counts | `ProfileRecord`: `rounded-2xl` `card` cells, a 26px `font-mono` number over a 12px label; `Count` for a count inside a phrase |
 | Active nav link | `isActivePath(pathname, href)` from `lib/routes.ts` |
 
 If a building block doesn't fit, change its variant or add one. Don't override it at the call site.
