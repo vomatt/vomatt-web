@@ -1,4 +1,4 @@
-import { blockUser,getBlockedUsers, unblockUser } from '@/features/blocks/service';
+import { blockUser, getBlockedUsers, unblockUser } from '@/features/blocks/service';
 import { apiClient, ApiError } from '@/lib/api/client';
 
 jest.mock('@/lib/api/auth', () => ({ clearAuthTokens: jest.fn() }));

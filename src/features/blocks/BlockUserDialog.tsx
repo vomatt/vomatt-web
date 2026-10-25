@@ -15,16 +15,18 @@ import {
 	AlertDialogTitle,
 } from '@/components/ui/AlertDialog';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { blockUserByUsername } from '@/features/blocks/service';
+import { blockUser } from '@/features/blocks/service';
 import { apiErrorText } from '@/lib/api/error-text';
 
-/** Confirms, then blocks another user; unblocking lives in Settings. */
+/** Confirms, then blocks another user. */
 export function BlockUserDialog({
+	userId,
 	username,
 	open,
 	onOpenChange,
 	onBlocked,
 }: {
+	userId: string;
 	username: string;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
@@ -35,12 +37,9 @@ export function BlockUserDialog({
 
 	const block = async () => {
 		setIsBlocking(true);
-		const result = await blockUserByUsername(username);
-		setIsBlocking(false);
-		if (!result.ok || !result.data.found) {
-			toast.error(result.ok ? t('blocks.blockFailed') : apiErrorText(t, result, 'blocks.blockFailed'), {
-				duration: Infinity,
-			});
+		const result = await blockUser(userId).finally(() => setIsBlocking(false));
+		if (!result.ok) {
+			toast.error(apiErrorText(t, result, 'blocks.blockFailed'), { duration: Infinity });
 			return;
 		}
 		onOpenChange(false);

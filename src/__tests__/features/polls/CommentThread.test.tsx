@@ -11,7 +11,7 @@ jest.mock('next/link', () => {
  
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn() } }));
-jest.mock('@/features/blocks/service', () => ({ blockUserByUsername: jest.fn() }));
+jest.mock('@/features/blocks/service', () => ({ blockUser: jest.fn() }));
 
 const service = {
 	getComments: jest.fn(),
@@ -98,6 +98,17 @@ describe('CommentThread', () => {
 		menu = await openMenu('Theirs');
 		expect(within(menu).queryByRole('menuitem', { name: 'Edit' })).not.toBeInTheDocument();
 		expect(within(menu).getByRole('menuitem', { name: 'Block' })).toBeInTheDocument();
+	});
+
+	it('offers no block on a comment without a user ID', async () => {
+		service.getComments.mockResolvedValue({ ok: true, data: { items: [{ ...theirs, userId: null }], nextCursor: null } });
+		render(<Harness />);
+		await screen.findByText('Theirs');
+
+		const menu = await openMenu('Theirs');
+		expect(within(menu).getByRole('menuitem', { name: 'Copy text' })).toBeInTheDocument();
+		expect(within(menu).queryByRole('menuitem', { name: 'Block' })).not.toBeInTheDocument();
+		expect(within(menu).queryByRole('separator')).not.toBeInTheDocument();
 	});
 
 	it('likes optimistically and rolls back on failure', async () => {
@@ -325,8 +336,8 @@ describe('CommentThread', () => {
 	});
 
 	it('drops a blocked user’s comments from the list', async () => {
-		const { blockUserByUsername } = jest.requireMock('@/features/blocks/service');
-		blockUserByUsername.mockResolvedValue({ ok: true, data: { found: true } });
+		const { blockUser } = jest.requireMock('@/features/blocks/service');
+		blockUser.mockResolvedValue({ ok: true, data: undefined });
 		render(<Harness />);
 		await screen.findByText('Theirs');
 
@@ -334,7 +345,7 @@ describe('CommentThread', () => {
 		fireEvent.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Block' }));
 
 		await waitFor(() => expect(screen.queryByText('Theirs')).not.toBeInTheDocument());
-		expect(blockUserByUsername).toHaveBeenCalledWith('mei');
+		expect(blockUser).toHaveBeenCalledWith('other');
 		expect(service.getComments).toHaveBeenCalledTimes(1);
 	});
 
@@ -466,7 +477,7 @@ describe('useComments', () => {
 			await result.current.loadReplies('c3');
 		});
 
-		act(() => result.current.dropAuthor('mei'));
+		act(() => result.current.dropUser('other'));
 		expect(result.current.comments.map((c) => c.id)).toEqual(['c1']);
 		expect(result.current.comments[0].replyCount).toBe(1);
 		expect(result.current.replies.c1.items.map((c) => c.id)).toEqual(['r2']);

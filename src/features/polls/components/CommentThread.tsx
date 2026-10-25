@@ -504,6 +504,8 @@ function CommentBody({
 		);
 	}
 	const author = comment.author;
+	// Whom "Block" blocks; null on the viewer's own comments and on any without a user ID
+	const blockUserId = isOwn ? null : (comment.userId ?? null);
 	// A leading `@name` that answers an earlier reply shows as a chip; the text, its edits and copies leave it out
 	const mention = splitAddressee(comment.text ?? '');
 	const answered = mention.addressee ? findAddressee?.(mention.addressee) : undefined;
@@ -681,7 +683,7 @@ function CommentBody({
 										<Link2 className="size-4" strokeWidth={1.8} />
 										{t('comments.copyLink')}
 									</Menu.Item>
-									<Menu.Separator className="mx-1 my-1.5 h-px bg-border" />
+									{(isOwn || blockUserId) && <Menu.Separator className="mx-1 my-1.5 h-px bg-border" />}
 									{isOwn ? (
 										<Menu.Item
 											className={cn(menuItemClassName, 'text-destructive')}
@@ -691,13 +693,15 @@ function CommentBody({
 											{t('common.delete')}
 										</Menu.Item>
 									) : (
-										<Menu.Item
-											className={cn(menuItemClassName, 'text-destructive')}
-											onClick={() => requireAuth(() => setConfirmingBlock(true))}
-										>
-											<Ban className="size-4" strokeWidth={1.8} />
-											{t('blocks.block')}
-										</Menu.Item>
+										blockUserId && (
+											<Menu.Item
+												className={cn(menuItemClassName, 'text-destructive')}
+												onClick={() => requireAuth(() => setConfirmingBlock(true))}
+											>
+												<Ban className="size-4" strokeWidth={1.8} />
+												{t('blocks.block')}
+											</Menu.Item>
+										)
 									)}
 								</Menu.Popup>
 							</Menu.Positioner>
@@ -731,8 +735,9 @@ function CommentBody({
 						</AlertDialogContent>
 					</AlertDialog>
 
-					{!isOwn && (
+					{blockUserId && (
 						<BlockUserDialog
+							userId={blockUserId}
 							username={author}
 							open={confirmingBlock}
 							onOpenChange={(open) => {
@@ -742,7 +747,7 @@ function CommentBody({
 							// Their comments leave the list, this one included, so focus moves to the discussion
 							onBlocked={() => {
 								moreRef.current?.closest<HTMLElement>('[data-comment-thread]')?.focus();
-								thread.dropAuthor(author);
+								thread.dropUser(blockUserId);
 							}}
 						/>
 					)}

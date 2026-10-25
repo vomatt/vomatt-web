@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 import BlockButton from '@/app/(frontend)/[slug]/_components/BlockButton';
@@ -48,4 +49,18 @@ it('unblocks a blocked user without a confirmation', async () => {
 	fireEvent.click(screen.getByRole('button', { name: 'Unblock' }));
 	await waitFor(() => expect(mockUnblock).toHaveBeenCalledWith('u1'));
 	await waitFor(() => expect(onChange).toHaveBeenCalledWith(false));
+});
+
+it('moves focus to Unblock once the block lands', async () => {
+	mockBlock.mockResolvedValue({ ok: true, data: undefined });
+	function Harness() {
+		const [isBlocked, setIsBlocked] = useState(false);
+		return <BlockButton userId="u1" username="bob" isBlocked={isBlocked} onChange={setIsBlocked} />;
+	}
+	render(<Harness />);
+
+	fireEvent.click(screen.getByRole('button', { name: 'Block' }));
+	await screen.findByText('Block @bob?');
+	fireEvent.click(screen.getAllByRole('button', { name: 'Block' }).at(-1)!);
+	await waitFor(() => expect(screen.getByRole('button', { name: 'Unblock' })).toHaveFocus());
 });
