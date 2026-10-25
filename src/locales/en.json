@@ -164,6 +164,9 @@
 		"membership": "{level} member",
 		"followers": "Followers",
 		"following": "Following",
+		"noFollowers": "No followers yet.",
+		"noFollowing": "Not following anyone yet.",
+		"listFailed": "Couldn’t load this list.",
 		"onlyYou": "Only you can see this",
 		"onlyYouSee": "Only you see: {items}.",
 		"onlyYouSettings": "Change in Settings",
@@ -827,6 +830,9 @@
 			},
 			"block": {
 				"self": "You can’t block yourself"
+			},
+			"follow": {
+				"blocked": "You can’t follow a user you blocked; unblock them first"
 			}
 		},
 		"vote": {
@@ -937,7 +943,7 @@
 	},
 	"follows": {
 		"title": "Following",
-		"intro": "Open public polls by people you follow appear in your Following feed. They aren’t told, and no one sees who follows them.",
+		"intro": "Open public polls by people you follow appear in your Following feed. They aren’t told, but signed-in users can see who follows whom on profiles.",
 		"empty": "You aren’t following anyone.",
 		"loadFailed": "Couldn’t load followed users.",
 		"unfollow": "Unfollow",
@@ -946,7 +952,6 @@
 		"follow": "Follow",
 		"followed": "Following @{username}",
 		"manage": "Manage who you follow",
-		"followFailed": "Couldn’t follow. Try again.",
-		"notFound": "Couldn’t find that user to follow."
+		"followFailed": "Couldn’t follow. Try again."
 	}
 }

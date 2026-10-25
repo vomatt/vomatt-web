@@ -9,8 +9,13 @@ jest.mock('next/navigation', () => ({ useRouter: () => ({ replace: jest.fn(), re
 jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn() } }));
 jest.mock('@/lib/api/services/users', () => ({ editProfile: jest.fn() }));
 jest.mock('@/features/polls/service', () => ({ getUserPolls: jest.fn() }));
-jest.mock('@/features/blocks/service', () => ({ blockUserByUsername: jest.fn() }));
-jest.mock('@/features/follows/service', () => ({ followUserByUsername: jest.fn() }));
+jest.mock('@/features/blocks/service', () => ({ blockUser: jest.fn(), unblockUser: jest.fn() }));
+jest.mock('@/features/follows/service', () => ({
+	followUser: jest.fn(),
+	unfollowUser: jest.fn(),
+	getFollowers: jest.fn(),
+	getFollowing: jest.fn(),
+}));
 jest.mock('@/features/avatars/service', () => ({ chooseAvatar: jest.fn() }));
 jest.mock('@/features/groups/GroupsPanel', () => ({ GroupsPanel: () => <p>Groups panel</p> }));
 
@@ -25,6 +30,9 @@ const publicProfile: UserProfile = {
 	points: null,
 	membershipLevel: null,
 	avatarUrl: null,
+	id: 'u2',
+	isFollowing: false,
+	isBlocked: false,
 };
 
 const myProfile: MyProfile = {
@@ -197,6 +205,43 @@ describe('AccountPage', () => {
 		render(<AccountPage isOwn={false} profile={publicProfile} polls={noPolls} isAuthenticated />);
 		expect(screen.getByText('No polls yet.')).toBeInTheDocument();
 		expect(screen.queryByRole('button', { name: 'Create a poll' })).not.toBeInTheDocument();
+	});
+
+	it('offers a signed-in visitor Follow, Block and the follow lists', () => {
+		render(<AccountPage isOwn={false} profile={publicProfile} polls={noPolls} isAuthenticated />);
+
+		expect(screen.getByRole('button', { name: 'Follow' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Block' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Followers' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Following' })).toBeInTheDocument();
+	});
+
+	it('shows Unfollow for a followed user, and Unblock instead of Follow for a blocked one', () => {
+		const { unmount } = render(
+			<AccountPage isOwn={false} profile={{ ...publicProfile, isFollowing: true }} polls={noPolls} isAuthenticated />
+		);
+		expect(screen.getByRole('button', { name: 'Unfollow' })).toBeInTheDocument();
+		unmount();
+
+		render(
+			<AccountPage isOwn={false} profile={{ ...publicProfile, isBlocked: true }} polls={noPolls} isAuthenticated />
+		);
+		expect(screen.getByRole('button', { name: 'Unblock' })).toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Follow' })).not.toBeInTheDocument();
+	});
+
+	it('gives a signed-out visitor no relation actions', () => {
+		render(
+			<AccountPage
+				isOwn={false}
+				profile={{ ...publicProfile, isFollowing: null, isBlocked: null }}
+				polls={noPolls}
+				isAuthenticated={false}
+			/>
+		);
+
+		expect(screen.queryByRole('button', { name: 'Follow' })).not.toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Followers' })).not.toBeInTheDocument();
 	});
 
 	it("doesn't let visitors change the avatar", () => {

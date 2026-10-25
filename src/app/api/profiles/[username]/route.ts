@@ -2,10 +2,10 @@ import { NextResponse } from 'next/server';
 
 import { getUserProfile } from '@/lib/api/services/users';
 
-// Public data the server already caches for 60s; browsers may reuse it for as long
-const CACHE_HEADERS = { 'Cache-Control': 'public, max-age=60' };
+// Carries the viewer's follow and block flags, so only their own browser may reuse it
+const CACHE_HEADERS = { 'Cache-Control': 'private, max-age=60' };
 
-/** The public profile behind the hover card; 404 when no one uses the username. */
+/** The profile behind the hover card; 404 when no one uses the username. */
 export async function GET(_request: Request, { params }: { params: Promise<{ username: string }> }) {
 	const { username } = await params;
 	const profile = await getUserProfile(username);

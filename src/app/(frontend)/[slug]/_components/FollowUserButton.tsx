@@ -6,21 +6,36 @@ import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/Button';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { followUserByUsername } from '@/features/follows/service';
+import { followUser, unfollowUser } from '@/features/follows/service';
 import { apiErrorText } from '@/lib/api/error-text';
 
-/** Follows another user privately; unfollowing lives in Settings, as unblocking does. */
-export default function FollowUserButton({ username }: { username: string }) {
+/** Follows or unfollows another user; the follow is private. The parent owns the state. */
+export default function FollowUserButton({
+	userId,
+	username,
+	isFollowing,
+	onChange,
+}: {
+	userId: string;
+	username: string;
+	isFollowing: boolean;
+	onChange: (isFollowing: boolean) => void;
+}) {
 	const { t } = useLanguage();
-	const [isFollowing, setIsFollowing] = useState(false);
+	const [isPending, setIsPending] = useState(false);
 
-	const follow = async () => {
-		setIsFollowing(true);
-		const result = await followUserByUsername(username);
-		setIsFollowing(false);
-		if (!result.ok || !result.data.found) {
-			const message = result.ok ? t('follows.notFound') : apiErrorText(t, result, 'follows.followFailed');
-			toast.error(message, { duration: Infinity });
+	const toggle = async () => {
+		setIsPending(true);
+		const result = await (isFollowing ? unfollowUser(userId) : followUser(userId)).finally(() => setIsPending(false));
+		if (!result.ok) {
+			toast.error(apiErrorText(t, result, isFollowing ? 'follows.unfollowFailed' : 'follows.followFailed'), {
+				duration: Infinity,
+			});
+			return;
+		}
+		onChange(!isFollowing);
+		if (isFollowing) {
+			toast.success(t('follows.unfollowed', { username }));
 			return;
 		}
 		toast.success(t('follows.followed', { username }), {
@@ -33,8 +48,8 @@ export default function FollowUserButton({ username }: { username: string }) {
 	};
 
 	return (
-		<Button size="sm" loading={isFollowing} onClick={follow}>
-			{t('follows.follow')}
+		<Button variant={isFollowing ? 'outline' : 'default'} size="sm" loading={isPending} onClick={toggle}>
+			{isFollowing ? t('follows.unfollow') : t('follows.follow')}
 		</Button>
 	);
 }

@@ -4,7 +4,6 @@ import type { ActionResult } from '@/lib/api/action';
 import { attempt } from '@/lib/api/action';
 import { apiClient } from '@/lib/api/client';
 import { type CursorPage, cursorPageSchema, pageParams } from '@/lib/api/cursor';
-import { findUserByUsername } from '@/lib/api/find-user';
 import type { UserDto } from '@/schemas/user';
 import { UserDtoSchema } from '@/schemas/user';
 
@@ -17,7 +16,7 @@ export async function getBlockedUsers(cursor?: string): Promise<ActionResult<Cur
 	return attempt(async () => UserPage.parse(await apiClient(`/users/me/blocks?${pageParams(cursor, 20)}`)));
 }
 
-/** One-way and silent: their Polls and Comments leave your lists. Idempotent. */
+/** One-way and silent: their Polls and Comments leave your lists, and you stop following them. Idempotent. */
 export async function blockUser(userId: string): Promise<ActionResult> {
 	return attempt(async () => {
 		await apiClient(blockPath(userId), { method: 'POST' });
@@ -28,15 +27,5 @@ export async function blockUser(userId: string): Promise<ActionResult> {
 export async function unblockUser(userId: string): Promise<ActionResult> {
 	return attempt(async () => {
 		await apiClient(blockPath(userId), { method: 'DELETE' });
-	});
-}
-
-/** Blocks by username; `found: false` when no such username turns up. */
-export async function blockUserByUsername(username: string): Promise<ActionResult<{ found: boolean }>> {
-	return attempt(async () => {
-		const user = await findUserByUsername(username);
-		if (!user) return { found: false };
-		await apiClient(blockPath(user.id), { method: 'POST' });
-		return { found: true };
 	});
 }

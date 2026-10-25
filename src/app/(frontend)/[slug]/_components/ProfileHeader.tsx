@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { useState } from 'react';
 
 import { EyeOff } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -12,9 +11,6 @@ import { profileDetails } from '@/features/profiles/details';
 import { toPayloadLocale } from '@/lib/locale';
 import { cn } from '@/lib/utils';
 import type { UserProfile } from '@/types/user';
-
-import FollowButton from './FollowButton';
-import FollowersSheet from './FollowersSheet';
 
 type HeaderProfile = Pick<
 	UserProfile,
@@ -168,70 +164,5 @@ export function OnlyYouMarker({ className }: { className?: string }) {
 			/>
 			<span className="sr-only">({t('profile.onlyYou')})</span>
 		</>
-	);
-}
-
-/** Follow toggle and counts; renders nothing until the backend supports follows. */
-export function FollowControls({
-	profile,
-	isAuthenticated,
-}: {
-	profile: UserProfile;
-	isAuthenticated: boolean;
-}) {
-	const { t } = useLanguage();
-	const [sheetType, setSheetType] = useState<'followers' | 'following' | null>(
-		null
-	);
-	const { followersCount, followingCount } = profile;
-	if (followersCount === undefined && followingCount === undefined) return null;
-
-	return (
-		<div className="flex items-center gap-4 text-sm">
-			{followersCount !== undefined &&
-				(isAuthenticated ? (
-					<FollowButton
-						username={profile.username}
-						initialIsFollowing={profile.isFollowing ?? false}
-						initialFollowersCount={followersCount}
-						onOpenFollowers={() => setSheetType('followers')}
-					/>
-				) : (
-					<button
-						type="button"
-						onClick={() => setSheetType('followers')}
-						className="flex flex-col items-center cursor-pointer hover:opacity-70 transition-opacity"
-					>
-						<span className="font-semibold text-foreground">
-							{followersCount}
-						</span>
-						<span className="text-muted-foreground text-xs">
-							{t('profile.followers')}
-						</span>
-					</button>
-				))}
-			{followingCount !== undefined && (
-				<button
-					type="button"
-					onClick={() => setSheetType('following')}
-					className="flex flex-col items-center cursor-pointer hover:opacity-70 transition-opacity"
-				>
-					<span className="font-semibold text-foreground">
-						{followingCount}
-					</span>
-					<span className="text-muted-foreground text-xs">
-						{t('profile.following')}
-					</span>
-				</button>
-			)}
-			<FollowersSheet
-				username={profile.username}
-				type={sheetType ?? 'followers'}
-				open={sheetType !== null}
-				onOpenChange={(open) => {
-					if (!open) setSheetType(null);
-				}}
-			/>
-		</div>
 	);
 }
