@@ -39,6 +39,11 @@ export function FollowListButtons({ username }: { username: string }) {
  * blocked user can't be followed, so the Follow button gives way until unblocked.
  */
 export function RelationActions({ profile }: { profile: UserProfile }) {
+	// Keyed by the server flags too, so a refreshed profile re-seeds the state
+	return <RelationButtons key={`${profile.id}:${profile.isFollowing}:${profile.isBlocked}`} profile={profile} />;
+}
+
+function RelationButtons({ profile }: { profile: UserProfile }) {
 	const [isFollowing, setIsFollowing] = useState(profile.isFollowing ?? false);
 	const [isBlocked, setIsBlocked] = useState(profile.isBlocked ?? false);
 

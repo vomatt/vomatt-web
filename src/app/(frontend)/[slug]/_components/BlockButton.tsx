@@ -37,8 +37,7 @@ export default function BlockButton({
 
 	const unblock = async () => {
 		setIsPending(true);
-		const result = await unblockUser(userId);
-		setIsPending(false);
+		const result = await unblockUser(userId).finally(() => setIsPending(false));
 		if (!result.ok) {
 			toast.error(apiErrorText(t, result, 'blocks.unblockFailed'), { duration: Infinity });
 			return;
@@ -49,8 +48,7 @@ export default function BlockButton({
 
 	const block = async () => {
 		setIsPending(true);
-		const result = await blockUser(userId);
-		setIsPending(false);
+		const result = await blockUser(userId).finally(() => setIsPending(false));
 		if (!result.ok) {
 			toast.error(apiErrorText(t, result, 'blocks.blockFailed'), { duration: Infinity });
 			return;

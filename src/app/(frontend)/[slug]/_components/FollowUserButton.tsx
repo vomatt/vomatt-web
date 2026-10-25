@@ -26,8 +26,7 @@ export default function FollowUserButton({
 
 	const toggle = async () => {
 		setIsPending(true);
-		const result = await (isFollowing ? unfollowUser(userId) : followUser(userId));
-		setIsPending(false);
+		const result = await (isFollowing ? unfollowUser(userId) : followUser(userId)).finally(() => setIsPending(false));
 		if (!result.ok) {
 			toast.error(apiErrorText(t, result, isFollowing ? 'follows.unfollowFailed' : 'follows.followFailed'), {
 				duration: Infinity,

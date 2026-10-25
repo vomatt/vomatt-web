@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import {
@@ -39,6 +39,12 @@ export default function FollowersSheet({ username, type, open, onOpenChange }: F
 	const [attempt, setAttempt] = useState(0);
 
 	const load = type === 'followers' ? getFollowers : getFollowing;
+	const loadRef = useRef(load);
+	const openRef = useRef(open);
+	useEffect(() => {
+		loadRef.current = load;
+		openRef.current = open;
+	}, [load, open]);
 
 	useEffect(() => {
 		if (!open) return;
@@ -48,6 +54,7 @@ export default function FollowersSheet({ username, type, open, onOpenChange }: F
 		setUsers([]);
 		setNextCursor(null);
 		setLoadMoreFailed(false);
+		setLoadingMore(false);
 		load(username)
 			.then((result) => {
 				if (ignore) return;
@@ -72,6 +79,8 @@ export default function FollowersSheet({ username, type, open, onOpenChange }: F
 		setLoadingMore(true);
 		setLoadMoreFailed(false);
 		const result = await load(username, nextCursor).catch(() => null);
+		// The sheet closed or switched list meanwhile: this page belongs to the old list
+		if (loadRef.current !== load || !openRef.current) return;
 		setLoadingMore(false);
 		if (!result?.ok) {
 			setLoadMoreFailed(true);
