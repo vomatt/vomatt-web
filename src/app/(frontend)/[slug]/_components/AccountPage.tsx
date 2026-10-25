@@ -14,11 +14,10 @@ import { toPayloadLocale } from '@/lib/locale';
 import { cn } from '@/lib/utils';
 import type { MyProfile, UserProfile } from '@/types/user';
 
-import BlockButton from './BlockButton';
 import EditProfileDialog from './EditProfileDialog';
-import FollowUserButton from './FollowUserButton';
-import ProfileHeader, { FollowControls } from './ProfileHeader';
+import ProfileHeader from './ProfileHeader';
 import ProfilePollList from './ProfilePollList';
+import { FollowListButtons, RelationActions } from './RelationActions';
 
 /** `polls` and `insights` are null when the polls couldn't load. */
 type OwnView = {
@@ -75,14 +74,14 @@ export default function AccountPage(props: AccountPageProps) {
 							<Link href="/settings" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
 								{t('navigation.settings')}
 							</Link>
+							<FollowListButtons username={profile.username} />
 						</div>
 					) : (
 						<div className="flex flex-wrap items-center gap-4">
-							<FollowControls profile={props.profile} isAuthenticated={props.isAuthenticated} />
 							{props.isAuthenticated && (
 								<>
-									<FollowUserButton username={profile.username} />
-									<BlockButton username={profile.username} />
+									<FollowListButtons username={profile.username} />
+									<RelationActions profile={props.profile} />
 								</>
 							)}
 						</div>

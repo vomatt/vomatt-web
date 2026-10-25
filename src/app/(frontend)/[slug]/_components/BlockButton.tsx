@@ -16,26 +16,47 @@ import {
 } from '@/components/ui/AlertDialog';
 import { Button } from '@/components/ui/Button';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { blockUserByUsername } from '@/features/blocks/service';
+import { blockUser, unblockUser } from '@/features/blocks/service';
 import { apiErrorText } from '@/lib/api/error-text';
 
-/** Blocks another user after a confirmation; unblocking lives in Settings. */
-export default function BlockButton({ username }: { username: string }) {
+/** Blocks another user after a confirmation, or unblocks them at once. The parent owns the state. */
+export default function BlockButton({
+	userId,
+	username,
+	isBlocked,
+	onChange,
+}: {
+	userId: string;
+	username: string;
+	isBlocked: boolean;
+	onChange: (isBlocked: boolean) => void;
+}) {
 	const { t } = useLanguage();
 	const [open, setOpen] = useState(false);
-	const [isBlocking, setIsBlocking] = useState(false);
+	const [isPending, setIsPending] = useState(false);
+
+	const unblock = async () => {
+		setIsPending(true);
+		const result = await unblockUser(userId);
+		setIsPending(false);
+		if (!result.ok) {
+			toast.error(apiErrorText(t, result, 'blocks.unblockFailed'), { duration: Infinity });
+			return;
+		}
+		onChange(false);
+		toast.success(t('blocks.unblocked', { username }));
+	};
 
 	const block = async () => {
-		setIsBlocking(true);
-		const result = await blockUserByUsername(username);
-		setIsBlocking(false);
-		if (!result.ok || !result.data.found) {
-			toast.error(result.ok ? t('blocks.blockFailed') : apiErrorText(t, result, 'blocks.blockFailed'), {
-				duration: Infinity,
-			});
+		setIsPending(true);
+		const result = await blockUser(userId);
+		setIsPending(false);
+		if (!result.ok) {
+			toast.error(apiErrorText(t, result, 'blocks.blockFailed'), { duration: Infinity });
 			return;
 		}
 		setOpen(false);
+		onChange(true);
 		toast.success(t('blocks.blocked', { username }), {
 			description: (
 				<Link href="/settings" className="underline underline-offset-3">
@@ -44,6 +65,14 @@ export default function BlockButton({ username }: { username: string }) {
 			),
 		});
 	};
+
+	if (isBlocked) {
+		return (
+			<Button variant="outline" size="sm" loading={isPending} onClick={unblock}>
+				{t('blocks.unblock')}
+			</Button>
+		);
+	}
 
 	return (
 		<>
@@ -58,7 +87,7 @@ export default function BlockButton({ username }: { username: string }) {
 					</AlertDialogHeader>
 					<AlertDialogFooter>
 						<AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-						<AlertDialogAction variant="destructive" loading={isBlocking} onClick={block}>
+						<AlertDialogAction variant="destructive" loading={isPending} onClick={block}>
 							{t('blocks.block')}
 						</AlertDialogAction>
 					</AlertDialogFooter>

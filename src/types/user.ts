@@ -10,10 +10,10 @@ export interface UserProfile {
 	points?: number | null;
 	membershipLevel?: string | null;
 	avatarUrl: string | null; // `bot:<kind>`; older accounts may hold an image URL
-	// Absent until the backend ships follows; the UI hides them then.
-	followersCount?: number;
-	followingCount?: number;
-	isFollowing?: boolean; // only present when request includes Authorization header
+	id: string;
+	/** Whether the viewer follows / has blocked this user; null when signed out, false on their own profile. */
+	isFollowing: boolean | null;
+	isBlocked: boolean | null;
 }
 
 /** Response from GET /users/me — the authenticated user's own profile. */

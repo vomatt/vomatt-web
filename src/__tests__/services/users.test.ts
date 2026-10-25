@@ -3,10 +3,8 @@ import {
   deleteMyAccount,
   deleteUser,
   editProfile,
-  followUser,
   getUserProfile,
   searchUsers,
-  unfollowUser,
 } from '@/lib/api/services/users';
 
 const mockUpdateTag = jest.fn();
@@ -49,18 +47,17 @@ beforeEach(() => {
 });
 
 describe('getUserProfile()', () => {
-  it('uses publicFetch (unauthenticated), not apiClient', async () => {
+  it('sends the session when there is one, so the viewer flags are filled', async () => {
     await getUserProfile('alice');
-    expect(mockPublicFetch).toHaveBeenCalled();
-    expect(mockApiClient).not.toHaveBeenCalled();
+    expect(mockApiClient).toHaveBeenCalledWith(
+      '/users/alice',
+      expect.objectContaining({ auth: 'optional' })
+    );
   });
 
-  it('calls the correct URL', async () => {
-    await getUserProfile('alice');
-    expect(mockPublicFetch).toHaveBeenCalledWith(
-      expect.stringContaining('/users/alice'),
-      expect.anything()
-    );
+  it('returns null for an unknown username', async () => {
+    mockApiClient.mockRejectedValueOnce(new ApiError('nope', 404));
+    expect(await getUserProfile('ghost')).toBeNull();
   });
 });
 
@@ -135,24 +132,6 @@ describe('deleteUser()', () => {
   it('sends DELETE to /users/{userId}', async () => {
     await deleteUser('user-123');
     expect(mockApiClient).toHaveBeenCalledWith('/users/user-123', {
-      method: 'DELETE',
-    });
-  });
-});
-
-describe('followUser()', () => {
-  it('sends POST to /users/{username}/follow', async () => {
-    await followUser('carol');
-    expect(mockApiClient).toHaveBeenCalledWith('/users/carol/follow', {
-      method: 'POST',
-    });
-  });
-});
-
-describe('unfollowUser()', () => {
-  it('sends DELETE to /users/{username}/follow', async () => {
-    await unfollowUser('carol');
-    expect(mockApiClient).toHaveBeenCalledWith('/users/carol/follow', {
       method: 'DELETE',
     });
   });

@@ -164,6 +164,9 @@
 		"membership": "{level} 會員",
 		"followers": "追蹤者",
 		"following": "追蹤中",
+		"noFollowers": "尚無追蹤者。",
+		"noFollowing": "尚未追蹤任何人。",
+		"listFailed": "無法載入此清單。",
 		"onlyYou": "只有你看得到",
 		"onlyYouSee": "只有你看得到：{items}。",
 		"onlyYouSettings": "到設定中變更",
@@ -810,6 +813,9 @@
 			},
 			"block": {
 				"self": "無法封鎖自己"
+			},
+			"follow": {
+				"blocked": "不能追蹤已封鎖的使用者，請先解除封鎖"
 			}
 		},
 		"vote": {
@@ -920,7 +926,7 @@
 	},
 	"follows": {
 		"title": "追蹤中的用戶",
-		"intro": "你追蹤的人所發起的進行中公開投票會顯示在「追蹤中」動態。對方不會收到通知，也沒有人能看到誰追蹤了他們。",
+		"intro": "你追蹤的人所發起的進行中公開投票會顯示在「追蹤中」動態。對方不會收到通知，但已登入的使用者可在個人頁看到追蹤關係。",
 		"empty": "你尚未追蹤任何人。",
 		"loadFailed": "無法載入追蹤中的用戶。",
 		"unfollow": "取消追蹤",
@@ -929,7 +935,6 @@
 		"follow": "追蹤",
 		"followed": "已追蹤 @{username}",
 		"manage": "管理追蹤中的用戶",
-		"followFailed": "無法追蹤，請再試一次。",
-		"notFound": "找不到要追蹤的使用者。"
+		"followFailed": "無法追蹤，請再試一次。"
 	}
 }
