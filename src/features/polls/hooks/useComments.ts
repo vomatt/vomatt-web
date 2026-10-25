@@ -210,6 +210,35 @@ export function useComments(
 		[pollId, shiftReplyCount]
 	);
 
+	/**
+	 * After a block: the API leaves out the threads that user started and the Replies they wrote,
+	 * and stops counting those Replies, so the loaded list does the same without a refetch.
+	 */
+	const dropAuthor = useCallback(
+		(author: string) => {
+			const dropped: Record<string, number> = {};
+			for (const [rootId, list] of Object.entries(replies)) {
+				dropped[rootId] = list.items.filter((c) => c.author === author).length;
+			}
+			setReplies((prev) =>
+				Object.fromEntries(
+					Object.entries(prev).map(([rootId, list]) => [
+						rootId,
+						{ ...list, items: list.items.filter((c) => c.author !== author) },
+					])
+				)
+			);
+			setComments((prev) =>
+				prev
+					.filter((c) => c.author !== author)
+					.map((c) => (dropped[c.id] ? { ...c, replyCount: Math.max(0, (c.replyCount ?? 0) - dropped[c.id]) } : c))
+					// A placeholder with no Replies left isn't listed by the API either
+					.filter((c) => !(c.deleted && !c.replyCount))
+			);
+		},
+		[replies]
+	);
+
 	const toggleLike = useCallback(
 		async (comment: Comment) => {
 			const liked = !comment.likedByCurrentUser;
@@ -239,6 +268,7 @@ export function useComments(
 		add,
 		edit,
 		remove,
+		dropAuthor,
 		toggleLike,
 	};
 }
