@@ -104,12 +104,14 @@ jobs:
           github_token: ${{ env.GH_TOKEN }}
           show_full_output: true
           # Without an allowlist every git and write command is denied
-          claude_args: --max-turns 200 --allowedTools "${{ env.ALLOWED_TOOLS }}"
+          claude_args: --max-turns 200 --add-dir "${{ github.workspace }}/../vomatt-api" --allowedTools "${{ env.ALLOWED_TOOLS }}"
           prompt: |
             Sync this repo with vomatt-api's API contract and frontend docs. vomatt-api is checked out at
             ../vomatt-api at commit ${{ env.API_SHA }}; the previous main was "${{ env.API_BEFORE }}" (may be empty).
             You are on branch claude/sync-api. If `git status` shows a merge in progress, resolve the conflicts
             and commit the merge first.
+            Run shell commands from the repo root: no `cd` and no heredocs.
+            Create and change files with Write and Edit.
 
             Scope for this repo: ${{ env.SYNC_SCOPE }}
 
@@ -122,10 +124,11 @@ jobs:
                start from the closest existing screen and reuse its layout, components, navigation and design
                tokens (DESIGN.md where present), put the entry point where similar features live, and cover
                loading, empty and error states. Add no new design patterns or dependencies.
-            4. Run `${{ env.VERIFY }}` and fix until it passes.
-            5. Run the /simplify skill on your changes, then run the verify command again.
-            6. Commit following this repo's commit conventions (CLAUDE.md, `git log`). Do not push.
-            7. Write the PR description to .pr-body.md: the endpoints and behaviors changed, the screens added or
+            4. Run `${{ env.VERIFY }}` and fix until it passes, then commit following this repo's commit
+               conventions (CLAUDE.md, `git log`). Do not push.
+            5. Run the /simplify skill on your changes and wait for its agents to finish before you reply.
+               Run the verify command again and commit the fixes.
+            6. Write the PR description to .pr-body.md: the endpoints and behaviors changed, the screens added or
                changed and which existing screen each one follows,
                anything in scope left unimplemented and why, and
                https://github.com/vomatt/vomatt-api/commit/${{ env.API_SHA }} as the source.
@@ -154,6 +157,9 @@ jobs:
             since origin/main (`origin/main...HEAD`), fix every real finding, run `${{ env.VERIFY }}` until it
             passes, and commit the fixes following this repo's commit conventions. Do not push.
             If you fixed anything, append a "Review" section listing the fixes to .pr-body.md.
+            Wait for the review's agents to finish before you reply.
+            Run shell commands from the repo root: no `cd` and no heredocs.
+            Create and change files with Write and Edit.
 
       - name: Push and open or update the PR
         if: steps.changed.outputs.changed == 'true'
