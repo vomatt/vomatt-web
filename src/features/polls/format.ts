@@ -38,8 +38,13 @@ export function formatPollDate(iso: string, language: LanguageCode) {
 	return DATE_FORMATTERS[language].format(new Date(iso));
 }
 
-/** "in 5 hours" / "5 小時前" */
+const JUST_NOW = { en: 'just now', zh: '剛剛' } satisfies Record<LanguageCode, string>;
+
+/** "in 5 hours" / "5 小時前"; under a minute ago is "just now" / "剛剛" */
 export function formatFromNow(iso: string, language: LanguageCode) {
+	const age = Date.now() - new Date(iso).getTime();
+	// Only the past: a future moment reads "Ends in 30 seconds", never "Ends just now"
+	if (age >= 0 && age < 60_000) return JUST_NOW[language];
 	return formatDistanceToNowStrict(new Date(iso), {
 		addSuffix: true,
 		locale: DATE_FNS_LOCALES[language],
