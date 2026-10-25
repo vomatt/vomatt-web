@@ -31,6 +31,7 @@ const mockClosePoll = jest.fn();
 const mockDeletePoll = jest.fn();
 const mockGetVoters = jest.fn();
 
+jest.mock('@/features/blocks/service', () => ({ blockUserByUsername: jest.fn() }));
 jest.mock('@/features/polls/service', () => ({
 	closePoll: (...args: any[]) => mockClosePoll(...args),
 	deletePoll: (...args: any[]) => mockDeletePoll(...args),
@@ -655,8 +656,7 @@ describe('PollCard signed-out visitor', () => {
 			ok: true,
 			data: { id: 'c1', author: 'voter', text: 'Hello', createdAt: '2026-10-05T00:00:00Z' },
 		});
-		render(<PollCard poll={{ ...openPoll, commentCount: 0 }} />);
-		fireEvent.click(screen.getByText('0 comments'));
+		render(<PollCard poll={{ ...openPoll, commentCount: 0 }} defaultShowComments />);
 		fireEvent.change(await screen.findByPlaceholderText('Why did you vote the way you did?'), {
 			target: { value: 'Hello' },
 		});
@@ -672,6 +672,32 @@ describe('PollCard signed-out visitor', () => {
 		expect(screen.getByText('1 comment')).toBeInTheDocument();
 	});
 
+	it('links the title to the poll page from a list, but not on the page itself', () => {
+		const { unmount } = render(<PollCard poll={openPoll} />);
+		expect(screen.getByRole('link', { name: openPoll.title })).toHaveAttribute('href', '/poll/poll-1');
+		unmount();
+
+		render(<PollCard poll={openPoll} headingLevel="h1" defaultShowComments />);
+		expect(screen.queryByRole('link', { name: openPoll.title })).not.toBeInTheDocument();
+		expect(screen.getByRole('heading', { level: 1, name: openPoll.title })).toBeInTheDocument();
+	});
+
+	it('leads from a feed card to the poll page discussion instead of unfolding it', () => {
+		render(<PollCard poll={{ ...openPoll, commentCount: 3 }} />);
+		const link = screen.getByRole('link', { name: '3 comments' });
+		expect(link).toHaveAttribute('href', '/poll/poll-1#discussion');
+		expect(mockGetComments).not.toHaveBeenCalled();
+		expect(screen.queryByPlaceholderText('Why did you vote the way you did?')).not.toBeInTheDocument();
+	});
+
+	it('folds the discussion on the poll page', async () => {
+		mockGetComments.mockResolvedValue({ ok: true, data: { items: [], nextCursor: null } });
+		render(<PollCard poll={{ ...openPoll, commentCount: 0 }} defaultShowComments />);
+		await screen.findByPlaceholderText('Why did you vote the way you did?');
+		fireEvent.click(screen.getByRole('button', { name: '0 comments' }));
+		expect(screen.queryByPlaceholderText('Why did you vote the way you did?')).not.toBeInTheDocument();
+	});
+
 	it('shows comments to a guest without asking to sign in', async () => {
 		mockGetComments.mockResolvedValue({
 			ok: true,
@@ -680,8 +706,7 @@ describe('PollCard signed-out visitor', () => {
 				nextCursor: null,
 			},
 		});
-		render(<PollCard poll={openPoll} />);
-		fireEvent.click(screen.getByText('Discuss'));
+		render(<PollCard poll={openPoll} defaultShowComments />);
 
 		expect(await screen.findByText('Saturday works')).toBeInTheDocument();
 		expect(screen.queryByTestId('auth-dialog')).not.toBeInTheDocument();
@@ -689,8 +714,7 @@ describe('PollCard signed-out visitor', () => {
 
 	it('keeps the comment text when the guest backs out of sign-in', async () => {
 		mockGetComments.mockResolvedValue({ ok: true, data: { items: [], nextCursor: null } });
-		render(<PollCard poll={openPoll} />);
-		fireEvent.click(screen.getByText('Discuss'));
+		render(<PollCard poll={openPoll} defaultShowComments />);
 		const box = await screen.findByPlaceholderText('Why did you vote the way you did?');
 		fireEvent.change(box, { target: { value: 'Draft' } });
 		fireEvent.click(screen.getByRole('button', { name: 'Post' }));

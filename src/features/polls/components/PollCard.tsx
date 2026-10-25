@@ -19,7 +19,7 @@ import { getPoll } from '../service';
 import { derivePollStatus } from '../status';
 import { AudienceLabel } from './AudienceLabel';
 import { Ballot } from './Ballot';
-import { CommentThread } from './CommentThread';
+import { CommentThread, useCommentLink } from './CommentThread';
 import { getOwnerActions, OwnerActions } from './OwnerActions';
 import { PollFooter } from './PollFooter';
 import { type ResultRow, Results } from './Results';
@@ -32,7 +32,10 @@ interface PollCardProps {
 	viewerId?: string;
 	/** The viewer's `anonymousBallotByDefault`, which a first vote starts from. */
 	anonymousByDefault?: boolean;
-	/** The detail page opens the discussion right away. */
+	/**
+	 * Set on the poll page: the discussion opens right away and folds, and the title is plain text.
+	 * Feed cards link the title and the comments button to the page instead.
+	 */
 	defaultShowComments?: boolean;
 	/** Where to go once the owner Deletes the Poll; without it the card just leaves the list. */
 	deletedHref?: string;
@@ -60,6 +63,7 @@ export function PollCard({
 		enabled: showComments,
 		initialTotal: initialPoll.commentCount,
 	});
+	useCommentLink(thread);
 
 	const refetch = useCallback(async () => {
 		const fresh = await getPoll(poll.id).catch(() => null);
@@ -120,11 +124,18 @@ export function PollCard({
 				</div>
 
 				<div>
-					<Link href={`/poll/${id}`}>
-						<Heading className="wrap-anywhere text-[21px] font-medium leading-tight tracking-[-0.02em] text-foreground hover:text-muted-foreground transition-colors md:text-[25px]">
+					{/* On the poll page the title is plain, selectable text; in a list it leads to the page */}
+					{defaultShowComments ? (
+						<Heading className="wrap-anywhere text-[21px] font-medium leading-tight tracking-[-0.02em] text-foreground select-text md:text-[25px]">
 							{title}
 						</Heading>
-					</Link>
+					) : (
+						<Link href={`/poll/${id}`}>
+							<Heading className="wrap-anywhere text-[21px] font-medium leading-tight tracking-[-0.02em] text-foreground hover:text-muted-foreground transition-colors md:text-[25px]">
+								{title}
+							</Heading>
+						</Link>
+					)}
 					{description && (
 						<p className="mt-2 max-w-[65ch] wrap-anywhere text-base text-muted-foreground leading-relaxed">
 							{description}
@@ -169,11 +180,11 @@ export function PollCard({
 				title={title}
 				turnout={ballot.turnout}
 				commentCount={thread.total}
-				onToggleComments={() => setShowComments((value) => !value)}
+				onToggleComments={defaultShowComments ? () => setShowComments((value) => !value) : undefined}
 			/>
 
 			{showComments && (
-				<CommentThread thread={thread} viewerId={viewerId} requireAuth={requireAuth} />
+				<CommentThread thread={thread} pollId={id} viewerId={viewerId} requireAuth={requireAuth} />
 			)}
 
 			{canSeeVoters && (

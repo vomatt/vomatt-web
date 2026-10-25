@@ -425,7 +425,20 @@
 		"viewReply": "View 1 reply",
 		"viewReplies": "View {count} replies",
 		"moreReplies": "Show more replies",
-		"deleted": "This comment was deleted."
+		"deleted": "This comment was deleted.",
+		"replying": "Replying",
+		"replyingTo": "Replying to",
+		"cancelReply": "Cancel reply",
+		"editing": "Editing",
+		"more": "More",
+		"copyText": "Copy text",
+		"copyLink": "Copy link",
+		"textCopied": "Text copied",
+		"linkCopied": "Link copied",
+		"copyFailed": "Couldn’t copy.",
+		"deleteBody": "This can’t be undone.",
+		"deleteBodyReply": "Its reply stays in the discussion under a deleted placeholder. This can’t be undone.",
+		"deleteBodyReplies": "Its {count} replies stay in the discussion under a deleted placeholder. This can’t be undone."
 	},
 	"account": {
 		"usernameLabel": "Username",
