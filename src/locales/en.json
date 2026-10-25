@@ -939,7 +939,7 @@
 		"manage": "Manage blocked users",
 		"blockFailed": "Couldn’t block. Try again.",
 		"confirmTitle": "Block @{username}?",
-		"confirmBody": "Their polls and comments will no longer show up for you. They won’t be told. You can unblock them in Settings."
+		"confirmBody": "Their polls and comments will no longer show up for you. They won’t be told. You can unblock them from their profile or in Settings."
 	},
 	"follows": {
 		"title": "Following",
