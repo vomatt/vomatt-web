@@ -2,7 +2,9 @@
 
 import { useEffect } from 'react';
 
+import { EmptyCard } from '@/components/EmptyCard';
 import { Button } from '@/components/ui/Button';
+import { TriangleAlert } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function Error({
@@ -18,15 +20,16 @@ export default function Error({
 		console.error(error);
 	}, [error]);
 
+	// The raw message stays in the console: it is written for developers, not for the reader
 	return (
-		<div className="flex flex-col items-center justify-center min-h-[50vh] gap-4 px-4 text-center">
-			<h1 className="text-xl font-semibold text-foreground">{t('common.error')}</h1>
-			<p className="text-sm text-muted-foreground max-w-sm">
-				{error.message || t('common.errorBody')}
-			</p>
-			<Button variant="outline" onClick={reset}>
-				{t('common.tryAgain')}
-			</Button>
+		<div className="px-contain mx-auto w-full max-w-feed pt-8 pb-16">
+			<EmptyCard
+				headingLevel={1}
+				icon={<TriangleAlert />}
+				title={t('common.error')}
+				body={t('common.errorBody')}
+				action={<Button onClick={reset}>{t('common.tryAgain')}</Button>}
+			/>
 		</div>
 	);
 }

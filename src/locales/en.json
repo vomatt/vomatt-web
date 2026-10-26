@@ -26,10 +26,11 @@
 		"active": "Active",
 		"ended": "Ended",
 		"invalidEmailAddress": "Invalid email address",
-		"errorBody": "Something unexpected happened. Try again.",
+		"errorBody": "Please try again. If it keeps happening, come back in a few minutes.",
 		"tryAgain": "Try again",
 		"notFoundTitle": "Page not found",
 		"notFoundBody": "We couldn’t find what you were looking for.",
+		"goHome": "Go home",
 		"skipToContent": "Skip to content"
 	},
 	"navigation": {
