@@ -31,6 +31,15 @@ export const CommentSchema = z.object({
 	deleted: z.boolean().optional(),
 });
 
+/**
+ * A top-level Comment as the Poll's Comment list sends it: its first Replies (up to 2, oldest
+ * first) and the cursor that continues the Replies after them (null when none remain).
+ */
+export const ThreadCommentSchema = CommentSchema.extend({
+	replies: z.array(CommentSchema).optional(),
+	repliesNextCursor: z.string().nullish(),
+});
+
 /** Counts are withheld (null) until a Poll has Ended; read as undefined. */
 export const PollOptionSchema = z.object({
 	id: z.string(),
@@ -248,6 +257,15 @@ export const UpdateCommentRequestSchema = z.object({
 	text: z.string().min(1).max(2000),
 });
 
+export const COMMENT_REPORT_REASONS = ['SPAM', 'HARASSMENT', 'HATE', 'MISINFORMATION', 'OTHER'] as const;
+export const COMMENT_REPORT_NOTE_MAX = 500;
+
+/** Why someone reports another person's Comment, with an optional note for the moderators. */
+export const ReportCommentRequestSchema = z.object({
+	reason: z.enum(COMMENT_REPORT_REASONS),
+	note: z.string().max(COMMENT_REPORT_NOTE_MAX).optional(),
+});
+
 /** Who to invite to an Invite-only Poll; Groups are copied in as their current members. */
 export interface InviteesInput {
 	userIds: string[];
@@ -273,6 +291,7 @@ export interface PollInput {
 }
 
 export type Comment = z.infer<typeof CommentSchema>;
+export type ThreadComment = z.infer<typeof ThreadCommentSchema>;
 export type PollOption = z.infer<typeof PollOptionSchema>;
 export type TagDto = z.infer<typeof TagDtoSchema>;
 export type VoterVisibility = z.infer<typeof VoterVisibilitySchema>;
@@ -289,3 +308,4 @@ export type CreatePollOption = z.infer<typeof CreatePollOptionSchema>;
 export type CreatePollRequest = z.infer<typeof CreatePollRequestSchema>;
 export type CreateCommentRequest = z.infer<typeof CreateCommentRequestSchema>;
 export type UpdateCommentRequest = z.infer<typeof UpdateCommentRequestSchema>;
+export type ReportCommentRequest = z.infer<typeof ReportCommentRequestSchema>;

@@ -22,6 +22,7 @@ import {
 	likeComment,
 	postComment,
 	removeInvitee,
+	reportComment,
 	retractBallot,
 	unlikeComment,
 	updateComment,
@@ -605,6 +606,16 @@ describe('getComments() and getReplies()', () => {
 		});
 	});
 
+	it('keeps each comment\'s reply previews and the cursor to the rest', async () => {
+		const preview = { ...comment, id: 'r1', parentId: 'c1', replyCount: 0, replies: [], repliesNextCursor: null };
+		mockApiClient.mockResolvedValue(page([{ ...comment, replies: [preview], repliesNextCursor: 'after-r1' }]));
+		const result = await getComments('poll-1');
+		expect(result.ok && result.data.items[0]).toMatchObject({
+			replies: [{ id: 'r1', parentId: 'c1' }],
+			repliesNextCursor: 'after-r1',
+		});
+	});
+
 	it('parses a deleted placeholder', async () => {
 		mockApiClient.mockResolvedValue(
 			page([{ ...comment, deleted: true, author: null, text: null, userId: null }])
@@ -618,6 +629,26 @@ describe('getComments() and getReplies()', () => {
 		await getReplies('poll-1', 'c1');
 		expect(mockApiClient).toHaveBeenCalledWith('/votes/poll-1/comments/c1/replies?limit=20', {
 			auth: 'optional',
+		});
+	});
+});
+
+describe('reportComment()', () => {
+	it('posts the reason and note to the comment\'s report endpoint', async () => {
+		mockApiClient.mockResolvedValue({ success: true });
+		const result = await reportComment('poll-1', 'c2', { reason: 'SPAM', note: 'Ads' });
+		expect(result).toEqual({ ok: true, data: undefined });
+		expect(mockApiClient).toHaveBeenCalledWith('/votes/poll-1/comments/c2/report', {
+			method: 'POST',
+			body: JSON.stringify({ reason: 'SPAM', note: 'Ads' }),
+		});
+	});
+
+	it('returns the error code of a refused report', async () => {
+		mockApiClient.mockRejectedValue(new ApiError('own', 400, { errorCode: 'comment.report.self' }));
+		expect(await reportComment('poll-1', 'c1', { reason: 'OTHER' })).toMatchObject({
+			ok: false,
+			errorCode: 'comment.report.self',
 		});
 	});
 });

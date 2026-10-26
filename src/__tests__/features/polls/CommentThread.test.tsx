@@ -21,6 +21,7 @@ const service = {
 	deleteComment: jest.fn(),
 	likeComment: jest.fn(),
 	unlikeComment: jest.fn(),
+	reportComment: jest.fn(),
 };
 jest.mock('@/features/polls/service', () => ({
 	getComments: (...a: any[]) => service.getComments(...a),
@@ -30,6 +31,7 @@ jest.mock('@/features/polls/service', () => ({
 	deleteComment: (...a: any[]) => service.deleteComment(...a),
 	likeComment: (...a: any[]) => service.likeComment(...a),
 	unlikeComment: (...a: any[]) => service.unlikeComment(...a),
+	reportComment: (...a: any[]) => service.reportComment(...a),
 }));
 
 const mine = { id: 'c1', userId: 'me', author: 'klaus', text: 'Mine', createdAt: '2026-10-05T00:00:00Z', likeCount: 2 };
@@ -84,31 +86,87 @@ describe('CommentThread', () => {
 		expect(article.querySelector('img')).toHaveAttribute('src', '/avatars/bear.svg');
 	});
 
-	it("offers edit and delete on the viewer's own comments, block on others'", async () => {
+	it("offers edit and delete on the viewer's own comments, report and block on others'", async () => {
 		render(<Harness />);
 		await screen.findByText('Mine');
 
 		let menu = await openMenu('Mine');
 		expect(within(menu).getByRole('menuitem', { name: 'Edit' })).toBeInTheDocument();
 		expect(within(menu).getByRole('menuitem', { name: 'Delete' })).toBeInTheDocument();
+		expect(within(menu).queryByRole('menuitem', { name: 'Report' })).not.toBeInTheDocument();
 		expect(within(menu).queryByRole('menuitem', { name: 'Block' })).not.toBeInTheDocument();
 		fireEvent.keyDown(menu, { key: 'Escape' });
 		await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
 
 		menu = await openMenu('Theirs');
 		expect(within(menu).queryByRole('menuitem', { name: 'Edit' })).not.toBeInTheDocument();
-		expect(within(menu).getByRole('menuitem', { name: 'Block' })).toBeInTheDocument();
+		expect(within(menu).getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
+			'Copy text',
+			'Copy link',
+			'Report',
+			'Block',
+		]);
 	});
 
-	it('offers no block on a comment without a user ID', async () => {
+	it('offers report but no block on a comment without a user ID', async () => {
 		service.getComments.mockResolvedValue({ ok: true, data: { items: [{ ...theirs, userId: null }], nextCursor: null } });
 		render(<Harness />);
 		await screen.findByText('Theirs');
 
 		const menu = await openMenu('Theirs');
-		expect(within(menu).getByRole('menuitem', { name: 'Copy text' })).toBeInTheDocument();
+		expect(within(menu).getByRole('menuitem', { name: 'Report' })).toBeInTheDocument();
 		expect(within(menu).queryByRole('menuitem', { name: 'Block' })).not.toBeInTheDocument();
-		expect(within(menu).queryByRole('separator')).not.toBeInTheDocument();
+	});
+
+	describe('reporting a comment', () => {
+		async function openReport() {
+			render(<Harness />);
+			await screen.findByText('Theirs');
+			fireEvent.click(within(await openMenu('Theirs')).getByRole('menuitem', { name: 'Report' }));
+			return screen.findByRole('dialog', { name: 'Report this comment' });
+		}
+
+		it('sends the reason and the note, then thanks the reporter', async () => {
+			const { toast } = jest.requireMock('sonner');
+			service.reportComment.mockResolvedValue({ ok: true, data: undefined });
+			const dialog = await openReport();
+
+			const submit = within(dialog).getByRole('button', { name: 'Report' });
+			expect(submit).toBeDisabled();
+			fireEvent.click(within(dialog).getByRole('radio', { name: 'Harassment or bullying' }));
+			const note = within(dialog).getByRole('textbox', { name: 'Add a note (optional)' });
+			expect(note).toHaveAttribute('maxLength', '500');
+			fireEvent.change(note, { target: { value: '  Insults me in every thread. ' } });
+			expect(dialog).toHaveTextContent('30 / 500');
+			fireEvent.click(submit);
+
+			await waitFor(() => expect(toast.success).toHaveBeenCalledWith('Thanks. We’ll review it.'));
+			expect(service.reportComment).toHaveBeenCalledWith('poll-1', 'c2', {
+				reason: 'HARASSMENT',
+				note: 'Insults me in every thread.',
+			});
+			await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+		});
+
+		it('leaves out an empty note', async () => {
+			service.reportComment.mockResolvedValue({ ok: true, data: undefined });
+			const dialog = await openReport();
+			fireEvent.click(within(dialog).getByRole('radio', { name: 'Spam' }));
+			fireEvent.click(within(dialog).getByRole('button', { name: 'Report' }));
+			await waitFor(() => expect(service.reportComment).toHaveBeenCalledWith('poll-1', 'c2', { reason: 'SPAM', note: undefined }));
+		});
+
+		it('says why the report failed and keeps the dialog open', async () => {
+			const { toast } = jest.requireMock('sonner');
+			service.reportComment.mockResolvedValue({ ok: false, status: 404, errorCode: 'comment.not_found', message: 'gone' });
+			const dialog = await openReport();
+			fireEvent.click(within(dialog).getByRole('radio', { name: 'Something else' }));
+			fireEvent.click(within(dialog).getByRole('button', { name: 'Report' }));
+
+			await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Comment not found'));
+			expect(toast.success).not.toHaveBeenCalled();
+			expect(screen.getByRole('dialog', { name: 'Report this comment' })).toBeInTheDocument();
+		});
 	});
 
 	it('likes optimistically and rolls back on failure', async () => {
@@ -184,6 +242,95 @@ describe('CommentThread', () => {
 		fireEvent.click(await screen.findByRole('button', { name: 'View 1 reply' }));
 		expect(await screen.findByText('A reply')).toBeInTheDocument();
 		expect(service.getReplies).toHaveBeenCalledWith('poll-1', 'c1', undefined);
+	});
+
+	describe('reply previews', () => {
+		const second = { ...reply, id: 'r2', userId: 'me', author: 'klaus', text: 'Second reply', createdAt: '2026-10-05T02:00:00Z' };
+		const third = { ...reply, id: 'r3', text: 'Third reply', createdAt: '2026-10-05T03:00:00Z' };
+
+		beforeEach(() => {
+			service.getComments.mockResolvedValue({
+				ok: true,
+				data: {
+					items: [{ ...mine, replyCount: 3, replies: [reply, second], repliesNextCursor: 'after-r2' }],
+					nextCursor: null,
+				},
+			});
+		});
+
+		it('shows the first replies inline and continues after them without repeating any', async () => {
+			// The page overlaps the previews, as a page after a deleted preview would
+			service.getReplies.mockResolvedValue({ ok: true, data: { items: [second, third], nextCursor: null } });
+			render(<Harness />);
+
+			expect(await screen.findByText('A reply')).toBeInTheDocument();
+			expect(screen.getByText('Second reply')).toBeInTheDocument();
+			expect(service.getReplies).not.toHaveBeenCalled();
+
+			fireEvent.click(screen.getByRole('button', { name: 'View 1 more reply' }));
+			expect(await screen.findByText('Third reply')).toBeInTheDocument();
+			expect(service.getReplies).toHaveBeenCalledWith('poll-1', 'c1', 'after-r2');
+			expect(screen.getAllByText('Second reply')).toHaveLength(1);
+			expect(screen.queryByRole('button', { name: /more repl/ })).not.toBeInTheDocument();
+		});
+
+		it('posts a reply under the previews, then puts it after the older replies loaded later', async () => {
+			const posted = { ...reply, id: 'r9', userId: 'me', author: 'klaus', text: 'Newest', createdAt: '2026-10-06T00:00:00Z' };
+			service.postComment.mockResolvedValue({ ok: true, data: posted });
+			service.getReplies.mockResolvedValue({ ok: true, data: { items: [third, posted], nextCursor: null } });
+			render(<Harness />);
+
+			fireEvent.click((await screen.findAllByRole('button', { name: 'Reply' }))[0]);
+			const box = screen.getByRole('textbox', { name: 'Write a reply…' });
+			fireEvent.change(box, { target: { value: 'Newest' } });
+			fireEvent.submit(box.closest('form')!);
+			await screen.findByText('Newest');
+			expect(service.getReplies).not.toHaveBeenCalled();
+
+			fireEvent.click(screen.getByRole('button', { name: 'View 1 more reply' }));
+			await screen.findByText('Third reply');
+			const texts = Array.from(document.querySelectorAll('[id^=comment-r] p')).map((p) => p.textContent);
+			expect(texts).toEqual(['A reply', 'Second reply', 'Third reply', 'Newest']);
+		});
+
+		it('likes and deletes a preview reply', async () => {
+			service.likeComment.mockResolvedValue({ ok: true, data: undefined });
+			service.deleteComment.mockResolvedValue({ ok: true, data: undefined });
+			render(<Harness />);
+
+			const first = (await screen.findByText('A reply')).closest<HTMLElement>('[id^=comment-]')!;
+			fireEvent.click(within(first).getByRole('button', { name: 'Like' }));
+			expect(within(first).getByRole('button', { name: 'Like' })).toHaveAttribute('aria-pressed', 'true');
+			expect(service.likeComment).toHaveBeenCalledWith('poll-1', 'r1');
+
+			const own = screen.getByText('Second reply').closest<HTMLElement>('[id^=comment-]')!;
+			fireEvent.click(within(own).getByRole('button', { name: 'More' }));
+			fireEvent.click(within(await screen.findByRole('menu')).getByRole('menuitem', { name: 'Delete' }));
+			fireEvent.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Delete' }));
+
+			await waitFor(() => expect(screen.queryByText('Second reply')).not.toBeInTheDocument());
+			expect(service.deleteComment).toHaveBeenCalledWith('poll-1', 'r2');
+			expect(screen.getByRole('button', { name: 'View 1 more reply' })).toBeInTheDocument();
+		});
+
+		it('loads past the previews to show the reply a link names', async () => {
+			service.getReplies.mockResolvedValue({ ok: true, data: { items: [third], nextCursor: null } });
+			const scrollIntoView = jest.fn();
+			const { scrollIntoView: realScroll, animate: realAnimate } = Element.prototype;
+			Element.prototype.scrollIntoView = scrollIntoView;
+			Element.prototype.animate = jest.fn();
+			window.location.hash = '#comment-c1/r3';
+			try {
+				render(<Harness />);
+				await waitFor(() => expect(scrollIntoView).toHaveBeenCalled());
+				expect(service.getReplies).toHaveBeenCalledWith('poll-1', 'c1', 'after-r2');
+				expect(scrollIntoView.mock.contexts[0]).toHaveAttribute('id', 'comment-r3');
+			} finally {
+				window.location.hash = '';
+				Element.prototype.scrollIntoView = realScroll;
+				Element.prototype.animate = realAnimate;
+			}
+		});
 	});
 
 	it('replies to a reply under the same top-level comment, addressed to its author', async () => {
@@ -522,6 +669,35 @@ describe('useComments', () => {
 		expect(result.current.comments.map((c) => c.id)).toEqual(['c1']);
 		expect(result.current.comments[0].replyCount).toBe(1);
 		expect(result.current.replies.c1.items.map((c) => c.id)).toEqual(['r2']);
+	});
+
+	it('keeps the reply count of a comment it edits', async () => {
+		service.getComments.mockResolvedValue({ ok: true, data: { items: [{ ...mine, replyCount: 2 }], nextCursor: null } });
+		// Update responses count no replies
+		service.updateComment.mockResolvedValue({ ok: true, data: { ...mine, text: 'Mine, edited', replyCount: 0 } });
+		const { result } = renderHook(() => useComments('poll-1', { enabled: true }));
+		await waitFor(() => expect(result.current.status).toBe('ready'));
+
+		await act(async () => {
+			await result.current.edit('c1', 'Mine, edited');
+		});
+		expect(result.current.comments[0]).toMatchObject({ text: 'Mine, edited', replyCount: 2 });
+	});
+
+	it('takes the reply previews of a later page of comments', async () => {
+		service.getComments
+			.mockResolvedValueOnce({ ok: true, data: { items: [mine], nextCursor: 'page-2' } })
+			.mockResolvedValueOnce({
+				ok: true,
+				data: { items: [{ ...theirs, replyCount: 1, replies: [{ ...reply, parentId: 'c2' }], repliesNextCursor: null }], nextCursor: null },
+			});
+		const { result } = renderHook(() => useComments('poll-1', { enabled: true }));
+		await waitFor(() => expect(result.current.status).toBe('ready'));
+
+		await act(async () => {
+			await result.current.loadMore();
+		});
+		expect(result.current.replies.c2).toMatchObject({ items: [{ id: 'r1' }], nextCursor: null, status: 'ready' });
 	});
 
 	it('files a reply under its top-level comment and counts it', async () => {

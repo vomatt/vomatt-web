@@ -3,14 +3,11 @@
 import { z } from 'zod';
 
 import { NOTIFICATIONS_PAGE_SIZE } from '@/features/polls/constants';
-import { getPoll } from '@/features/polls/service';
 import { type ActionResult, attempt } from '@/lib/api/action';
 import { apiClient, ApiError, AuthError } from '@/lib/api/client';
 import { type CursorPage, cursorPageSchema, pageParams } from '@/lib/api/cursor';
-import { getUserProfile } from '@/lib/api/services/users';
 
 import {
-	type FeedItem,
 	type Notification,
 	type NotificationPreferences,
 	NotificationPreferencesSchema,
@@ -32,35 +29,14 @@ export async function getUnreadCount(): Promise<number | null> {
 const KINDS = new Set<string>(NotificationSchema.options.map((option) => option.shape.kind.value));
 const RawPage = cursorPageSchema(z.object({ kind: z.string() }).passthrough());
 
-/** Logs a lookup a row can do without, so the row falls back to what the feed says. */
-const orNull = <T>(request: Promise<T>, what: string) =>
-	request.catch((error) => {
-		console.error(`Reading ${what} for a notification failed:`, error);
-		return null;
-	});
-
-async function withDetail(item: Notification): Promise<FeedItem> {
-	switch (item.kind) {
-		case 'RESULT':
-		case 'INVITATION':
-			return { ...item, detail: await orNull(getPoll(item.poll.id), 'the poll') };
-		case 'FOLLOWED': {
-			const profile = await orNull(getUserProfile(item.actor.username), 'the follower');
-			return { ...item, relation: { isFollowing: profile?.isFollowing ?? null, followsYou: true } };
-		}
-		default:
-			return item;
-	}
-}
-
 /**
- * The feed, newest first, with what each row needs beyond it (see `FeedItem`).
+ * The feed, newest first; each item carries all its row shows.
  * A kind this client doesn't know yet is left out rather than failing the page.
  */
-export async function getNotifications(cursor?: string | null): Promise<CursorPage<FeedItem>> {
+export async function getNotifications(cursor?: string | null): Promise<CursorPage<Notification>> {
 	const page = RawPage.parse(await apiClient(`/notifications?${pageParams(cursor, NOTIFICATIONS_PAGE_SIZE)}`));
 	const items = page.items.filter((item) => KINDS.has(item.kind)).map((item) => NotificationSchema.parse(item));
-	return { items: await Promise.all(items.map(withDetail)), nextCursor: page.nextCursor };
+	return { items, nextCursor: page.nextCursor };
 }
 
 /** The notification is gone (Comment deleted, follow undone), or the deprecated Poll id names a Deleted Poll. */

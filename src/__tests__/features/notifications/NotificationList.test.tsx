@@ -1,8 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 
 import { dayGroup, NotificationList, NotificationSettingsLink } from '@/features/notifications/NotificationList';
-import type { FeedItem } from '@/features/notifications/schema';
-import type { Poll } from '@/features/polls/schema';
+import type { Notification } from '@/features/notifications/schema';
 
 jest.mock('next/link', () => {
 	return function MockLink({ children, href, onClick, className }: { children: React.ReactNode; href: string; onClick?: () => void; className?: string }) {
@@ -44,96 +43,92 @@ const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
 const NOW = new Date(2026, 9, 26, 15, 0);
 const iso = (offset: number) => new Date(NOW.getTime() + offset).toISOString();
-const person = (username: string, displayName: string | null = null) => ({ id: `u-${username}`, username, displayName, avatarUrl: null });
+const person = (username: string, displayName: string | null = null) => ({
+	id: `u-${username}`,
+	username,
+	displayName,
+	avatarUrl: null,
+	isFollowing: false,
+	followsYou: false,
+});
 
-const endedPoll: Poll = {
-	id: 'p1',
-	title: 'Keep the library open until 22:00?',
-	active: false,
-	votingActive: false,
-	creatorId: 'u-me',
-	creatorUsername: 'me',
-	createdAt: iso(-72 * HOUR),
-	startTime: iso(-48 * HOUR),
-	endTime: iso(-4 * HOUR),
-	audience: 'public',
-	myOptionId: 'a',
-	participantCount: 2061,
-	options: [
-		{ id: 'a', text: 'Yes', votes: 1500 },
-		{ id: 'b', text: 'No', votes: 561 },
-	],
-};
-
-const result: FeedItem = {
+const result: Extract<Notification, { kind: 'RESULT' }> = {
 	id: 'result_p1',
 	kind: 'RESULT',
 	createdAt: iso(-4 * HOUR),
 	read: false,
-	poll: { id: 'p1', title: endedPoll.title, endTime: endedPoll.endTime, status: 'ENDED', turnout: 2061 },
-	detail: endedPoll,
+	poll: {
+		id: 'p1',
+		title: 'Keep the library open until 22:00?',
+		startTime: iso(-48 * HOUR),
+		endTime: iso(-4 * HOUR),
+		status: 'ENDED',
+		turnout: 2061,
+		myOptionId: 'a',
+		winningOptionIds: ['a'],
+		winningOptionLabels: ['Yes'],
+		tie: false,
+	},
 };
 
-const invitation: FeedItem = {
+const invitation: Extract<Notification, { kind: 'INVITATION' }> = {
 	id: 'invitation_p2',
 	kind: 'INVITATION',
 	createdAt: iso(-6 * HOUR),
 	read: false,
 	actor: person('amira'),
-	poll: { id: 'p2', title: 'Which stall should get the corner spot?', endTime: iso(48 * HOUR), status: 'OPEN', turnout: 12 },
-	detail: {
-		...endedPoll,
+	poll: {
 		id: 'p2',
 		title: 'Which stall should get the corner spot?',
-		creatorUsername: 'amira',
-		active: true,
-		votingActive: true,
 		startTime: iso(-6 * HOUR),
 		endTime: iso(48 * HOUR),
-		audience: 'invite-only',
+		status: 'OPEN',
+		turnout: 12,
 		myOptionId: null,
+		winningOptionIds: null,
+		winningOptionLabels: null,
+		tie: null,
 	},
 };
 
-const follow = (username: string, minutesAgo: number, overrides: Partial<Extract<FeedItem, { kind: 'FOLLOWED' }>> = {}): FeedItem => ({
+const follow = (username: string, minutesAgo: number, overrides: Partial<Extract<Notification, { kind: 'FOLLOWED' }>> = {}): Notification => ({
 	id: `follow_${username}`,
 	kind: 'FOLLOWED',
 	createdAt: iso(-minutesAgo * MINUTE),
 	read: false,
-	actor: person(username),
-	relation: { isFollowing: false, followsYou: true },
+	actor: { ...person(username), followsYou: true },
 	...overrides,
 });
 
-const comment: FeedItem = {
+const comment: Notification = {
 	id: 'comment_c1',
 	kind: 'COMMENT',
 	createdAt: iso(-9 * HOUR),
 	read: true,
 	actor: person('rosa'),
-	poll: { id: 'p3', title: 'Saturday market', endTime: iso(48 * HOUR), status: 'OPEN', turnout: 40 },
-	comment: { id: 'c1', excerpt: 'The riverside has parking, the high street has foot traffic.' },
+	poll: { id: 'p3', title: 'Saturday market', startTime: iso(-48 * HOUR), endTime: iso(48 * HOUR), status: 'OPEN', turnout: 40 },
+	comment: { id: 'c1', parentId: null, excerpt: 'The riverside has parking, the high street has foot traffic.' },
 };
 
-const closingSoon: FeedItem = {
+const closingSoon: Notification = {
 	id: 'closing_p4',
 	kind: 'CLOSING_SOON',
 	createdAt: iso(-11 * HOUR),
 	read: true,
 	actor: person('kim'),
-	poll: { id: 'p4', title: 'Bike lane on Minsheng Road', endTime: iso(6 * HOUR), status: 'OPEN', turnout: 342 },
+	poll: { id: 'p4', title: 'Bike lane on Minsheng Road', startTime: iso(-48 * HOUR), endTime: iso(6 * HOUR), status: 'OPEN', turnout: 342 },
 };
 
-const cancelled: FeedItem = {
+const cancelled: Notification = {
 	id: 'cancelled_p5',
 	kind: 'CANCELLED',
 	createdAt: iso(-10 * HOUR),
 	read: true,
 	actor: person('rosa'),
-	poll: { id: 'p5', title: 'Night bus on Sundays?', endTime: iso(-10 * HOUR), status: 'ENDED', turnout: 0 },
+	poll: { id: 'p5', title: 'Night bus on Sundays?', startTime: iso(-10 * HOUR), endTime: iso(-10 * HOUR), status: 'ENDED', turnout: 0 },
 };
 
-const renderList = (items: FeedItem[]) =>
+const renderList = (items: Notification[]) =>
 	render(<NotificationList initialPage={{ items, nextCursor: null }} viewerUsername="mei" />);
 const rowOf = (text: string) => screen.getByText(text, { exact: false }).closest('li')!;
 
@@ -163,6 +158,24 @@ describe('NotificationList rows', () => {
 		expect(row).toHaveTextContent('Your pick won');
 	});
 
+	it('names every option that shares the most votes, and says the viewer\'s pick tied', () => {
+		renderList([{ ...result, poll: { ...result.poll, winningOptionIds: ['a', 'b'], winningOptionLabels: ['Yes', 'No'], tie: true } }]);
+		const row = rowOf('Keep the library');
+		expect(row).toHaveTextContent('Tie between Yes and No · 2,061 voted');
+		expect(row).toHaveTextContent('Tied for first');
+	});
+
+	it('says the pick lost, and leaves the outcome out when no Ballot named an option', () => {
+		renderList([
+			{ ...result, poll: { ...result.poll, myOptionId: 'b' } },
+			{ ...result, id: 'result_p9', poll: { ...result.poll, id: 'p9', title: 'Nobody came', turnout: 0, myOptionId: null, winningOptionIds: [], winningOptionLabels: [] } },
+		]);
+		expect(rowOf('Keep the library')).toHaveTextContent('Outvoted');
+		const empty = rowOf('Nobody came');
+		expect(empty).toHaveTextContent('0 voted · 4h');
+		expect(empty).not.toHaveTextContent(/won|Tie|Outvoted/);
+	});
+
 	it('offers the vote on an invitation', () => {
 		renderList([invitation]);
 		const row = rowOf('Which stall');
@@ -172,7 +185,11 @@ describe('NotificationList rows', () => {
 	});
 
 	it('offers Follow back to a new follower, or shows Following once followed back', () => {
-		renderList([follow('jtan', 120, { actor: person('jtan', 'Jun Tan') }), comment, follow('tpark', 600, { read: true, relation: { isFollowing: true, followsYou: true } })]);
+		renderList([
+			follow('jtan', 120, { actor: { ...person('jtan', 'Jun Tan'), followsYou: true } }),
+			comment,
+			follow('tpark', 600, { read: true, actor: { ...person('tpark'), isFollowing: true, followsYou: true } }),
+		]);
 		const jtan = rowOf('@jtan');
 		expect(jtan).toHaveTextContent('@jtan followed you');
 		expect(jtan).toHaveTextContent('2h · Jun Tan');
@@ -186,6 +203,22 @@ describe('NotificationList rows', () => {
 		expect(row).toHaveTextContent('@rosa made the case under Saturday market');
 		expect(row).toHaveTextContent('“The riverside has parking, the high street has foot traffic.” · 9h');
 		expect(within(row).getByRole('link', { name: 'Reply' })).toHaveAttribute('href', '/poll/p3#comment-c1');
+	});
+
+	it('links a reply under the comment it answers', () => {
+		renderList([{ ...comment, comment: { ...comment.comment, id: 'r7', parentId: 'c1' } }]);
+		expect(within(rowOf('Saturday market')).getByRole('link', { name: 'Reply' })).toHaveAttribute('href', '/poll/p3#comment-c1/r7');
+	});
+
+	it('offers View on an invitation the viewer already voted in, or one not open yet', () => {
+		renderList([
+			{ ...invitation, poll: { ...invitation.poll, myOptionId: 'a' } },
+			{ ...invitation, id: 'invitation_p6', poll: { ...invitation.poll, id: 'p6', title: 'Later', startTime: iso(24 * HOUR), status: 'SCHEDULED' } },
+		]);
+		expect(within(rowOf('Which stall')).getByRole('link', { name: 'View' })).toBeInTheDocument();
+		const later = rowOf('Later');
+		expect(later).toHaveTextContent('Invite only · Opens tomorrow at 15:00 · 6h');
+		expect(within(later).getByRole('link', { name: 'View' })).toBeInTheDocument();
 	});
 
 	it('nudges a poll closing soon with the turnout alone', () => {

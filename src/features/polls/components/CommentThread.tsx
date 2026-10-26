@@ -18,7 +18,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { menuItemClassName, menuPopupClassName } from '@/components/ui/menu';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { Ban, Copy, Ellipsis, Heart, Link2, Pencil, Reply, Trash2, X } from '@/components/ui/SvgIcons';
+import { Ban, Copy, Ellipsis, Heart, Link2, Pencil, Reply, Trash2, TriangleAlert, X } from '@/components/ui/SvgIcons';
 import { Textarea } from '@/components/ui/Textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { AccountAvatar } from '@/features/avatars/AccountAvatar';
@@ -34,6 +34,7 @@ import type { CommentsState } from '../hooks/useComments';
 import type { Comment } from '../schema';
 import { CreateCommentRequestSchema } from '../schema';
 import { pollUrl } from '../url';
+import { ReportCommentDialog } from './ReportCommentDialog';
 
 const COMMENT_MAX = CreateCommentRequestSchema.shape.text.maxLength ?? 2000;
 // The counter shows once the text is this close to its limit
@@ -103,8 +104,9 @@ type CommentThreadProps = {
 };
 
 /**
- * A copied link names a comment that loads after the page does; this shows it once it has. Call it
- * where the thread lives, not in CommentThread, which unmounts when the discussion folds.
+ * A copied link names a comment that loads after the page does; this shows it once it has, loading
+ * Replies past the previews until it finds the one named. Call it where the thread lives, not in
+ * CommentThread, which unmounts when the discussion folds.
  */
 export function useCommentLink(thread: CommentsState) {
 	const link = useRef<{ rootId: string; replyId?: string } | null>(null);
@@ -124,6 +126,10 @@ export function useCommentLink(thread: CommentsState) {
 			}
 			if (replyList.status === 'loading') return;
 			if (replyList.items.some((r) => r.id === target.replyId)) id = target.replyId;
+			else if (replyList.status === 'ready' && replyList.nextCursor) {
+				thread.loadReplies(target.rootId);
+				return;
+			}
 		}
 		link.current = null;
 		showComment(id);
@@ -387,7 +393,7 @@ function CommentItem({
 	const openComposer = (reply: Comment | null) =>
 		requireAuth(() => onReplyTargetChange({ rootId: comment.id, reply }));
 
-	// One button walks the Replies: view them, retry a failed page, or load more
+	// One button walks the Replies: view them, retry a failed page, or load the ones after those shown
 	let repliesAction: string | null = null;
 	if (!replyList) {
 		if (replyCount > 0) {
@@ -396,7 +402,8 @@ function CommentItem({
 	} else if (replyList.status === 'error') {
 		repliesAction = t('comments.retry');
 	} else if (replyList.status === 'ready' && replyList.nextCursor) {
-		repliesAction = t('comments.moreReplies');
+		const more = Math.max(1, replyCount - replyList.items.length);
+		repliesAction = t(more === 1 ? 'comments.moreReply' : 'comments.moreReplies', { count: more });
 	}
 
 	const replies = replyList?.items ?? [];
@@ -473,7 +480,8 @@ function CommentItem({
 			node: (
 				<button
 					type="button"
-					className="mt-0.5 inline-flex h-9 items-center text-[13px] font-medium text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring"
+					// 32px tall; the ::before extends the hit area to 44px
+					className="relative mt-0.5 inline-flex h-8 items-center px-0.5 text-[12px] font-medium text-muted-foreground before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-[''] hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring"
 					onClick={() => thread.loadReplies(comment.id)}
 				>
 					{repliesAction}
@@ -550,6 +558,7 @@ function CommentBody({
 	const [draft, setDraft] = useState('');
 	const [confirmingDelete, setConfirmingDelete] = useState(false);
 	const [confirmingBlock, setConfirmingBlock] = useState(false);
+	const [reporting, setReporting] = useState(false);
 	// The "…" button gets focus back once whatever the menu opened closes
 	const returnFocus = useRef(false);
 	const moreRef = useRef<HTMLButtonElement>(null);
@@ -753,7 +762,7 @@ function CommentBody({
 											<Link2 aria-hidden strokeWidth={1.8} />
 											{t('comments.copyLink')}
 										</Menu.Item>
-										{(isOwn || blockUserId) && <Menu.Separator className="mx-1 my-1.5 h-px bg-border" />}
+										<Menu.Separator className="mx-1 my-1.5 h-px bg-border" />
 										{isOwn ? (
 											<Menu.Item
 												className={cn(menuItemClassName, 'text-destructive')}
@@ -763,15 +772,21 @@ function CommentBody({
 												{t('common.delete')}
 											</Menu.Item>
 										) : (
-											blockUserId && (
-												<Menu.Item
-													className={cn(menuItemClassName, 'text-destructive')}
-													onClick={() => requireAuth(() => setConfirmingBlock(true))}
-												>
-													<Ban aria-hidden strokeWidth={1.8} />
-													{t('blocks.block')}
+											<>
+												<Menu.Item className={menuItemClassName} onClick={() => requireAuth(() => setReporting(true))}>
+													<TriangleAlert aria-hidden strokeWidth={1.8} />
+													{t('comments.report')}
 												</Menu.Item>
-											)
+												{blockUserId && (
+													<Menu.Item
+														className={cn(menuItemClassName, 'text-destructive')}
+														onClick={() => requireAuth(() => setConfirmingBlock(true))}
+													>
+														<Ban aria-hidden strokeWidth={1.8} />
+														{t('blocks.block')}
+													</Menu.Item>
+												)}
+											</>
 										)}
 									</Menu.Popup>
 								</Menu.Positioner>
@@ -805,6 +820,18 @@ function CommentBody({
 							</AlertDialogFooter>
 						</AlertDialogContent>
 					</AlertDialog>
+
+					{!isOwn && (
+						<ReportCommentDialog
+							pollId={pollId}
+							commentId={comment.id}
+							open={reporting}
+							onOpenChange={(open) => {
+								setReporting(open);
+								if (!open) returnFocus.current = true;
+							}}
+						/>
+					)}
 
 					{blockUserId && (
 						<BlockUserDialog
