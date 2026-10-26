@@ -116,11 +116,13 @@
 	"explore": {
 		"title": "Explore",
 		"searchPlaceholder": "Search poll titles and descriptions…",
+		"searchLabel": "Search",
 		"filterActive": "Open",
 		"filterEnded": "Ended",
 		"sortNewest": "Newest",
 		"noResults": "No polls found.",
-		"topics": "Browse by topic",
+		"noResultsHint": "Try other words, or switch to Ended polls.",
+		"noResultsHintEnded": "Try other words, or switch to Open polls.",
 		"status": "Status",
 		"sort": "Sort",
 		"sortEnding": "Ending soon",
@@ -250,6 +252,7 @@
 	"notifications": {
 		"title": "Notifications",
 		"empty": "No notifications yet.",
+		"emptyHint": "Results of polls you asked or voted in show up here.",
 		"unread": "Unread",
 		"intro": "Results of polls you asked or voted in, and invitations to vote.",
 		"markAllHint": "Opening a poll marks it read.",

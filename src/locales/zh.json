@@ -116,11 +116,13 @@
 	"explore": {
 		"title": "探索",
 		"searchPlaceholder": "搜尋投票標題與說明…",
+		"searchLabel": "搜尋",
 		"filterActive": "進行中",
 		"filterEnded": "已結束",
 		"sortNewest": "最新",
 		"noResults": "找不到投票。",
-		"topics": "依主題瀏覽",
+		"noResultsHint": "試試其他字詞，或切換到已結束的投票。",
+		"noResultsHintEnded": "試試其他字詞，或切換到進行中的投票。",
 		"status": "狀態",
 		"sort": "排序",
 		"sortEnding": "即將結束",
@@ -242,6 +244,7 @@
 	"notifications": {
 		"title": "通知",
 		"empty": "目前沒有通知。",
+		"emptyHint": "你發起或參與的投票結果會顯示在這裡。",
 		"unread": "未讀",
 		"intro": "你發起或參與的投票結果，以及投票邀請。",
 		"markAllHint": "打開投票即標為已讀。",
