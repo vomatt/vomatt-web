@@ -6,7 +6,7 @@ import { type ReactElement, useState } from 'react';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
-import { BlockedBadge, FollowButton } from '@/features/follows/FollowButton';
+import { FollowButton, useFollow } from '@/features/follows/FollowButton';
 import { formatMonthYear } from '@/features/polls/format';
 import { countText } from '@/lib/count';
 import type { UserProfile } from '@/types/user';
@@ -46,10 +46,14 @@ function loadProfile(username: string) {
 	return entry;
 }
 
-/** Keeps a cached card in step after Follow (from the card or the profile), so reopening it shows the new state. */
+/** Keeps a cached card in step with Follow (from the card, a list or the profile), so reopening it shows the new state and count. */
 export function rememberFollowing(username: string, isFollowing: boolean) {
 	const entry = profiles.get(username);
-	if (entry?.profile) entry.profile = { ...entry.profile, isFollowing };
+	if (entry?.profile) {
+		const { profile } = entry;
+		const followersCount = profile.followersCount + Number(isFollowing) - Number(!!profile.isFollowing);
+		entry.profile = { ...profile, isFollowing, followersCount };
+	}
 	// Still loading: its answer may predate the follow, so the next open asks again
 	else forgetProfile(username);
 }
@@ -110,6 +114,9 @@ export function ProfileHoverCard({
 	);
 }
 
+// Before the profile is in there is no relation, so no button
+const NO_RELATION = { isFollowing: null };
+
 function ProfileCardBody({
 	username,
 	avatarUrl,
@@ -122,6 +129,10 @@ function ProfileCardBody({
 	const { t, currentLanguage } = useLanguage();
 	const profile = state.status === 'ready' ? state.profile : null;
 	const displayName = profile?.displayName;
+	// Signed out, and on the viewer's own card, the relation is null too
+	const follow = useFollow(profile?.id ?? '', profile ?? NO_RELATION, {
+		onChange: (following) => rememberFollowing(username, following),
+	});
 
 	return (
 		<div className="space-y-3">
@@ -132,20 +143,7 @@ function ProfileCardBody({
 					<p className="truncate text-[17px] font-medium leading-tight tracking-[-0.02em]">{displayName || username}</p>
 					<p className="truncate font-mono text-[12px] text-muted-foreground">@{username}</p>
 				</div>
-				{/* Signed out, and on the viewer's own card, the relation is null: no one to follow */}
-				{profile?.isBlocked ? (
-					<BlockedBadge />
-				) : (
-					profile?.isFollowing != null && (
-						<FollowButton
-							key={profile.id}
-							userId={profile.id}
-							initialFollowing={profile.isFollowing}
-							onChange={(following) => rememberFollowing(username, following)}
-							size="xs"
-						/>
-					)
-				)}
+				<FollowButton follow={follow} size="xs" />
 			</div>
 			{state.status === 'loading' && (
 				<div aria-hidden className="space-y-2">
@@ -163,14 +161,12 @@ function ProfileCardBody({
 					<span className="whitespace-nowrap">
 						<Count value={profile.totalPolls} label={countText(t, 'profile.askedCount', profile.totalPolls, currentLanguage)} />
 					</span>
-					{profile.followersCount !== undefined && (
-						<span className="whitespace-nowrap">
-							<Count
-								value={profile.followersCount}
-								label={countText(t, 'profile.followersCount', profile.followersCount, currentLanguage)}
-							/>
-						</span>
-					)}
+					<span className="whitespace-nowrap">
+						<Count
+							value={profile.followersCount + follow.delta}
+							label={countText(t, 'profile.followersCount', profile.followersCount + follow.delta, currentLanguage)}
+						/>
+					</span>
 					<span className="whitespace-nowrap">
 						{t('profile.joined', { date: formatMonthYear(profile.joinedAt, currentLanguage) })}
 					</span>

@@ -16,10 +16,12 @@ jest.mock('@/features/polls/service', () => ({ getUserPolls: jest.fn() }));
 const mockUnblock = jest.fn();
 jest.mock('@/features/blocks/service', () => ({ blockUser: jest.fn(), unblockUser: (...a: unknown[]) => mockUnblock(...a) }));
 const mockFollow = jest.fn();
+const mockUnfollow = jest.fn();
+const mockGetFollowers = jest.fn();
 jest.mock('@/features/follows/service', () => ({
 	followUser: (...a: unknown[]) => mockFollow(...a),
-	unfollowUser: jest.fn(),
-	getFollowers: jest.fn(),
+	unfollowUser: (...a: unknown[]) => mockUnfollow(...a),
+	getFollowers: (...a: unknown[]) => mockGetFollowers(...a),
 	getFollowing: jest.fn(),
 }));
 jest.mock('@/features/avatars/service', () => ({ chooseAvatar: jest.fn() }));
@@ -36,7 +38,10 @@ const visitor: UserProfile = {
 	points: null,
 	membershipLevel: null,
 	avatarUrl: null,
+	followersCount: 1204,
+	followingCount: 86,
 	isFollowing: false,
+	followsYou: false,
 	isBlocked: false,
 };
 
@@ -58,6 +63,8 @@ const me: MyProfile = {
 	joinedAt: '2026-08-01T10:00:00Z',
 	totalPolls: 3,
 	totalVotes: 12,
+	followersCount: 128,
+	followingCount: 42,
 	visibilitySettings: { points: true },
 	avatarUrl: 'bot:boba',
 	anonymousBallotByDefault: false,
@@ -90,7 +97,7 @@ describe('VisitorProfileView', () => {
 	beforeEach(() => jest.clearAllMocks());
 
 	it('shows public fields, the public record and their Asked list only', () => {
-		render(<VisitorProfileView profile={visitor} polls={{ items: [], nextCursor: null }} isAuthenticated={false} />);
+		render(<VisitorProfileView profile={visitor} polls={{ items: [], nextCursor: null }} viewerId={null} />);
 
 		expect(screen.getByRole('heading', { level: 1, name: 'Amira Haddad' })).toBeInTheDocument();
 		expect(screen.getByText('Taipei')).toBeInTheDocument();
@@ -103,41 +110,72 @@ describe('VisitorProfileView', () => {
 	});
 
 	it('says what following does, even signed out', () => {
-		render(<VisitorProfileView profile={visitor} polls={{ items: [], nextCursor: null }} isAuthenticated={false} />);
+		render(<VisitorProfileView profile={visitor} polls={{ items: [], nextCursor: null }} viewerId={null} />);
 		expect(screen.getByText('What following does')).toBeInTheDocument();
 	});
 
-	it('offers no Follow or followers lists when signed out', () => {
-		render(<VisitorProfileView profile={visitor} polls={{ items: [], nextCursor: null }} isAuthenticated={false} />);
+	it('offers no Follow when signed out, and shows the counts without opening the lists', () => {
+		render(<VisitorProfileView profile={visitor} polls={{ items: [], nextCursor: null }} viewerId={null} />);
 
 		expect(screen.queryByRole('button', { name: 'Follow' })).not.toBeInTheDocument();
-		expect(screen.queryByRole('button', { name: 'Followers' })).not.toBeInTheDocument();
+		expect(screen.getByText('1,204').parentElement).toHaveTextContent('1,204 followers');
+		expect(screen.getByText('86').parentElement).toHaveTextContent('86 following');
+		expect(screen.queryByRole('button', { name: /followers|following/ })).not.toBeInTheDocument();
 	});
 
-	it('lets a signed-in visitor follow, and opens the people lists', () => {
-		mockFollow.mockResolvedValue({ ok: true });
-		render(<VisitorProfileView profile={visitor} polls={{ items: [], nextCursor: null }} isAuthenticated />);
+	it('sets the counts in mono under the handle, each opening its list', async () => {
+		mockGetFollowers.mockResolvedValue({ ok: true, data: { items: [], nextCursor: null } });
+		render(<VisitorProfileView profile={visitor} polls={{ items: [], nextCursor: null }} viewerId="u1" />);
+
+		expect(screen.getByText('1,204')).toHaveClass('font-mono');
+		expect(screen.getByRole('button', { name: '86 following' })).toBeInTheDocument();
+		fireEvent.click(screen.getByRole('button', { name: '1,204 followers' }));
+		expect(await screen.findByRole('dialog', { name: 'Followers' })).toBeInTheDocument();
+		expect(mockGetFollowers).toHaveBeenCalledWith('amira');
+	});
+
+	it('lets a signed-in visitor follow, counting them among the followers at once', () => {
+		mockFollow.mockReturnValue(new Promise(() => {}));
+		render(<VisitorProfileView profile={visitor} polls={{ items: [], nextCursor: null }} viewerId="u1" />);
 
 		fireEvent.click(screen.getByRole('button', { name: 'Follow' }));
 		expect(mockFollow).toHaveBeenCalledWith('u2');
 		expect(screen.getByRole('button', { name: 'Following Unfollow', pressed: true })).toBeInTheDocument();
-		expect(screen.getByRole('button', { name: 'Followers' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: '1,205 followers' })).toBeInTheDocument();
 		expect(screen.getByRole('button', { name: 'More for @amira' })).toBeInTheDocument();
 	});
 
-	it('puts Follow back and says so when the request itself fails', async () => {
+	it('puts Follow and the count back and says so when the request itself fails', async () => {
 		mockFollow.mockRejectedValue(new Error('network'));
-		render(<VisitorProfileView profile={visitor} polls={{ items: [], nextCursor: null }} isAuthenticated />);
+		render(<VisitorProfileView profile={visitor} polls={{ items: [], nextCursor: null }} viewerId="u1" />);
 
 		fireEvent.click(screen.getByRole('button', { name: 'Follow' }));
 		expect(await screen.findByRole('button', { name: 'Follow' })).toBeEnabled();
+		expect(screen.getByRole('button', { name: '1,204 followers' })).toBeInTheDocument();
 		expect(toast.error).toHaveBeenCalled();
+	});
+
+	it('offers Follow back to someone who follows the viewer, and again after unfollowing', async () => {
+		mockFollow.mockResolvedValue({ ok: true });
+		mockUnfollow.mockResolvedValue({ ok: true });
+		render(
+			<VisitorProfileView profile={{ ...visitor, followsYou: true }} polls={{ items: [], nextCursor: null }} viewerId="u1" />
+		);
+
+		fireEvent.click(screen.getByRole('button', { name: 'Follow back' }));
+		await waitFor(() => expect(screen.getByRole('button', { name: 'Following Unfollow', pressed: true })).toBeEnabled());
+		expect(screen.getByRole('button', { name: '1,205 followers' })).toBeInTheDocument();
+
+		fireEvent.click(screen.getByRole('button', { name: 'Following Unfollow' }));
+		expect(mockUnfollow).toHaveBeenCalledWith('u2');
+		await waitFor(() => expect(screen.getByRole('button', { name: 'Follow back' })).toBeEnabled());
+		expect(screen.getByRole('button', { name: '1,204 followers' })).toBeInTheDocument();
 	});
 
 	it('keeps them blocked and says so when unblocking fails', async () => {
 		mockUnblock.mockRejectedValue(new Error('network'));
 		render(
-			<VisitorProfileView profile={{ ...visitor, isBlocked: true }} polls={{ items: [], nextCursor: null }} isAuthenticated />
+			<VisitorProfileView profile={{ ...visitor, isBlocked: true }} polls={{ items: [], nextCursor: null }} viewerId="u1" />
 		);
 
 		fireEvent.click(screen.getByRole('button', { name: 'More for @amira' }));
@@ -149,7 +187,7 @@ describe('VisitorProfileView', () => {
 
 	it('shows Blocked instead of Follow once the viewer blocked them', () => {
 		render(
-			<VisitorProfileView profile={{ ...visitor, isBlocked: true }} polls={{ items: [], nextCursor: null }} isAuthenticated />
+			<VisitorProfileView profile={{ ...visitor, isBlocked: true }} polls={{ items: [], nextCursor: null }} viewerId="u1" />
 		);
 
 		expect(screen.getByText('Blocked')).toBeInTheDocument();
@@ -159,7 +197,7 @@ describe('VisitorProfileView', () => {
 	it('sections their polls into Open now and Ended, with what each decided', () => {
 		const open = poll('o', { votingActive: true, endTime: '2099-01-01T00:00:00Z', options: [{ id: 'a', text: 'Yes' }] });
 		const tie = poll('t', { options: [{ id: 'a', text: 'Yes', votes: 2 }, { id: 'b', text: 'Only in summer', votes: 2 }] });
-		render(<VisitorProfileView profile={visitor} polls={{ items: [open, poll('e'), tie], nextCursor: null }} isAuthenticated={false} />);
+		render(<VisitorProfileView profile={visitor} polls={{ items: [open, poll('e'), tie], nextCursor: null }} viewerId={null} />);
 
 		expect(screen.getByRole('heading', { level: 3, name: 'Open now · 1' })).toBeInTheDocument();
 		expect(screen.getByRole('heading', { level: 3, name: 'Ended · 2' })).toBeInTheDocument();
@@ -177,7 +215,7 @@ describe('VisitorProfileView', () => {
 		const open = poll('o', { votingActive: true, startTime: started, endTime: '2026-10-30T20:00:00+08:00', participantCount: 1284 });
 		const closing = poll('c', { votingActive: true, startTime: started, endTime: '2026-10-28T16:00:00+08:00', participantCount: 342 });
 		const soon = poll('s', { votingActive: true, startTime: '2026-11-02T09:00:00+08:00', endTime: null });
-		render(<VisitorProfileView profile={visitor} polls={{ items: [open, closing, soon], nextCursor: null }} isAuthenticated={false} />);
+		render(<VisitorProfileView profile={visitor} polls={{ items: [open, closing, soon], nextCursor: null }} viewerId={null} />);
 		jest.useRealTimers();
 
 		expect(screen.getByRole('link', { name: /Poll o/ })).toHaveTextContent(/1,284 voted · ends Fri 20:00\s*Open$/);
@@ -186,19 +224,19 @@ describe('VisitorProfileView', () => {
 	});
 
 	it("leaves section counts out while more pages remain", () => {
-		render(<VisitorProfileView profile={visitor} polls={{ items: [poll('e')], nextCursor: 'c1' }} isAuthenticated={false} />);
+		render(<VisitorProfileView profile={visitor} polls={{ items: [poll('e')], nextCursor: 'c1' }} viewerId={null} />);
 		expect(screen.getByRole('heading', { level: 3, name: 'Ended' })).toBeInTheDocument();
 		expect(screen.getByRole('button', { name: 'Show more' })).toBeInTheDocument();
 	});
 
 	it("tells a visitor the polls couldn't load rather than that there are none", () => {
-		render(<VisitorProfileView profile={visitor} polls={null} isAuthenticated={false} />);
+		render(<VisitorProfileView profile={visitor} polls={null} viewerId={null} />);
 		expect(screen.getByText('Couldn’t load polls.')).toBeInTheDocument();
 		expect(screen.queryByText('No polls yet.')).not.toBeInTheDocument();
 	});
 
 	it('previews the owner page without visitor controls', () => {
-		render(<VisitorProfileView profile={visitor} polls={{ items: [], nextCursor: null }} isAuthenticated preview />);
+		render(<VisitorProfileView profile={visitor} polls={{ items: [], nextCursor: null }} viewerId="u2" preview />);
 		expect(screen.getByText('This is how others see your profile.')).toBeInTheDocument();
 		expect(screen.queryByRole('button', { name: 'Follow' })).not.toBeInTheDocument();
 		expect(screen.getByRole('link', { name: 'Back to your profile' })).toHaveAttribute('href', '/amira');
@@ -221,6 +259,32 @@ describe('OwnProfileView', () => {
 		expect(screen.getByText(/120 points/)).not.toHaveTextContent('Only you');
 		expect(screen.getByRole('link', { name: 'Settings' })).toHaveAttribute('href', '/settings');
 		expect(screen.getByRole('button', { name: 'Change avatar' })).toBeInTheDocument();
+	});
+
+	it('counts who they follow under the handle, and keeps it in step with Follow back in their lists', async () => {
+		const jtan = { id: 'u3', username: 'jtan', displayName: 'Jun Tan', avatarUrl: null, isFollowing: false, followsYou: true };
+		mockGetFollowers.mockResolvedValue({ ok: true, data: { items: [jtan], nextCursor: null } });
+		mockFollow.mockResolvedValue({ ok: true });
+		render(<OwnProfileView profile={me} polls={[]} />);
+
+		expect(screen.getByRole('button', { name: '42 following' })).toBeInTheDocument();
+		fireEvent.click(screen.getByRole('button', { name: '128 followers' }));
+		fireEvent.click(await screen.findByRole('button', { name: 'Follow back' }));
+		expect(mockFollow).toHaveBeenCalledWith('u3');
+		expect(screen.getByRole('button', { name: '43 following', hidden: true })).toBeInTheDocument();
+	});
+
+	it('puts their following count back when a Follow back from the list fails', async () => {
+		const jtan = { id: 'u3', username: 'jtan', displayName: 'Jun Tan', avatarUrl: null, isFollowing: false, followsYou: true };
+		mockGetFollowers.mockResolvedValue({ ok: true, data: { items: [jtan], nextCursor: null } });
+		mockFollow.mockResolvedValue({ ok: false, message: 'Request failed' });
+		render(<OwnProfileView profile={me} polls={[]} />);
+
+		fireEvent.click(screen.getByRole('button', { name: '128 followers' }));
+		fireEvent.click(await screen.findByRole('button', { name: 'Follow back' }));
+		await waitFor(() => expect(screen.getByRole('button', { name: 'Follow back' })).toBeEnabled());
+		expect(screen.getByRole('button', { name: '42 following', hidden: true })).toBeInTheDocument();
+		expect(toast.error).toHaveBeenCalled();
 	});
 
 	it('adds the private record: people reached and picks that won', () => {

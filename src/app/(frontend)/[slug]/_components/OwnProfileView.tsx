@@ -63,6 +63,9 @@ export function OwnProfileView({
 	const [votedFilter, setVotedFilter] = useState<VotedFilter>('all');
 	const [list, setList] = useState<FollowList | null>(null);
 	const [viewAs, setViewAs] = useState<ViewAs>('you');
+	// Follows from the lists move the count until a newer profile arrives with the server's own
+	const [follows, setFollows] = useState({ on: profile, delta: 0 });
+	const followingDelta = follows.on === profile ? follows.delta : 0;
 
 	const asked = polls ? askedPolls(polls, profile.id) : [];
 	const voted = polls ? votedPolls(polls, profile.id) : [];
@@ -98,7 +101,7 @@ export function OwnProfileView({
 				)}
 			>
 				<ProfileHeader
-					profile={profile}
+					profile={{ ...profile, followingCount: profile.followingCount + followingDelta }}
 					isOwn
 					hiddenFields={hiddenFields}
 					onOpenList={setList}
@@ -115,7 +118,18 @@ export function OwnProfileView({
 						</>
 					}
 				/>
-				<FollowListDialog username={profile.username} list={list} onOpenChange={(open) => !open && setList(null)} />
+				<FollowListDialog
+					username={profile.username}
+					list={list}
+					onOpenChange={(open) => !open && setList(null)}
+					viewerId={profile.id}
+					onFollowChange={(following) =>
+						setFollows((current) => ({
+							on: profile,
+							delta: (current.on === profile ? current.delta : 0) + (following ? 1 : -1),
+						}))
+					}
+				/>
 
 				<ProfileRecord
 					cells={[

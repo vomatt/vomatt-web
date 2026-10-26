@@ -8,23 +8,32 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
-import { ProfileHoverCard } from '@/features/profiles/ProfileHoverCard';
+import { ProfileHoverCard, rememberFollowing } from '@/features/profiles/ProfileHoverCard';
 import { mergeById } from '@/lib/api/cursor';
 import { profileHref } from '@/lib/routes';
-import type { UserDto } from '@/schemas/user';
 
+import { FollowButton, useFollow } from './FollowButton';
+import type { FollowUserDto } from './schema';
 import { getFollowers, getFollowing } from './service';
 
 export type FollowList = 'followers' | 'following';
 
 const loaders = { followers: getFollowers, following: getFollowing };
 
-/** A person's followers or the people they follow; each row opens the hover card, which carries Follow. */
+type RowProps = {
+	/** The signed-in viewer, whose own row gets no Follow. */
+	viewerId: string;
+	/** Each change the viewer's Follow taps show, the going back of a refused one too. */
+	onFollowChange?: (following: boolean) => void;
+};
+
+/** A person's followers or the people they follow; each row carries Follow and opens the hover card. */
 export function FollowListDialog({
 	username,
 	list,
 	onOpenChange,
-}: {
+	...rowProps
+}: RowProps & {
 	username: string;
 	/** Which list is open; null when closed. */
 	list: FollowList | null;
@@ -39,15 +48,15 @@ export function FollowListDialog({
 					<DialogTitle>{t(list === 'following' ? 'profile.following' : 'profile.followers')}</DialogTitle>
 				</DialogHeader>
 				{/* Keyed so switching lists starts from the first page */}
-				{list && <People key={list} username={username} list={list} />}
+				{list && <People key={list} username={username} list={list} {...rowProps} />}
 			</DialogContent>
 		</Dialog>
 	);
 }
 
-function People({ username, list }: { username: string; list: FollowList }) {
+function People({ username, list, ...rowProps }: RowProps & { username: string; list: FollowList }) {
 	const { t } = useLanguage();
-	const [users, setUsers] = useState<UserDto[] | null>(null);
+	const [users, setUsers] = useState<FollowUserDto[] | null>(null);
 	const [nextCursor, setNextCursor] = useState<string | null>(null);
 	const [failed, setFailed] = useState(false);
 	const [loading, setLoading] = useState(false);
@@ -99,20 +108,7 @@ function People({ username, list }: { username: string; list: FollowList }) {
 		<div className="-mx-1 max-h-[60vh] space-y-3 overflow-y-auto px-1">
 			<ul className="space-y-2">
 				{users.map((user) => (
-					<li key={user.id}>
-						<ProfileHoverCard username={user.username} avatarUrl={user.avatarUrl}>
-							<Link
-								href={profileHref(user.username)}
-								className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2.5 transition-colors outline-none hover:border-border-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
-							>
-								<UserAvatar username={user.username} avatarUrl={user.avatarUrl} />
-								<span className="flex min-w-0 flex-col gap-0.5">
-									<span className="truncate text-[14px] font-medium">{user.displayName || user.username}</span>
-									<span className="truncate font-mono text-[12px] text-muted-foreground">@{user.username}</span>
-								</span>
-							</Link>
-						</ProfileHoverCard>
-					</li>
+					<PersonRow key={user.id} user={user} {...rowProps} />
 				))}
 			</ul>
 			{nextCursor && (
@@ -123,5 +119,38 @@ function People({ username, list }: { username: string; list: FollowList }) {
 				</div>
 			)}
 		</div>
+	);
+}
+
+/** Name over "@handle · follows you", and Follow on the right. */
+function PersonRow({ user, viewerId, onFollowChange }: RowProps & { user: FollowUserDto }) {
+	const { t } = useLanguage();
+	const follow = useFollow(user.id, user, {
+		isSelf: user.id === viewerId,
+		onChange: (following) => {
+			rememberFollowing(user.username, following);
+			onFollowChange?.(following);
+		},
+	});
+
+	return (
+		<li className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2.5 transition-colors hover:border-border-strong">
+			<ProfileHoverCard username={user.username} avatarUrl={user.avatarUrl}>
+				<Link
+					href={profileHref(user.username)}
+					className="flex min-w-0 flex-1 items-center gap-3 rounded-md outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
+				>
+					<UserAvatar username={user.username} avatarUrl={user.avatarUrl} />
+					<span className="flex min-w-0 flex-col gap-0.5">
+						<span className="truncate text-[14px] font-medium">{user.displayName || user.username}</span>
+						<span className="truncate font-mono text-[12px] text-muted-foreground">
+							@{user.username}
+							{user.followsYou && ` · ${t('follows.followsYou')}`}
+						</span>
+					</span>
+				</Link>
+			</ProfileHoverCard>
+			<FollowButton follow={follow} size="xs" />
+		</li>
 	);
 }

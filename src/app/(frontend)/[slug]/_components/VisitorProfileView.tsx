@@ -13,7 +13,7 @@ import { TidePanel } from '@/components/ui/TidePanel';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { BlockUserDialog } from '@/features/blocks/BlockUserDialog';
 import { unblockUser } from '@/features/blocks/service';
-import { BlockedBadge, FollowButton } from '@/features/follows/FollowButton';
+import { type Follow, FollowButton, useFollow } from '@/features/follows/FollowButton';
 import { type FollowList, FollowListDialog } from '@/features/follows/FollowListDialog';
 import type { Poll } from '@/features/polls/schema';
 import { getUserPolls } from '@/features/polls/service';
@@ -42,19 +42,24 @@ type Filter = 'all' | 'open' | 'ended';
 export function VisitorProfileView({
 	profile,
 	polls,
-	isAuthenticated,
+	viewerId,
 	preview = false,
 }: {
 	profile: UserProfile;
 	/** Null when the polls couldn't load */
 	polls: CursorPage<Poll> | null;
-	isAuthenticated: boolean;
+	/** The signed-in viewer; null when signed out. */
+	viewerId: string | null;
 	/** The owner looking at what everyone sees. */
 	preview?: boolean;
 }) {
 	const { t } = useLanguage();
 	const [list, setList] = useState<FollowList | null>(null);
-	const canAct = isAuthenticated && !preview;
+	const canAct = !!viewerId && !preview;
+	const follow = useFollow(profile.id, profile, {
+		isSelf: profile.id === viewerId,
+		onChange: (following) => rememberFollowing(profile.username, following),
+	});
 
 	return (
 		<div className="px-contain mx-auto flex max-w-[1280px] flex-col gap-10 pt-8 pb-16 xl:flex-row xl:items-start">
@@ -72,12 +77,17 @@ export function VisitorProfileView({
 					</TidePanel>
 				)}
 				<ProfileHeader
-					profile={profile}
-					onOpenList={isAuthenticated ? setList : undefined}
-					actions={canAct && <VisitorActions profile={profile} />}
+					profile={{ ...profile, followersCount: profile.followersCount + follow.delta }}
+					onOpenList={viewerId ? setList : undefined}
+					actions={canAct && <VisitorActions profile={profile} follow={follow} />}
 				/>
-				{isAuthenticated && (
-					<FollowListDialog username={profile.username} list={list} onOpenChange={(open) => !open && setList(null)} />
+				{viewerId && (
+					<FollowListDialog
+						username={profile.username}
+						list={list}
+						onOpenChange={(open) => !open && setList(null)}
+						viewerId={viewerId}
+					/>
 				)}
 				<ProfileRecord
 					cells={[
@@ -105,7 +115,7 @@ export function VisitorProfileView({
 }
 
 /** Follow (or Blocked) and the ••• menu with Block or Unblock. */
-function VisitorActions({ profile }: { profile: UserProfile }) {
+function VisitorActions({ profile, follow }: { profile: UserProfile; follow: Follow }) {
 	const { t } = useLanguage();
 	const router = useRouter();
 	const [blockOpen, setBlockOpen] = useState(false);
@@ -125,17 +135,7 @@ function VisitorActions({ profile }: { profile: UserProfile }) {
 
 	return (
 		<>
-			{profile.isBlocked ? (
-				<BlockedBadge />
-			) : (
-				profile.isFollowing != null && (
-					<FollowButton
-						userId={profile.id}
-						initialFollowing={profile.isFollowing}
-						onChange={(following) => rememberFollowing(profile.username, following)}
-					/>
-				)
-			)}
+			<FollowButton follow={follow} />
 			<Menu.Root>
 				<Menu.Trigger
 					render={<Button variant="outline" size="icon-sm" />}

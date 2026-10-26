@@ -49,7 +49,7 @@ export default function ProfileHeader({
 	isOwn?: boolean;
 	/** Fields visitors don't see; only the owner's header passes them */
 	hiddenFields?: readonly string[];
-	/** Opens the followers or following list; signed in only, as the lists are. */
+	/** Opens the followers or following list; signed in only, as the lists are. Without it the counts are plain text. */
 	onOpenList?: (list: FollowList) => void;
 }) {
 	const { t, currentLanguage } = useLanguage();
@@ -66,18 +66,20 @@ export default function ProfileHeader({
 		</span>
 	);
 
-	const listLink = (list: FollowList, count: number | undefined) => (
-		<button key={list} type="button" onClick={() => onOpenList?.(list)} className={detailLink}>
-			{count === undefined ? (
-				t(list === 'followers' ? 'profile.followers' : 'profile.following')
-			) : (
-				<Count
-					value={count}
-					label={countText(t, list === 'followers' ? 'profile.followersCount' : 'profile.followingCount', count, currentLanguage)}
-				/>
-			)}
-		</button>
-	);
+	const listCount = (list: FollowList, count: number) => {
+		const label = (
+			<Count
+				value={count}
+				label={countText(t, list === 'followers' ? 'profile.followersCount' : 'profile.followingCount', count, currentLanguage)}
+			/>
+		);
+		if (!onOpenList) return <span key={list}>{label}</span>;
+		return (
+			<button key={list} type="button" onClick={() => onOpenList(list)} className={detailLink}>
+				{label}
+			</button>
+		);
+	};
 
 	return (
 		<header className="flex flex-wrap items-start gap-5">
@@ -102,7 +104,8 @@ export default function ProfileHeader({
 				{/* Items set apart by space and kept whole when they wrap */}
 				<div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-muted-foreground">
 					{before.map(detail)}
-					{onOpenList && [listLink('followers', profile.followersCount), listLink('following', profile.followingCount)]}
+					{listCount('followers', profile.followersCount)}
+					{listCount('following', profile.followingCount)}
 					{after.map(detail)}
 				</div>
 			</div>

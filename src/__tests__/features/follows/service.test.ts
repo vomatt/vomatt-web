@@ -49,12 +49,10 @@ it('returns the errorCode of a follow of a blocked user', async () => {
 	expect(await followUser('u1')).toMatchObject({ ok: false, status: 400, errorCode: 'user.follow.blocked' });
 });
 
-it('lists a user’s followers and following with a cursor', async () => {
-	mockApiClient.mockResolvedValue({ items: [{ id: 'u1', username: 'bob' }], nextCursor: null });
-	expect(await getFollowers('al ice', 'c1')).toEqual({
-		ok: true,
-		data: { items: [{ id: 'u1', username: 'bob' }], nextCursor: null },
-	});
+it('lists a user’s followers and following with a cursor, each with its relation to the viewer', async () => {
+	const bob = { id: 'u1', username: 'bob', isFollowing: false, followsYou: true };
+	mockApiClient.mockResolvedValue({ items: [bob], nextCursor: null });
+	expect(await getFollowers('al ice', 'c1')).toEqual({ ok: true, data: { items: [bob], nextCursor: null } });
 	expect(mockApiClient).toHaveBeenCalledWith('/users/al%20ice/followers?limit=20&cursor=c1');
 	await getFollowing('alice');
 	expect(mockApiClient).toHaveBeenLastCalledWith('/users/alice/following?limit=20');

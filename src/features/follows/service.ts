@@ -7,7 +7,10 @@ import { type CursorPage, cursorPageSchema, pageParams } from '@/lib/api/cursor'
 import type { UserDto } from '@/schemas/user';
 import { UserDtoSchema } from '@/schemas/user';
 
+import { type FollowUserDto, FollowUserDtoSchema } from './schema';
+
 const UserPage = cursorPageSchema(UserDtoSchema);
+const FollowUserPage = cursorPageSchema(FollowUserDtoSchema);
 
 const followPath = (userId: string) => `/users/me/follows/${encodeURIComponent(userId)}`;
 
@@ -33,12 +36,12 @@ export async function unfollowUser(userId: string): Promise<ActionResult> {
 const userListPath = (username: string, list: 'followers' | 'following', cursor?: string) =>
 	`/users/${encodeURIComponent(username)}/${list}?${pageParams(cursor, 20)}`;
 
-/** Who follows `username`, most recently followed first. Signed-in only; items match `/users/search`. */
-export async function getFollowers(username: string, cursor?: string): Promise<ActionResult<CursorPage<UserDto>>> {
-	return attempt(async () => UserPage.parse(await apiClient(userListPath(username, 'followers', cursor))));
+/** Who follows `username`, most recently followed first. Signed-in only; each item says how it relates to the viewer. */
+export async function getFollowers(username: string, cursor?: string): Promise<ActionResult<CursorPage<FollowUserDto>>> {
+	return attempt(async () => FollowUserPage.parse(await apiClient(userListPath(username, 'followers', cursor))));
 }
 
-/** Whom `username` follows, most recently followed first. Signed-in only; items match `/users/search`. */
-export async function getFollowing(username: string, cursor?: string): Promise<ActionResult<CursorPage<UserDto>>> {
-	return attempt(async () => UserPage.parse(await apiClient(userListPath(username, 'following', cursor))));
+/** Whom `username` follows, most recently followed first. Signed-in only; each item says how it relates to the viewer. */
+export async function getFollowing(username: string, cursor?: string): Promise<ActionResult<CursorPage<FollowUserDto>>> {
+	return attempt(async () => FollowUserPage.parse(await apiClient(userListPath(username, 'following', cursor))));
 }

@@ -1049,7 +1049,9 @@
 		"following": "追蹤中",
 		"listFailed": "無法載入名單。",
 		"listEmptyFollowers": "還沒有追蹤者。",
-		"listEmptyFollowing": "尚未追蹤任何人。"
+		"listEmptyFollowing": "尚未追蹤任何人。",
+		"followBack": "追蹤對方",
+		"followsYou": "追蹤了你"
 	},
 	"settings": {
 		"voting": "投票",
