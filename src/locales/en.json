@@ -1071,7 +1071,7 @@
 	},
 	"follows": {
 		"title": "Following",
-		"intro": "Open public polls by people you follow appear in your Following feed. They aren’t told, but signed-in users can see who follows whom on profiles.",
+		"intro": "Open public polls by people you follow appear in your Following feed. They get a notification when you follow them, and signed-in users can see who follows whom on profiles.",
 		"empty": "You aren’t following anyone.",
 		"loadFailed": "Couldn’t load followed users.",
 		"unfollow": "Unfollow",
