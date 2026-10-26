@@ -111,7 +111,14 @@ export function NotificationList({
 		const pending = ids.filter((id) => unread.some((item) => item.id === id));
 		if (pending.length === 0) return;
 		clear(new Set(pending));
-		Promise.all(pending.map((id) => markNotificationRead(id))).then(refresh, () => {});
+		Promise.all(pending.map((id) => markNotificationRead(id).catch(() => false))).then((results) => {
+			// Put back the dot of any row the API didn't mark, so the list agrees with the badge
+			const failed = new Set(pending.filter((_, i) => results[i] === false));
+			if (failed.size > 0) {
+				list.setItems((items) => items.map((item) => (failed.has(item.id) ? { ...item, read: false } : item)));
+			}
+			refresh();
+		});
 	};
 
 	const markAllRead = async () => {
@@ -283,7 +290,7 @@ function NotificationRow({ row, onOpen }: { row: Row; onOpen: (ids: string[]) =>
 			text = (
 				<>
 					<span className="text-[15px] leading-snug text-muted-foreground">
-						{rich(t('notifications.cancelledBy'), {
+						{rich(t(actor ? 'notifications.cancelledBy' : 'notifications.cancelledPoll'), {
 							title: (
 								<Link href={href} onClick={open} className={cn(rowLink, 'text-foreground')}>
 									{title}

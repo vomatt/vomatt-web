@@ -11,8 +11,9 @@ export const UserDtoSchema = z.object({
 
 /** A follower / following list item: a `UserDto` plus the caller's relation to the user (both false on the caller's own entry). */
 export const FollowUserDtoSchema = UserDtoSchema.extend({
-	isFollowing: z.boolean(),
-	followsYou: z.boolean(),
+	// default: one item missing a flag shouldn't fail the whole page
+	isFollowing: z.boolean().default(false),
+	followsYou: z.boolean().default(false),
 });
 
 export const UserSummarySchema = z.object({

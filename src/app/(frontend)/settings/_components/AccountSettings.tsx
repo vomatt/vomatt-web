@@ -138,7 +138,7 @@ export default function AccountSettings({ profile }: { profile: MyProfile }) {
 				<NotificationPreferencesPanel />
 			</Section>
 
-			<Section id="appearance"title={t('navigation.appearance')}>
+			<Section id="appearance" title={t('navigation.appearance')}>
 				<Card>
 					<div className={cn(rowClassName, 'flex-wrap')}>
 						<RowText title={t('settings.theme')} body={t('settings.themeBody')} />

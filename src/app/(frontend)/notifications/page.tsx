@@ -20,7 +20,8 @@ export default async function NotificationsPage() {
 		<div className="px-contain mx-auto flex max-w-[1000px] flex-col gap-10 py-6 md:py-10 xl:flex-row xl:items-start">
 			<div className="flex min-w-0 flex-1 flex-col gap-5 xl:max-w-[680px]">
 				<NotificationsHeader />
-								<Suspense fallback={<PollRowListSkeleton chip={false} />}>
+				{/* Most Notifications are results, which carry no status chip */}
+				<Suspense fallback={<PollRowListSkeleton chip={false} />}>
 					<Notifications />
 				</Suspense>
 			</div>

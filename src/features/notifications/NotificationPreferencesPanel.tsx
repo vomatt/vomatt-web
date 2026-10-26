@@ -53,7 +53,8 @@ export function NotificationPreferencesPanel() {
 			toast.error(apiErrorText(t, result, 'notifications.prefs.saveFailed'), { duration: Infinity });
 			return;
 		}
-		saved.current = result.data;
+		// Only this key: the response's other keys may predate a concurrent toggle's save
+		if (saved.current) saved.current = { ...saved.current, [key]: result.data[key] };
 		setAnnouncement(t(`notifications.prefs.${value ? 'on' : 'off'}`, { name: t(`notifications.prefs.${key}`) }));
 	};
 
@@ -85,25 +86,25 @@ export function NotificationPreferencesPanel() {
 				{announcement}
 			</p>
 			<div className="divide-y divide-border rounded-2xl border border-border bg-card">
-			{SWITCHES.map((key) => (
-				<label key={key} htmlFor={`notify-${key}`} className="flex min-h-15 cursor-pointer items-center gap-4 px-4.5 py-3">
-					<span className="min-w-0 flex-1">
-						<span id={`notify-${key}-label`} className="block font-medium">
-							{t(`notifications.prefs.${key}`)}
+				{SWITCHES.map((key) => (
+					<label key={key} htmlFor={`notify-${key}`} className="flex min-h-15 cursor-pointer items-center gap-4 px-4.5 py-3">
+						<span className="min-w-0 flex-1">
+							<span id={`notify-${key}-label`} className="block font-medium">
+								{t(`notifications.prefs.${key}`)}
+							</span>
+							<span id={`notify-${key}-body`} className="block text-[13px] leading-snug text-muted-foreground">
+								{t(`notifications.prefs.${key}Body`)}
+							</span>
 						</span>
-						<span id={`notify-${key}-body`} className="block text-[13px] leading-snug text-muted-foreground">
-							{t(`notifications.prefs.${key}Body`)}
-						</span>
-					</span>
-					<Switch
-						id={`notify-${key}`}
-						aria-labelledby={`notify-${key}-label`}
-						aria-describedby={`notify-${key}-body`}
-						checked={prefs[key]}
-						onCheckedChange={(value) => toggle(key, value)}
-					/>
-				</label>
-			))}
+						<Switch
+							id={`notify-${key}`}
+							aria-labelledby={`notify-${key}-label`}
+							aria-describedby={`notify-${key}-body`}
+							checked={prefs[key]}
+							onCheckedChange={(value) => toggle(key, value)}
+						/>
+					</label>
+				))}
 			</div>
 			<p className="px-1 text-[13px] text-muted-foreground">{t('notifications.prefs.note')}</p>
 		</>

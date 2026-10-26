@@ -53,7 +53,7 @@ describe('markNotificationRead()', () => {
 	it('ignores a poll with no notification for the user', async () => {
 		const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
 		mockApiClient.mockRejectedValue(new ApiError('nf', 404, { errorCode: 'notification.not_found' }));
-		await expect(markNotificationRead('poll-1')).resolves.toBeUndefined();
+		await expect(markNotificationRead('poll-1')).resolves.toBe(true);
 		expect(spy).not.toHaveBeenCalled();
 		spy.mockRestore();
 	});
@@ -61,7 +61,7 @@ describe('markNotificationRead()', () => {
 	it('ignores a Deleted poll', async () => {
 		const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
 		mockApiClient.mockRejectedValue(new ApiError('nf', 404, { errorCode: 'vote.not_found' }));
-		await expect(markNotificationRead('poll-1')).resolves.toBeUndefined();
+		await expect(markNotificationRead('poll-1')).resolves.toBe(true);
 		expect(spy).not.toHaveBeenCalled();
 		spy.mockRestore();
 	});

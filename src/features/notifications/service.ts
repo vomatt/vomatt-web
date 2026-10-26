@@ -43,10 +43,10 @@ async function readNotification(id: string): Promise<boolean> {
 
 /**
  * Marks a notification read by its feed `id`, or by a Poll id (deprecated, but it is how
- * viewing a Poll reads its Invitation or Result). Idempotent; nothing to read is ignored.
+ * viewing a Poll reads its Invitation or Result). Idempotent; nothing to read counts as done. False when the request failed.
  */
-export async function markNotificationRead(id: string): Promise<void> {
-	await readNotification(id);
+export async function markNotificationRead(id: string): Promise<boolean> {
+	return readNotification(id);
 }
 
 const NotificationPage = cursorPageSchema(NotificationSchema);

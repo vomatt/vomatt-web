@@ -271,6 +271,7 @@
 		"inviteOnly": "Invite only",
 		"view": "View",
 		"cancelledBy": "{title} was cancelled by {name}",
+		"cancelledPoll": "{title} was cancelled",
 		"neverCounted": "Your vote was never counted",
 		"railTitle": "Opening a poll marks it read",
 		"railBody": "Results rows stay until you open them, so a sealed promise is never lost in the list.",

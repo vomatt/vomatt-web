@@ -263,6 +263,7 @@
 		"inviteOnly": "僅限受邀",
 		"view": "查看",
 		"cancelledBy": "{title} 已被 {name} 取消",
+		"cancelledPoll": "{title} 已被取消",
 		"neverCounted": "你的選票未被計入",
 		"railTitle": "打開投票即標為已讀",
 		"railBody": "結果通知會保留到你打開為止，密封的承諾不會在列表中遺失。",
