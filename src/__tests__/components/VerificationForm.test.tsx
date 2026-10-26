@@ -22,7 +22,6 @@ function fillOTP(value: string) {
 
 function renderForm(overrides: Partial<React.ComponentProps<typeof VerificationForm>> = {}) {
 	const props = {
-		email: 'test@example.com',
 		onSubmitCode: jest.fn().mockResolvedValue({ status: 'OK' }),
 		onResend: jest.fn().mockResolvedValue({ status: 'OK' }),
 		onEditEmail: jest.fn(),
@@ -47,13 +46,27 @@ describe('VerificationForm', () => {
 		expect(onSubmitCode).toHaveBeenCalledTimes(1);
 	});
 
-	it('shows the mapped error and clears the input on a wrong code', async () => {
+	it('keeps a wrong code in place, focused and selected so typing replaces it', async () => {
 		renderForm({
 			onSubmitCode: jest.fn().mockResolvedValue({ status: 'ERROR', error: 'invalidCode' }),
 		});
 		fillOTP('000000');
 		expect(await screen.findByRole('alert')).toHaveTextContent('authError.invalidCode');
-		expect(screen.getByLabelText('verificationCode.inputLabel')).toHaveValue('');
+
+		const input = screen.getByLabelText<HTMLInputElement>('verificationCode.inputLabel');
+		expect(input).toHaveValue('000000');
+		await waitFor(() => expect(input).toHaveFocus());
+		expect([input.selectionStart, input.selectionEnd]).toEqual([0, 6]);
+	});
+
+	it('clears the error once a new code is typed', async () => {
+		renderForm({
+			onSubmitCode: jest.fn().mockResolvedValue({ status: 'ERROR', error: 'invalidCode' }),
+		});
+		fillOTP('000000');
+		await screen.findByRole('alert');
+		fillOTP('1');
+		await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
 	});
 
 	it('goes back to edit the email', () => {
@@ -70,13 +83,6 @@ describe('VerificationForm', () => {
 		await waitFor(() => expect(change).toBeDisabled());
 		await act(async () => finish({ status: 'OK' }));
 		expect(change).toBeEnabled();
-	});
-
-	it('reads the subtitle and the address as separate words', () => {
-		renderForm();
-		expect(screen.getByText(/verificationCode\.subtitle/).textContent).toBe(
-			'verificationCode.subtitle test@example.com'
-		);
 	});
 
 	it('only offers resend after the cooldown, then restarts it', async () => {
