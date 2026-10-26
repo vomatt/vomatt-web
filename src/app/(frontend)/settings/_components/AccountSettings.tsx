@@ -6,7 +6,6 @@ import { useTheme } from 'next-themes';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
-import { FilterPills } from '@/components/FilterPills';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -20,6 +19,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { Input } from '@/components/ui/Input';
+import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { ChevronRight } from '@/components/ui/SvgIcons';
 import { Switch } from '@/components/ui/Switch';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -29,13 +29,12 @@ import { FollowedUsersPanel } from '@/features/follows/FollowedUsersPanel';
 import { GroupsPanel } from '@/features/groups/GroupsPanel';
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
 import { useHydrated } from '@/hooks/useHydrated';
-import { SUPPORTED_LANGUAGES } from '@/i18n-config';
 import { apiErrorText } from '@/lib/api/error-text';
 import { signout } from '@/lib/api/services/auth';
 import { deleteMyAccount, editProfile, exportMyData } from '@/lib/api/services/users';
+import { countText } from '@/lib/count';
 import { profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
-import type { LanguageCode } from '@/types';
 import type { MyProfile } from '@/types/user';
 
 /** The page's sections, in order; the On this page list links to each. */
@@ -69,7 +68,7 @@ function RowText({ title, body, id }: { title: React.ReactNode; body?: React.Rea
 				{title}
 			</span>
 			{body && (
-				<span id={id && `${id}-body`} className="block text-[13px] leading-snug text-muted-foreground">
+				<span id={id && `${id}-body`} className="block text-[13px] leading-[1.45] text-muted-foreground">
 					{body}
 				</span>
 			)}
@@ -77,8 +76,16 @@ function RowText({ title, body, id }: { title: React.ReactNode; body?: React.Rea
 	);
 }
 
-export default function AccountSettings({ profile }: { profile: MyProfile }) {
-	const { t } = useLanguage();
+export default function AccountSettings({
+	profile,
+	inviteListCount,
+}: {
+	profile: MyProfile;
+	/** How many invite lists the user has; null when they couldn't be loaded. */
+	inviteListCount: number | null;
+}) {
+	const { t, currentLanguage } = useLanguage();
+	const router = useRouter();
 	const [anonymousDefault, setAnonymousDefault] = useState(profile.anonymousBallotByDefault);
 	// The last value the server confirmed; quick toggles can answer out of order
 	const savedAnonymousDefault = useRef(profile.anonymousBallotByDefault);
@@ -120,10 +127,22 @@ export default function AccountSettings({ profile }: { profile: MyProfile }) {
 					</label>
 					<button type="button" onClick={() => setInvitesOpen(true)} className={cn(rowLinkClassName, 'w-full text-left')}>
 						<RowText title={t('account.tabGroups')} body={t('settings.inviteListsBody')} />
+						{inviteListCount !== null && (
+							<span className="font-mono text-[14px] whitespace-nowrap text-muted-foreground">
+								{countText(t, 'settings.inviteListCount', inviteListCount, currentLanguage)}
+							</span>
+						)}
 						<ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
 					</button>
 				</Card>
-				<Dialog open={invitesOpen} onOpenChange={setInvitesOpen}>
+				<Dialog
+					open={invitesOpen}
+					onOpenChange={(open) => {
+						setInvitesOpen(open);
+						// The lists may have changed inside; the count comes from the server page
+						if (!open) router.refresh();
+					}}
+				>
 					<DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-lg" closeLabel={t('common.close')}>
 						<DialogHeader>
 							<DialogTitle>{t('account.tabGroups')}</DialogTitle>
@@ -139,10 +158,6 @@ export default function AccountSettings({ profile }: { profile: MyProfile }) {
 						<RowText title={t('settings.theme')} body={t('settings.themeBody')} />
 						<ThemeChoice />
 					</div>
-					<div className={cn(rowClassName, 'flex-wrap')}>
-						<RowText title={t('settings.language')} body={t('settings.languageBody')} />
-						<LanguageChoice />
-					</div>
 				</Card>
 			</Section>
 
@@ -155,16 +170,18 @@ export default function AccountSettings({ profile }: { profile: MyProfile }) {
 						</span>
 						<ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
 					</Link>
+					<div className={cn(rowClassName, 'flex-col items-stretch')}>
+						<BlockedUsersPanel />
+					</div>
 				</Card>
 				<FollowedUsersPanel />
-				<BlockedUsersPanel />
 			</Section>
 
 			<Section id="account" title={t('settings.account')}>
 				<Card>
 					<div className={cn(rowClassName, 'flex-wrap')}>
 						<RowText title={t('account.signOutTitle')} body={<span className="wrap-anywhere">{profile.email ?? profile.phoneNumber}</span>} />
-						<Button variant="outline" onClick={() => signout()}>
+						<Button variant="outline" size="md" onClick={() => signout()}>
 							{t('account.signOut')}
 						</Button>
 					</div>
@@ -184,36 +201,15 @@ function ThemeChoice() {
 	// The saved theme is only known in the browser
 	const isHydrated = useHydrated();
 	return (
-		<FilterPills
+		<SegmentedControl
 			label={t('settings.theme')}
 			value={isHydrated ? (theme as 'system' | 'light' | 'dark') : undefined}
-			onChange={setTheme}
+			onValueChange={setTheme}
 			options={[
 				{ value: 'system', label: t('navigation.themeAuto') },
 				{ value: 'light', label: t('navigation.themeLight') },
 				{ value: 'dark', label: t('navigation.themeDark') },
 			]}
-		/>
-	);
-}
-
-/** Switches the language and re-renders the server parts in it. */
-export function LanguageChoice() {
-	const { t, currentLanguage, setLanguage } = useLanguage();
-	const router = useRouter();
-	return (
-		<FilterPills<LanguageCode>
-			label={t('settings.language')}
-			value={currentLanguage}
-			onChange={(language) => {
-				setLanguage(language);
-				router.refresh();
-			}}
-			options={(Object.keys(SUPPORTED_LANGUAGES) as LanguageCode[]).map((code) => ({
-				value: code,
-				label: SUPPORTED_LANGUAGES[code],
-				lang: code === 'zh' ? 'zh-Hant' : 'en',
-			}))}
 		/>
 	);
 }
@@ -267,7 +263,7 @@ function ExportData() {
 	return (
 		<div className={cn(rowClassName, 'flex-wrap')}>
 			<RowText title={t('account.exportTitle')} body={t('account.exportBody')} />
-			<Button variant="outline" loading={isExporting} onClick={download}>
+			<Button variant="outline" size="md" loading={isExporting} onClick={download}>
 				{t('account.exportCta')}
 			</Button>
 		</div>
@@ -311,9 +307,9 @@ function DeleteAccount({ username }: { username: string }) {
 				<h2 id="delete-title" className="font-medium text-destructive">
 					{t('account.deleteTitle')}
 				</h2>
-				<span className="block text-[13px] leading-snug text-muted-foreground">{t('account.deleteBody')}</span>
+				<span className="block text-[13px] leading-[1.45] text-muted-foreground">{t('account.deleteBody')}</span>
 			</span>
-			<Button variant="outline" className="border-destructive/45 text-destructive hover:text-destructive" onClick={() => setOpen(true)}>
+			<Button variant="outline" size="md" className="border-destructive/45 text-destructive hover:text-destructive" onClick={() => setOpen(true)}>
 				{t('account.deleteCtaEllipsis')}
 			</Button>
 			<AlertDialog open={open} onOpenChange={setOpen}>
@@ -372,7 +368,7 @@ export function SettingsNav() {
 	const { t } = useLanguage();
 	const current = useSectionInView(SETTINGS_SECTIONS);
 	return (
-		<nav aria-labelledby="settings-nav" className="sticky top-8">
+		<nav aria-labelledby="settings-nav">
 			<p id="settings-nav" className="mb-2 text-[12px] font-medium text-muted-foreground">
 				{t('settings.onThisPage')}
 			</p>

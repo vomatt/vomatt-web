@@ -3,9 +3,9 @@
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 
-export type FilterOption<T extends string> = { value: T; label: string; count?: number; lang?: string };
+export type FilterOption<T extends string> = { value: T; label: string; count?: number };
 
-/** A row of toggle pills where one is current (a list filter, a theme); the current one is ink. */
+/** A row of toggle pills where one is current (a list filter); the current one is ink. */
 export function FilterPills<T extends string>({
 	label,
 	options,
@@ -28,7 +28,6 @@ export function FilterPills<T extends string>({
 				return (
 					<Button
 						key={option.value}
-						lang={option.lang}
 						size="sm"
 						variant={active ? 'default' : 'outline'}
 						aria-pressed={active}
