@@ -42,6 +42,7 @@ export default function ProfileHeader({
 	isOwn = false,
 	hiddenFields = [],
 	onOpenList,
+	mutuals,
 }: {
 	profile: HeaderProfile;
 	/** Edit profile and Settings for the owner; Follow and ••• for a visitor. */
@@ -51,6 +52,8 @@ export default function ProfileHeader({
 	hiddenFields?: readonly string[];
 	/** Opens the followers or following list; signed in only, as the lists are. Without it the counts are plain text. */
 	onOpenList?: (list: FollowList) => void;
+	/** "Followed by …" under the details, on a visitor's header. */
+	mutuals?: ReactNode;
 }) {
 	const { t, currentLanguage } = useLanguage();
 	const name = profile.displayName || profile.username;
@@ -108,6 +111,7 @@ export default function ProfileHeader({
 					{listCount('following', profile.followingCount)}
 					{after.map(detail)}
 				</div>
+				{mutuals && <div className="mt-2 empty:hidden">{mutuals}</div>}
 			</div>
 			{/* Wraps under the details on phones */}
 			<div className="flex gap-2 empty:hidden">{actions}</div>

@@ -18,6 +18,7 @@ import { type FollowList, FollowListDialog } from '@/features/follows/FollowList
 import type { Poll } from '@/features/polls/schema';
 import { getUserPolls } from '@/features/polls/service';
 import { splitAsked } from '@/features/profiles/lists';
+import { MutualFollowersLine } from '@/features/profiles/MutualFollowers';
 import { forgetProfile, rememberFollowing } from '@/features/profiles/ProfileHoverCard';
 import { AskedRow, ProfileSection } from '@/features/profiles/ProfileRows';
 import { useCursorList } from '@/hooks/useCursorList';
@@ -28,6 +29,7 @@ import { toPayloadLocale } from '@/lib/locale';
 import { profileHref } from '@/lib/routes';
 import type { UserProfile } from '@/types/user';
 
+import { MutualFollowersCard } from './MutualFollowersCard';
 import ProfileHeader from './ProfileHeader';
 import { ProfileRecord } from './ProfileRecord';
 import { ShowMore } from './ShowMore';
@@ -60,6 +62,7 @@ export function VisitorProfileView({
 		isSelf: profile.id === viewerId,
 		onChange: (following) => rememberFollowing(profile.username, following),
 	});
+	const followersCount = profile.followersCount + follow.delta;
 
 	return (
 		<div className="px-contain mx-auto flex max-w-[1280px] flex-col gap-10 pt-8 pb-16 xl:flex-row xl:items-start">
@@ -77,9 +80,10 @@ export function VisitorProfileView({
 					</TidePanel>
 				)}
 				<ProfileHeader
-					profile={{ ...profile, followersCount: profile.followersCount + follow.delta }}
+					profile={{ ...profile, followersCount }}
 					onOpenList={viewerId ? setList : undefined}
 					actions={canAct && <VisitorActions profile={profile} follow={follow} />}
+					mutuals={canAct && <MutualFollowersLine profile={profile} onOpen={() => setList('mutuals')} />}
 				/>
 				{viewerId && (
 					<FollowListDialog
@@ -108,6 +112,12 @@ export function VisitorProfileView({
 						</p>
 						<p>{t('profile.followingNoteBody')}</p>
 					</TidePanel>
+					{canAct && (
+						<MutualFollowersCard
+							profile={{ ...profile, followersCount }}
+							onOpenFollowers={() => setList('followers')}
+						/>
+					)}
 				</aside>
 			)}
 		</div>

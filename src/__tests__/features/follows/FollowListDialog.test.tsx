@@ -1,19 +1,21 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 
 import { FollowListDialog } from '@/features/follows/FollowListDialog';
-import { followUser, getFollowers } from '@/features/follows/service';
+import { followUser, getFollowers, getMutualFollowers } from '@/features/follows/service';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 jest.mock('sonner', () => ({ toast: { error: jest.fn() } }));
 jest.mock('@/features/follows/service', () => ({
 	getFollowers: jest.fn(),
 	getFollowing: jest.fn(),
+	getMutualFollowers: jest.fn(),
 	followUser: jest.fn(),
 	unfollowUser: jest.fn(),
 }));
 
 const mockGetFollowers = getFollowers as jest.Mock;
 const mockFollowUser = followUser as jest.Mock;
+const mockGetMutualFollowers = getMutualFollowers as jest.Mock;
 const relation = { isFollowing: false, followsYou: false };
 const bob = { id: 'u1', username: 'bob', displayName: 'Bob Chen', avatarUrl: 'bot:boba', ...relation };
 const cy = { id: 'u2', username: 'cy', displayName: null, avatarUrl: null, ...relation };
@@ -75,4 +77,20 @@ it('follows from the row at once, and tells the page each change, the going back
 	// Refused: back to Follow back, and the page hears it
 	expect(await screen.findByRole('button', { name: 'Follow back' })).toBeEnabled();
 	await waitFor(() => expect(onFollowChange).toHaveBeenNthCalledWith(2, false));
+});
+
+it('lists the followers the viewer follows under its own title', async () => {
+	mockGetMutualFollowers.mockResolvedValue({ ok: true, data: { items: [rosa], nextCursor: null } });
+	render(<FollowListDialog username="amira" list="mutuals" onOpenChange={jest.fn()} />);
+
+	expect(screen.getByRole('dialog', { name: 'Followers you know' })).toBeInTheDocument();
+	expect(within(await rowOf('Rosa Ortega @rosa')).getByRole('button', { pressed: true })).toHaveTextContent('Following');
+	expect(mockGetMutualFollowers).toHaveBeenCalledWith('amira');
+	expect(mockGetFollowers).not.toHaveBeenCalled();
+});
+
+it('says when no one the viewer follows follows them', async () => {
+	mockGetMutualFollowers.mockResolvedValue({ ok: true, data: { items: [], nextCursor: null } });
+	render(<FollowListDialog username="amira" list="mutuals" onOpenChange={jest.fn()} />);
+	expect(await screen.findByText('No one you follow follows them yet.')).toBeInTheDocument();
 });

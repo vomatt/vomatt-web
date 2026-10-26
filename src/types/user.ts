@@ -1,3 +1,5 @@
+import type { UserDto } from '@/schemas/user';
+
 export interface UserProfile {
 	id: string;
 	username: string;
@@ -17,6 +19,9 @@ export interface UserProfile {
 	isFollowing: boolean | null;
 	followsYou: boolean | null;
 	isBlocked: boolean | null;
+	/** The people the viewer follows who follow this user, and the first 3 of them ([] when none); null when signed out and on their own profile. */
+	mutualFollowersCount: number | null;
+	mutualFollowersPreview: UserDto[] | null;
 }
 
 /** Response from GET /users/me — the authenticated user's own profile. */

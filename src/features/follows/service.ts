@@ -33,7 +33,7 @@ export async function unfollowUser(userId: string): Promise<ActionResult> {
 	});
 }
 
-const userListPath = (username: string, list: 'followers' | 'following', cursor?: string) =>
+const userListPath = (username: string, list: 'followers' | 'following' | 'mutual-followers', cursor?: string) =>
 	`/users/${encodeURIComponent(username)}/${list}?${pageParams(cursor, 20)}`;
 
 /** Who follows `username`, most recently followed first. Signed-in only; each item says how it relates to the viewer. */
@@ -44,4 +44,9 @@ export async function getFollowers(username: string, cursor?: string): Promise<A
 /** Whom `username` follows, most recently followed first. Signed-in only; each item says how it relates to the viewer. */
 export async function getFollowing(username: string, cursor?: string): Promise<ActionResult<CursorPage<FollowUserDto>>> {
 	return attempt(async () => FollowUserPage.parse(await apiClient(userListPath(username, 'following', cursor))));
+}
+
+/** Who follows `username` among the people the viewer follows, most recently followed first. Signed-in only. */
+export async function getMutualFollowers(username: string, cursor?: string): Promise<ActionResult<CursorPage<FollowUserDto>>> {
+	return attempt(async () => FollowUserPage.parse(await apiClient(userListPath(username, 'mutual-followers', cursor))));
 }
