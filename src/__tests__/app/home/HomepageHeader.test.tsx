@@ -36,4 +36,16 @@ describe('HomepageHeader', () => {
 		render(<HomepageHeader tags={tags} />);
 		expect(screen.queryByRole('link', { name: 'Following' })).not.toBeInTheDocument();
 	});
+
+	it('invites guests to log in above the topics, and no one else', () => {
+		const { unmount } = render(<HomepageHeader tags={tags} />);
+		const prompt = screen.getByRole('heading', { name: 'Log in or sign up for Vomatt' });
+		const topics = screen.getByRole('navigation', { name: 'Topics' });
+		expect(prompt.compareDocumentPosition(topics) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+		expect(screen.getByRole('link', { name: 'Log in' })).toHaveAttribute('href', '/login');
+		unmount();
+
+		render(<HomepageHeader tags={tags} signedIn />);
+		expect(screen.queryByRole('link', { name: 'Log in' })).not.toBeInTheDocument();
+	});
 });

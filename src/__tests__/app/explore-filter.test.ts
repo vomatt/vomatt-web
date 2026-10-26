@@ -1,6 +1,7 @@
 import { toExploreQuery } from '@/app/(frontend)/explore/_components/ExploreView';
 
 jest.mock('@/features/polls/service', () => ({ getPolls: jest.fn() }));
+jest.mock('@/features/polls/components/PollCard', () => ({ PollCard: () => null }));
 
 describe('toExploreQuery()', () => {
 	it('sends the sort with open polls', () => {

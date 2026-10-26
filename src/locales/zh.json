@@ -66,6 +66,7 @@
 	"loginPrompt": {
 		"title": "登入或註冊 Vomatt",
 		"subtitle": "查看大家正在討論的內容並加入討論。",
+		"pollNote": "登入即可開啟這個投票。",
 		"ctaLabel": "登入"
 	},
 	"login": {
@@ -116,11 +117,13 @@
 	"explore": {
 		"title": "探索",
 		"searchPlaceholder": "搜尋投票標題與說明…",
+		"searchLabel": "搜尋",
 		"filterActive": "進行中",
 		"filterEnded": "已結束",
 		"sortNewest": "最新",
 		"noResults": "找不到投票。",
-		"topics": "依主題瀏覽",
+		"noResultsHint": "試試其他字詞，或切換到已結束的投票。",
+		"noResultsHintEnded": "試試其他字詞，或切換到進行中的投票。",
 		"status": "狀態",
 		"sort": "排序",
 		"sortEnding": "即將結束",
@@ -247,6 +250,7 @@
 	"notifications": {
 		"title": "通知",
 		"empty": "目前沒有通知。",
+		"emptyHint": "你發起或參與的投票結果會顯示在這裡。",
 		"unread": "未讀",
 		"intro": "你發起或參與的投票結果，以及投票邀請。",
 		"markAllHint": "打開投票即標為已讀。",
@@ -370,12 +374,14 @@
 		"following": "追蹤中",
 		"followingEmpty": "你追蹤的人還沒有投票。",
 		"followingEmptyHint": "你追蹤的人所發起的進行中投票會顯示在這裡。到對方的個人檔案即可追蹤。",
+		"followingEmptyCta": "探索投票",
 		"topics": "主題",
 		"feedFailed": "目前無法載入投票。",
 		"topicEmpty": "這個主題還沒有投票。",
 		"createFirst": "建立第一個投票",
 		"joinToCreate": "加入後即可發起投票",
 		"resultsIn": "結果出爐",
+		"resultsTie": "平手",
 		"closingSoon": "即將結束",
 		"askTitle": "有問題想問大家嗎？",
 		"askBody": "寫一則投票只要一分鐘，開始的那一刻就會自動封存。",

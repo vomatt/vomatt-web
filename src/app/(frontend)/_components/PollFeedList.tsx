@@ -5,7 +5,9 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useInView } from 'react-intersection-observer';
 
+import { EmptyCard } from '@/components/EmptyCard';
 import { Button, buttonVariants } from '@/components/ui/Button';
+import { CircleMinus } from '@/components/ui/CircleMinus';
 import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { CreatePollTrigger } from '@/features/polls/components/CreatePollTrigger';
@@ -87,10 +89,17 @@ export function PollFeedList({
 			)}
 
 			{initialPage !== null && polls.length === 0 && following && (
-				<div className="flex flex-col items-center gap-3 py-20 text-center">
-					<h2 className="text-3xl">{t('homePage.followingEmpty')}</h2>
-					<p className="text-muted-foreground">{t('homePage.followingEmptyHint')}</p>
-				</div>
+				<EmptyCard
+					className="mt-2"
+					icon={<CircleMinus />}
+					title={t('homePage.followingEmpty')}
+					body={t('homePage.followingEmptyHint')}
+					action={
+						<Link href="/explore" className={buttonVariants({ variant: 'outline' })}>
+							{t('homePage.followingEmptyCta')}
+						</Link>
+					}
+				/>
 			)}
 
 			{initialPage !== null && polls.length === 0 && !following && (

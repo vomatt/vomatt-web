@@ -28,11 +28,12 @@ export function FilterPills<T extends string>({
 				return (
 					<Button
 						key={option.value}
-						size="sm"
+						size="xs"
 						variant={active ? 'default' : 'outline'}
 						aria-pressed={active}
 						onClick={() => onChange(option.value)}
-						className="rounded-full"
+						// No Button size is 30px; phones keep xs's 44px target
+						className="rounded-full md:h-[30px]"
 					>
 						{option.label}
 						{option.count !== undefined && (

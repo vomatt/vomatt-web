@@ -5,12 +5,12 @@ import { derivePollStatus } from '@/features/polls/status';
 const RAIL_SIZE = 3;
 
 /**
- * Ended Polls the viewer voted in, and Open ones ending within a day.
+ * Ended Polls the signed-in viewer voted in, and Open ones ending within a day.
  * A list that fails or comes back empty is left out.
  */
-export async function RailPolls({ signedIn }: { signedIn: boolean }) {
+export async function RailPolls() {
 	const [ended, open] = await Promise.all([
-		signedIn ? getMyPolls('ended', null, 10).catch(() => null) : null,
+		getMyPolls('ended', null, 10).catch(() => null),
 		getPolls({ sort: 'closing' }, null, 10).catch(() => null),
 	]);
 	const resultsIn = (ended?.items ?? []).filter((poll) => !!poll.myOptionId).slice(0, RAIL_SIZE);

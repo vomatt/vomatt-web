@@ -60,6 +60,15 @@ describe('PollSideCard', () => {
 		expect(screen.getByText('Read one')).toHaveClass('font-normal');
 	});
 
+	it('says what each Poll in Results are in decided, before its turnout', () => {
+		const won = { ...poll, unread: true, options: [{ id: 'a', text: 'Yes', votes: 600 }, { id: 'b', text: 'No', votes: 214 }] };
+		const tie = { ...poll, id: 'poll-2', options: [{ id: 'a', text: 'Yes', votes: 6 }, { id: 'b', text: 'No', votes: 6 }] };
+		render(<PollSideCard kind="resultsIn" polls={[won, tie]} />);
+		const [wonLink, tieLink] = screen.getAllByRole('link');
+		expect(within(wonLink).getByText(/won/).textContent).toBe('Yes won · 1,502 voted · new');
+		expect(within(tieLink).getByText(/Tie/).textContent).toBe('Tie · 1,502 voted');
+	});
+
 	it('says when each Poll in Closing soon ends', () => {
 		render(<PollSideCard kind="closingSoon" polls={[poll]} />);
 		expect(screen.getByRole('region', { name: 'Closing soon' })).toBeInTheDocument();

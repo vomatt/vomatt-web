@@ -66,6 +66,7 @@
 	"loginPrompt": {
 		"title": "Log in or sign up for Vomatt",
 		"subtitle": "See what people are talking about and join the conversation.",
+		"pollNote": "Log in to open this poll.",
 		"ctaLabel": "Log in"
 	},
 	"login": {
@@ -116,11 +117,13 @@
 	"explore": {
 		"title": "Explore",
 		"searchPlaceholder": "Search poll titles and descriptions…",
+		"searchLabel": "Search",
 		"filterActive": "Open",
 		"filterEnded": "Ended",
 		"sortNewest": "Newest",
 		"noResults": "No polls found.",
-		"topics": "Browse by topic",
+		"noResultsHint": "Try other words, or switch to Ended polls.",
+		"noResultsHintEnded": "Try other words, or switch to Open polls.",
 		"status": "Status",
 		"sort": "Sort",
 		"sortEnding": "Ending soon",
@@ -255,6 +258,7 @@
 	"notifications": {
 		"title": "Notifications",
 		"empty": "No notifications yet.",
+		"emptyHint": "Results of polls you asked or voted in show up here.",
 		"unread": "Unread",
 		"intro": "Results of polls you asked or voted in, and invitations to vote.",
 		"markAllHint": "Opening a poll marks it read.",
@@ -378,12 +382,14 @@
 		"following": "Following",
 		"followingEmpty": "Nothing from people you follow yet.",
 		"followingEmptyHint": "Open polls by people you follow show up here. Follow someone from their profile.",
+		"followingEmptyCta": "Explore polls",
 		"topics": "Topics",
 		"feedFailed": "Couldn’t load polls right now.",
 		"topicEmpty": "No polls on this topic yet.",
 		"createFirst": "Create the first poll",
 		"joinToCreate": "Join to start a poll",
 		"resultsIn": "Results are in",
+		"resultsTie": "Tie",
 		"closingSoon": "Closing soon",
 		"askTitle": "Got a question for everyone?",
 		"askBody": "A poll takes a minute to write and seals itself the moment it opens.",
