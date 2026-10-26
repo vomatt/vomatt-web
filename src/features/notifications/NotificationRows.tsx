@@ -19,7 +19,7 @@ import { ProfileAvatar } from '@/features/profiles/UserChip';
 import { countText } from '@/lib/count';
 import { toPayloadLocale } from '@/lib/locale';
 import { rich, richList } from '@/lib/rich';
-import { profileHref } from '@/lib/routes';
+import { commentHash, profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
 import type { Notification, PollSummary } from './schema';
@@ -261,7 +261,9 @@ function InvitationRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'INVIT
 	// The clock moves a Scheduled poll to Open and an Open one to closing; only Ended comes from the API
 	const status = clock && derivePollStatus({ ...times, active: poll.status !== 'ENDED', votingActive: true }, clock.now);
 	const when = clock && status && pollTiming(times, status, clock).when;
-	const canVote = !poll.myOptionId && poll.status === 'OPEN';
+	// The API's status until the clock is known, then the same clock as the timing text
+	const isOpen = status ? status === 'open' || status === 'closing' : poll.status === 'OPEN';
+	const canVote = !poll.myOptionId && isOpen;
 	return (
 		<RowShell
 			unread={!entry.read}
@@ -344,7 +346,7 @@ function FollowGroupRow({ entry, onOpen, viewerUsername }: RowProps<FollowGroup>
 function CommentRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'COMMENT' }>>) {
 	const { t } = useLanguage();
 	const { actor, poll, comment } = entry;
-	const href = `${pollHref(poll.id)}#comment-${comment.parentId ? `${comment.parentId}/${comment.id}` : comment.id}`;
+	const href = `${pollHref(poll.id)}${commentHash(comment)}`;
 	return (
 		<RowShell
 			unread={!entry.read}
@@ -373,6 +375,9 @@ function ClosingSoonRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'CLOS
 	const clock = useViewerClock();
 	const { poll } = entry;
 	const href = pollHref(poll.id);
+	const endsAt = poll.endTime ? Date.parse(poll.endTime) : null;
+	// Once it has Ended there is nothing to count down to or vote in
+	const hasEnded = !!clock && endsAt !== null && endsAt <= clock.now;
 	const title = (
 		<RowLink href={href} onOpen={onOpen} className="font-medium">
 			{poll.title}
@@ -387,10 +392,10 @@ function ClosingSoonRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'CLOS
 				</IconDisc>
 			}
 			line={
-				clock && poll.endTime
+				clock && endsAt !== null && !hasEnded
 					? rich(t('notifications.endsIn'), {
 							title,
-							duration: formatDuration(Date.parse(poll.endTime) - clock.now, clock.language),
+							duration: formatDuration(endsAt - clock.now, clock.language),
 						})
 					: title
 			}
@@ -402,9 +407,11 @@ function ClosingSoonRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'CLOS
 				useAge(entry.createdAt),
 			]}
 			action={
-				<Link href={href} onClick={onOpen} className={buttonVariants({ size: 'xs', variant: 'outline' })}>
-					{t('poll.vote')}
-				</Link>
+				!hasEnded && (
+					<Link href={href} onClick={onOpen} className={buttonVariants({ size: 'xs', variant: 'outline' })}>
+						{t('poll.vote')}
+					</Link>
+				)
 			}
 		/>
 	);

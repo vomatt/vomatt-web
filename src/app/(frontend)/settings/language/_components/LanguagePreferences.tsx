@@ -4,6 +4,7 @@ import { Radio } from '@base-ui/react/radio';
 import { RadioGroup } from '@base-ui/react/radio-group';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useId } from 'react';
 
 import { Check, ChevronLeft } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -15,6 +16,7 @@ import type { LanguageCode } from '@/types';
 export function LanguagePreferences() {
 	const { t, currentLanguage, setLanguage } = useLanguage();
 	const router = useRouter();
+	const headingId = useId();
 
 	return (
 		<div className="flex flex-col gap-8">
@@ -28,15 +30,15 @@ export function LanguagePreferences() {
 				</Link>
 				<h1 className="page-title text-foreground">{t('settings.languageTitle')}</h1>
 			</div>
-			<section aria-labelledby="app-language" className="flex flex-col gap-3">
+			<section aria-labelledby={headingId} className="flex flex-col gap-3">
 				<div>
-					<h2 id="app-language" className="text-[16px] font-medium tracking-[-0.01em]">
+					<h2 id={headingId} className="text-[16px] font-medium tracking-[-0.01em]">
 						{t('settings.appLanguage')}
 					</h2>
 					<p className="mt-0.5 text-[14px] text-muted-foreground">{t('settings.appLanguageBody')}</p>
 				</div>
 				<RadioGroup
-					aria-labelledby="app-language"
+					aria-labelledby={headingId}
 					value={currentLanguage}
 					onValueChange={(value) => {
 						setLanguage(value as LanguageCode);

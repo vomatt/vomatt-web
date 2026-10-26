@@ -101,7 +101,8 @@ export function NotificationList({
 			</>
 		);
 	}
-	if (list.items.length === 0) {
+	// Unknown kinds are left out, so an empty page can still have more, or unread ones, after it
+	if (list.items.length === 0 && !list.hasMore && unreadCount === 0) {
 		return (
 			<>
 				<NotificationsHeader />

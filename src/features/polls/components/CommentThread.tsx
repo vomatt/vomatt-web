@@ -26,6 +26,7 @@ import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { BlockUserDialog } from '@/features/blocks/BlockUserDialog';
 import { ProfileAvatar, ProfileName } from '@/features/profiles/UserChip';
 import { useHydrated } from '@/hooks/useHydrated';
+import { commentHash } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
 import { chipClassName } from '../chip';
@@ -75,11 +76,6 @@ function Elbow({ continues }: { continues: boolean }) {
 function splitAddressee(text: string) {
 	const match = /^@([\w.-]+)\s+/.exec(text);
 	return match ? { addressee: match[1], text: text.slice(match[0].length) } : { addressee: null, text };
-}
-
-/** A comment's link: `#comment-<id>`, or `#comment-<rootId>/<replyId>` for a Reply, whose list loads on demand. */
-function commentHash(comment: Comment) {
-	return `#comment-${comment.parentId ? `${comment.parentId}/${comment.id}` : comment.id}`;
 }
 
 /** Scrolls a comment into view and flashes it, for a copied link or an addressee chip. */

@@ -240,19 +240,29 @@ function NotificationSwitches({
 	const { t } = useLanguage();
 	const { refresh } = useUnreadCount();
 	const [preferences, setPreferences] = useState(initial);
-	// The last values the server confirmed; quick toggles can answer out of order
-	const saved = useRef(initial);
+	// One save per switch at a time, so the server can't apply an older toggle after a newer one
+	const [saving, setSaving] = useState<ReadonlySet<keyof NotificationPreferences>>(new Set());
+	const setSavingKey = (key: keyof NotificationPreferences, on: boolean) =>
+		setSaving((current) => {
+			const next = new Set(current);
+			if (on) next.add(key);
+			else next.delete(key);
+			return next;
+		});
 
 	const toggle = async (key: keyof NotificationPreferences, value: boolean, name: string) => {
 		setPreferences((current) => ({ ...current, [key]: value }));
+		setSavingKey(key, true);
 		const result = await updateNotificationPreferences({ [key]: value });
+		setSavingKey(key, false);
 		if (result.ok) {
-			saved.current = { ...saved.current, [key]: value };
+			// Only this switch: another one may still be saving
+			setPreferences((current) => ({ ...current, [key]: result.data[key] }));
 			announce(t(value ? 'settings.notifyOn' : 'settings.notifyOff', { name }));
 			// A kind switched off leaves the unread count
 			refresh();
 		} else {
-			setPreferences((current) => ({ ...current, [key]: saved.current[key] }));
+			setPreferences((current) => ({ ...current, [key]: !value }));
 			toast.error(apiErrorText(t, result, 'account.saveFailed'), { duration: Infinity });
 		}
 	};
@@ -269,6 +279,7 @@ function NotificationSwitches({
 							aria-labelledby={`${id}-label`}
 							aria-describedby={`${id}-body`}
 							checked={preferences[key]}
+							disabled={saving.has(key)}
 							onCheckedChange={(value) => toggle(key, value, t(title))}
 						/>
 					</label>

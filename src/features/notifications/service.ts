@@ -31,11 +31,16 @@ const RawPage = cursorPageSchema(z.object({ kind: z.string() }).passthrough());
 
 /**
  * The feed, newest first; each item carries all its row shows.
- * A kind this client doesn't know yet is left out rather than failing the page.
+ * A kind this client doesn't know yet, or an item that doesn't fit its kind, is left out rather than failing the page.
  */
 export async function getNotifications(cursor?: string | null): Promise<CursorPage<Notification>> {
 	const page = RawPage.parse(await apiClient(`/notifications?${pageParams(cursor, NOTIFICATIONS_PAGE_SIZE)}`));
-	const items = page.items.filter((item) => KINDS.has(item.kind)).map((item) => NotificationSchema.parse(item));
+	const items = page.items.flatMap((item) => {
+		if (!KINDS.has(item.kind)) return [];
+		const parsed = NotificationSchema.safeParse(item);
+		if (!parsed.success) console.error('Skipping a malformed notification:', parsed.error);
+		return parsed.success ? [parsed.data] : [];
+	});
 	return { items, nextCursor: page.nextCursor };
 }
 

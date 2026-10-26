@@ -4,6 +4,7 @@ import Link from 'next/link';
 
 import { MessageSquare, Share2 } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { toPayloadLocale } from '@/lib/locale';
 
 import { useSharePoll } from '../hooks/useSharePoll';
 import type { Audience } from '../schema';
@@ -29,7 +30,7 @@ export function PollFooter({
 	commentCount,
 	isPage,
 }: PollFooterProps) {
-	const { t } = useLanguage();
+	const { t, currentLanguage } = useLanguage();
 
 	const share = useSharePoll();
 	const commentsLabel =
@@ -40,7 +41,7 @@ export function PollFooter({
 				: t('poll.comments', { count: commentCount });
 	const commentsClassName = 'flex min-h-11 items-center gap-2 transition-colors hover:text-foreground';
 	const meta = [
-		turnout !== undefined && t('poll.voted', { count: turnout.toLocaleString() }),
+		turnout !== undefined && t('poll.voted', { count: turnout.toLocaleString(toPayloadLocale(currentLanguage)) }),
 		audience && audience !== 'public' && t(`poll.audienceMeta.${audience}`),
 	]
 		.filter(Boolean)

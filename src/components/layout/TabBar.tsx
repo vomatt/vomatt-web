@@ -71,14 +71,13 @@ export function TabBar({ className, userSession, username, avatarUrl }: TabBarPr
 	if (isChromeless(pathname)) return null;
 
 	const renderLink = ({ href, title, icon }: (typeof leftLinks)[number]) => {
-		const isPage = isActivePath(pathname, href);
-		// Settings is reached from the profile, so the profile tab stays active there: the current section, not the page
-		const isActive = isPage || (href === profileTabHref && pathname === '/settings');
+		// Settings is a page of its own, so no tab is active there
+		const isActive = isActivePath(pathname, href);
 		return (
 			<NextLink
 				key={href}
 				href={href}
-				aria-current={isPage ? 'page' : isActive ? 'true' : undefined}
+				aria-current={isActive ? 'page' : undefined}
 				className={cellClassName}
 			>
 				<span

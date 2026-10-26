@@ -6,6 +6,7 @@ import { Fragment, useId } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { NewMark, UnreadDot } from '@/features/notifications/UnreadDot';
 import { endedSummary } from '@/features/profiles/lists';
+import { toPayloadLocale } from '@/lib/locale';
 import { rich } from '@/lib/rich';
 import { cn } from '@/lib/utils';
 
@@ -30,7 +31,7 @@ type PollSideCardProps = {
 
 /** A titled side card of linked Polls, each with its turnout and an unread dot when it has one. */
 export function PollSideCard({ kind, polls }: PollSideCardProps) {
-	const { t } = useLanguage();
+	const { t, currentLanguage } = useLanguage();
 	const clock = useViewerClock();
 	const headingId = useId();
 	const { heading, titleWeight } = KINDS[kind];
@@ -45,7 +46,7 @@ export function PollSideCard({ kind, polls }: PollSideCardProps) {
 			</h2>
 			<ul className="-mx-2 -my-1.5">
 				{polls.map((poll) => {
-					const turnout = t('poll.voted', { count: (getTurnout(poll) ?? 0).toLocaleString() });
+					const turnout = t('poll.voted', { count: (getTurnout(poll) ?? 0).toLocaleString(toPayloadLocale(currentLanguage)) });
 					// The time waits for the browser's clock; the turnout alone until then
 					const when =
 						kind === 'closingSoon' && clock ? pollTiming(poll, derivePollStatus(poll, clock.now), clock).when : null;
