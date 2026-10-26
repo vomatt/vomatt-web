@@ -87,8 +87,9 @@ async function PollDetail({ id }: { id: string }) {
 		}
 		return lookup.reason !== 'not-found' || !user ? (
 			<LoginPrompt
-				className="block mx-auto max-w-sm"
+				className="mx-auto w-full max-w-[520px]"
 				redirectTo={`/poll/${id}`}
+				forPoll
 				sessionExpired={lookup.reason === 'session-rejected'}
 			/>
 		) : (
