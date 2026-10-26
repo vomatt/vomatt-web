@@ -8,13 +8,19 @@ const HOUR = 3600_000;
 const iso = (offset: number) => new Date(Date.now() + offset).toISOString();
 
 describe('SealMark', () => {
-	it('draws a 32px ring without the dashed inner ring for rows', () => {
+	it('draws a 32px ring without the dashed inner ring for profile rows and notifications', () => {
 		const { container } = render(<SealMark />);
 		expect(container.firstChild).toHaveClass('size-8');
 		expect(container.querySelector('.border-dashed')).toBeNull();
 	});
 
-	it('draws the 72px ring with the dashed inner ring for the full Seal', () => {
+	it('draws a 40px ring with the dashed inner ring for the Seal row', () => {
+		const { container } = render(<SealMark size="md" />);
+		expect(container.firstChild).toHaveClass('size-10');
+		expect(container.querySelector('.border-dashed')).not.toBeNull();
+	});
+
+	it('draws the 72px ring with the dashed inner ring for the Seal moment', () => {
 		const { container } = render(<SealMark size="lg" />);
 		expect(container.firstChild).toHaveClass('size-[72px]');
 		expect(container.querySelector('.border-dashed')).not.toBeNull();
@@ -22,23 +28,27 @@ describe('SealMark', () => {
 });
 
 describe('Seal', () => {
-	it('says in a row when the results open, without who sees the choice', () => {
-		render(<Seal full={false} endTime={iso(3 * HOUR)} visibility="owner" />);
-		expect(screen.getByText('Sealed.')).toBeInTheDocument();
-		expect(screen.getByText(/^Results open .+\. We’ll notify you\.$/)).toBeInTheDocument();
-		expect(screen.queryByText(/poll owner/)).not.toBeInTheDocument();
+	it.each(['moment', 'row'] as const)('as a %s, thanks the voter and says when the results open', (variant) => {
+		render(
+			<Seal variant={variant} endTime={iso(3 * HOUR)}>
+				<button type="button">Update vote</button>
+			</Seal>
+		);
+		expect(screen.getByText('Sealed. Thank you.')).toBeInTheDocument();
+		expect(screen.getByText(/^Results are sealed until .+\. We’ll notify you when they’re in\.$/)).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Update vote' })).toBeInTheDocument();
 	});
 
 	it('says the results open at the end for a Poll without an end time', () => {
-		render(<Seal full={false} endTime={null} visibility="owner" />);
-		expect(screen.getByText('Results open when the poll ends. We’ll notify you.')).toBeInTheDocument();
+		render(<Seal variant="row" endTime={null}>{null}</Seal>);
+		expect(
+			screen.getByText('Results are sealed until the poll ends. We’ll notify you when they’re in.')
+		).toBeInTheDocument();
 	});
 
-	it('in full, thanks the voter and says who sees the choice and the turnout', () => {
-		render(<Seal full endTime={iso(3 * HOUR)} visibility="nobody" turnout={1284} />);
-		expect(screen.getByText('Sealed. Thank you.')).toBeInTheDocument();
-		expect(screen.getByText(/^Results are sealed until .+\. We’ll notify you when they’re in\.$/)).toBeInTheDocument();
-		expect(screen.getByText('After it ends, no one can see what you chose.')).toBeInTheDocument();
-		expect(screen.getByText('1,284 voted, you included')).toBeInTheDocument();
+	it('says neither who sees the choice nor the turnout', () => {
+		render(<Seal variant="moment" endTime={iso(3 * HOUR)}>{null}</Seal>);
+		expect(screen.queryByText(/can see what you chose/)).not.toBeInTheDocument();
+		expect(screen.queryByText(/voted/)).not.toBeInTheDocument();
 	});
 });

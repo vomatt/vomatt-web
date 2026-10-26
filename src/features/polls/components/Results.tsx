@@ -38,22 +38,25 @@ function CountUp({ value, delay }: { value: number; delay: number }) {
 	return <m.span aria-hidden>{label}</m.span>;
 }
 
-function Crown() {
+/** The red ballot stamp (a ring with a 卜 mark) on the winning option, pressed down once its bar fills. */
+function ElectedStamp({ label }: { label: string }) {
 	return (
 		<m.svg
-			viewBox="0 0 16 16"
-			aria-hidden
-			className="mr-1.5 inline size-3.5 -translate-y-px text-foreground"
-			initial={{ scale: 0, rotate: -30 }}
-			animate={{ scale: 1, rotate: 0 }}
+			viewBox="0 0 130 130"
+			role="img"
+			aria-label={label}
+			className="relative size-[18px] shrink-0 text-elected"
+			initial={{ scale: 1.6, opacity: 0 }}
+			animate={{ scale: 1, opacity: 1 }}
 			transition={{ duration: 0.3, ease: [0.25, 1, 0.5, 1], delay: BAR_DURATION }}
 		>
-			<path fill="currentColor" d="M2 5.5 5 8l3-5 3 5 3-2.5-1.2 7H3.2z" />
+			<circle cx="65" cy="65" r="60.3" fill="none" stroke="currentColor" strokeWidth="9.3" />
+			<path d="M65 2v126M63.5 63.5 19 108" fill="none" stroke="currentColor" strokeWidth="10" />
 		</m.svg>
 	);
 }
 
-const ROW_CLASS = 'relative flex min-h-[52px] w-full items-center gap-2.5 px-4 py-2.5 text-left';
+const ROW_CLASS = 'relative flex min-h-14 w-full items-center gap-3 px-5 py-2.5 text-left';
 
 /** A plain row, or a button that opens who chose it. */
 function RowContent({ onClick, children }: { onClick?: () => void; children: React.ReactNode }) {
@@ -116,9 +119,9 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }:
 		return failed ? (
 			<p className="text-sm text-muted-foreground">{t('poll.resultsFailed')}</p>
 		) : (
-			<div className="space-y-1.5" aria-busy>
+			<div className="space-y-2.5" aria-busy>
 				{poll.options.map((option) => (
-					<Skeleton key={option.id} className="h-[52px] rounded-xl" />
+					<Skeleton key={option.id} className="h-14 rounded-xl" />
 				))}
 			</div>
 		);
@@ -130,23 +133,24 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }:
 	const support = (votes: number) =>
 		participants === 0 ? 0 : Math.round((votes / participants) * 100);
 
+	const myRow = rows.find((row) => row.id === myOptionId);
 	let caption: string;
-	if (winners.length === 0) {
+	if (myRow) {
+		// The stamp says who won; the voter hears back what they chose
+		caption = t('poll.yourVoteCaption', { option: myRow.text });
+	} else if (winners.length === 0) {
 		caption = t('poll.noVotes');
 	} else if (winners.length > 1) {
 		caption = t('poll.tie', {
 			options: winners.map((row) => row.text).join(t('poll.and')),
 		});
 	} else {
-		// The viewer who voted hears they were one of the people who decided it
-		caption = countText(t, myOptionId ? 'poll.wonVoted' : 'poll.won', participants, currentLanguage, {
-			option: winners[0].text,
-		});
+		caption = countText(t, 'poll.won', participants, currentLanguage, { option: winners[0].text });
 	}
 
 	return (
-		<div className="space-y-3.5">
-			<ul className="space-y-2">
+		<div className="space-y-2.5">
+			<ul className="space-y-2.5">
 				{rows.map((row, index) => {
 					const percent = support(row.votes);
 					const isWinner = winners.includes(row);
@@ -155,11 +159,11 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }:
 						<li
 							key={row.id}
 							className={cn(
-								'relative overflow-hidden rounded-xl text-[15px]',
-								isWinner ? 'border-[1.5px] border-foreground' : 'border border-border'
+								'relative overflow-hidden rounded-xl text-[16px]',
+								row === myRow ? 'border-[1.5px] border-foreground' : 'border border-border'
 							)}
 						>
-							{/* One neutral for every bar: the winner is marked by its line and crown, not its fill */}
+							{/* One neutral for every bar: the winner is marked by its stamp, not its fill */}
 							<m.div
 								aria-hidden
 								className="absolute inset-0 origin-left bg-muted"
@@ -170,14 +174,14 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }:
 							<RowContent
 								onClick={onSelectOption && row.votes > 0 ? () => onSelectOption(row) : undefined}
 							>
+								{isWinner && <ElectedStamp label={t('poll.elected')} />}
 								<span className={cn('min-w-0 flex-1 wrap-anywhere', isWinner && 'font-medium')}>
-									{isWinner && <Crown />}
 									{row.text}
 								</span>
-								{row.id === myOptionId && <YourVotePill label={t('poll.yourVoteShort')} />}
+								{row === myRow && <YourVotePill label={t('poll.yourVoteShort')} />}
 								<span
 									className={cn(
-										'shrink-0 font-mono text-[13px] tabular-nums',
+										'shrink-0 font-mono text-[14px] tabular-nums',
 										!isWinner && 'text-muted-foreground'
 									)}
 								>
@@ -189,7 +193,7 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }:
 					);
 				})}
 			</ul>
-			<p className="text-[13px] text-muted-foreground">
+			<p className="text-[14px] leading-5 text-muted-foreground">
 				{caption}
 				{onSelectOption && winners.length > 0 && <span className="block">{t('poll.votersHint')}</span>}
 			</p>

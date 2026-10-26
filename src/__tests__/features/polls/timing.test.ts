@@ -31,10 +31,10 @@ describe('pollTiming', () => {
 		['scheduled, a week or more away', 'en', 'scheduled', { startTime: taipei('2026-11-04T09:00:00'), endTime: null }, 'Opens Nov 4, 9:00', 'Opens Nov 4, 9:00'],
 		['scheduled, a week or more away', 'zh', 'scheduled', { startTime: taipei('2026-11-04T09:00:00'), endTime: null }, '11月4日 9:00 開始', '11月4日 9:00 開始'],
 		['scheduled, tomorrow', 'en', 'scheduled', { startTime: taipei('2026-10-29T09:00:00'), endTime: null }, 'Opens tomorrow at 9:00', 'Opens tomorrow at 9:00'],
-		// Open: the chip names the day, the meta the moment
-		['open', 'en', 'open', { startTime: started, endTime: taipei('2026-10-30T20:00:00') }, 'Open · ends Fri', 'ends Fri 20:00'],
-		['open', 'zh', 'open', { startTime: started, endTime: taipei('2026-10-30T20:00:00') }, '進行中 · 週五截止', '週五 20:00 結束'],
-		['open, ending next week', 'en', 'open', { startTime: started, endTime: taipei('2026-11-06T20:00:00') }, 'Open · ends Nov 6', 'ends Nov 6, 20:00'],
+		// Open: the chip and the meta name the moment
+		['open', 'en', 'open', { startTime: started, endTime: taipei('2026-10-30T20:00:00') }, 'Ends Fri 20:00', 'ends Fri 20:00'],
+		['open', 'zh', 'open', { startTime: started, endTime: taipei('2026-10-30T20:00:00') }, '週五 20:00 截止', '週五 20:00 結束'],
+		['open, ending next week', 'en', 'open', { startTime: started, endTime: taipei('2026-11-06T20:00:00') }, 'Ends Nov 6, 20:00', 'ends Nov 6, 20:00'],
 		// Open without an end: the word alone, nothing for the meta
 		['open without an end', 'en', 'open', { startTime: started, endTime: null }, 'Open', null],
 		['open without an end', 'zh', 'open', { startTime: started, endTime: null }, '進行中', null],
