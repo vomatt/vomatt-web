@@ -2,7 +2,6 @@
 
 import { Menu } from '@base-ui/react/menu';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { useState } from 'react';
 
@@ -10,10 +9,8 @@ import { Menu as MenuIcon, Moon, Sun } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ReportProblemDialog } from '@/features/feedback/ReportProblemDialog';
 import { hoverMarkProps, useHoverMark } from '@/hooks/useHoverMark';
-import { SUPPORTED_LANGUAGES } from '@/i18n-config';
 import { signout } from '@/lib/api/services/auth';
 import { cn } from '@/lib/utils';
-import type { LanguageCode } from '@/types';
 
 // next-themes' values; "system" follows prefers-color-scheme
 const themes = [
@@ -55,13 +52,6 @@ export function MoreMenu({ signedIn }: { signedIn: boolean }) {
 							</Menu.GroupLabel>
 							<ThemeOptions />
 						</Menu.Group>
-						{/* Works signed out too, as the theme does */}
-						<Menu.Group>
-							<Menu.GroupLabel className="px-3 pt-2.5 pb-2 text-[12px] text-muted-foreground">
-								{t('settings.language')}
-							</Menu.GroupLabel>
-							<LanguageOptions />
-						</Menu.Group>
 						{signedIn && (
 							<>
 								<Menu.Separator className="-mx-1.5 my-1.5 h-px bg-border" />
@@ -83,34 +73,6 @@ const segmentClassName = cn(
 	// The viewer's own choice: Volt tint, as on a selected ballot row
 	'data-checked:bg-highlight-tint data-checked:text-foreground data-checked:shadow-xs data-checked:ring-1 data-checked:ring-foreground/15'
 );
-
-/** English or 中文; the server parts re-render in the new language. */
-function LanguageOptions() {
-	const { currentLanguage, setLanguage } = useLanguage();
-	const router = useRouter();
-	return (
-		<Menu.RadioGroup
-			value={currentLanguage}
-			onValueChange={(value) => {
-				setLanguage(value as LanguageCode);
-				router.refresh();
-			}}
-			className="grid grid-cols-2 gap-1 rounded-lg bg-surface-soft p-1"
-		>
-			{(Object.keys(SUPPORTED_LANGUAGES) as LanguageCode[]).map((code) => (
-				<Menu.RadioItem
-					key={code}
-					value={code}
-					closeOnClick={false}
-					lang={code === 'zh' ? 'zh-Hant' : 'en'}
-					className={segmentClassName}
-				>
-					{code === 'zh' ? '中文' : 'English'}
-				</Menu.RadioItem>
-			))}
-		</Menu.RadioGroup>
-	);
-}
 
 /** The theme segments, with the hover mark gliding across them like the rows below. */
 function ThemeOptions() {

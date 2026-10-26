@@ -106,16 +106,14 @@ describe('AppSidebar more menu', () => {
 		expect(screen.getByRole('separator')).toBeInTheDocument();
 	});
 
-	it('offers guests only the theme and language choices', async () => {
+	it('offers guests only the theme choices', async () => {
 		renderSidebar(null);
 		await userEvent.click(
 			screen.getByRole('button', { name: 'navigation.more' })
 		);
-		expect(await screen.findAllByRole('menuitemradio')).toHaveLength(5);
-		expect(screen.getByRole('menuitemradio', { name: 'English', checked: true })).toBeInTheDocument();
-		expect(screen.getByRole('menuitemradio', { name: '中文' })).toBeInTheDocument();
+		expect(await screen.findAllByRole('menuitemradio')).toHaveLength(3);
 		expect(screen.queryAllByRole('menuitem')).toHaveLength(0);
-		// Nothing follows the language choices, so no line closes them off
+		// Nothing follows the theme choices, so no line closes them off
 		expect(screen.queryByRole('separator')).not.toBeInTheDocument();
 	});
 
