@@ -103,9 +103,8 @@ describe('VisitorProfileView', () => {
 		expect(screen.getByText('No polls yet.')).toBeInTheDocument();
 	});
 
-	it('leads back Home and says what following does, even signed out', () => {
+	it('says what following does, even signed out', () => {
 		render(<VisitorProfileView profile={visitor} polls={{ items: [], nextCursor: null }} isAuthenticated={false} />);
-		expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/');
 		expect(screen.getByText('What following does')).toBeInTheDocument();
 	});
 

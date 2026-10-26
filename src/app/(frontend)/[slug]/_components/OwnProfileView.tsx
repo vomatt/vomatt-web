@@ -72,8 +72,8 @@ export function OwnProfileView({
 	);
 
 	return (
-		<div className="px-contain mx-auto flex max-w-[1080px] flex-col gap-10 py-6 md:py-10 xl:flex-row xl:items-start">
-			<main className="flex min-w-0 flex-1 flex-col gap-6 xl:max-w-[720px]">
+		<div className="px-contain mx-auto flex max-w-[1280px] flex-col gap-10 pt-8 pb-16 xl:flex-row xl:items-start">
+			<main className="flex min-w-0 flex-col gap-6 xl:max-w-[720px] xl:flex-[999_1_560px]">
 				<ProfileHeader
 					profile={profile}
 					isOwn
@@ -171,7 +171,7 @@ export function OwnProfileView({
 				</Tabs>
 			</main>
 
-			<aside className="flex w-full flex-col gap-3 xl:sticky xl:top-8 xl:w-[280px] xl:shrink-0">
+			<aside className="flex flex-col gap-3 xl:sticky xl:top-8 xl:max-w-[300px] xl:flex-[1_1_280px]">
 				<PublicPreview profile={profile} />
 				<TidePanel className="p-3.5 text-[13px] leading-relaxed">
 					<p className="mb-1 flex items-center gap-1.5 font-medium">
