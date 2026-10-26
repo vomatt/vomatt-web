@@ -1,10 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useId } from 'react';
+import { Fragment, useId } from 'react';
 
 import { useLanguage } from '@/contexts/LanguageContext';
 import { NewMark, UnreadDot } from '@/features/notifications/UnreadDot';
+import { endedSummary } from '@/features/profiles/lists';
+import { rich } from '@/lib/rich';
 import { cn } from '@/lib/utils';
 
 import { useViewerClock } from '../hooks/useViewerClock';
@@ -21,7 +23,7 @@ const KINDS: Record<SideCardKind, { heading: string; titleWeight: (poll: Poll) =
 };
 
 type PollSideCardProps = {
-	/** resultsIn: Ended Polls the viewer voted in, with unread dots. closingSoon: Open Polls and when each ends. */
+	/** resultsIn: Ended Polls the viewer voted in, what each decided and unread dots. closingSoon: Open Polls and when each ends. */
 	kind: SideCardKind;
 	polls: Poll[];
 };
@@ -47,6 +49,17 @@ export function PollSideCard({ kind, polls }: PollSideCardProps) {
 					// The time waits for the browser's clock; the turnout alone until then
 					const when =
 						kind === 'closingSoon' && clock ? pollTiming(poll, derivePollStatus(poll, clock.now), clock).when : null;
+					// DecidedText's "**Yes** won", but a short "Tie": the rail has no room to name every winner
+					const summary = kind === 'resultsIn' ? endedSummary(poll) : null;
+					const decided =
+						summary?.kind === 'won'
+							? rich(t('profile.wonBy'), {
+									option: <strong className="font-medium text-foreground">{summary.winner}</strong>,
+								})
+							: summary?.kind === 'tie'
+								? t('homePage.resultsTie')
+								: null;
+					const meta = [when, decided, turnout].filter(Boolean);
 					return (
 						<li key={poll.id}>
 							<Link
@@ -66,8 +79,18 @@ export function PollSideCard({ kind, polls }: PollSideCardProps) {
 										</span>
 										{poll.unread && <UnreadDot label={t('notifications.unread')} className="mt-1.5 shrink-0" />}
 									</span>
-									<span className="mt-0.5 block font-mono text-[13px] tabular-nums text-muted-foreground">
-										{when ? `${when} · ${turnout}` : turnout}
+									<span
+										className={cn(
+											'mt-0.5 block text-[13px] text-muted-foreground',
+											kind === 'closingSoon' && 'font-mono tabular-nums'
+										)}
+									>
+										{meta.map((part, i) => (
+											<Fragment key={i}>
+												{i > 0 && ' · '}
+												{part}
+											</Fragment>
+										))}
 										{poll.unread && (
 											<>
 												{' · '}
