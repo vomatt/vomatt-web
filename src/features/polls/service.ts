@@ -29,6 +29,7 @@ import {
 	type PollResults,
 	PollResultsSchema,
 	PollSchema,
+	type ReportCommentRequest,
 	type TagDto,
 	TagDtoSchema,
 	type ThreadComment,
@@ -464,6 +465,20 @@ export async function unlikeComment(voteId: string, commentId: string): Promise<
 	return attempt(async () => {
 		await apiClient(`/votes/${voteId}/comments/${commentId}/like`, {
 			method: 'DELETE',
+		});
+	});
+}
+
+/** Reports another person's Comment or Reply to the moderators; reporting it again keeps the first report. */
+export async function reportComment(
+	voteId: string,
+	commentId: string,
+	report: ReportCommentRequest
+): Promise<ActionResult> {
+	return attempt(async () => {
+		await apiClient(`/votes/${voteId}/comments/${commentId}/report`, {
+			method: 'POST',
+			body: JSON.stringify(report),
 		});
 	});
 }

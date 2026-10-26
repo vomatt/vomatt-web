@@ -565,7 +565,21 @@
 		"copyFailed": "Couldn’t copy.",
 		"deleteBody": "This can’t be undone.",
 		"deleteBodyReply": "Its reply stays in the discussion under a deleted placeholder. This can’t be undone.",
-		"deleteBodyReplies": "Its {count} replies stay in the discussion under a deleted placeholder. This can’t be undone."
+		"deleteBodyReplies": "Its {count} replies stay in the discussion under a deleted placeholder. This can’t be undone.",
+		"report": "Report",
+		"reportTitle": "Report this comment",
+		"reportBody": "A moderator will look at it. The author won’t be told.",
+		"reportReasonLabel": "What’s wrong with it?",
+		"reportReason": {
+			"spam": "Spam",
+			"harassment": "Harassment or bullying",
+			"hate": "Hate speech",
+			"misinformation": "False information",
+			"other": "Something else"
+		},
+		"reportNote": "Add a note (optional)",
+		"reportDone": "Thanks. We’ll review it.",
+		"reportFailed": "Couldn’t send the report. Try again."
 	},
 	"account": {
 		"usernameLabel": "Username",

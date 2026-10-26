@@ -554,7 +554,21 @@
 		"copyFailed": "無法複製。",
 		"deleteBody": "此操作無法復原。",
 		"deleteBodyReply": "它的 1 則回覆會留在討論中，顯示為已刪除的留言。此操作無法復原。",
-		"deleteBodyReplies": "它的 {count} 則回覆會留在討論中，顯示為已刪除的留言。此操作無法復原。"
+		"deleteBodyReplies": "它的 {count} 則回覆會留在討論中，顯示為已刪除的留言。此操作無法復原。",
+		"report": "檢舉",
+		"reportTitle": "檢舉這則留言",
+		"reportBody": "管理員會審核這則留言，作者不會收到通知。",
+		"reportReasonLabel": "這則留言有什麼問題？",
+		"reportReason": {
+			"spam": "垃圾訊息",
+			"harassment": "騷擾或霸凌",
+			"hate": "仇恨言論",
+			"misinformation": "不實資訊",
+			"other": "其他原因"
+		},
+		"reportNote": "補充說明（選填）",
+		"reportDone": "謝謝，我們會進行審核。",
+		"reportFailed": "無法送出檢舉，請再試一次。"
 	},
 	"account": {
 		"usernameLabel": "使用者名稱",

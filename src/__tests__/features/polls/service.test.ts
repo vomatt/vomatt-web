@@ -22,6 +22,7 @@ import {
 	likeComment,
 	postComment,
 	removeInvitee,
+	reportComment,
 	retractBallot,
 	unlikeComment,
 	updateComment,
@@ -628,6 +629,26 @@ describe('getComments() and getReplies()', () => {
 		await getReplies('poll-1', 'c1');
 		expect(mockApiClient).toHaveBeenCalledWith('/votes/poll-1/comments/c1/replies?limit=20', {
 			auth: 'optional',
+		});
+	});
+});
+
+describe('reportComment()', () => {
+	it('posts the reason and note to the comment\'s report endpoint', async () => {
+		mockApiClient.mockResolvedValue({ success: true });
+		const result = await reportComment('poll-1', 'c2', { reason: 'SPAM', note: 'Ads' });
+		expect(result).toEqual({ ok: true, data: undefined });
+		expect(mockApiClient).toHaveBeenCalledWith('/votes/poll-1/comments/c2/report', {
+			method: 'POST',
+			body: JSON.stringify({ reason: 'SPAM', note: 'Ads' }),
+		});
+	});
+
+	it('returns the error code of a refused report', async () => {
+		mockApiClient.mockRejectedValue(new ApiError('own', 400, { errorCode: 'comment.report.self' }));
+		expect(await reportComment('poll-1', 'c1', { reason: 'OTHER' })).toMatchObject({
+			ok: false,
+			errorCode: 'comment.report.self',
 		});
 	});
 });
