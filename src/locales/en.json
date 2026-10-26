@@ -311,7 +311,8 @@
 			"ownerHint": "You see who chose each option.",
 			"signed-in": "Everyone signed in",
 			"signed-inHint": "Every signed-in user sees who chose what.",
-			"invited": "Everyone invited"
+			"invited": "Everyone invited",
+			"invitedHint": "Everyone invited sees who chose what."
 		},
 		"visibilityNote": "Voters see it before they vote.",
 		"publish": "Publish poll",

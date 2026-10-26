@@ -303,7 +303,8 @@
 			"ownerHint": "你能看到誰選了哪個選項。",
 			"signed-in": "所有登入的使用者",
 			"signed-inHint": "每位登入的使用者都能看到誰選了什麼。",
-			"invited": "所有受邀者"
+			"invited": "所有受邀者",
+			"invitedHint": "所有受邀者都能看到誰選了什麼。"
 		},
 		"visibilityNote": "投票者在投票前會看到這個設定。",
 		"publish": "發布投票",

@@ -752,12 +752,12 @@ export function PollCreator({
 															<PillGroup
 																legend={t('pollCreator.visibilityLabel')}
 																note={t('pollCreator.visibilityNote')}
-																hint={t(`pollCreator.visibility.${field.value}Hint`)}
+																hint={t(`pollCreator.visibility.${visibilityLevel({ voterVisibility: field.value, audience })}Hint`)}
 																value={field.value}
 																onChange={field.onChange}
 																options={VISIBILITY_ORDER.map((value) => ({
 																	value,
-																	label: t(`pollCreator.visibility.${value}`),
+																	label: t(`pollCreator.visibility.${visibilityLevel({ voterVisibility: value, audience })}`),
 																}))}
 															/>
 														)}

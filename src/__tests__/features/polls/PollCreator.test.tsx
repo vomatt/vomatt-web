@@ -356,6 +356,15 @@ describe('PollCreator', () => {
 		expect(screen.getByRole('button', { name: '1 week' })).toHaveAttribute('aria-pressed', 'true');
 	});
 
+	it('names the visible-to-all choice by who can see an invite-only poll', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		expect(screen.getByRole('button', { name: 'Everyone signed in' })).toBeInTheDocument();
+		fireEvent.click(screen.getByRole('button', { name: 'Invite only' }));
+		expect(screen.queryByRole('button', { name: 'Everyone signed in' })).not.toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Everyone invited' })).toBeInTheDocument();
+	});
+
 	it('keeps a chosen preset measured from the opening time when that changes', async () => {
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();
