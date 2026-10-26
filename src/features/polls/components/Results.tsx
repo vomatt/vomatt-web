@@ -5,12 +5,14 @@ import { useEffect, useState } from 'react';
 
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { countText } from '@/lib/count';
 import { cn } from '@/lib/utils';
 
 import { type ActionResult, isSealed } from '../errors';
 import type { Poll, PollResults } from '../schema';
 import { getResults } from '../service';
 import { getWinners } from '../status';
+import { YourVotePill } from './BallotMotion';
 
 export type ResultRow = { id: string; text: string; votes: number };
 
@@ -51,7 +53,7 @@ function Crown() {
 	);
 }
 
-const ROW_CLASS = 'relative flex min-h-12 w-full items-center justify-between gap-2.5 px-4 py-3 text-left';
+const ROW_CLASS = 'relative flex min-h-[52px] w-full items-center gap-2.5 px-4 py-2.5 text-left';
 
 /** A plain row, or a button that opens who chose it. */
 function RowContent({ onClick, children }: { onClick?: () => void; children: React.ReactNode }) {
@@ -85,7 +87,7 @@ function rowsFromPoll(poll: Poll): ResultRow[] | null {
 
 /** Card state D. Only rendered for Ended Polls, so it never asks for sealed data. */
 export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }: ResultsProps) {
-	const { t } = useLanguage();
+	const { t, currentLanguage } = useLanguage();
 	const [fetched, setFetched] = useState<ActionResult<PollResults> | null>(null);
 	const inlineRows = rowsFromPoll(poll);
 	const needsFetch = inlineRows === null;
@@ -116,7 +118,7 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }:
 		) : (
 			<div className="space-y-1.5" aria-busy>
 				{poll.options.map((option) => (
-					<Skeleton key={option.id} className="h-12 rounded-xl" />
+					<Skeleton key={option.id} className="h-[52px] rounded-xl" />
 				))}
 			</div>
 		);
@@ -136,7 +138,10 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }:
 			options: winners.map((row) => row.text).join(t('poll.and')),
 		});
 	} else {
-		caption = t('poll.won', { option: winners[0].text, count: participants });
+		// The viewer who voted hears they were one of the people who decided it
+		caption = countText(t, myOptionId ? 'poll.wonVoted' : 'poll.won', participants, currentLanguage, {
+			option: winners[0].text,
+		});
 	}
 
 	return (
@@ -150,16 +155,14 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }:
 						<li
 							key={row.id}
 							className={cn(
-								'relative overflow-hidden rounded-xl border text-[14px]',
-								isWinner ? 'border-foreground' : 'border-border'
+								'relative overflow-hidden rounded-xl text-[15px]',
+								isWinner ? 'border-[1.5px] border-foreground' : 'border border-border'
 							)}
 						>
+							{/* One neutral for every bar: the winner is marked by its line and crown, not its fill */}
 							<m.div
 								aria-hidden
-								className={cn(
-									'absolute inset-0 origin-left',
-									isWinner ? 'bg-foreground/[0.09]' : 'bg-foreground/[0.04]'
-								)}
+								className="absolute inset-0 origin-left bg-muted"
 								initial={{ scaleX: 0 }}
 								animate={{ scaleX: percent / 100 }}
 								transition={{ duration: BAR_DURATION, delay, ease: BAR_EASE }}
@@ -167,26 +170,26 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }:
 							<RowContent
 								onClick={onSelectOption && row.votes > 0 ? () => onSelectOption(row) : undefined}
 							>
-								<span className={cn('min-w-0 wrap-anywhere', isWinner && 'font-semibold')}>
+								<span className={cn('min-w-0 flex-1 wrap-anywhere', isWinner && 'font-medium')}>
 									{isWinner && <Crown />}
 									{row.text}
-									{row.id === myOptionId && (
-										<span className="ml-2 rounded-full border border-foreground/20 bg-highlight px-2 py-px align-[1px] text-[10px] font-semibold text-highlight-foreground">
-											{t('poll.yourVoteShort')}
-										</span>
-									)}
 								</span>
-								<span className="shrink-0 font-mono text-[12px] tabular-nums">
+								{row.id === myOptionId && <YourVotePill label={t('poll.yourVoteShort')} />}
+								<span
+									className={cn(
+										'shrink-0 font-mono text-[13px] tabular-nums',
+										!isWinner && 'text-muted-foreground'
+									)}
+								>
 									<span className="sr-only">{percent}%</span>
 									<CountUp value={percent} delay={delay} />
-									<span className="ml-1.5 text-xs text-muted-foreground">{row.votes}</span>
 								</span>
 							</RowContent>
 						</li>
 					);
 				})}
 			</ul>
-			<p className="text-[12px] text-muted-foreground">
+			<p className="text-[13px] text-muted-foreground">
 				{caption}
 				{onSelectOption && winners.length > 0 && <span className="block">{t('poll.votersHint')}</span>}
 			</p>

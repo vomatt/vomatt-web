@@ -118,18 +118,31 @@ describe('PollCard state A · Open, no Ballot', () => {
 			screen.getByRole('heading', { name: 'Which day should the meetup run?' })
 		).toBeInTheDocument();
 		expect(screen.getByText('The day with the most votes wins.')).toBeInTheDocument();
-		expect(screen.getByText('mei.lin')).toBeInTheDocument();
 		expect(screen.getAllByRole('radio')).toHaveLength(3);
 	});
 
-	it('shows Turnout, the visibility line and the reveal hint, but no Support', () => {
+	it('names the creator by handle, with the poll\'s short age', () => {
+		render(<PollCard poll={openPoll} />);
+		expect(screen.getByRole('link', { name: /@mei\.lin/ })).toHaveAttribute('href', '/mei.lin');
+		expect(screen.getByText('· 2h')).toBeInTheDocument();
+	});
+
+	it('shows Turnout and, beside Vote, how long the Ballot stays sealed and who sees it after, but no Support', () => {
 		render(<PollCard poll={openPoll} />);
 		expect(screen.getByText('128 voted')).toBeInTheDocument();
 		expect(
-			screen.getByText('After it ends, only the poll owner can see what you chose.')
+			screen.getByText(/^Sealed until .+ · after it ends, only the poll owner sees what you chose\.$/)
 		).toBeInTheDocument();
-		expect(screen.getByText('Results are revealed when the poll ends')).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Vote' })).toBeInTheDocument();
+		expect(screen.queryByText('Sealed.')).not.toBeInTheDocument();
 		expect(screen.queryByText(/%/)).not.toBeInTheDocument();
+	});
+
+	it('says the Ballot stays sealed until the end when a Poll has no end time', () => {
+		render(<PollCard poll={{ ...openPoll, endTime: null }} />);
+		expect(
+			screen.getByText('Sealed until it ends · after it ends, only the poll owner sees what you chose.')
+		).toBeInTheDocument();
 	});
 
 	it('offers the anonymity switch before voting, set from the account default', () => {
@@ -166,11 +179,13 @@ describe('PollCard state B · Open, has Ballot', () => {
 
 		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-sat', undefined);
 		expect(screen.getByText('129 voted')).toBeInTheDocument();
-		await waitFor(() => expect(screen.getByText('Your vote')).toBeInTheDocument());
+		await waitFor(() => expect(screen.getByText('your vote')).toBeInTheDocument());
 		expect(screen.getByText(/Results are sealed until/)).toBeInTheDocument();
 		expect(
 			screen.getByText('After it ends, only the poll owner can see what you chose.')
 		).toBeInTheDocument();
+		// The Seal keeps the promise now, so the line beside Vote goes
+		expect(screen.queryByText(/^Sealed until/)).not.toBeInTheDocument();
 	});
 
 	it('shows a returning voter their choice from the status call', async () => {
@@ -185,8 +200,29 @@ describe('PollCard state B · Open, has Ballot', () => {
 	it('uses myOptionId from the Poll without the status call', () => {
 		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerId="user-voter" />);
 		expect(screen.getByLabelText(/Sunday/)).toBeChecked();
-		expect(screen.getByText('Your vote')).toBeInTheDocument();
+		expect(screen.getByText('your vote')).toBeInTheDocument();
 		expect(mockGetMyBallot).not.toHaveBeenCalled();
+	});
+
+	it('steps the options not chosen back once a vote is cast', () => {
+		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerId="user-voter" />);
+		const friday = screen.getByLabelText('Friday').closest('label')!;
+		const sunday = screen.getByLabelText(/Sunday/).closest('label')!;
+		expect(friday).toHaveClass('min-h-11', 'text-muted-foreground');
+		expect(sunday).toHaveClass('min-h-[52px]');
+		expect(sunday).not.toHaveClass('min-h-11');
+		expect(within(sunday).getByText('your vote')).toBeInTheDocument();
+	});
+
+	it('keeps the anonymity switch and Withdraw and Update vote beside the Seal row', () => {
+		render(
+			<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun', myBallotAnonymous: false }} viewerId="user-voter" />
+		);
+		expect(screen.getByText('Sealed.')).toBeInTheDocument();
+		expect(screen.getByRole('switch', { name: 'Hide my name from voter lists' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Withdraw vote' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Update vote' })).toBeInTheDocument();
+		expect(screen.queryByRole('link', { name: /Change vote/ })).not.toBeInTheDocument();
 	});
 
 	it('replaces the Ballot without changing Turnout', async () => {
@@ -262,8 +298,8 @@ describe('PollCard state B · Open, has Ballot', () => {
 		await waitFor(() =>
 			expect(screen.getByRole('button', { name: 'Vote' })).toBeInTheDocument()
 		);
-		// The stamp lifts off with an exit animation
-		await waitFor(() => expect(screen.queryByText('Your vote')).not.toBeInTheDocument());
+		// The pill lifts off with an exit animation
+		await waitFor(() => expect(screen.queryByText('your vote')).not.toBeInTheDocument());
 	});
 
 	it('lets a voter hide an existing Ballot from the voter list', async () => {
@@ -323,7 +359,10 @@ describe('PollCard state B · Open, has Ballot', () => {
 	it('folds the Seal to a row on a later visit', () => {
 		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerId="user-voter" />);
 
-		expect(screen.getByText(/Results are sealed until/)).toBeInTheDocument();
+		expect(screen.getByText('Sealed.')).toBeInTheDocument();
+		expect(screen.getByText(/^Results open .+\. We’ll notify you\.$/)).toBeInTheDocument();
+		// Who sees the choice is said before the vote and in the full Seal, not in the row
+		expect(screen.queryByText(/only the poll owner/)).not.toBeInTheDocument();
 		expect(screen.queryByText('Sealed. Thank you.')).not.toBeInTheDocument();
 		expect(screen.queryByText(/you included/)).not.toBeInTheDocument();
 		expect(screen.getByRole('status')).toBeEmptyDOMElement();
@@ -339,7 +378,7 @@ describe('PollCard state B · Open, has Ballot', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Withdraw vote' }));
 		fireEvent.click(screen.getByRole('button', { name: 'Withdraw' }));
 
-		await waitFor(() => expect(screen.getByText('Results are revealed when the poll ends')).toBeInTheDocument());
+		await waitFor(() => expect(screen.getByText(/^Sealed until/)).toBeInTheDocument());
 		expect(screen.queryByText('Sealed. Thank you.')).not.toBeInTheDocument();
 		expect(screen.getByRole('status')).toBeEmptyDOMElement();
 	});
@@ -362,7 +401,7 @@ describe('PollCard state B · Open, has Ballot', () => {
 		await waitFor(() => expect(toast.error).toHaveBeenCalled());
 		expect(toast.success).not.toHaveBeenCalled();
 		expect(screen.getByText('128 voted')).toBeInTheDocument();
-		await waitFor(() => expect(screen.queryByText('Your vote')).not.toBeInTheDocument());
+		await waitFor(() => expect(screen.queryByText('your vote')).not.toBeInTheDocument());
 	});
 
 	it('rolls back a failed withdraw', async () => {
@@ -373,7 +412,7 @@ describe('PollCard state B · Open, has Ballot', () => {
 
 		await waitFor(() => expect(toast.error).toHaveBeenCalled());
 		expect(screen.getByText('128 voted')).toBeInTheDocument();
-		expect(screen.getByText('Your vote')).toBeInTheDocument();
+		expect(screen.getByText('your vote')).toBeInTheDocument();
 	});
 
 	it('on vote.ended, toasts and refetches so the card flips to state D', async () => {
@@ -382,7 +421,7 @@ describe('PollCard state B · Open, has Ballot', () => {
 		render(<PollCard poll={openPoll} viewerId="user-voter" />);
 		vote('Friday');
 
-		await waitFor(() => expect(screen.getByText('62')).toBeInTheDocument());
+		await waitFor(() => expect(screen.getByText('48%')).toBeInTheDocument());
 		expect(toast).toHaveBeenCalledWith('This poll just ended.');
 		expect(mockGetPoll).toHaveBeenCalledWith('poll-1');
 		expect(screen.queryByRole('radio')).not.toBeInTheDocument();
@@ -493,22 +532,26 @@ describe('PollCard owner of an Open Poll', () => {
 });
 
 describe('PollCard Audience', () => {
-	it('marks an Invite-only Poll, and says Voter Visibility covers the Invitees', () => {
+	it('marks an Invite-only Poll after its Turnout, and says Voter Visibility covers the Invitees', () => {
 		render(
 			<PollCard
 				poll={{ ...openPoll, audience: 'invite-only', voterVisibility: 'signed-in' }}
 				viewerId="user-voter"
 			/>
 		);
-		expect(screen.getByText('Invite only')).toBeInTheDocument();
-		expect(
-			screen.getByText('After it ends, everyone invited can see what you chose.')
-		).toBeInTheDocument();
+		expect(screen.getByText('128 voted · invite only')).toBeInTheDocument();
+		expect(screen.getByText(/· after it ends, everyone invited sees what you chose\.$/)).toBeInTheDocument();
+	});
+
+	it('marks an Unlisted Poll after its Turnout', () => {
+		render(<PollCard poll={{ ...openPoll, audience: 'unlisted' }} viewerId="user-voter" />);
+		expect(screen.getByText('128 voted · unlisted')).toBeInTheDocument();
 	});
 
 	it('says nothing for a Public Poll', () => {
 		render(<PollCard poll={{ ...openPoll, audience: 'public' }} viewerId="user-voter" />);
-		expect(screen.queryByText('Public')).not.toBeInTheDocument();
+		expect(screen.getByText('128 voted')).toBeInTheDocument();
+		expect(screen.queryByText(/public/i)).not.toBeInTheDocument();
 	});
 
 	it('switches to the results when the last Invitee\'s Ballot ends the Poll', async () => {
@@ -527,16 +570,33 @@ describe('PollCard Audience', () => {
 });
 
 describe('PollCard state D · Ended', () => {
-	it('shows Support per option, the winner and the viewer’s choice', () => {
+	it('shows Support per option, the winner and the viewer’s choice, without raw counts', () => {
 		render(<PollCard poll={{ ...endedPoll, myOptionId: 'opt-sat' }} viewerId="user-voter" />);
 		expect(screen.getByText('29%')).toBeInTheDocument();
 		expect(screen.getByText('22%')).toBeInTheDocument();
 		expect(screen.getByText('48%')).toBeInTheDocument();
 		expect(screen.getByText('your vote')).toBeInTheDocument();
+		expect(screen.queryByText('62')).not.toBeInTheDocument();
 		expect(
-			screen.getByText('Sunday won. Support is the share of 129 participants')
+			screen.getByText('“Sunday” won. You were one of 129 people who decided this.')
 		).toBeInTheDocument();
 		expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+	});
+
+	it('tells a viewer who didn’t vote how many people decided', () => {
+		render(<PollCard poll={endedPoll} viewerId="user-voter" />);
+		expect(screen.getByText('“Sunday” won. 129 people decided this.')).toBeInTheDocument();
+		expect(screen.queryByText('your vote')).not.toBeInTheDocument();
+	});
+
+	it('says one person in the singular', () => {
+		const single: Poll = {
+			...endedPoll,
+			participantCount: 1,
+			options: endedPoll.options.map((o) => ({ ...o, votes: o.id === 'opt-fri' ? 1 : 0 })),
+		};
+		render(<PollCard poll={single} />);
+		expect(screen.getByText('“Friday” won. 1 person decided this.')).toBeInTheDocument();
 	});
 
 	it('names every tied option', () => {

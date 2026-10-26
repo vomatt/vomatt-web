@@ -378,7 +378,10 @@
 		"createFirst": "Create the first poll",
 		"joinToCreate": "Join to start a poll",
 		"resultsIn": "Results are in",
-		"closingSoon": "Closing soon"
+		"closingSoon": "Closing soon",
+		"askTitle": "Got a question for everyone?",
+		"askBody": "A poll takes a minute to write and seals itself the moment it opens.",
+		"askCta": "Write one"
 	},
 	"poll": {
 		"invitation": {
@@ -392,10 +395,14 @@
 		"withdrawConfirm": "Withdraw your vote? You won’t be counted or notified.",
 		"withdraw": "Withdraw",
 		"keep": "Keep",
-		"yourVote": "Your vote",
 		"yourVoteShort": "your vote",
 		"revealHint": "Results are revealed when the poll ends",
 		"sealed": "Results are sealed until {date}. We’ll notify you when they’re in.",
+		"sealedUntil": "Sealed until {date}",
+		"sealedUntilEnd": "Sealed until it ends",
+		"sealedWord": "Sealed.",
+		"sealedRow": "{sealed} Results open {date}. We’ll notify you.",
+		"sealedRowNoEnd": "{sealed} Results open when the poll ends. We’ll notify you.",
 		"sealedTitle": "Sealed. Thank you.",
 		"sealedTurnout": "{count} voted, you included",
 		"opensHint": "Voting opens {distance}",
@@ -411,7 +418,10 @@
 		"tooManyVotes": "You’re voting too fast. Wait a minute and try again.",
 		"anonymousToggle": "Hide my name from voter lists",
 		"resultsFailed": "Couldn’t load the results.",
-		"won": "{option} won. Support is the share of {count} participants",
+		"won": "“{option}” won. {count} people decided this.",
+		"won_one": "“{option}” won. {count} person decided this.",
+		"wonVoted": "“{option}” won. You were one of {count} people who decided this.",
+		"wonVoted_one": "“{option}” won. You were the only one who decided this.",
 		"tie": "Tie between {options}",
 		"and": " and ",
 		"noVotes": "No votes were cast",
@@ -432,9 +442,14 @@
 			"signed-in": "After it ends, anyone signed in can see what you chose.",
 			"invited": "After it ends, everyone invited can see what you chose."
 		},
+		"visibilityShort": {
+			"nobody": "after it ends, no one sees what you chose.",
+			"owner": "after it ends, only the poll owner sees what you chose.",
+			"signed-in": "after it ends, anyone signed in sees what you chose.",
+			"invited": "after it ends, everyone invited sees what you chose."
+		},
 		"edit": "Edit",
 		"keepPoll": "Keep poll",
-		"stamp": "Voted",
 		"discuss": "Discuss",
 		"votersHint": "Select an option to see who chose it",
 		"voters": "Who voted",
@@ -456,6 +471,10 @@
 			"public": "Public",
 			"unlisted": "Unlisted",
 			"invite-only": "Invite only"
+		},
+		"audienceMeta": {
+			"unlisted": "unlisted",
+			"invite-only": "invite only"
 		},
 		"moreActions": "More actions for {title}",
 		"endNowEllipsis": "End poll now…",

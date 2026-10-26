@@ -472,7 +472,7 @@ export function PollCreator({
 													<div className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-5">
 														<StatusChip status={review.status} poll={review} time="inline" />
 														<div className="space-y-2">
-															<p className="text-[21px] font-medium leading-tight tracking-[-0.02em] wrap-anywhere">
+															<p className="text-[22px] font-medium leading-[1.2] tracking-[-0.02em] wrap-anywhere">
 																{toSingleLine(title)}
 															</p>
 															{description?.trim() && (
@@ -487,7 +487,7 @@ export function PollCreator({
 																	key={fields[index]?.id ?? index}
 																	className="flex min-h-12 items-center gap-3 rounded-xl border border-border px-4 py-2.5 text-base"
 																>
-																	<BallotMark checked={false} />
+																	<BallotMark state="rest" />
 																	<span className="min-w-0 flex-1 wrap-anywhere">{option.text.trim()}</span>
 																</li>
 															))}

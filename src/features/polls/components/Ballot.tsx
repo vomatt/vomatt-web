@@ -4,16 +4,18 @@ import { AnimatePresence, m, useAnimate } from 'motion/react';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
+import { Lock } from '@/components/ui/SvgIcons';
 import { Switch } from '@/components/ui/Switch';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useHydrated } from '@/hooks/useHydrated';
 import { cn } from '@/lib/utils';
 
-import { formatFromNow, formatPollDate } from '../format';
+import { formatFromNow, formatPollMoment } from '../format';
 import type { BallotState } from '../hooks/useBallot';
+import { useViewerClock } from '../hooks/useViewerClock';
 import type { Poll } from '../schema';
 import { type PollStatus, visibilityLevel } from '../status';
-import { BallotBoxIcon, BallotMark, SelectionHighlight, VotedStamp } from './BallotMotion';
+import { BallotBoxIcon, BallotMark, SelectionHighlight, YourVotePill } from './BallotMotion';
 import { Seal } from './Seal';
 
 type BallotProps = {
@@ -37,11 +39,7 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 	const hasBallot = myOptionId !== null;
 	// The Ballot shows at once, but the Vote button stays (busy) until the first vote is in
 	const showsVoteAction = !hasBallot || pendingAction === 'vote';
-	const level = visibilityLevel(poll);
-	const visibilityHint = level && t(`poll.visibility.${level}`);
-	const isSealed = hasBallot && !!poll.endTime;
-	// The date needs the viewer's time zone, so the sealed line waits for hydration
-	const sealedUntil = isSealed && isHydrated ? formatPollDate(poll.endTime!, currentLanguage) : '';
+	const isVoteRow = !isScheduled && !confirmingWithdraw && showsVoteAction;
 
 	const [optionsRef, animateOptions] = useAnimate();
 	/** The options recoil when a request is rolled back. */
@@ -133,10 +131,12 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 					loading={pendingAction === 'vote'}
 					loadingIcon={<BallotBoxIcon className="size-4" />}
 					onClick={castSelected}
-					className="w-full transition-transform active:scale-95 sm:ml-auto sm:w-auto sm:min-w-32"
+					className="transition-transform active:scale-95"
 				>
 					{t('poll.vote')}
 				</Button>
+				{/* Once cast, the Seal keeps this promise instead */}
+				{!hasBallot && <SealedUntilLine poll={poll} />}
 			</>
 		);
 	}
@@ -148,19 +148,23 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 				{poll.options.map((option) => {
 					const isSelected = selected === option.id;
 					const isMine = myOptionId === option.id;
+					const isCast = isMine && isSelected;
+					// Once a vote is cast, the other options step back
+					const quiet = hasBallot && !isSelected;
 					return (
 						<label
 							key={option.id}
 							className={cn(
-								'relative flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-base transition-colors',
+								'relative flex min-h-[52px] cursor-pointer items-center gap-3 rounded-xl border border-border bg-card px-4 py-2.5 text-[15px] transition-colors',
 								'has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring',
 								isSelected ? 'border-transparent font-medium' : 'hover:border-border-strong',
-								((hasBallot && !isSelected) || isScheduled) && 'text-muted-foreground',
+								quiet && 'min-h-11',
+								(quiet || isScheduled) && 'text-muted-foreground',
 								isScheduled && 'cursor-not-allowed'
 							)}
 						>
 							{isSelected && (
-								<SelectionHighlight layoutId={`ballot-${poll.id}`} inTransit={isPending} />
+								<SelectionHighlight layoutId={`ballot-${poll.id}`} inTransit={isPending} cast={isCast} />
 							)}
 							<input
 								type="radio"
@@ -170,15 +174,10 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 								onChange={() => setSelected(option.id)}
 								className="peer sr-only"
 							/>
-							<BallotMark checked={isSelected} />
+							<BallotMark state={isCast ? 'cast' : isSelected ? 'selected' : 'rest'} quiet={quiet} />
 							<span className="relative min-w-0 flex-1 wrap-anywhere">{option.text}</span>
 							<AnimatePresence>
-								{isMine && (
-									<span key="stamp" className="relative" title={t('poll.yourVote')}>
-										<VotedStamp label={t('poll.stamp')} />
-										<span className="sr-only">{t('poll.yourVote')}</span>
-									</span>
-								)}
+								{isMine && <YourVotePill key="mine" label={t('poll.yourVoteShort')} />}
 							</AnimatePresence>
 						</label>
 					);
@@ -188,7 +187,7 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 			{/* Nobody sees the voter list on a 'nobody' Poll, so there is nothing to hide from */}
 			{!isScheduled && anonymous !== null && poll.voterVisibility !== 'nobody' && (
 				<div className="flex items-center justify-between gap-3">
-					{/* The whole row is the 44px touch target; the Switch alone is smaller */}
+					{/* The whole row, label included, is the 44px touch target */}
 					<label
 						htmlFor={`anonymous-${poll.id}`}
 						className="flex min-h-11 flex-1 cursor-pointer items-center text-[12px] text-muted-foreground"
@@ -204,40 +203,25 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 				</div>
 			)}
 
-			{/* Before voting, what happens to a Ballot; after, the Seal that keeps that promise */}
-			{!isScheduled && (
-				<AnimatePresence mode="wait" initial={false}>
+			{/* After voting, the Seal that keeps the promise the Vote row made */}
+			<AnimatePresence initial={false}>
+				{!isScheduled && hasBallot && (
 					<m.div
-						key={hasBallot ? 'seal' : 'hint'}
+						key="seal"
 						initial={{ opacity: 0, y: 4 }}
 						animate={{ opacity: 1, y: 0 }}
 						exit={{ opacity: 0, y: -4, transition: { duration: 0.12 } }}
 						transition={{ duration: 0.2, ease: 'easeOut' }}
 					>
-						{hasBallot ? (
-							<Seal
-								full={justSealed}
-								sealedLine={
-									// Holds its space until the date is known
-									<p className={cn(isSealed && !isHydrated && 'invisible')}>
-										{isSealed ? t('poll.sealed', { date: sealedUntil }) : t('poll.revealHint')}
-									</p>
-								}
-								visibilityHint={visibilityHint}
-								turnout={ballot.turnout}
-							/>
-						) : (
-							<div className="flex items-start gap-2.5 rounded-xl border border-border bg-surface-soft px-3.5 py-3 text-[12px] text-muted-foreground">
-								<BallotBoxIcon className="mt-0.5 shrink-0 text-foreground" />
-								<div className="flex min-w-0 flex-col gap-1">
-									<p>{t('poll.revealHint')}</p>
-									{visibilityHint && <p>{visibilityHint}</p>}
-								</div>
-							</div>
-						)}
+						<Seal
+							full={justSealed}
+							endTime={poll.endTime}
+							visibility={visibilityLevel(poll)}
+							turnout={ballot.turnout}
+						/>
 					</m.div>
-				</AnimatePresence>
-			)}
+				)}
+			</AnimatePresence>
 			<p role="status" aria-live="polite" className="sr-only">
 				{announcement}
 			</p>
@@ -246,10 +230,31 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 				role={confirmingWithdraw ? 'group' : undefined}
 				aria-label={confirmingWithdraw ? t('poll.withdrawVote') : undefined}
 				// As tall as the Vote button, so the smaller buttons after voting don't shrink the card
-				className="flex min-h-11 flex-wrap items-center justify-between gap-2.5"
+				className={cn(
+					'flex min-h-11 flex-wrap items-center gap-2.5',
+					isVoteRow ? 'gap-x-3' : 'justify-between'
+				)}
 			>
 				{actions}
 			</div>
 		</div>
+	);
+}
+
+/** Before a vote, what happens to it, in one Tide line: "Sealed until Fri 18:00 · after it ends, …". */
+function SealedUntilLine({ poll }: { poll: Poll }) {
+	const { t } = useLanguage();
+	const clock = useViewerClock();
+	// The date needs the viewer's time zone, so a dated line holds its space until hydration
+	const head = !poll.endTime
+		? t('poll.sealedUntilEnd')
+		: clock && t('poll.sealedUntil', { date: formatPollMoment(poll.endTime, clock.language, clock.now) });
+	return (
+		<p className="flex min-w-0 flex-1 basis-60 items-start gap-1.5 text-[13px] text-tide-foreground">
+			<Lock aria-hidden className="mt-[3px] size-3.5 shrink-0 text-tide" />
+			<span className={cn(!head && 'invisible')}>
+				{head ? `${head} · ${t(`poll.visibilityShort.${visibilityLevel(poll)}`)}` : '\u00a0'}
+			</span>
+		</p>
 	);
 }

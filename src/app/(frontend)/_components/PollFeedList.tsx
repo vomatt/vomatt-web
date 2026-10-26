@@ -70,7 +70,8 @@ export function PollFeedList({
 
 	return (
 		<div
-			className={cn('w-full flex-1 min-h-[var(--h-main)] max-w-feed', className)}
+			// With the topics' own padding, the pills sit 24px below the top
+			className={cn('w-full flex-1 min-h-[var(--h-main)] max-w-feed pt-4', className)}
 		>
 			{header}
 
@@ -111,7 +112,7 @@ export function PollFeedList({
 
 			<div
 				data-testid="cFeedList"
-				className="relative flex w-full flex-col gap-3 py-4"
+				className="relative flex w-full flex-col gap-4 pt-2"
 			>
 				{polls.map((poll, index) => (
 					<m.div

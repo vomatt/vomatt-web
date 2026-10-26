@@ -1,27 +1,22 @@
-import { PollSideCard } from '@/features/polls/components/PollSideCard';
-import { getMyPolls, getPolls } from '@/features/polls/service';
-import { derivePollStatus } from '@/features/polls/status';
+import { Suspense } from 'react';
 
-const RAIL_SIZE = 3;
+import { LoginPrompt } from '@/components/LoginPrompt';
+
+import { AskCard } from './AskCard';
+import { RailPolls } from './RailPolls';
 
 /**
- * Beside the feed on desktop, below it on phones: Ended Polls the viewer voted in,
- * and Open ones ending within a day. A list that fails or comes back empty is left out.
+ * The column beside the feed from xl up (260–320px), below it on phones: the login prompt
+ * for guests, the Poll side cards, and an invitation to ask for signed-in viewers.
  */
-export async function HomeRail({ signedIn }: { signedIn: boolean }) {
-	const [ended, open] = await Promise.all([
-		signedIn ? getMyPolls('ended', null, 10).catch(() => null) : null,
-		getPolls({ sort: 'closing' }, null, 10).catch(() => null),
-	]);
-	const resultsIn = (ended?.items ?? []).filter((poll) => !!poll.myOptionId).slice(0, RAIL_SIZE);
-	const closingSoon = (open?.items ?? [])
-		.filter((poll) => derivePollStatus(poll) === 'closing')
-		.slice(0, RAIL_SIZE);
-
+export function HomeRail({ signedIn }: { signedIn: boolean }) {
 	return (
-		<>
-			{resultsIn.length > 0 && <PollSideCard kind="resultsIn" polls={resultsIn} />}
-			{closingSoon.length > 0 && <PollSideCard kind="closingSoon" polls={closingSoon} />}
-		</>
+		<aside className="flex w-full max-w-feed flex-col gap-4 xl:sticky xl:top-[calc(var(--header-height)+1rem)] xl:max-w-[320px] xl:flex-[1_1_260px] xl:pt-6">
+			{!signedIn && <LoginPrompt className="w-full" />}
+			<Suspense fallback={null}>
+				<RailPolls signedIn={signedIn} />
+			</Suspense>
+			{signedIn && <AskCard />}
+		</aside>
 	);
 }

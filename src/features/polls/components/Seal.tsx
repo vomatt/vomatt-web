@@ -2,9 +2,17 @@
 
 import { TidePanel } from '@/components/ui/TidePanel';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { rich } from '@/lib/rich';
 import { cn } from '@/lib/utils';
 
-/** A Tide ring (vomatt's promise) around a Volt check (the voter's own vote). Decorative. */
+import { formatPollMoment } from '../format';
+import { useViewerClock } from '../hooks/useViewerClock';
+import type { VisibilityLevel } from '../status';
+
+/**
+ * A Tide ring (vomatt's promise) around a Volt check (the voter's own vote). Decorative.
+ * sm: 32px, for rows (the Seal row, profile rows, notifications); lg: 72px with a dashed inner ring, for the full Seal.
+ */
 export function SealMark({ size = 'sm' }: { size?: 'sm' | 'lg' }) {
 	const isLarge = size === 'lg';
 	return (
@@ -12,19 +20,14 @@ export function SealMark({ size = 'sm' }: { size?: 'sm' | 'lg' }) {
 			aria-hidden
 			className={cn(
 				'relative grid shrink-0 place-items-center rounded-full border-2 border-tide',
-				isLarge ? 'size-[72px]' : 'size-9'
+				isLarge ? 'size-[72px]' : 'size-8'
 			)}
 		>
-			<span
-				className={cn(
-					'absolute rounded-full border border-dashed border-tide',
-					isLarge ? 'inset-1.5' : 'inset-[3px]'
-				)}
-			/>
+			{isLarge && <span className="absolute inset-1.5 rounded-full border border-dashed border-tide" />}
 			<span
 				className={cn(
 					'grid place-items-center rounded-full bg-highlight text-highlight-foreground',
-					isLarge ? 'size-[30px]' : 'size-[15px]'
+					isLarge ? 'size-[30px]' : 'size-[13px]'
 				)}
 			>
 				<svg
@@ -34,7 +37,7 @@ export function SealMark({ size = 'sm' }: { size?: 'sm' | 'lg' }) {
 					strokeWidth={3.5}
 					strokeLinecap="round"
 					strokeLinejoin="round"
-					className={isLarge ? 'size-4' : 'size-2.5'}
+					className={isLarge ? 'size-4' : 'size-2'}
 				>
 					<path d="M5 13l4 4L19 7" />
 				</svg>
@@ -46,15 +49,20 @@ export function SealMark({ size = 'sm' }: { size?: 'sm' | 'lg' }) {
 type SealProps = {
 	/** In full right after a cast; a compact row on later visits. */
 	full: boolean;
-	/** When the results open, or that they open at the end. */
-	sealedLine: React.ReactNode;
-	visibilityHint?: string | null | false;
+	/** When the results open; null for a Poll without an end. */
+	endTime: string | null;
+	/** Who sees the choice once the Poll ends; only the full Seal says it. */
+	visibility: VisibilityLevel;
 	turnout?: number;
 };
 
-/** What a cast Ballot becomes: the Seal, with the reveal date and who will see the choice. */
-export function Seal({ full, sealedLine, visibilityHint, turnout }: SealProps) {
+/** What a cast Ballot becomes: the Seal, with when the results open and, in full, who will see the choice. */
+export function Seal({ full, endTime, visibility, turnout }: SealProps) {
 	const { t } = useLanguage();
+	const clock = useViewerClock();
+	// The date needs the viewer's time zone, so a dated line holds its space until hydration
+	const date = endTime && clock ? formatPollMoment(endTime, clock.language, clock.now) : '';
+	const waiting = !!endTime && !clock;
 
 	if (full) {
 		return (
@@ -63,8 +71,10 @@ export function Seal({ full, sealedLine, visibilityHint, turnout }: SealProps) {
 				<p className="mt-2 text-[18px] font-medium tracking-[-0.01em] text-foreground">
 					{t('poll.sealedTitle')}
 				</p>
-				{sealedLine}
-				{visibilityHint && <p>{visibilityHint}</p>}
+				<p className={cn(waiting && 'invisible')}>
+					{endTime ? t('poll.sealed', { date }) : t('poll.revealHint')}
+				</p>
+				<p>{t(`poll.visibility.${visibility}`)}</p>
 				{turnout !== undefined && (
 					<p className="mt-1 font-mono text-[13px] text-foreground tabular-nums">
 						{t('poll.sealedTurnout', { count: turnout.toLocaleString() })}
@@ -75,12 +85,14 @@ export function Seal({ full, sealedLine, visibilityHint, turnout }: SealProps) {
 	}
 
 	return (
-		<TidePanel className="flex items-start gap-3 px-3.5 py-3 text-[12px] leading-relaxed">
+		<TidePanel className="flex items-center gap-3.5 px-3.5 py-3 text-[13px] leading-snug">
 			<SealMark />
-			<div className="flex min-w-0 flex-col gap-1 pt-0.5">
-				{sealedLine}
-				{visibilityHint && <p>{visibilityHint}</p>}
-			</div>
+			<p className={cn('min-w-0', waiting && 'invisible')}>
+				{rich(t(endTime ? 'poll.sealedRow' : 'poll.sealedRowNoEnd'), {
+					sealed: <strong className="font-medium">{t('poll.sealedWord')}</strong>,
+					date,
+				})}
+			</p>
 		</TidePanel>
 	);
 }
