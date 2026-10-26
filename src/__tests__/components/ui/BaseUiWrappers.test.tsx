@@ -15,9 +15,6 @@ import { Switch } from '@/components/ui/Switch';
 import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 
 // Polyfill APIs missing in jsdom
-// Base UI's Switch dispatches a PointerEvent on click
-window.PointerEvent = window.PointerEvent || (MouseEvent as any);
-
 window.matchMedia =
 	window.matchMedia ||
 	((query: string) =>

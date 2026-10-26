@@ -5,7 +5,6 @@ import { Suspense, use, useCallback, useEffect, useId, useMemo, useState } from 
 import { EmptyCard } from '@/components/EmptyCard';
 import { LoadMore } from '@/components/LoadMore';
 import { Button } from '@/components/ui/Button';
-import { CircleMinus } from '@/components/ui/CircleMinus';
 import { Input } from '@/components/ui/Input';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PollCard } from '@/features/polls/components/PollCard';
@@ -194,7 +193,6 @@ function ExploreResults({
 					<p className="py-12 text-center text-sm text-muted-foreground">{t('explore.loadFailed')}</p>
 				) : list.items.length === 0 ? (
 					<EmptyCard
-						icon={<CircleMinus />}
 						title={t('explore.noResults')}
 						body={t(status === 'open' ? 'explore.noResultsHint' : 'explore.noResultsHintEnded')}
 					/>

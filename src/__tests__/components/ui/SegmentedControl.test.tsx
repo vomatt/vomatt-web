@@ -3,9 +3,6 @@ import { useState } from 'react';
 
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
 
-// Base UI dispatches a PointerEvent on click
-window.PointerEvent = window.PointerEvent || (MouseEvent as any);
-
 const options = [
 	{ value: 'system', label: 'Auto' },
 	{ value: 'light', label: 'Light' },

@@ -10,9 +10,6 @@ jest.mock('@/contexts/LanguageContext', () => {
 const mockRefresh = jest.fn();
 jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh: mockRefresh }) }));
 
-// Base UI dispatches a PointerEvent on click
-window.PointerEvent = window.PointerEvent || (MouseEvent as any);
-
 describe('LanguagePreferences', () => {
 	it('leads back to Settings', () => {
 		render(<LanguagePreferences />);

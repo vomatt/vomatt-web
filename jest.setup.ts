@@ -7,6 +7,9 @@ global.ResizeObserver ??= class {
 	disconnect() {}
 };
 
+// Base UI dispatches a PointerEvent on click, which jsdom lacks (node-environment suites have no window)
+if (typeof window !== 'undefined') window.PointerEvent ??= MouseEvent as unknown as typeof PointerEvent;
+
 // Every profile hover card carries the Follow button, whose Server Actions reach the
 // auth stack (jose, cookies). Client tests get stubs; the service's own test unmocks it.
 jest.mock('@/features/follows/service', () => ({

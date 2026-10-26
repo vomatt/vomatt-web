@@ -35,9 +35,6 @@ jest.mock('@/lib/api/services/users', () => ({
 	exportMyData: jest.fn(),
 }));
 
-// Base UI's Switch dispatches a PointerEvent on click
-window.PointerEvent = window.PointerEvent || (MouseEvent as any);
-
 const myProfile: MyProfile = {
 	id: 'u1',
 	username: 'mei',

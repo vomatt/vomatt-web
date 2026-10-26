@@ -1,3 +1,4 @@
+import { CircleMinus } from '@/components/ui/SvgIcons';
 import { cn } from '@/lib/utils';
 
 /**
@@ -5,14 +6,15 @@ import { cn } from '@/lib/utils';
  * body and an optional action. Lists inside a panel or dialog keep the `empty-state` box.
  */
 export function EmptyCard({
-	icon,
+	icon = <CircleMinus />,
 	title,
 	body,
 	action,
 	headingLevel = 2,
 	className,
 }: {
-	icon: React.ReactNode;
+	/** The artboards' circle-minus unless a state has a better one. */
+	icon?: React.ReactNode;
 	title: React.ReactNode;
 	body?: React.ReactNode;
 	action?: React.ReactNode;

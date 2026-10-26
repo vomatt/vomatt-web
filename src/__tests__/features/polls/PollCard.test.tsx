@@ -56,9 +56,6 @@ jest.mock('@/components/auth/AuthDialog', () => ({
 	},
 }));
 
-// Base UI's Switch dispatches a PointerEvent on click
-window.PointerEvent = window.PointerEvent || (MouseEvent as any);
-
 const HOUR = 3600_000;
 const iso = (offset: number) => new Date(Date.now() + offset).toISOString();
 

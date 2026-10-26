@@ -24,9 +24,6 @@ jest.mock('@/features/follows/service', () => ({
 }));
 jest.mock('@/features/avatars/service', () => ({ chooseAvatar: jest.fn() }));
 jest.mock('@/features/notifications/service', () => ({}));
-// Base UI dispatches a PointerEvent on click
-window.PointerEvent = window.PointerEvent || (MouseEvent as any);
-
 const visitor: UserProfile = {
 	id: 'u2',
 	username: 'amira',

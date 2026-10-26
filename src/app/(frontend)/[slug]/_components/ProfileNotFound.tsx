@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation';
 
 import { EmptyCard } from '@/components/EmptyCard';
 import { buttonVariants } from '@/components/ui/Button';
-import { User } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { isValidUsername, usernameFromSlug } from '@/features/account/username';
 
@@ -21,7 +20,6 @@ export default function ProfileNotFound() {
 			<EmptyCard
 				className="max-w-[640px]"
 				headingLevel={1}
-				icon={<User />}
 				title={t(isHandle ? 'profile.notFoundTitle' : 'profile.pageNotFoundTitle')}
 				body={t(isHandle ? 'profile.notFoundBody' : 'profile.pageNotFoundBody')}
 				action={

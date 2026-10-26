@@ -4,7 +4,6 @@ import { useEffect } from 'react';
 
 import { EmptyCard } from '@/components/EmptyCard';
 import { Button } from '@/components/ui/Button';
-import { TriangleAlert } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function Error({
@@ -25,7 +24,6 @@ export default function Error({
 		<div className="px-contain mx-auto w-full max-w-feed pt-8 pb-16">
 			<EmptyCard
 				headingLevel={1}
-				icon={<TriangleAlert />}
 				title={t('common.error')}
 				body={t('common.errorBody')}
 				action={<Button onClick={reset}>{t('common.tryAgain')}</Button>}

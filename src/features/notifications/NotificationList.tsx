@@ -8,7 +8,6 @@ import { EmptyCard } from '@/components/EmptyCard';
 import { FilterPills } from '@/components/FilterPills';
 import { LoadMore } from '@/components/LoadMore';
 import { Button, buttonVariants } from '@/components/ui/Button';
-import { CircleMinus } from '@/components/ui/CircleMinus';
 import { Ban } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ballotOutcome } from '@/features/account/insights';
@@ -124,7 +123,7 @@ export function NotificationList({
 		return (
 			<>
 				<NotificationsHeader />
-				<EmptyCard icon={<CircleMinus />} title={t('notifications.empty')} body={t('notifications.emptyHint')} />
+				<EmptyCard title={t('notifications.empty')} body={t('notifications.emptyHint')} />
 			</>
 		);
 	}

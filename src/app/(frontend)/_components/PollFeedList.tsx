@@ -7,7 +7,6 @@ import { useInView } from 'react-intersection-observer';
 
 import { EmptyCard } from '@/components/EmptyCard';
 import { Button, buttonVariants } from '@/components/ui/Button';
-import { CircleMinus } from '@/components/ui/CircleMinus';
 import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { CreatePollTrigger } from '@/features/polls/components/CreatePollTrigger';
@@ -91,7 +90,6 @@ export function PollFeedList({
 			{initialPage !== null && polls.length === 0 && following && (
 				<EmptyCard
 					className="mt-2"
-					icon={<CircleMinus />}
 					title={t('homePage.followingEmpty')}
 					body={t('homePage.followingEmptyHint')}
 					action={
