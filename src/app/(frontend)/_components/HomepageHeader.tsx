@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 
+import { LoginPrompt } from '@/components/LoginPrompt';
 import { buttonVariants } from '@/components/ui/Button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { TagDto } from '@/features/polls/schema';
@@ -10,7 +11,7 @@ type HomepageHeaderProps = {
 	tags: TagDto[];
 	/** The selected topic's slug; none means every topic. */
 	activeTag?: string;
-	/** Signed-in viewers get a Following tab. */
+	/** Signed-in viewers get a Following tab; guests get the login prompt above the topics. */
 	signedIn?: boolean;
 	/** The Following tab is the selected one. */
 	following?: boolean;
@@ -41,6 +42,7 @@ export function HomepageHeader({ tags, activeTag, signedIn, following }: Homepag
 		<>
 			{/* The feed has no visible title; the page still needs one for headings navigation */}
 			<h1 className="sr-only">{heading}</h1>
+			{!signedIn && <LoginPrompt className="my-2" />}
 			<nav aria-label={t('homePage.topics')} className="sticky follow-header z-10 -mx-1 bg-background">
 				<ul className="flex gap-2 overflow-x-auto px-1 py-2 [scrollbar-width:none]">
 					{items.map(({ label, href, isActive }) => (

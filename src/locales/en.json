@@ -65,6 +65,7 @@
 	"loginPrompt": {
 		"title": "Log in or sign up for Vomatt",
 		"subtitle": "See what people are talking about and join the conversation.",
+		"pollNote": "Log in to open this poll.",
 		"ctaLabel": "Log in"
 	},
 	"login": {
@@ -372,12 +373,14 @@
 		"following": "Following",
 		"followingEmpty": "Nothing from people you follow yet.",
 		"followingEmptyHint": "Open polls by people you follow show up here. Follow someone from their profile.",
+		"followingEmptyCta": "Explore polls",
 		"topics": "Topics",
 		"feedFailed": "Couldn’t load polls right now.",
 		"topicEmpty": "No polls on this topic yet.",
 		"createFirst": "Create the first poll",
 		"joinToCreate": "Join to start a poll",
 		"resultsIn": "Results are in",
+		"resultsTie": "Tie",
 		"closingSoon": "Closing soon",
 		"askTitle": "Got a question for everyone?",
 		"askBody": "A poll takes a minute to write and seals itself the moment it opens.",

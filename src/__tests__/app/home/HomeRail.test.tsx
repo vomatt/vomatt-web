@@ -69,11 +69,13 @@ describe('HomeRail', () => {
 		expect(screen.getByRole('dialog', { name: 'Create a poll' })).toBeInTheDocument();
 	});
 
-	it('offers a guest the login prompt instead of the invitation to ask', () => {
+	it('tells a guest how vomatt counts instead of listing Polls or inviting them to ask', () => {
 		render(<HomeRail signedIn={false} />);
+		expect(screen.getByRole('region', { name: 'How vomatt counts' })).toHaveTextContent(
+			'One vote per person. Ballots stay sealed while a poll is open, so nobody votes with the crowd.'
+		);
+		expect(screen.queryByText('Poll cards')).not.toBeInTheDocument();
 		expect(screen.queryByRole('region', { name: 'Got a question for everyone?' })).not.toBeInTheDocument();
-		expect(screen.getByRole('heading', { name: 'Log in or sign up for Vomatt' })).toBeInTheDocument();
-		expect(screen.getByRole('link', { name: 'Log in' })).toHaveAttribute('href', '/login');
 	});
 
 	it('holds the Poll cards in one aside with the rest of the rail', () => {
@@ -84,16 +86,10 @@ describe('HomeRail', () => {
 
 describe('RailPolls', () => {
 	it('lists Polls closing soon, leaving out Ended ones the viewer didn’t vote in', async () => {
-		render(await realRailPolls({ signedIn: true }));
+		render(await realRailPolls());
 		expect(screen.getByRole('region', { name: 'Closing soon' })).toHaveTextContent(
 			'New name for the community garden'
 		);
 		expect(screen.queryByRole('region', { name: 'Results are in' })).not.toBeInTheDocument();
-	});
-
-	it('asks a guest only for the Polls closing soon', async () => {
-		render(await realRailPolls({ signedIn: false }));
-		expect(mockGetMyPolls).not.toHaveBeenCalled();
-		expect(screen.getByRole('region', { name: 'Closing soon' })).toBeInTheDocument();
 	});
 });

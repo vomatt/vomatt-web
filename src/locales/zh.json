@@ -65,6 +65,7 @@
 	"loginPrompt": {
 		"title": "登入或註冊 Vomatt",
 		"subtitle": "查看大家正在討論的內容並加入討論。",
+		"pollNote": "登入即可開啟這個投票。",
 		"ctaLabel": "登入"
 	},
 	"login": {
@@ -364,12 +365,14 @@
 		"following": "追蹤中",
 		"followingEmpty": "你追蹤的人還沒有投票。",
 		"followingEmptyHint": "你追蹤的人所發起的進行中投票會顯示在這裡。到對方的個人檔案即可追蹤。",
+		"followingEmptyCta": "探索投票",
 		"topics": "主題",
 		"feedFailed": "目前無法載入投票。",
 		"topicEmpty": "這個主題還沒有投票。",
 		"createFirst": "建立第一個投票",
 		"joinToCreate": "加入後即可發起投票",
 		"resultsIn": "結果出爐",
+		"resultsTie": "平手",
 		"closingSoon": "即將結束",
 		"askTitle": "有問題想問大家嗎？",
 		"askBody": "寫一則投票只要一分鐘，開始的那一刻就會自動封存。",
