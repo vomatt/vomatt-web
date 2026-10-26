@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { mergeById } from '@/lib/api/cursor';
 
-import type { Comment } from '../schema';
+import type { Comment, ThreadComment } from '../schema';
 import {
 	deleteComment,
 	getComments,
@@ -27,14 +27,28 @@ export type ReplyList = {
 
 const NO_REPLIES: ReplyList = { items: [], nextCursor: null, status: 'ready' };
 
+/** The Replies a page of Comments previews, as Reply lists that continue from their cursor. */
+function previewLists(comments: ThreadComment[]): Record<string, ReplyList> {
+	return Object.fromEntries(
+		comments
+			.filter((comment) => comment.replies?.length)
+			.map((comment) => [
+				comment.id,
+				{ items: comment.replies ?? [], nextCursor: comment.repliesNextCursor ?? null, status: 'ready' },
+			])
+	);
+}
+
+const byCreatedAt = (a: Comment, b: Comment) => Date.parse(a.createdAt) - Date.parse(b.createdAt);
+
 /** A deleted Comment that still has Replies stays as a placeholder. */
 function toPlaceholder(comment: Comment): Comment {
 	return { ...comment, deleted: true, author: null, text: null, userId: null };
 }
 
 /**
- * Comments on one Poll, newest first, with one level of Replies loaded on
- * demand, optimistic posting and likes. Loads only when `enabled`, so
+ * Comments on one Poll, newest first, each with its first Replies and the
+ * rest loaded on demand, optimistic posting and likes. Loads only when `enabled`, so
  * collapsed feed cards don't fetch. `initialTotal` is the Poll's
  * `commentCount` (Comments and Replies that aren't deleted).
  */
@@ -58,7 +72,7 @@ export function useComments(
 		}
 		hasLoaded.current = true;
 		setComments(result.data.items);
-		setReplies({});
+		setReplies(previewLists(result.data.items));
 		setNextCursor(result.data.nextCursor);
 		setStatus('ready');
 	}, []);
@@ -86,10 +100,15 @@ export function useComments(
 		setIsLoadingMore(false);
 		if (!result.ok) return;
 		setComments((prev) => mergeById(prev, result.data.items));
+		// A Comment already listed keeps the Replies loaded for it
+		setReplies((prev) => ({ ...previewLists(result.data.items), ...prev }));
 		setNextCursor(result.data.nextCursor);
 	}, [isLoadingMore, nextCursor, pollId]);
 
-	/** First call loads the Replies; later calls load the next page. */
+	/**
+	 * Loads the Replies after those listed (none, or the previews), one page per call. A Reply the
+	 * viewer posted meanwhile moves to its place by time, after the older ones the page brings.
+	 */
 	const loadReplies = useCallback(
 		async (rootId: string) => {
 			const current = replies[rootId];
@@ -102,7 +121,11 @@ export function useComments(
 			const result = await getReplies(pollId, rootId, current?.nextCursor);
 			setList((list) =>
 				result.ok
-					? { items: mergeById(list.items, result.data.items), nextCursor: result.data.nextCursor, status: 'ready' }
+					? {
+							items: mergeById(list.items, result.data.items).sort(byCreatedAt),
+							nextCursor: result.data.nextCursor,
+							status: 'ready',
+						}
 					: { ...list, status: 'error' }
 			);
 		},
@@ -173,7 +196,8 @@ export function useComments(
 		async (commentId: string, text: string) => {
 			const result = await updateComment(pollId, commentId, text);
 			if (!result.ok) return false;
-			updateOne(commentId, () => result.data);
+			// The response counts no Replies
+			updateOne(commentId, (c) => ({ ...result.data, replyCount: c.replyCount }));
 			return true;
 		},
 		[pollId, updateOne]

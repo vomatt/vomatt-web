@@ -31,6 +31,15 @@ export const CommentSchema = z.object({
 	deleted: z.boolean().optional(),
 });
 
+/**
+ * A top-level Comment as the Poll's Comment list sends it: its first Replies (up to 2, oldest
+ * first) and the cursor that continues the Replies after them (null when none remain).
+ */
+export const ThreadCommentSchema = CommentSchema.extend({
+	replies: z.array(CommentSchema).optional(),
+	repliesNextCursor: z.string().nullish(),
+});
+
 /** Counts are withheld (null) until a Poll has Ended; read as undefined. */
 export const PollOptionSchema = z.object({
 	id: z.string(),
@@ -273,6 +282,7 @@ export interface PollInput {
 }
 
 export type Comment = z.infer<typeof CommentSchema>;
+export type ThreadComment = z.infer<typeof ThreadCommentSchema>;
 export type PollOption = z.infer<typeof PollOptionSchema>;
 export type TagDto = z.infer<typeof TagDtoSchema>;
 export type VoterVisibility = z.infer<typeof VoterVisibilitySchema>;

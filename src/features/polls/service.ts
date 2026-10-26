@@ -31,6 +31,8 @@ import {
 	PollSchema,
 	type TagDto,
 	TagDtoSchema,
+	type ThreadComment,
+	ThreadCommentSchema,
 	toApiAudience,
 	toApiVoterVisibility,
 	UserVoteStatusSchema,
@@ -380,17 +382,18 @@ export async function removeInvitee(
 // ── Comments ─────────────────────────────────────────────────────────────────
 
 const CommentPage = cursorPageSchema(CommentSchema);
+const ThreadCommentPage = cursorPageSchema(ThreadCommentSchema);
 const COMMENT_PAGE_SIZE = 20;
 
-/** Top-level Comments, newest first. Public; signed in, `likedByCurrentUser` is set. */
+/** Top-level Comments, newest first, each with its first Replies. Public; signed in, `likedByCurrentUser` is set. */
 export async function getComments(
 	pollId: string,
 	cursor?: string | null
-): Promise<ActionResult<CursorPage<Comment>>> {
+): Promise<ActionResult<CursorPage<ThreadComment>>> {
 	return attempt(async () => {
 		const params = pageParams(cursor, COMMENT_PAGE_SIZE);
 		const data = await apiClient(`/votes/${pollId}/comments?${params}`, { auth: 'optional' });
-		return CommentPage.parse(data);
+		return ThreadCommentPage.parse(data);
 	});
 }
 

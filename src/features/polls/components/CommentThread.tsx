@@ -103,8 +103,9 @@ type CommentThreadProps = {
 };
 
 /**
- * A copied link names a comment that loads after the page does; this shows it once it has. Call it
- * where the thread lives, not in CommentThread, which unmounts when the discussion folds.
+ * A copied link names a comment that loads after the page does; this shows it once it has, loading
+ * Replies past the previews until it finds the one named. Call it where the thread lives, not in
+ * CommentThread, which unmounts when the discussion folds.
  */
 export function useCommentLink(thread: CommentsState) {
 	const link = useRef<{ rootId: string; replyId?: string } | null>(null);
@@ -124,6 +125,10 @@ export function useCommentLink(thread: CommentsState) {
 			}
 			if (replyList.status === 'loading') return;
 			if (replyList.items.some((r) => r.id === target.replyId)) id = target.replyId;
+			else if (replyList.status === 'ready' && replyList.nextCursor) {
+				thread.loadReplies(target.rootId);
+				return;
+			}
 		}
 		link.current = null;
 		showComment(id);
@@ -387,7 +392,7 @@ function CommentItem({
 	const openComposer = (reply: Comment | null) =>
 		requireAuth(() => onReplyTargetChange({ rootId: comment.id, reply }));
 
-	// One button walks the Replies: view them, retry a failed page, or load more
+	// One button walks the Replies: view them, retry a failed page, or load the ones after those shown
 	let repliesAction: string | null = null;
 	if (!replyList) {
 		if (replyCount > 0) {
@@ -396,7 +401,8 @@ function CommentItem({
 	} else if (replyList.status === 'error') {
 		repliesAction = t('comments.retry');
 	} else if (replyList.status === 'ready' && replyList.nextCursor) {
-		repliesAction = t('comments.moreReplies');
+		const more = Math.max(1, replyCount - replyList.items.length);
+		repliesAction = t(more === 1 ? 'comments.moreReply' : 'comments.moreReplies', { count: more });
 	}
 
 	const replies = replyList?.items ?? [];
@@ -473,7 +479,8 @@ function CommentItem({
 			node: (
 				<button
 					type="button"
-					className="mt-0.5 inline-flex h-9 items-center text-[13px] font-medium text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring"
+					// 32px tall; the ::before extends the hit area to 44px
+					className="relative mt-0.5 inline-flex h-8 items-center px-0.5 text-[12px] font-medium text-muted-foreground before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-[''] hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring"
 					onClick={() => thread.loadReplies(comment.id)}
 				>
 					{repliesAction}

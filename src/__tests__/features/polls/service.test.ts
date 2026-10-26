@@ -605,6 +605,16 @@ describe('getComments() and getReplies()', () => {
 		});
 	});
 
+	it('keeps each comment\'s reply previews and the cursor to the rest', async () => {
+		const preview = { ...comment, id: 'r1', parentId: 'c1', replyCount: 0, replies: [], repliesNextCursor: null };
+		mockApiClient.mockResolvedValue(page([{ ...comment, replies: [preview], repliesNextCursor: 'after-r1' }]));
+		const result = await getComments('poll-1');
+		expect(result.ok && result.data.items[0]).toMatchObject({
+			replies: [{ id: 'r1', parentId: 'c1' }],
+			repliesNextCursor: 'after-r1',
+		});
+	});
+
 	it('parses a deleted placeholder', async () => {
 		mockApiClient.mockResolvedValue(
 			page([{ ...comment, deleted: true, author: null, text: null, userId: null }])
