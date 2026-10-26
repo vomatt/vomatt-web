@@ -139,6 +139,9 @@ describe('NotificationList', () => {
 
 	it('shows the empty state only when there is nothing at all', () => {
 		render(<NotificationList initialPage={{ items: [], nextCursor: null }} invitations={[]} />);
-		expect(screen.getByText('No notifications yet.')).toBeInTheDocument();
+		expect(screen.getByRole('heading', { level: 1, name: 'Notifications' })).toBeInTheDocument();
+		expect(screen.getByRole('heading', { level: 2, name: 'No notifications yet.' })).toBeInTheDocument();
+		expect(screen.getByText('Results of polls you asked or voted in show up here.')).toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Mark all read' })).not.toBeInTheDocument();
 	});
 });

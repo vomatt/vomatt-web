@@ -4,10 +4,12 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
+import { EmptyCard } from '@/components/EmptyCard';
 import { FilterPills } from '@/components/FilterPills';
 import { LoadMore } from '@/components/LoadMore';
 import { Button, buttonVariants } from '@/components/ui/Button';
-import { Ban, Bell } from '@/components/ui/SvgIcons';
+import { CircleMinus } from '@/components/ui/CircleMinus';
+import { Ban } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ballotOutcome } from '@/features/account/insights';
 import { isDecided, OutcomeChip } from '@/features/polls/components/OutcomeChip';
@@ -48,13 +50,16 @@ export function dayGroup(iso: string, now = new Date()): DayGroup {
 	return 'earlier';
 }
 
-/** The page's title and intro; rendered outside the list's Suspense boundary. */
-export function NotificationsHeader() {
+/** The page's title and intro, with the list's action beside them; the loading page shows it without one. */
+export function NotificationsHeader({ action }: { action?: React.ReactNode }) {
 	const { t } = useLanguage();
 	return (
-		<div>
-			<h1 className="page-title text-foreground">{t('notifications.title')}</h1>
-			<p className="mt-1.5 text-[14px] text-muted-foreground">{t('notifications.intro')}</p>
+		<div className="flex flex-wrap items-end gap-4">
+			<div className="flex-[1_1_300px]">
+				<h1 className="page-title text-foreground">{t('notifications.title')}</h1>
+				<p className="mt-1.5 text-[14px] text-muted-foreground">{t('notifications.intro')}</p>
+			</div>
+			{action}
 		</div>
 	);
 }
@@ -108,16 +113,19 @@ export function NotificationList({
 	};
 
 	if (initialPage === null && invitations.length === 0) {
-		return <p className="py-16 text-center text-muted-foreground">{t('notifications.loadFailed')}</p>;
+		return (
+			<>
+				<NotificationsHeader />
+				<p className="py-16 text-center text-muted-foreground">{t('notifications.loadFailed')}</p>
+			</>
+		);
 	}
 	if (items.length === 0) {
 		return (
-			<div className="empty-state flex flex-col items-start gap-3">
-				<span className="grid size-11 place-items-center rounded-full bg-secondary text-foreground">
-					<Bell className="size-5" />
-				</span>
-				<p>{t('notifications.empty')}</p>
-			</div>
+			<>
+				<NotificationsHeader />
+				<EmptyCard icon={<CircleMinus />} title={t('notifications.empty')} body={t('notifications.emptyHint')} />
+			</>
 		);
 	}
 
@@ -126,8 +134,22 @@ export function NotificationList({
 		.filter((group) => group.items.length > 0);
 
 	return (
-		<div className="flex flex-col gap-4">
-			<div className="flex flex-wrap items-center justify-between gap-3">
+		<>
+			<NotificationsHeader
+				action={
+					<Button
+						variant="outline"
+						size="sm"
+						className="text-[14px]"
+						loading={isMarking}
+						disabled={unread.length === 0}
+						onClick={markAllRead}
+					>
+						{t('notifications.markAllRead')}
+					</Button>
+				}
+			/>
+			<div className="flex flex-col gap-4">
 				<FilterPills
 					label={t('profile.filterLabel')}
 					value={filter}
@@ -137,33 +159,30 @@ export function NotificationList({
 						{ value: 'unread', label: t('notifications.unread'), count: unread.length },
 					]}
 				/>
-				<Button variant="outline" size="sm" loading={isMarking} disabled={unread.length === 0} onClick={markAllRead}>
-					{t('notifications.markAllRead')}
-				</Button>
-			</div>
 
-			{shown.length === 0 && <p className="empty-state">{t('notifications.caughtUp')}</p>}
-			{!isHydrated && (
-				<ul className="flex flex-col gap-2">
-					{shown.map((item) => (
-						<NotificationRow key={item.poll.id} item={item} onOpen={open} />
-					))}
-				</ul>
-			)}
-			{groups.map(({ group, items: groupItems }) => (
-				<section key={group} aria-labelledby={`day-${group}`} className="flex flex-col gap-2">
-					<h2 id={`day-${group}`} className="mx-0.5 text-[12px] font-medium text-muted-foreground">
-						{t(`notifications.day.${group}`)}
-					</h2>
+				{shown.length === 0 && <p className="empty-state">{t('notifications.caughtUp')}</p>}
+				{!isHydrated && (
 					<ul className="flex flex-col gap-2">
-						{groupItems.map((item) => (
+						{shown.map((item) => (
 							<NotificationRow key={item.poll.id} item={item} onOpen={open} />
 						))}
 					</ul>
-				</section>
-			))}
-			<LoadMore list={list} />
-		</div>
+				)}
+				{groups.map(({ group, items: groupItems }) => (
+					<section key={group} aria-labelledby={`day-${group}`} className="flex flex-col gap-2">
+						<h2 id={`day-${group}`} className="mx-0.5 text-[12px] font-medium text-muted-foreground">
+							{t(`notifications.day.${group}`)}
+						</h2>
+						<ul className="flex flex-col gap-2">
+							{groupItems.map((item) => (
+								<NotificationRow key={item.poll.id} item={item} onOpen={open} />
+							))}
+						</ul>
+					</section>
+				))}
+				<LoadMore list={list} />
+			</div>
+		</>
 	);
 }
 
@@ -230,7 +249,7 @@ function NotificationRow({ item, onOpen }: { item: Item; onOpen: (poll: Poll) =>
 			<Link
 				href={href}
 				onClick={() => onOpen(poll)}
-				className={buttonVariants({ size: 'sm', variant: poll.myOptionId || status === 'scheduled' ? 'outline' : 'default' })}
+				className={buttonVariants({ size: 'xs', variant: poll.myOptionId || status === 'scheduled' ? 'outline' : 'default' })}
 			>
 				{t(poll.myOptionId || status === 'scheduled' ? 'notifications.view' : 'poll.vote')}
 			</Link>

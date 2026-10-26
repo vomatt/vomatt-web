@@ -19,27 +19,24 @@ export default async function NotificationsPage() {
 	if (!user) redirect('/login?redirect=/notifications');
 
 	return (
-		<div className="px-contain mx-auto flex max-w-[1000px] flex-col gap-10 py-6 md:py-10 xl:flex-row xl:items-start">
-			<div className="flex min-w-0 flex-1 flex-col gap-5 xl:max-w-[680px]">
-				<NotificationsHeader />
-				{/* Most Notifications are results, which carry no status chip */}
-				<Suspense fallback={<PollRowListSkeleton chip={false} />}>
-					<Notifications viewerId={user.sub} />
-				</Suspense>
-			</div>
-			<aside className="w-full xl:sticky xl:top-8 xl:w-[260px] xl:shrink-0">
-				<TidePanel className="p-3.5 text-[13px] leading-relaxed">
-					<p className="mb-1 flex items-center gap-1.5 font-medium">
-						<Lock aria-hidden className="size-3.5 shrink-0 text-tide" />
-						<T k="notifications.railTitle" />
-					</p>
-					<p>
-						<T k="notifications.railBody" />
-					</p>
-				</TidePanel>
-			</aside>
+		<div className="px-contain mx-auto flex max-w-[1000px] flex-col gap-10 pt-8 pb-16 xl:flex-row xl:items-start">
+			<Suspense
+				fallback={
+					<Column>
+						<NotificationsHeader />
+						{/* Most Notifications are results, which carry no status chip */}
+						<PollRowListSkeleton chip={false} />
+					</Column>
+				}
+			>
+				<Notifications viewerId={user.sub} />
+			</Suspense>
 		</div>
 	);
+}
+
+function Column({ children }: { children: React.ReactNode }) {
+	return <div className="flex min-w-0 flex-1 flex-col gap-5 xl:max-w-[680px]">{children}</div>;
 }
 
 /**
@@ -53,5 +50,26 @@ async function Notifications({ viewerId }: { viewerId: string }) {
 		getMyPolls('ended', null, NOTIFICATIONS_PAGE_SIZE).catch(() => null),
 	]);
 	const invitations = (open ?? []).filter((poll) => isInvitee(poll, viewerId));
-	return <NotificationList initialPage={firstPage} invitations={invitations} />;
+	const empty = firstPage?.items.length === 0 && invitations.length === 0;
+	return (
+		<>
+			<Column>
+				<NotificationList initialPage={firstPage} invitations={invitations} />
+			</Column>
+			{/* How rows are read means nothing until there is a row */}
+			{!empty && (
+				<aside className="w-full xl:sticky xl:top-8 xl:w-[280px] xl:shrink-0">
+					<TidePanel className="p-3.5 text-[13px] leading-relaxed">
+						<p className="mb-1 flex items-center gap-1.5 font-medium">
+							<Lock aria-hidden className="size-3.5 shrink-0 text-tide" />
+							<T k="notifications.railTitle" />
+						</p>
+						<p>
+							<T k="notifications.railBody" />
+						</p>
+					</TidePanel>
+				</aside>
+			)}
+		</>
+	);
 }
