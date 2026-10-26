@@ -16,17 +16,20 @@ import { followUser, unfollowUser } from './service';
  * The one Follow button, wherever a person is. Ink while not following; once
  * following it drops to outline (the page's primary action stays Create) and
  * hovering or focusing it offers Unfollow. No confirm: one tap undoes it.
+ * `size`: `sm` (36px) in a profile header, `xs` (32px) on the hover card and in rows.
  */
 export function FollowButton({
 	userId,
 	initialFollowing,
 	onChange,
+	size = 'sm',
 	className,
 }: {
 	userId: string;
 	initialFollowing: boolean;
 	/** After the server confirmed the new state. */
 	onChange?: (following: boolean) => void;
+	size?: 'sm' | 'xs';
 	className?: string;
 }) {
 	const { t } = useLanguage();
@@ -50,7 +53,7 @@ export function FollowButton({
 
 	if (!following) {
 		return (
-			<Button size="sm" onClick={toggle} disabled={isPending} className={className}>
+			<Button size={size} onClick={toggle} disabled={isPending} className={className}>
 				<Plus aria-hidden />
 				{t('follows.follow')}
 			</Button>
@@ -59,7 +62,7 @@ export function FollowButton({
 
 	return (
 		<Button
-			size="sm"
+			size={size}
 			variant="outline"
 			aria-pressed
 			onClick={toggle}

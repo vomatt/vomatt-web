@@ -58,6 +58,13 @@ describe('UserChip', () => {
 		expect(fetchMock).toHaveBeenCalledWith('/api/profiles/mei');
 	});
 
+	it('puts the @handle under the name even without a display name', async () => {
+		fetchMock.mockResolvedValueOnce(json({ ...profile, username: 'jo', displayName: null }));
+		render(<UserChip username="jo" />);
+		await userEvent.hover(screen.getByRole('link', { name: 'jo' }));
+		expect(await screen.findByText('@jo')).toBeInTheDocument();
+	});
+
 	it('says so when the profile could not load', async () => {
 		fetchMock.mockResolvedValueOnce(json(null, 500));
 		render(<UserChip username="lin" />);

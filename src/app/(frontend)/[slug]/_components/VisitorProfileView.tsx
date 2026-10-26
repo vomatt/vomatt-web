@@ -6,10 +6,10 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useState, useTransition } from 'react';
 import { toast } from 'sonner';
 
+import { BackLink } from '@/components/BackLink';
 import { FilterPills } from '@/components/FilterPills';
-import { LoadMore } from '@/components/LoadMore';
 import { Button, buttonVariants } from '@/components/ui/Button';
-import { ArrowLeft, Ban, Ellipsis, Users } from '@/components/ui/SvgIcons';
+import { ArrowLeft, Ban, Ellipsis, Lock } from '@/components/ui/SvgIcons';
 import { TidePanel } from '@/components/ui/TidePanel';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { BlockUserDialog } from '@/features/blocks/BlockUserDialog';
@@ -25,11 +25,13 @@ import { useCursorList } from '@/hooks/useCursorList';
 import type { CursorPage } from '@/lib/api/cursor';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
+import { toPayloadLocale } from '@/lib/locale';
 import { profileHref } from '@/lib/routes';
 import type { UserProfile } from '@/types/user';
 
 import ProfileHeader from './ProfileHeader';
 import { ProfileRecord } from './ProfileRecord';
+import { ShowMore } from './ShowMore';
 
 type Filter = 'all' | 'open' | 'ended';
 
@@ -58,6 +60,7 @@ export function VisitorProfileView({
 	return (
 		<div className="px-contain mx-auto flex max-w-[1080px] flex-col gap-10 py-6 md:py-10 xl:flex-row xl:items-start">
 			<main className="flex min-w-0 flex-1 flex-col gap-6 xl:max-w-[720px]">
+				{!preview && <BackLink href="/">{t('navigation.home')}</BackLink>}
 				{preview && (
 					<TidePanel className="flex flex-wrap items-center justify-between gap-3 p-3.5 text-[13px]">
 						<p>{t('profile.previewNote')}</p>
@@ -84,14 +87,15 @@ export function VisitorProfileView({
 						{ label: t('profile.recordVoted'), value: profile.totalVotes },
 					]}
 				/>
-				<AskedList username={profile.username} initialPage={polls} />
+				<AskedList username={profile.username} total={profile.totalPolls} initialPage={polls} />
 			</main>
 
-			{canAct && (
+			{/* What following does, for every visitor: signed out too, before they can follow */}
+			{!preview && (
 				<aside className="flex w-full flex-col gap-3 xl:sticky xl:top-8 xl:w-[280px] xl:shrink-0">
 					<TidePanel className="p-3.5 text-[13px] leading-relaxed">
 						<p className="mb-1 flex items-center gap-1.5 font-medium">
-							<Users aria-hidden className="size-3.5 shrink-0 text-tide" />
+							<Lock aria-hidden className="size-3.5 shrink-0 text-tide" />
 							{t('profile.followingNoteTitle')}
 						</p>
 						<p>{t('profile.followingNoteBody')}</p>
@@ -168,8 +172,17 @@ function VisitorActions({ profile }: { profile: UserProfile }) {
 }
 
 /** Their polls, Open (and opening soon) first, then Ended; filtered over the pages loaded so far. */
-function AskedList({ username, initialPage }: { username: string; initialPage: CursorPage<Poll> | null }) {
-	const { t } = useLanguage();
+function AskedList({
+	username,
+	total,
+	initialPage,
+}: {
+	username: string;
+	/** Every poll they asked, from the profile; the list itself may hold only the first page. */
+	total: number;
+	initialPage: CursorPage<Poll> | null;
+}) {
+	const { t, currentLanguage } = useLanguage();
 	const router = useRouter();
 	const [isRetrying, startRetry] = useTransition();
 	const [filter, setFilter] = useState<Filter>('all');
@@ -182,8 +195,11 @@ function AskedList({ username, initialPage }: { username: string; initialPage: C
 	return (
 		<section className="flex flex-col gap-2">
 			<div className="flex flex-wrap items-center gap-x-4 border-b border-border">
-				<h2 className="relative inline-flex h-11 items-center gap-1.5 text-[14px] font-medium after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-foreground">
+				<h2 className="relative inline-flex h-11 items-center gap-1.5 text-[15px] font-medium after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-foreground">
 					{t('profile.tabAsked')}
+					<span className="font-mono tabular-nums text-muted-foreground">
+						{total.toLocaleString(toPayloadLocale(currentLanguage))}
+					</span>
 				</h2>
 				<FilterPills
 					label={t('profile.filterLabel')}
@@ -232,7 +248,9 @@ function AskedList({ username, initialPage }: { username: string; initialPage: C
 					{((filter === 'open' && open.length === 0) || (filter === 'ended' && ended.length === 0)) && !list.hasMore && (
 						<p className="empty-state">{t('myPolls.empty')}</p>
 					)}
-					<LoadMore list={list} />
+					<ShowMore
+						paged={{ hasMore: list.hasMore, more: list.loadMore, isLoading: list.isLoading, loadFailed: list.loadFailed }}
+					/>
 				</>
 			)}
 		</section>

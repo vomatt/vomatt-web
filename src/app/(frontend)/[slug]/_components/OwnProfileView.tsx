@@ -271,7 +271,7 @@ function VotedList({ split, filter }: { split: { sealed: Poll[]; decided: Poll[]
 			{sealed.length > 0 && (
 				<>
 					<ProfileSection
-						icon={<Lock aria-hidden className="size-3" />}
+						icon={<Lock aria-hidden className="size-3 text-tide" />}
 						label={t('profile.sectionSealed')}
 						count={split.sealed.length}
 					/>

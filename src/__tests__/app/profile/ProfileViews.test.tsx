@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { toast } from 'sonner';
 
 import { OwnProfileView } from '@/app/(frontend)/[slug]/_components/OwnProfileView';
@@ -98,8 +99,14 @@ describe('VisitorProfileView', () => {
 		expect(cell('polls voted in')).toHaveTextContent('204');
 		expect(screen.queryByText('people reached')).not.toBeInTheDocument();
 		expect(screen.queryByRole('tab')).not.toBeInTheDocument();
-		expect(screen.getByRole('heading', { level: 2, name: 'Asked' })).toBeInTheDocument();
+		expect(screen.getByRole('heading', { level: 2, name: 'Asked 31' })).toBeInTheDocument();
 		expect(screen.getByText('No polls yet.')).toBeInTheDocument();
+	});
+
+	it('leads back Home and says what following does, even signed out', () => {
+		render(<VisitorProfileView profile={visitor} polls={{ items: [], nextCursor: null }} isAuthenticated={false} />);
+		expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/');
+		expect(screen.getByText('What following does')).toBeInTheDocument();
 	});
 
 	it('offers no Follow or followers lists when signed out', () => {
@@ -183,6 +190,7 @@ describe('VisitorProfileView', () => {
 	it("leaves section counts out while more pages remain", () => {
 		render(<VisitorProfileView profile={visitor} polls={{ items: [poll('e')], nextCursor: 'c1' }} isAuthenticated={false} />);
 		expect(screen.getByRole('heading', { level: 3, name: 'Ended' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Show more' })).toBeInTheDocument();
 	});
 
 	it("tells a visitor the polls couldn't load rather than that there are none", () => {
@@ -196,6 +204,8 @@ describe('VisitorProfileView', () => {
 		expect(screen.getByText('This is how others see your profile.')).toBeInTheDocument();
 		expect(screen.queryByRole('button', { name: 'Follow' })).not.toBeInTheDocument();
 		expect(screen.getByRole('link', { name: 'Back to your profile' })).toHaveAttribute('href', '/amira');
+		expect(screen.queryByRole('link', { name: 'Home' })).not.toBeInTheDocument();
+		expect(screen.queryByText('What following does')).not.toBeInTheDocument();
 	});
 });
 
@@ -236,6 +246,15 @@ describe('OwnProfileView', () => {
 		const decided = screen.getByRole('link', { name: /Poll v/ });
 		expect(decided).toHaveTextContent('You chose Yes · 4 voted · new');
 		expect(decided).toHaveTextContent('Your pick won');
+	});
+
+	it('keeps every owner control in the row menu of an open invite-only poll', async () => {
+		const invited = poll('i', { votingActive: true, endTime: '2099-01-01T00:00:00Z', audience: 'invite-only' });
+		render(<OwnProfileView profile={me} polls={[invited]} />);
+
+		await userEvent.click(screen.getByRole('button', { name: 'More actions for Poll i' }));
+		const items = (await screen.findAllByRole('menuitem')).map((item) => item.textContent);
+		expect(items).toEqual(['End poll now…', 'Invitees', 'Share']);
 	});
 
 	it('puts the unread dot right after the title, not at either edge of the row', () => {

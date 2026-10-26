@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 
-import { Eye } from '@/components/ui/SvgIcons';
+import { Globe } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { isFieldPublic } from '@/features/account/visibility';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
@@ -24,7 +24,7 @@ export function PublicPreview({ profile }: { profile: MyProfile }) {
 	return (
 		<section aria-labelledby="public-preview" className="flex flex-col gap-3">
 			<h2 id="public-preview" className="flex items-center gap-1.5 text-[12px] font-medium text-muted-foreground">
-				<Eye aria-hidden className="size-3.5" />
+				<Globe aria-hidden className="size-3.5" />
 				{t('profile.everyoneSees')}
 			</h2>
 			<div className="flex flex-col gap-2.5 rounded-2xl border border-border bg-card p-4">

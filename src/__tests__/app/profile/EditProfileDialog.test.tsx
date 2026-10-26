@@ -117,9 +117,16 @@ describe('EditProfileDialog', () => {
 		open();
 		fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'mei_lin' } });
 		expect(screen.getByLabelText('Username')).toHaveAccessibleDescription(
-			'Your profile moves to /mei_lin. Links to /mei will stop working, including ones you’ve shared.'
+			'Your profile moves to /mei_lin. Links to /mei stop working, including ones you’ve shared.'
 		);
 		expect(mockEditProfile).not.toHaveBeenCalled();
+	});
+
+	it('shows the address before the username, inside its field', () => {
+		open();
+		const input = screen.getByLabelText('Username');
+		expect(input).toHaveValue('mei');
+		expect(input.parentElement).toHaveTextContent('vomatt.com/');
 	});
 
 	it('counts the bio against its limit', () => {

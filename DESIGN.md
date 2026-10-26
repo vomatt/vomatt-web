@@ -57,10 +57,12 @@ Use these. Don't copy their classes into a new element.
 |---|---|
 | Any button or link styled as one | `Button`, or `buttonVariants()` on a `Link` |
 | Toggle pill or preset | `<Button size="sm" variant={active ? 'default' : 'outline'} aria-pressed={active}>`, add `rounded-full` for pills. Home's topics are the same pill on a `Link` (`buttonVariants`, `aria-current`) |
-| Text field | `Input`, `Textarea` (these already carry the focus outline) |
+| Text field | `Input`, `Textarea` (these already carry the focus outline); fixed text inside the field before the value ("vomatt.com/") is `Input leading` |
 | Underlined tabs | `<TabsList variant="line">` + `TabsTrigger`, no className overrides; `fit` sizes them to their labels so a row can hold filters beside them (the row draws the line) |
 | Filter pills over one list | `FilterPills` |
-| Follow a person | `FollowButton` (ink Follow; outline Following that offers Unfollow on hover); `BlockedBadge` once blocked |
+| Follow a person | `FollowButton` (ink Follow; outline Following that offers Unfollow on hover): `size="sm"` (36px) in a profile header, `xs` (32px) on the hover card and in rows; `BlockedBadge` once blocked |
+| A row's ••• menu | Base UI `Menu` with `Button variant="ghost" size="icon-xs"` as the trigger and `menuPopupClassName` / `menuItemClassName` from `components/ui/menu.ts` (ink 16px icons; a destructive item adds `text-destructive`) |
+| Back to the parent page | `BackLink` ("‹ Home": a quiet 14px link with a 44px hit area that takes no extra space) |
 | A detail only the owner sees | `OnlyYouMarker` (the lock) beside it |
 | Rows on a profile | `AskedRow`, `VotedRow` and `ProfileSection` from `features/profiles/ProfileRows` |
 | Status of a poll | `StatusChip` with `derivePollStatus(poll)` (tint, an ink dot or a clock while closing, words). Pick `time`: `inline` where the chip stands alone, on cards, the creator's review and Explore ("Open · ends Fri"); `elsewhere` in a row, which puts `pollTiming(…).when` in its meta ("1,284 voted · ends Fri 20:00" beside "Open") |

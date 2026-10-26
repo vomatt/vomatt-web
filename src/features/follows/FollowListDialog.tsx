@@ -1,13 +1,16 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { UserChip } from '@/features/profiles/UserChip';
+import { UserAvatar } from '@/features/avatars/UserAvatar';
+import { ProfileHoverCard } from '@/features/profiles/ProfileHoverCard';
 import { mergeById } from '@/lib/api/cursor';
+import { profileHref } from '@/lib/routes';
 import type { UserDto } from '@/schemas/user';
 
 import { getFollowers, getFollowing } from './service';
@@ -16,7 +19,7 @@ export type FollowList = 'followers' | 'following';
 
 const loaders = { followers: getFollowers, following: getFollowing };
 
-/** A person's followers or the people they follow; each name opens the hover card, which carries Follow. */
+/** A person's followers or the people they follow; each row opens the hover card, which carries Follow. */
 export function FollowListDialog({
 	username,
 	list,
@@ -94,19 +97,21 @@ function People({ username, list }: { username: string; list: FollowList }) {
 
 	return (
 		<div className="-mx-1 max-h-[60vh] space-y-3 overflow-y-auto px-1">
-			<ul className="divide-y divide-border">
+			<ul className="space-y-2">
 				{users.map((user) => (
-					<li key={user.id} className="flex min-h-14 items-center gap-3 py-2">
-						<UserChip
-							username={user.username}
-							avatarUrl={user.avatarUrl}
-							label={user.displayName || user.username}
-							className="gap-3 text-[14px] font-medium"
-							avatarClassName="size-9"
-						/>
-						{user.displayName && (
-							<span className="truncate font-mono text-[12px] text-muted-foreground">@{user.username}</span>
-						)}
+					<li key={user.id}>
+						<ProfileHoverCard username={user.username} avatarUrl={user.avatarUrl}>
+							<Link
+								href={profileHref(user.username)}
+								className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2.5 transition-colors outline-none hover:border-border-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
+							>
+								<UserAvatar username={user.username} avatarUrl={user.avatarUrl} />
+								<span className="flex min-w-0 flex-col gap-0.5">
+									<span className="truncate text-[14px] font-medium">{user.displayName || user.username}</span>
+									<span className="truncate font-mono text-[12px] text-muted-foreground">@{user.username}</span>
+								</span>
+							</Link>
+						</ProfileHoverCard>
 					</li>
 				))}
 			</ul>

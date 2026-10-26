@@ -100,7 +100,8 @@
 		"actionDelete": "刪除",
 		"actionEnd": "結束投票",
 		"draftContinue": "繼續編輯",
-		"draftSavedAt": "儲存於 {date}",
+		"draftSavedAt": "{date}儲存",
+		"draftNoEnd": "尚未設定結束時間",
 		"untitledDraft": "未命名投票",
 		"youChose": "你選擇了",
 		"outcome": {
@@ -226,7 +227,6 @@
 		"followingNoteTitle": "追蹤代表什麼",
 		"followingNoteBody": "對方的投票會出現在你的「追蹤中」動態。對方不會看到你怎麼投，隨時一鍵取消。",
 		"editIntro": "每項資料都標示誰看得到，可在輸入處直接變更。",
-		"avatarHint": "點選頭像即可更換。",
 		"groupOnProfile": "個人頁上",
 		"groupAboutYou": "關於你",
 		"alwaysShown": "一律公開",

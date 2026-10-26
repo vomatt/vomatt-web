@@ -130,7 +130,7 @@ function ProfileCardBody({
 				<UserAvatar username={username} avatarUrl={avatarUrl ?? profile?.avatarUrl} className="size-12" />
 				<div className="min-w-0 flex-1">
 					<p className="truncate text-[17px] font-medium leading-tight tracking-[-0.02em]">{displayName || username}</p>
-					{displayName && <p className="truncate font-mono text-[12px] text-muted-foreground">@{username}</p>}
+					<p className="truncate font-mono text-[12px] text-muted-foreground">@{username}</p>
 				</div>
 				{/* Signed out, and on the viewer's own card, the relation is null: no one to follow */}
 				{profile?.isBlocked ? (
@@ -142,6 +142,7 @@ function ProfileCardBody({
 							userId={profile.id}
 							initialFollowing={profile.isFollowing}
 							onChange={(following) => rememberFollowing(username, following)}
+							size="xs"
 						/>
 					)
 				)}

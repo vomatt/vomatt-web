@@ -18,12 +18,17 @@ export function usePaged<T>(items: T[], resetKey: string) {
 	};
 }
 
-export function ShowMore({ paged }: { paged: { hasMore: boolean; more: () => void } }) {
+/** "Show more" under a profile list: a `usePaged` list, or a cursor list (which can be loading or offer a retry). */
+export function ShowMore({
+	paged,
+}: {
+	paged: { hasMore: boolean; more: () => void; isLoading?: boolean; loadFailed?: boolean };
+}) {
 	const { t } = useLanguage();
 	if (!paged.hasMore) return null;
 	return (
-		<Button variant="outline" onClick={paged.more} className="mt-2 self-center">
-			{t('profile.showMore')}
+		<Button variant="outline" size="md" loading={paged.isLoading} onClick={paged.more} className="mt-2 self-center">
+			{paged.loadFailed ? t('comments.retry') : t('profile.showMore')}
 		</Button>
 	);
 }

@@ -16,7 +16,8 @@ import {
 	AlertDialogTitle,
 } from '@/components/ui/AlertDialog';
 import { Button } from '@/components/ui/Button';
-import { Ellipsis, Pencil, Share2, Trash2, Users, X } from '@/components/ui/SvgIcons';
+import { menuItemClassName, menuPopupClassName } from '@/components/ui/menu';
+import { Ellipsis, Pencil, Share2, SquareStop, Trash2, Users } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { apiErrorText } from '@/lib/api/error-text';
 import { cn } from '@/lib/utils';
@@ -198,9 +199,6 @@ export function OwnerActions({
 	);
 }
 
-const menuItemClassName =
-	'flex min-h-10 w-full cursor-pointer select-none items-center gap-2.5 rounded-lg px-3 text-sm font-medium outline-none data-highlighted:bg-foreground/5 [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-muted-foreground';
-
 /** The ••• menu of a row in the owner's Asked list: their controls plus Share; destructive ones last. */
 function OwnerMenu({
 	poll,
@@ -229,7 +227,7 @@ function OwnerMenu({
 	return (
 		<Menu.Root>
 			<Menu.Trigger
-				render={<Button variant="ghost" size="icon-sm" />}
+				render={<Button variant="ghost" size="icon-xs" />}
 				aria-label={t('poll.moreActions', { title: poll.title })}
 				className="data-popup-open:bg-muted"
 			>
@@ -237,7 +235,7 @@ function OwnerMenu({
 			</Menu.Trigger>
 			<Menu.Portal>
 				<Menu.Positioner side="bottom" align="end" sideOffset={4} className="z-50">
-					<Menu.Popup className="min-w-48 origin-(--transform-origin) rounded-xl bg-popover p-1.5 text-popover-foreground shadow-md ring-1 ring-foreground/10 outline-none transition-opacity duration-100 data-ending-style:opacity-0 data-starting-style:opacity-0">
+					<Menu.Popup className={menuPopupClassName}>
 						{canEdit && (
 							<Menu.Item onClick={onEdit} className={menuItemClassName}>
 								<Pencil aria-hidden />
@@ -246,7 +244,7 @@ function OwnerMenu({
 						)}
 						{canEnd && (
 							<Menu.Item onClick={onEnd} className={menuItemClassName}>
-								<X aria-hidden />
+								<SquareStop aria-hidden />
 								{t('poll.endNowEllipsis')}
 							</Menu.Item>
 						)}
@@ -265,7 +263,7 @@ function OwnerMenu({
 								<Menu.Separator className="mx-1.5 my-1 h-px bg-border" />
 								<Menu.Item
 									onClick={onDelete}
-									className={cn(menuItemClassName, 'text-destructive [&_svg]:text-destructive')}
+									className={cn(menuItemClassName, 'text-destructive')}
 								>
 									<Trash2 aria-hidden />
 									{t('poll.deletePollEllipsis')}
