@@ -289,10 +289,12 @@
 		"opensLabel": "開始時間",
 		"opensHint": "留空則立即開始。",
 		"endsLabel": "結束並公開結果",
+		"endsAtLabel": "結束時間",
 		"preset1h": "1 小時",
 		"preset24h": "24 小時",
 		"preset3d": "3 天",
 		"preset1w": "1 週",
+		"presetCustom": "自訂",
 		"visibilityLabel": "結束後，誰能看到每個人選了什麼？",
 		"visibility": {
 			"nobody": "沒有人",
@@ -303,7 +305,7 @@
 			"signed-inHint": "每位登入的使用者都能看到誰選了什麼。",
 			"invited": "所有受邀者"
 		},
-		"visibilityNote": "投票開始後就不能再更改。投票者在投票前會看到這個設定。",
+		"visibilityNote": "投票者在投票前會看到這個設定。",
 		"publish": "發布投票",
 		"saveChanges": "儲存變更",
 		"draftSaved": "已儲存草稿",
@@ -328,16 +330,6 @@
 		"addContext": "加入背景說明（選填）",
 		"optionsHint": "按 Enter 前往下一個選項。",
 		"settingsTitle": "時間與隱私",
-		"settingsChange": "變更",
-		"settingsDone": "完成",
-		"summaryOpensNow": "現在開始，{end} 結束",
-		"summaryOpensLater": "{start} 開始，{end} 結束",
-		"summaryNoEnd": "選擇結束時間",
-		"summaryAudience": {
-			"public": "任何人都能投票。",
-			"unlisted": "持有連結的人都能投票。",
-			"invite-only": "只有你邀請的人能投票。"
-		},
 		"review": "預覽",
 		"reviewTitle": "預覽你的投票",
 		"reviewPreview": "投票者看到的樣子",
@@ -351,6 +343,11 @@
 		"ruleFixed": "投票開始後就不能再更改。",
 		"ruleOneVote": "每人一票。投票結束前可以更改或撤回。",
 		"audienceLabel": "誰能看到並投票？",
+		"audienceOption": {
+			"public": "所有人",
+			"unlisted": "不公開列出",
+			"invite-only": "僅限受邀者"
+		},
 		"audienceHint": {
 			"public": "會出現在動態、探索與搜尋中，任何人都能投票。",
 			"unlisted": "不會出現在任何列表，持有連結的人都能投票。",
