@@ -51,6 +51,20 @@ it('unblocks a blocked user without a confirmation', async () => {
 	await waitFor(() => expect(onChange).toHaveBeenCalledWith(false));
 });
 
+it('moves focus to Unblock once the block lands', async () => {
+	mockBlock.mockResolvedValue({ ok: true, data: undefined });
+	function Harness() {
+		const [isBlocked, setIsBlocked] = useState(false);
+		return <BlockButton userId="u1" username="bob" isBlocked={isBlocked} onChange={setIsBlocked} />;
+	}
+	render(<Harness />);
+
+	fireEvent.click(screen.getByRole('button', { name: 'Block' }));
+	await screen.findByText('Block @bob?');
+	fireEvent.click(screen.getAllByRole('button', { name: 'Block' }).at(-1)!);
+	await waitFor(() => expect(screen.getByRole('button', { name: 'Unblock' })).toHaveFocus());
+});
+
 it('says so and stops loading when the unblock call itself fails', async () => {
 	mockUnblock.mockRejectedValue(new Error('network'));
 	const onChange = jest.fn();
@@ -73,21 +87,4 @@ it('says so and stops loading when the block call itself fails', async () => {
 	await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Couldn’t block. Try again.', { duration: Infinity }));
 	expect(screen.getAllByRole('button', { name: 'Block' }).at(-1)).toBeEnabled();
 	expect(onChange).not.toHaveBeenCalled();
-});
-
-it('turns the same button into Unblock after blocking, so focus has somewhere to return', async () => {
-	mockBlock.mockResolvedValue({ ok: true, data: undefined });
-	function Stateful() {
-		const [isBlocked, setIsBlocked] = useState(false);
-		return <BlockButton userId="u1" username="bob" isBlocked={isBlocked} onChange={setIsBlocked} />;
-	}
-	render(<Stateful />);
-	const trigger = screen.getByRole('button', { name: 'Block' });
-
-	fireEvent.click(trigger);
-	await screen.findByText('Block @bob?');
-	fireEvent.click(screen.getAllByRole('button', { name: 'Block' }).at(-1)!);
-
-	await waitFor(() => expect(trigger).toHaveTextContent('Unblock'));
-	expect(trigger).toBeInTheDocument();
 });

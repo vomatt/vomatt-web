@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { BlockUserDialog } from '@/features/blocks/BlockUserDialog';
 import { unblockUser } from '@/features/blocks/service';
+import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
 
@@ -25,6 +26,8 @@ export default function BlockButton({
 	const { t } = useLanguage();
 	const [open, setOpen] = useState(false);
 	const [isPending, setIsPending] = useState(false);
+	// Blocking swaps the Block button for Unblock, so focus moves there instead of falling to the page
+	const [unblockButton, focusUnblock] = useFocusAfterRender<HTMLButtonElement>();
 
 	const unblock = async () => {
 		setIsPending(true);
@@ -37,18 +40,28 @@ export default function BlockButton({
 		toast.success(t('blocks.unblocked', { username }));
 	};
 
-	// One button for both states, so after a block the dialog returns focus to the same element, now Unblock
+	if (isBlocked) {
+		return (
+			<Button ref={unblockButton} variant="outline" size="sm" loading={isPending} onClick={unblock}>
+				{t('blocks.unblock')}
+			</Button>
+		);
+	}
+
 	return (
 		<>
-			<Button variant="outline" size="sm" loading={isPending} onClick={isBlocked ? unblock : () => setOpen(true)}>
-				{isBlocked ? t('blocks.unblock') : t('blocks.block')}
+			<Button variant="outline" size="sm" onClick={() => setOpen(true)}>
+				{t('blocks.block')}
 			</Button>
 			<BlockUserDialog
 				userId={userId}
 				username={username}
 				open={open}
 				onOpenChange={setOpen}
-				onBlocked={() => onChange(true)}
+				onBlocked={() => {
+					onChange(true);
+					focusUnblock();
+				}}
 			/>
 		</>
 	);

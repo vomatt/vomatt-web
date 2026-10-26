@@ -100,6 +100,17 @@ describe('CommentThread', () => {
 		expect(within(menu).getByRole('menuitem', { name: 'Block' })).toBeInTheDocument();
 	});
 
+	it('offers no block on a comment without a user ID', async () => {
+		service.getComments.mockResolvedValue({ ok: true, data: { items: [{ ...theirs, userId: null }], nextCursor: null } });
+		render(<Harness />);
+		await screen.findByText('Theirs');
+
+		const menu = await openMenu('Theirs');
+		expect(within(menu).getByRole('menuitem', { name: 'Copy text' })).toBeInTheDocument();
+		expect(within(menu).queryByRole('menuitem', { name: 'Block' })).not.toBeInTheDocument();
+		expect(within(menu).queryByRole('separator')).not.toBeInTheDocument();
+	});
+
 	it('likes optimistically and rolls back on failure', async () => {
 		service.likeComment.mockResolvedValue({ ok: false, message: 'nope' });
 		render(<Harness />);
@@ -338,18 +349,6 @@ describe('CommentThread', () => {
 		expect(service.getComments).toHaveBeenCalledTimes(1);
 	});
 
-	it('offers no Block for a comment without its author id', async () => {
-		service.getComments.mockResolvedValue({
-			ok: true,
-			data: { items: [mine, { ...theirs, userId: null }], nextCursor: null },
-		});
-		render(<Harness />);
-		await screen.findByText('Theirs');
-
-		const menu = await openMenu('Theirs');
-		expect(within(menu).queryByRole('menuitem', { name: 'Block' })).not.toBeInTheDocument();
-	});
-
 	it('lists a new reply after the older ones it loads first', async () => {
 		service.getComments.mockResolvedValue({
 			ok: true,
@@ -478,7 +477,7 @@ describe('useComments', () => {
 			await result.current.loadReplies('c3');
 		});
 
-		act(() => result.current.dropAuthor('mei'));
+		act(() => result.current.dropUser('other'));
 		expect(result.current.comments.map((c) => c.id)).toEqual(['c1']);
 		expect(result.current.comments[0].replyCount).toBe(1);
 		expect(result.current.replies.c1.items.map((c) => c.id)).toEqual(['r2']);
