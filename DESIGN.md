@@ -64,7 +64,7 @@ Use these. Don't copy their classes into a new element.
 | Status of a poll | `StatusChip` with `derivePollStatus(poll)` |
 | Other small pill (e.g. ballot outcome) | `chipClassName` from `features/polls/chip.ts` + a `bg-*` tint |
 | Empty list | the `empty-state` utility (dashed `surface-soft` box) |
-| Unread marker | `UnreadDot` with an `aria-label` |
+| Unread marker | `UnreadDot` with an `aria-label`, right after the name of what is unread: a tab's label, a list row's title (which goes `font-semibold`, with `NewMark` in its meta), a notification's first line (the row is already a card, so no bold title and no "new"), the top-trailing corner of an icon. Never a leading gutter and never the row's far edge: titles keep one left edge and chips one column whether a row is read or not |
 | A rule or promise (Tide) | `TidePanel` for a surface, `TideRules` + `TideRule icon={…}` for a list of rules |
 | The cast Ballot | `Seal` (in full once per cast, then a row) with `SealMark` |
 | Side card of polls (home rail) | `PollSideCard` with a heading key |

@@ -197,6 +197,18 @@ describe('OwnProfileView', () => {
 		expect(decided).toHaveTextContent('Your pick won');
 	});
 
+	it('puts the unread dot right after the title, not at either edge of the row', () => {
+		render(<OwnProfileView profile={me} polls={[{ ...mine, unread: true, endTime: '2020-01-01T00:00:00Z' }, voted]} />);
+		const askedTitle = screen.getByText('Poll m');
+		expect(askedTitle.previousElementSibling).toBeNull();
+		expect(askedTitle.nextElementSibling).toHaveTextContent('Unread');
+
+		fireEvent.click(screen.getByRole('tab', { name: /Voted/ }));
+		const votedTitle = screen.getByText('Poll v');
+		expect(votedTitle.previousElementSibling).toBeNull();
+		expect(votedTitle.nextElementSibling).toHaveTextContent('Unread');
+	});
+
 	it('counts unread results on the Voted tab', () => {
 		render(<OwnProfileView profile={me} polls={[voted]} />);
 		expect(screen.getByRole('tab', { name: /Voted/ })).toHaveTextContent('1 Unread');

@@ -181,6 +181,14 @@ function NotificationRow({ item, onOpen }: { item: Item; onOpen: (poll: Poll) =>
 	const isResult = item.kind === 'result' && !cancelled;
 	const strong = (text: string) => <strong className="font-semibold">{text}</strong>;
 	const title = <span className="font-medium">{poll.title}</span>;
+	// The dot trails the first line, as it trails a tab's label, so read and unread rows share one left edge.
+	// The word joiner keeps it on the line of the last word instead of wrapping alone to the left edge.
+	const lineDot = poll.unread && (
+		<>
+			{'⁠'}
+			<UnreadDot label={t('notifications.unread')} className="ml-2 align-middle" />
+		</>
+	);
 	const meta = (...parts: React.ReactNode[]) => (
 		<span className={cn('text-[12px] text-muted-foreground', isResult && poll.unread && 'text-tide-foreground')}>
 			{parts.filter(Boolean).map((part, i) => (
@@ -206,6 +214,7 @@ function NotificationRow({ item, onOpen }: { item: Item; onOpen: (poll: Poll) =>
 					<Link href={href} onClick={() => onOpen(poll)} className={rowLink}>
 						{title}
 					</Link>
+					{lineDot}
 				</span>
 				{meta(
 					t('notifications.inviteOnly'),
@@ -243,6 +252,7 @@ function NotificationRow({ item, onOpen }: { item: Item; onOpen: (poll: Poll) =>
 						),
 						name: `@${poll.creatorUsername}`,
 					})}
+					{lineDot}
 				</span>
 				{meta(poll.myOptionId && t('notifications.neverCounted'), ago)}
 			</>
@@ -257,6 +267,7 @@ function NotificationRow({ item, onOpen }: { item: Item; onOpen: (poll: Poll) =>
 					<Link href={href} onClick={() => onOpen(poll)} className={rowLink}>
 						{poll.title}
 					</Link>
+					{lineDot}
 				</span>
 				{meta(
 					endedSummary(poll).kind !== 'none' && <DecidedText poll={poll} />,
@@ -281,7 +292,6 @@ function NotificationRow({ item, onOpen }: { item: Item; onOpen: (poll: Poll) =>
 					: 'border-transparent hover:border-border hover:bg-card'
 			)}
 		>
-			{poll.unread ? <UnreadDot label={t('notifications.unread')} className="shrink-0" /> : <span aria-hidden className="w-2 shrink-0" />}
 			{icon}
 			<span className="flex min-w-0 flex-1 flex-col gap-0.5">{text}</span>
 			{aside}
