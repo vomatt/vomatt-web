@@ -9,8 +9,8 @@ import {
 	getAllMyPolls,
 	getComments,
 	getFeed,
-	getInviteOnlyCreator,
 	getInvitees,
+	getInviteOnlyCreator,
 	getMyBallot,
 	getMyPolls,
 	getPoll,
@@ -22,6 +22,7 @@ import {
 	likeComment,
 	postComment,
 	removeInvitee,
+	reportComment,
 	retractBallot,
 	unlikeComment,
 	updateComment,
@@ -654,5 +655,25 @@ describe('getInviteOnlyCreator()', () => {
 	it('returns null for an ID the API rejects, like getPoll does', async () => {
 		mockPublicFetch.mockRejectedValue(new ApiError('Bad request', 400, { errorCode: 'common.validation_failed' }));
 		expect(await getInviteOnlyCreator('abc')).toBeNull();
+	});
+});
+
+describe('reportComment()', () => {
+	it('sends POST to /votes/{voteId}/comments/{commentId}/report with the reason and note', async () => {
+		const result = await reportComment('vote-1', 'comment-1', { reason: 'SPAM', note: 'Links' });
+		expect(result.ok).toBe(true);
+		expect(mockApiClient).toHaveBeenCalledWith('/votes/vote-1/comments/comment-1/report', {
+			method: 'POST',
+			body: JSON.stringify({ reason: 'SPAM', note: 'Links' }),
+		});
+	});
+
+	it('returns the errorCode of reporting your own comment', async () => {
+		mockApiClient.mockRejectedValue(new ApiError('no', 400, { errorCode: 'comment.report.self' }));
+		expect(await reportComment('vote-1', 'comment-1', { reason: 'OTHER' })).toMatchObject({
+			ok: false,
+			status: 400,
+			errorCode: 'comment.report.self',
+		});
 	});
 });

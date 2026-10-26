@@ -7,10 +7,8 @@ import { Lock } from '@/components/ui/SvgIcons';
 import { TidePanel } from '@/components/ui/TidePanel';
 import { getUserSession } from '@/data/auth';
 import { NotificationList, NotificationsHeader } from '@/features/notifications/NotificationList';
+import { getNotifications } from '@/features/notifications/service';
 import { PollRowListSkeleton } from '@/features/polls/components/PollCardSkeleton';
-import { NOTIFICATIONS_PAGE_SIZE } from '@/features/polls/constants';
-import { getAllMyPolls, getMyPolls } from '@/features/polls/service';
-import { isInvitee } from '@/features/polls/status';
 
 export const metadata: Metadata = { title: 'Notifications' };
 
@@ -22,9 +20,8 @@ export default async function NotificationsPage() {
 		<div className="px-contain mx-auto flex max-w-[1000px] flex-col gap-10 py-6 md:py-10 xl:flex-row xl:items-start">
 			<div className="flex min-w-0 flex-1 flex-col gap-5 xl:max-w-[680px]">
 				<NotificationsHeader />
-				{/* Most Notifications are results, which carry no status chip */}
-				<Suspense fallback={<PollRowListSkeleton chip={false} />}>
-					<Notifications viewerId={user.sub} />
+								<Suspense fallback={<PollRowListSkeleton chip={false} />}>
+					<Notifications />
 				</Suspense>
 			</div>
 			<aside className="w-full xl:sticky xl:top-8 xl:w-[260px] xl:shrink-0">
@@ -42,16 +39,8 @@ export default async function NotificationsPage() {
 	);
 }
 
-/**
- * Invitations are the Scheduled and Open Invite-only Polls of someone else in
- * My Polls; Ended Notifications are the user's Ended Polls. Each says whether it's unread.
- */
-async function Notifications({ viewerId }: { viewerId: string }) {
-	const [open, firstPage] = await Promise.all([
-		// Every page: an Invitation can sort anywhere in the Open list
-		getAllMyPolls('open').catch(() => null),
-		getMyPolls('ended', null, NOTIFICATIONS_PAGE_SIZE).catch(() => null),
-	]);
-	const invitations = (open ?? []).filter((poll) => isInvitee(poll, viewerId));
-	return <NotificationList initialPage={firstPage} invitations={invitations} />;
+/** The feed's first page; the list says so when it couldn't load. */
+async function Notifications() {
+	const result = await getNotifications().catch(() => null);
+	return <NotificationList initialPage={result?.ok ? result.data : null} />;
 }

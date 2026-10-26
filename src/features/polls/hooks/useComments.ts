@@ -27,6 +27,15 @@ export type ReplyList = {
 
 const NO_REPLIES: ReplyList = { items: [], nextCursor: null, status: 'ready' };
 
+/** The Reply previews a page of Comments came with, as loaded lists that continue from `repliesNextCursor`. */
+function previewReplies(page: Comment[]): Record<string, ReplyList> {
+	const lists: Record<string, ReplyList> = {};
+	for (const { id, replies, repliesNextCursor } of page) {
+		if (replies?.length) lists[id] = { items: replies, nextCursor: repliesNextCursor ?? null, status: 'ready' };
+	}
+	return lists;
+}
+
 /** A deleted Comment that still has Replies stays as a placeholder. */
 function toPlaceholder(comment: Comment): Comment {
 	return { ...comment, deleted: true, author: null, text: null, userId: null };
@@ -58,7 +67,7 @@ export function useComments(
 		}
 		hasLoaded.current = true;
 		setComments(result.data.items);
-		setReplies({});
+		setReplies(previewReplies(result.data.items));
 		setNextCursor(result.data.nextCursor);
 		setStatus('ready');
 	}, []);
@@ -86,6 +95,7 @@ export function useComments(
 		setIsLoadingMore(false);
 		if (!result.ok) return;
 		setComments((prev) => mergeById(prev, result.data.items));
+		setReplies((prev) => ({ ...previewReplies(result.data.items), ...prev }));
 		setNextCursor(result.data.nextCursor);
 	}, [isLoadingMore, nextCursor, pollId]);
 

@@ -245,13 +245,17 @@
 		"notSet": "Not set",
 		"visibilitySavesHint": "Visibility changes save when you save.",
 		"notOpenYet": "Not open yet",
-		"visibilitySaveFailed": "Your details were saved, but who sees them wasn’t. Try again."
+		"visibilitySaveFailed": "Your details were saved, but who sees them wasn’t. Try again.",
+		"mutualFollowers": "Followers you follow",
+		"mutualFollowedBy": "Followed by {names}",
+		"mutualOthers": "Followed by {names} and {count} others you follow",
+		"mutualOthers_one": "Followed by {names} and {count} other you follow"
 	},
 	"notifications": {
 		"title": "Notifications",
 		"empty": "No notifications yet.",
 		"unread": "Unread",
-		"intro": "Results of polls you asked or voted in, and invitations to vote.",
+		"intro": "Results, invitations, new followers and comments.",
 		"markAllHint": "Opening a poll marks it read.",
 		"loadFailed": "Couldn’t load notifications.",
 		"ended": "Results are in",
@@ -270,7 +274,28 @@
 		"neverCounted": "Your vote was never counted",
 		"railTitle": "Opening a poll marks it read",
 		"railBody": "Results rows stay until you open them, so a sealed promise is never lost in the list.",
-		"markAllFailed": "Some notifications couldn’t be marked read. Try again."
+		"markAllFailed": "Some notifications couldn’t be marked read. Try again.",
+		"followedYou": "{name} followed you",
+		"followedYouOthers": "{name} and {count} others followed you",
+		"followedYouOthers_one": "{name} and {count} other followed you",
+		"commentedOn": "{name} commented on {title}",
+		"repliedOn": "{name} replied on {title}",
+		"closingSoon": "{title} closes soon",
+		"prefs": {
+			"resultsIn": "Results",
+			"resultsInBody": "When a poll you asked, voted in or are invited to ends or is cancelled.",
+			"invitations": "Invitations",
+			"invitationsBody": "When someone invites you to an Invite-only poll.",
+			"comments": "Comments",
+			"commentsBody": "Comments on your polls and replies to your comments.",
+			"closingSoon": "Closing soon",
+			"closingSoonBody": "Polls you haven’t voted in that end within 24 hours.",
+			"on": "{name} notifications on",
+			"off": "{name} notifications off",
+			"loadFailed": "Couldn’t load your notification settings.",
+			"saveFailed": "Couldn’t save that setting.",
+			"note": "New followers always show."
+		}
 	},
 	"pollCreator": {
 		"title": "New poll",
@@ -513,7 +538,22 @@
 		"copyFailed": "Couldn’t copy.",
 		"deleteBody": "This can’t be undone.",
 		"deleteBodyReply": "Its reply stays in the discussion under a deleted placeholder. This can’t be undone.",
-		"deleteBodyReplies": "Its {count} replies stay in the discussion under a deleted placeholder. This can’t be undone."
+		"deleteBodyReplies": "Its {count} replies stay in the discussion under a deleted placeholder. This can’t be undone.",
+		"report": "Report",
+		"reportTitle": "Report this comment",
+		"reportBody": "Moderators will review it. The author isn’t told.",
+		"reportReason": "Reason",
+		"reportNote": "Add details (optional)",
+		"reportSubmit": "Send report",
+		"reportFailed": "Couldn’t send your report. Try again.",
+		"reported": "Thanks, we’ll take a look.",
+		"reportReasons": {
+			"SPAM": "Spam",
+			"HARASSMENT": "Harassment",
+			"HATE": "Hate",
+			"MISINFORMATION": "Misinformation",
+			"OTHER": "Something else"
+		}
 	},
 	"account": {
 		"usernameLabel": "Username",
@@ -965,6 +1005,9 @@
 			"forbidden": "You can only modify your own comments",
 			"parent": {
 				"invalid": "The comment being replied to does not exist in this poll"
+			},
+			"report": {
+				"self": "You can’t report your own comment"
 			}
 		},
 		"notification": {
@@ -1035,7 +1078,9 @@
 		"following": "Following",
 		"listFailed": "Couldn’t load this list.",
 		"listEmptyFollowers": "No followers yet.",
-		"listEmptyFollowing": "Not following anyone yet."
+		"listEmptyFollowing": "Not following anyone yet.",
+		"followsYou": "Follows you",
+		"listEmptyMutual": "None of their followers are people you follow."
 	},
 	"settings": {
 		"voting": "Voting",

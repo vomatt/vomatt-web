@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/AlertDialog';
 import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { Ban, Copy, Ellipsis, Heart, Link2, Pencil, Reply, Trash2, X } from '@/components/ui/SvgIcons';
+import { Ban, Copy, Ellipsis, Flag, Heart, Link2, Pencil, Reply, Trash2, X } from '@/components/ui/SvgIcons';
 import { Textarea } from '@/components/ui/Textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
@@ -32,6 +32,7 @@ import type { CommentsState } from '../hooks/useComments';
 import type { Comment } from '../schema';
 import { CreateCommentRequestSchema } from '../schema';
 import { pollUrl } from '../url';
+import { ReportCommentDialog } from './ReportCommentDialog';
 
 const COMMENT_MAX = CreateCommentRequestSchema.shape.text.maxLength ?? 2000;
 // The counter shows once the text is this close to its limit
@@ -481,6 +482,7 @@ function CommentBody({
 	const [draft, setDraft] = useState('');
 	const [confirmingDelete, setConfirmingDelete] = useState(false);
 	const [confirmingBlock, setConfirmingBlock] = useState(false);
+	const [reporting, setReporting] = useState(false);
 	// The "…" button gets focus back once whatever the menu opened closes
 	const returnFocus = useRef(false);
 	const moreRef = useRef<HTMLButtonElement>(null);
@@ -683,6 +685,15 @@ function CommentBody({
 										<Link2 className="size-4" strokeWidth={1.8} />
 										{t('comments.copyLink')}
 									</Menu.Item>
+									{!isOwn && !isPending && (
+										<Menu.Item
+											className={menuItemClassName}
+											onClick={() => requireAuth(() => setReporting(true))}
+										>
+											<Flag className="size-4" strokeWidth={1.8} />
+											{t('comments.report')}
+										</Menu.Item>
+									)}
 									{(isOwn || blockUserId) && <Menu.Separator className="mx-1 my-1.5 h-px bg-border" />}
 									{isOwn ? (
 										<Menu.Item
@@ -734,6 +745,10 @@ function CommentBody({
 							</AlertDialogFooter>
 						</AlertDialogContent>
 					</AlertDialog>
+
+					{!isOwn && (
+						<ReportCommentDialog pollId={pollId} commentId={comment.id} open={reporting} onOpenChange={setReporting} />
+					)}
 
 					{blockUserId && (
 						<BlockUserDialog

@@ -237,13 +237,17 @@
 		"notSet": "未設定",
 		"visibilitySavesHint": "可見範圍會在儲存時一併更新。",
 		"notOpenYet": "尚未開放",
-		"visibilitySaveFailed": "資料已儲存，但可見範圍未能更新，請再試一次。"
+		"visibilitySaveFailed": "資料已儲存，但可見範圍未能更新，請再試一次。",
+		"mutualFollowers": "你追蹤的追蹤者",
+		"mutualFollowedBy": "{names} 追蹤了此用戶",
+		"mutualOthers": "{names} 與你追蹤的另外 {count} 人追蹤了此用戶",
+		"mutualOthers_one": "{names} 與你追蹤的另外 {count} 人追蹤了此用戶"
 	},
 	"notifications": {
 		"title": "通知",
 		"empty": "目前沒有通知。",
 		"unread": "未讀",
-		"intro": "你發起或參與的投票結果，以及投票邀請。",
+		"intro": "結果、邀請、新追蹤者與留言。",
 		"markAllHint": "打開投票即標為已讀。",
 		"loadFailed": "無法載入通知。",
 		"ended": "結果出爐",
@@ -262,7 +266,28 @@
 		"neverCounted": "你的選票未被計入",
 		"railTitle": "打開投票即標為已讀",
 		"railBody": "結果通知會保留到你打開為止，密封的承諾不會在列表中遺失。",
-		"markAllFailed": "部分通知無法標為已讀，請再試一次。"
+		"markAllFailed": "部分通知無法標為已讀，請再試一次。",
+		"followedYou": "{name} 追蹤了你",
+		"followedYouOthers": "{name} 與另外 {count} 人追蹤了你",
+		"followedYouOthers_one": "{name} 與另外 {count} 人追蹤了你",
+		"commentedOn": "{name} 在 {title} 留言",
+		"repliedOn": "{name} 在 {title} 回覆",
+		"closingSoon": "{title} 即將截止",
+		"prefs": {
+			"resultsIn": "結果",
+			"resultsInBody": "你發起、投票或受邀的投票結束或取消時。",
+			"invitations": "邀請",
+			"invitationsBody": "有人邀請你參加邀請制投票時。",
+			"comments": "留言",
+			"commentsBody": "你的投票收到留言，或你的留言收到回覆時。",
+			"closingSoon": "即將截止",
+			"closingSoonBody": "你尚未投票、24 小時內截止的投票。",
+			"on": "已開啟{name}通知",
+			"off": "已關閉{name}通知",
+			"loadFailed": "無法載入通知設定。",
+			"saveFailed": "無法儲存此設定。",
+			"note": "新追蹤者一律會顯示。"
+		}
 	},
 	"pollCreator": {
 		"title": "新的投票",
@@ -505,7 +530,22 @@
 		"copyFailed": "無法複製。",
 		"deleteBody": "此操作無法復原。",
 		"deleteBodyReply": "它的 1 則回覆會留在討論中，顯示為已刪除的留言。此操作無法復原。",
-		"deleteBodyReplies": "它的 {count} 則回覆會留在討論中，顯示為已刪除的留言。此操作無法復原。"
+		"deleteBodyReplies": "它的 {count} 則回覆會留在討論中，顯示為已刪除的留言。此操作無法復原。",
+		"report": "檢舉",
+		"reportTitle": "檢舉這則留言",
+		"reportBody": "管理員會審核。作者不會收到通知。",
+		"reportReason": "原因",
+		"reportNote": "補充說明（選填）",
+		"reportSubmit": "送出檢舉",
+		"reportFailed": "無法送出檢舉，請再試一次。",
+		"reported": "謝謝，我們會處理。",
+		"reportReasons": {
+			"SPAM": "垃圾訊息",
+			"HARASSMENT": "騷擾",
+			"HATE": "仇恨言論",
+			"MISINFORMATION": "不實資訊",
+			"OTHER": "其他"
+		}
 	},
 	"account": {
 		"usernameLabel": "使用者名稱",
@@ -955,6 +995,9 @@
 			"forbidden": "只能修改或刪除自己的留言",
 			"parent": {
 				"invalid": "要回覆的留言不存在或不屬於此投票"
+			},
+			"report": {
+				"self": "不能檢舉自己的留言"
 			}
 		},
 		"notification": {
@@ -1025,7 +1068,9 @@
 		"following": "追蹤中",
 		"listFailed": "無法載入名單。",
 		"listEmptyFollowers": "還沒有追蹤者。",
-		"listEmptyFollowing": "尚未追蹤任何人。"
+		"listEmptyFollowing": "尚未追蹤任何人。",
+		"followsYou": "追蹤你",
+		"listEmptyMutual": "他們的追蹤者中沒有你追蹤的人。"
 	},
 	"settings": {
 		"voting": "投票",

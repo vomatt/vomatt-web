@@ -8,13 +8,19 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserChip } from '@/features/profiles/UserChip';
 import { mergeById } from '@/lib/api/cursor';
-import type { UserDto } from '@/schemas/user';
+import type { FollowUserDto } from '@/schemas/user';
 
-import { getFollowers, getFollowing } from './service';
+import { getFollowers, getFollowing, getMutualFollowers } from './service';
 
-export type FollowList = 'followers' | 'following';
+export type FollowList = 'followers' | 'following' | 'mutual';
 
-const loaders = { followers: getFollowers, following: getFollowing };
+const loaders = { followers: getFollowers, following: getFollowing, mutual: getMutualFollowers };
+const titles = { followers: 'profile.followers', following: 'profile.following', mutual: 'profile.mutualFollowers' };
+const empties = {
+	followers: 'follows.listEmptyFollowers',
+	following: 'follows.listEmptyFollowing',
+	mutual: 'follows.listEmptyMutual',
+};
 
 /** A person's followers or the people they follow; each name opens the hover card, which carries Follow. */
 export function FollowListDialog({
@@ -33,7 +39,7 @@ export function FollowListDialog({
 		<Dialog open={list !== null} onOpenChange={onOpenChange}>
 			<DialogContent className="sm:max-w-md" closeLabel={t('common.close')}>
 				<DialogHeader>
-					<DialogTitle>{t(list === 'following' ? 'profile.following' : 'profile.followers')}</DialogTitle>
+					<DialogTitle>{list && t(titles[list])}</DialogTitle>
 				</DialogHeader>
 				{/* Keyed so switching lists starts from the first page */}
 				{list && <People key={list} username={username} list={list} />}
@@ -44,7 +50,7 @@ export function FollowListDialog({
 
 function People({ username, list }: { username: string; list: FollowList }) {
 	const { t } = useLanguage();
-	const [users, setUsers] = useState<UserDto[] | null>(null);
+	const [users, setUsers] = useState<FollowUserDto[] | null>(null);
 	const [nextCursor, setNextCursor] = useState<string | null>(null);
 	const [failed, setFailed] = useState(false);
 	const [loading, setLoading] = useState(false);
@@ -89,7 +95,7 @@ function People({ username, list }: { username: string; list: FollowList }) {
 		);
 	}
 	if (users.length === 0) {
-		return <p className="empty-state">{t(list === 'following' ? 'follows.listEmptyFollowing' : 'follows.listEmptyFollowers')}</p>;
+		return <p className="empty-state">{t(empties[list])}</p>;
 	}
 
 	return (
@@ -106,6 +112,11 @@ function People({ username, list }: { username: string; list: FollowList }) {
 						/>
 						{user.displayName && (
 							<span className="truncate font-mono text-[12px] text-muted-foreground">@{user.username}</span>
+						)}
+						{user.followsYou && (
+							<span className="ml-auto shrink-0 rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+								{t('follows.followsYou')}
+							</span>
 						)}
 					</li>
 				))}

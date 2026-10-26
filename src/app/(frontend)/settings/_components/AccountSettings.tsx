@@ -27,6 +27,7 @@ import { isFieldPublic, VISIBILITY_FIELDS } from '@/features/account/visibility'
 import { BlockedUsersPanel } from '@/features/blocks/BlockedUsersPanel';
 import { FollowedUsersPanel } from '@/features/follows/FollowedUsersPanel';
 import { GroupsPanel } from '@/features/groups/GroupsPanel';
+import { NotificationPreferencesPanel } from '@/features/notifications/NotificationPreferencesPanel';
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
 import { useHydrated } from '@/hooks/useHydrated';
 import { SUPPORTED_LANGUAGES } from '@/i18n-config';
@@ -39,7 +40,7 @@ import type { LanguageCode } from '@/types';
 import type { MyProfile } from '@/types/user';
 
 /** The page's sections, in order; the On this page list links to each. */
-export const SETTINGS_SECTIONS = ['voting', 'appearance', 'privacy', 'account'] as const;
+export const SETTINGS_SECTIONS = ['voting', 'notifications', 'appearance', 'privacy', 'account'] as const;
 
 const rowClassName = 'flex min-h-15 items-center gap-4 px-4.5 py-3';
 const rowLinkClassName = cn(
@@ -133,7 +134,11 @@ export default function AccountSettings({ profile }: { profile: MyProfile }) {
 				</Dialog>
 			</Section>
 
-			<Section id="appearance" title={t('navigation.appearance')}>
+			<Section id="notifications" title={t('notifications.title')}>
+				<NotificationPreferencesPanel />
+			</Section>
+
+			<Section id="appearance"title={t('navigation.appearance')}>
 				<Card>
 					<div className={cn(rowClassName, 'flex-wrap')}>
 						<RowText title={t('settings.theme')} body={t('settings.themeBody')} />
@@ -362,6 +367,7 @@ function DeleteAccount({ username }: { username: string }) {
 
 const SECTION_TITLES: Record<(typeof SETTINGS_SECTIONS)[number], string> = {
 	voting: 'settings.voting',
+	notifications: 'notifications.title',
 	appearance: 'navigation.appearance',
 	privacy: 'settings.privacy',
 	account: 'settings.account',

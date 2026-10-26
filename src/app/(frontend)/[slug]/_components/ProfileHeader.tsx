@@ -10,6 +10,7 @@ import type { FollowList } from '@/features/follows/FollowListDialog';
 import { Count } from '@/features/profiles/Count';
 import { profileDetails } from '@/features/profiles/details';
 import { countText } from '@/lib/count';
+import { toPayloadLocale } from '@/lib/locale';
 import { cn } from '@/lib/utils';
 import type { UserProfile } from '@/types/user';
 
@@ -25,6 +26,9 @@ type HeaderProfile = Pick<
 	| 'membershipLevel'
 	| 'followersCount'
 	| 'followingCount'
+	| 'followsYou'
+	| 'mutualFollowersCount'
+	| 'mutualFollowersPreview'
 >;
 
 const detailLink =
@@ -79,6 +83,17 @@ export default function ProfileHeader({
 		</button>
 	);
 
+	// "Followed by @a, @b and 2 others you follow"
+	const mutualText = (count: number, preview: NonNullable<HeaderProfile['mutualFollowersPreview']>) => {
+		const names = preview.map((user) => `@${user.username}`).join(', ');
+		const others = count - preview.length;
+		if (others <= 0) return t('profile.mutualFollowedBy', { names });
+		return t(others === 1 ? 'profile.mutualOthers_one' : 'profile.mutualOthers', {
+			names,
+			count: others.toLocaleString(toPayloadLocale(currentLanguage)),
+		});
+	};
+
 	return (
 		<header className="flex flex-wrap items-start gap-5">
 			{isOwn ? (
@@ -91,13 +106,29 @@ export default function ProfileHeader({
 					{name}
 					{isHidden('displayName') && <OnlyYouMarker className="ml-2 size-4 align-baseline" />}
 				</h1>
-				<p className="wrap-anywhere font-mono text-[14px] text-muted-foreground">@{profile.username}</p>
+				<p className="wrap-anywhere font-mono text-[14px] text-muted-foreground">
+					@{profile.username}
+					{profile.followsYou && (
+						<span className="ml-2 rounded-full bg-secondary px-2 py-0.5 align-middle font-sans text-[11px] font-medium">
+							{t('follows.followsYou')}
+						</span>
+					)}
+				</p>
 				{profile.bio && (
 					// Capped measure (~68 characters); Geist's wide 0 makes `ch` overshoot, so the cap is in rem
 					<p className="mt-2.5 max-w-[30rem] wrap-anywhere whitespace-pre-line text-[14px]">
 						{profile.bio}
 						{isHidden('bio') && <OnlyYouMarker className="ml-1.5 size-3.5 align-[-0.125em]" />}
 					</p>
+				)}
+				{onOpenList && !!profile.mutualFollowersCount && (
+					<button
+						type="button"
+						onClick={() => onOpenList('mutual')}
+						className={cn(detailLink, 'mt-2.5 block text-left text-[12px] text-muted-foreground')}
+					>
+						{mutualText(profile.mutualFollowersCount, profile.mutualFollowersPreview ?? [])}
+					</button>
 				)}
 				{/* Items set apart by space and kept whole when they wrap */}
 				<div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-muted-foreground">

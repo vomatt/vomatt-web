@@ -2,15 +2,21 @@
 
 import { z } from 'zod';
 
+import type { ActionResult } from '@/lib/api/action';
+import { attempt } from '@/lib/api/action';
 import { apiClient, ApiError, AuthError } from '@/lib/api/client';
+import { type CursorPage, cursorPageSchema, pageParams } from '@/lib/api/cursor';
+
+import {
+	type Notification,
+	type NotificationPreferences,
+	NotificationPreferencesSchema,
+	NotificationSchema,
+} from './schema';
 
 const UnreadCountSchema = z.object({ count: z.number().int() });
 
-/**
- * Unread Invitations (to Scheduled or Open Invite-only Polls) plus unread
- * Ended Notifications; null once the session is gone. Each Poll in
- * `getMyPolls` carries its own `unread`.
- */
+/** Unread items of the feed, of the kinds switched on; null once the session is gone. */
 export async function getUnreadCount(): Promise<number | null> {
 	try {
 		return UnreadCountSchema.parse(await apiClient('/notifications/unread-count')).count;
@@ -24,9 +30,9 @@ export async function getUnreadCount(): Promise<number | null> {
 const NOTHING_TO_READ = ['notification.not_found', 'vote.not_found'];
 
 /** Reads one notification; false when the request failed (nothing to read counts as done). */
-async function readNotification(pollId: string): Promise<boolean> {
+async function readNotification(id: string): Promise<boolean> {
 	try {
-		await apiClient(`/notifications/${encodeURIComponent(pollId)}/read`, { method: 'POST' });
+		await apiClient(`/notifications/${encodeURIComponent(id)}/read`, { method: 'POST' });
 		return true;
 	} catch (error) {
 		if (error instanceof ApiError && NOTHING_TO_READ.includes(error.data?.errorCode)) return true;
@@ -36,18 +42,38 @@ async function readNotification(pollId: string): Promise<boolean> {
 }
 
 /**
- * Marks the Poll's current notification read: the Invitation, or the Ended
- * Notification once it has Ended. Idempotent; nothing to read is ignored.
+ * Marks a notification read by its feed `id`, or by a Poll id (deprecated, but it is how
+ * viewing a Poll reads its Invitation or Result). Idempotent; nothing to read is ignored.
  */
-export async function markNotificationRead(pollId: string): Promise<void> {
-	await readNotification(pollId);
+export async function markNotificationRead(id: string): Promise<void> {
+	await readNotification(id);
 }
 
-/**
- * Mark all read in one round trip (the API has no read-all yet). Returns the
- * Poll ids whose notification is now read, so the caller clears only those.
- */
-export async function markNotificationsRead(pollIds: string[]): Promise<string[]> {
-	const done = await Promise.all(pollIds.map(readNotification));
-	return pollIds.filter((_, i) => done[i]);
+const NotificationPage = cursorPageSchema(NotificationSchema);
+
+/** The caller's notifications, newest first. Derived when read, so an item can vanish between pages. */
+export async function getNotifications(cursor?: string | null): Promise<ActionResult<CursorPage<Notification>>> {
+	return attempt(async () => NotificationPage.parse(await apiClient(`/notifications?${pageParams(cursor, 20)}`)));
+}
+
+/** Reads everything up to now; later notifications arrive unread. */
+export async function markAllNotificationsRead(): Promise<ActionResult> {
+	return attempt(async () => {
+		await apiClient('/notifications/read-all', { method: 'POST' });
+	});
+}
+
+export async function getNotificationPreferences(): Promise<ActionResult<NotificationPreferences>> {
+	return attempt(async () => NotificationPreferencesSchema.parse(await apiClient('/users/me/notification-preferences')));
+}
+
+/** Sets the switches sent and returns all four. */
+export async function updateNotificationPreferences(
+	changes: Partial<NotificationPreferences>
+): Promise<ActionResult<NotificationPreferences>> {
+	return attempt(async () =>
+		NotificationPreferencesSchema.parse(
+			await apiClient('/users/me/notification-preferences', { method: 'PATCH', body: JSON.stringify(changes) })
+		)
+	);
 }

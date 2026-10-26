@@ -11,12 +11,17 @@ export interface UserProfile {
 	points?: number | null;
 	membershipLevel?: string | null;
 	avatarUrl: string | null; // `bot:<kind>`; older accounts may hold an image URL
-	// Not sent yet (see docs/release/api-integration-notes.md, round 3); the UI shows each once it arrives
 	followersCount?: number;
 	followingCount?: number;
 	/** Whether the viewer follows / has blocked this user; null when signed out, false on their own profile. */
 	isFollowing: boolean | null;
 	isBlocked: boolean | null;
+	/** Whether this user follows the viewer; null when signed out, false on their own profile. */
+	followsYou?: boolean | null;
+	/** Followers of this user whom the viewer follows; null when signed out and on their own profile. */
+	mutualFollowersCount?: number | null;
+	/** The first 3 of them. */
+	mutualFollowersPreview?: { id: string; username: string; displayName?: string | null; avatarUrl?: string | null }[] | null;
 }
 
 /** Response from GET /users/me — the authenticated user's own profile. */

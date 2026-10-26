@@ -23,6 +23,12 @@ jest.mock('@/features/follows/service', () => ({
 	getFollowedUsers: jest.fn().mockResolvedValue({ ok: true, data: { items: [], nextCursor: null } }),
 	unfollowUser: jest.fn(),
 }));
+jest.mock('@/features/notifications/service', () => ({
+	getNotificationPreferences: jest
+		.fn()
+		.mockResolvedValue({ ok: true, data: { resultsIn: true, invitations: true, comments: true, closingSoon: false } }),
+	updateNotificationPreferences: jest.fn(),
+}));
 jest.mock('@/lib/api/services/users', () => ({
 	deleteMyAccount: jest.fn(),
 	editProfile: jest.fn(),

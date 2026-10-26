@@ -48,6 +48,80 @@
       }
     },
     "schemas" : {
+      "AdminCommentReportResponse" : {
+        "description" : "A user's report of a Comment or Reply, with the Comment as it is now (deleted ones keep author and text)",
+        "properties" : {
+          "authorId" : {
+            "description" : "Comment author's user ID",
+            "example" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d47",
+            "type" : "string"
+          },
+          "authorUsername" : {
+            "description" : "Comment author's username",
+            "example" : "troll",
+            "type" : "string"
+          },
+          "commentDeleted" : {
+            "description" : "Whether the Comment has since been deleted",
+            "example" : false,
+            "type" : "boolean"
+          },
+          "commentId" : {
+            "description" : "Reported Comment ID",
+            "example" : "0199f3b1-2c4d-7e5f-8a9b-0c1d2e3f4a5b",
+            "type" : "string"
+          },
+          "commentText" : {
+            "description" : "Comment text, also when deleted",
+            "example" : "You are an idiot.",
+            "type" : "string"
+          },
+          "createdAt" : {
+            "description" : "When it was reported",
+            "example" : "2026-10-26T10:00:00+08:00",
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "id" : {
+            "description" : "Report ID (UUIDv7)",
+            "example" : "0199f4c2-1a2b-7c3d-8e4f-5a6b7c8d9e0f",
+            "type" : "string"
+          },
+          "note" : {
+            "description" : "Reporter's note; null when none was given",
+            "example" : "Insults me in every thread.",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "parentId" : {
+            "description" : "Top-level Comment the reported Reply belongs to; null for a top-level Comment",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "reason" : {
+            "description" : "Reason given",
+            "enum" : [ "SPAM", "HARASSMENT", "HATE", "MISINFORMATION", "OTHER" ],
+            "example" : "HARASSMENT",
+            "type" : "string"
+          },
+          "reporterId" : {
+            "description" : "Reporter's user ID",
+            "example" : "0199c1a2-9e4f-7a21-8c3d-1b2a3c4d5e6f",
+            "type" : "string"
+          },
+          "reporterUsername" : {
+            "description" : "Reporter's username",
+            "example" : "alice",
+            "type" : "string"
+          },
+          "voteId" : {
+            "description" : "Poll the Comment belongs to",
+            "example" : "0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05",
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
       "AdminCommentResponse" : {
         "description" : "A Comment or Reply as seen in the back office; deleted ones keep their author and text",
         "properties" : {
@@ -706,6 +780,70 @@
         },
         "type" : "object"
       },
+      "ApiResponseCursorResponseFollowUserDto" : {
+        "description" : "Envelope of every API response, success or error",
+        "properties" : {
+          "data" : {
+            "$ref" : "#/components/schemas/CursorResponseFollowUserDto"
+          },
+          "error" : {
+            "description" : "Legacy duplicate of `message` on errors; null on success. Use `message` instead",
+            "example" : "Poll not found",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "errorCode" : {
+            "description" : "Stable machine-readable error code (lowercase, dot-separated); branch on this, not on `message`. Null on success",
+            "example" : "vote.not_found",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "message" : {
+            "description" : "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",
+            "example" : "Operation completed",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "success" : {
+            "description" : "true on success, false on error",
+            "example" : true,
+            "type" : "boolean"
+          }
+        },
+        "type" : "object"
+      },
+      "ApiResponseCursorResponseNotificationResponse" : {
+        "description" : "Envelope of every API response, success or error",
+        "properties" : {
+          "data" : {
+            "$ref" : "#/components/schemas/CursorResponseNotificationResponse"
+          },
+          "error" : {
+            "description" : "Legacy duplicate of `message` on errors; null on success. Use `message` instead",
+            "example" : "Poll not found",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "errorCode" : {
+            "description" : "Stable machine-readable error code (lowercase, dot-separated); branch on this, not on `message`. Null on success",
+            "example" : "vote.not_found",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "message" : {
+            "description" : "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",
+            "example" : "Operation completed",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "success" : {
+            "description" : "true on success, false on error",
+            "example" : true,
+            "type" : "boolean"
+          }
+        },
+        "type" : "object"
+      },
       "ApiResponseCursorResponseTagDto" : {
         "description" : "Envelope of every API response, success or error",
         "properties" : {
@@ -1169,6 +1307,70 @@
         "properties" : {
           "data" : {
             "$ref" : "#/components/schemas/MyProfileResponse"
+          },
+          "error" : {
+            "description" : "Legacy duplicate of `message` on errors; null on success. Use `message` instead",
+            "example" : "Poll not found",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "errorCode" : {
+            "description" : "Stable machine-readable error code (lowercase, dot-separated); branch on this, not on `message`. Null on success",
+            "example" : "vote.not_found",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "message" : {
+            "description" : "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",
+            "example" : "Operation completed",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "success" : {
+            "description" : "true on success, false on error",
+            "example" : true,
+            "type" : "boolean"
+          }
+        },
+        "type" : "object"
+      },
+      "ApiResponseNotificationPreferencesResponse" : {
+        "description" : "Envelope of every API response, success or error",
+        "properties" : {
+          "data" : {
+            "$ref" : "#/components/schemas/NotificationPreferencesResponse"
+          },
+          "error" : {
+            "description" : "Legacy duplicate of `message` on errors; null on success. Use `message` instead",
+            "example" : "Poll not found",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "errorCode" : {
+            "description" : "Stable machine-readable error code (lowercase, dot-separated); branch on this, not on `message`. Null on success",
+            "example" : "vote.not_found",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "message" : {
+            "description" : "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",
+            "example" : "Operation completed",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "success" : {
+            "description" : "true on success, false on error",
+            "example" : true,
+            "type" : "boolean"
+          }
+        },
+        "type" : "object"
+      },
+      "ApiResponsePageResponseAdminCommentReportResponse" : {
+        "description" : "Envelope of every API response, success or error",
+        "properties" : {
+          "data" : {
+            "$ref" : "#/components/schemas/PageResponseAdminCommentReportResponse"
           },
           "error" : {
             "description" : "Legacy duplicate of `message` on errors; null on success. Use `message` instead",
@@ -1928,6 +2130,19 @@
             "nullable" : true,
             "type" : "string"
           },
+          "replies" : {
+            "description" : "First Replies under this Comment, oldest first, at most 2, filtered like the Reply list. Only filled on top-level Comments in the Poll's Comment list; [] on Replies and on responses of create / update",
+            "items" : {
+              "$ref" : "#/components/schemas/CommentDto"
+            },
+            "type" : "array"
+          },
+          "repliesNextCursor" : {
+            "description" : "Cursor for `GET /api/votes/{voteId}/comments/{commentId}/replies` that continues right after the last of `replies`, so no Reply is listed twice. Null when `replies` holds every Reply (replyCount equals its length)",
+            "example" : "UkVQTElFU3wwMTk5YzNhMi03YjFlLTdjNGQtOWExMC0zZjVlOGQyYjZhNDF8MjAyNi0xMC0wOVQwNDozNDo1Nlo",
+            "nullable" : true,
+            "type" : "string"
+          },
           "replyCount" : {
             "description" : "Number of non-deleted Replies. Only filled on top-level Comments in the Poll's Comment list; 0 on Replies and on responses of create / update",
             "example" : 2,
@@ -1977,6 +2192,29 @@
           "voteId" : {
             "description" : "Poll the Comment belongs to",
             "example" : "0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05",
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
+      "CommentSummary" : {
+        "description" : "A Comment or Reply a notification is about",
+        "nullable" : true,
+        "properties" : {
+          "excerpt" : {
+            "description" : "Start of the text, whitespace collapsed, at most 120 characters plus an ellipsis",
+            "example" : "Tonkotsu at Nagi, and it is not close",
+            "type" : "string"
+          },
+          "id" : {
+            "description" : "Comment id",
+            "example" : "0199f2a5-1c2d-7e3f-8a4b-5c6d7e8f9a0b",
+            "type" : "string"
+          },
+          "parentId" : {
+            "description" : "For a Reply, the id of the Comment it is under (link it as `<parentId>/<id>`); null for a top-level Comment",
+            "example" : "0199f2a4-ff01-7a2b-9c3d-4e5f6a7b8c9d",
+            "nullable" : true,
             "type" : "string"
           }
         },
@@ -2265,6 +2503,46 @@
         },
         "type" : "object"
       },
+      "CursorResponseFollowUserDto" : {
+        "description" : "Cursor-paged list container; pass `nextCursor` back as `cursor` to fetch the next page",
+        "nullable" : true,
+        "properties" : {
+          "items" : {
+            "description" : "Items of this page",
+            "items" : {
+              "$ref" : "#/components/schemas/FollowUserDto"
+            },
+            "type" : "array"
+          },
+          "nextCursor" : {
+            "description" : "Opaque cursor of the next page; null when this is the last page",
+            "example" : "MDE5OWMzYTItN2I1ZS03YzFkLTlhNGYtM2UyYjFkNWM2ZjcwfDQy",
+            "nullable" : true,
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
+      "CursorResponseNotificationResponse" : {
+        "description" : "Cursor-paged list container; pass `nextCursor` back as `cursor` to fetch the next page",
+        "nullable" : true,
+        "properties" : {
+          "items" : {
+            "description" : "Items of this page",
+            "items" : {
+              "$ref" : "#/components/schemas/NotificationResponse"
+            },
+            "type" : "array"
+          },
+          "nextCursor" : {
+            "description" : "Opaque cursor of the next page; null when this is the last page",
+            "example" : "MDE5OWMzYTItN2I1ZS03YzFkLTlhNGYtM2UyYjFkNWM2ZjcwfDQy",
+            "nullable" : true,
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
       "CursorResponseTagDto" : {
         "description" : "Cursor-paged list container; pass `nextCursor` back as `cursor` to fetch the next page",
         "nullable" : true,
@@ -2385,6 +2663,45 @@
           },
           "id" : {
             "example" : "0199c3a2-7b5e-7c1d-9a4f-3e2b1d5c6f70",
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
+      "FollowUserDto" : {
+        "description" : "Follower or following list item: public profile fields, masked by the owner's visibility settings, plus the caller's relation to the user",
+        "nullable" : true,
+        "properties" : {
+          "avatarUrl" : {
+            "description" : "Avatar as `bot:<kind>` (the bot cast). Older accounts may hold an image URL; null if never set",
+            "example" : "bot:boba",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "displayName" : {
+            "description" : "Display name; null if the owner hid it (public by default) or never set one",
+            "example" : "Alice",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "followsYou" : {
+            "description" : "Whether this user follows the caller; false for the caller's own entry",
+            "example" : false,
+            "type" : "boolean"
+          },
+          "id" : {
+            "description" : "User id (UUIDv7)",
+            "example" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d47",
+            "type" : "string"
+          },
+          "isFollowing" : {
+            "description" : "Whether the caller follows this user; false for the caller's own entry",
+            "example" : true,
+            "type" : "boolean"
+          },
+          "username" : {
+            "description" : "Unique username",
+            "example" : "alice",
             "type" : "string"
           }
         },
@@ -2746,6 +3063,18 @@
             "nullable" : true,
             "type" : "string"
           },
+          "followersCount" : {
+            "description" : "Number of users following the caller; suspended accounts are not counted",
+            "example" : 12,
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "followingCount" : {
+            "description" : "Number of users the caller follows; suspended accounts are not counted",
+            "example" : 8,
+            "format" : "int32",
+            "type" : "integer"
+          },
           "id" : {
             "description" : "User id (UUIDv7)",
             "example" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d47",
@@ -2824,6 +3153,102 @@
               "email" : false
             },
             "type" : "object"
+          }
+        },
+        "type" : "object"
+      },
+      "NotificationPreferencesResponse" : {
+        "description" : "Which notification kinds appear in the feed and the unread count. FOLLOWED has no switch",
+        "nullable" : true,
+        "properties" : {
+          "closingSoon" : {
+            "description" : "CLOSING_SOON; default false",
+            "example" : false,
+            "type" : "boolean"
+          },
+          "comments" : {
+            "description" : "COMMENT; default true",
+            "example" : true,
+            "type" : "boolean"
+          },
+          "invitations" : {
+            "description" : "INVITATION; default true",
+            "example" : true,
+            "type" : "boolean"
+          },
+          "resultsIn" : {
+            "description" : "RESULT and CANCELLED; default true",
+            "example" : true,
+            "type" : "boolean"
+          }
+        },
+        "type" : "object"
+      },
+      "NotificationResponse" : {
+        "description" : "One notification of the feed. Which of `actor`, `poll` and `comment` are set depends on `kind`: RESULT has `poll`; CANCELLED, INVITATION and CLOSING_SOON have `actor` (the Poll's owner) and `poll`; FOLLOWED has `actor` (the new follower); COMMENT has `actor` (the author), `poll` and `comment`",
+        "properties" : {
+          "actor" : {
+            "$ref" : "#/components/schemas/FollowUserDto"
+          },
+          "comment" : {
+            "$ref" : "#/components/schemas/CommentSummary"
+          },
+          "createdAt" : {
+            "description" : "When it happened: the Poll's end (RESULT, CANCELLED), the Invitation, the follow, the Comment, or 24 hours before the Poll's end (CLOSING_SOON; the Poll's start if later). The feed is ordered by it, newest first",
+            "example" : "2026-10-26T09:30:00+08:00",
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "id" : {
+            "description" : "Notification id, opaque; pass it to `POST /api/notifications/{id}/read`",
+            "example" : "comment_0199f2a5-1c2d-7e3f-8a4b-5c6d7e8f9a0b",
+            "type" : "string"
+          },
+          "kind" : {
+            "description" : "RESULT: a Poll you own, hold a Ballot in or are invited to has Ended. CANCELLED: an Invite-only Poll you are invited to was Cancelled before it opened. INVITATION: you are invited to a Scheduled or Open Invite-only Poll (replaced by RESULT once it Ends). FOLLOWED: someone followed you. COMMENT: someone commented on your Poll or replied to your Comment. CLOSING_SOON: a Poll you are invited to, or a Public Poll of someone you follow, ends within 24 hours and you hold no Ballot in it",
+            "enum" : [ "RESULT", "CANCELLED", "INVITATION", "FOLLOWED", "COMMENT", "CLOSING_SOON" ],
+            "example" : "COMMENT",
+            "type" : "string"
+          },
+          "poll" : {
+            "$ref" : "#/components/schemas/PollSummary"
+          },
+          "read" : {
+            "description" : "Whether you marked it read, one by one or with read-all",
+            "example" : false,
+            "type" : "boolean"
+          }
+        },
+        "type" : "object"
+      },
+      "PageResponseAdminCommentReportResponse" : {
+        "description" : "Offset-style page container (page number and total count); most list endpoints use CursorResponse instead",
+        "nullable" : true,
+        "properties" : {
+          "content" : {
+            "description" : "Items of this page",
+            "items" : {
+              "$ref" : "#/components/schemas/AdminCommentReportResponse"
+            },
+            "type" : "array"
+          },
+          "limit" : {
+            "description" : "Page size",
+            "example" : 20,
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "page" : {
+            "description" : "Current page number (1-based)",
+            "example" : 1,
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "total" : {
+            "description" : "Total number of items across all pages",
+            "example" : 123,
+            "format" : "int64",
+            "type" : "integer"
           }
         },
         "type" : "object"
@@ -3108,6 +3533,77 @@
         },
         "type" : "object"
       },
+      "PollSummary" : {
+        "description" : "The Poll a notification is about. Carries no per-option counts; the outcome fields are null until the Poll has Ended, so Sealed results stay hidden",
+        "nullable" : true,
+        "properties" : {
+          "endTime" : {
+            "description" : "When the Poll Ends (or Ended)",
+            "example" : "2026-10-26T18:00:00+08:00",
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "id" : {
+            "description" : "Poll id",
+            "example" : "0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05",
+            "type" : "string"
+          },
+          "myOptionId" : {
+            "description" : "Option of the caller's Ballot; null without a Ballot, or once an Anonymous Ballot of an Ended Poll is sealed",
+            "example" : "0199f2a4-8d11-7c3e-b0a4-5e29c7d6f813",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "startTime" : {
+            "description" : "When the Poll opens (or opened)",
+            "example" : "2026-10-20T09:00:00+08:00",
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "status" : {
+            "description" : "Poll status now",
+            "enum" : [ "SCHEDULED", "OPEN", "ENDED" ],
+            "example" : "OPEN",
+            "type" : "string"
+          },
+          "tie" : {
+            "description" : "Ended only: whether more than one option shares the most Ballots. Null until the Poll has Ended",
+            "example" : false,
+            "nullable" : true,
+            "type" : "boolean"
+          },
+          "title" : {
+            "description" : "Poll title",
+            "example" : "Best ramen in Taipei?",
+            "type" : "string"
+          },
+          "turnout" : {
+            "description" : "Turnout: number of Participants, visible at all times",
+            "example" : 342,
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "winningOptionIds" : {
+            "description" : "Ended only: ids of the option(s) with the most Ballots, in display order; more than one is a tie, empty when no Ballot named an option. Null until the Poll has Ended",
+            "items" : {
+              "example" : "0199f2a4-8d11-7c3e-b0a4-5e29c7d6f813",
+              "type" : "string"
+            },
+            "nullable" : true,
+            "type" : "array"
+          },
+          "winningOptionLabels" : {
+            "description" : "Ended only: texts of the options in `winningOptionIds`, same order. Null until the Poll has Ended",
+            "items" : {
+              "example" : "Nagi",
+              "type" : "string"
+            },
+            "nullable" : true,
+            "type" : "array"
+          }
+        },
+        "type" : "object"
+      },
       "RefreshRequest" : {
         "description" : "Request carrying a refresh token (refresh / logout)",
         "properties" : {
@@ -3138,6 +3634,27 @@
             "type" : "string"
           }
         },
+        "type" : "object"
+      },
+      "ReportCommentRequest" : {
+        "description" : "Why the caller reports a Comment or Reply",
+        "properties" : {
+          "note" : {
+            "description" : "Optional details for the moderators, max 500 characters",
+            "example" : "Insults me in every thread.",
+            "maxLength" : 500,
+            "minLength" : 0,
+            "nullable" : true,
+            "type" : "string"
+          },
+          "reason" : {
+            "description" : "Reason",
+            "enum" : [ "SPAM", "HARASSMENT", "HATE", "MISINFORMATION", "OTHER" ],
+            "example" : "HARASSMENT",
+            "type" : "string"
+          }
+        },
+        "required" : [ "reason" ],
         "type" : "object"
       },
       "SendOtpRequest" : {
@@ -3285,11 +3802,11 @@
         "type" : "object"
       },
       "UnreadCountResponse" : {
-        "description" : "Number of unread notifications (Invitations and Ended Notifications)",
+        "description" : "Number of unread notifications in the feed",
         "nullable" : true,
         "properties" : {
           "count" : {
-            "description" : "Unread Invitations to Scheduled or Open INVITE_ONLY Polls plus unread Ended Notifications of Polls the caller owns, holds a Ballot in or is an Invitee of; capped at 100 (100 means 100 or more)",
+            "description" : "Unread notifications of the kinds the caller's preferences leave on, as listed by GET /api/notifications; capped at 100 (100 means 100 or more)",
             "example" : 3,
             "format" : "int64",
             "type" : "integer"
@@ -3374,6 +3891,36 @@
             "format" : "int32",
             "nullable" : true,
             "type" : "integer"
+          }
+        },
+        "type" : "object"
+      },
+      "UpdateNotificationPreferencesRequest" : {
+        "description" : "Notification switches to change; an omitted or null field keeps its current value",
+        "properties" : {
+          "closingSoon" : {
+            "description" : "CLOSING_SOON",
+            "example" : true,
+            "nullable" : true,
+            "type" : "boolean"
+          },
+          "comments" : {
+            "description" : "COMMENT",
+            "example" : false,
+            "nullable" : true,
+            "type" : "boolean"
+          },
+          "invitations" : {
+            "description" : "INVITATION",
+            "example" : true,
+            "nullable" : true,
+            "type" : "boolean"
+          },
+          "resultsIn" : {
+            "description" : "RESULT and CANCELLED",
+            "example" : true,
+            "nullable" : true,
+            "type" : "boolean"
           }
         },
         "type" : "object"
@@ -3699,6 +4246,24 @@
             "nullable" : true,
             "type" : "string"
           },
+          "followersCount" : {
+            "description" : "Number of users following this user; suspended accounts are not counted",
+            "example" : 12,
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "followingCount" : {
+            "description" : "Number of users this user follows; suspended accounts are not counted",
+            "example" : 8,
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "followsYou" : {
+            "description" : "Whether this user follows the caller; null when signed out, false on the caller's own profile",
+            "example" : true,
+            "nullable" : true,
+            "type" : "boolean"
+          },
           "id" : {
             "description" : "User id",
             "example" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d47",
@@ -3739,6 +4304,21 @@
             "example" : "basic",
             "nullable" : true,
             "type" : "string"
+          },
+          "mutualFollowersCount" : {
+            "description" : "Number of this user's followers whom the caller follows, as in `GET /api/users/{username}/mutual-followers` (suspended accounts and users with a block between them and the caller left out); null when signed out and on the caller's own profile",
+            "example" : 3,
+            "format" : "int32",
+            "nullable" : true,
+            "type" : "integer"
+          },
+          "mutualFollowersPreview" : {
+            "description" : "First 3 of those mutual followers, most recently followed first; empty when there are none, null when signed out and on the caller's own profile",
+            "items" : {
+              "$ref" : "#/components/schemas/UserDto"
+            },
+            "nullable" : true,
+            "type" : "array"
           },
           "points" : {
             "description" : "Points; null when hidden (default)",
@@ -4445,6 +5025,120 @@
         },
         "summary" : "List Audit Logs",
         "tags" : [ "Admin - Overview" ]
+      }
+    },
+    "/api/admin/comment-reports" : {
+      "get" : {
+        "description" : "**Auth**: admin (role ADMIN; 403 `common.forbidden` otherwise)\n**Precondition**: caller holds role ADMIN\n**Behavior**: offset page of reports from all users, newest first, each with the reported Comment as it is now (text and author kept when deleted), its author, the reporter, `reason` and `note`. A user reports a Comment at most once. Reports go away with the Comment's or the reporter's account. `page` is 1-based (default 1), `limit` 1-50 (default 20)\n**Side effects**: written to the audit log (action `VIEW`, resource `COMMENT_REPORT`), since notes may hold personal data\n**Errors**: none specific to this endpoint",
+        "operationId" : "listReports",
+        "parameters" : [ {
+          "description" : "Page number, 1-based (default 1)",
+          "in" : "query",
+          "name" : "page",
+          "required" : false,
+          "schema" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        }, {
+          "description" : "Page size (1-50, default 20)",
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "examples" : {
+                  "Reports" : {
+                    "description" : "Reports",
+                    "value" : {
+                      "data" : {
+                        "content" : [ {
+                          "authorId" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d47",
+                          "authorUsername" : "troll",
+                          "commentDeleted" : false,
+                          "commentId" : "0199f3b1-2c4d-7e5f-8a9b-0c1d2e3f4a5b",
+                          "commentText" : "You are an idiot.",
+                          "createdAt" : "2026-10-26T10:00:00+08:00",
+                          "id" : "0199f4c2-1a2b-7c3d-8e4f-5a6b7c8d9e0f",
+                          "note" : "Insults me in every thread.",
+                          "parentId" : null,
+                          "reason" : "HARASSMENT",
+                          "reporterId" : "0199c1a2-9e4f-7a21-8c3d-1b2a3c4d5e6f",
+                          "reporterUsername" : "alice",
+                          "voteId" : "0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05"
+                        } ],
+                        "limit" : 20,
+                        "page" : 1,
+                        "total" : 1
+                      },
+                      "error" : null,
+                      "errorCode" : null,
+                      "message" : null,
+                      "success" : true
+                    }
+                  }
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResponsePageResponseAdminCommentReportResponse"
+                }
+              }
+            },
+            "description" : "Success"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Authenticated but not allowed (errorCode `common.forbidden`)"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          }
+        },
+        "summary" : "List Comment reports",
+        "tags" : [ "Admin - Comment Report" ]
       }
     },
     "/api/admin/comments" : {
@@ -8829,7 +9523,7 @@
     },
     "/api/auth/refresh" : {
       "post" : {
-        "description" : "**Auth**: public (authenticated by the refresh token in the body, not by the Authorization header)\n**Precondition**: a refresh token from a previous login or refresh\n**Behavior**: rotates the refresh token: the old one is spent and a new access token and refresh token are returned. The response `user` is null; keep the user info from login. Roles are re-read from the database, so a role change takes effect on refresh; the token keeps the scope of its sign-in, so only an admin console session refreshes into a token that grants the admin role. A second call with the same old token within the grace window (default 10 s) returns the same new pair instead of failing, so concurrent refreshes are safe\n**Side effects**: the old refresh token is spent. If a spent token is presented again after the grace window, that sign-in is ended: its latest refresh token can no longer be refreshed (401 `auth.refresh_token.invalid`), so it must sign in again once its access token expires; the user's other devices stay signed in. If the user is missing or suspended, all their refresh tokens are revoked too\n**Errors**:\n- 401 `auth.refresh_token.invalid`: the token is unknown, expired, revoked, or its user is missing or suspended\n- 401 `auth.suspicious_login`: a spent token was reused after the grace window; the session it belonged to is now signed out",
+        "description" : "**Auth**: public (authenticated by the refresh token in the body, not by the Authorization header)\n**Precondition**: a refresh token from a previous login or refresh\n**Behavior**: rotates the refresh token: the old one is spent and a new access token and refresh token are returned. The response `user` is null; keep the user info from login. Roles are re-read from the database, so a role change takes effect on refresh; the token keeps the scope of its sign-in, so only an admin console session refreshes into a token that grants the admin role. A second call with the same old token within the grace window (default 60 s) returns the same new pair instead of failing, so concurrent refreshes are safe\n**Side effects**: the old refresh token is spent. If a spent token is presented again after the grace window, that sign-in is ended: its latest refresh token can no longer be refreshed (401 `auth.refresh_token.invalid`), so it must sign in again once its access token expires; the user's other devices stay signed in. If the user is missing or suspended, all their refresh tokens are revoked too\n**Errors**:\n- 401 `auth.refresh_token.invalid`: the token is unknown, expired, revoked, or its user is missing or suspended\n- 401 `auth.suspicious_login`: a spent token was reused after the grace window; the session it belonged to is now signed out\n- 429 `common.rate_limited` / 503 `common.service_unavailable`: the token was not checked or spent; keep the tokens and retry later. Only the two 401s end the session",
         "operationId" : "refresh",
         "requestBody" : {
           "content" : {
@@ -8916,6 +9610,23 @@
               }
             },
             "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          },
+          "503" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "data" : null,
+                  "error" : "Service temporarily unavailable, please try again later",
+                  "errorCode" : "common.service_unavailable",
+                  "message" : "Service temporarily unavailable, please try again later",
+                  "success" : false
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Redis is unavailable, so the token couldn't be checked; it is not spent. Keep the tokens and retry later (`common.service_unavailable`)"
           }
         },
         "summary" : "Refresh access token",
@@ -10589,9 +11300,268 @@
         "tags" : [ "Lookup" ]
       }
     },
+    "/api/notifications" : {
+      "get" : {
+        "description" : "**Auth**: required\n**Precondition**: none\n**Behavior**: the caller's notifications, newest `createdAt` first, cursor-paged. They are not stored but derived from Polls, Invitations, follows and Comments when read, so an item disappears when what it is about goes away (a Comment deleted, a follow undone, a Poll Deleted). Kinds:\n- RESULT: a Poll the caller owns, holds a Ballot in or is an Invitee of has Ended (end time passed, Closed, or every Invitee voted). A Participant who made a Retraction and is not an Invitee gets none\n- CANCELLED: an Invite-only Poll the caller is an Invitee of was Cancelled before it opened (only Polls Cancelled before 2026-10-14; a Scheduled Poll is now Deleted, which notifies nobody)\n- INVITATION: the caller is an Invitee of a Scheduled or Open Invite-only Poll; listed until the Poll Ends, when its RESULT takes over. Being removed and invited again is a new, unread INVITATION\n- FOLLOWED: someone followed the caller (one item per follower; group them in the UI)\n- COMMENT: someone else commented on or replied under the caller's Poll, or replied to the caller's Comment, on a Poll the caller can see\n- CLOSING_SOON: an Open Poll ends within 24 hours and the caller holds no Ballot in it, if the caller is its Invitee, or it is a Public Poll of a user the caller follows. Gone once the caller casts a Ballot or the Poll Ends. Off by default\nKinds switched off in the caller's preferences are left out (FOLLOWED cannot be switched off). Nothing from a suspended user, a user the caller blocked or a user who blocked the caller is listed. `poll` never carries per-option counts, its outcome (`winningOptionIds`, `winningOptionLabels`, `tie`) stays null until the Poll has Ended, and `actor` is never a voter, so Sealed results and Anonymous Ballots stay hidden. Each item carries what a row needs: the caller's Selection (`poll.myOptionId`), the caller's follows with the actor both ways (`actor.isFollowing`, `actor.followsYou`), and for a Reply the Comment it is under (`comment.parentId`). An item can appear or vanish behind a cursor (a follow, a block); de-duplicate by `id`.\n**Side effects**: none\n**Errors**:\n- 400 `common.cursor_invalid`: `cursor` came from another list",
+        "operationId" : "list",
+        "parameters" : [ {
+          "description" : "`nextCursor` of the previous page; omit for the first page",
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Page size, default 20, clamped to 1..50",
+          "example" : 20,
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "data" : {
+                    "items" : [ {
+                      "actor" : {
+                        "avatarUrl" : "bot:boba",
+                        "displayName" : "J. Tan",
+                        "followsYou" : false,
+                        "id" : "0199c1a2-9e4f-7a21-8c3d-1b2a3c4d5e6f",
+                        "isFollowing" : true,
+                        "username" : "jtan"
+                      },
+                      "comment" : null,
+                      "createdAt" : "2026-10-26T12:00:00+08:00",
+                      "id" : "closing_soon_0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05",
+                      "kind" : "CLOSING_SOON",
+                      "poll" : {
+                        "endTime" : "2026-10-27T12:00:00+08:00",
+                        "id" : "0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05",
+                        "myOptionId" : null,
+                        "startTime" : "2026-10-20T12:00:00+08:00",
+                        "status" : "OPEN",
+                        "tie" : null,
+                        "title" : "Best ramen in Taipei?",
+                        "turnout" : 342,
+                        "winningOptionIds" : null,
+                        "winningOptionLabels" : null
+                      },
+                      "read" : false
+                    }, {
+                      "actor" : {
+                        "avatarUrl" : "bot:mochi",
+                        "displayName" : "Rosa",
+                        "followsYou" : false,
+                        "id" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d47",
+                        "isFollowing" : false,
+                        "username" : "rosa"
+                      },
+                      "comment" : {
+                        "excerpt" : "Tabs, because the reader picks the width",
+                        "id" : "0199f2a5-1c2d-7e3f-8a4b-5c6d7e8f9a0b",
+                        "parentId" : "0199f2a4-ff01-7a2b-9c3d-4e5f6a7b8c9d"
+                      },
+                      "createdAt" : "2026-10-26T09:30:00+08:00",
+                      "id" : "comment_0199f2a5-1c2d-7e3f-8a4b-5c6d7e8f9a0b",
+                      "kind" : "COMMENT",
+                      "poll" : {
+                        "endTime" : "2026-10-30T12:00:00+08:00",
+                        "id" : "0199f2a3-8c1d-7e2f-9a3b-4c5d6e7f8a9b",
+                        "myOptionId" : "0199f2a4-8d11-7c3e-b0a4-5e29c7d6f813",
+                        "startTime" : "2026-10-23T12:00:00+08:00",
+                        "status" : "OPEN",
+                        "tie" : null,
+                        "title" : "Tabs or spaces?",
+                        "turnout" : 57,
+                        "winningOptionIds" : null,
+                        "winningOptionLabels" : null
+                      },
+                      "read" : false
+                    }, {
+                      "actor" : {
+                        "avatarUrl" : "bot:boba",
+                        "displayName" : null,
+                        "followsYou" : true,
+                        "id" : "0199c1a2-1a2b-7c3d-8e4f-5a6b7c8d9e0f",
+                        "isFollowing" : true,
+                        "username" : "bkim"
+                      },
+                      "comment" : null,
+                      "createdAt" : "2026-10-25T20:00:00+08:00",
+                      "id" : "followed_0199f2a6-2d3e-7f40-9b5c-6d7e8f9a0b1c",
+                      "kind" : "FOLLOWED",
+                      "poll" : null,
+                      "read" : true
+                    }, {
+                      "actor" : null,
+                      "comment" : null,
+                      "createdAt" : "2026-10-25T18:00:00+08:00",
+                      "id" : "result_0199f2a3-1a2b-7c3d-8e4f-9a0b1c2d3e4f",
+                      "kind" : "RESULT",
+                      "poll" : {
+                        "endTime" : "2026-10-25T18:00:00+08:00",
+                        "id" : "0199f2a3-1a2b-7c3d-8e4f-9a0b1c2d3e4f",
+                        "myOptionId" : "0199f2a4-2b3c-7d4e-8f5a-6b7c8d9e0f1a",
+                        "startTime" : "2026-10-25T09:00:00+08:00",
+                        "status" : "ENDED",
+                        "tie" : true,
+                        "title" : "Lunch?",
+                        "turnout" : 12,
+                        "winningOptionIds" : [ "0199f2a4-2b3c-7d4e-8f5a-6b7c8d9e0f1a", "0199f2a4-3c4d-7e5f-9a6b-7c8d9e0f1a2b" ],
+                        "winningOptionLabels" : [ "Dumplings", "Noodles" ]
+                      },
+                      "read" : true
+                    } ],
+                    "nextCursor" : "Tk9USUZJQ0FUSU9OU3wwMTk5ZjJhMy0xYTJiLTdjM2QtOGU0Zi05YTBiMWMyZDNlNGZ8MjAyNi0xMC0yNVQxMDowMDowMFo"
+                  },
+                  "error" : null,
+                  "errorCode" : null,
+                  "message" : null,
+                  "success" : true
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResponseCursorResponseNotificationResponse"
+                }
+              }
+            },
+            "description" : "Success"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Authenticated but not allowed (errorCode `common.forbidden`)"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          }
+        },
+        "summary" : "List notifications",
+        "tags" : [ "Notification" ]
+      }
+    },
+    "/api/notifications/read-all" : {
+      "post" : {
+        "description" : "**Auth**: required\n**Precondition**: none\n**Behavior**: marks read every notification whose `createdAt` is at or before now, of every kind (switched-off kinds included, so turning one back on does not bring back old unread items). Idempotent.\n**Side effects**: the unread count becomes 0; notifications created later arrive unread\n**Errors**: none specific to this endpoint",
+        "operationId" : "markAllRead",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "data" : {
+                    "id" : null,
+                    "message" : null,
+                    "status" : null,
+                    "success" : true
+                  },
+                  "error" : null,
+                  "errorCode" : null,
+                  "message" : null,
+                  "success" : true
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResponseSimpleResultResponse"
+                }
+              }
+            },
+            "description" : "Success"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Authenticated but not allowed (errorCode `common.forbidden`)"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          }
+        },
+        "summary" : "Mark all notifications read",
+        "tags" : [ "Notification" ]
+      }
+    },
     "/api/notifications/unread-count" : {
       "get" : {
-        "description" : "**Auth**: required\n**Precondition**: none\n**Behavior**: counts the caller's unread notifications. Notifications are not stored; each Poll gives the caller at most one at a time, and Deleted Polls give none:\n- Invitation: an INVITE_ONLY Poll the caller is an Invitee of, while it is Scheduled or Open\n- Ended Notification: once the Poll has Ended (end time passed or Closed early), when the caller owns it, holds a Ballot in it or is an Invitee of it (with or without a Ballot), and it was not Cancelled while Scheduled. A Participant who made a Retraction and is not an Invitee no longer counts.\nA notification counts until the caller marks it read; reading the Invitation does not read the later Ended Notification. The count stops at 100: `100` means 100 or more (show it as \"99+\"). Poll this endpoint (for example on app focus and about once a minute) to drive a badge; there is no push.\n**Side effects**: none\n**Errors**: none specific to this endpoint",
+        "description" : "**Auth**: required\n**Precondition**: none\n**Behavior**: counts the notifications `GET /api/notifications` lists with `read` false: every kind the caller's preferences leave on. The count stops at 100: `100` means 100 or more (show it as \"99+\"). Poll this endpoint (for example on app focus and about once a minute) to drive a badge; there is no push.\n**Side effects**: none\n**Errors**: none specific to this endpoint",
         "operationId" : "unreadCount",
         "responses" : {
           "200" : {
@@ -10662,15 +11632,15 @@
         "tags" : [ "Notification" ]
       }
     },
-    "/api/notifications/{voteId}/read" : {
+    "/api/notifications/{id}/read" : {
       "post" : {
-        "description" : "**Auth**: required\n**Precondition**: the caller has a notification for the Poll: an Invitation (INVITE_ONLY Poll not yet Ended, caller is an Invitee) or an Ended Notification (Poll Ended, was not Cancelled while Scheduled, caller owns it, holds a Ballot in it or is an Invitee of it)\n**Behavior**: marks the caller's current notification for this Poll as read: the Invitation while the Poll has not Ended, the Ended Notification after. Idempotent: marking an already-read notification succeeds and changes nothing. The Poll's state at the time of this call decides which one is read, so a call meant for the Invitation that arrives after the Poll Ended reads the Ended Notification.\n**Side effects**: the unread count drops by 1 (first call only); `unread` becomes false on the Poll in `GET /api/votes/my`. When the Poll later Ends, its Ended Notification is unread again.\n**Errors**:\n- 404 `vote.not_found`: the Poll does not exist or is Deleted\n- 404 `notification.not_found`: the caller has neither an Invitation nor an Ended Notification for the Poll\n- 400 `common.bad_request`: `voteId` is not a valid id",
+        "description" : "**Auth**: required\n**Precondition**: the caller has the notification now (it would be listed by `GET /api/notifications` with its kind switched on)\n**Behavior**: marks it read. Idempotent: marking an already-read notification succeeds and changes nothing.\nDeprecated: `id` may instead be a Poll id (UUID), as before the feed existed. That reads the Poll's current notification: its INVITATION while the Poll has not Ended, its RESULT after. Use the notification `id`.\n**Side effects**: the unread count drops by 1 (first call only); `read` becomes true in the feed. For a Poll's RESULT or INVITATION, `unread` becomes false on that Poll in `GET /api/votes/my`. A Poll's later RESULT is a separate notification, unread until read itself.\n**Errors**:\n- 404 `notification.not_found`: no such notification for the caller now (unknown or malformed id, a Comment deleted, a follow undone...)\n- 404 `vote.not_found`: deprecated Poll id only; the Poll does not exist or is Deleted",
         "operationId" : "markRead",
         "parameters" : [ {
-          "description" : "Id of the Poll whose notification is marked read",
-          "example" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d47",
+          "description" : "Notification id from the feed (deprecated: a Poll id)",
+          "example" : "comment_0199f2a5-1c2d-7e3f-8a4b-5c6d7e8f9a0b",
           "in" : "path",
-          "name" : "voteId",
+          "name" : "id",
           "required" : true,
           "schema" : {
             "type" : "string"
@@ -10747,7 +11717,7 @@
                 }
               }
             },
-            "description" : "Poll does not exist or is Deleted (errorCode `vote.not_found`), or the caller has no notification for it (`notification.not_found`)"
+            "description" : "The caller has no such notification (errorCode `notification.not_found`); with a deprecated Poll id, the Poll does not exist or is Deleted (`vote.not_found`)"
           },
           "429" : {
             "content" : {
@@ -10932,7 +11902,7 @@
     },
     "/api/users/me" : {
       "get" : {
-        "description" : "**Auth**: required\n**Precondition**: none\n**Behavior**: returns the caller's own profile with every field, ignoring visibility settings. Unlike the public profile, nothing is masked; `visibilitySettings` reports what other users see on `GET /api/users/{username}` (unset fields use their defaults: `displayName` and `bio` public, the rest hidden). `totalPolls` counts Polls the user created that have opened (Open and Ended; not Scheduled or Cancelled before opening), `totalVotes` counts Public, non-Deleted Polls the user holds a Ballot in. `anonymousBallotByDefault` is whether Ballots are Anonymous when a Ballot does not say otherwise (false until set).\n**Side effects**: none\n**Errors**:\n- 404 `user.not_found`: the account no longer exists",
+        "description" : "**Auth**: required\n**Precondition**: none\n**Behavior**: returns the caller's own profile with every field, ignoring visibility settings. Unlike the public profile, nothing is masked; `visibilitySettings` reports what other users see on `GET /api/users/{username}` (unset fields use their defaults: `displayName` and `bio` public, the rest hidden). `totalPolls` counts Polls the user created that have opened (Open and Ended; not Scheduled or Cancelled before opening), `totalVotes` counts Public, non-Deleted Polls the user holds a Ballot in. `followersCount` / `followingCount` count the users in `GET /api/users/{username}/followers` / `/following` (suspended accounts left out). `anonymousBallotByDefault` is whether Ballots are Anonymous when a Ballot does not say otherwise (false until set).\n**Side effects**: none\n**Errors**:\n- 404 `user.not_found`: the account no longer exists",
         "operationId" : "getMyProfile",
         "responses" : {
           "200" : {
@@ -10948,6 +11918,8 @@
                     "displayName" : "Alice",
                     "email" : "alice@example.com",
                     "firstName" : "Alice",
+                    "followersCount" : 12,
+                    "followingCount" : 8,
                     "id" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d47",
                     "joinedAt" : "2026-08-01T10:00:00+08:00",
                     "lastLoginAt" : "2026-10-09T09:15:00+08:00",
@@ -11519,6 +12491,8 @@
                       "displayName" : "Alice",
                       "email" : "alice@example.com",
                       "firstName" : "Alice",
+                      "followersCount" : 0,
+                      "followingCount" : 1,
                       "id" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d47",
                       "joinedAt" : "2026-08-01T10:00:00+08:00",
                       "lastLoginAt" : "2026-10-09T09:15:00+08:00",
@@ -11604,7 +12578,7 @@
     },
     "/api/users/me/follows" : {
       "get" : {
-        "description" : "**Auth**: required\n**Precondition**: none\n**Behavior**: users the caller follows, most recently followed first, cursor-paged (`limit` 1-50, default 20; out-of-range values are clamped). `nextCursor` is `null` on the last page. Each item carries only public profile fields, like user search.\n**Side effects**: none\n**Errors**:\n- 400 `common.cursor_invalid`: `cursor` is malformed or was issued by another list",
+        "description" : "**Auth**: required\n**Precondition**: none\n**Behavior**: users the caller follows, most recently followed first, cursor-paged (`limit` 1-50, default 20; out-of-range values are clamped). `nextCursor` is `null` on the last page. Each item carries the public profile fields of user search, plus `isFollowing` (always `true` here) and `followsYou` (the user follows the caller back).\n**Side effects**: none\n**Errors**:\n- 400 `common.cursor_invalid`: `cursor` is malformed or was issued by another list",
         "operationId" : "listFollowedUsers",
         "parameters" : [ {
           "description" : "`nextCursor` returned by the previous page",
@@ -11633,7 +12607,9 @@
                     "items" : [ {
                       "avatarUrl" : "bot:boba",
                       "displayName" : "Alice",
+                      "followsYou" : false,
                       "id" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d47",
+                      "isFollowing" : true,
                       "username" : "alice"
                     } ],
                     "nextCursor" : null
@@ -11644,7 +12620,7 @@
                   "success" : true
                 },
                 "schema" : {
-                  "$ref" : "#/components/schemas/ApiResponseCursorResponseUserDto"
+                  "$ref" : "#/components/schemas/ApiResponseCursorResponseFollowUserDto"
                 }
               }
             },
@@ -11785,7 +12761,7 @@
         "tags" : [ "User" ]
       },
       "post" : {
-        "description" : "**Auth**: required\n**Precondition**: `userId` is another existing, active account the caller has not blocked\n**Behavior**: one-way follow. From then on `GET /api/votes/following` lists PUBLIC Polls the followed user creates. The followed user is not told; the follow shows in `GET /api/users/{username}/followers` and `/following`. Idempotent: following an already followed user succeeds.\n**Side effects**: the follow is written to the audit log\n**Errors**:\n- 400 `user.follow.self`: `userId` is the caller's own id\n- 400 `user.follow.blocked`: the caller has blocked this user; unblock first\n- 400 `common.bad_request`: `userId` is not a valid id\n- 404 `user.not_found`: no account with this id, or it is suspended",
+        "description" : "**Auth**: required\n**Precondition**: `userId` is another existing, active account the caller has not blocked\n**Behavior**: one-way follow. From then on `GET /api/votes/following` lists PUBLIC Polls the followed user creates. The followed user gets a FOLLOWED notification in `GET /api/notifications` (gone again if the caller unfollows); the follow shows in `GET /api/users/{username}/followers` and `/following`. Idempotent: following an already followed user succeeds.\n**Side effects**: the follow is written to the audit log\n**Errors**:\n- 400 `user.follow.self`: `userId` is the caller's own id\n- 400 `user.follow.blocked`: the caller has blocked this user; unblock first\n- 400 `common.bad_request`: `userId` is not a valid id\n- 404 `user.not_found`: no account with this id, or it is suspended",
         "operationId" : "followUser",
         "parameters" : [ {
           "description" : "Id of the user to follow",
@@ -11884,6 +12860,187 @@
         },
         "summary" : "Follow a user",
         "tags" : [ "User" ]
+      }
+    },
+    "/api/users/me/notification-preferences" : {
+      "get" : {
+        "description" : "**Auth**: required\n**Precondition**: none\n**Behavior**: which notification kinds the feed and the unread count include. Defaults: `resultsIn`, `invitations` and `comments` on, `closingSoon` off. FOLLOWED has no switch. There is no push or email channel; these switches only filter the in-app feed.\n**Side effects**: none\n**Errors**: none specific to this endpoint",
+        "operationId" : "get",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "data" : {
+                    "closingSoon" : false,
+                    "comments" : true,
+                    "invitations" : true,
+                    "resultsIn" : true
+                  },
+                  "error" : null,
+                  "errorCode" : null,
+                  "message" : null,
+                  "success" : true
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResponseNotificationPreferencesResponse"
+                }
+              }
+            },
+            "description" : "Success"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Authenticated but not allowed (errorCode `common.forbidden`)"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          }
+        },
+        "summary" : "Get notification preferences",
+        "tags" : [ "Notification" ]
+      },
+      "patch" : {
+        "description" : "**Auth**: required\n**Precondition**: none\n**Behavior**: sets the switches sent; an omitted or `null` field keeps its value. Returns every switch after the change. A kind switched off leaves the feed and the unread count at once; switched back on, its items return with their read state (and `POST /api/notifications/read-all` covers them too).\n**Side effects**: persists the switches; they also appear under `preferences` in `GET /api/users/me/export`\n**Errors**:\n- 404 `user.not_found`: the account no longer exists",
+        "operationId" : "update_1",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "example" : {
+                "closingSoon" : true,
+                "comments" : false
+              },
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateNotificationPreferencesRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "data" : {
+                    "closingSoon" : true,
+                    "comments" : false,
+                    "invitations" : true,
+                    "resultsIn" : true
+                  },
+                  "error" : null,
+                  "errorCode" : null,
+                  "message" : null,
+                  "success" : true
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResponseNotificationPreferencesResponse"
+                }
+              }
+            },
+            "description" : "Success"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Authenticated but not allowed (errorCode `common.forbidden`)"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "data" : null,
+                  "error" : "User not found",
+                  "errorCode" : "user.not_found",
+                  "message" : "User not found",
+                  "success" : false
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Account no longer exists (errorCode `user.not_found`)"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          }
+        },
+        "summary" : "Update notification preferences",
+        "tags" : [ "Notification" ]
       }
     },
     "/api/users/me/visibility" : {
@@ -12208,7 +13365,7 @@
     },
     "/api/users/{username}" : {
       "get" : {
-        "description" : "**Auth**: public; optional login fills `isFollowing` and `isBlocked`. An invalid or expired token is treated as signed out\n**Precondition**: none\n**Behavior**: returns the public view of a user. `isFollowing` / `isBlocked` say whether the caller follows / has blocked the user: `null` when signed out, `false` on the caller's own profile. Profile fields do not depend on the caller. `username`, `avatarUrl`, `joinedAt`, `totalPolls` and `totalVotes` (Public, non-Deleted Polls only) are always present (`avatarUrl` is `null` when never set). Every optional field is `null` unless the owner made it visible: `displayName` and `bio` are visible by default, `firstName`, `lastName`, `location`, `points` and `membershipLevel` are hidden by default; email and birthday are never returned. `totalPolls` counts only Polls that have opened (Open and Ended), matching `GET /api/users/{username}/votes`.\n**Side effects**: none\n**Errors**:\n- 404 `user.not_found`: no user has this username, or the user is suspended",
+        "description" : "**Auth**: public; optional login fills `isFollowing`, `followsYou`, `isBlocked`, `mutualFollowersCount` and `mutualFollowersPreview`. An invalid or expired token is treated as signed out\n**Precondition**: none\n**Behavior**: returns the public view of a user. `isFollowing` / `isBlocked` say whether the caller follows / has blocked the user, and `followsYou` whether the user follows the caller: `null` when signed out, `false` on the caller's own profile. `mutualFollowersCount` counts the users in `GET /api/users/{username}/mutual-followers` (this user's followers whom the caller follows) and `mutualFollowersPreview` holds the first 3 of them (most recently followed first; `[]` when there are none): both `null` when signed out and on the caller's own profile. `followersCount` / `followingCount` count the users in `GET /api/users/{username}/followers` / `/following` (suspended accounts left out, blocks not filtered). Profile fields do not depend on the caller. `username`, `avatarUrl`, `joinedAt`, `totalPolls` and `totalVotes` (Public, non-Deleted Polls only) are always present (`avatarUrl` is `null` when never set). Every optional field is `null` unless the owner made it visible: `displayName` and `bio` are visible by default, `firstName`, `lastName`, `location`, `points` and `membershipLevel` are hidden by default; email and birthday are never returned. `totalPolls` counts only Polls that have opened (Open and Ended), matching `GET /api/users/{username}/votes`.\n**Side effects**: none\n**Errors**:\n- 404 `user.not_found`: no user has this username, or the user is suspended",
         "operationId" : "getUserProfile",
         "parameters" : [ {
           "description" : "Username of the user to look up",
@@ -12230,6 +13387,9 @@
                     "bio" : "Poll enthusiast",
                     "displayName" : "Alice",
                     "firstName" : "Alice",
+                    "followersCount" : 12,
+                    "followingCount" : 8,
+                    "followsYou" : true,
                     "id" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d47",
                     "isBlocked" : false,
                     "isFollowing" : true,
@@ -12237,6 +13397,23 @@
                     "lastName" : null,
                     "location" : null,
                     "membershipLevel" : null,
+                    "mutualFollowersCount" : 3,
+                    "mutualFollowersPreview" : [ {
+                      "avatarUrl" : "bot:boba",
+                      "displayName" : "J Tan",
+                      "id" : "0199c1a2-9e4f-7a21-8c3d-1b2a3c4d5e6f",
+                      "username" : "jtan"
+                    }, {
+                      "avatarUrl" : "bot:pip",
+                      "displayName" : null,
+                      "id" : "0199c1a3-1a2b-7c3d-8e4f-5a6b7c8d9e0f",
+                      "username" : "mia"
+                    }, {
+                      "avatarUrl" : null,
+                      "displayName" : "Ken",
+                      "id" : "0199c1a3-2b3c-7d4e-9f5a-6b7c8d9e0f1a",
+                      "username" : "ken"
+                    } ],
                     "points" : null,
                     "totalPolls" : 4,
                     "totalVotes" : 17,
@@ -12294,7 +13471,7 @@
     },
     "/api/users/{username}/followers" : {
       "get" : {
-        "description" : "**Auth**: required\n**Precondition**: the user exists and is not suspended\n**Behavior**: users who follow this user, most recently followed first, cursor-paged (`limit` 1-50, default 20; out-of-range values are clamped). `nextCursor` is `null` on the last page. Suspended followers are left out. Blocks do not filter this list (they hide only Polls and Comments). Each item carries only public profile fields, like user search.\n**Side effects**: none\n**Errors**:\n- 404 `user.not_found`: no user has this username, or the user is suspended\n- 400 `common.cursor_invalid`: `cursor` is malformed or was issued by another list",
+        "description" : "**Auth**: required\n**Precondition**: the user exists and is not suspended\n**Behavior**: users who follow this user, most recently followed first, cursor-paged (`limit` 1-50, default 20; out-of-range values are clamped). `nextCursor` is `null` on the last page. Suspended followers are left out. Blocks do not filter this list (they hide only Polls and Comments). Each item carries the public profile fields of user search, plus `isFollowing` (the caller follows the user) and `followsYou` (the user follows the caller), both `false` on the caller's own entry.\n**Side effects**: none\n**Errors**:\n- 404 `user.not_found`: no user has this username, or the user is suspended\n- 400 `common.cursor_invalid`: `cursor` is malformed or was issued by another list",
         "operationId" : "listFollowers",
         "parameters" : [ {
           "description" : "Username of the followed user",
@@ -12333,7 +13510,9 @@
                     "items" : [ {
                       "avatarUrl" : "bot:boba",
                       "displayName" : "Bob",
+                      "followsYou" : true,
                       "id" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d47",
+                      "isFollowing" : false,
                       "username" : "bob"
                     } ],
                     "nextCursor" : null
@@ -12344,7 +13523,7 @@
                   "success" : true
                 },
                 "schema" : {
-                  "$ref" : "#/components/schemas/ApiResponseCursorResponseUserDto"
+                  "$ref" : "#/components/schemas/ApiResponseCursorResponseFollowUserDto"
                 }
               }
             },
@@ -12418,7 +13597,7 @@
     },
     "/api/users/{username}/following" : {
       "get" : {
-        "description" : "**Auth**: required\n**Precondition**: the user exists and is not suspended\n**Behavior**: users this user follows, most recently followed first, cursor-paged (`limit` 1-50, default 20; out-of-range values are clamped). `nextCursor` is `null` on the last page. Suspended users are left out. Blocks do not filter this list (they hide only Polls and Comments). Each item carries only public profile fields, like user search.\n**Side effects**: none\n**Errors**:\n- 404 `user.not_found`: no user has this username, or the user is suspended\n- 400 `common.cursor_invalid`: `cursor` is malformed or was issued by another list",
+        "description" : "**Auth**: required\n**Precondition**: the user exists and is not suspended\n**Behavior**: users this user follows, most recently followed first, cursor-paged (`limit` 1-50, default 20; out-of-range values are clamped). `nextCursor` is `null` on the last page. Suspended users are left out. Blocks do not filter this list (they hide only Polls and Comments). Each item carries the public profile fields of user search, plus `isFollowing` (the caller follows the user) and `followsYou` (the user follows the caller), both `false` on the caller's own entry.\n**Side effects**: none\n**Errors**:\n- 404 `user.not_found`: no user has this username, or the user is suspended\n- 400 `common.cursor_invalid`: `cursor` is malformed or was issued by another list",
         "operationId" : "listFollowing",
         "parameters" : [ {
           "description" : "Username of the follower",
@@ -12457,7 +13636,9 @@
                     "items" : [ {
                       "avatarUrl" : "bot:boba",
                       "displayName" : "Bob",
+                      "followsYou" : true,
                       "id" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d47",
+                      "isFollowing" : false,
                       "username" : "bob"
                     } ],
                     "nextCursor" : null
@@ -12468,7 +13649,7 @@
                   "success" : true
                 },
                 "schema" : {
-                  "$ref" : "#/components/schemas/ApiResponseCursorResponseUserDto"
+                  "$ref" : "#/components/schemas/ApiResponseCursorResponseFollowUserDto"
                 }
               }
             },
@@ -12537,6 +13718,132 @@
           }
         },
         "summary" : "List users a user follows",
+        "tags" : [ "User" ]
+      }
+    },
+    "/api/users/{username}/mutual-followers" : {
+      "get" : {
+        "description" : "**Auth**: required\n**Precondition**: the user exists and is not suspended\n**Behavior**: the users in `GET /api/users/{username}/followers` whom the caller follows (\"Followed by ... you follow\"), in the same order (most recently followed the user first), cursor-paged (`limit` 1-50, default 20; out-of-range values are clamped). `nextCursor` is `null` on the last page. Suspended users and users with a block between them and the caller (either direction) are left out. Always empty on the caller's own profile. Items are shaped like the follower list; `isFollowing` is therefore always `true`. `mutualFollowersCount` of `GET /api/users/{username}` is the length of this list.\n**Side effects**: none\n**Errors**:\n- 404 `user.not_found`: no user has this username, or the user is suspended\n- 400 `common.cursor_invalid`: `cursor` is malformed or was issued by another list",
+        "operationId" : "listMutualFollowers",
+        "parameters" : [ {
+          "description" : "Username of the followed user",
+          "example" : "alice",
+          "in" : "path",
+          "name" : "username",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "`nextCursor` from the previous page; omit for the first page",
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Page size, 1-50 (default 20); out-of-range values are clamped",
+          "example" : 20,
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "data" : {
+                    "items" : [ {
+                      "avatarUrl" : "bot:boba",
+                      "displayName" : "J Tan",
+                      "followsYou" : false,
+                      "id" : "0199c1a2-9e4f-7a21-8c3d-1b2a3c4d5e6f",
+                      "isFollowing" : true,
+                      "username" : "jtan"
+                    } ],
+                    "nextCursor" : null
+                  },
+                  "error" : null,
+                  "errorCode" : null,
+                  "message" : null,
+                  "success" : true
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResponseCursorResponseFollowUserDto"
+                }
+              }
+            },
+            "description" : "Success"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Authenticated but not allowed (errorCode `common.forbidden`)"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "data" : null,
+                  "error" : "User not found",
+                  "errorCode" : "user.not_found",
+                  "message" : "User not found",
+                  "success" : false
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "No active user with this username (errorCode `user.not_found`)"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          }
+        },
+        "summary" : "List a user's followers whom the caller follows",
         "tags" : [ "User" ]
       }
     },
@@ -13696,7 +15003,7 @@
     },
     "/api/votes/{voteId}/comments" : {
       "get" : {
-        "description" : "**Auth**: public (optional login changes response: `likedByCurrentUser` reflects the signed-in user's likes, and is always false when not logged in; threads started by and Replies written by users the caller blocked are left out)\n**Precondition**: the Poll exists\n**Behavior**: returns top-level Comments only, newest first, cursor-paged (`limit` default 20, max 50; pass `nextCursor` back as `cursor`). Each item carries `replyCount`; load Replies with the replies endpoint. A deleted Comment that still has non-deleted Replies stays as a placeholder (`deleted` = true; `userId`, `author` and `text` are null); a deleted Comment without Replies is omitted. For a signed-in caller, a thread whose top-level Comment was written by a user they blocked (`POST /api/users/me/blocks/{userId}`) is omitted with all its Replies, Replies by blocked users do not count in `replyCount`, and a deleted placeholder whose only Replies are by blocked users is omitted\n**Side effects**: none\n**Errors**:\n- 400 `common.cursor_invalid`: `cursor` is not a token returned by this endpoint\n- 404 `vote.not_found`: Poll does not exist or is Deleted\n",
+        "description" : "**Auth**: public (optional login changes response: `likedByCurrentUser` reflects the signed-in user's likes, and is always false when not logged in; threads started by and Replies written by users the caller blocked are left out)\n**Precondition**: the Poll exists\n**Behavior**: returns top-level Comments only, newest first, cursor-paged (`limit` default 20, max 50; pass `nextCursor` back as `cursor`). Each item carries `replyCount` and its first Replies in `replies` (at most 2, oldest first, filtered like the replies endpoint); when `repliesNextCursor` is set, pass it as `cursor` to the replies endpoint to load the rest without repeating those shown. A deleted Comment that still has non-deleted Replies stays as a placeholder (`deleted` = true; `userId`, `author` and `text` are null); a deleted Comment without Replies is omitted. For a signed-in caller, a thread whose top-level Comment was written by a user they blocked (`POST /api/users/me/blocks/{userId}`) is omitted with all its Replies, Replies by blocked users do not count in `replyCount`, and a deleted placeholder whose only Replies are by blocked users is omitted\n**Side effects**: none\n**Errors**:\n- 400 `common.cursor_invalid`: `cursor` is not a token returned by this endpoint\n- 404 `vote.not_found`: Poll does not exist or is Deleted\n",
         "operationId" : "getComments",
         "parameters" : [ {
           "description" : "Poll ID",
@@ -13742,7 +15049,41 @@
                           "likeCount" : 3,
                           "likedByCurrentUser" : false,
                           "parentId" : null,
-                          "replyCount" : 2,
+                          "replies" : [ {
+                            "author" : "bob",
+                            "createdAt" : "2026-10-09T12:50:00+08:00",
+                            "deleted" : false,
+                            "edited" : false,
+                            "id" : "0199c3a8-1b2c-7d3e-8f4a-5b6c7d8e9f01",
+                            "likeCount" : 0,
+                            "likedByCurrentUser" : false,
+                            "parentId" : "0199c3a2-7b1e-7c4d-9a10-3f5e8d2b6a41",
+                            "replies" : [ ],
+                            "repliesNextCursor" : null,
+                            "replyCount" : 0,
+                            "text" : "Same, B wins on price.",
+                            "updatedAt" : "2026-10-09T12:50:00+08:00",
+                            "userId" : "0199b8e4-5d6e-7f70-9a1b-2c3d4e5f6a7b",
+                            "voteId" : "0199c2f0-4d3a-7e8b-b6c2-1a9f0e7d5c33"
+                          }, {
+                            "author" : "carol",
+                            "createdAt" : "2026-10-09T13:05:00+08:00",
+                            "deleted" : false,
+                            "edited" : false,
+                            "id" : "0199c3a9-2c3d-7e4f-9a5b-6c7d8e9f0a12",
+                            "likeCount" : 0,
+                            "likedByCurrentUser" : false,
+                            "parentId" : "0199c3a2-7b1e-7c4d-9a10-3f5e8d2b6a41",
+                            "replies" : [ ],
+                            "repliesNextCursor" : null,
+                            "replyCount" : 0,
+                            "text" : "A lasts longer though.",
+                            "updatedAt" : "2026-10-09T13:05:00+08:00",
+                            "userId" : "0199b8e4-5d6e-7f70-9a1b-2c3d4e5f6a7b",
+                            "voteId" : "0199c2f0-4d3a-7e8b-b6c2-1a9f0e7d5c33"
+                          } ],
+                          "repliesNextCursor" : "UkVQTElFU3wwMTk5YzNhOS0yYzNkLTdlNGYtOWE1Yi02YzdkOGU5ZjBhMTJ8MjAyNi0xMC0wOVQwNTowNTowMFo",
+                          "replyCount" : 3,
                           "text" : "I would pick option B, it is the cheaper one.",
                           "updatedAt" : "2026-10-09T12:34:56+08:00",
                           "userId" : "0199b8e4-1c2d-7f60-8a3b-6d4e2f1a9b05",
@@ -13756,6 +15097,24 @@
                           "likeCount" : 0,
                           "likedByCurrentUser" : false,
                           "parentId" : null,
+                          "replies" : [ {
+                            "author" : "dave",
+                            "createdAt" : "2026-10-09T12:25:00+08:00",
+                            "deleted" : false,
+                            "edited" : false,
+                            "id" : "0199c3a0-3d4e-7f5a-8b6c-7d8e9f0a1b23",
+                            "likeCount" : 0,
+                            "likedByCurrentUser" : false,
+                            "parentId" : "0199c39e-1a2b-7d3c-8e4f-9a0b1c2d3e4f",
+                            "replies" : [ ],
+                            "repliesNextCursor" : null,
+                            "replyCount" : 0,
+                            "text" : "Still worth discussing.",
+                            "updatedAt" : "2026-10-09T12:25:00+08:00",
+                            "userId" : "0199b8e4-5d6e-7f70-9a1b-2c3d4e5f6a7b",
+                            "voteId" : "0199c2f0-4d3a-7e8b-b6c2-1a9f0e7d5c33"
+                          } ],
+                          "repliesNextCursor" : null,
                           "replyCount" : 1,
                           "text" : null,
                           "updatedAt" : "2026-10-09T12:20:00+08:00",
@@ -13869,6 +15228,8 @@
                         "likeCount" : 0,
                         "likedByCurrentUser" : false,
                         "parentId" : "0199c3a2-7b1e-7c4d-9a10-3f5e8d2b6a41",
+                        "replies" : [ ],
+                        "repliesNextCursor" : null,
                         "replyCount" : 0,
                         "text" : "I agree with you.",
                         "updatedAt" : "2026-10-09T12:34:56+08:00",
@@ -13887,7 +15248,7 @@
                 }
               }
             },
-            "description" : "Comment or Reply created (same shape as list items; `replyCount` is 0)"
+            "description" : "Comment or Reply created (same shape as list items; `replyCount` is 0 and `replies` is [])"
           },
           "400" : {
             "content" : {
@@ -14114,6 +15475,8 @@
                         "likeCount" : 3,
                         "likedByCurrentUser" : false,
                         "parentId" : null,
+                        "replies" : [ ],
+                        "repliesNextCursor" : null,
                         "replyCount" : 0,
                         "text" : "Edited: B is cheaper and ships faster.",
                         "updatedAt" : "2026-10-09T12:40:02+08:00",
@@ -14469,6 +15832,8 @@
                           "likeCount" : 0,
                           "likedByCurrentUser" : false,
                           "parentId" : "0199c3a2-7b1e-7c4d-9a10-3f5e8d2b6a41",
+                          "replies" : [ ],
+                          "repliesNextCursor" : null,
                           "replyCount" : 0,
                           "text" : "I agree with you.",
                           "updatedAt" : "2026-10-09T12:34:56+08:00",
@@ -14526,6 +15891,141 @@
           }
         },
         "summary" : "List Replies of a Comment",
+        "tags" : [ "Vote Comment" ]
+      }
+    },
+    "/api/votes/{voteId}/comments/{commentId}/report" : {
+      "post" : {
+        "description" : "**Auth**: required\n**Precondition**: the Comment or Reply exists, is not deleted, was written by someone else, and its Poll is reachable by the caller\n**Behavior**: records the report for moderators with `reason` (SPAM, HARASSMENT, HATE, MISINFORMATION or OTHER) and an optional `note` (max 500 characters; blank is stored as none). Idempotent: reporting the same Comment again succeeds and keeps the first report. The author is not told, and the Comment stays visible until a moderator acts\n**Side effects**: the report is listed in `GET /api/admin/comment-reports` and written to the audit log\n**Errors**:\n- 400 `comment.report.self`: the caller wrote the Comment\n- 400 `common.validation_failed`: `reason` missing, or `note` over 500 characters\n- 400 `common.bad_request`: `reason` is not one of the values above\n- 404 `comment.not_found`: Comment does not exist or is deleted\n- 404 `vote.not_found`: the Comment's Poll is Deleted or not reachable by the caller\n",
+        "operationId" : "reportComment",
+        "parameters" : [ {
+          "description" : "Poll ID",
+          "in" : "path",
+          "name" : "voteId",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Comment ID",
+          "in" : "path",
+          "name" : "commentId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "examples" : {
+                "reasonOnly" : {
+                  "description" : "reasonOnly",
+                  "value" : {
+                    "reason" : "SPAM"
+                  }
+                },
+                "withNote" : {
+                  "description" : "withNote",
+                  "value" : {
+                    "note" : "Insults me in every thread.",
+                    "reason" : "HARASSMENT"
+                  }
+                }
+              },
+              "schema" : {
+                "$ref" : "#/components/schemas/ReportCommentRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "examples" : {
+                  "reported" : {
+                    "description" : "reported",
+                    "value" : {
+                      "data" : {
+                        "id" : null,
+                        "message" : null,
+                        "status" : null,
+                        "success" : true
+                      },
+                      "error" : null,
+                      "errorCode" : null,
+                      "message" : null,
+                      "success" : true
+                    }
+                  }
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResponseSimpleResultResponse"
+                }
+              }
+            },
+            "description" : "Success"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Authenticated but not allowed (errorCode `common.forbidden`)"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Comment not found or deleted (errorCode `comment.not_found`), or its Poll is Deleted (`vote.not_found`)"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          }
+        },
+        "summary" : "Report a Comment or Reply",
         "tags" : [ "Vote Comment" ]
       }
     },
@@ -16168,8 +17668,8 @@
     "description" : "Invite Lists: the caller's private, reusable invite lists of users and email addresses",
     "name" : "Invite List"
   }, {
-    "description" : "Invitations and Ended Notifications, derived when read (no push). The list itself is `GET /api/votes/my` (Invitations on `status=open`, Ended Notifications on `status=ended`), whose items carry `unread`",
-    "name" : "Notification"
+    "description" : "Reading users' reports of Comments (Admin)",
+    "name" : "Admin - Comment Report"
   }, {
     "description" : "Poll moderation APIs (Admin)",
     "name" : "Admin - Poll"
@@ -16185,5 +17685,8 @@
   }, {
     "description" : "Reading user feedback (Admin)",
     "name" : "Admin - Feedback"
+  }, {
+    "description" : "The notification feed: Poll results, Invitations, follows, Comments and closing-soon reminders, derived when read (no push, no email). Kinds can be switched off with `/api/users/me/notification-preferences`",
+    "name" : "Notification"
   } ]
 }

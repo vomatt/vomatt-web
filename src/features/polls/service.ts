@@ -29,6 +29,8 @@ import {
 	type PollResults,
 	PollResultsSchema,
 	PollSchema,
+	type ReportCommentRequest,
+	ReportCommentRequestSchema,
 	type TagDto,
 	TagDtoSchema,
 	toApiAudience,
@@ -461,6 +463,20 @@ export async function unlikeComment(voteId: string, commentId: string): Promise<
 	return attempt(async () => {
 		await apiClient(`/votes/${voteId}/comments/${commentId}/like`, {
 			method: 'DELETE',
+		});
+	});
+}
+
+/** Idempotent per user and Comment: a repeat keeps the first report. Your own Comment is `comment.report.self`. */
+export async function reportComment(
+	voteId: string,
+	commentId: string,
+	report: ReportCommentRequest
+): Promise<ActionResult> {
+	return attempt(async () => {
+		await apiClient(`/votes/${voteId}/comments/${commentId}/report`, {
+			method: 'POST',
+			body: JSON.stringify(ReportCommentRequestSchema.parse(report)),
 		});
 	});
 }

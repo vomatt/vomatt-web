@@ -2,7 +2,6 @@
 export const EXPLORE_PAGE_SIZE = 20;
 
 /** Page size for the notifications list. */
-export const NOTIFICATIONS_PAGE_SIZE = 20;
 
 /** How long search fields wait for a pause in typing before asking the API. */
 export const SEARCH_DEBOUNCE_MS = 300;

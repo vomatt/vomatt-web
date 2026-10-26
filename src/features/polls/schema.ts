@@ -14,7 +14,7 @@ const DateTime = z.string().datetime({ offset: true });
  * Replies stays as a placeholder: `deleted`, with no author, avatar or text.
  * Replies (`parentId` set) always hang off a top-level Comment.
  */
-export const CommentSchema = z.object({
+const CommentBaseSchema = z.object({
 	id: z.string(),
 	voteId: z.string().optional(),
 	userId: z.string().nullish(),
@@ -29,6 +29,15 @@ export const CommentSchema = z.object({
 	parentId: z.string().nullish(),
 	replyCount: z.number().int().optional(),
 	deleted: z.boolean().optional(),
+});
+
+/**
+ * Top-level Comments carry a preview of their first Replies; `repliesNextCursor`
+ * continues from there (null when `replies` holds them all). Replies carry none.
+ */
+export const CommentSchema = CommentBaseSchema.extend({
+	replies: z.array(CommentBaseSchema).nullish(),
+	repliesNextCursor: z.string().nullish(),
 });
 
 /** Counts are withheld (null) until a Poll has Ended; read as undefined. */
@@ -248,6 +257,14 @@ export const UpdateCommentRequestSchema = z.object({
 	text: z.string().min(1).max(2000),
 });
 
+export const COMMENT_REPORT_REASONS = ['SPAM', 'HARASSMENT', 'HATE', 'MISINFORMATION', 'OTHER'] as const;
+export const COMMENT_REPORT_NOTE_MAX = 500;
+
+export const ReportCommentRequestSchema = z.object({
+	reason: z.enum(COMMENT_REPORT_REASONS),
+	note: z.string().max(COMMENT_REPORT_NOTE_MAX).optional(),
+});
+
 /** Who to invite to an Invite-only Poll; Groups are copied in as their current members. */
 export interface InviteesInput {
 	userIds: string[];
@@ -288,4 +305,5 @@ export type PollPage = z.infer<typeof PollPageSchema>;
 export type CreatePollOption = z.infer<typeof CreatePollOptionSchema>;
 export type CreatePollRequest = z.infer<typeof CreatePollRequestSchema>;
 export type CreateCommentRequest = z.infer<typeof CreateCommentRequestSchema>;
+export type ReportCommentRequest = z.infer<typeof ReportCommentRequestSchema>;
 export type UpdateCommentRequest = z.infer<typeof UpdateCommentRequestSchema>;

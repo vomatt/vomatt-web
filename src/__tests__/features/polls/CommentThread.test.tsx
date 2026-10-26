@@ -21,6 +21,7 @@ const service = {
 	deleteComment: jest.fn(),
 	likeComment: jest.fn(),
 	unlikeComment: jest.fn(),
+	reportComment: jest.fn(),
 };
 jest.mock('@/features/polls/service', () => ({
 	getComments: (...a: any[]) => service.getComments(...a),
@@ -30,6 +31,7 @@ jest.mock('@/features/polls/service', () => ({
 	deleteComment: (...a: any[]) => service.deleteComment(...a),
 	likeComment: (...a: any[]) => service.likeComment(...a),
 	unlikeComment: (...a: any[]) => service.unlikeComment(...a),
+	reportComment: (...a: any[]) => service.reportComment(...a),
 }));
 
 const mine = { id: 'c1', userId: 'me', author: 'klaus', text: 'Mine', createdAt: '2026-10-05T00:00:00Z', likeCount: 2 };
@@ -98,6 +100,74 @@ describe('CommentThread', () => {
 		menu = await openMenu('Theirs');
 		expect(within(menu).queryByRole('menuitem', { name: 'Edit' })).not.toBeInTheDocument();
 		expect(within(menu).getByRole('menuitem', { name: 'Block' })).toBeInTheDocument();
+	});
+
+	it("offers Report on others' comments only", async () => {
+		render(<Harness />);
+		await screen.findByText('Mine');
+
+		let menu = await openMenu('Mine');
+		expect(within(menu).queryByRole('menuitem', { name: 'Report' })).not.toBeInTheDocument();
+		fireEvent.keyDown(menu, { key: 'Escape' });
+		await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
+
+		menu = await openMenu('Theirs');
+		expect(within(menu).getByRole('menuitem', { name: 'Report' })).toBeInTheDocument();
+	});
+
+	it('reports a comment with a reason and a note', async () => {
+		service.reportComment.mockResolvedValue({ ok: true, data: undefined });
+		render(<Harness />);
+		await screen.findByText('Theirs');
+
+		fireEvent.click(within(await openMenu('Theirs')).getByRole('menuitem', { name: 'Report' }));
+		const dialog = await screen.findByRole('dialog');
+		const send = within(dialog).getByRole('button', { name: 'Send report' });
+		expect(send).toBeDisabled();
+
+		fireEvent.click(within(dialog).getByRole('radio', { name: 'Harassment' }));
+		fireEvent.change(within(dialog).getByRole('textbox'), { target: { value: ' Every thread. ' } });
+		fireEvent.click(send);
+
+		await waitFor(() =>
+			expect(service.reportComment).toHaveBeenCalledWith('poll-1', 'c2', { reason: 'HARASSMENT', note: 'Every thread.' })
+		);
+		await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+	});
+
+	it('keeps the report dialog open when sending fails', async () => {
+		service.reportComment.mockResolvedValue({ ok: false, errorCode: 'comment.not_found', message: 'gone' });
+		render(<Harness />);
+		await screen.findByText('Theirs');
+
+		fireEvent.click(within(await openMenu('Theirs')).getByRole('menuitem', { name: 'Report' }));
+		const dialog = await screen.findByRole('dialog');
+		fireEvent.click(within(dialog).getByRole('radio', { name: 'Spam' }));
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Send report' }));
+
+		await waitFor(() => expect(service.reportComment).toHaveBeenCalled());
+		expect(screen.getByRole('dialog')).toBeInTheDocument();
+	});
+
+	it('shows the Reply previews that came with the Comments and continues from their cursor', async () => {
+		service.getComments.mockResolvedValue({
+			ok: true,
+			data: {
+				items: [{ ...theirs, replyCount: 3, replies: [{ ...reply, id: 'r9', text: 'Preview reply' }], repliesNextCursor: 'rc' }],
+				nextCursor: null,
+			},
+		});
+		service.getReplies.mockResolvedValue({
+			ok: true,
+			data: { items: [{ ...reply, id: 'r10', text: 'Later reply' }], nextCursor: null },
+		});
+		render(<Harness />);
+
+		expect(await screen.findByText('Preview reply')).toBeInTheDocument();
+		expect(service.getReplies).not.toHaveBeenCalled();
+		fireEvent.click(screen.getByRole('button', { name: 'Show more replies' }));
+		expect(await screen.findByText('Later reply')).toBeInTheDocument();
+		expect(service.getReplies).toHaveBeenCalledWith('poll-1', 'c2', 'rc');
 	});
 
 	it('offers no block on a comment without a user ID', async () => {
