@@ -9,9 +9,9 @@ Cool canvas, navy ink actions, two signals: Volt (`highlight`) marks what is you
 | Role | Token | Use for |
 |---|---|---|
 | Canvas | `background` | Page background |
-| Surface | `card` | Cards, ballot rows, outline buttons, a focused field |
+| Surface | `card` | Cards, ballot rows, outline buttons, text fields |
 | Soft surface | `surface-soft` | Folded settings, empty states |
-| Field | `field` | Fill of text fields at rest; it is what marks them as fields |
+| Field | `field` | Icon discs, segmented tracks and other recessed fills (text fields are `card`) |
 | Ink | `foreground`, `primary` | Text and the primary action (same ink) |
 | Quiet text | `muted-foreground` | Meta, hints, secondary copy |
 | Lines | `border`, `border-strong` | `border` for cards, rows and dividers; `border-strong` for outline buttons and pills at rest (hover fills them, the line stays) |
@@ -41,13 +41,13 @@ Cool canvas, navy ink actions, two signals: Volt (`highlight`) marks what is you
 
 ## Shape and layout
 
-- Borders stay quiet: 1px, `border` by default. Fields are `input` on a `field` fill (the border carries the 3:1 contrast at rest) and turn `card` white on focus. Only the selected ballot row and a winning result get an ink border.
-- Radius: `rounded-2xl` (16px) for cards and panels (`PollCard`, side cards, the About panel, settings panels); `rounded-xl` (12px) for ballot rows, list rows, inputs and the Tide surfaces inside a card; `--radius` (10px) for buttons, set once in `Button`; `rounded-full` for chips, pills and avatars.
+- Borders stay quiet: 1px, `border` by default. Fields are white `card` with an `input` border (the border carries the 3:1 contrast at rest), 10px radius, 15px text from `md`. Only the selected ballot row and a winning result get an ink border.
+- Radius: `rounded-2xl` (16px) for cards and panels (`PollCard`, side cards, the About panel, settings panels); `rounded-xl` (12px) for ballot rows, list rows and the Tide surfaces inside a card; `--radius` (10px) for buttons, set once in `Button`, and for text fields; `rounded-full` for chips, pills and avatars.
 - Page container: `px-contain mx-auto max-w-2xl py-6` for lists (Explore); `max-w-5xl` for a poll page. Profile and Notifications put a 720 / 680px main column beside a 280px rail from `xl` (`max-w-[1080px]` / `max-w-[1000px]`); Settings sits in a 1280px frame (32px from the top, 64px from the bottom): a 680px column and, from `lg`, a sticky On this page list 200 to 220px wide.
 - The home feed column is `max-w-feed` (640px, `--container-feed`), its cards 16px apart (`gap-4`), the page 24px from the top and 64px from the bottom. From `xl` up `HomeRail` (which owns the `<aside>`) sits to its right, flexible from 260 to 320px ("Results are in": Ended polls the viewer voted in, with unread dots; "Closing soon": Open polls ending within a day; the login prompt for guests; "Got a question for everyone?" with Write one for signed-in viewers); below `xl` the rail follows the feed.
 - Desktop gets the collapsible `AppSidebar` (248px; nav rows 40px, the current one a `card` with a `border` line); mobile gets the fixed `TabBar` (64px plus the safe-area inset). Phones also get a fixed logo `Header` (56px) that slides up while scrolling down, returns on scroll up and is back on every new page; it eases over 400ms (`ease-header`). Bars that stick under it and slide with it use `sticky follow-header` (Home's topics; a page's own line tabs pass `sticky` to `TabsList`). The TabBar's profile tab shows the signed-in person's avatar. All three hide on `/login`. There is one create action, `Button variant="create"`: the sidebar's button and the TabBar's center square.
 - The poll creator is full screen on phones and a 560px dialog from `sm` up.
-- Touch targets are at least 44px (`h-11`) on phones. From `md` up `Button` takes its size's height: `default` stays 44, `md` 40 (settings and dialog footers, Show more), `sm` 36 (header actions), `xs` 32 (actions inside a row), `icon-sm` 36, `icon-xs` a 32px circle (a row's •••). Pick the size; never set `h-*`. `Switch` is a 44x26 track whose hit area is 44px tall.
+- Touch targets are at least 44px (`h-11`) on phones. From `md` up `Button` takes its size's height: `default` stays 44 (15px label), `md` 40 (14px; settings and dialog footers, Show more), `sm` 36 (14px; header actions), `xs` 32 (13px; actions inside a row), `icon-sm` 36, `icon-xs` a 32px circle (a row's •••). Pick the size; never set `h-*`. `Switch` is a 44x26 track whose hit area is 44px tall.
 - Every avatar is drawn in the `avatar-frame` utility: a 32px circle (a size goes beside it) with a 1px `border` line, so it sits on any surface. The avatar components carry it; no call site adds or removes the line.
 
 ## Building blocks

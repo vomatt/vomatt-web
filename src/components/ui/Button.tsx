@@ -31,10 +31,10 @@ const buttonVariantClasses = cva(
 			},
 			size: {
 				default:
-					'h-11 gap-2 px-4 text-[14px] has-data-[icon=inline-end]:pr-3.5 has-data-[icon=inline-start]:pl-3.5',
+					'h-11 gap-2 px-4 text-[15px] has-data-[icon=inline-end]:pr-3.5 has-data-[icon=inline-start]:pl-3.5',
 				// Phones keep the 44px target; from md each size takes its own height
 				md: 'h-11 gap-2 px-4 text-[14px] md:h-10 has-data-[icon=inline-end]:pr-3.5 has-data-[icon=inline-start]:pl-3.5',
-				sm: "h-11 gap-1.5 px-3 text-sm md:h-9 in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
+				sm: "h-11 gap-1.5 px-3 text-[14px] md:h-9 in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
 				xs: "h-11 gap-1.5 px-3 text-[13px] md:h-8 has-data-[icon=inline-end]:pr-2.5 has-data-[icon=inline-start]:pl-2.5 [&_svg:not([class*='size-'])]:size-3.5",
 				lg: 'h-12 gap-2 px-5 text-base has-data-[icon=inline-end]:pr-4 has-data-[icon=inline-start]:pl-4',
 				icon: 'size-11',
