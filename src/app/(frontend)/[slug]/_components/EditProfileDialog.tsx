@@ -185,9 +185,10 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 		}
 	}
 
-	const pill = (fieldLabel: string, ...fields: string[]) => (
+	const pill = (fieldLabel: string, fields: string[], plural = false) => (
 		<VisibilityPill
 			label={fieldLabel}
+			plural={plural}
 			isPublic={isFieldPublic(visibility, fields[0])}
 			onToggle={() => toggleVisibility(...fields)}
 		/>
@@ -212,7 +213,7 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 							<label htmlFor="displayName" className={labelClassName}>
 								{t('profile.displayName')}
 							</label>
-							{pill(t('profile.displayName'), 'displayName')}
+							{pill(t('profile.displayName'), ['displayName'])}
 						</div>
 						<Input
 							id="displayName"
@@ -271,7 +272,7 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 							<label htmlFor="bio" className={labelClassName}>
 								{t('profile.bio')}
 							</label>
-							{pill(t('profile.bio'), 'bio')}
+							{pill(t('profile.bio'), ['bio'])}
 						</div>
 						<Textarea
 							id="bio"
@@ -339,7 +340,7 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 						</p>
 					)}
 					<ul className="divide-y divide-border rounded-xl border border-border">
-						<VisibilityRow label={t('profile.realName')}>{pill(t('profile.realName'), 'firstName', 'lastName')}</VisibilityRow>
+						<VisibilityRow label={t('profile.realName')}>{pill(t('profile.realName'), ['firstName', 'lastName'])}</VisibilityRow>
 						<VisibilityRow label={t('profile.birthday')}>
 							{/* The API never shows a birthday to anyone else */}
 							<span className={cn(pillClassName, 'border-border bg-secondary text-muted-foreground')}>
@@ -348,17 +349,17 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 							</span>
 						</VisibilityRow>
 						<VisibilityRow label={t('account.field.location')} value={profile.location}>
-							{pill(t('account.field.location'), 'location')}
+							{pill(t('account.field.location'), ['location'])}
 						</VisibilityRow>
 						<VisibilityRow
 							label={t('account.field.points')}
 							value={profile.points.toLocaleString(toPayloadLocale(currentLanguage))}
 							mono
 						>
-							{pill(t('account.field.points'), 'points')}
+							{pill(t('account.field.points'), ['points'], true)}
 						</VisibilityRow>
 						<VisibilityRow label={t('account.field.membershipLevel')} value={profile.membershipLevel}>
-							{pill(t('account.field.membershipLevel'), 'membershipLevel')}
+							{pill(t('account.field.membershipLevel'), ['membershipLevel'])}
 						</VisibilityRow>
 					</ul>
 				</form>
@@ -396,15 +397,31 @@ const pillClassName =
 // The pill stays small in the dense list, but its hit area reaches 44px
 const pillHitArea = "relative before:absolute before:-inset-y-2 before:inset-x-0 before:content-['']";
 
+const PILL_LABELS = {
+	everyone: { one: 'profile.visibilityPillEveryone', plural: 'profile.visibilityPillEveryonePlural' },
+	onlyYou: { one: 'profile.visibilityPillOnlyYou', plural: 'profile.visibilityPillOnlyYouPlural' },
+} as const;
+
 /** Who sees a detail, as a pill that switches between Everyone and Only you. */
-function VisibilityPill({ label, isPublic, onToggle }: { label: string; isPublic: boolean; onToggle: () => void }) {
+function VisibilityPill({
+	label,
+	plural,
+	isPublic,
+	onToggle,
+}: {
+	label: string;
+	/** The detail reads as plural ("Points: only you see them") */
+	plural: boolean;
+	isPublic: boolean;
+	onToggle: () => void;
+}) {
 	const { t } = useLanguage();
 	const state = t(isPublic ? 'profile.everyone' : 'profile.onlyYouShort');
 	return (
 		<button
 			type="button"
 			onClick={onToggle}
-			aria-label={t('profile.visibilityPill', { field: label, state })}
+			aria-label={t(PILL_LABELS[isPublic ? 'everyone' : 'onlyYou'][plural ? 'plural' : 'one'], { field: label })}
 			className={cn(
 				pillClassName,
 				pillHitArea,
