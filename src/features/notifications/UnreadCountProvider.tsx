@@ -13,7 +13,7 @@ export function formatUnreadCount(count: number) {
 }
 
 type UnreadCount = {
-	/** Unread Ended Notifications; 0 when signed out or not loaded yet. */
+	/** Unread notifications; 0 when signed out or not loaded yet. */
 	count: number;
 	/** Whether `count` came from the API. */
 	isLoaded: boolean;
