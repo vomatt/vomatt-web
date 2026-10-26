@@ -9,7 +9,6 @@ jest.mock('next/link', () => {
 	};
 });
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
-jest.mock('@/features/polls/hooks/useSharePoll', () => ({ useSharePoll: () => jest.fn() }));
 
 const HOUR = 3600_000;
 const iso = (offset: number) => new Date(Date.now() + offset).toISOString();
@@ -29,54 +28,50 @@ const poll: Poll = {
 };
 
 describe('PollAbout', () => {
-	it("shows the creator's chosen avatar", () => {
-		const { container } = render(<PollAbout poll={{ ...poll, creatorAvatarUrl: 'bot:bear' }} />);
-		expect(container.querySelector('img')).toHaveAttribute('src', '/avatars/bear.svg');
-	});
-
 	it('says a Poll ended early, with its Deadline', () => {
 		render(<PollAbout poll={{ ...poll, active: false, endTime: iso(-HOUR), deadline: iso(24 * HOUR) }} />);
 		expect(screen.getByText(/^Ended early\. It was set to close/)).toBeInTheDocument();
 	});
 
-	it('says results are in when it ran to its Deadline', () => {
+	it('is one line once a Poll has Ended: no rules, dates or topics', () => {
 		// One timestamp: two iso() calls can land a millisecond apart and read as ended early
 		const ended = iso(-HOUR);
-		render(<PollAbout poll={{ ...poll, endTime: ended, deadline: ended }} />);
+		render(
+			<PollAbout
+				poll={{ ...poll, endTime: ended, deadline: ended, tags: [{ id: 't1', name: 'Market', slug: 'market' }] }}
+			/>
+		);
+		expect(screen.getByRole('heading', { name: 'About this poll' })).toBeInTheDocument();
 		expect(screen.getByText('Voting has closed. Results are in.')).toBeInTheDocument();
-	});
-
-	it('shows who an Invite-only Poll is for and how many were invited', () => {
-		render(<PollAbout poll={{ ...poll, audience: 'invite-only', inviteeCount: 12 }} />);
-		expect(screen.getByText(/12 invited/)).toBeInTheDocument();
-		expect(screen.getByText(/Only the people invited can see it and vote\./)).toBeInTheDocument();
-		// Sharing the link can't invite anyone
-		expect(screen.queryByRole('button', { name: 'Invite others to vote' })).not.toBeInTheDocument();
-		expect(screen.getByRole('button', { name: 'Share' })).toBeInTheDocument();
+		expect(screen.queryByText(/^Ballots are sealed/)).not.toBeInTheDocument();
+		expect(screen.queryByText('Opened')).not.toBeInTheDocument();
+		expect(screen.queryByRole('link', { name: 'Market' })).not.toBeInTheDocument();
 	});
 
 	it('lists the rules of an Open Poll, with who will see each choice', () => {
 		render(<PollAbout poll={{ ...poll, voterVisibility: 'owner' }} />);
 		expect(screen.getByText('Ballots are sealed. Counts are revealed only when the poll ends.')).toBeInTheDocument();
-		expect(screen.getByText('One vote per person. You can change or withdraw it until the poll ends.')).toBeInTheDocument();
+		expect(screen.getByText('One vote per person. You can change it until the end.')).toBeInTheDocument();
 		expect(screen.getByText('After it ends, only the poll owner can see what you chose.')).toBeInTheDocument();
 	});
 
-	it('leaves the rules out once a Poll has Ended', () => {
-		const ended = iso(-HOUR);
-		render(<PollAbout poll={{ ...poll, endTime: ended, deadline: ended }} />);
-		expect(screen.queryByText(/^Ballots are sealed/)).not.toBeInTheDocument();
-	});
-
-	it('shows how far through its voting window the Poll is', () => {
+	it('shows when the Poll opened and when its results come, with how far through it is', () => {
 		render(<PollAbout poll={poll} />);
+		expect(screen.getByText('Opened')).toBeInTheDocument();
+		expect(screen.getByText('Results')).toBeInTheDocument();
 		// Opened 48h ago, ends in 24h
 		expect(screen.getByRole('progressbar', { name: 'Voting window' })).toHaveAttribute('aria-valuenow', '67');
 	});
 
-	it('says nothing about the Audience of a Public Poll', () => {
-		render(<PollAbout poll={{ ...poll, audience: 'public', inviteeCount: null }} />);
+	it('links its topics by name, without a #', () => {
+		render(<PollAbout poll={{ ...poll, tags: [{ id: 't1', name: 'Market', slug: 'market' }] }} />);
+		expect(screen.getByRole('link', { name: 'Market' })).toHaveAttribute('href', expect.stringContaining('market'));
+	});
+
+	it('leaves out who asked, the turnout, the audience note and Share', () => {
+		render(<PollAbout poll={{ ...poll, audience: 'invite-only', inviteeCount: 12 }} />);
+		expect(screen.queryByText('mei.lin')).not.toBeInTheDocument();
 		expect(screen.queryByText(/invited/)).not.toBeInTheDocument();
-		expect(screen.getByRole('button', { name: 'Invite others to vote' })).toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Share' })).not.toBeInTheDocument();
 	});
 });
