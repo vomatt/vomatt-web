@@ -1,12 +1,10 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 
-import { BackLink } from '@/components/BackLink';
 import { T } from '@/components/T';
 import { getMyProfile } from '@/data/auth';
 import { getGroups } from '@/features/groups/service';
 import { getServerLocale } from '@/lib/getServerLocale';
-import { profileHref } from '@/lib/routes';
 import en from '@/locales/en.json';
 import zh from '@/locales/zh.json';
 
@@ -24,10 +22,7 @@ export default async function SettingsPage() {
 	return (
 		<div className="px-contain mx-auto flex max-w-[1280px] items-start gap-10 pt-8 pb-16">
 			<div className="flex min-w-0 max-w-[680px] flex-1 flex-col">
-				<BackLink href={profileHref(profile.username)}>
-					<T k="navigation.profile" />
-				</BackLink>
-				<h1 className="mt-1 mb-8 display-heading text-[30px] text-foreground md:text-[40px]">
+				<h1 className="mb-8 page-title text-foreground">
 					<T k="navigation.settings" />
 				</h1>
 				<AccountSettings profile={profile} inviteListCount={groups.ok ? groups.data.length : null} />

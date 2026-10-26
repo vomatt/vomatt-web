@@ -95,10 +95,18 @@ describe('AccountSettings', () => {
 		await waitFor(() => expect(mockRefresh).toHaveBeenCalled());
 	});
 
-	it('leaves language to the More menu', () => {
+	it('links Language to its own page, naming the current one', () => {
 		render(<AccountSettings profile={myProfile} inviteListCount={3} />);
-		expect(screen.queryByText('Language')).not.toBeInTheDocument();
-		expect(screen.queryByRole('button', { name: '繁體中文' })).not.toBeInTheDocument();
+		const row = screen.getByRole('link', { name: /Language/ });
+		expect(row).toHaveAttribute('href', '/settings/language');
+		expect(row).toHaveTextContent('English');
+	});
+
+	it('ends with the Terms and Privacy pages', () => {
+		render(<AccountSettings profile={myProfile} inviteListCount={3} />);
+		const legal = screen.getByRole('navigation', { name: 'Legal' });
+		expect(within(legal).getByRole('link', { name: 'Terms' })).toHaveAttribute('href', '/terms-of-service');
+		expect(within(legal).getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', '/privacy-policy');
 	});
 
 	it('picks the theme from a radio group', () => {

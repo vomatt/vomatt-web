@@ -29,6 +29,7 @@ import { FollowedUsersPanel } from '@/features/follows/FollowedUsersPanel';
 import { GroupsPanel } from '@/features/groups/GroupsPanel';
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
 import { useHydrated } from '@/hooks/useHydrated';
+import { htmlLang, SUPPORTED_LANGUAGES } from '@/i18n-config';
 import { apiErrorText } from '@/lib/api/error-text';
 import { signout } from '@/lib/api/services/auth';
 import { deleteMyAccount, editProfile, exportMyData } from '@/lib/api/services/users';
@@ -152,12 +153,19 @@ export default function AccountSettings({
 				</Dialog>
 			</Section>
 
-			<Section id="appearance" title={t('navigation.appearance')}>
+			<Section id="appearance" title={t('settings.appearanceAndLanguage')}>
 				<Card>
 					<div className={cn(rowClassName, 'flex-wrap')}>
 						<RowText title={t('settings.theme')} body={t('settings.themeBody')} />
 						<ThemeChoice />
 					</div>
+					<Link href="/settings/language" className={rowLinkClassName}>
+						<RowText title={t('settings.language')} body={t('settings.languageBody')} />
+						<span lang={htmlLang(currentLanguage)} className="text-[14px] text-muted-foreground">
+							{SUPPORTED_LANGUAGES[currentLanguage]}
+						</span>
+						<ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+					</Link>
 				</Card>
 			</Section>
 
@@ -191,6 +199,15 @@ export default function AccountSettings({
 
 			{/* Kept apart, at the end, and quiet until opened */}
 			<DeleteAccount username={profile.username} />
+
+			<nav aria-label={t('settings.legal')} className="flex gap-4.5 text-[13px] text-muted-foreground">
+				<Link href="/terms-of-service" className="hover:text-foreground">
+					{t('settings.terms')}
+				</Link>
+				<Link href="/privacy-policy" className="hover:text-foreground">
+					{t('settings.privacyPolicy')}
+				</Link>
+			</nav>
 		</div>
 	);
 }
@@ -358,7 +375,7 @@ function DeleteAccount({ username }: { username: string }) {
 
 const SECTION_TITLES: Record<(typeof SETTINGS_SECTIONS)[number], string> = {
 	voting: 'settings.voting',
-	appearance: 'navigation.appearance',
+	appearance: 'settings.appearanceAndLanguage',
 	privacy: 'settings.privacy',
 	account: 'settings.account',
 };

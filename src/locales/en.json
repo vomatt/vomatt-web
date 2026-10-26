@@ -1072,6 +1072,16 @@
 		"whatOthersSeeBody": "Set it beside each detail in Edit profile.",
 		"shownCount": "{shown} of {total} shown",
 		"account": "Account",
-		"onThisPage": "On this page"
+		"onThisPage": "On this page",
+		"appearanceAndLanguage": "Appearance and language",
+		"languageBody": "Buttons, titles and other text on vomatt.",
+		"languageTitle": "Language preferences",
+		"backToSettings": "Back to Settings",
+		"appLanguage": "App language",
+		"appLanguageBody": "See buttons, titles and other text on vomatt in your preferred language.",
+		"appLanguageNote": "Polls and comments stay in the language they were written in.",
+		"legal": "Legal",
+		"terms": "Terms",
+		"privacyPolicy": "Privacy"
 	}
 }

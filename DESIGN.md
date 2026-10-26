@@ -29,7 +29,8 @@ Cool canvas, navy ink actions, two signals: Volt (`highlight`) marks what is you
 - **Geist** (`font-sans`) for everything, with PingFang TC / Microsoft JhengHei / Noto Sans TC fallbacks for Traditional Chinese. **Geist Mono** (`font-mono`, `tabular-nums`) for counts, times and handles.
 - Every title is weight 500: confident, not shouting.
 - **Display**: the `display-heading` utility sets weight 500, leading 1.25 and -0.03em tracking; the size goes beside it.
-  - Page titles: `display-heading text-[30px] md:text-[40px]`
+  - Page titles (Explore, Notifications, Settings): the `page-title` utility, 28px at every width with leading 1.3
+  - CMS page titles: `display-heading text-[30px] md:text-[40px]`
   - Auth titles: `display-heading text-[30px]`
   - Person names: `display-heading text-2xl`
 - **Poll title** (card and preview): `text-[22px] font-medium leading-[1.2] tracking-[-0.02em]`; cards add `md:text-[26px]`.
