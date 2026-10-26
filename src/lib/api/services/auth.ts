@@ -1,10 +1,12 @@
 'use server';
 
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
 import { clearAuthTokens, getTokens, setAuthTokens } from '@/lib/api/auth';
 import { type AuthErrorKey, toAuthErrorKey } from '@/lib/api/auth-errors';
 import { ApiError, publicFetch } from '@/lib/api/client';
+import { clientIpHeaders } from '@/lib/api/client-ip';
 import { readAuthTokens } from '@/lib/api/tokens';
 
 type AuthFailure = { status: 'ERROR'; error: AuthErrorKey };
@@ -16,10 +18,11 @@ function toFailure(error: unknown): AuthFailure {
 	return { status: 'ERROR', error: 'serverError' };
 }
 
-function postJson(endpoint: string, body: unknown) {
+async function postJson(endpoint: string, body: unknown) {
 	return publicFetch(endpoint, {
 		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
+		// The OTP rate limits and lockouts are per user IP
+		headers: { 'Content-Type': 'application/json', ...clientIpHeaders(await headers()) },
 		body: JSON.stringify(body),
 		cache: 'no-store',
 	});

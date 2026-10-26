@@ -64,3 +64,27 @@ it('moves focus to Unblock once the block lands', async () => {
 	fireEvent.click(screen.getAllByRole('button', { name: 'Block' }).at(-1)!);
 	await waitFor(() => expect(screen.getByRole('button', { name: 'Unblock' })).toHaveFocus());
 });
+
+it('says so and stops loading when the unblock call itself fails', async () => {
+	mockUnblock.mockRejectedValue(new Error('network'));
+	const onChange = jest.fn();
+	render(<BlockButton userId="u1" username="bob" isBlocked onChange={onChange} />);
+
+	fireEvent.click(screen.getByRole('button', { name: 'Unblock' }));
+	await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Couldn’t unblock. Try again.', { duration: Infinity }));
+	expect(screen.getByRole('button', { name: 'Unblock' })).toBeEnabled();
+	expect(onChange).not.toHaveBeenCalled();
+});
+
+it('says so and stops loading when the block call itself fails', async () => {
+	mockBlock.mockRejectedValue(new Error('network'));
+	const onChange = jest.fn();
+	render(<BlockButton userId="u1" username="bob" isBlocked={false} onChange={onChange} />);
+
+	fireEvent.click(screen.getByRole('button', { name: 'Block' }));
+	await screen.findByText('Block @bob?');
+	fireEvent.click(screen.getAllByRole('button', { name: 'Block' }).at(-1)!);
+	await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Couldn’t block. Try again.', { duration: Infinity }));
+	expect(screen.getAllByRole('button', { name: 'Block' }).at(-1)).toBeEnabled();
+	expect(onChange).not.toHaveBeenCalled();
+});

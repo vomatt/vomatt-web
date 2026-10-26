@@ -9,6 +9,7 @@ import { BlockUserDialog } from '@/features/blocks/BlockUserDialog';
 import { unblockUser } from '@/features/blocks/service';
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
 import { apiErrorText } from '@/lib/api/error-text';
+import { settle } from '@/lib/api/settle';
 
 /** Blocks another user after a confirmation, or unblocks them at once. The parent owns the state. */
 export default function BlockButton({
@@ -30,7 +31,7 @@ export default function BlockButton({
 
 	const unblock = async () => {
 		setIsPending(true);
-		const result = await unblockUser(userId).finally(() => setIsPending(false));
+		const result = await settle(unblockUser(userId)).finally(() => setIsPending(false));
 		if (!result.ok) {
 			toast.error(apiErrorText(t, result, 'blocks.unblockFailed'), { duration: Infinity });
 			return;

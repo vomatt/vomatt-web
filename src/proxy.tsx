@@ -4,10 +4,13 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 import { ACCESS_TOKEN, REFRESH_TOKEN } from '@/data/constants';
+import { clientIpHeaders } from '@/lib/api/client-ip';
 import {
+	AUTH_COOKIE_BASE,
 	buildAuthCookies,
 	isExpiringSoon,
 	requestTokenRefresh,
+	tokenFingerprint,
 	verifyAccessToken,
 } from '@/lib/api/tokens';
 import { getSafeRedirectPath } from '@/lib/routes';
@@ -67,8 +70,9 @@ type SessionResult =
 
 /**
  * Set when a freshly issued access token still fails verification, i.e.
- * SESSION_SECRET doesn't match the API's JWT_SECRET. Holds the refresh token
- * it was learned with, so that pair isn't rotated again on every request.
+ * SESSION_SECRET doesn't match the API's JWT_SECRET. Holds the fingerprint of
+ * the refresh token it was learned with (never the token itself), so that pair
+ * isn't rotated again on every request.
  */
 const KEY_MISMATCH = 'auth-key-mismatch';
 
@@ -86,9 +90,10 @@ async function resolveSession(request: NextRequest): Promise<SessionResult> {
 	if (payload && (!refreshToken || !isExpiringSoon(payload))) return { status: 'valid' };
 	if (!refreshToken) return { status: 'none' };
 	// Already known not to verify; refreshing again would only rotate in a loop
-	if (request.cookies.get(KEY_MISMATCH)?.value === refreshToken) return { status: 'none' };
+	const mismatch = request.cookies.get(KEY_MISMATCH)?.value;
+	if (mismatch && mismatch === (await tokenFingerprint(refreshToken))) return { status: 'none' };
 
-	const result = await requestTokenRefresh(refreshToken);
+	const result = await requestTokenRefresh(refreshToken, clientIpHeaders(request.headers));
 	if (result.status === 'ok') {
 		// A token the API just issued that still fails here can't be fixed by refreshing
 		if (await verifyAccessToken(result.tokens.accessToken)) {
@@ -127,15 +132,15 @@ export async function proxy(request: NextRequest) {
 	}
 	for (const { name, value } of authCookies) request.cookies.set(name, value);
 
+	const mismatchMark =
+		session.status === 'misconfigured' ? await tokenFingerprint(session.tokens.refreshToken) : null;
 	const applyAuthCookies = (res: NextResponse) => {
 		for (const { name, value, options } of authCookies) res.cookies.set(name, value, options);
 		if (session.status === 'dead') {
 			res.cookies.delete(ACCESS_TOKEN);
 			res.cookies.delete(REFRESH_TOKEN);
 		}
-		if (session.status === 'misconfigured') {
-			res.cookies.set(KEY_MISMATCH, session.tokens.refreshToken, { httpOnly: true, path: '/' });
-		}
+		if (mismatchMark) res.cookies.set(KEY_MISMATCH, mismatchMark, AUTH_COOKIE_BASE);
 		return res;
 	};
 

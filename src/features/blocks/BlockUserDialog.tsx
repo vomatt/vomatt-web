@@ -17,6 +17,7 @@ import {
 import { useLanguage } from '@/contexts/LanguageContext';
 import { blockUser } from '@/features/blocks/service';
 import { apiErrorText } from '@/lib/api/error-text';
+import { settle } from '@/lib/api/settle';
 
 /** Confirms, then blocks another user. */
 export function BlockUserDialog({
@@ -37,7 +38,7 @@ export function BlockUserDialog({
 
 	const block = async () => {
 		setIsBlocking(true);
-		const result = await blockUser(userId).finally(() => setIsBlocking(false));
+		const result = await settle(blockUser(userId)).finally(() => setIsBlocking(false));
 		if (!result.ok) {
 			toast.error(apiErrorText(t, result, 'blocks.blockFailed'), { duration: Infinity });
 			return;

@@ -92,13 +92,13 @@ describe('backendFetch', () => {
 
 		await backendFetch('https://api.test/api/auth/refresh', {
 			method: 'POST',
-			headers: { Authorization: 'Bearer a1' },
+			headers: { Authorization: 'Bearer a1', 'X-Client-IP-Secret': 's1' },
 			body: JSON.stringify({ refreshToken: 'r1' }),
 		});
 		await flushLogs();
 
 		expect(logged()).toContain('[redacted]');
-		expect(logged()).not.toMatch(/a1|r1|a2|r2|a3/);
+		expect(logged()).not.toMatch(/a1|r1|a2|r2|a3|s1/);
 	});
 
 	it('hides the sign-in code but keeps error codes', async () => {

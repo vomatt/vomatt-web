@@ -49,7 +49,7 @@ Render Portable Text with `@/components/CustomPortableText`; build image URLs wi
 
 - **`tokens.ts`** — shared by the proxy and server code: `verifyAccessToken` (HS256/384/512), `requestTokenRefresh` (deduped; returns `ok | rejected | unavailable`), `buildAuthCookies`. Tokens live in httpOnly cookies (`accessToken`, `refreshToken`); lifetimes follow the backend (access 15m, refresh 30d, rotated on every refresh).
 - **`auth.ts`** — `server-only` cookie helpers (`getTokens`, `setAuthTokens`, `clearAuthTokens`). Never make it `'use server'`: every export would become a callable Server Action.
-- **Refresh happens only in `src/proxy.tsx`**, which writes rotated cookies to both the request and the response. The backend revokes every session when a used refresh token comes back, so nothing else may refresh.
+- **Refresh happens only in `src/proxy.tsx`**, which writes rotated cookies to both the request and the response. The backend ends the session when a used refresh token comes back after its grace window, so nothing else may refresh.
 - **`client.ts`** — `apiClient<T>()` (authenticated; throws `AuthError` on 401, `ApiError` with `data.errorCode` otherwise; `auth: 'optional'` falls back to `publicFetch`) and `publicFetch<T>()`. Both unwrap the `ApiResponse` envelope.
 - **`services/`** — `auth.ts` (`requestOtp`, `verifyOtp`, `signout`) and `users.ts` are Server Actions (`'use server'`). Domain actions live in `src/features/<domain>/service.ts` (polls — incl. ballots, comments, invitees — groups, avatars, notifications) and return `ActionResult` (via `attempt()` in `lib/api/action.ts`) instead of throwing.
 
@@ -84,6 +84,7 @@ SITE_URL         # Frontend URL, no trailing slash; required (metadataBase)
 API_URL          # vomatt-api origin, no path (e.g. http://localhost:8080)
 SANITY_REVALIDATE_SECRET  # Production only; same value as the invalidate-tags function's. Set in production: publish expires the cache, hourly fallback. Unset or not production: 60s refresh; unset also makes /api/revalidate reject all calls
 API_LOG          # Optional API request/response log: 0 silences it in dev, 1 enables it in a deployment
+CLIENT_IP_SECRET # Same value as the API's; sent with each user's IP (lib/api/client-ip.ts) so its rate limits and OTP lockouts are per user, not per server
 ```
 
 Template and Vercel setup: `.env.example`, `README.md`. The production site shows only the coming-soon page until Sanity's Settings → General → Coming soon is turned off (`src/lib/comingSoon.ts`).
