@@ -10,8 +10,8 @@ describe('EmptyCard', () => {
 	});
 
 	it('can be the page title where nothing else is', () => {
-		render(<EmptyCard icon={<svg />} title="Page not found" headingLevel={1} action={<a href="/">Go home</a>} />);
+		render(<EmptyCard icon={<svg />} title="Page not found" headingLevel={1} action={<button type="button">Go home</button>} />);
 		expect(screen.getByRole('heading', { level: 1, name: 'Page not found' })).toBeInTheDocument();
-		expect(screen.getByRole('link', { name: 'Go home' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Go home' })).toBeInTheDocument();
 	});
 });
