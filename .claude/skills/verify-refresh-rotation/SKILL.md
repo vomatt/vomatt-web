@@ -91,13 +91,13 @@ If a change to the covered code is deliberate (for example, new cookie handling 
 | Backend model | `../vomatt-api/src/main/java/com/vomatt/common/security/RefreshTokenService.java` (rotate, 60 s grace, reuse detection); `../vomatt-api/docs/frontend/auth-flow.md` §6 |
 | Constants | `src/data/constants.ts`: `ACCESS_TOKEN_REFRESH_LEEWAY`, `ACCESS_TOKEN_EXPIRY` |
 
-**Sync commit:** vomatt-web `551afb805b2ed7cf1874adf2d564a04882c7db33` (covered files last changed in `97b170c`); vomatt-api `6526eba`.
+**Sync commit:** vomatt-web `af56991c28892de53d48d33aac865994bed42cc1`; vomatt-api `f3cee16` (atomic rotation, vomatt/vomatt-api#76: the model describes that backend, not the GETDEL one before it).
 
 To see whether the covered code changed since the sync commit:
 
 ```bash
-git diff --stat 551afb805b2ed7cf1874adf2d564a04882c7db33 -- src/proxy.tsx src/lib/api/tokens.ts src/lib/api/backend-fetch.ts src/data/constants.ts
-git -C ../vomatt-api diff --stat 6526eba -- src/main/java/com/vomatt/common/security/RefreshTokenService.java docs/frontend/auth-flow.md
+git diff --stat af56991c28892de53d48d33aac865994bed42cc1 -- src/proxy.tsx src/lib/api/tokens.ts src/lib/api/backend-fetch.ts src/data/constants.ts
+git -C ../vomatt-api diff --stat f3cee16 -- src/main/java/com/vomatt/common/security/RefreshTokenService.java docs/frontend/auth-flow.md
 ```
 
 Any output means: re-read those diffs against the model before trusting a pass.
