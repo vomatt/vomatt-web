@@ -16,7 +16,7 @@ import type { CursorPage } from '@/lib/api/cursor';
 
 import { type Entry, entryItems, groupFollows, NotificationRow } from './NotificationRows';
 import { preferencesSummary } from './preferences';
-import type { FeedItem, NotificationPreferences } from './schema';
+import type { Notification, NotificationPreferences } from './schema';
 import { getNotifications, markAllNotificationsRead, markNotificationRead } from './service';
 import { useUnreadCount } from './UnreadCountProvider';
 
@@ -54,7 +54,7 @@ export function NotificationList({
 	viewerUsername,
 }: {
 	/** Null when the feed couldn't be loaded. */
-	initialPage: CursorPage<FeedItem> | null;
+	initialPage: CursorPage<Notification> | null;
 	viewerUsername: string;
 }) {
 	const { t } = useLanguage();

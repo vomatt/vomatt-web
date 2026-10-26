@@ -6,38 +6,35 @@ import { type ComponentType, useState } from 'react';
 import { Button, buttonVariants } from '@/components/ui/Button';
 import { Ban, Clock } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ballotOutcome } from '@/features/account/insights';
 import { FollowButton, useFollow } from '@/features/follows/FollowButton';
 import { FollowListDialog } from '@/features/follows/FollowListDialog';
-import { isDecided, OutcomeChip } from '@/features/polls/components/OutcomeChip';
+import { type DecidedOutcome, OutcomeChip } from '@/features/polls/components/OutcomeChip';
 import { SealMark } from '@/features/polls/components/Seal';
 import { formatAge, formatDuration } from '@/features/polls/format';
 import { useViewerClock } from '@/features/polls/hooks/useViewerClock';
-import { derivePollStatus, getTurnout } from '@/features/polls/status';
+import { derivePollStatus } from '@/features/polls/status';
 import { pollTiming } from '@/features/polls/timing';
-import { endedSummary } from '@/features/profiles/lists';
 import { ProfileHoverCard, rememberFollowing } from '@/features/profiles/ProfileHoverCard';
-import { DecidedText } from '@/features/profiles/ProfileRows';
 import { ProfileAvatar } from '@/features/profiles/UserChip';
 import { countText } from '@/lib/count';
 import { toPayloadLocale } from '@/lib/locale';
-import { rich } from '@/lib/rich';
+import { rich, richList } from '@/lib/rich';
 import { profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
-import type { FeedItem } from './schema';
+import type { Notification, PollSummary } from './schema';
 import { UnreadDot } from './UnreadDot';
 
-type Followed = Extract<FeedItem, { kind: 'FOLLOWED' }>;
+type Followed = Extract<Notification, { kind: 'FOLLOWED' }>;
 
 /** Consecutive follows, shown as one row: "@bkim and 3 others followed you". */
 export type FollowGroup = { kind: 'FOLLOWED_GROUP'; id: string; items: Followed[] };
 
 /** What the list shows as one row. */
-export type Entry = FeedItem | FollowGroup;
+export type Entry = Notification | FollowGroup;
 
 /** Folds each run of two or more consecutive follows into one group. */
-export function groupFollows(items: FeedItem[]): Entry[] {
+export function groupFollows(items: Notification[]): Entry[] {
 	const entries: Entry[] = [];
 	let run: Followed[] = [];
 	const flush = () => {
@@ -58,7 +55,7 @@ export function groupFollows(items: FeedItem[]): Entry[] {
 }
 
 /** The notifications an entry stands for. */
-export const entryItems = (entry: Entry): FeedItem[] => (entry.kind === 'FOLLOWED_GROUP' ? entry.items : [entry]);
+export const entryItems = (entry: Entry): Notification[] => (entry.kind === 'FOLLOWED_GROUP' ? entry.items : [entry]);
 
 type RowProps<E extends Entry> = {
 	entry: E;
@@ -182,12 +179,27 @@ function ActorName({ username, avatarUrl, onOpen }: { username: string; avatarUr
 
 const pollHref = (pollId: string) => `/poll/${pollId}`;
 
+/** How the viewer's pick fared once the Poll Ended; null without a Ballot to compare. */
+function pickOutcome({ myOptionId, winningOptionIds, tie }: PollSummary): DecidedOutcome | null {
+	if (!myOptionId || !winningOptionIds) return null;
+	if (!winningOptionIds.includes(myOptionId)) return 'lost';
+	return tie ? 'tied' : 'won';
+}
+
+/** "**Yes** won" or "Tie between **A** and **B**", for an Ended Poll whose Ballots named an option. */
+function WinnersText({ poll }: { poll: PollSummary }) {
+	const { t, currentLanguage } = useLanguage();
+	const labels = poll.winningOptionLabels ?? [];
+	const option = (text: string) => <strong className="font-medium text-foreground">{text}</strong>;
+	if (!poll.tie) return rich(t('profile.wonBy'), { option: option(labels[0]) });
+	return rich(t('profile.tieBetween'), { options: richList(labels, toPayloadLocale(currentLanguage), option) });
+}
+
 function ResultRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'RESULT' }>>) {
 	const { t, currentLanguage } = useLanguage();
-	const { poll, detail } = entry;
+	const { poll } = entry;
 	const unread = !entry.read;
-	const outcome = detail?.myOptionId ? ballotOutcome(detail, detail.myOptionId) : null;
-	const turnout = (detail && getTurnout(detail)) ?? poll.turnout ?? 0;
+	const outcome = pickOutcome(poll);
 	return (
 		<RowShell
 			unread={unread}
@@ -202,13 +214,13 @@ function ResultRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'RESULT' }
 				</>
 			}
 			meta={[
-				detail && endedSummary(detail).kind !== 'none' && <DecidedText key="outcome" poll={detail} />,
+				!!poll.winningOptionLabels?.length && <WinnersText key="outcome" poll={poll} />,
 				<span key="turnout" className="font-mono tabular-nums">
-					{t('poll.voted', { count: turnout.toLocaleString(toPayloadLocale(currentLanguage)) })}
+					{t('poll.voted', { count: (poll.turnout ?? 0).toLocaleString(toPayloadLocale(currentLanguage)) })}
 				</span>,
 				useAge(entry.createdAt),
 			]}
-			action={outcome && isDecided(outcome) && <OutcomeChip outcome={outcome} />}
+			action={outcome && <OutcomeChip outcome={outcome} />}
 		/>
 	);
 }
@@ -243,10 +255,13 @@ function CancelledRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'CANCEL
 function InvitationRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'INVITATION' }>>) {
 	const { t } = useLanguage();
 	const clock = useViewerClock();
-	const { poll, detail, actor } = entry;
+	const { poll, actor } = entry;
 	const href = pollHref(poll.id);
-	const when = detail && clock && pollTiming(detail, derivePollStatus(detail, clock.now), clock).when;
-	const canVote = !detail?.myOptionId && poll.status === 'OPEN';
+	const times = { startTime: poll.startTime, endTime: poll.endTime ?? null };
+	// The clock moves a Scheduled poll to Open and an Open one to closing; only Ended comes from the API
+	const status = clock && derivePollStatus({ ...times, active: poll.status !== 'ENDED', votingActive: true }, clock.now);
+	const when = clock && status && pollTiming(times, status, clock).when;
+	const canVote = !poll.myOptionId && poll.status === 'OPEN';
 	return (
 		<RowShell
 			unread={!entry.read}
@@ -273,7 +288,7 @@ function InvitationRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'INVIT
 function FollowedRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'FOLLOWED' }>>) {
 	const { t } = useLanguage();
 	const { actor } = entry;
-	const follow = useFollow(actor.id, entry.relation, {
+	const follow = useFollow(actor.id, actor, {
 		onChange: (following) => {
 			rememberFollowing(actor.username, following);
 			onOpen();
@@ -329,7 +344,7 @@ function FollowGroupRow({ entry, onOpen, viewerUsername }: RowProps<FollowGroup>
 function CommentRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'COMMENT' }>>) {
 	const { t } = useLanguage();
 	const { actor, poll, comment } = entry;
-	const href = `${pollHref(poll.id)}#comment-${comment.id}`;
+	const href = `${pollHref(poll.id)}#comment-${comment.parentId ? `${comment.parentId}/${comment.id}` : comment.id}`;
 	return (
 		<RowShell
 			unread={!entry.read}
