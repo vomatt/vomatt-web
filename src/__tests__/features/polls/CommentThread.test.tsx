@@ -280,6 +280,17 @@ describe('CommentThread', () => {
 			}
 		});
 
+		it('opens the reply composer right under the reply it answers, which hides its "…"', async () => {
+			const target = (await screen.findByText('A reply')).closest<HTMLElement>('[id^=comment-]')!;
+			fireEvent.click(within(target).getByRole('button', { name: 'Reply' }));
+
+			const box = screen.getByRole('textbox', { name: 'Write a reply…' });
+			const next = screen.getByText('agreed');
+			expect(target.compareDocumentPosition(box) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+			expect(box.compareDocumentPosition(next) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+			expect(within(target).queryByRole('button', { name: 'More' })).not.toBeInTheDocument();
+		});
+
 		it('counts the mention toward the length of a reply to a reply', async () => {
 			await screen.findByText('A reply');
 			fireEvent.click(screen.getAllByRole('button', { name: 'Reply' })[1]);
@@ -366,6 +377,36 @@ describe('CommentThread', () => {
 		const newest = await screen.findByText('Newest');
 		const older = screen.getByText('A reply');
 		expect(older.compareDocumentPosition(newest) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+	});
+
+	it('labels the composer and puts the viewer’s avatar beside it', async () => {
+		function WithViewer() {
+			const thread = useComments('poll-1', { enabled: true });
+			return (
+				<CommentThread
+					thread={thread}
+					pollId="poll-1"
+					viewerId="me"
+					viewer={{ username: 'klaus', avatarUrl: 'bot:bear' }}
+					requireAuth={(action) => action()}
+				/>
+			);
+		}
+		render(<WithViewer />);
+		const box = await screen.findByRole('textbox', { name: 'Add a comment' });
+		expect(box.closest('form')!.querySelector('img')).toHaveAttribute('src', '/avatars/bear.svg');
+	});
+
+	it('keeps one reply composer open at a time', async () => {
+		render(<Harness />);
+		await screen.findByText('Theirs');
+		const [first, second] = screen.getAllByRole('button', { name: 'Reply' });
+
+		fireEvent.click(first);
+		fireEvent.click(second);
+
+		expect(screen.getAllByRole('textbox', { name: 'Write a reply…' })).toHaveLength(1);
+		expect(within(screen.getByText('Theirs').closest('article')!).getByRole('textbox', { name: 'Write a reply…' })).toBeInTheDocument();
 	});
 
 	it('shows a placeholder for a deleted comment that has replies', async () => {
