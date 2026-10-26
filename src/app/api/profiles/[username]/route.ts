@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server';
 
 import { getUserSession } from '@/data/auth';
-import { getUserProfile, getUserProfileForViewer } from '@/lib/api/services/users';
+import { getUserProfile } from '@/lib/api/services/users';
 
-// Public data the server already caches for 60s; browsers may reuse it for as long
-const PUBLIC_CACHE = { 'Cache-Control': 'public, max-age=60' };
-// Signed in, the profile carries the viewer's own relation to it
-const PRIVATE_CACHE = { 'Cache-Control': 'private, no-store' };
+// The body depends on who asks (signed in, it carries their relation), so no cache may
+// reuse it: a signed-out answer kept past sign-in would hide Follow. The card caches per page.
+const headers = { 'Cache-Control': 'private, no-store' };
 
 /**
  * The profile behind the hover card; 404 when no one uses the username.
@@ -16,8 +15,7 @@ const PRIVATE_CACHE = { 'Cache-Control': 'private, no-store' };
 export async function GET(_request: Request, { params }: { params: Promise<{ username: string }> }) {
 	const { username } = await params;
 	const session = await getUserSession();
-	const headers = session ? PRIVATE_CACHE : PUBLIC_CACHE;
-	const profile = session ? await getUserProfileForViewer(username) : await getUserProfile(username);
+	const profile = await getUserProfile(username);
 	if (!profile) return NextResponse.json(null, { status: 404, headers });
 	if (profile.id === session?.sub) return NextResponse.json({ ...profile, isFollowing: null, isBlocked: null }, { headers });
 	return NextResponse.json(profile, { headers });

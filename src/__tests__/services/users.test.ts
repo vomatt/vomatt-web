@@ -4,7 +4,6 @@ import {
   deleteUser,
   editProfile,
   getUserProfile,
-  getUserProfileForViewer,
   searchUsers,
 } from '@/lib/api/services/users';
 
@@ -135,19 +134,6 @@ describe('deleteUser()', () => {
     expect(mockApiClient).toHaveBeenCalledWith('/users/user-123', {
       method: 'DELETE',
     });
-  });
-});
-
-describe('getUserProfileForViewer()', () => {
-  it('asks with the session, uncached, so the relation is the viewer\'s', async () => {
-    mockApiClient.mockResolvedValueOnce({ id: 'u1', username: 'mei', isFollowing: true });
-    expect(await getUserProfileForViewer('mei')).toMatchObject({ isFollowing: true });
-    expect(mockApiClient).toHaveBeenCalledWith('/users/mei', { auth: 'optional', cache: 'no-store' });
-  });
-
-  it('returns null for a username no one uses', async () => {
-    mockApiClient.mockRejectedValueOnce(new ApiError('gone', 404));
-    expect(await getUserProfileForViewer('nobody')).toBeNull();
   });
 });
 

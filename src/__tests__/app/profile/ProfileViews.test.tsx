@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { toast } from 'sonner';
 
 import { OwnProfileView } from '@/app/(frontend)/[slug]/_components/OwnProfileView';
 import { VisitorProfileView } from '@/app/(frontend)/[slug]/_components/VisitorProfileView';
@@ -11,7 +12,8 @@ jest.mock('next/navigation', () => ({ useRouter: () => ({ replace: jest.fn(), re
 jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn() } }));
 jest.mock('@/lib/api/services/users', () => ({ editProfile: jest.fn(), updateVisibility: jest.fn() }));
 jest.mock('@/features/polls/service', () => ({ getUserPolls: jest.fn() }));
-jest.mock('@/features/blocks/service', () => ({ blockUserByUsername: jest.fn(), unblockUser: jest.fn() }));
+const mockUnblock = jest.fn();
+jest.mock('@/features/blocks/service', () => ({ blockUser: jest.fn(), unblockUser: (...a: unknown[]) => mockUnblock(...a) }));
 const mockFollow = jest.fn();
 jest.mock('@/features/follows/service', () => ({
 	followUser: (...a: unknown[]) => mockFollow(...a),
@@ -85,6 +87,8 @@ function poll(id: string, overrides: Partial<Poll> = {}): Poll {
 const cell = (label: string) => screen.getByText(label).closest('div');
 
 describe('VisitorProfileView', () => {
+	beforeEach(() => jest.clearAllMocks());
+
 	it('shows public fields, the public record and their Asked list only', () => {
 		render(<VisitorProfileView profile={visitor} polls={{ items: [], nextCursor: null }} isAuthenticated={false} />);
 
@@ -114,6 +118,28 @@ describe('VisitorProfileView', () => {
 		expect(screen.getByRole('button', { name: 'Following Unfollow', pressed: true })).toBeInTheDocument();
 		expect(screen.getByRole('button', { name: 'Followers' })).toBeInTheDocument();
 		expect(screen.getByRole('button', { name: 'More for @amira' })).toBeInTheDocument();
+	});
+
+	it('puts Follow back and says so when the request itself fails', async () => {
+		mockFollow.mockRejectedValue(new Error('network'));
+		render(<VisitorProfileView profile={visitor} polls={{ items: [], nextCursor: null }} isAuthenticated />);
+
+		fireEvent.click(screen.getByRole('button', { name: 'Follow' }));
+		expect(await screen.findByRole('button', { name: 'Follow' })).toBeEnabled();
+		expect(toast.error).toHaveBeenCalled();
+	});
+
+	it('keeps them blocked and says so when unblocking fails', async () => {
+		mockUnblock.mockRejectedValue(new Error('network'));
+		render(
+			<VisitorProfileView profile={{ ...visitor, isBlocked: true }} polls={{ items: [], nextCursor: null }} isAuthenticated />
+		);
+
+		fireEvent.click(screen.getByRole('button', { name: 'More for @amira' }));
+		fireEvent.click(await screen.findByRole('menuitem', { name: 'Unblock' }));
+		await waitFor(() => expect(toast.error).toHaveBeenCalled());
+		expect(mockUnblock).toHaveBeenCalledWith('u2');
+		expect(mockRefresh).not.toHaveBeenCalled();
 	});
 
 	it('shows Blocked instead of Follow once the viewer blocked them', () => {

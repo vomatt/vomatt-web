@@ -50,6 +50,13 @@ function loadProfile(username: string) {
 export function rememberFollowing(username: string, isFollowing: boolean) {
 	const entry = profiles.get(username);
 	if (entry?.profile) entry.profile = { ...entry.profile, isFollowing };
+	// Still loading: its answer may predate the follow, so the next open asks again
+	else forgetProfile(username);
+}
+
+/** Drops a cached card, e.g. after a block or unblock, so the next open asks again. */
+export function forgetProfile(username: string) {
+	profiles.delete(username);
 }
 
 /** Tied to the username it was loaded for, so a reused card never shows someone else. */

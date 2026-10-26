@@ -25,22 +25,6 @@ export async function getUserProfile(username: string): Promise<UserProfile | nu
   }
 }
 
-/**
- * The profile with the viewer's relation to it (`isFollowing`, `isBlocked`). Never cached:
- * the relation depends on who asks. Null when no one uses the username.
- */
-export async function getUserProfileForViewer(username: string): Promise<UserProfile | null> {
-  try {
-    return await apiClient<UserProfile>(`/users/${encodeURIComponent(username)}`, {
-      auth: 'optional',
-      cache: 'no-store',
-    });
-  } catch (error) {
-    if (error instanceof ApiError && error.statusCode === 404) return null;
-    throw error;
-  }
-}
-
 const UserSearchPage = cursorPageSchema(UserDtoSchema);
 
 /**

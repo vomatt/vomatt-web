@@ -19,7 +19,7 @@ import { type FollowList, FollowListDialog } from '@/features/follows/FollowList
 import type { Poll } from '@/features/polls/schema';
 import { getUserPolls } from '@/features/polls/service';
 import { splitAsked } from '@/features/profiles/lists';
-import { rememberFollowing } from '@/features/profiles/ProfileHoverCard';
+import { forgetProfile, rememberFollowing } from '@/features/profiles/ProfileHoverCard';
 import { AskedRow, ProfileSection } from '@/features/profiles/ProfileRows';
 import { useCursorList } from '@/hooks/useCursorList';
 import type { CursorPage } from '@/lib/api/cursor';
@@ -107,14 +107,17 @@ function VisitorActions({ profile }: { profile: UserProfile }) {
 	const { t } = useLanguage();
 	const router = useRouter();
 	const [blockOpen, setBlockOpen] = useState(false);
+	const [isUnblocking, setIsUnblocking] = useState(false);
 
 	const unblock = async () => {
-		const result = await settle(unblockUser(profile.id));
+		setIsUnblocking(true);
+		const result = await settle(unblockUser(profile.id)).finally(() => setIsUnblocking(false));
 		if (!result.ok) {
 			toast.error(apiErrorText(t, result, 'blocks.unblockFailed'));
 			return;
 		}
 		toast.success(t('blocks.unblocked', { username: profile.username }));
+		forgetProfile(profile.username);
 		router.refresh();
 	};
 
@@ -142,6 +145,7 @@ function VisitorActions({ profile }: { profile: UserProfile }) {
 					<Menu.Positioner side="bottom" align="end" sideOffset={4} className="z-50">
 						<Menu.Popup className="min-w-44 rounded-xl bg-popover p-1.5 text-popover-foreground shadow-md ring-1 ring-foreground/10 outline-none">
 							<Menu.Item
+								disabled={isUnblocking}
 								onClick={profile.isBlocked ? unblock : () => setBlockOpen(true)}
 								className="flex min-h-10 cursor-pointer select-none items-center gap-2.5 rounded-lg px-3 text-sm font-medium text-destructive outline-none data-highlighted:bg-foreground/5"
 							>

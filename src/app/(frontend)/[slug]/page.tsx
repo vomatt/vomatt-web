@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { Suspense } from 'react';
+import { cache, Suspense } from 'react';
 
 import { CookieSettingsButton } from '@/components/layout/CookieConsent';
 import { getMyProfile } from '@/data/auth';
 import { isOwnUsername, usernameFromSlug } from '@/features/account/username';
 import { getUserPolls } from '@/features/polls/service';
-import { getUserProfile, getUserProfileForViewer } from '@/lib/api/services/users';
+import { getUserProfile } from '@/lib/api/services/users';
 import defineMetadata from '@/lib/defineMetadata';
 import { sanityFetch } from '@/sanity/lib/live';
 import { pageGeneralQuery, pageGeneralSlugsQuery } from '@/sanity/lib/queries';
@@ -21,6 +21,9 @@ export async function generateStaticParams() {
 
 	return data;
 }
+
+// Metadata and the page ask once per request; signed in, the lookup is uncached
+const loadProfile = cache(getUserProfile);
 
 type Props = {
 	params: Promise<{ slug: string }>;
@@ -37,7 +40,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 	if (data) return defineMetadata({ data });
 
 	const username = usernameFromSlug(params.slug);
-	const profile = username ? await getUserProfile(username).catch(() => null) : null;
+	const profile = username ? await loadProfile(username).catch(() => null) : null;
 	return { title: profile ? profile.displayName || `@${profile.username}` : undefined };
 }
 
@@ -76,7 +79,7 @@ export default async function PageSlugRoute(props: Props) {
 	const polls = getUserPolls(username).catch(() => null);
 	// Checked before streaming so an unknown slug still answers 404. Signed in, the
 	// profile also says whether the viewer follows or blocked them, so it isn't cached
-	const profile = me ? await getUserProfileForViewer(username) : await getUserProfile(username);
+	const profile = await loadProfile(username);
 	if (!profile) notFound();
 
 	return (
