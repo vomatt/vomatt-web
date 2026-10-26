@@ -16,10 +16,11 @@ Cool canvas, navy ink actions, two signals: Volt (`highlight`) marks what is you
 | Quiet text | `muted-foreground` | Meta, hints, secondary copy |
 | Lines | `border`, `border-strong` | `border` for cards, rows and dividers; `border-strong` for outline buttons and pills at rest (hover fills them, the line stays) |
 | Controls | `input` | Text field borders, checkbox marks and switch tracks: the 3:1 boundary a control needs at rest |
-| Highlight (Volt) | `highlight`, `highlight-foreground`, `highlight-tint` | The create action (`Button variant="create"`: a Volt icon on ink in light, a Volt button in dark), the viewer's cast vote (`highlight-tint` behind its row, a Volt `BallotMark`, `YourVotePill`), the Seal's check, the You chip. Text on it is always `highlight-foreground` ink. Never decoration, never a notification |
+| Highlight (Volt) | `highlight`, `highlight-foreground`, `highlight-tint` | The create action (`Button variant="create"`: a Volt icon on ink in light, a Volt button in dark), the viewer's choice on a ballot (`highlight-tint` behind the chosen row, chosen or cast, and the `BallotMark`'s dot), the poll card's Voted pill, `YourVotePill` on results, the Seal's check, the You chip. Text on it is always `highlight-foreground` ink. Never decoration, never a notification |
 | Alert | `alert`, `alert-foreground` | The unread count and `UnreadDot`: something asking to be looked at. White on red, so it reads as a notification. Never a button, a status or an error |
-| Tide | `tide`, `tide-tint`, `tide-line`, `tide-foreground` | The promise: the Seal after voting (`tide-tint` surface, `tide` ring, a Volt check), the rules ("How vomatt counts" in the sidebar, the poll page's About rules, the creator's rules summary), the voting-window bar (`Progress variant="tide"`). Never links, buttons, headers or hovers |
-| Poll status | `status-scheduled/open/closing/ended` | Status chip tints, always with a text label. Closing is peach, the `avatar-peach` hue |
+| Tide | `tide`, `tide-tint`, `tide-line`, `tide-foreground` | The promise: the Seal after voting (`tide-tint` surface, `tide` ring, a Volt check, and Withdraw vote as a Tide-ink ghost button inside it), the ballot's lock line beside Vote, the rules ("How vomatt counts" in the sidebar, the poll page's About rules, the creator's rules summary), the voting-window bar (`Progress variant="tide"`). Never links, headers or hovers |
+| Poll status | `status-scheduled/open/closing/ended`, `status-open-ends` | Status chip tints, always with a text label. Closing is peach, the `avatar-peach` hue. On a poll card an Open or closing poll's chip is pink `status-open-ends` with no mark ("Ends Fri 18:00") |
+| Elected | `elected` | The red stamp on a winning result (a graphic with an accessible name, never text or a button) |
 | Error | `destructive` | Validation and destructive actions |
 
 `sidebar` is one step deeper than the canvas, divided by a 1px `sidebar-border`; the other `sidebar-*` tokens alias the base tokens, so change the base, not the alias.
@@ -31,22 +32,25 @@ Cool canvas, navy ink actions, two signals: Volt (`highlight`) marks what is you
 - **Display**: the `display-heading` utility sets weight 500, leading 1.25 and -0.03em tracking; the size goes beside it.
   - Page titles (Explore, Notifications, Settings): the `page-title` utility, 28px at every width with leading 1.3
   - CMS page titles: `display-heading text-[30px] md:text-[40px]`
-  - Auth titles: `display-heading text-[30px]`
-  - Person names: `display-heading text-2xl`
-- **Poll title** (card and preview): `text-[22px] font-medium leading-[1.2] tracking-[-0.02em]`; cards add `md:text-[26px]`.
+  - Auth titles: 30px, leading 1.2, -0.02em (every auth step; in the auth dialog the step's title is the dialog's own 21px title)
+  - Person names: `display-heading text-[26px] md:text-[30px]` on a profile; `text-2xl` elsewhere
+  - CMS body 17px, leading 1.6, section headings 24px; coming soon headline 48px, leading 1.1
+- **Poll title** (card and preview): `text-[22px] font-medium leading-[1.2] tracking-[-0.02em]`; cards add `md:text-[25px]`.
 - **Item title** (list rows): the `item-title` utility (16px, weight 500, -0.01em); leading goes beside it. Rail card titles are 15px (`PollSideCard`).
-- **Body** `text-[14px]` (card descriptions `text-base`; ballot and result options 15px); **meta** `text-[12px]` in rows, `text-[13px]` on a poll card (author line, footer, the ballot's Tide lines, the results caption) and the rail; **chip** `text-[11px]` uppercase semibold, `.06em` tracking (`chipClassName`).
+- **Body** `text-[14px]` (card descriptions `text-base`; ballot and result options 16px, weight 500); **meta** `text-[12px]` in rows, `text-[14px]` on a poll card (author line, footer, the ballot's Tide lines, the results caption), `text-[13px]` in the rail; **chip** `text-[11px]` uppercase semibold, `.06em` tracking (`chipClassName`), 10px on a poll card.
+- Sidebar and More rows 14px, their group labels and segments 12px. The policy line under log in is 12px (`text-xs` is 11px here).
 - **Tab labels** (`TabsList variant="line"`) 15px. **Dialog titles** (`DialogTitle`, `AlertDialogTitle`) 21px, weight 500, -0.02em.
 - Inputs are `text-[16px]` on phones so iOS doesn't zoom (`text-base` is 15px).
 
 ## Shape and layout
 
-- Borders stay quiet: 1px, `border` by default. Fields are white `card` with an `input` border (the border carries the 3:1 contrast at rest), 10px radius, 15px text from `md`. Only the selected ballot row and a winning result get an ink border.
+- Borders stay quiet: 1px, `border` by default. Fields are white `card` with an `input` border (the border carries the 3:1 contrast at rest), 10px radius, 15px text from `md`; the six code slots are 48x56 from `md`, mono 22px, and a wrong code stays in them. Only the chosen ballot row and the viewer's own result row get an ink border.
 - Radius: `rounded-2xl` (16px) for cards and panels (`PollCard`, side cards, the About panel, settings panels); `rounded-xl` (12px) for ballot rows, list rows and the Tide surfaces inside a card; `--radius` (10px) for buttons, set once in `Button`, and for text fields; `rounded-full` for chips, pills and avatars.
-- Page container: `px-contain mx-auto max-w-2xl py-6` for lists (Explore); `max-w-5xl` for a poll page. Profile and Notifications put a 720 / 680px main column beside a 280px rail from `xl` (`max-w-[1080px]` / `max-w-[1000px]`); Settings sits in a 1280px frame (32px from the top, 64px from the bottom): a 680px column and, from `lg`, a sticky On this page list 200 to 220px wide.
-- The home feed column is `max-w-feed` (640px, `--container-feed`), its cards 16px apart (`gap-4`), the page 24px from the top and 64px from the bottom. From `xl` up `HomeRail` (which owns the `<aside>`) sits to its right, flexible from 260 to 320px ("Results are in": Ended polls the viewer voted in, with unread dots; "Closing soon": Open polls ending within a day; the login prompt for guests; "Got a question for everyone?" with Write one for signed-in viewers); below `xl` the rail follows the feed.
+- Page containers start 32px from the top and end 64px from the bottom. Explore is a `max-w-feed` column of `PollCard`s. A poll page is a 1024px frame: the poll and its discussion card (24px apart) beside a 260 to 320px rail from `xl` (About this poll; More from @author). Profile sits in a 1280px frame: a main column up to 720px beside a 280 to 300px rail from `xl`; below `xl` the owner flips between You and Everyone with a `SegmentedControl`. Notifications puts a 680px column beside a 280px aside (none when empty). Settings sits in the 1280px frame: a 680px column and, from `lg`, a sticky On this page list 200 to 220px wide; Language preferences is a 680px column with an icon back link to Settings. CMS pages are a 680px column.
+- The home feed column is `max-w-feed` (640px, `--container-feed`), its cards 16px apart (`gap-4`), the page 24px from the top and 64px from the bottom. From `xl` up `HomeRail` (which owns the `<aside>`) sits to its right, flexible from 260 to 320px ("Results are in": Ended polls the viewer voted in, with unread dots; "Closing soon": Open polls ending within a day; "Got a question for everyone?" with Write one, for signed-in viewers; for guests only "How vomatt counts"); below `xl` the rail follows the feed. Guests get `LoginPrompt` at the top of the feed, at every width.
 - Desktop gets the collapsible `AppSidebar` (248px; nav rows 40px, the current one a `card` with a `border` line); mobile gets the fixed `TabBar` (64px plus the safe-area inset). Phones also get a fixed logo `Header` (56px) that slides up while scrolling down, returns on scroll up and is back on every new page; it eases over 400ms (`ease-header`). Bars that stick under it and slide with it use `sticky follow-header` (Home's topics; a page's own line tabs pass `sticky` to `TabsList`). The TabBar's profile tab shows the signed-in person's avatar. All three hide on `/login`. There is one create action, `Button variant="create"`: the sidebar's button and the TabBar's center square.
-- The poll creator is full screen on phones and a 560px dialog from `sm` up.
+- The poll creator is full screen on phones and from `sm` up a 640px dialog, `rounded-[20px]` on the canvas color, with a visible subtitle, a 44px close button and two white `rounded-2xl` sections (Timing & privacy always open). Each choice in it is a fieldset of toggle pills with the chosen option's meaning on a line under them.
+- The auth dialog is 420px, padding 28, 120px from the top from `md`, and carries the policy line.
 - Touch targets are at least 44px (`h-11`) on phones. From `md` up `Button` takes its size's height: `default` stays 44 (15px label), `md` 40 (14px; settings and dialog footers, Show more), `sm` 36 (14px; header actions), `xs` 32 (13px; actions inside a row), `icon-sm` 36, `icon-xs` a 32px circle (a row's •••). Pick the size; never set `h-*`. `Switch` is a 44x26 track whose hit area is 44px tall.
 - Every avatar is drawn in the `avatar-frame` utility: a 32px circle (a size goes beside it) with a 1px `border` line, so it sits on any surface. The avatar components carry it; no call site adds or removes the line.
 
@@ -62,24 +66,30 @@ Use these. Don't copy their classes into a new element.
 | Underlined tabs | `<TabsList variant="line">` + `TabsTrigger`, no className overrides; `fit` sizes them to their labels so a row can hold filters beside them (the row draws the line) |
 | Filter pills over one list | `FilterPills` |
 | One choice of a few in a settings row (Settings' Theme) | `SegmentedControl`: a radiogroup in a pill track, the checked segment a `card` with a small shadow; `value` stays undefined until it is known, so nothing is checked. MoreMenu keeps its own Volt menu segments |
-| Follow a person | `FollowButton` (ink Follow; outline Following that offers Unfollow on hover): `size="sm"` (36px) in a profile header, `xs` (32px) on the hover card and in rows; `BlockedBadge` once blocked |
+| Follow a person | `FollowButton follow={useFollow(…)}`: one derived state, follow (ink, plus), followBack (ink, no icon), following (outline, Unfollow on hover), blocked, or none on your own entry. `size="sm"` (36px) in a profile header, `xs` (32px) on the hover card, in follower rows (meta "@jtan · follows you") and notification rows |
+| A person's follow counts | "128 followers · 42 following", mono numbers, shown to everyone and buttons that open the list when signed in |
+| People the viewer follows who follow this person | `MutualFollowersLine` ("Followed by @a and 2 others you follow", 12px with two stacked 16px avatars) under a visitor profile's details and on the hover card, opening the mutuals list; `MutualFollowersCard` ("Followers you know") in the visitor profile's rail |
 | A row's ••• menu | Base UI `Menu` with `Button variant="ghost" size="icon-xs"` as the trigger and `menuPopupClassName` / `menuItemClassName` from `components/ui/menu.ts` (ink 16px icons; a destructive item adds `text-destructive`) |
-| Back to the parent page | `BackLink` ("‹ Home": a quiet 14px link with a 44px hit area that takes no extra space) |
+| Back to the parent page | `BackLink` ("‹ Back": a quiet 14px link with a 44px hit area that takes no extra space). Visitor profiles and Settings have none |
 | People a user blocked or follows (Settings) | `UserRelationPanel`: `panel` is a section of its own (Following, below the Privacy card); `embedded` is a row inside a settings card (Blocked people: the title with a mono count, then soft tiles of a 28px avatar, the @handle and an `xs` action) |
 | A detail only the owner sees | `OnlyYouMarker` (the lock) beside it |
 | Rows on a profile | `AskedRow`, `VotedRow` and `ProfileSection` from `features/profiles/ProfileRows` |
-| Status of a poll | `StatusChip` with `derivePollStatus(poll)` (tint, an ink dot or a clock while closing, words). Pick `time`: `inline` where the chip stands alone, on cards, the creator's review and Explore ("Open · ends Fri"); `elsewhere` in a row, which puts `pollTiming(…).when` in its meta ("1,284 voted · ends Fri 20:00" beside "Open") |
+| Status of a poll | `StatusChip` with `derivePollStatus(poll)` (tint, an ink dot or a clock while closing, words). Pick `time`: `inline` where the chip stands alone, on cards and the creator's review ("Ends Fri 20:00"); `elsewhere` in a row, which puts `pollTiming(…).when` in its meta ("1,284 voted · ends Fri 20:00" beside "Open") |
 | Any date a poll surface shows | `useViewerClock()` (null until hydrated) + `pollTiming()` from `features/polls/timing`, or `formatPollDay` / `formatPollMoment` / `formatDuration` / `formatAge` from `features/polls/format`. Not `Date.now()` or `new Date()` in a component |
 | Other small pill (e.g. ballot outcome) | `chipClassName` from `features/polls/chip.ts` + a `bg-*` tint |
-| Empty or missing page (no polls, not found, 404, error) | `EmptyCard`: a centered card with a 56px icon disc on `field`, a 21px title, one 15px line, an optional action |
+| Empty or missing page (no polls, not found, 404, error) | `EmptyCard`: a centered card with a 56px icon disc on `field` (circle-minus unless given another), a 21px title, one 15px line, an optional action; `headingLevel={1}` on a page with no other title |
 | Empty list inside a panel or dialog | the `empty-state` utility (dashed `surface-soft` box) |
 | Unread marker | `UnreadDot` with an `aria-label`, right after the name of what is unread: a tab's label, a list row's title (which goes `font-semibold`, with `NewMark` in its meta), a notification's first line (the row is already a card, so no bold title and no "new"), the top-trailing corner of an icon. Never a leading gutter and never the row's far edge: titles keep one left edge and chips one column whether a row is read or not |
 | A rule or promise (Tide) | `TidePanel` for a surface, `TideRules` + `TideRule icon={…}` for a list of rules |
-| A ballot option's mark | `BallotMark state`: `rest` (a ring; `quiet` once another option is cast), `selected` (a 6px ink ring), `cast` (Volt fill, ink line and check). `SelectionHighlight cast` adds the Volt tint to the cast row only |
-| The viewer's cast option | `YourVotePill` ("your vote", lower-case, Volt with an ink line), on ballot and result rows |
-| The cast Ballot | `Seal` (in full once per cast, then a row) with `SealMark`: `sm` 32px on rows (the Seal row, profile rows, notifications), `lg` 72px with the dashed ring in the full Seal. Pass facts (`endTime`, `visibility`); the Seal writes its own lines |
-| A poll card's footer | `PollFooter` with `audience`: the turnout in ink mono, then a non-Public audience ("18 voted · invite only") |
-| Side card of polls (home rail) | `PollSideCard` with a `kind`: `resultsIn` (unread titles 600, read 400, "N voted · new") or `closingSoon` ("ends in 2h · 96 voted") |
+| A ballot option's mark | `BallotMark state`: `rest` (a 2px `input` ring) or `selected` (ink fill with an 8px Volt dot), 22px. The chosen row, cast or not, takes the Volt tint and an ink line |
+| The viewer has voted (card header) | `VotedPill` (Volt, check) beside the status chip |
+| The viewer's option on results | `YourVotePill` ("your vote", lower-case, Volt with an ink line) |
+| The cast Ballot | `Seal` (in full once per cast, then a row) with `SealMark`: `sm` 32px on profile rows and notifications, `md` 40px dashed in the Seal row, `lg` 72px with a 58px dashed ring in the full Seal. "Sealed. Thank you.", when results open, and Withdraw vote / Update vote inside it. Updating and the withdraw confirm are modes of the Ballot (`SealedMode`), not extra flags |
+| A poll card's footer | `PollFooter` with `audience` and `isPage`: the turnout in muted mono, then a non-Public audience ("18 voted · invite only"); Comments leads to `#discussion` |
+| A poll's discussion | `CommentThread` in its own `rounded-2xl` card (`PollDiscussion` on the poll page); composers show the viewer's avatar, a reply composer sits under the reply it answers |
+| Side card of polls (home rail) | `PollSideCard` with a `kind`: `resultsIn` (unread titles 600, read 400, "**Yes** won · N voted · new" in sans) or `closingSoon` ("ends in 2h · 96 voted", mono) |
+| Filter pills | `FilterPills`: 30px from `md`, 13px |
+| A notification | one row component per `kind` (`features/notifications/NotificationRows`); consecutive follows group into one row with See followers |
 | Progress (voting window) | `Progress variant="tide"` |
 | List row for a poll | `PollListItem` with `meta` and `aside` |
 | A person's counts | `ProfileRecord`: `rounded-2xl` `card` cells, a 26px `font-mono` number over a 12px label; `Count` for a count inside a phrase |
