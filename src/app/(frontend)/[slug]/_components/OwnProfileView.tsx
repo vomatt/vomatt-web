@@ -89,6 +89,8 @@ export function OwnProfileView({
 				]}
 				className="self-start xl:hidden"
 			/>
+			{/* The header and its h1 hide with the lists; the page still needs its title */}
+			{viewAs === 'everyone' && <h1 className="sr-only xl:hidden">{profile.displayName || profile.username}</h1>}
 			<main
 				className={cn(
 					'flex min-w-0 flex-col gap-6 xl:max-w-[720px] xl:flex-[999_1_560px]',

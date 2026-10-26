@@ -313,6 +313,8 @@ describe('OwnProfileView', () => {
 		expect(screen.getByRole('radio', { name: 'Everyone' })).toBeChecked();
 		expect(lists).toHaveClass('max-xl:hidden');
 		expect(preview).not.toHaveClass('max-xl:hidden');
+		// With the header hidden, the page keeps a title for screen readers
+		expect(screen.getAllByRole('heading', { level: 1 }).find((h) => !lists.contains(h))).toHaveClass('sr-only');
 	});
 
 	it("says the polls couldn't load, and retries", () => {
