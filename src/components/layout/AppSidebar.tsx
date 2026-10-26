@@ -72,13 +72,8 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 
 	// /account redirects to the profile; link there directly so the row shows as active
 	const accountHref = profile ? profileHref(profile.username) : '/account';
-	// Settings is reached from the profile, so the row stays active there too
-	const accountCurrent =
-		pathname === accountHref
-			? 'page'
-			: pathname === '/settings'
-				? 'true'
-				: undefined;
+	// Settings is a page of its own, reached from More; no row is active there
+	const accountCurrent = pathname === accountHref ? 'page' : undefined;
 
 	return (
 		<Sidebar className="border-sidebar-border">

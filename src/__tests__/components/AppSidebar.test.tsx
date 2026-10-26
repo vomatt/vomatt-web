@@ -4,8 +4,9 @@ import userEvent from '@testing-library/user-event';
 import { AppSidebar } from '@/components/layout/AppSidebar';
 import { SidebarProvider } from '@/components/ui/Sidebar';
 
+let mockPathname = '/';
 jest.mock('next/navigation', () => ({
-	usePathname: () => '/',
+	usePathname: () => mockPathname,
 	useRouter: () => ({ refresh: jest.fn() }),
 }));
 
@@ -47,6 +48,18 @@ function renderSidebar(userSession: object | null = {}) {
 		</SidebarProvider>
 	);
 }
+
+describe('AppSidebar current page', () => {
+	afterEach(() => {
+		mockPathname = '/';
+	});
+
+	it('marks no row current on Settings, a page of its own', () => {
+		mockPathname = '/settings';
+		renderSidebar();
+		expect(document.querySelector('[aria-current]')).toBeNull();
+	});
+});
 
 describe('AppSidebar unread count', () => {
 	it('shows the unread count', () => {
