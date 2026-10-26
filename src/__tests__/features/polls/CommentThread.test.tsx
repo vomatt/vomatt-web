@@ -11,7 +11,7 @@ jest.mock('next/link', () => {
  
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn() } }));
-jest.mock('@/features/blocks/service', () => ({ blockUserByUsername: jest.fn() }));
+jest.mock('@/features/blocks/service', () => ({ blockUser: jest.fn() }));
 
 const service = {
 	getComments: jest.fn(),
@@ -325,8 +325,8 @@ describe('CommentThread', () => {
 	});
 
 	it('drops a blocked user’s comments from the list', async () => {
-		const { blockUserByUsername } = jest.requireMock('@/features/blocks/service');
-		blockUserByUsername.mockResolvedValue({ ok: true, data: { found: true } });
+		const { blockUser } = jest.requireMock('@/features/blocks/service');
+		blockUser.mockResolvedValue({ ok: true, data: undefined });
 		render(<Harness />);
 		await screen.findByText('Theirs');
 
@@ -334,8 +334,20 @@ describe('CommentThread', () => {
 		fireEvent.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Block' }));
 
 		await waitFor(() => expect(screen.queryByText('Theirs')).not.toBeInTheDocument());
-		expect(blockUserByUsername).toHaveBeenCalledWith('mei');
+		expect(blockUser).toHaveBeenCalledWith('other');
 		expect(service.getComments).toHaveBeenCalledTimes(1);
+	});
+
+	it('offers no Block for a comment without its author id', async () => {
+		service.getComments.mockResolvedValue({
+			ok: true,
+			data: { items: [mine, { ...theirs, userId: null }], nextCursor: null },
+		});
+		render(<Harness />);
+		await screen.findByText('Theirs');
+
+		const menu = await openMenu('Theirs');
+		expect(within(menu).queryByRole('menuitem', { name: 'Block' })).not.toBeInTheDocument();
 	});
 
 	it('lists a new reply after the older ones it loads first', async () => {

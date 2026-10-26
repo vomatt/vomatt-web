@@ -691,13 +691,16 @@ function CommentBody({
 											{t('common.delete')}
 										</Menu.Item>
 									) : (
-										<Menu.Item
-											className={cn(menuItemClassName, 'text-destructive')}
-											onClick={() => requireAuth(() => setConfirmingBlock(true))}
-										>
-											<Ban className="size-4" strokeWidth={1.8} />
-											{t('blocks.block')}
-										</Menu.Item>
+										// Blocking needs the author's id; the dialog below has the same condition
+										comment.userId && (
+											<Menu.Item
+												className={cn(menuItemClassName, 'text-destructive')}
+												onClick={() => requireAuth(() => setConfirmingBlock(true))}
+											>
+												<Ban className="size-4" strokeWidth={1.8} />
+												{t('blocks.block')}
+											</Menu.Item>
+										)
 									)}
 								</Menu.Popup>
 							</Menu.Positioner>
@@ -731,8 +734,9 @@ function CommentBody({
 						</AlertDialogContent>
 					</AlertDialog>
 
-					{!isOwn && (
+					{!isOwn && comment.userId && (
 						<BlockUserDialog
+							userId={comment.userId}
 							username={author}
 							open={confirmingBlock}
 							onOpenChange={(open) => {
