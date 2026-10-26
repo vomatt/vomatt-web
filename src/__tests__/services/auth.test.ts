@@ -15,6 +15,9 @@ jest.mock('@/lib/api/auth', () => ({
 	getTokens: jest.fn(),
 }));
 
+let mockRequestHeaders = new Headers();
+jest.mock('next/headers', () => ({ headers: async () => mockRequestHeaders }));
+
 const mockRedirect = jest.fn();
 jest.mock('next/navigation', () => ({
 	redirect: (...args: unknown[]) => mockRedirect(...args),
@@ -26,11 +29,23 @@ const authCookies = require('@/lib/api/auth') as Record<string, jest.Mock>;
 
 beforeEach(() => {
 	jest.clearAllMocks();
+	mockRequestHeaders = new Headers();
+	delete process.env.CLIENT_IP_SECRET;
 });
 
 const bodyOf = (call: number) => JSON.parse(String(mockPublicFetch.mock.calls[call][1]?.body));
 
 describe('requestOtp()', () => {
+	it("passes the user's IP, which the OTP limits and lockouts are keyed on", async () => {
+		process.env.CLIENT_IP_SECRET = 'client-ip-secret-0123456789abcdef';
+		mockRequestHeaders = new Headers({ 'x-forwarded-for': '198.51.100.9' });
+		mockPublicFetch.mockResolvedValueOnce({ success: true });
+
+		await requestOtp('alice@example.com');
+
+		expect(mockPublicFetch.mock.calls[0][1]?.headers).toMatchObject({ 'X-Client-IP': '198.51.100.9' });
+	});
+
 	it('normalises the email and sends a code', async () => {
 		mockPublicFetch.mockResolvedValueOnce({ success: true });
 

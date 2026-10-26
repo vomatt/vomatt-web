@@ -9,6 +9,8 @@ const mockGetTokens = jest.fn();
 jest.mock('@/lib/api/auth', () => ({
 	getTokens: () => mockGetTokens(),
 }));
+let mockRequestHeaders = new Headers();
+jest.mock('next/headers', () => ({ headers: async () => mockRequestHeaders }));
 const mockLocale = jest.fn();
 jest.mock('@/lib/getServerLocale', () => ({
 	getServerLocale: () => mockLocale(),
@@ -20,6 +22,8 @@ const { apiClient, ApiError, AuthError } = require('@/lib/api/client') as typeof
 const fetchMock = jest.fn();
 beforeEach(() => {
 	jest.clearAllMocks();
+	mockRequestHeaders = new Headers();
+	delete process.env.CLIENT_IP_SECRET;
 	mockLocale.mockResolvedValue({ language: 'en', payloadLocale: 'en' });
 	global.fetch = fetchMock;
 });
@@ -33,6 +37,18 @@ describe('apiClient', () => {
 		const [url, init] = fetchMock.mock.calls[0];
 		expect(url).toBe('https://api.example.test/api/users/me');
 		expect(new Headers(init.headers).get('Authorization')).toBe('Bearer a1');
+	});
+
+	it("passes the user's IP when CLIENT_IP_SECRET is set", async () => {
+		process.env.CLIENT_IP_SECRET = 'client-ip-secret-0123456789abcdef';
+		mockRequestHeaders = new Headers({ 'x-forwarded-for': '198.51.100.9' });
+		mockGetTokens.mockResolvedValue({ accessToken: 'a1', refreshToken: 'r1' });
+		fetchMock.mockResolvedValue(json({ success: true, data: null }));
+
+		await apiClient('/votes/v1/vote', { method: 'POST' });
+		const headers = new Headers(fetchMock.mock.calls[0][1].headers);
+		expect(headers.get('X-Client-IP')).toBe('198.51.100.9');
+		expect(headers.get('X-Client-IP-Secret')).toBe('client-ip-secret-0123456789abcdef');
 	});
 
 	it('asks for messages in the viewer\'s language', async () => {

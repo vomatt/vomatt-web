@@ -22,8 +22,7 @@ const MAX_FAULTS = 1; // refresh calls the backend may refuse with 429 before pr
 // atomic consume). Other requests' steps can run between them, as the user lookup separates them for real.
 type Pending =
 	| { kind: 'verify'; req: number; resolve: (v: unknown) => void }
-	| { kind: 'backend'; req: number; inst: number; token: string; stage: 'read' | 'commit'; resolve: (v: unknown) => void }
-	| { kind: 'timer'; req: number; inst: number; token: string; resolve: () => void };
+	| { kind: 'backend'; req: number; inst: number; token: string; stage: 'read' | 'commit'; resolve: (v: unknown) => void };
 
 type Req = {
 	id: number;
@@ -122,16 +121,6 @@ jest.mock('@/lib/api/backend-fetch', () => ({
 	},
 }));
 
-// The proxy's retry delay (requestTokenRefresh after a plain refusal) is a step too, not a real 1s wait
-const realSetTimeout = global.setTimeout;
-global.setTimeout = ((callback: () => void, ms?: number, ...rest: unknown[]) => {
-	const store = als.getStore();
-	if (!store) return realSetTimeout(callback, ms, ...rest);
-	const { world, req } = store;
-	const r = world.reqs[req];
-	world.pending.push({ kind: 'timer', req, inst: r.inst, token: r.cookies.refreshToken ?? '', resolve: callback });
-	return 0 as unknown as NodeJS.Timeout;
-}) as typeof setTimeout;
 
 jest.mock('@/lib/api/tokens', () => {
 	const actual = jest.requireActual('@/lib/api/tokens');
@@ -173,7 +162,6 @@ function choices(w: World): string[] {
 	}
 	for (const p of w.pending) {
 		if (p.kind === 'verify') out.push(`verify:${p.req}`);
-		else if (p.kind === 'timer') out.push(`timer:${p.req}`);
 		else if (p.stage === 'commit') out.push(`backend:${p.req}:commit`);
 		else {
 			out.push(`backend:${p.req}:read`);
@@ -212,7 +200,7 @@ async function apply(w: World, choice: string) {
 			r.response = res;
 			r.phase = 'settled';
 		});
-	} else if (kind === 'verify' || kind === 'backend' || kind === 'timer') {
+	} else if (kind === 'verify' || kind === 'backend') {
 		const id = Number(a);
 		const i = w.pending.findIndex((p) => p.kind === kind && p.req === id);
 		const p = w.pending[i];
@@ -220,10 +208,6 @@ async function apply(w: World, choice: string) {
 			w.pending.splice(i, 1);
 			w.story.push(`${label(w, id)} finishes verifying its access token`);
 			p.resolve(w.payloadFor(w.reqs[id].cookies.accessToken ?? ''));
-		} else if (p.kind === 'timer') {
-			w.pending.splice(i, 1);
-			w.story.push(`${label(w, id)}'s retry delay ends`);
-			p.resolve();
 		} else if (b === '429') {
 			w.pending.splice(i, 1);
 			w.faults++;
@@ -268,7 +252,7 @@ function checkBlocked(w: World) {
 		if (r.phase !== 'running') continue;
 		const own = w.pending.some((p) => p.req === r.id);
 		const shared = w.pending.some(
-			(p) => p.kind !== 'verify' && p.inst === r.inst && p.token === r.cookies.refreshToken
+			(p) => p.kind === 'backend' && p.inst === r.inst && p.token === r.cookies.refreshToken
 		);
 		if (!own && !shared) throw new Error(`model error: ${label(w, r.id)} is stuck on an await the model does not control`);
 	}
@@ -291,8 +275,7 @@ function key(w: World) {
 async function drain(w: World) {
 	for (let i = 0; i < 20 && (w.pending.length || w.reqs.some((r) => r.phase === 'running')); i++) {
 		for (const p of w.pending.splice(0)) {
-			if (p.kind === 'timer') p.resolve();
-			else p.resolve(p.kind === 'verify' ? null : fakeResponse({ status: 429, body: {} }));
+			p.resolve(p.kind === 'verify' ? null : fakeResponse({ status: 429, body: {} }));
 		}
 		await flush();
 	}

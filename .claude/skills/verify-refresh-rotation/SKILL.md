@@ -25,7 +25,6 @@ Three checks, each stated in the code's words:
   - `read` (`World.backendRead`): a spent token within its grace window returns the same pair; after the window it revokes the session; a missing token is a plain 401. A live token goes on to `commit`.
   - `commit` (`World.backendCommit`): the atomic consume. The first caller rotates; a caller that lost the race gets the pair the winner wrote to grace in the same step.
   - The backend may also refuse once with 429 before doing anything.
-- `setTimeout` inside a proxy run: the retry delay in `requestTokenRefresh` after a plain refusal is a step the scheduler fires, not a real 1 s wait.
 - `verifyAccessToken` is the await before the session decision. The access token's age is modeled per epoch: fresh, then expiring (within `ACCESS_TOKEN_REFRESH_LEEWAY`), then expired. The second `verifyAccessToken` call, the one after a refresh, resolves immediately. Between that call and the response, the request touches no shared state.
 
 The scheduler explores every order of these events, with states deduplicated:
@@ -33,7 +32,6 @@ The scheduler explores every order of these events, with states deduplicated:
 - the browser sending the next request (capturing its current cookie jar) to either instance;
 - each pending verify resolving;
 - each pending refresh step (`read`, `commit`, or a `429` instead of `read`);
-- each pending retry delay ending;
 - each finished response reaching the browser (applying its Set-Cookie), in any order;
 - the clock jumping (`age`).
 
@@ -80,7 +78,7 @@ If a change to the covered code is deliberate (for example, new cookie handling 
 3. Show the check can still fail. Make a scratch break in the real code, run it, see the violation, and revert with `git checkout -- <file>` (only when the file had no other uncommitted edits). Breaks proven at the sync commit:
    - Delete `if (pending) return pending;` in `requestTokenRefresh` → P1.
    - In `proxy()`, return `NextResponse.redirect(...)` without `applyAuthCookies` → P3: the browser keeps `R0` while `R1` is live.
-   - Model the old backend (the production logout bug): in `World.backendRead`, delete a live token at `read` (`this.refresh.delete(token)` before `return undefined`) and let `backendCommit` accept a missing record → P3: a refresh that arrives mid-rotation gets 401 twice, and its response deletes the cookies after the winner's response set `R1`.
+   - Model the old backend (the production logout bug): in `World.backendRead`, delete a live token at `read` (`this.refresh.delete(token)` before `return undefined`) and let `backendCommit` accept a missing record → P3: a refresh that arrives mid-rotation gets 401, and its response deletes the cookies after the winner's response set `R1`.
 4. Move the sync commit below forward only after confirming that the model describes the code at the new commit.
 
 ## Coverage record
