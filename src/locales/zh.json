@@ -26,10 +26,11 @@
 		"active": "進行中",
 		"ended": "已結束",
 		"invalidEmailAddress": "信箱格式錯誤",
-		"errorBody": "發生了未預期的問題，請再試一次。",
+		"errorBody": "請再試一次。如果問題持續發生，請過幾分鐘再回來。",
 		"tryAgain": "再試一次",
 		"notFoundTitle": "找不到頁面",
 		"notFoundBody": "找不到你要的內容。",
+		"goHome": "回到首頁",
 		"skipToContent": "跳到主要內容"
 	},
 	"navigation": {

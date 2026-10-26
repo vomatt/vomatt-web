@@ -25,8 +25,22 @@ jest.mock('@/lib/api/services/users', () => ({
 	updateProfile: (...args: unknown[]) => mockUpdateProfile(...args),
 }));
 
+// @portabletext/react ships ESM only, which Jest doesn't load
+jest.mock('@/components/CustomPortableText', () => ({
+	__esModule: true,
+	default: ({ blocks }: { blocks: { children: { text: string }[] }[] }) =>
+		blocks.map((block) => block.children.map((child) => child.text).join('')).join(' '),
+}));
+
+const mockGetPolicyMessage = jest.fn();
+
+jest.mock('@/components/auth/policy', () => ({
+	getPolicyMessage: () => mockGetPolicyMessage(),
+}));
+
 beforeEach(() => {
 	jest.clearAllMocks();
+	mockGetPolicyMessage.mockResolvedValue(null);
 });
 
 const baseProps = {
@@ -49,6 +63,30 @@ describe('AuthDialog', () => {
 	it('starts with the email step', () => {
 		render(<AuthDialog {...baseProps} />);
 		expect(screen.getByLabelText('common.email')).toBeInTheDocument();
+	});
+
+	it('titles the dialog itself, without a page heading inside it', () => {
+		render(<AuthDialog {...baseProps} />);
+		const dialog = screen.getByRole('dialog', { name: 'login.title' });
+		expect(dialog).toHaveAccessibleDescription('login.dialogDescription');
+		expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument();
+	});
+
+	it('shows the sign-up terms under the email step', async () => {
+		mockGetPolicyMessage.mockResolvedValue([
+			{ _type: 'block', _key: 'a', children: [{ _type: 'span', _key: 'b', text: 'By continuing you agree to the terms.' }] },
+		]);
+		render(<AuthDialog {...baseProps} />);
+		expect(await screen.findByText('By continuing you agree to the terms.')).toBeInTheDocument();
+	});
+
+	it('names the address the code went to in the dialog description', async () => {
+		mockRequestOtp.mockResolvedValue({ status: 'SUCCESS' });
+		render(<AuthDialog {...baseProps} />);
+		await submitEmail();
+		expect(screen.getByRole('dialog', { name: 'verificationCode.title' })).toHaveAccessibleDescription(
+			'verificationCode.subtitle user@test.com'
+		);
 	});
 
 	it('renders nothing when closed', () => {

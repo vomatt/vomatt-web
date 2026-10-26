@@ -44,7 +44,7 @@ const InputOTPSlot = React.forwardRef<
 		<div
 			ref={ref}
 			className={cn(
-				'relative flex h-14 min-w-0 flex-1 items-center justify-center rounded-xl border bg-field font-mono text-xl transition-[color,background-color,border-color]',
+				'relative flex h-14 min-w-0 flex-1 items-center justify-center rounded-xl border bg-field font-mono text-[22px] transition-[color,background-color,border-color] md:w-12 md:flex-none',
 				invalid ? 'border-destructive' : 'border-input',
 				// Same focus outline as Input
 				isActive && 'z-10 bg-card outline-2 outline-solid outline-offset-1 outline-ring',
@@ -64,28 +64,4 @@ const InputOTPSlot = React.forwardRef<
 
 InputOTPSlot.displayName = 'InputOTPSlot';
 
-const InputOTPSeparator = React.forwardRef<
-	React.ElementRef<'div'>,
-	React.ComponentPropsWithoutRef<'div'>
->(({ ...props }, ref) => (
-	<div ref={ref} role="separator" {...props}>
-		<svg
-			width="15"
-			height="15"
-			viewBox="0 0 15 15"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
-		>
-			<path
-				d="M5 7.5C5 7.22386 5.22386 7 5.5 7H9.5C9.77614 7 10 7.22386 10 7.5C10 7.77614 9.77614 8 9.5 8H5.5C5.22386 8 5 7.77614 5 7.5Z"
-				fill="currentColor"
-				fillRule="evenodd"
-				clipRule="evenodd"
-			></path>
-		</svg>
-	</div>
-));
-
-InputOTPSeparator.displayName = 'InputOTPSeparator';
-
-export { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot };
+export { InputOTP, InputOTPGroup, InputOTPSlot };

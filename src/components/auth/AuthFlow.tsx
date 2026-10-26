@@ -1,14 +1,18 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import type { PortableTextBlock } from '@portabletext/react';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
+import CustomPortableText from '@/components/CustomPortableText';
 import { Button } from '@/components/ui/Button';
+import { DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { Field, FieldLabel, FieldMessage } from '@/components/ui/Field';
 import { Input } from '@/components/ui/Input';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { AuthErrorKey } from '@/lib/api/auth-errors';
+import { cn } from '@/lib/utils';
 
 import {
 	type EmailFormData,
@@ -23,17 +27,30 @@ import VerificationForm from './VerificationForm';
 type AuthFlowProps = {
 	/** Called once the user is signed in (and, for a new account, past the profile step). */
 	onDone: () => void;
-	/** Rendered under the email step, e.g. the terms. */
-	footer?: React.ReactNode;
+	/** The terms a new account agrees to, shown under the email step. */
+	policyMessage?: PortableTextBlock[] | null;
+	/** Each step's title becomes the dialog's title instead of the page's h1. */
+	inDialog?: boolean;
 };
 
-export function AuthFlow({ onDone, footer }: AuthFlowProps) {
+export function AuthFlow({ onDone, policyMessage, inDialog = false }: AuthFlowProps) {
+	const { t } = useLanguage();
 	const flow = useAuthFlow();
 
+	let heading: { title: string; subtitle: React.ReactNode };
+	let body: React.ReactNode;
 	if (flow.step === 'code') {
-		return (
+		heading = {
+			title: t('verificationCode.title'),
+			subtitle: (
+				<>
+					{t('verificationCode.subtitle')}{' '}
+					<strong className="font-medium text-foreground wrap-anywhere">{flow.email}</strong>
+				</>
+			),
+		};
+		body = (
 			<VerificationForm
-				email={flow.email}
 				onSubmitCode={async (code) => {
 					const res = await flow.submitCode(code);
 					if (res.status === 'OK' && res.done) onDone();
@@ -43,17 +60,42 @@ export function AuthFlow({ onDone, footer }: AuthFlowProps) {
 				onEditEmail={flow.editEmail}
 			/>
 		);
-	}
-
-	if (flow.step === 'profile') {
-		return <ProfileStep email={flow.email} onSave={flow.submitProfile} onDone={onDone} />;
+	} else if (flow.step === 'profile') {
+		heading = { title: t('onboarding.title'), subtitle: t('onboarding.subtitle') };
+		body = <ProfileStep email={flow.email} onSave={flow.submitProfile} onDone={onDone} />;
+	} else {
+		heading = {
+			title: t('login.title'),
+			subtitle: t(inDialog ? 'login.dialogDescription' : 'login.subtitle'),
+		};
+		body = (
+			<>
+				<EmailStep defaultEmail={flow.email} onSubmit={flow.submitEmail} />
+				{policyMessage && (
+					<div className="text-[12px] text-muted-foreground">
+						<CustomPortableText blocks={policyMessage} />
+					</div>
+				)}
+			</>
+		);
 	}
 
 	return (
-		<>
-			<EmailStep defaultEmail={flow.email} onSubmit={flow.submitEmail} />
-			{footer}
-		</>
+		<div className={cn('flex flex-col', inDialog ? 'gap-5' : 'gap-6')}>
+			{inDialog ? (
+				// Clear of the close button in the corner
+				<DialogHeader className="gap-1.5 pr-8">
+					<DialogTitle>{heading.title}</DialogTitle>
+					<DialogDescription className="text-[14px]">{heading.subtitle}</DialogDescription>
+				</DialogHeader>
+			) : (
+				<div className="flex flex-col gap-2">
+					<h1 className="text-[30px] font-medium leading-[1.2] tracking-[-0.02em]">{heading.title}</h1>
+					<p className="text-base leading-relaxed text-muted-foreground">{heading.subtitle}</p>
+				</div>
+			)}
+			{body}
+		</div>
 	);
 }
 
@@ -78,44 +120,40 @@ function EmailStep({
 	}
 
 	return (
-		<>
-			<h1 className="mb-3 display-heading text-[30px]">{t('login.title')}</h1>
-			<p className="mb-8 text-base leading-relaxed text-muted-foreground">{t('login.subtitle')}</p>
-			<form onSubmit={form.handleSubmit(submit)} noValidate>
-				<Controller
-					control={form.control}
-					name="email"
-					render={({ field, fieldState }) => (
-						<Field className="mb-4" data-invalid={fieldState.invalid}>
-							<FieldLabel htmlFor="authEmail">{t('common.email')}</FieldLabel>
-							<Input
-								{...field}
-								type="email"
-								id="authEmail"
-								autoComplete="email"
-								autoFocus
-								aria-invalid={fieldState.invalid}
-								aria-describedby={fieldState.invalid ? 'authEmail-error' : undefined}
-								placeholder="you@example.com"
-							/>
-							{/* A line stays reserved for the error, so it appears without moving the button */}
-							<FieldMessage
-								className="-mt-1.5 text-sm"
-								errors={
-									fieldState.error?.message
-										? [{ id: 'authEmail-error', text: t(fieldState.error.message) }]
-										: []
-								}
-							/>
-						</Field>
-					)}
-				/>
-				<Button className="w-full" type="submit" loading={form.formState.isSubmitting}>
-					{t('auth.continueWithEmail')}
-				</Button>
-				<AuthError error={error} className="mt-3" />
-			</form>
-		</>
+		<form onSubmit={form.handleSubmit(submit)} noValidate>
+			<Controller
+				control={form.control}
+				name="email"
+				render={({ field, fieldState }) => (
+					<Field data-invalid={fieldState.invalid}>
+						<FieldLabel htmlFor="authEmail">{t('common.email')}</FieldLabel>
+						<Input
+							{...field}
+							type="email"
+							id="authEmail"
+							autoComplete="email"
+							autoFocus
+							aria-invalid={fieldState.invalid}
+							aria-describedby={fieldState.invalid ? 'authEmail-error' : undefined}
+							placeholder="you@example.com"
+						/>
+						{/* A line stays reserved for the error, so it appears without moving the button */}
+						<FieldMessage
+							className="-mt-1.5 text-sm"
+							errors={
+								fieldState.error?.message
+									? [{ id: 'authEmail-error', text: t(fieldState.error.message) }]
+									: []
+							}
+						/>
+					</Field>
+				)}
+			/>
+			<Button className="w-full" type="submit" loading={form.formState.isSubmitting}>
+				{t('auth.continueWithEmail')}
+			</Button>
+			<AuthError error={error} className="mt-3" />
+		</form>
 	);
 }
 
@@ -146,46 +184,44 @@ function ProfileStep({
 	}
 
 	return (
-		<>
-			<h1 className="mb-3 display-heading text-[30px]">{t('onboarding.title')}</h1>
-			<p className="mb-8 text-base leading-relaxed text-muted-foreground">{t('onboarding.subtitle')}</p>
-			<form onSubmit={form.handleSubmit(submit)} noValidate>
-				<Controller
-					control={form.control}
-					name="displayName"
-					render={({ field, fieldState }) => (
-						<Field className="mb-5" data-invalid={fieldState.invalid}>
-							<FieldLabel htmlFor="authDisplayName">{t('onboarding.displayName')}</FieldLabel>
-							<Input
-								{...field}
-								id="authDisplayName"
-								autoComplete="nickname"
-								autoFocus
-								maxLength={100}
-								aria-invalid={fieldState.invalid}
-								aria-describedby={fieldState.invalid ? 'authDisplayName-error' : 'authDisplayName-hint'}
-							/>
-							<FieldMessage
-								className="text-sm leading-normal text-muted-foreground"
-								hint={t('onboarding.displayNameHint')}
-								hintId="authDisplayName-hint"
-								errors={
-									fieldState.error?.message
-										? [{ id: 'authDisplayName-error', text: t(fieldState.error.message) }]
-										: []
-								}
-							/>
-						</Field>
-					)}
-				/>
-				<Button className="w-full mb-3" type="submit" loading={form.formState.isSubmitting}>
+		<form onSubmit={form.handleSubmit(submit)} noValidate>
+			<Controller
+				control={form.control}
+				name="displayName"
+				render={({ field, fieldState }) => (
+					<Field className="mb-6" data-invalid={fieldState.invalid}>
+						<FieldLabel htmlFor="authDisplayName">{t('onboarding.displayName')}</FieldLabel>
+						<Input
+							{...field}
+							id="authDisplayName"
+							autoComplete="nickname"
+							autoFocus
+							maxLength={100}
+							aria-invalid={fieldState.invalid}
+							aria-describedby={fieldState.invalid ? 'authDisplayName-error' : 'authDisplayName-hint'}
+						/>
+						<FieldMessage
+							className="text-sm leading-normal text-muted-foreground"
+							hint={t('onboarding.displayNameHint')}
+							hintId="authDisplayName-hint"
+							errors={
+								fieldState.error?.message
+									? [{ id: 'authDisplayName-error', text: t(fieldState.error.message) }]
+									: []
+							}
+						/>
+					</Field>
+				)}
+			/>
+			<div className="flex gap-2">
+				<Button className="flex-1" type="submit" loading={form.formState.isSubmitting}>
 					{t('onboarding.finish')}
 				</Button>
-				<Button type="button" variant="ghost" className="w-full" onClick={onDone}>
+				<Button type="button" variant="ghost" onClick={onDone}>
 					{t('onboarding.skip')}
 				</Button>
-				<AuthError error={error} className="mt-3" />
-			</form>
-		</>
+			</div>
+			<AuthError error={error} className="mt-3" />
+		</form>
 	);
 }
