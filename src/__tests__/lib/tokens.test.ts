@@ -99,14 +99,44 @@ describe('requestTokenRefresh', () => {
 		expect(second).toBe(first);
 	});
 
-	it('is rejected when the backend refuses the refresh token', async () => {
-		fetchMock.mockResolvedValue(jsonResponse({ success: false, errorCode: 'auth.refresh_token.invalid' }, 401));
-		expect(await tokens.requestTokenRefresh('r1')).toEqual({ status: 'rejected' });
-	});
+	describe('when the backend refuses', () => {
+		const invalid = () => jsonResponse({ success: false, errorCode: 'auth.refresh_token.invalid' }, 401);
 
-	it('says when the backend saw a reused token and ended every session', async () => {
-		fetchMock.mockResolvedValue(jsonResponse({ success: false, errorCode: 'auth.suspicious_login' }, 401));
-		expect(await tokens.requestTokenRefresh('r1')).toEqual({ status: 'rejected', suspicious: true });
+		beforeEach(() => jest.useFakeTimers());
+		afterEach(() => jest.useRealTimers());
+
+		async function refreshAfterRetryDelay(refreshToken: string) {
+			const pending = tokens.requestTokenRefresh(refreshToken);
+			await jest.advanceTimersByTimeAsync(1000);
+			return pending;
+		}
+
+		it('asks once more, since another server may still be rotating the same token', async () => {
+			fetchMock
+				.mockResolvedValueOnce(invalid())
+				.mockResolvedValueOnce(jsonResponse(envelope({ token: 'a2', refreshToken: 'r2' })));
+
+			const result = await refreshAfterRetryDelay('r1');
+
+			expect(fetchMock).toHaveBeenCalledTimes(2);
+			expect(result).toEqual({ status: 'ok', tokens: { accessToken: 'a2', refreshToken: 'r2' } });
+		});
+
+		it('is rejected when the retry is refused too', async () => {
+			fetchMock.mockImplementation(async () => invalid());
+
+			const result = await refreshAfterRetryDelay('r1');
+
+			expect(fetchMock).toHaveBeenCalledTimes(2);
+			expect(result).toEqual({ status: 'rejected' });
+		});
+
+		it('does not retry a suspicious refusal: the backend has already ended the session', async () => {
+			fetchMock.mockResolvedValue(jsonResponse({ success: false, errorCode: 'auth.suspicious_login' }, 401));
+
+			expect(await tokens.requestTokenRefresh('r1')).toEqual({ status: 'rejected', suspicious: true });
+			expect(fetchMock).toHaveBeenCalledTimes(1);
+		});
 	});
 
 	it('is unavailable when the backend errors, so the session is kept', async () => {

@@ -64,11 +64,24 @@ export function requestTokenRefresh(refreshToken: string): Promise<RefreshResult
 	const pending = inFlightRefreshes.get(refreshToken);
 	if (pending) return pending;
 
-	const request = fetchRefreshedTokens(refreshToken).finally(() => {
+	const request = refreshWithRetry(refreshToken).finally(() => {
 		inFlightRefreshes.delete(refreshToken);
 	});
 	inFlightRefreshes.set(refreshToken, request);
 	return request;
+}
+
+const REFRESH_RETRY_DELAY_MS = 1000;
+
+// Another server instance may be rotating this same token right now. Once it
+// lands, the backend's grace window answers a retry with the same new pair, so
+// a plain refusal is asked again once before the session counts as over. A
+// suspicious one is final: the backend has already ended the session.
+async function refreshWithRetry(refreshToken: string): Promise<RefreshResult> {
+	const result = await fetchRefreshedTokens(refreshToken);
+	if (result.status !== 'rejected' || result.suspicious) return result;
+	await new Promise((resolve) => setTimeout(resolve, REFRESH_RETRY_DELAY_MS));
+	return fetchRefreshedTokens(refreshToken);
 }
 
 /** Reads `{ token, refreshToken }` from the ApiResponse envelope or a bare body. */

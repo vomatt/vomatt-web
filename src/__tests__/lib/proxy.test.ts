@@ -44,6 +44,8 @@ beforeEach(() => {
 	fetchMock.mockReset();
 	global.fetch = fetchMock;
 });
+// Restored here, not in the tests, so a failing test can't leave fake timers for the next
+afterEach(() => jest.useRealTimers());
 
 describe('proxy auth', () => {
 	it('does not treat a garbage access token as a session', async () => {
@@ -111,15 +113,34 @@ describe('proxy auth', () => {
 	});
 
 	it('clears a refresh token the backend rejects and says the session expired', async () => {
-		fetchMock.mockResolvedValue(new Response('{}', { status: 401 }));
+		jest.useFakeTimers();
+		fetchMock.mockImplementation(async () => new Response('{}', { status: 401 }));
 
-		const res = await proxy(requestFor('/account', { refreshToken: 'dead' }));
+		const pending = proxy(requestFor('/account', { refreshToken: 'dead' }));
+		await jest.advanceTimersByTimeAsync(1000);
+		const res = await pending;
 
 		expect(res.headers.get('location')).toBe(
 			'http://localhost:3000/login?redirect=%2Faccount&session_expired=1'
 		);
 		expect(res.cookies.get('refreshToken')?.value).toBe('');
 		expect(res.cookies.get('accessToken')?.value).toBe('');
+	});
+
+	it('keeps the session when a retry gets the pair another server was still rotating', async () => {
+		jest.useFakeTimers();
+		const fresh = await signToken();
+		fetchMock
+			.mockResolvedValueOnce(new Response('{}', { status: 401 }))
+			.mockResolvedValueOnce(refreshResponse(fresh));
+
+		const pending = proxy(requestFor('/account', { refreshToken: 'r1' }));
+		await jest.advanceTimersByTimeAsync(1000);
+		const res = await pending;
+
+		expect(fetchMock).toHaveBeenCalledTimes(2);
+		expect(res.headers.get('location')).toBeNull();
+		expect(res.cookies.get('accessToken')?.value).toBe(fresh);
 	});
 
 	it('tells a user signed out everywhere for security why', async () => {
