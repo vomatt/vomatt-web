@@ -135,7 +135,7 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 											)}
 										>
 											<item.icon className="size-5 shrink-0" />
-											<span className="text-sm font-medium capitalize">
+											<span className="text-[14px] font-medium capitalize">
 												{t(item.title)}
 											</span>
 											{badge > 0 && (
@@ -173,7 +173,7 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 										) : (
 											<User className="size-5 shrink-0" />
 										)}
-										<span className="text-sm font-medium capitalize">
+										<span className="text-[14px] font-medium capitalize">
 											{t('navigation.profile')}
 										</span>
 									</SidebarMenuButton>
@@ -199,7 +199,7 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 					<div className="rounded-xl border border-sidebar-border bg-card p-1">
 						<Link
 							href="/login"
-							className="flex items-center gap-2.5 w-full h-9 px-3 rounded-lg text-muted-foreground hover:text-sidebar-foreground transition-colors duration-150 text-sm outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
+							className="flex items-center gap-2.5 w-full h-9 px-3 rounded-lg text-muted-foreground hover:text-sidebar-foreground transition-colors duration-150 text-[14px] outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
 						>
 							<User className="size-4 shrink-0" />
 							<span className="font-medium">{t('loginPrompt.ctaLabel')}</span>

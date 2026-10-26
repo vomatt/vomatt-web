@@ -90,6 +90,7 @@ describe('AppSidebar more menu', () => {
 		expect(
 			await screen.findByRole('menuitem', { name: 'account.signOut' })
 		).toBeInTheDocument();
+		expect(screen.getByRole('separator')).toBeInTheDocument();
 	});
 
 	it('offers guests only the theme and language choices', async () => {
@@ -101,6 +102,8 @@ describe('AppSidebar more menu', () => {
 		expect(screen.getByRole('menuitemradio', { name: 'English', checked: true })).toBeInTheDocument();
 		expect(screen.getByRole('menuitemradio', { name: '中文' })).toBeInTheDocument();
 		expect(screen.queryAllByRole('menuitem')).toHaveLength(0);
+		// Nothing follows the language choices, so no line closes them off
+		expect(screen.queryByRole('separator')).not.toBeInTheDocument();
 	});
 
 	it('has no My polls row: it folded into Profile › Asked', () => {
