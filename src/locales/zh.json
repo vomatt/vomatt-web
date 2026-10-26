@@ -255,7 +255,7 @@
 		"empty": "目前沒有通知。",
 		"emptyHint": "你發起或參與的投票結果會顯示在這裡。",
 		"unread": "未讀",
-		"intro": "你發起或參與的投票結果，以及投票邀請。",
+		"intro": "投票結果、邀請、追蹤你的人，以及你的投票下的留言。",
 		"markAllHint": "打開投票即標為已讀。",
 		"loadFailed": "無法載入通知。",
 		"ended": "結果出爐",
@@ -271,10 +271,28 @@
 		"inviteOnly": "僅限受邀",
 		"view": "查看",
 		"cancelledBy": "{title} 已被 {name} 取消",
-		"neverCounted": "你的選票未被計入",
 		"railTitle": "打開投票即標為已讀",
 		"railBody": "結果通知會保留到你打開為止，密封的承諾不會在列表中遺失。",
-		"markAllFailed": "部分通知無法標為已讀，請再試一次。"
+		"markAllFailed": "無法將通知標為已讀，請再試一次。",
+		"followedYou": "{name} 追蹤了你",
+		"followedYouGroup": "{name} 和其他 {count} 人追蹤了你",
+		"followedYouGroup_one": "{name} 和其他 {count} 人追蹤了你",
+		"seeFollowers": "查看追蹤者",
+		"commented": "{name} 在 {title} 下發表了看法",
+		"excerpt": "「{text}」",
+		"endsIn": "{title} 將在 {duration}後截止",
+		"notVoted": "你還沒投票",
+		"votedSoFar": "目前 {count} 人已投票",
+		"settingsTitle": "通知設定",
+		"kindName": {
+			"resultsIn": "結果",
+			"invitations": "邀請",
+			"comments": "留言",
+			"closingSoon": "即將結束"
+		},
+		"summaryOn": "{kinds}已開啟",
+		"summaryOff": "{kinds}已關閉",
+		"summarySeparator": "、"
 	},
 	"pollCreator": {
 		"title": "新的投票",
@@ -1080,6 +1098,17 @@
 		"appLanguageNote": "投票與留言會保留撰寫時使用的語言。",
 		"legal": "法律資訊",
 		"terms": "服務條款",
-		"privacyPolicy": "隱私權政策"
+		"privacyPolicy": "隱私權政策",
+		"notifyResultsIn": "結果出爐",
+		"notifyResultsInBody": "你參與或發起的投票結束時通知你。這是每張選票的承諾。",
+		"notifyInvitations": "邀請",
+		"notifyInvitationsBody": "有人邀請你參加僅限受邀的投票時。",
+		"notifyComments": "你的投票的留言",
+		"notifyCommentsBody": "有人在你發起的投票下發表看法時。",
+		"notifyClosingSoon": "即將結束",
+		"notifyClosingSoonBody": "你還沒投的投票結束前一天提醒你。",
+		"notifyOn": "已開啟「{name}」通知。",
+		"notifyOff": "已關閉「{name}」通知。",
+		"notificationsFailed": "無法載入你的通知設定。"
 	}
 }

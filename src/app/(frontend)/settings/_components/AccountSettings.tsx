@@ -27,6 +27,10 @@ import { isFieldPublic, VISIBILITY_FIELDS } from '@/features/account/visibility'
 import { BlockedUsersPanel } from '@/features/blocks/BlockedUsersPanel';
 import { FollowedUsersPanel } from '@/features/follows/FollowedUsersPanel';
 import { GroupsPanel } from '@/features/groups/GroupsPanel';
+import { NOTIFICATION_SWITCHES } from '@/features/notifications/preferences';
+import type { NotificationPreferences } from '@/features/notifications/schema';
+import { updateNotificationPreferences } from '@/features/notifications/service';
+import { useUnreadCount } from '@/features/notifications/UnreadCountProvider';
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
 import { useHydrated } from '@/hooks/useHydrated';
 import { htmlLang, SUPPORTED_LANGUAGES } from '@/i18n-config';
@@ -39,7 +43,7 @@ import { cn } from '@/lib/utils';
 import type { MyProfile } from '@/types/user';
 
 /** The page's sections, in order; the On this page list links to each. */
-export const SETTINGS_SECTIONS = ['voting', 'appearance', 'privacy', 'account'] as const;
+export const SETTINGS_SECTIONS = ['voting', 'notifications', 'appearance', 'privacy', 'account'] as const;
 
 const rowClassName = 'flex min-h-15 items-center gap-4 px-4.5 py-3';
 const rowLinkClassName = cn(
@@ -80,10 +84,13 @@ function RowText({ title, body, id }: { title: React.ReactNode; body?: React.Rea
 export default function AccountSettings({
 	profile,
 	inviteListCount,
+	notificationPreferences,
 }: {
 	profile: MyProfile;
 	/** How many invite lists the user has; null when they couldn't be loaded. */
 	inviteListCount: number | null;
+	/** Null when they couldn't be loaded. */
+	notificationPreferences: NotificationPreferences | null;
 }) {
 	const { t, currentLanguage } = useLanguage();
 	const router = useRouter();
@@ -153,6 +160,16 @@ export default function AccountSettings({
 				</Dialog>
 			</Section>
 
+			<Section id="notifications" title={t('notifications.title')}>
+				{notificationPreferences ? (
+					<NotificationSwitches initial={notificationPreferences} announce={setAnnouncement} />
+				) : (
+					<Card>
+						<p className={cn(rowClassName, 'text-[14px] text-muted-foreground')}>{t('settings.notificationsFailed')}</p>
+					</Card>
+				)}
+			</Section>
+
 			<Section id="appearance" title={t('settings.appearanceAndLanguage')}>
 				<Card>
 					<div className={cn(rowClassName, 'flex-wrap')}>
@@ -209,6 +226,55 @@ export default function AccountSettings({
 				</Link>
 			</nav>
 		</div>
+	);
+}
+
+/** Which kinds the feed and the unread count include; each switch changes at once and goes back if the save fails. */
+function NotificationSwitches({
+	initial,
+	announce,
+}: {
+	initial: NotificationPreferences;
+	announce: (text: string) => void;
+}) {
+	const { t } = useLanguage();
+	const { refresh } = useUnreadCount();
+	const [preferences, setPreferences] = useState(initial);
+	// The last values the server confirmed; quick toggles can answer out of order
+	const saved = useRef(initial);
+
+	const toggle = async (key: keyof NotificationPreferences, value: boolean, name: string) => {
+		setPreferences((current) => ({ ...current, [key]: value }));
+		const result = await updateNotificationPreferences({ [key]: value });
+		if (result.ok) {
+			saved.current = { ...saved.current, [key]: value };
+			announce(t(value ? 'settings.notifyOn' : 'settings.notifyOff', { name }));
+			// A kind switched off leaves the unread count
+			refresh();
+		} else {
+			setPreferences((current) => ({ ...current, [key]: saved.current[key] }));
+			toast.error(apiErrorText(t, result, 'account.saveFailed'), { duration: Infinity });
+		}
+	};
+
+	return (
+		<Card>
+			{NOTIFICATION_SWITCHES.map(({ key, title, body }) => {
+				const id = `notify-${key}`;
+				return (
+					<label key={key} htmlFor={id} className={cn(rowClassName, 'cursor-pointer')}>
+						<RowText id={id} title={t(title)} body={t(body)} />
+						<Switch
+							id={id}
+							aria-labelledby={`${id}-label`}
+							aria-describedby={`${id}-body`}
+							checked={preferences[key]}
+							onCheckedChange={(value) => toggle(key, value, t(title))}
+						/>
+					</label>
+				);
+			})}
+		</Card>
 	);
 }
 
@@ -375,6 +441,7 @@ function DeleteAccount({ username }: { username: string }) {
 
 const SECTION_TITLES: Record<(typeof SETTINGS_SECTIONS)[number], string> = {
 	voting: 'settings.voting',
+	notifications: 'notifications.title',
 	appearance: 'settings.appearanceAndLanguage',
 	privacy: 'settings.privacy',
 	account: 'settings.account',

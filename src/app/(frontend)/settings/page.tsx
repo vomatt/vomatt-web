@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { T } from '@/components/T';
 import { getMyProfile } from '@/data/auth';
 import { getGroups } from '@/features/groups/service';
+import { getNotificationPreferences } from '@/features/notifications/service';
 import { getServerLocale } from '@/lib/getServerLocale';
 import en from '@/locales/en.json';
 import zh from '@/locales/zh.json';
@@ -16,7 +17,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function SettingsPage() {
-	const [profile, groups] = await Promise.all([getMyProfile(), getGroups()]);
+	const [profile, groups, notificationPreferences] = await Promise.all([
+		getMyProfile(),
+		getGroups(),
+		getNotificationPreferences().catch(() => null),
+	]);
 	if (!profile) redirect('/login?redirect=/settings');
 
 	return (
@@ -25,7 +30,11 @@ export default async function SettingsPage() {
 				<h1 className="mb-8 page-title text-foreground">
 					<T k="navigation.settings" />
 				</h1>
-				<AccountSettings profile={profile} inviteListCount={groups.ok ? groups.data.length : null} />
+				<AccountSettings
+					profile={profile}
+					inviteListCount={groups.ok ? groups.data.length : null}
+					notificationPreferences={notificationPreferences}
+				/>
 			</div>
 			<aside className="sticky top-8 hidden max-w-[220px] flex-[1_0_200px] lg:block">
 				<SettingsNav />

@@ -265,7 +265,7 @@
 		"empty": "No notifications yet.",
 		"emptyHint": "Results of polls you asked or voted in show up here.",
 		"unread": "Unread",
-		"intro": "Results of polls you asked or voted in, and invitations to vote.",
+		"intro": "Results, invitations, people who followed you, and comments on your polls.",
 		"markAllHint": "Opening a poll marks it read.",
 		"loadFailed": "Couldn’t load notifications.",
 		"ended": "Results are in",
@@ -281,10 +281,28 @@
 		"inviteOnly": "Invite only",
 		"view": "View",
 		"cancelledBy": "{title} was cancelled by {name}",
-		"neverCounted": "Your vote was never counted",
 		"railTitle": "Opening a poll marks it read",
 		"railBody": "Results rows stay until you open them, so a sealed promise is never lost in the list.",
-		"markAllFailed": "Some notifications couldn’t be marked read. Try again."
+		"markAllFailed": "Couldn’t mark notifications read. Try again.",
+		"followedYou": "{name} followed you",
+		"followedYouGroup": "{name} and {count} others followed you",
+		"followedYouGroup_one": "{name} and {count} other followed you",
+		"seeFollowers": "See followers",
+		"commented": "{name} made the case under {title}",
+		"excerpt": "“{text}”",
+		"endsIn": "{title} ends in {duration}",
+		"notVoted": "You haven’t voted",
+		"votedSoFar": "{count} voted so far",
+		"settingsTitle": "Notification settings",
+		"kindName": {
+			"resultsIn": "results",
+			"invitations": "invitations",
+			"comments": "comments",
+			"closingSoon": "closing soon"
+		},
+		"summaryOn": "{kinds} on",
+		"summaryOff": "{kinds} off",
+		"summarySeparator": ", "
 	},
 	"pollCreator": {
 		"title": "New poll",
@@ -1094,6 +1112,17 @@
 		"appLanguageNote": "Polls and comments stay in the language they were written in.",
 		"legal": "Legal",
 		"terms": "Terms",
-		"privacyPolicy": "Privacy"
+		"privacyPolicy": "Privacy",
+		"notifyResultsIn": "Results are in",
+		"notifyResultsInBody": "When a poll you voted in or asked ends. This is the promise on every ballot.",
+		"notifyInvitations": "Invitations",
+		"notifyInvitationsBody": "When someone invites you to an Invite-only poll.",
+		"notifyComments": "Comments on your polls",
+		"notifyCommentsBody": "When someone makes their case under a poll you asked.",
+		"notifyClosingSoon": "Closing soon",
+		"notifyClosingSoonBody": "A nudge the day before a poll you haven’t voted in ends.",
+		"notifyOn": "{name} notifications on.",
+		"notifyOff": "{name} notifications off.",
+		"notificationsFailed": "Couldn’t load your notification settings."
 	}
 }
