@@ -6,7 +6,7 @@ import { ExploreView } from './_components/ExploreView';
 
 export default async function ExplorePage() {
 	// Started first, so it loads alongside the viewer and streams into the list
-	const firstPage = getPolls({ status: 'open', sort: 'newest' }, null, EXPLORE_PAGE_SIZE).catch(() => null);
+	const firstPage = getPolls({ status: 'open', sort: 'newest' }, null, EXPLORE_PAGE_SIZE, { asViewer: true }).catch(() => null);
 	// The cards vote as the viewer, so the page waits for who that is
 	const [user, profile] = await Promise.all([getUserSession(), getMyProfile()]);
 	return (

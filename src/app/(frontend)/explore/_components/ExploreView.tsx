@@ -151,7 +151,7 @@ function ExploreResults({
 	const [isSearching, setIsSearching] = useState(false);
 	const [searchFailed, setSearchFailed] = useState(firstPage === null);
 	const fetchPage = useCallback(
-		(cursor: string) => getPolls(apiQuery, cursor, EXPLORE_PAGE_SIZE),
+		(cursor: string) => getPolls(apiQuery, cursor, EXPLORE_PAGE_SIZE, { asViewer: true }),
 		[apiQuery]
 	);
 	const list = useCursorList(firstPage, fetchPage);
@@ -165,7 +165,7 @@ function ExploreResults({
 		const timer = setTimeout(async () => {
 			setIsSearching(true);
 			try {
-				const page = await getPolls(apiQuery, null, EXPLORE_PAGE_SIZE);
+				const page = await getPolls(apiQuery, null, EXPLORE_PAGE_SIZE, { asViewer: true });
 				if (ignore) return;
 				reset(page);
 				setSearchFailed(false);

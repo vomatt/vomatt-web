@@ -63,7 +63,7 @@ describe('ExploreView', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Ended' }));
 		await act(async () => jest.advanceTimersByTime(300));
 
-		expect(mockGetPolls).toHaveBeenCalledWith({ status: 'ended', sort: undefined, q: undefined }, null, 20);
+		expect(mockGetPolls).toHaveBeenCalledWith({ status: 'ended', sort: undefined, q: undefined }, null, 20, { asViewer: true });
 		expect(await screen.findByText('Dinner?')).toBeInTheDocument();
 	});
 
@@ -80,7 +80,7 @@ describe('ExploreView', () => {
 		fireEvent.change(box, { target: { value: 'lun' } });
 		await act(async () => jest.advanceTimersByTime(300));
 		expect(mockGetPolls).toHaveBeenCalledTimes(1);
-		expect(mockGetPolls).toHaveBeenCalledWith({ status: 'open', sort: 'newest', q: 'lun' }, null, 20);
+		expect(mockGetPolls).toHaveBeenCalledWith({ status: 'open', sort: 'newest', q: 'lun' }, null, 20, { asViewer: true });
 	});
 
 	it('sorts open polls by most voted', async () => {
@@ -88,7 +88,7 @@ describe('ExploreView', () => {
 		await renderView(<ExploreView initialPage={Promise.resolve({ items: [], nextCursor: null })} />);
 		fireEvent.click(screen.getByRole('button', { name: 'Most voted' }));
 		await act(async () => jest.advanceTimersByTime(300));
-		expect(mockGetPolls).toHaveBeenCalledWith({ status: 'open', sort: 'top', q: undefined }, null, 20);
+		expect(mockGetPolls).toHaveBeenCalledWith({ status: 'open', sort: 'top', q: undefined }, null, 20, { asViewer: true });
 	});
 
 	it('loads more of the listed polls until the new sort\'s first page arrives', async () => {
@@ -98,7 +98,7 @@ describe('ExploreView', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Most voted' }));
 		fireEvent.click(screen.getByRole('button', { name: 'Load more' }));
 		// The cursor belongs to the newest ordering, so it goes back with that query
-		expect(mockGetPolls).toHaveBeenCalledWith({ status: 'open', sort: 'newest', q: undefined }, 'c1', 20);
+		expect(mockGetPolls).toHaveBeenCalledWith({ status: 'open', sort: 'newest', q: undefined }, 'c1', 20, { asViewer: true });
 		await act(async () => jest.advanceTimersByTime(300));
 	});
 
@@ -150,7 +150,7 @@ describe('ExploreView', () => {
 		await act(async () => jest.advanceTimersByTime(300));
 		await act(async () => jest.advanceTimersByTime(300));
 
-		expect(mockGetPolls).toHaveBeenCalledWith({ status: 'ended', sort: undefined, q: undefined }, null, 20);
+		expect(mockGetPolls).toHaveBeenCalledWith({ status: 'ended', sort: undefined, q: undefined }, null, 20, { asViewer: true });
 		expect(await screen.findByText('Dinner?')).toBeInTheDocument();
 	});
 });

@@ -91,8 +91,8 @@ export type PollListQuery = {
 };
 
 /**
- * Explore and Search, from the shared cache. Only Open or Ended Polls;
- * Scheduled ones are never listed.
+ * Explore, Search and the home feed. Only Open or Ended Polls; Scheduled ones are
+ * never listed. Lists drawn as ballot cards pass `asViewer` so each shows the viewer's vote.
  */
 export async function getPolls(
 	query: PollListQuery = {},
