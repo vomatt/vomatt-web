@@ -24,6 +24,8 @@ jest.mock('@/features/follows/service', () => ({
 }));
 jest.mock('@/features/avatars/service', () => ({ chooseAvatar: jest.fn() }));
 jest.mock('@/features/notifications/service', () => ({}));
+// Base UI dispatches a PointerEvent on click
+window.PointerEvent = window.PointerEvent || (MouseEvent as any);
 
 const visitor: UserProfile = {
 	id: 'u2',
@@ -293,8 +295,24 @@ describe('OwnProfileView', () => {
 
 	it('offers the create action on an empty Asked list', () => {
 		render(<OwnProfileView profile={me} polls={[]} />);
+		expect(screen.getByRole('heading', { level: 2, name: 'No polls yet.' })).toBeInTheDocument();
 		expect(screen.getByText('Your polls show up here once they open.')).toBeInTheDocument();
-		expect(screen.getByRole('button', { name: 'Create a poll' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Create a poll' })).toHaveAttribute('aria-haspopup', 'dialog');
+	});
+
+	it('flips narrow screens between your view and what everyone sees', () => {
+		render(<OwnProfileView profile={me} polls={[]} />);
+		const lists = screen.getByRole('main');
+		const preview = screen.getByRole('region', { name: 'What everyone sees' });
+		expect(screen.getByRole('radio', { name: 'You' })).toBeChecked();
+		// jsdom has no layout, so the classes that hide each view below xl stand in for it
+		expect(lists).not.toHaveClass('max-xl:hidden');
+		expect(preview).toHaveClass('max-xl:hidden');
+
+		fireEvent.click(screen.getByRole('radio', { name: 'Everyone' }));
+		expect(screen.getByRole('radio', { name: 'Everyone' })).toBeChecked();
+		expect(lists).toHaveClass('max-xl:hidden');
+		expect(preview).not.toHaveClass('max-xl:hidden');
 	});
 
 	it("says the polls couldn't load, and retries", () => {
