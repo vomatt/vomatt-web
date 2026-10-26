@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { Suspense } from 'react';
+import { cache, Suspense } from 'react';
 
 import { CookieSettingsButton } from '@/components/layout/CookieConsent';
 import { getMyProfile } from '@/data/auth';
@@ -22,8 +22,12 @@ export async function generateStaticParams() {
 	return data;
 }
 
+// Metadata and the page ask once per request; signed in, the lookup is uncached
+const loadProfile = cache(getUserProfile);
+
 type Props = {
 	params: Promise<{ slug: string }>;
+	searchParams: Promise<{ view?: string; tab?: string; edit?: string }>;
 };
 
 // Sanity pages and user profiles share the root; a Sanity slug wins over a username
@@ -36,7 +40,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 	if (data) return defineMetadata({ data });
 
 	const username = usernameFromSlug(params.slug);
-	const profile = username ? await getUserProfile(username).catch(() => null) : null;
+	const profile = username ? await loadProfile(username).catch(() => null) : null;
 	return { title: profile ? profile.displayName || `@${profile.username}` : undefined };
 }
 
@@ -61,23 +65,26 @@ export default async function PageSlugRoute(props: Props) {
 
 	// The session only carries the user id, so compare usernames via the profile
 	const me = await getMyProfile();
-	if (isOwnUsername(me, username)) {
+	const { view, tab, edit } = await props.searchParams;
+	// `?view=public`: the owner sees their page as everyone else does
+	if (isOwnUsername(me, username) && view !== 'public') {
 		return (
 			<Suspense fallback={<ProfileSkeleton />}>
-				<OwnProfile profile={me} />
+				<OwnProfile profile={me} initialTab={tab === 'voted' ? 'voted' : 'asked'} openEdit={edit === '1'} />
 			</Suspense>
 		);
 	}
 
 	// Started now so polls load alongside the profile lookup
 	const polls = getUserPolls(username).catch(() => null);
-	// Checked before streaming so an unknown slug still answers 404
-	const profile = await getUserProfile(username);
+	// Checked before streaming so an unknown slug still answers 404. Signed in, the
+	// profile also says whether the viewer follows or blocked them, so it isn't cached
+	const profile = await loadProfile(username);
 	if (!profile) notFound();
 
 	return (
 		<Suspense fallback={<ProfileSkeleton />}>
-			<PublicProfile profile={profile} polls={polls} isAuthenticated={!!me} />
+			<PublicProfile profile={profile} polls={polls} isAuthenticated={!!me} preview={isOwnUsername(me, username)} />
 		</Suspense>
 	);
 }

@@ -6,6 +6,7 @@ import { SidebarProvider } from '@/components/ui/Sidebar';
 
 jest.mock('next/navigation', () => ({
 	usePathname: () => '/',
+	useRouter: () => ({ refresh: jest.fn() }),
 }));
 
 jest.mock('@/hooks/use-mobile', () => ({
@@ -13,7 +14,7 @@ jest.mock('@/hooks/use-mobile', () => ({
 }));
 
 jest.mock('@/contexts/LanguageContext', () => ({
-	useLanguage: () => ({ t: (key: string) => key }),
+	useLanguage: () => ({ t: (key: string) => key, currentLanguage: 'en', setLanguage: jest.fn() }),
 }));
 
 let mockUnreadCount = 0;
@@ -91,13 +92,20 @@ describe('AppSidebar more menu', () => {
 		).toBeInTheDocument();
 	});
 
-	it('offers guests only the appearance choice', async () => {
+	it('offers guests only the theme and language choices', async () => {
 		renderSidebar(null);
 		await userEvent.click(
 			screen.getByRole('button', { name: 'navigation.more' })
 		);
-		expect(await screen.findAllByRole('menuitemradio')).toHaveLength(3);
+		expect(await screen.findAllByRole('menuitemradio')).toHaveLength(5);
+		expect(screen.getByRole('menuitemradio', { name: 'English', checked: true })).toBeInTheDocument();
+		expect(screen.getByRole('menuitemradio', { name: '中文' })).toBeInTheDocument();
 		expect(screen.queryAllByRole('menuitem')).toHaveLength(0);
+	});
+
+	it('has no My polls row: it folded into Profile › Asked', () => {
+		renderSidebar();
+		expect(screen.queryByRole('link', { name: 'common.myPolls' })).not.toBeInTheDocument();
 	});
 
 	it('glides the hover mark to the row under the pointer, and steps aside for the keyboard', async () => {

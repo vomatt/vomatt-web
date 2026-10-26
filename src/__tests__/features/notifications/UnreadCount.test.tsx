@@ -131,35 +131,6 @@ describe('MarkNotificationRead', () => {
 	});
 });
 
-describe('NotificationList', () => {
-	const poll = {
-		id: 'p1',
-		title: 'Lunch?',
-		startTime: '2026-10-01T00:00:00Z',
-		endTime: '2026-10-02T00:00:00Z',
-		unread: true,
-	} as Poll;
-
-	it('clears the dot when opened, leaving the marking to the poll page', () => {
-		render(<NotificationList initialPage={{ items: [poll], nextCursor: null }} invitations={[]} />);
-		expect(screen.getByText('Unread')).toBeInTheDocument();
-
-		fireEvent.click(screen.getByText('Lunch?'));
-		expect(screen.queryByText('Unread')).not.toBeInTheDocument();
-		expect(mockMarkRead).not.toHaveBeenCalled();
-	});
-
-	it('labels a cancelled poll', () => {
-		render(
-			<NotificationList
-				initialPage={{ items: [{ ...poll, endTime: poll.startTime, unread: false }], nextCursor: null }}
-				invitations={[]}
-			/>
-		);
-		expect(screen.getByText('Cancelled')).toBeInTheDocument();
-	});
-});
-
 describe('formatUnreadCount', () => {
 	it('shows 100, the API\'s cap for "100 or more", as 99+', () => {
 		expect(formatUnreadCount(100)).toBe('99+');

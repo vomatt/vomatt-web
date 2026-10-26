@@ -84,7 +84,7 @@ export function UserRelationPanel({ ns, action, load, remove }: UserRelationPane
 	return (
 		<section className="space-y-3">
 			<div>
-				<h2 className="font-medium">{t(`${ns}.title`)}</h2>
+				<h3 className="font-medium">{t(`${ns}.title`)}</h3>
 				<p className="text-sm text-muted-foreground">{t(`${ns}.intro`)}</p>
 			</div>
 			{users === null && !loadFailed && (

@@ -41,6 +41,10 @@ const tabsListVariants = cva(
 			sticky: {
 				true: 'sticky follow-header z-10 bg-background',
 			},
+			// Line tabs sized to their labels, so a row can hold controls beside them; the row draws the line
+			fit: {
+				true: 'w-auto gap-7 border-b-0',
+			},
 		},
 		defaultVariants: {
 			variant: 'default',
@@ -55,6 +59,7 @@ function TabsList({
 	className,
 	variant = 'default',
 	sticky,
+	fit,
 	onPointerOver,
 	onPointerLeave,
 	children,
@@ -66,7 +71,8 @@ function TabsList({
 			data-slot="tabs-list"
 			data-variant={variant}
 			data-sticky={sticky || undefined}
-			className={cn(tabsListVariants({ variant, sticky }), className)}
+			data-fit={fit || undefined}
+			className={cn(tabsListVariants({ variant, sticky, fit }), className)}
 			onPointerOver={(event) => {
 				onPointerOver?.(event);
 				hover.onPointerOver(event);
@@ -88,7 +94,7 @@ function TabsTrigger({ className, ...props }: TabsPrimitive.Tab.Props) {
 			data-slot="tabs-trigger"
 			className={cn(
 				"relative inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-1.5 py-0.5 text-sm font-medium whitespace-nowrap text-muted-foreground transition-[color,background-color,border-color,box-shadow] group-data-vertical/tabs:w-full group-data-vertical/tabs:justify-start hover:text-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50 has-data-[icon=inline-end]:pr-1 has-data-[icon=inline-start]:pl-1 aria-disabled:pointer-events-none aria-disabled:opacity-50 dark:text-muted-foreground dark:hover:text-foreground group-data-[variant=default]/tabs-list:data-active:shadow-sm group-data-[variant=line]/tabs-list:data-active:shadow-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-				'group-data-[variant=line]/tabs-list:h-full group-data-[variant=line]/tabs-list:text-[14px] group-data-[variant=line]/tabs-list:bg-transparent group-data-[variant=line]/tabs-list:data-active:bg-transparent dark:group-data-[variant=line]/tabs-list:data-active:border-transparent dark:group-data-[variant=line]/tabs-list:data-active:bg-transparent',
+				'group-data-fit/tabs-list:flex-none group-data-fit/tabs-list:px-0 group-data-[variant=line]/tabs-list:h-full group-data-[variant=line]/tabs-list:text-[14px] group-data-[variant=line]/tabs-list:bg-transparent group-data-[variant=line]/tabs-list:data-active:bg-transparent dark:group-data-[variant=line]/tabs-list:data-active:border-transparent dark:group-data-[variant=line]/tabs-list:data-active:bg-transparent',
 				'data-active:bg-background data-active:text-foreground dark:data-active:border-input dark:data-active:bg-input/30 dark:data-active:text-foreground',
 				'after:absolute after:bg-foreground after:opacity-0 after:transition-opacity group-data-horizontal/tabs:after:inset-x-0 group-data-horizontal/tabs:after:bottom-[-1px] group-data-horizontal/tabs:after:h-0.5 group-data-vertical/tabs:after:inset-y-0 group-data-vertical/tabs:after:-right-1 group-data-vertical/tabs:after:w-0.5 group-data-[variant=line]/tabs-list:data-active:after:opacity-100 group-data-horizontal/tabs:group-has-data-[slot=tabs-indicator]/tabs-list:after:hidden',
 				className

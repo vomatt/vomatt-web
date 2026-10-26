@@ -41,6 +41,13 @@ describe('PollSideCard', () => {
 		expect(screen.getAllByText('Unread')).toHaveLength(1);
 	});
 
+	it('says "new" in the meta of an unread Poll only', () => {
+		render(<PollSideCard headingKey="homePage.resultsIn" polls={[{ ...poll, unread: true }, { ...poll, id: 'poll-2' }]} />);
+		const [unread, read] = screen.getAllByRole('link');
+		expect(within(unread).getByText('new')).toBeInTheDocument();
+		expect(within(read).queryByText('new')).not.toBeInTheDocument();
+	});
+
 	it('says when an Open Poll ends', () => {
 		render(<PollSideCard headingKey="homePage.closingSoon" polls={[poll]} showEndsIn />);
 		expect(screen.getByText('Ends in 2 hours · 1,502 voted')).toBeInTheDocument();

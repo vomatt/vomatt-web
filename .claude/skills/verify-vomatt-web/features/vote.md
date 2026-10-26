@@ -12,7 +12,7 @@ A signed-in user picks one option on an open poll and casts a vote. Results stay
 
 ## How to get to it (user POV)
 
-- Open `/poll/<id>` (from the home feed, Explore, My Polls, or a shared link).
+- Open `/poll/<id>` (from the home feed, Explore, your profile, or a shared link).
 - Vote from a poll card in the home feed.
 
 ## Driving it with vv

@@ -4,21 +4,49 @@ import EditProfileDialog from '@/app/(frontend)/[slug]/_components/EditProfileDi
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 const mockReplace = jest.fn();
-jest.mock('next/navigation', () => ({ useRouter: () => ({ replace: mockReplace }) }));
+const mockRefresh = jest.fn();
+jest.mock('next/navigation', () => ({ useRouter: () => ({ replace: mockReplace, refresh: mockRefresh }) }));
 const mockToastError = jest.fn();
 jest.mock('sonner', () => ({ toast: { error: (...a: unknown[]) => mockToastError(...a), success: jest.fn() } }));
 const mockEditProfile = jest.fn();
+const mockUpdateVisibility = jest.fn();
 jest.mock('@/lib/api/services/users', () => ({
 	editProfile: (...a: unknown[]) => mockEditProfile(...a),
+	updateVisibility: (...a: unknown[]) => mockUpdateVisibility(...a),
 }));
+jest.mock('@/features/avatars/AvatarDialog', () => ({ AvatarDialog: () => null }));
 
 beforeEach(() => {
 	jest.clearAllMocks();
 	mockEditProfile.mockResolvedValue({ ok: true });
+	mockUpdateVisibility.mockResolvedValue({});
 });
 
-function open(initialUsername = 'mei') {
-	render(<EditProfileDialog initialUsername={initialUsername} initialDisplayName="Mei" initialBio="" initialFirstName="" initialLastName="" initialBirthday="" />);
+const profile = {
+	id: 'u1',
+	username: 'mei',
+	email: null,
+	phoneNumber: null,
+	firstName: null,
+	lastName: null,
+	birthday: null,
+	displayName: 'Mei',
+	bio: null,
+	location: 'Taipei',
+	points: 1240,
+	membershipLevel: null,
+	active: true,
+	lastLoginAt: null,
+	joinedAt: '2026-01-01T00:00:00Z',
+	totalPolls: 0,
+	totalVotes: 0,
+	visibilitySettings: {},
+	anonymousBallotByDefault: false,
+	avatarUrl: null,
+};
+
+function open(username = 'mei') {
+	render(<EditProfileDialog profile={{ ...profile, username }} />);
 	fireEvent.click(screen.getByRole('button', { name: 'Edit profile' }));
 }
 const save = () => fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
@@ -36,6 +64,7 @@ describe('EditProfileDialog', () => {
 		open();
 		fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'Mei_Lin' } });
 		fireEvent.change(screen.getByLabelText('Display name'), { target: { value: 'Mei Lin' } });
+		expect(screen.getByLabelText('Username')).toHaveAccessibleDescription(/Your profile moves to \/mei_lin/);
 		save();
 		expect(mockEditProfile).not.toHaveBeenCalled();
 		confirmRename();
@@ -84,25 +113,19 @@ describe('EditProfileDialog', () => {
 		expect(mockReplace).not.toHaveBeenCalled();
 	});
 
-	it('asks before renaming, naming the links that will break', () => {
+	it('warns under the field, before saving, which links a new username breaks', () => {
 		open();
 		fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'mei_lin' } });
-		save();
-		expect(screen.getByRole('heading', { name: 'Change your username?' })).toBeInTheDocument();
-		expect(screen.getByText(/Links to \/mei will stop working/)).toBeInTheDocument();
-
-		// Back returns to the form with the edit kept
-		fireEvent.click(screen.getByRole('button', { name: 'Back' }));
-		expect(screen.getByLabelText('Username')).toHaveValue('mei_lin');
+		expect(screen.getByLabelText('Username')).toHaveAccessibleDescription(
+			'Your profile moves to /mei_lin. Links to /mei will stop working, including ones you’ve shared.'
+		);
 		expect(mockEditProfile).not.toHaveBeenCalled();
 	});
 
-	it("doesn't ask when only the details change", async () => {
+	it('counts the bio against its limit', () => {
 		open();
 		fireEvent.change(screen.getByLabelText('Bio'), { target: { value: 'hi' } });
-		save();
-		await waitFor(() => expect(mockEditProfile).toHaveBeenCalled());
-		expect(screen.queryByRole('heading', { name: 'Change your username?' })).not.toBeInTheDocument();
+		expect(screen.getByLabelText('Bio')).toHaveAccessibleDescription('2 / 500');
 	});
 
 	it('shows an invalid username under its field, without a request', () => {
@@ -148,6 +171,46 @@ describe('EditProfileDialog', () => {
 		save();
 		await waitFor(() => expect(mockToastError).toHaveBeenCalled());
 		expect(screen.getByRole('button', { name: 'Save changes' })).toBeInTheDocument();
+	});
+
+	it('saves only the visibility that changed, beside the field', async () => {
+		open();
+		fireEvent.click(screen.getByRole('button', { name: 'Location: Only you. Change' }));
+		fireEvent.click(screen.getByRole('button', { name: 'Bio: Everyone. Change' }));
+		save();
+		await waitFor(() => expect(mockUpdateVisibility).toHaveBeenCalledWith({ bio: false, location: true }));
+		expect(mockEditProfile).not.toHaveBeenCalled();
+		expect(mockRefresh).toHaveBeenCalled();
+	});
+
+	it('asks before renaming, and Back keeps the edit without a request', () => {
+		open();
+		fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'mei_lin' } });
+		save();
+		expect(screen.getByRole('heading', { name: 'Change your username?' })).toBeInTheDocument();
+		fireEvent.click(screen.getByRole('button', { name: 'Back' }));
+		expect(screen.getByLabelText('Username')).toHaveValue('mei_lin');
+		expect(mockEditProfile).not.toHaveBeenCalled();
+	});
+
+	it('still moves to the new username when only the visibility save fails, and says so', async () => {
+		mockUpdateVisibility.mockRejectedValue(new Error('down'));
+		open();
+		fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'mei_lin' } });
+		fireEvent.click(screen.getByRole('button', { name: 'Location: Only you. Change' }));
+		save();
+		confirmRename();
+		await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/mei_lin'));
+		expect(mockToastError).toHaveBeenCalledWith('Your details were saved, but who sees them wasn’t. Try again.', {
+			duration: Infinity,
+		});
+	});
+
+	it('switches first and last name together as the real name', async () => {
+		open();
+		fireEvent.click(screen.getByRole('button', { name: 'Real name: Only you. Change' }));
+		save();
+		await waitFor(() => expect(mockUpdateVisibility).toHaveBeenCalledWith({ firstName: true, lastName: true }));
 	});
 
 	it('drops abandoned edits when reopened', async () => {

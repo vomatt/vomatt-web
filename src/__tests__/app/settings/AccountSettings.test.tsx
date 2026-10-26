@@ -4,7 +4,15 @@ import { toast } from 'sonner';
 import AccountSettings from '@/app/(frontend)/settings/_components/AccountSettings';
 import type { MyProfile } from '@/types/user';
 
-jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
+const mockSetLanguage = jest.fn();
+jest.mock('@/contexts/LanguageContext', () => {
+	const actual = jest.requireActual('../../helpers/mockLanguage');
+	return { ...actual, useLanguage: () => ({ ...actual.useLanguage(), setLanguage: mockSetLanguage }) };
+});
+const mockRefresh = jest.fn();
+jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh: mockRefresh }) }));
+jest.mock('next-themes', () => ({ useTheme: () => ({ theme: 'system', setTheme: jest.fn() }) }));
+jest.mock('@/features/groups/GroupsPanel', () => ({ GroupsPanel: () => <p>Groups panel</p> }));
 jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn() } }));
 jest.mock('@/lib/api/services/auth', () => ({ signout: jest.fn() }));
 jest.mock('@/features/blocks/service', () => ({
@@ -17,7 +25,6 @@ jest.mock('@/features/follows/service', () => ({
 }));
 jest.mock('@/lib/api/services/users', () => ({
 	deleteMyAccount: jest.fn(),
-	updateVisibility: jest.fn(),
 	editProfile: jest.fn(),
 	exportMyData: jest.fn(),
 }));
@@ -49,13 +56,26 @@ const myProfile: MyProfile = {
 };
 
 describe('AccountSettings', () => {
-	it('shows each visibility switch with its saved value', () => {
+	it('counts what others see and sends the owner to Edit profile to change it', () => {
 		render(<AccountSettings profile={myProfile} />);
 
-		expect(screen.getByRole('switch', { name: 'Points' })).toBeChecked();
-		expect(screen.getByRole('switch', { name: 'Location' })).not.toBeChecked();
-		// Public by default when the settings leave them out
-		expect(screen.getByRole('switch', { name: 'Display name' })).toBeChecked();
+		// Display name and bio are public by default, points by choice
+		const link = screen.getByRole('link', { name: /What others can see/ });
+		expect(link).toHaveTextContent('3 of 7 shown');
+		expect(link).toHaveAttribute('href', '/mei?edit=1');
+	});
+
+	it('opens the invite lists from Voting', () => {
+		render(<AccountSettings profile={myProfile} />);
+		fireEvent.click(screen.getByRole('button', { name: /Invite Lists/ }));
+		expect(screen.getByText('Groups panel')).toBeInTheDocument();
+	});
+
+	it('switches the language and re-renders the page in it', () => {
+		render(<AccountSettings profile={myProfile} />);
+		fireEvent.click(screen.getByRole('button', { name: '繁體中文' }));
+		expect(mockSetLanguage).toHaveBeenCalledWith('zh');
+		expect(mockRefresh).toHaveBeenCalled();
 	});
 
 	it('lets the owner vote anonymously by default from Settings', async () => {
@@ -90,45 +110,12 @@ describe('AccountSettings', () => {
 		click.mockRestore();
 	});
 
-	it('announces a saved visibility change', async () => {
-		const { updateVisibility } = jest.requireMock('@/lib/api/services/users');
-		updateVisibility.mockResolvedValue({ points: true, location: true });
-		render(<AccountSettings profile={myProfile} />);
-
-		fireEvent.click(screen.getByRole('switch', { name: 'Location' }));
-		await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Location is now visible to others.'));
-		expect(screen.getByRole('switch', { name: 'Location' })).toBeChecked();
-	});
-
-	it('rolls back only the field whose save failed', async () => {
-		const { updateVisibility } = jest.requireMock('@/lib/api/services/users');
-		const answers: Record<string, { resolve: (v: unknown) => void; reject: (e: unknown) => void }> = {};
-		updateVisibility.mockImplementation(
-			(change: Record<string, boolean>) =>
-				new Promise((resolve, reject) => (answers[Object.keys(change)[0]] = { resolve, reject }))
-		);
-		render(<AccountSettings profile={myProfile} />);
-		const location = screen.getByRole('switch', { name: 'Location' });
-		const bio = screen.getByRole('switch', { name: 'Bio' });
-
-		fireEvent.click(location);
-		fireEvent.click(bio);
-		// Bio saves first, then Location's earlier save fails
-		await act(async () => answers.bio.resolve({ points: true, bio: false }));
-		await act(async () => answers.location.reject(new Error('down')));
-
-		expect(location).not.toBeChecked();
-		// The failure doesn't undo Bio's save
-		expect(bio).not.toBeChecked();
-		expect(toast.error).toHaveBeenCalledWith("Couldn’t save. Try again.", { duration: Infinity });
-	});
-
 	it('shows the delete button as busy while the account is deleted', async () => {
 		const { deleteMyAccount } = jest.requireMock('@/lib/api/services/users');
 		deleteMyAccount.mockReturnValue(new Promise(() => {}));
 		render(<AccountSettings profile={myProfile} />);
 
-		fireEvent.click(screen.getByRole('button', { name: 'Delete account' }));
+		fireEvent.click(screen.getByRole('button', { name: 'Delete account…' }));
 		fireEvent.change(screen.getByRole('textbox', { name: 'Type your username to confirm' }), {
 			target: { value: 'mei' },
 		});
@@ -142,7 +129,7 @@ describe('AccountSettings', () => {
 		deleteMyAccount.mockResolvedValue({ ok: false, status: 502, message: 'Request failed with status 502' });
 		render(<AccountSettings profile={myProfile} />);
 
-		fireEvent.click(screen.getByRole('button', { name: 'Delete account' }));
+		fireEvent.click(screen.getByRole('button', { name: 'Delete account…' }));
 		fireEvent.change(screen.getByRole('textbox', { name: 'Type your username to confirm' }), {
 			target: { value: 'mei' },
 		});
@@ -157,7 +144,7 @@ describe('AccountSettings', () => {
 		deleteMyAccount.mockClear();
 		render(<AccountSettings profile={myProfile} />);
 
-		fireEvent.click(screen.getByRole('button', { name: 'Delete account' }));
+		fireEvent.click(screen.getByRole('button', { name: 'Delete account…' }));
 		const input = screen.getByRole('textbox', { name: 'Type your username to confirm' });
 		fireEvent.change(input, { target: { value: 'me' } });
 		const confirm = screen.getAllByRole('button', { name: 'Delete account' }).at(-1)!;
@@ -175,7 +162,7 @@ describe('AccountSettings', () => {
 		deleteMyAccount.mockResolvedValue({ ok: false, message: '' });
 		render(<AccountSettings profile={myProfile} />);
 
-		fireEvent.click(screen.getByRole('button', { name: 'Delete account' }));
+		fireEvent.click(screen.getByRole('button', { name: 'Delete account…' }));
 		fireEvent.change(screen.getByRole('textbox', { name: 'Type your username to confirm' }), {
 			target: { value: ' MEI ' },
 		});
@@ -207,7 +194,7 @@ describe('AccountSettings', () => {
 		deleteMyAccount.mockResolvedValue({ ok: false, status: 409, errorCode, message: 'raw' });
 		render(<AccountSettings profile={myProfile} />);
 
-		fireEvent.click(screen.getByRole('button', { name: 'Delete account' }));
+		fireEvent.click(screen.getByRole('button', { name: 'Delete account…' }));
 		fireEvent.change(screen.getByRole('textbox', { name: 'Type your username to confirm' }), {
 			target: { value: 'mei' },
 		});

@@ -13,7 +13,7 @@ A visitor signs in or signs up with one email-code flow: enter an email, enter t
 ## How to get to it (user POV)
 
 - Open `/login` directly, or choose `Sign in` at the bottom of the desktop sidebar.
-- Open a protected page (`/my-polls`, `/notifications`, `/account`) while signed out: redirected to `/login?redirect=<path>`.
+- Open a protected page (`/notifications`, `/account`, `/my-polls`, which then redirects to the profile) while signed out: redirected to `/login?redirect=<path>`.
 - Choose `Vote` or `Post` on a poll while signed out: a `Log in or sign up` dialog opens with the same flow.
 
 ## Driving it with vv
@@ -27,7 +27,7 @@ Preconditions:
 - **Profile step.** Run `vv b click 'role=button[name="Finish"]'`. URL becomes `$W/` and the sidebar shows `Notifications` and a profile card instead of `Sign in`.
 - **One-shot.** `vv login <email>` runs the three steps above and prints the landing URL.
 - **Bad code.** On the code step, fill `000000`. The text `That code is not right. Check the email and try again.` appears and the URL stays `/login`.
-- **Redirect.** Signed out, run `vv b goto $W/my-polls`. URL becomes `/login?redirect=%2Fmy-polls`; after the email and code steps it lands on `/my-polls` with heading `My Polls`.
+- **Redirect.** Signed out, run `vv b goto $W/notifications`. URL becomes `/login?redirect=%2Fnotifications`; after the email and code steps it lands on `/notifications` with heading `Notifications`.
 - **Sign out.** Run `vv b goto $W/account` (redirects to `/<username>`), `vv b click 'role=tab[name="Settings"]'`, `vv b click 'role=button[name="Log out"]'`. URL becomes `$W/` and the sidebar shows `Sign in` again.
 - **Proof.** `vv b cookies` lists `accessToken` and `refreshToken` after sign-in and neither after sign-out (do not copy their values into evidence). `vv sql "select email, display_name from vomatt.users"` shows the new account.
 

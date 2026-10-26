@@ -44,8 +44,7 @@ never calls the API directly, so its CORS list doesn't need the web origin.
 - `npm run lint` reports 12 errors from the React Compiler rules in files this release didn't
   touch (LanguageContext, DraftList, PollCreator, hooks/*). They predate the release work.
 - `src/lib/session.ts` is unused.
-- Follow and followers are hidden until the API supports them; their dev-only mock routes under
-  `/api/v1/users/*` answer 404 in production.
+- Follow and followers use vomatt-api (#74, #75); the dev-only `/api/v1/users/*` mocks are removed.
 - Poll bylines, voter lists and comments draw each person's bot from their username until the API
   returns `avatarUrl` there (backend request 16, item 4), so they can differ from the profile.
 

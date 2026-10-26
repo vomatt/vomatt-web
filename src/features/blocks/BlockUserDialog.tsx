@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/AlertDialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { blockUser } from '@/features/blocks/service';
+import { forgetProfile } from '@/features/profiles/ProfileHoverCard';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
 
@@ -43,6 +44,7 @@ export function BlockUserDialog({
 			toast.error(apiErrorText(t, result, 'blocks.blockFailed'), { duration: Infinity });
 			return;
 		}
+		forgetProfile(username);
 		onOpenChange(false);
 		onBlocked?.();
 		toast.success(t('blocks.blocked', { username }), {

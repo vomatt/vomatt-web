@@ -37,7 +37,6 @@ import {
 	SortSchema,
 	TagDtoSchema,
 } from '../src/features/polls/schema';
-import { UpdateProfileRequestSchema, UserProfileSchema } from '../src/schemas/user';
 
 // ---------------------------------------------------------------------------
 // Registry
@@ -53,8 +52,6 @@ registry.register('PollPage', PollPageSchema);
 registry.register('Comment', CommentSchema);
 registry.register('CreatePollRequest', CreatePollRequestSchema);
 registry.register('CreateCommentRequest', CreateCommentRequestSchema);
-registry.register('UserProfile', UserProfileSchema);
-registry.register('UpdateProfileRequest', UpdateProfileRequestSchema);
 registry.register('PreSignupRequest', PreSignupRequestSchema);
 registry.register('SignupRequest', SignupRequestSchema);
 registry.register('SigninRequest', SigninRequestSchema);
@@ -289,43 +286,6 @@ registry.registerPath({
 });
 
 // ---------------------------------------------------------------------------
-// Users
-// ---------------------------------------------------------------------------
-registry.registerPath({
-	method: 'get',
-	path: '/api/v1/users/{username}',
-	tags: ['users'],
-	summary: "Get a user's public profile",
-	request: {
-		params: z.object({ username: z.string().openapi({ example: 'alex_dev' }) }),
-	},
-	responses: {
-		200: {
-			description: 'User profile',
-			content: { 'application/json': { schema: UserProfileSchema } },
-		},
-		404: { description: 'User not found' },
-	},
-});
-
-registry.registerPath({
-	method: 'patch',
-	path: '/api/v1/users/me',
-	tags: ['users'],
-	summary: "Update the authenticated user's profile",
-	security: [{ [bearerAuth.name]: [] }],
-	request: {
-		body: { content: { 'application/json': { schema: UpdateProfileRequestSchema } } },
-	},
-	responses: {
-		200: {
-			description: 'Updated profile',
-			content: { 'application/json': { schema: UserProfileSchema } },
-		},
-	},
-});
-
-// ---------------------------------------------------------------------------
 // Generate
 // ---------------------------------------------------------------------------
 const generator = new OpenApiGeneratorV31(registry.definitions);
@@ -350,7 +310,6 @@ const document = generator.generateDocument({
 		{ name: 'polls', description: 'Poll (vote) CRUD and search' },
 		{ name: 'voting', description: 'Casting votes on poll options' },
 		{ name: 'comments', description: 'Poll comments' },
-		{ name: 'users', description: 'User profiles' },
 	],
 });
 

@@ -9,24 +9,6 @@ export const UserDtoSchema = z.object({
 	avatarUrl: z.string().nullish(),
 });
 
-export const UserProfileSchema = z.object({
-	username: z.string(),
-	displayName: z.string().nullable(),
-	bio: z.string().nullable(),
-	joinedAt: z.string().datetime({ offset: true }),
-	totalPolls: z.number().int(),
-	totalVotes: z.number().int(),
-	avatarUrl: z.string().nullable(),
-	id: z.string(),
-	isFollowing: z.boolean().nullable(),
-	isBlocked: z.boolean().nullable(),
-});
-
-export const UpdateProfileRequestSchema = z.object({
-	displayName: z.string().nullable().optional(),
-	bio: z.string().nullable().optional(),
-});
-
 export const UserSummarySchema = z.object({
 	username: z.string(),
 	displayName: z.string().nullable(),
@@ -34,4 +16,3 @@ export const UserSummarySchema = z.object({
 });
 
 export type UserDto = z.infer<typeof UserDtoSchema>;
-export type UpdateProfileRequest = z.infer<typeof UpdateProfileRequestSchema>;

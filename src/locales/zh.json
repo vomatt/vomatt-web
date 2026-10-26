@@ -107,7 +107,9 @@
 			"won": "你的選擇勝出",
 			"tied": "並列第一",
 			"lost": "未獲多數"
-		}
+		},
+		"draftOptions": "{count} 個選項",
+		"draftMore": "「{title}」的更多動作"
 	},
 	"explore": {
 		"title": "探索",
@@ -183,20 +185,84 @@
 		"lastName": "姓氏",
 		"birthday": "生日",
 		"birthdayInvalid": "請選擇 1900 年至昨天之間的日期。",
-		"updated": "個人資料已更新"
+		"updated": "個人資料已更新",
+		"askedCount": "發起 {count} 則",
+		"followersCount": "{count} 位追蹤者",
+		"followingCount": "追蹤 {count} 人",
+		"wonBy": "{option} 勝出",
+		"tieBetween": "{options} 並列第一",
+		"endsAt": "{date} 結束",
+		"resultsAt": "{date} 揭曉結果",
+		"new": "新",
+		"recordAsked": "發起的投票",
+		"recordVoted": "參與的投票",
+		"recordReached": "觸及人數",
+		"recordPicksWon": "選擇勝出率",
+		"recordAskedCount": "發起 {count} 則投票",
+		"recordVotedCount": "參與 {count} 則",
+		"tabAsked": "發起",
+		"tabVoted": "參與",
+		"askedUnread": "你的投票有新結果",
+		"filterLabel": "顯示",
+		"filterAll": "全部",
+		"filterOpen": "進行中",
+		"filterSealed": "密封中",
+		"filterDecided": "已揭曉",
+		"sectionOpen": "進行中",
+		"sectionSealed": "已密封，等待結果",
+		"onlyYouSeeThese": "只有你看得到",
+		"noDrafts": "沒有草稿。可在建立投票時儲存草稿。",
+		"noVotesYet": "你參與的投票與你的選擇會顯示在這裡，只有你看得到。",
+		"showMore": "顯示更多",
+		"everyoneSees": "其他人看到的",
+		"openPublicPage": "查看公開頁面",
+		"askedNoteTitle": "所有人都看得到你發起的投票",
+		"askedNoteBody": "你發起的公開投票所有人都看得到。草稿、••• 選單與未讀標記只有你看得到。",
+		"votedNoteTitle": "你的選票只屬於你",
+		"votedNoteBody": "你的個人頁不會列出你參與的投票或你的選擇。鎖頭標示只有你看得到的內容。",
+		"previewNote": "這是其他人看到的你的個人頁。",
+		"previewBack": "回到你的個人頁",
+		"moreFor": "@{username} 的更多動作",
+		"followingNoteTitle": "追蹤代表什麼",
+		"followingNoteBody": "對方的投票會出現在你的「追蹤中」動態。對方不會看到你怎麼投，隨時一鍵取消。",
+		"editIntro": "每項資料都標示誰看得到，可在輸入處直接變更。",
+		"avatarHint": "點選頭像即可更換。",
+		"groupOnProfile": "個人頁上",
+		"groupAboutYou": "關於你",
+		"alwaysShown": "一律公開",
+		"realName": "真實姓名",
+		"onlyYouShort": "只有你",
+		"everyone": "所有人",
+		"visibilityPill": "{field}：{state}。變更",
+		"notSet": "未設定",
+		"visibilitySavesHint": "可見範圍會在儲存時一併更新。",
+		"notOpenYet": "尚未開放",
+		"visibilitySaveFailed": "資料已儲存，但可見範圍未能更新，請再試一次。"
 	},
 	"notifications": {
 		"title": "通知",
 		"empty": "目前沒有通知。",
 		"unread": "未讀",
-		"intro": "投票邀請，以及你建立、參與或受邀且已結束的投票。",
+		"intro": "你發起或參與的投票結果，以及投票邀請。",
 		"markAllHint": "打開投票即標為已讀。",
 		"loadFailed": "無法載入通知。",
 		"ended": "結果出爐",
 		"cancelled": "已取消",
-		"invitations": "投票邀請",
-		"results": "結果",
-		"invitedBy": "{name} 邀請了你"
+		"markAllRead": "全部標為已讀",
+		"caughtUp": "沒有未讀通知。",
+		"day": {
+			"today": "今天",
+			"yesterday": "昨天",
+			"earlier": "更早"
+		},
+		"invitedYou": "{name} 邀請了你",
+		"inviteOnly": "僅限受邀",
+		"view": "查看",
+		"cancelledBy": "{title} 已被 {name} 取消",
+		"neverCounted": "你的選票未被計入",
+		"railTitle": "打開投票即標為已讀",
+		"railBody": "結果通知會保留到你打開為止，密封的承諾不會在列表中遺失。",
+		"markAllFailed": "部分通知無法標為已讀，請再試一次。"
 	},
 	"pollCreator": {
 		"title": "新的投票",
@@ -377,7 +443,10 @@
 			"public": "公開",
 			"unlisted": "不公開列出",
 			"invite-only": "僅限受邀者"
-		}
+		},
+		"moreActions": "「{title}」的更多動作",
+		"endNowEllipsis": "立即結束投票…",
+		"deletePollEllipsis": "刪除投票…"
 	},
 	"auth": {
 		"continueWithEmail": "使用電子郵件繼續"
@@ -477,7 +546,8 @@
 		"deleteConfirmLabel": "輸入你的使用者名稱以確認",
 		"deleteConfirmMismatch": "請輸入 {username} 以刪除帳號。",
 		"deleteLastAdmin": "你是唯一的管理員，請先將其他人設為管理員再刪除帳號。",
-		"tabGroups": "邀請名單"
+		"tabGroups": "邀請名單",
+		"deleteCtaEllipsis": "刪除帳號…"
 	},
 	"cookieConsent": {
 		"label": "Cookie 同意",
@@ -935,7 +1005,9 @@
 		"manage": "管理已封鎖的用戶",
 		"blockFailed": "無法封鎖，請再試一次。",
 		"confirmTitle": "要封鎖 @{username} 嗎？",
-		"confirmBody": "你將不再看到他們的投票與留言。對方不會收到通知。你可以在對方的個人頁面或設定中解除封鎖。"
+		"confirmBody": "你將不再看到他們的投票與留言。對方不會收到通知。你可以在對方的個人頁面或設定中解除封鎖。",
+		"blockedBadge": "已封鎖",
+		"blockEllipsis": "封鎖…"
 	},
 	"follows": {
 		"title": "追蹤中的用戶",
@@ -948,6 +1020,24 @@
 		"follow": "追蹤",
 		"followed": "已追蹤 @{username}",
 		"manage": "管理追蹤中的用戶",
-		"followFailed": "無法追蹤，請再試一次。"
+		"followFailed": "無法追蹤，請再試一次。",
+		"notFound": "找不到要追蹤的使用者。",
+		"following": "追蹤中",
+		"listFailed": "無法載入名單。",
+		"listEmptyFollowers": "還沒有追蹤者。",
+		"listEmptyFollowing": "尚未追蹤任何人。"
+	},
+	"settings": {
+		"voting": "投票",
+		"inviteListsBody": "可重複使用的名單，用於僅限受邀的投票。名單中的人不會收到通知。",
+		"theme": "主題",
+		"themeBody": "「自動」會跟隨系統設定。也可在側邊欄的「更多」選單中變更。",
+		"language": "語言",
+		"languageBody": "English 或繁體中文。",
+		"privacy": "隱私與安全",
+		"whatOthersSeeBody": "在「編輯個人資料」中逐項設定。",
+		"shownCount": "顯示 {shown}/{total} 項",
+		"account": "帳號",
+		"onThisPage": "本頁內容"
 	}
 }

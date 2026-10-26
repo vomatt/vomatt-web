@@ -24,7 +24,6 @@ import {
 	LogOut,
 	PlusCircle,
 	Search,
-	TrendingUp,
 	User,
 } from '@/components/ui/SvgIcons';
 import { TidePanel } from '@/components/ui/TidePanel';
@@ -44,11 +43,6 @@ const navigationItems = [
 		title: 'common.home',
 		url: '/',
 		icon: Home,
-	},
-	{
-		title: 'common.myPolls',
-		url: '/my-polls',
-		icon: TrendingUp,
 	},
 	{
 		title: 'common.explore',

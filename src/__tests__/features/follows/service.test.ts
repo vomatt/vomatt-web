@@ -1,3 +1,5 @@
+jest.unmock('@/features/follows/service');
+
 import { followUser, getFollowedUsers, getFollowers, getFollowing, unfollowUser } from '@/features/follows/service';
 import { apiClient, ApiError } from '@/lib/api/client';
 

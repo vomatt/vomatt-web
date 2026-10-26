@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import { DraftList } from '@/features/polls/components/DraftList';
 import { listDrafts, saveDraft } from '@/features/polls/drafts';
@@ -20,9 +21,15 @@ const values = {
 beforeEach(() => localStorage.clear());
 
 describe('DraftList', () => {
-	it('shows the empty state without drafts', () => {
-		render(<DraftList />);
-		expect(screen.getByText('No polls here yet.')).toBeInTheDocument();
+	it('shows the given empty state without drafts', () => {
+		render(<DraftList empty={<p>Nothing saved</p>} />);
+		expect(screen.getByText('Nothing saved')).toBeInTheDocument();
+	});
+
+	it('heads the rows with their count', () => {
+		saveDraft(values);
+		render(<DraftList header={(count) => <h3>Drafts · {count}</h3>} />);
+		expect(screen.getByRole('heading', { name: 'Drafts · 1' })).toBeInTheDocument();
 	});
 
 	it('lists drafts newest first, with a fallback title', () => {
@@ -30,14 +37,16 @@ describe('DraftList', () => {
 		saveDraft(values);
 		render(<DraftList />);
 		const items = screen.getAllByRole('listitem');
+		expect(items[1]).toHaveTextContent('2 options');
 		expect(items[0]).toHaveTextContent('Untitled poll');
 		expect(items[1]).toHaveTextContent('Older');
 	});
 
-	it('deletes a draft', () => {
+	it('deletes a draft from its menu', async () => {
 		saveDraft({ ...values, title: 'Throwaway' });
 		render(<DraftList />);
-		fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
+		await userEvent.click(screen.getByRole('button', { name: /More for Throwaway/ }));
+		await userEvent.click(await screen.findByRole('menuitem', { name: 'Delete' }));
 		expect(screen.queryByText('Throwaway')).not.toBeInTheDocument();
 		expect(listDrafts()).toEqual([]);
 	});
