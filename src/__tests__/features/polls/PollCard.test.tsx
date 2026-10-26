@@ -188,6 +188,13 @@ describe('PollCard state B · Open, has Ballot', () => {
 		expect(screen.queryByText(/^Sealed until/)).not.toBeInTheDocument();
 	});
 
+	it('marks the card Voted once the viewer has a Ballot, and not before', async () => {
+		render(<PollCard poll={openPoll} viewerId="user-voter" />);
+		expect(screen.queryByText('Voted')).not.toBeInTheDocument();
+		vote('Saturday');
+		expect(await screen.findByText('Voted')).toBeInTheDocument();
+	});
+
 	it('shows a returning voter their choice from the status call', async () => {
 		mockGetMyBallot.mockResolvedValue('opt-sun');
 		const { myOptionId, ...withoutField } = openPoll;

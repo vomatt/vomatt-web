@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useState } from 'react';
 
 import { AuthDialog } from '@/components/auth/AuthDialog';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { UserChip } from '@/features/profiles/UserChip';
 
 import { formatAge } from '../format';
@@ -17,6 +18,7 @@ import type { Poll } from '../schema';
 import { getPoll } from '../service';
 import { derivePollStatus } from '../status';
 import { Ballot } from './Ballot';
+import { VotedPill } from './BallotMotion';
 import { CommentThread, useCommentLink } from './CommentThread';
 import { getOwnerActions, OwnerActions } from './OwnerActions';
 import { PollFooter } from './PollFooter';
@@ -50,6 +52,7 @@ export function PollCard({
 	deletedHref,
 	headingLevel: Heading = 'h2',
 }: PollCardProps) {
+	const { t } = useLanguage();
 	const clock = useViewerClock();
 	const router = useRouter();
 	const [poll, setPoll] = useState(initialPoll);
@@ -102,40 +105,45 @@ export function PollCard({
 
 	return (
 		<article className="group bg-card border border-border rounded-2xl">
-			<div className="space-y-3.5 px-5 pt-5 pb-4">
-				<div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-					<div className="flex min-w-0 items-center gap-1.5 text-[13px] text-muted-foreground">
+			<div className="flex flex-col gap-4 p-5 md:gap-5 md:px-8 md:pt-7 md:pb-7">
+				<div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+					<div className="flex min-w-0 items-center gap-2.5 text-[14px] text-muted-foreground">
 						<UserChip
 							username={creatorUsername}
 							avatarUrl={poll.creatorAvatarUrl}
 							label={`@${creatorUsername}`}
 							// 44px tall hit area without growing the header row
-							className="-my-2.5 min-h-11 font-medium text-foreground transition-colors hover:text-muted-foreground"
-							avatarClassName="size-6"
+							className="-my-2.5 min-h-11 gap-2.5 font-medium text-foreground transition-colors hover:text-muted-foreground"
+							avatarClassName="size-7"
 						/>
 						{/* The age needs the viewer's clock; the line holds its height until then */}
 						<time dateTime={createdAt} className="shrink-0 whitespace-nowrap">
 							{clock ? `· ${formatAge(createdAt, clock.language, clock.now)}` : '\u00a0'}
 						</time>
 					</div>
-					<StatusChip status={status} poll={poll} time="inline" />
+					<div className="flex shrink-0 items-center gap-2">
+						<AnimatePresence initial={false}>
+							{status !== 'ended' && ballot.myOptionId && <VotedPill key="voted" label={t('poll.votedPill')} />}
+						</AnimatePresence>
+						<StatusChip status={status} poll={poll} time="inline" onCard />
+					</div>
 				</div>
 
 				<div>
 					{/* On the poll page the title is plain, selectable text; in a list it leads to the page */}
 					{defaultShowComments ? (
-						<Heading className="wrap-anywhere text-[22px] font-medium leading-[1.2] tracking-[-0.02em] text-foreground select-text md:text-[26px]">
+						<Heading className="wrap-anywhere text-[22px] font-medium leading-[1.2] tracking-[-0.02em] text-foreground select-text md:text-[25px]">
 							{title}
 						</Heading>
 					) : (
 						<Link href={`/poll/${id}`}>
-							<Heading className="wrap-anywhere text-[22px] font-medium leading-[1.2] tracking-[-0.02em] text-foreground hover:text-muted-foreground transition-colors md:text-[26px]">
+							<Heading className="wrap-anywhere text-[22px] font-medium leading-[1.2] tracking-[-0.02em] text-foreground hover:text-muted-foreground transition-colors md:text-[25px]">
 								{title}
 							</Heading>
 						</Link>
 					)}
 					{description && (
-						<p className="mt-3.5 max-w-[65ch] wrap-anywhere text-base text-muted-foreground leading-relaxed">
+						<p className="mt-2 max-w-[65ch] wrap-anywhere text-base text-muted-foreground leading-normal">
 							{description}
 						</p>
 					)}

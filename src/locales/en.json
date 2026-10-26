@@ -407,6 +407,7 @@
 		"sealedTurnout": "{count} voted, you included",
 		"opensHint": "Voting opens {distance}",
 		"voted": "{count} voted",
+		"votedPill": "Voted",
 		"comments": "{count} comments",
 		"comment": "1 comment",
 		"share": "Share",

@@ -3,7 +3,10 @@
 import { m } from 'motion/react';
 import { useId } from 'react';
 
+import { Check } from '@/components/ui/SvgIcons';
 import { cn } from '@/lib/utils';
+
+import { chipClassName } from '../chip';
 
 // Motion pieces for the paper-ballot metaphor: mark your choice, drop the ballot
 // in the box, see it marked as yours. Reduced motion is handled by <MotionProvider>.
@@ -58,6 +61,22 @@ export function YourVotePill({ label }: { label: string }) {
 			transition={INK}
 			className="relative shrink-0 select-none whitespace-nowrap rounded-full border border-highlight-foreground bg-highlight px-2 py-0.5 text-[11px] font-semibold leading-4 text-highlight-foreground"
 		>
+			{label}
+		</m.span>
+	);
+}
+
+/** "Voted" in the card header once the viewer's Ballot is in. */
+export function VotedPill({ label }: { label: string }) {
+	return (
+		<m.span
+			initial={{ opacity: 0, scale: 0.85 }}
+			animate={{ opacity: 1, scale: 1 }}
+			exit={{ opacity: 0, scale: 0.85, transition: { duration: 0.15 } }}
+			transition={INK}
+			className={cn(chipClassName, 'bg-highlight text-[10px] text-highlight-foreground')}
+		>
+			<Check aria-hidden size={12} strokeWidth={3} />
 			{label}
 		</m.span>
 	);

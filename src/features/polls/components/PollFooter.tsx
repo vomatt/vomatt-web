@@ -38,7 +38,7 @@ export function PollFooter({
 			: commentCount === 1
 				? t('poll.comment')
 				: t('poll.comments', { count: commentCount });
-	const commentsClassName = 'flex min-h-11 items-center gap-1.5 transition-colors hover:text-foreground';
+	const commentsClassName = 'flex min-h-11 items-center gap-2 transition-colors hover:text-foreground';
 	const meta = [
 		turnout !== undefined && t('poll.voted', { count: turnout.toLocaleString() }),
 		audience && audience !== 'public' && t(`poll.audienceMeta.${audience}`),
@@ -47,26 +47,26 @@ export function PollFooter({
 		.join(' · ');
 
 	return (
-		// Each item is 44px tall, so the bar is too
-		<div className="flex items-center gap-[18px] border-t border-border px-5 text-[13px] text-muted-foreground">
-			{meta && <span className="font-mono tabular-nums text-foreground">{meta}</span>}
+		// Each item is 44px tall; 4px above and below set the text 16px in
+		<div className="flex items-center gap-5 border-t border-border px-5 py-1 text-[14px] text-muted-foreground md:px-8">
+			{meta && <span className="font-mono tabular-nums">{meta}</span>}
 			{onToggleComments ? (
 				<button type="button" onClick={onToggleComments} className={commentsClassName}>
-					<MessageSquare className="size-4" />
+					<MessageSquare className="size-[18px]" />
 					{commentsLabel}
 				</button>
 			) : (
 				<Link href={`/poll/${pollId}#discussion`} className={commentsClassName}>
-					<MessageSquare className="size-4" />
+					<MessageSquare className="size-[18px]" />
 					{commentsLabel}
 				</Link>
 			)}
 			<button
 				type="button"
 				onClick={() => share({ id: pollId, title })}
-				className="ml-auto flex min-h-11 items-center gap-1.5 transition-colors hover:text-foreground"
+				className="ml-auto flex min-h-11 items-center gap-2 transition-colors hover:text-foreground"
 			>
-				<Share2 className="size-4" />
+				<Share2 className="size-[18px]" />
 				{t('poll.share')}
 			</button>
 		</div>

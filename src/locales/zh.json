@@ -399,6 +399,7 @@
 		"sealedTurnout": "{count} 人已投票，包括你",
 		"opensHint": "投票將於{distance}開始",
 		"voted": "{count} 人已投票",
+		"votedPill": "已投票",
 		"comments": "{count} 則留言",
 		"comment": "1 則留言",
 		"share": "分享",
