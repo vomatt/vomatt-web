@@ -142,6 +142,18 @@ describe('Base UI wrappers', () => {
 		expect(toggle).toHaveAttribute('data-checked');
 	});
 
+	it('Switch is a 44x26 track whose hit area is 44px tall', () => {
+		render(<Switch aria-label="Notify" />);
+		const toggle = screen.getByRole('switch', { name: 'Notify' });
+		expect(toggle).toHaveAttribute('data-size', 'default');
+		expect(toggle).toHaveClass(
+			'data-[size=default]:h-[26px]',
+			'data-[size=default]:w-11',
+			// 24px inside the border plus 10px either side
+			'data-[size=default]:after:-inset-y-2.5'
+		);
+	});
+
 	it('SidebarMenuButton renders a link and only marks it active when active', () => {
 		render(
 			<SidebarProvider>

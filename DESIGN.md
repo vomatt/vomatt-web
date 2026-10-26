@@ -14,12 +14,12 @@ Cool canvas, navy ink actions, two signals: Volt (`highlight`) marks what is you
 | Field | `field` | Fill of text fields at rest; it is what marks them as fields |
 | Ink | `foreground`, `primary` | Text and the primary action (same ink) |
 | Quiet text | `muted-foreground` | Meta, hints, secondary copy |
-| Lines | `border`, `border-strong` | `border` for cards, rows, dividers and outline buttons; `border-strong` for hover |
+| Lines | `border`, `border-strong` | `border` for cards, rows and dividers; `border-strong` for outline buttons and pills at rest (hover fills them, the line stays) |
 | Controls | `input` | Text field borders, checkbox marks and switch tracks: the 3:1 boundary a control needs at rest |
 | Highlight (Volt) | `highlight`, `highlight-foreground`, `highlight-tint` | The create action (`Button variant="create"`: a Volt icon on ink in light, a Volt button in dark), the viewer's own choice (`highlight-tint` behind the selected row), the Seal's check, the You chip. Text on it is always `highlight-foreground` ink. Never decoration, never a notification |
 | Alert | `alert`, `alert-foreground` | The unread count and `UnreadDot`: something asking to be looked at. White on red, so it reads as a notification. Never a button, a status or an error |
 | Tide | `tide`, `tide-tint`, `tide-line`, `tide-foreground` | The promise: the Seal after voting (`tide-tint` surface, `tide` ring, a Volt check), the rules ("How vomatt counts" in the sidebar, the poll page's About rules, the creator's rules summary), the voting-window bar (`Progress variant="tide"`). Never links, buttons, headers or hovers |
-| Poll status | `status-scheduled/open/closing/ended` | Status chip tints, always with a text label |
+| Poll status | `status-scheduled/open/closing/ended` | Status chip tints, always with a text label. Closing is peach, the `avatar-peach` hue |
 | Error | `destructive` | Validation and destructive actions |
 
 `sidebar` is one step deeper than the canvas, divided by a 1px `sidebar-border`; the other `sidebar-*` tokens alias the base tokens, so change the base, not the alias.
@@ -34,7 +34,8 @@ Cool canvas, navy ink actions, two signals: Volt (`highlight`) marks what is you
   - Person names: `display-heading text-2xl`
 - **Poll title** (card and preview): `text-[21px] font-medium leading-tight tracking-[-0.02em]`; cards add `md:text-[25px]`.
 - **Item title** (list rows, side cards): the `item-title` utility (16px, weight 500, -0.01em); leading goes beside it.
-- **Body** `text-[14px]` (card descriptions `text-base`); **meta** `text-[12px]`; **chip** `text-[10px]` uppercase semibold.
+- **Body** `text-[14px]` (card descriptions `text-base`); **meta** `text-[12px]`; **chip** `text-[11px]` uppercase semibold, `.06em` tracking (`chipClassName`).
+- **Tab labels** (`TabsList variant="line"`) 15px. **Dialog titles** (`DialogTitle`, `AlertDialogTitle`) 21px, weight 500, -0.02em.
 - Inputs are `text-[16px]` on phones so iOS doesn't zoom (`text-base` is 15px).
 
 ## Shape and layout
@@ -43,9 +44,10 @@ Cool canvas, navy ink actions, two signals: Volt (`highlight`) marks what is you
 - Radius: `rounded-2xl` (16px) for cards and panels (`PollCard`, side cards, the About panel, settings panels); `rounded-xl` (12px) for ballot rows, list rows, inputs and the Tide surfaces inside a card; `--radius` (10px) for buttons, set once in `Button`; `rounded-full` for chips, pills and avatars.
 - Page container: `px-contain mx-auto max-w-2xl py-6` for lists (Explore); `max-w-5xl` for a poll page. Profile and Notifications put a 720 / 680px main column beside a 280px rail from `xl` (`max-w-[1080px]` / `max-w-[1000px]`); Settings is a 680px column with an On this page list from `lg`.
 - The home feed column is `max-w-feed` (640px, `--container-feed`). From `xl` up a 280px rail sits to its right ("Results are in": Ended polls the viewer voted in, with unread dots; "Closing soon": Open polls ending within a day; the login prompt for guests); below `xl` the rail follows the feed.
-- Desktop gets the collapsible `AppSidebar`; mobile gets the fixed `TabBar` (64px plus the safe-area inset). Phones also get a fixed logo `Header` (56px) that slides up while scrolling down, returns on scroll up and is back on every new page; it eases over 400ms (`ease-header`). Bars that stick under it and slide with it use `sticky follow-header` (Home's topics; a page's own line tabs pass `sticky` to `TabsList`). The TabBar's profile tab shows the signed-in person's avatar. All three hide on `/login`. There is one create action, `Button variant="create"`: the sidebar's button and the TabBar's center square.
+- Desktop gets the collapsible `AppSidebar` (248px; nav rows 40px, the current one a `card` with a `border` line); mobile gets the fixed `TabBar` (64px plus the safe-area inset). Phones also get a fixed logo `Header` (56px) that slides up while scrolling down, returns on scroll up and is back on every new page; it eases over 400ms (`ease-header`). Bars that stick under it and slide with it use `sticky follow-header` (Home's topics; a page's own line tabs pass `sticky` to `TabsList`). The TabBar's profile tab shows the signed-in person's avatar. All three hide on `/login`. There is one create action, `Button variant="create"`: the sidebar's button and the TabBar's center square.
 - The poll creator is full screen on phones and a 560px dialog from `sm` up.
-- Touch targets are at least 44px (`h-11`); the `sm` sizes shrink to 36px from `md` up only.
+- Touch targets are at least 44px (`h-11`) on phones. From `md` up `Button` takes its size's height: `default` stays 44, `md` 40 (settings and dialog footers, Show more), `sm` 36 (header actions), `xs` 32 (actions inside a row), `icon-sm` 36, `icon-xs` a 32px circle (a row's •••). Pick the size; never set `h-*`. `Switch` is a 44x26 track whose hit area is 44px tall.
+- Every avatar is drawn in the `avatar-frame` utility: a 32px circle (a size goes beside it) with a 1px `border` line, so it sits on any surface. The avatar components carry it; no call site adds or removes the line.
 
 ## Building blocks
 

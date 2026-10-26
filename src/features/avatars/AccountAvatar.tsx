@@ -7,7 +7,7 @@ export function AccountAvatar({ className }: { className?: string }) {
 		<span
 			aria-hidden
 			className={cn(
-				'grid size-8 shrink-0 place-items-center rounded-full bg-muted text-muted-foreground',
+				'avatar-frame grid place-items-center bg-muted text-muted-foreground',
 				className
 			)}
 		>

@@ -33,7 +33,7 @@ export function MoreMenu({ signedIn }: { signedIn: boolean }) {
 		<Menu.Root>
 			<Menu.Trigger
 				className={cn(
-					'flex items-center gap-3 w-full h-9 px-3 rounded-lg text-sm font-medium text-muted-foreground transition-colors duration-150',
+					'flex items-center gap-3 w-full h-10 px-3 rounded-lg text-sm font-medium text-muted-foreground transition-colors duration-150',
 					'hover:text-sidebar-foreground data-popup-open:bg-sidebar-accent data-popup-open:text-sidebar-accent-foreground',
 					'outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring'
 				)}

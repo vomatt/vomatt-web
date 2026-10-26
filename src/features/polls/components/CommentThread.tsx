@@ -568,7 +568,7 @@ function CommentBody({
 					/>
 				)}
 				{isOwn && (
-					<span className={cn(chipClassName, 'bg-highlight px-[7px] leading-4 text-highlight-foreground')}>
+					<span className={cn(chipClassName, 'bg-highlight px-[7px] py-0.5 text-highlight-foreground')}>
 						{t('comments.you')}
 					</span>
 				)}

@@ -128,10 +128,10 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 												/>
 											}
 											className={cn(
-												'group h-9 rounded-lg px-3 cursor-pointer transition-colors duration-150',
+												'group h-10 rounded-lg border border-transparent px-3 cursor-pointer transition-colors duration-150',
 												'text-muted-foreground hover:text-sidebar-foreground',
 												isActive &&
-													'bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent'
+													'bg-card border-border text-foreground hover:bg-card'
 											)}
 										>
 											<item.icon className="size-5 shrink-0" />
@@ -158,10 +158,10 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 											/>
 										}
 										className={cn(
-											'group h-9 rounded-lg px-3 cursor-pointer transition-colors duration-150',
+											'group h-10 rounded-lg border border-transparent px-3 cursor-pointer transition-colors duration-150',
 											'text-muted-foreground hover:text-sidebar-foreground',
 											accountCurrent &&
-												'bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent'
+												'bg-card border-border text-foreground hover:bg-card'
 										)}
 									>
 										{profile ? (

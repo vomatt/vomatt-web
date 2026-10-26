@@ -43,14 +43,14 @@ export function BotAvatar({
 			<img
 				src={`/avatars/round2/${kind}.svg`}
 				alt=""
-				className={cn('size-8 shrink-0 rounded-full', TINT_CLASSES[BOT_TINTS[kind]], className)}
+				className={cn('avatar-frame', TINT_CLASSES[BOT_TINTS[kind]], className)}
 			/>
 		) : (
 			// eslint-disable-next-line @next/next/no-img-element -- as above
 			<img
 				src={`/avatars/${kind}.svg`}
 				alt=""
-				className={cn('size-8 shrink-0 rounded-full bg-muted', className)}
+				className={cn('avatar-frame bg-muted', className)}
 			/>
 		);
 	if (!tooltip) return image;

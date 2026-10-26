@@ -90,7 +90,7 @@
 	--create-icon: var(--highlight);
 	--status-scheduled: oklch(0.914 0.017 304.8);
 	--status-open: oklch(0.917 0.024 145.4);
-	--status-closing: oklch(0.912 0.032 350);
+	--status-closing: oklch(0.910 0.036 52.7);
 	--status-ended: oklch(0.904 0.040 86.1);
 	/* Avatar circles; the drawings are pictures, so they keep these in dark mode */
 	--avatar-sand: oklch(0.904 0.040 86.1);
@@ -185,7 +185,7 @@ html:has([data-slot='tabs-list'][data-sticky]) {
 	--create-icon: var(--highlight-foreground);
 	--status-scheduled: oklch(0.30 0.04 304.8);
 	--status-open: oklch(0.30 0.05 145.4);
-	--status-closing: oklch(0.30 0.055 350);
+	--status-closing: oklch(0.30 0.055 52.7);
 	--status-ended: oklch(0.30 0.05 86.1);
 	--sidebar: oklch(0.145 0.012 265);
 	--sidebar-foreground: var(--foreground);
@@ -372,6 +372,11 @@ html:has([data-slot='tabs-list'][data-sticky]) {
 
 @utility empty-state {
 	@apply rounded-xl border border-dashed border-border-strong bg-surface-soft px-5 py-8 text-[14px] text-muted-foreground;
+}
+
+/* Every avatar's circle: 32px unless a size goes beside it, with a 1px line so it sits on any surface */
+@utility avatar-frame {
+	@apply size-8 shrink-0 rounded-full border border-border;
 }
 
 @layer utilities {

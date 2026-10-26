@@ -16,7 +16,7 @@ const buttonVariantClasses = cva(
 				create:
 					'bg-create text-create-foreground hover:bg-create-hover [&_svg]:text-create-icon disabled:bg-secondary disabled:text-muted-foreground disabled:opacity-100 disabled:[&_svg]:text-muted-foreground',
 				outline:
-					'border-border bg-card hover:border-border-strong hover:bg-surface-soft hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground',
+					'border-border-strong bg-card hover:bg-surface-soft hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground',
 				secondary:
 					'bg-secondary text-secondary-foreground hover:bg-secondary/80 aria-expanded:bg-secondary aria-expanded:text-secondary-foreground',
 				ghost:
@@ -32,12 +32,13 @@ const buttonVariantClasses = cva(
 			size: {
 				default:
 					'h-11 gap-2 px-4 text-[14px] has-data-[icon=inline-end]:pr-3.5 has-data-[icon=inline-start]:pl-3.5',
-				xs: "h-6 gap-1 rounded-[min(var(--radius-md),10px)] px-2 text-xs in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
+				// Phones keep the 44px target; from md each size takes its own height
+				md: 'h-11 gap-2 px-4 text-[14px] md:h-10 has-data-[icon=inline-end]:pr-3.5 has-data-[icon=inline-start]:pl-3.5',
 				sm: "h-11 gap-1.5 px-3 text-sm md:h-9 in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
+				xs: "h-11 gap-1.5 px-3 text-[13px] md:h-8 has-data-[icon=inline-end]:pr-2.5 has-data-[icon=inline-start]:pl-2.5 [&_svg:not([class*='size-'])]:size-3.5",
 				lg: 'h-12 gap-2 px-5 text-base has-data-[icon=inline-end]:pr-4 has-data-[icon=inline-start]:pl-4',
 				icon: 'size-11',
-				'icon-xs':
-					"size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",
+				'icon-xs': 'size-11 rounded-full md:size-8',
 				'icon-sm':
 					'size-11 in-data-[slot=button-group]:rounded-lg md:size-9',
 				'icon-lg': 'size-12',

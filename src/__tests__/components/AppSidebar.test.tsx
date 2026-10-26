@@ -142,6 +142,15 @@ describe('AppSidebar more menu', () => {
 	});
 });
 
+describe('AppSidebar nav', () => {
+	it("marks only the current page's row", () => {
+		renderSidebar();
+		expect(screen.getByRole('link', { name: 'common.home' })).toHaveAttribute('aria-current', 'page');
+		expect(screen.getByRole('link', { name: 'common.explore' })).not.toHaveAttribute('aria-current');
+		expect(screen.getByRole('link', { name: 'navigation.profile' })).not.toHaveAttribute('aria-current');
+	});
+});
+
 describe('AppSidebar profile', () => {
 	it('links to the profile from the nav when signed in', () => {
 		renderSidebar();
