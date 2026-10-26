@@ -238,6 +238,7 @@
 		"moreFor": "More for @{username}",
 		"followingNoteTitle": "What following does",
 		"followingNoteBody": "Their polls join your Following feed. It never shows them how you voted, and you can undo it with one tap.",
+		"mutualFollowers": "Followers you know",
 		"editIntro": "Each detail says who sees it. Change it right where you type.",
 		"groupOnProfile": "On your profile",
 		"groupAboutYou": "About you",
@@ -1061,6 +1062,7 @@
 		"listFailed": "Couldn’t load this list.",
 		"listEmptyFollowers": "No followers yet.",
 		"listEmptyFollowing": "Not following anyone yet.",
+		"listEmptyMutuals": "No one you follow follows them yet.",
 		"followBack": "Follow back",
 		"followsYou": "follows you"
 	},

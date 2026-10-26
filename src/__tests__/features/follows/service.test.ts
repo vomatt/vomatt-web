@@ -1,6 +1,13 @@
 jest.unmock('@/features/follows/service');
 
-import { followUser, getFollowedUsers, getFollowers, getFollowing, unfollowUser } from '@/features/follows/service';
+import {
+	followUser,
+	getFollowedUsers,
+	getFollowers,
+	getFollowing,
+	getMutualFollowers,
+	unfollowUser,
+} from '@/features/follows/service';
 import { apiClient, ApiError } from '@/lib/api/client';
 
 jest.mock('@/lib/api/auth', () => ({ clearAuthTokens: jest.fn() }));
@@ -61,4 +68,11 @@ it('lists a user’s followers and following with a cursor, each with its relati
 it('returns the errorCode of a list for an unknown user', async () => {
 	mockApiClient.mockRejectedValue(new ApiError('no', 404, { errorCode: 'user.not_found' }));
 	expect(await getFollowers('ghost')).toMatchObject({ ok: false, status: 404, errorCode: 'user.not_found' });
+});
+
+it('lists the followers the viewer also follows with a cursor', async () => {
+	const jtan = { id: 'u3', username: 'jtan', isFollowing: true, followsYou: false };
+	mockApiClient.mockResolvedValue({ items: [jtan], nextCursor: 'c2' });
+	expect(await getMutualFollowers('amira', 'c1')).toEqual({ ok: true, data: { items: [jtan], nextCursor: 'c2' } });
+	expect(mockApiClient).toHaveBeenCalledWith('/users/amira/mutual-followers?limit=20&cursor=c1');
 });

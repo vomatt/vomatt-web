@@ -14,20 +14,25 @@ import { profileHref } from '@/lib/routes';
 
 import { FollowButton, useFollow } from './FollowButton';
 import type { FollowUserDto } from './schema';
-import { getFollowers, getFollowing } from './service';
+import { getFollowers, getFollowing, getMutualFollowers } from './service';
 
-export type FollowList = 'followers' | 'following';
+/** Each list the dialog can show: how it loads, its title and what it says when empty. */
+const lists = {
+	followers: { load: getFollowers, title: 'profile.followers', empty: 'follows.listEmptyFollowers' },
+	following: { load: getFollowing, title: 'profile.following', empty: 'follows.listEmptyFollowing' },
+	mutuals: { load: getMutualFollowers, title: 'profile.mutualFollowers', empty: 'follows.listEmptyMutuals' },
+};
 
-const loaders = { followers: getFollowers, following: getFollowing };
+export type FollowList = keyof typeof lists;
 
 type RowProps = {
-	/** The signed-in viewer, whose own row gets no Follow. */
-	viewerId: string;
+	/** The signed-in viewer, whose own row gets no Follow; the mutuals list never holds them. */
+	viewerId?: string;
 	/** Each change the viewer's Follow taps show, the going back of a refused one too. */
 	onFollowChange?: (following: boolean) => void;
 };
 
-/** A person's followers or the people they follow; each row carries Follow and opens the hover card. */
+/** A person's followers, the people they follow, or their followers the viewer follows; each row carries Follow and opens the hover card. */
 export function FollowListDialog({
 	username,
 	list,
@@ -45,7 +50,7 @@ export function FollowListDialog({
 		<Dialog open={list !== null} onOpenChange={onOpenChange}>
 			<DialogContent className="sm:max-w-md" closeLabel={t('common.close')}>
 				<DialogHeader>
-					<DialogTitle>{t(list === 'following' ? 'profile.following' : 'profile.followers')}</DialogTitle>
+					<DialogTitle>{list && t(lists[list].title)}</DialogTitle>
 				</DialogHeader>
 				{/* Keyed so switching lists starts from the first page */}
 				{list && <People key={list} username={username} list={list} {...rowProps} />}
@@ -61,7 +66,7 @@ function People({ username, list, ...rowProps }: RowProps & { username: string; 
 	const [failed, setFailed] = useState(false);
 	const [loading, setLoading] = useState(false);
 
-	const receive = (result: Awaited<ReturnType<(typeof loaders)[FollowList]>>, cursor?: string) => {
+	const receive = (result: Awaited<ReturnType<(typeof lists)[FollowList]['load']>>, cursor?: string) => {
 		setLoading(false);
 		if (!result.ok) return setFailed(true);
 		setFailed(false);
@@ -71,13 +76,13 @@ function People({ username, list, ...rowProps }: RowProps & { username: string; 
 
 	const load = async (cursor?: string) => {
 		setLoading(true);
-		receive(await loaders[list](username, cursor), cursor);
+		receive(await lists[list].load(username, cursor), cursor);
 	};
 
 	// The first page, once per list (the dialog keys this by list)
 	useEffect(() => {
 		let ignore = false;
-		loaders[list](username).then((result) => !ignore && receive(result));
+		lists[list].load(username).then((result) => !ignore && receive(result));
 		return () => {
 			ignore = true;
 		};
@@ -101,7 +106,7 @@ function People({ username, list, ...rowProps }: RowProps & { username: string; 
 		);
 	}
 	if (users.length === 0) {
-		return <p className="empty-state">{t(list === 'following' ? 'follows.listEmptyFollowing' : 'follows.listEmptyFollowers')}</p>;
+		return <p className="empty-state">{t(lists[list].empty)}</p>;
 	}
 
 	return (

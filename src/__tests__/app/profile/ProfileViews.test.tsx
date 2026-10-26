@@ -43,6 +43,8 @@ const visitor: UserProfile = {
 	isFollowing: false,
 	followsYou: false,
 	isBlocked: false,
+	mutualFollowersCount: 0,
+	mutualFollowersPreview: [],
 };
 
 const me: MyProfile = {
