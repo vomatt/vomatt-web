@@ -1,3 +1,4 @@
+import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 
 /** The Alert dot that marks something unread; `label` is read out as part of the surrounding text. */
@@ -5,6 +6,16 @@ export function UnreadDot({ label, className }: { label: string; className?: str
 	return (
 		<span className={cn('inline-block size-2 rounded-full bg-alert', className)}>
 			<span className="sr-only">{label}</span>
+		</span>
+	);
+}
+
+/** "new" in an unread row's meta. Hidden from screen readers: the row's `UnreadDot` already says it. */
+export function NewMark({ className }: { className?: string }) {
+	const { t } = useLanguage();
+	return (
+		<span aria-hidden className={cn('text-alert', className)}>
+			{t('profile.new')}
 		</span>
 	);
 }

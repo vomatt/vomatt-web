@@ -4,8 +4,9 @@ import Link from 'next/link';
 import { useId } from 'react';
 
 import { useLanguage } from '@/contexts/LanguageContext';
-import { UnreadDot } from '@/features/notifications/UnreadDot';
+import { NewMark, UnreadDot } from '@/features/notifications/UnreadDot';
 import { useHydrated } from '@/hooks/useHydrated';
+import { cn } from '@/lib/utils';
 
 import { formatFromNow } from '../format';
 import type { Poll } from '../schema';
@@ -47,15 +48,27 @@ export function PollSideCard({ headingKey, polls, showEndsIn = false }: PollSide
 								href={`/poll/${poll.id}`}
 								className="flex min-h-11 gap-3 rounded-xl px-2 py-2 transition-colors hover:bg-surface-soft outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
 							>
-								{poll.unread && (
-									<UnreadDot label={t('notifications.unread')} className="mt-1.5 shrink-0" />
-								)}
 								<span className="min-w-0 flex-1">
-									<span className="item-title line-clamp-2 leading-snug text-foreground">
-										{poll.title}
+									{/* The dot trails the title, so titles share one left edge whether read or not */}
+									<span className="flex min-w-0 items-start gap-2">
+										<span
+											className={cn(
+												'item-title min-w-0 line-clamp-2 leading-snug text-foreground',
+												poll.unread && 'font-semibold'
+											)}
+										>
+											{poll.title}
+										</span>
+										{poll.unread && <UnreadDot label={t('notifications.unread')} className="mt-1.5 shrink-0" />}
 									</span>
 									<span className="mt-0.5 block font-mono text-[12px] tabular-nums text-muted-foreground">
 										{endsIn ? `${endsIn} · ${turnout}` : turnout}
+										{poll.unread && (
+											<>
+												{' · '}
+												<NewMark className="font-sans" />
+											</>
+										)}
 									</span>
 								</span>
 							</Link>

@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ballotChoice, ballotOutcome } from '@/features/account/insights';
-import { UnreadDot } from '@/features/notifications/UnreadDot';
+import { NewMark, UnreadDot } from '@/features/notifications/UnreadDot';
 import { isDecided, OutcomeChip } from '@/features/polls/components/OutcomeChip';
 import { OwnerActions } from '@/features/polls/components/OwnerActions';
 import { SealMark } from '@/features/polls/components/Seal';
@@ -100,14 +100,24 @@ function OpenMeta({ poll }: { poll: Poll }) {
 	return <span className="font-mono tabular-nums text-foreground">{voted(poll)}</span>;
 }
 
-function NewMark() {
+/**
+ * The row's title with the unread dot right after it. The dot trails the name
+ * of what's unread, as it trails a tab's label, so titles keep one left edge and
+ * the chips one column whether a row is read or not.
+ */
+function RowTitle({ unread, children }: { unread?: boolean | null; children: React.ReactNode }) {
 	const { t } = useLanguage();
-	return <span className="text-alert">{t('profile.new')}</span>;
+	return (
+		<span className="flex min-w-0 items-center gap-2">
+			<span className={cn('item-title min-w-0 truncate leading-snug', unread && 'font-semibold')}>{children}</span>
+			{unread && <UnreadDot label={t('notifications.unread')} className="shrink-0" />}
+		</span>
+	);
 }
 
 /**
  * A poll in an Asked list. Visitors get a link row; the owner gets the same row
- * with a ••• menu of their controls, and an unread dot on results they haven't opened.
+ * with a ••• menu of their controls, and an unread dot after the title of results they haven't opened.
  */
 export function AskedRow({
 	poll,
@@ -119,14 +129,13 @@ export function AskedRow({
 	/** After an edit, End now or Delete from the ••• menu. */
 	onChanged?: () => void;
 }) {
-	const { t } = useLanguage();
 	const status = derivePollStatus(poll);
 	const ended = status === 'ended';
 	const unread = isOwn && ended && poll.unread;
 
 	const text = (
 		<span className="flex min-w-0 flex-1 flex-col gap-0.5">
-			<span className={cn('item-title truncate leading-snug', unread && 'font-semibold')}>{poll.title}</span>
+			<RowTitle unread={unread}>{poll.title}</RowTitle>
 			<span className="text-[12px] text-muted-foreground">
 				{ended ? <EndedMeta poll={poll} /> : <OpenMeta poll={poll} />}
 				{unread && (
@@ -138,7 +147,6 @@ export function AskedRow({
 			</span>
 		</span>
 	);
-	const dot = unread && <UnreadDot label={t('notifications.unread')} className="shrink-0" />;
 
 	if (!isOwn) {
 		return (
@@ -153,7 +161,6 @@ export function AskedRow({
 
 	return (
 		<li className={profileRowClassName}>
-			{dot}
 			<Link href={`/poll/${poll.id}`} className={cn('flex min-w-0 flex-1 rounded-md', linkFocus)}>
 				{text}
 			</Link>
@@ -210,7 +217,7 @@ export function VotedRow({ poll }: { poll: Poll }) {
 		<li>
 			<Link href={`/poll/${poll.id}`} className={cn(profileRowClassName, linkFocus)}>
 				<span className="flex min-w-0 flex-1 flex-col gap-0.5">
-					<span className={cn('item-title truncate leading-snug', poll.unread && 'font-semibold')}>{poll.title}</span>
+					<RowTitle unread={poll.unread}>{poll.title}</RowTitle>
 					<span className="text-[12px] text-muted-foreground">
 						{t('myPolls.youChose')} <strong className="font-medium text-foreground">{ballotChoice(poll)}</strong>
 						{' · '}
@@ -224,7 +231,6 @@ export function VotedRow({ poll }: { poll: Poll }) {
 					</span>
 				</span>
 				{outcome && isDecided(outcome) && <OutcomeChip outcome={outcome} />}
-				{poll.unread && <UnreadDot label={t('notifications.unread')} className="shrink-0" />}
 			</Link>
 		</li>
 	);
