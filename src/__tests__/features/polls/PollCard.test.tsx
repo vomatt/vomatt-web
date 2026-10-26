@@ -127,22 +127,20 @@ describe('PollCard state A · Open, no Ballot', () => {
 		expect(screen.getByText('· 2h')).toBeInTheDocument();
 	});
 
-	it('shows Turnout and, beside Vote, how long the Ballot stays sealed and who sees it after, but no Support', () => {
+	it('shows Turnout and, beside Vote, that results are revealed at the end, but no Support', () => {
 		render(<PollCard poll={openPoll} />);
 		expect(screen.getByText('128 voted')).toBeInTheDocument();
-		expect(
-			screen.getByText(/^Sealed until .+ · after it ends, only the poll owner sees what you chose\.$/)
-		).toBeInTheDocument();
+		expect(screen.getByText('Results are revealed when the poll ends')).toBeInTheDocument();
 		expect(screen.getByRole('button', { name: 'Vote' })).toBeInTheDocument();
-		expect(screen.queryByText('Sealed.')).not.toBeInTheDocument();
+		expect(screen.queryByText('Sealed. Thank you.')).not.toBeInTheDocument();
 		expect(screen.queryByText(/%/)).not.toBeInTheDocument();
 	});
 
-	it('says the Ballot stays sealed until the end when a Poll has no end time', () => {
-		render(<PollCard poll={{ ...openPoll, endTime: null }} />);
-		expect(
-			screen.getByText('Sealed until it ends · after it ends, only the poll owner sees what you chose.')
-		).toBeInTheDocument();
+	it('says under the anonymity switch who sees voters once the poll ends', () => {
+		render(<PollCard poll={{ ...openPoll, voterVisibility: 'signed-in' }} viewerId="user-voter" />);
+		expect(screen.getByRole('switch', { name: 'Hide my name from voter lists' })).toHaveAccessibleDescription(
+			'After it ends, anyone signed in can see what you chose.'
+		);
 	});
 
 	it('offers the anonymity switch before voting, set from the account default', () => {
@@ -179,13 +177,10 @@ describe('PollCard state B · Open, has Ballot', () => {
 
 		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-sat', undefined);
 		expect(screen.getByText('129 voted')).toBeInTheDocument();
-		await waitFor(() => expect(screen.getByText('your vote')).toBeInTheDocument());
-		expect(screen.getByText(/Results are sealed until/)).toBeInTheDocument();
-		expect(
-			screen.getByText('After it ends, only the poll owner can see what you chose.')
-		).toBeInTheDocument();
+		await waitFor(() => expect(screen.getByText(/Results are sealed until/)).toBeInTheDocument());
+		expect(screen.getByLabelText('Saturday')).toBeChecked();
 		// The Seal keeps the promise now, so the line beside Vote goes
-		expect(screen.queryByText(/^Sealed until/)).not.toBeInTheDocument();
+		expect(screen.queryByText('Results are revealed when the poll ends')).not.toBeInTheDocument();
 	});
 
 	it('marks the card Voted once the viewer has a Ballot, and not before', async () => {
@@ -207,25 +202,21 @@ describe('PollCard state B · Open, has Ballot', () => {
 	it('uses myOptionId from the Poll without the status call', () => {
 		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerId="user-voter" />);
 		expect(screen.getByLabelText(/Sunday/)).toBeChecked();
-		expect(screen.getByText('your vote')).toBeInTheDocument();
+		expect(screen.getByText('Voted')).toBeInTheDocument();
 		expect(mockGetMyBallot).not.toHaveBeenCalled();
 	});
 
-	it('steps the options not chosen back once a vote is cast', () => {
+	it('keeps every option choosable after a vote is cast, with no pill on the rows', () => {
 		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerId="user-voter" />);
-		const friday = screen.getByLabelText('Friday').closest('label')!;
-		const sunday = screen.getByLabelText(/Sunday/).closest('label')!;
-		expect(friday).toHaveClass('min-h-11', 'text-muted-foreground');
-		expect(sunday).toHaveClass('min-h-[52px]');
-		expect(sunday).not.toHaveClass('min-h-11');
-		expect(within(sunday).getByText('your vote')).toBeInTheDocument();
+		expect(screen.getByLabelText('Friday')).toBeEnabled();
+		expect(screen.queryByText('your vote')).not.toBeInTheDocument();
 	});
 
 	it('keeps the anonymity switch and Withdraw and Update vote beside the Seal row', () => {
 		render(
 			<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun', myBallotAnonymous: false }} viewerId="user-voter" />
 		);
-		expect(screen.getByText('Sealed.')).toBeInTheDocument();
+		expect(screen.getByText('Sealed. Thank you.')).toBeInTheDocument();
 		expect(screen.getByRole('switch', { name: 'Hide my name from voter lists' })).toBeInTheDocument();
 		expect(screen.getByRole('button', { name: 'Withdraw vote' })).toBeInTheDocument();
 		expect(screen.getByRole('button', { name: 'Update vote' })).toBeInTheDocument();
@@ -234,14 +225,28 @@ describe('PollCard state B · Open, has Ballot', () => {
 
 	it('replaces the Ballot without changing Turnout', async () => {
 		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerId="user-voter" />);
-		const update = screen.getByRole('button', { name: 'Update vote' });
-		expect(update).toBeDisabled();
+		fireEvent.click(screen.getByRole('button', { name: 'Update vote' }));
+		expect(screen.getByText('Replaces your vote for Sunday. Still sealed until the poll ends.')).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Update vote' })).toBeDisabled();
 
 		fireEvent.click(screen.getByLabelText(/Friday/));
-		fireEvent.click(update);
+		fireEvent.click(screen.getByRole('button', { name: 'Update vote' }));
 
 		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-fri');
 		expect(screen.getByText('128 voted')).toBeInTheDocument();
+		await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Sealed. Thank you.'));
+	});
+
+	it('starts replacing the vote when another option is picked, and Cancel goes back', () => {
+		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerId="user-voter" />);
+		fireEvent.click(screen.getByLabelText(/Friday/));
+		expect(screen.getByText('Replaces your vote for Sunday. Still sealed until the poll ends.')).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Update vote' })).toBeEnabled();
+
+		fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+		expect(screen.getByLabelText(/Sunday/)).toBeChecked();
+		expect(screen.getByRole('button', { name: 'Withdraw vote' })).toBeInTheDocument();
+		expect(mockCastBallot).not.toHaveBeenCalled();
 	});
 
 	it('keeps the vote button busy, not greyed, while the Ballot is going in', async () => {
@@ -265,6 +270,8 @@ describe('PollCard state B · Open, has Ballot', () => {
 		fireEvent.click(screen.getByLabelText(/Friday/));
 		fireEvent.click(screen.getByRole('button', { name: 'Update vote' }));
 		expect(screen.getByRole('button', { name: /Update vote/ })).toHaveAttribute('aria-busy', 'true');
+		// The option being replaced stays named while the new vote is out
+		expect(screen.getByText('Replaces your vote for Sunday. Still sealed until the poll ends.')).toBeInTheDocument();
 	});
 
 	it('clears the busy state and rolls back when the vote request rejects', async () => {
@@ -293,9 +300,9 @@ describe('PollCard state B · Open, has Ballot', () => {
 		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerId="user-voter" />);
 
 		fireEvent.click(screen.getByRole('button', { name: 'Withdraw vote' }));
-		expect(
-			screen.getByText("Withdraw your vote? You won’t be counted or notified.")
-		).toBeInTheDocument();
+		const confirm = screen.getByRole('group', { name: 'Withdraw your vote?' });
+		expect(within(confirm).getByText('You won’t be counted or notified.')).toBeInTheDocument();
+		expect(within(confirm).getByRole('button', { name: 'Keep' })).toHaveFocus();
 		expect(mockRetractBallot).not.toHaveBeenCalled();
 
 		fireEvent.click(screen.getByRole('button', { name: 'Withdraw' }));
@@ -306,7 +313,7 @@ describe('PollCard state B · Open, has Ballot', () => {
 			expect(screen.getByRole('button', { name: 'Vote' })).toBeInTheDocument()
 		);
 		// The pill lifts off with an exit animation
-		await waitFor(() => expect(screen.queryByText('your vote')).not.toBeInTheDocument());
+		await waitFor(() => expect(screen.queryByText('Voted')).not.toBeInTheDocument());
 	});
 
 	it('lets a voter hide an existing Ballot from the voter list', async () => {
@@ -326,7 +333,7 @@ describe('PollCard state B · Open, has Ballot', () => {
 	it('toggles anonymity from its label too, a full-height touch target', () => {
 		mockCastBallot.mockResolvedValue({ ok: true, data: { ...openPoll, myOptionId: 'opt-sun', myBallotAnonymous: true } });
 		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun', myBallotAnonymous: false }} viewerId="user-voter" />);
-		const label = screen.getByText('Hide my name from voter lists');
+		const label = screen.getByText('Hide my name from voter lists').closest('label')!;
 		expect(label).toHaveClass('min-h-11');
 		fireEvent.click(label);
 		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-sun', true);
@@ -358,20 +365,18 @@ describe('PollCard state B · Open, has Ballot', () => {
 		await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Sealed. Thank you.'));
 		// The panel, besides the live region that reads it out
 		expect(screen.getByText('Sealed. Thank you.', { selector: ':not([role=status])' })).toBeInTheDocument();
-		expect(screen.getByText('129 voted, you included')).toBeInTheDocument();
 		expect(screen.getByText(/Results are sealed until/)).toBeInTheDocument();
+		// Right after voting, the vote can still be withdrawn or changed
+		expect(screen.getByRole('button', { name: 'Withdraw vote' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Update vote' })).toBeInTheDocument();
 		expect(toast.success).not.toHaveBeenCalled();
 	});
 
 	it('folds the Seal to a row on a later visit', () => {
 		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerId="user-voter" />);
 
-		expect(screen.getByText('Sealed.')).toBeInTheDocument();
-		expect(screen.getByText(/^Results open .+\. We’ll notify you\.$/)).toBeInTheDocument();
-		// Who sees the choice is said before the vote and in the full Seal, not in the row
-		expect(screen.queryByText(/only the poll owner/)).not.toBeInTheDocument();
-		expect(screen.queryByText('Sealed. Thank you.')).not.toBeInTheDocument();
-		expect(screen.queryByText(/you included/)).not.toBeInTheDocument();
+		expect(screen.getByText('Sealed. Thank you.')).toBeInTheDocument();
+		expect(screen.getByText(/^Results are sealed until .+\. We’ll notify you when they’re in\.$/)).toBeInTheDocument();
 		expect(screen.getByRole('status')).toBeEmptyDOMElement();
 	});
 
@@ -385,7 +390,7 @@ describe('PollCard state B · Open, has Ballot', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Withdraw vote' }));
 		fireEvent.click(screen.getByRole('button', { name: 'Withdraw' }));
 
-		await waitFor(() => expect(screen.getByText(/^Sealed until/)).toBeInTheDocument());
+		await waitFor(() => expect(screen.getByText('Results are revealed when the poll ends')).toBeInTheDocument());
 		expect(screen.queryByText('Sealed. Thank you.')).not.toBeInTheDocument();
 		expect(screen.getByRole('status')).toBeEmptyDOMElement();
 	});
@@ -408,7 +413,7 @@ describe('PollCard state B · Open, has Ballot', () => {
 		await waitFor(() => expect(toast.error).toHaveBeenCalled());
 		expect(toast.success).not.toHaveBeenCalled();
 		expect(screen.getByText('128 voted')).toBeInTheDocument();
-		await waitFor(() => expect(screen.queryByText('your vote')).not.toBeInTheDocument());
+		await waitFor(() => expect(screen.queryByText('Voted')).not.toBeInTheDocument());
 	});
 
 	it('rolls back a failed withdraw', async () => {
@@ -419,7 +424,8 @@ describe('PollCard state B · Open, has Ballot', () => {
 
 		await waitFor(() => expect(toast.error).toHaveBeenCalled());
 		expect(screen.getByText('128 voted')).toBeInTheDocument();
-		expect(screen.getByText('your vote')).toBeInTheDocument();
+		expect(screen.getByText('Voted')).toBeInTheDocument();
+		expect(screen.getByLabelText(/Sunday/)).toBeChecked();
 	});
 
 	it('on vote.ended, toasts and refetches so the card flips to state D', async () => {
@@ -547,7 +553,7 @@ describe('PollCard Audience', () => {
 			/>
 		);
 		expect(screen.getByText('128 voted · invite only')).toBeInTheDocument();
-		expect(screen.getByText(/· after it ends, everyone invited sees what you chose\.$/)).toBeInTheDocument();
+		expect(screen.getByText('After it ends, everyone invited can see what you chose.')).toBeInTheDocument();
 	});
 
 	it('marks an Unlisted Poll after its Turnout', () => {
