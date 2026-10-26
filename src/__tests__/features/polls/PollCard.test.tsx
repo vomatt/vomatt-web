@@ -584,9 +584,9 @@ describe('PollCard state D · Ended', () => {
 		expect(screen.getByText('48%')).toBeInTheDocument();
 		expect(screen.getByText('your vote')).toBeInTheDocument();
 		expect(screen.queryByText('62')).not.toBeInTheDocument();
-		expect(
-			screen.getByText('“Sunday” won. You were one of 129 people who decided this.')
-		).toBeInTheDocument();
+		expect(within(screen.getByText('Sunday').closest('li')!).getByRole('img', { name: 'Elected' })).toBeInTheDocument();
+		expect(screen.getAllByRole('img', { name: 'Elected' })).toHaveLength(1);
+		expect(screen.getByText('“Saturday” was your vote.')).toBeInTheDocument();
 		expect(screen.queryByRole('radio')).not.toBeInTheDocument();
 	});
 
