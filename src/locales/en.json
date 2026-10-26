@@ -167,6 +167,9 @@
 		"membership": "{level} member",
 		"followers": "Followers",
 		"following": "Following",
+		"noFollowers": "No followers yet.",
+		"noFollowing": "Not following anyone yet.",
+		"listFailed": "Couldn’t load this list.",
 		"onlyYou": "Only you can see this",
 		"onlyYouSee": "Only you see: {items}.",
 		"onlyYouSettings": "Change in Settings",
@@ -903,6 +906,9 @@
 			},
 			"block": {
 				"self": "You can’t block yourself"
+			},
+			"follow": {
+				"blocked": "You can’t follow a user you blocked; unblock them first"
 			}
 		},
 		"vote": {
@@ -1009,13 +1015,13 @@
 		"manage": "Manage blocked users",
 		"blockFailed": "Couldn’t block. Try again.",
 		"confirmTitle": "Block @{username}?",
-		"confirmBody": "Their polls and comments will no longer show up for you. They won’t be told. You can unblock them in Settings.",
+		"confirmBody": "Their polls and comments will no longer show up for you. They won’t be told. You can unblock them from their profile or in Settings.",
 		"blockedBadge": "Blocked",
 		"blockEllipsis": "Block…"
 	},
 	"follows": {
 		"title": "Following",
-		"intro": "Open public polls by people you follow appear in your Following feed. They aren’t told, and no one sees who follows them.",
+		"intro": "Open public polls by people you follow appear in your Following feed. They aren’t told, but signed-in users can see who follows whom on profiles.",
 		"empty": "You aren’t following anyone.",
 		"loadFailed": "Couldn’t load followed users.",
 		"unfollow": "Unfollow",

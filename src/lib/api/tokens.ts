@@ -56,15 +56,19 @@ export type RefreshResult =
 	| { status: 'unavailable' };
 
 // Concurrent callers holding the same refresh token share one request. The
-// backend rotates refresh tokens and revokes every session when a used token
-// comes back after its grace window, so never send the same token twice.
+// backend rotates refresh tokens and ends the session when a used token comes
+// back after its grace window, so don't send the same token twice at once.
 const inFlightRefreshes = new Map<string, Promise<RefreshResult>>();
 
-export function requestTokenRefresh(refreshToken: string): Promise<RefreshResult> {
+/** `clientIp`: the user's IP headers (`clientIpHeaders`); a shared refresh uses the first caller's. */
+export function requestTokenRefresh(
+	refreshToken: string,
+	clientIp: Record<string, string> = {}
+): Promise<RefreshResult> {
 	const pending = inFlightRefreshes.get(refreshToken);
 	if (pending) return pending;
 
-	const request = fetchRefreshedTokens(refreshToken).finally(() => {
+	const request = fetchRefreshedTokens(refreshToken, clientIp).finally(() => {
 		inFlightRefreshes.delete(refreshToken);
 	});
 	inFlightRefreshes.set(refreshToken, request);
@@ -82,13 +86,16 @@ export function readAuthTokens(body: unknown): AuthTokens | null {
 	return { accessToken, refreshToken: data.refreshToken };
 }
 
-async function fetchRefreshedTokens(refreshToken: string): Promise<RefreshResult> {
+async function fetchRefreshedTokens(
+	refreshToken: string,
+	clientIp: Record<string, string>
+): Promise<RefreshResult> {
 	try {
 		const response = await backendFetch(
 			`${process.env.API_URL}${API_BASE_PATH}/auth/refresh`,
 			{
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
+				headers: { 'Content-Type': 'application/json', ...clientIp },
 				body: JSON.stringify({ refreshToken }),
 				cache: 'no-store',
 			}
@@ -117,6 +124,20 @@ function readExpiry(token: string): number | undefined {
 	}
 }
 
+/** Options shared by every cookie that holds or names a token. */
+export const AUTH_COOKIE_BASE = {
+	httpOnly: true,
+	secure: process.env.NODE_ENV === 'production',
+	sameSite: 'lax',
+	path: '/',
+} as const;
+
+/** SHA-256 hex of a token, for remembering which token something applied to without storing it. */
+export async function tokenFingerprint(token: string) {
+	const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(token));
+	return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('');
+}
+
 /** Cookie definitions for both tokens, in a shape usable by next/headers and NextResponse. */
 export function buildAuthCookies(tokens: AuthTokens) {
 	const exp = readExpiry(tokens.accessToken);
@@ -125,12 +146,7 @@ export function buildAuthCookies(tokens: AuthTokens) {
 		? new Date(exp * 1000)
 		: new Date(now + ACCESS_TOKEN_EXPIRY * 1000);
 
-	const base = {
-		httpOnly: true,
-		secure: process.env.NODE_ENV === 'production',
-		sameSite: 'lax',
-		path: '/',
-	} as const;
+	const base = AUTH_COOKIE_BASE;
 
 	return [
 		{

@@ -31,7 +31,7 @@ const mockClosePoll = jest.fn();
 const mockDeletePoll = jest.fn();
 const mockGetVoters = jest.fn();
 
-jest.mock('@/features/blocks/service', () => ({ blockUserByUsername: jest.fn() }));
+jest.mock('@/features/blocks/service', () => ({ blockUser: jest.fn() }));
 jest.mock('@/features/polls/service', () => ({
 	closePoll: (...args: any[]) => mockClosePoll(...args),
 	deletePoll: (...args: any[]) => mockDeletePoll(...args),

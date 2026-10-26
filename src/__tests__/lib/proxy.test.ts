@@ -10,6 +10,7 @@ process.env.API_URL = 'https://api.example.test';
 
  
 const { proxy } = require('@/proxy') as typeof import('@/proxy');
+const { tokenFingerprint } = require('@/lib/api/tokens') as typeof import('@/lib/api/tokens');
 
 function signToken(expiresIn = '15m') {
 	return new SignJWT({ sub: 'user-1' })
@@ -30,12 +31,12 @@ function forwardedCookies(res: Response) {
 	return res.headers.get('x-middleware-request-cookie') ?? '';
 }
 
-function requestFor(path: string, cookies: Record<string, string> = {}) {
+function requestFor(path: string, cookies: Record<string, string> = {}, headers: Record<string, string> = {}) {
 	const cookie = Object.entries(cookies)
 		.map(([name, value]) => `${name}=${value}`)
 		.join('; ');
 	return new NextRequest(`http://localhost:3000${path}`, {
-		headers: cookie ? { cookie } : {},
+		headers: cookie ? { cookie, ...headers } : headers,
 	});
 }
 
@@ -179,6 +180,20 @@ describe('proxy auth', () => {
 		expect(res.cookies.get('accessToken')?.value).toBe(fresh);
 	});
 
+	it("passes the user's IP to the refresh when CLIENT_IP_SECRET is set", async () => {
+		process.env.CLIENT_IP_SECRET = 'client-ip-secret-0123456789abcdef';
+		try {
+			fetchMock.mockResolvedValue(refreshResponse(await signToken()));
+			await proxy(requestFor('/', { refreshToken: 'r1' }, { 'x-forwarded-for': '198.51.100.9, 10.0.0.1' }));
+			expect(fetchMock.mock.calls[0][1].headers).toMatchObject({
+				'X-Client-IP': '198.51.100.9',
+				'X-Client-IP-Secret': 'client-ip-secret-0123456789abcdef',
+			});
+		} finally {
+			delete process.env.CLIENT_IP_SECRET;
+		}
+	});
+
 	it('stops rotating once a freshly issued token fails verification (secret mismatch)', async () => {
 		jest.spyOn(console, 'error').mockImplementation(() => {});
 		const foreign = await new SignJWT({ sub: 'user-1' })
@@ -189,10 +204,13 @@ describe('proxy auth', () => {
 
 		const first = await proxy(requestFor('/', { refreshToken: 'r1' }));
 		expect(first.cookies.get('refreshToken')?.value).toBe('r2');
-		expect(first.cookies.get('auth-key-mismatch')?.value).toBe('r2');
+		// Only a fingerprint of the token, never the token itself, in a cookie as guarded as the auth ones
+		const mark = first.cookies.get('auth-key-mismatch');
+		expect(mark?.value).toBe(await tokenFingerprint('r2'));
+		expect(mark).toMatchObject({ httpOnly: true, sameSite: 'lax', path: '/' });
 
 		await proxy(
-			requestFor('/', { accessToken: foreign, refreshToken: 'r2', 'auth-key-mismatch': 'r2' })
+			requestFor('/', { accessToken: foreign, refreshToken: 'r2', 'auth-key-mismatch': mark!.value })
 		);
 		expect(fetchMock).toHaveBeenCalledTimes(1);
 	});

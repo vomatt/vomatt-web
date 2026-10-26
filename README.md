@@ -53,6 +53,7 @@ Sign-in codes are emailed; with email disabled locally, read the code from Redis
 | `NEXT_PUBLIC_SANITY_DATASET` | Yes | `production` | Sanity dataset. |
 | `API_URL` | Yes | `https://api.vomatt.com` | vomatt-api **origin only** — no path, **no trailing slash**. Called from the server only. |
 | `SESSION_SECRET` | Yes | 64 random chars | **Must equal the API's `JWT_SECRET`.** Used to verify access tokens. A mismatch signs everyone out on every request. Server-only; never prefix with `NEXT_PUBLIC_`. |
+| `CLIENT_IP_SECRET` | Production | 48 random chars | **Same value as the API's `CLIENT_IP_SECRET`.** Sent with each user's IP so the API's rate limits and OTP lockouts apply per user. Unset: the API sees every user as this server's IP, so one abuser can rate-limit or lock out everyone. Server-only; mark **Sensitive**. |
 | `SITE_URL` | Yes | `https://vomatt.com` | Public origin, no trailing slash. Used for metadata, Open Graph and canonical URLs; the site errors if it is missing. |
 | `API_LOG` | No | `1` | Logs each API request/response from the server. On by default in `npm run dev` (`0` silences it); off in deployments unless `1` (e.g. a Preview scoped to the `dev` branch, read in Vercel Runtime Logs). |
 | `IOS_APP_IDS` | No | `ABCDE12345.com.vomatt.app` | iOS universal links: comma-separated `<TeamID>.<bundle ID>` values served in `/.well-known/apple-app-site-association`, so `/poll/<id>` and `/<username>` links open the app. Unset: that file 404s and links stay on the web. Set it in Production (the domain in the app's `applinks:` entitlement). |
@@ -67,7 +68,7 @@ tool was removed);
 `NEXT_PUBLIC_API_URL` (the followers/following sheet calls this site's own `/api` routes when it is
 unset).
 
-On **vomatt-api**, set at least `JWT_SECRET` (same value as `SESSION_SECRET`), the database and
+On **vomatt-api**, set at least `JWT_SECRET` (same value as `SESSION_SECRET`), `CLIENT_IP_SECRET` (same value as here), the database and
 Redis settings, and email (`EMAIL_ENABLED=true` + SMTP) — sign-in is email-code only.
 The browser never calls the API directly, so its `CORS_ALLOWED_ORIGINS` doesn't need this site.
 
@@ -81,7 +82,7 @@ The browser never calls the API directly, so its `CORS_ALLOWED_ORIGINS` doesn't 
    variable above.
    - Production: `SITE_URL` = your production domain, `API_URL` = production API.
    - Preview: same keys; `SITE_URL` can be the preview's domain, `API_URL` a staging API.
-   - Mark `SESSION_SECRET` as **Sensitive**.
+   - Mark `SESSION_SECRET` and `CLIENT_IP_SECRET` as **Sensitive**.
    - Variables are read at build time too, so **redeploy** after changing them.
 4. **Domain:** add it under Project → Domains.
 5. **Deploy**, then in the vomatt-admin Studio check that

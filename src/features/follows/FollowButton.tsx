@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Check, Plus } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { apiErrorText } from '@/lib/api/error-text';
+import { settle } from '@/lib/api/settle';
 import { cn } from '@/lib/utils';
 
 import { followUser, unfollowUser } from './service';
@@ -37,7 +38,7 @@ export function FollowButton({
 		// Optimistic: the label changes on the tap, and goes back if the server refuses
 		setFollowing(next);
 		setIsPending(true);
-		const result = await (next ? followUser(userId) : unfollowUser(userId));
+		const result = await settle(next ? followUser(userId) : unfollowUser(userId));
 		setIsPending(false);
 		if (!result.ok) {
 			setFollowing(!next);

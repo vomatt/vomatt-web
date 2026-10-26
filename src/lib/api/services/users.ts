@@ -6,7 +6,7 @@ import { z } from 'zod';
 
 import { type ActionFailure, type ActionResult, attempt } from '@/lib/api/action';
 import { clearAuthTokens } from '@/lib/api/auth';
-import { apiClient, ApiError, publicFetch } from '@/lib/api/client';
+import { apiClient, ApiError } from '@/lib/api/client';
 import { PROFILES_TAG } from '@/lib/api/constants';
 import { cursorPageSchema, pageParams } from '@/lib/api/cursor';
 import { UserDtoSchema } from '@/schemas/user';
@@ -14,10 +14,11 @@ import { MyProfile, UserProfile } from '@/types/user';
 
 export async function getUserProfile(username: string): Promise<UserProfile | null> {
   try {
-    return await publicFetch<UserProfile>(
-      `/users/${encodeURIComponent(username)}`,
-      { next: { revalidate: 60, tags: [PROFILES_TAG] } } as RequestInit
-    );
+    // Signed in: uncached, since isFollowing / isBlocked are the viewer's. Signed out: the shared 60s cache
+    return await apiClient<UserProfile>(`/users/${encodeURIComponent(username)}`, {
+      auth: 'optional',
+      next: { revalidate: 60, tags: [PROFILES_TAG] },
+    } as RequestInit);
   } catch (error) {
     if (error instanceof ApiError && error.statusCode === 404) return null;
     throw error;

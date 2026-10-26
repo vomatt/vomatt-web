@@ -17,9 +17,9 @@ export const UserProfileSchema = z.object({
 	totalPolls: z.number().int(),
 	totalVotes: z.number().int(),
 	avatarUrl: z.string().nullable(),
-	followersCount: z.number().int(),
-	followingCount: z.number().int(),
-	isFollowing: z.boolean().optional(),
+	id: z.string(),
+	isFollowing: z.boolean().nullable(),
+	isBlocked: z.boolean().nullable(),
 });
 
 export const UpdateProfileRequestSchema = z.object({

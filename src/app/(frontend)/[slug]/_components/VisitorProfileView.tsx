@@ -24,6 +24,7 @@ import { AskedRow, ProfileSection } from '@/features/profiles/ProfileRows';
 import { useCursorList } from '@/hooks/useCursorList';
 import type { CursorPage } from '@/lib/api/cursor';
 import { apiErrorText } from '@/lib/api/error-text';
+import { settle } from '@/lib/api/settle';
 import { profileHref } from '@/lib/routes';
 import type { UserProfile } from '@/types/user';
 
@@ -108,7 +109,7 @@ function VisitorActions({ profile }: { profile: UserProfile }) {
 	const [blockOpen, setBlockOpen] = useState(false);
 
 	const unblock = async () => {
-		const result = await unblockUser(profile.id);
+		const result = await settle(unblockUser(profile.id));
 		if (!result.ok) {
 			toast.error(apiErrorText(t, result, 'blocks.unblockFailed'));
 			return;
@@ -152,6 +153,7 @@ function VisitorActions({ profile }: { profile: UserProfile }) {
 				</Menu.Portal>
 			</Menu.Root>
 			<BlockUserDialog
+				userId={profile.id}
 				username={profile.username}
 				open={blockOpen}
 				onOpenChange={setBlockOpen}

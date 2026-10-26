@@ -48,18 +48,17 @@ beforeEach(() => {
 });
 
 describe('getUserProfile()', () => {
-  it('uses publicFetch (unauthenticated), not apiClient', async () => {
+  it('sends the session when there is one, so the viewer flags are filled', async () => {
     await getUserProfile('alice');
-    expect(mockPublicFetch).toHaveBeenCalled();
-    expect(mockApiClient).not.toHaveBeenCalled();
+    expect(mockApiClient).toHaveBeenCalledWith(
+      '/users/alice',
+      expect.objectContaining({ auth: 'optional' })
+    );
   });
 
-  it('calls the correct URL', async () => {
-    await getUserProfile('alice');
-    expect(mockPublicFetch).toHaveBeenCalledWith(
-      expect.stringContaining('/users/alice'),
-      expect.anything()
-    );
+  it('returns null for an unknown username', async () => {
+    mockApiClient.mockRejectedValueOnce(new ApiError('nope', 404));
+    expect(await getUserProfile('ghost')).toBeNull();
   });
 });
 

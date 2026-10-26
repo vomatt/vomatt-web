@@ -1,5 +1,8 @@
+import { headers as requestHeaders } from 'next/headers';
+
 import { getTokens } from '@/lib/api/auth';
 import { backendFetch } from '@/lib/api/backend-fetch';
+import { clientIpHeaders } from '@/lib/api/client-ip';
 import { API_BASE_PATH } from '@/lib/api/constants';
 import { getServerLocale } from '@/lib/getServerLocale';
 
@@ -90,7 +93,7 @@ export async function publicFetch<T = any>(
  * Tokens are refreshed only in the proxy, before the request reaches React:
  * the backend rotates refresh tokens, and a rotation made here during a
  * Server Component render could not be saved to the browser, which would sign
- * the user out everywhere on their next request. A 401 here means the session
+ * the user out on their next request. A 401 here means the session
  * is really over.
  */
 export async function apiClient<T = any>(
@@ -115,6 +118,8 @@ export async function apiClient<T = any>(
 	}
 
 	headers.set('Authorization', `Bearer ${accessToken}`);
+	// Per-user rate limits on writes; only here, since cached public reads aren't limited
+	for (const [name, value] of Object.entries(clientIpHeaders(await requestHeaders()))) headers.set(name, value);
 	// Error messages the UI shows as-is come back in the viewer's language. Only
 	// here: on cached public requests the header would split the cache by language.
 	if (!headers.has('Accept-Language')) {

@@ -18,9 +18,11 @@ const MAX_AGES = 1; // times the clock jumps (access tokens age, grace windows c
 const MAX_FAULTS = 1; // refresh calls the backend may refuse with 429 before processing
 
 // ── World: browser cookie jar + vomatt-api RefreshTokenService ───────────────
+// A refresh is two backend steps: `read` (grace, token, reuse checks) and, for a live token, `commit` (the
+// atomic consume). Other requests' steps can run between them, as the user lookup separates them for real.
 type Pending =
 	| { kind: 'verify'; req: number; resolve: (v: unknown) => void }
-	| { kind: 'backend'; req: number; inst: number; token: string; resolve: (v: unknown) => void };
+	| { kind: 'backend'; req: number; inst: number; token: string; stage: 'read' | 'commit'; resolve: (v: unknown) => void };
 
 type Req = {
 	id: number;
@@ -50,31 +52,37 @@ class World {
 	violations: string[] = [];
 	story: string[] = [];
 
-	/** vomatt-api RefreshTokenService: rotate, grace window, reuse detection. */
-	backendRefresh(token: string) {
+	/**
+	 * vomatt-api RefreshTokenService.rotate up to the user lookup: grace hit, missing token, reuse detection.
+	 * `undefined` for a live token, which then needs its `commit` step.
+	 */
+	backendRead(token: string) {
 		const record = this.refresh.get(token);
 		if (this.revoked || !record) {
 			return { status: 401, body: { success: false, errorCode: 'auth.refresh_token.invalid' } };
 		}
-		if (record.state === 'consumed' && !record.grace) {
+		if (record.state === 'live') return undefined;
+		if (!record.grace) {
 			this.revoked = true;
 			this.violations.push(
 				`P2: backend saw consumed ${token} after its grace window and signed the session out`
 			);
 			return { status: 401, body: { success: false, errorCode: 'auth.suspicious_login' } };
 		}
-		let pair: [string, string];
-		if (record.state === 'consumed') {
-			pair = record.pair;
-		} else {
-			pair = [`A${this.next}`, `R${this.next}`];
-			this.next++;
-			this.refresh.set(token, { state: 'consumed', pair, grace: true });
-			this.refresh.set(pair[1], { state: 'live' });
-			this.access.set(pair[0], this.epoch);
-			this.head = pair[1];
-		}
-		return { status: 200, body: { success: true, data: { token: pair[0], refreshToken: pair[1] } } };
+		return pairReply(record.pair);
+	}
+
+	/** The atomic consume: the first caller rotates; a caller that lost the race gets the grace pair it wrote. */
+	backendCommit(token: string) {
+		const record = this.refresh.get(token)!;
+		if (record.state === 'consumed') return pairReply(record.pair);
+		const pair: [string, string] = [`A${this.next}`, `R${this.next}`];
+		this.next++;
+		this.refresh.set(token, { state: 'consumed', pair, grace: true });
+		this.refresh.set(pair[1], { state: 'live' });
+		this.access.set(pair[0], this.epoch);
+		this.head = pair[1];
+		return pairReply(pair);
 	}
 
 	/** verifyAccessToken's answer: fresh in its epoch, expiring the next, then expired. */
@@ -84,6 +92,10 @@ class World {
 		const secondsLeft = this.epoch === issued ? 900 : 30;
 		return { sub: 'user-1', exp: Math.floor(Date.now() / 1000) + secondsLeft };
 	}
+}
+
+function pairReply([accessToken, refreshToken]: [string, string]) {
+	return { status: 200, body: { success: true, data: { token: accessToken, refreshToken } } };
 }
 
 const als = new AsyncLocalStorage<{ world: World; req: number }>();
@@ -103,9 +115,12 @@ jest.mock('@/lib/api/backend-fetch', () => ({
 				`P1: instance ${inst + 1} sent ${token} again while its first refresh was still in flight`
 			);
 		}
-		return new Promise((resolve) => world.pending.push({ kind: 'backend', req, inst, token, resolve }));
+		return new Promise((resolve) =>
+			world.pending.push({ kind: 'backend', req, inst, token, stage: 'read', resolve })
+		);
 	},
 }));
+
 
 jest.mock('@/lib/api/tokens', () => {
 	const actual = jest.requireActual('@/lib/api/tokens');
@@ -147,8 +162,9 @@ function choices(w: World): string[] {
 	}
 	for (const p of w.pending) {
 		if (p.kind === 'verify') out.push(`verify:${p.req}`);
+		else if (p.stage === 'commit') out.push(`backend:${p.req}:commit`);
 		else {
-			out.push(`backend:${p.req}:ok`);
+			out.push(`backend:${p.req}:read`);
 			if (w.faults < MAX_FAULTS) out.push(`backend:${p.req}:429`);
 		}
 	}
@@ -157,6 +173,13 @@ function choices(w: World): string[] {
 	// Assumption: the clock only jumps when nothing is in flight (requests finish within the grace window)
 	if (quiet && w.ages < MAX_AGES && w.issued < PATHS.length) out.push('age');
 	return out;
+}
+
+function authCookies(response: Response): { name: string; value: string }[] {
+	return (response as any).cookies
+		.getAll()
+		.filter((c: { name: string }) => c.name === 'accessToken' || c.name === 'refreshToken')
+		.map(({ name, value }: { name: string; value: string }) => ({ name, value }));
 }
 
 const label = (w: World, id: number) => `request ${id + 1} (${w.reqs[id].path}, instance ${w.reqs[id].inst + 1})`;
@@ -180,26 +203,33 @@ async function apply(w: World, choice: string) {
 	} else if (kind === 'verify' || kind === 'backend') {
 		const id = Number(a);
 		const i = w.pending.findIndex((p) => p.kind === kind && p.req === id);
-		const [p] = w.pending.splice(i, 1);
+		const p = w.pending[i];
 		if (p.kind === 'verify') {
+			w.pending.splice(i, 1);
 			w.story.push(`${label(w, id)} finishes verifying its access token`);
 			p.resolve(w.payloadFor(w.reqs[id].cookies.accessToken ?? ''));
 		} else if (b === '429') {
+			w.pending.splice(i, 1);
 			w.faults++;
 			w.story.push(`backend answers 429 to ${label(w, id)}'s refresh of ${p.token} (not processed)`);
 			p.resolve(fakeResponse({ status: 429, body: { success: false } }));
 		} else {
-			const reply = w.backendRefresh(p.token);
-			const what = reply.status === 200 ? (reply.body as any).data.refreshToken : (reply.body as any).errorCode;
-			w.story.push(`backend refreshes ${p.token} for ${label(w, id)} → ${what}`);
-			p.resolve(fakeResponse(reply));
+			const reply = b === 'commit' ? w.backendCommit(p.token) : w.backendRead(p.token);
+			if (!reply) {
+				p.stage = 'commit';
+				w.story.push(`backend reads live ${p.token} for ${label(w, id)} and looks up the user`);
+			} else {
+				w.pending.splice(i, 1);
+				const what = reply.status === 200 ? (reply.body as any).data.refreshToken : (reply.body as any).errorCode;
+				w.story.push(`backend ${b === 'commit' ? 'commits' : 'answers'} ${p.token} for ${label(w, id)} → ${what}`);
+				p.resolve(fakeResponse(reply));
+			}
 		}
 	} else if (kind === 'deliver') {
 		const r = w.reqs[Number(a)];
 		r.phase = 'delivered';
 		const set: string[] = [];
-		for (const c of (r.response as any).cookies.getAll()) {
-			if (c.name !== 'accessToken' && c.name !== 'refreshToken') continue;
+		for (const c of authCookies(r.response!)) {
 			if (c.value === '') delete w.jar[c.name as 'accessToken'];
 			else w.jar[c.name as 'accessToken'] = c.value;
 			set.push(`${c.name}=${c.value || '(deleted)'}`);
@@ -231,7 +261,12 @@ function checkBlocked(w: World) {
 function key(w: World) {
 	return JSON.stringify([
 		w.jar, [...w.refresh], [...w.access], w.head, w.revoked, w.epoch, w.ages, w.faults, w.issued,
-		w.reqs.map((r) => [r.inst, r.cookies, r.phase, w.pending.filter((p) => p.req === r.id).map((p) => p.kind)]),
+		w.reqs.map((r) => [
+			r.inst, r.cookies, r.phase,
+			w.pending.filter((p) => p.req === r.id).map((p) => (p.kind === 'backend' ? p.stage : p.kind)),
+			// What a settled response will do to the jar: states that differ only here must not merge
+			r.phase === 'settled' ? authCookies(r.response!) : null,
+		]),
 		w.violations.length,
 	]);
 }

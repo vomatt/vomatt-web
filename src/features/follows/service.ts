@@ -30,15 +30,15 @@ export async function unfollowUser(userId: string): Promise<ActionResult> {
 	});
 }
 
-const relationPath = (username: string, list: 'followers' | 'following') =>
-	`/users/${encodeURIComponent(username)}/${list}`;
+const userListPath = (username: string, list: 'followers' | 'following', cursor?: string) =>
+	`/users/${encodeURIComponent(username)}/${list}?${pageParams(cursor, 20)}`;
 
-/** Who follows `username`, most recent first. Signed in only; items carry public fields. */
+/** Who follows `username`, most recently followed first. Signed-in only; items match `/users/search`. */
 export async function getFollowers(username: string, cursor?: string): Promise<ActionResult<CursorPage<UserDto>>> {
-	return attempt(async () => UserPage.parse(await apiClient(`${relationPath(username, 'followers')}?${pageParams(cursor, 20)}`)));
+	return attempt(async () => UserPage.parse(await apiClient(userListPath(username, 'followers', cursor))));
 }
 
-/** Who `username` follows, most recent first. Signed in only; items carry public fields. */
+/** Whom `username` follows, most recently followed first. Signed-in only; items match `/users/search`. */
 export async function getFollowing(username: string, cursor?: string): Promise<ActionResult<CursorPage<UserDto>>> {
-	return attempt(async () => UserPage.parse(await apiClient(`${relationPath(username, 'following')}?${pageParams(cursor, 20)}`)));
+	return attempt(async () => UserPage.parse(await apiClient(userListPath(username, 'following', cursor))));
 }

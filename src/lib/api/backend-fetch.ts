@@ -73,7 +73,7 @@ function section(title: string, content: string) {
 
 function formatHeaders(headers: HeadersInit | undefined) {
 	const lines = [...new Headers(headers).entries()].map(
-		([key, value]) => `${key}: ${key === 'authorization' ? '[redacted]' : value}`
+		([key, value]) => `${key}: ${key === 'authorization' || SECRET_KEY.test(key) ? '[redacted]' : value}`
 	);
 	return lines.length ? lines.join('\n') : '(none)';
 }

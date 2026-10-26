@@ -14,9 +14,9 @@ export interface UserProfile {
 	// Not sent yet (see docs/release/api-integration-notes.md, round 3); the UI shows each once it arrives
 	followersCount?: number;
 	followingCount?: number;
-	/** Whether the viewer follows / blocked this user: null signed out or on a cached fetch, false on their own profile. */
-	isFollowing?: boolean | null;
-	isBlocked?: boolean | null;
+	/** Whether the viewer follows / has blocked this user; null when signed out, false on their own profile. */
+	isFollowing: boolean | null;
+	isBlocked: boolean | null;
 }
 
 /** Response from GET /users/me — the authenticated user's own profile. */

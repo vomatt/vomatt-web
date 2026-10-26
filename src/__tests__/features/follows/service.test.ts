@@ -1,6 +1,6 @@
 jest.unmock('@/features/follows/service');
 
-import { followUser, getFollowedUsers, unfollowUser } from '@/features/follows/service';
+import { followUser, getFollowedUsers, getFollowers, getFollowing, unfollowUser } from '@/features/follows/service';
 import { apiClient, ApiError } from '@/lib/api/client';
 
 jest.mock('@/lib/api/auth', () => ({ clearAuthTokens: jest.fn() }));
@@ -42,4 +42,25 @@ it('follows and unfollows by user ID', async () => {
 it('returns the errorCode of a refused follow', async () => {
 	mockApiClient.mockRejectedValue(new ApiError('no', 400, { errorCode: 'user.follow.self' }));
 	expect(await followUser('me')).toMatchObject({ ok: false, status: 400, errorCode: 'user.follow.self' });
+});
+
+it('returns the errorCode of a follow of a blocked user', async () => {
+	mockApiClient.mockRejectedValue(new ApiError('no', 400, { errorCode: 'user.follow.blocked' }));
+	expect(await followUser('u1')).toMatchObject({ ok: false, status: 400, errorCode: 'user.follow.blocked' });
+});
+
+it('lists a user’s followers and following with a cursor', async () => {
+	mockApiClient.mockResolvedValue({ items: [{ id: 'u1', username: 'bob' }], nextCursor: null });
+	expect(await getFollowers('al ice', 'c1')).toEqual({
+		ok: true,
+		data: { items: [{ id: 'u1', username: 'bob' }], nextCursor: null },
+	});
+	expect(mockApiClient).toHaveBeenCalledWith('/users/al%20ice/followers?limit=20&cursor=c1');
+	await getFollowing('alice');
+	expect(mockApiClient).toHaveBeenLastCalledWith('/users/alice/following?limit=20');
+});
+
+it('returns the errorCode of a list for an unknown user', async () => {
+	mockApiClient.mockRejectedValue(new ApiError('no', 404, { errorCode: 'user.not_found' }));
+	expect(await getFollowers('ghost')).toMatchObject({ ok: false, status: 404, errorCode: 'user.not_found' });
 });
