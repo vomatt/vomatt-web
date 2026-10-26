@@ -129,26 +129,24 @@
 	},
 	"pollDetail": {
 		"backToFeed": "返回",
+		"about": "關於這個投票",
 		"share": "分享",
 		"notFound": "找不到投票。",
-		"askedBy": "發起人",
-		"opened": "開始於 {date}",
+		"notFoundBody": "它可能已被刪除，或連結有誤。",
+		"notFoundExplore": "探索投票",
+		"opened": "開始",
+		"opens": "開始",
+		"results": "公布結果",
 		"timeline": "投票期間",
-		"revealsIn": "結果將於{distance}揭曉",
 		"resultsIn": "投票已結束，結果出爐。",
 		"noEnd": "未設定結束時間",
-		"participants": "人已投票",
 		"topics": "主題",
 		"sealedExplainer": "投票結束前結果保持密封，避免大家被即時票數影響。結束前你都可以更改或撤回你的票。",
 		"ruleSealed": "選票保持密封，投票結束後才公開票數。",
-		"ruleOneVote": "每人一票。投票結束前你都可以更改或撤回。",
-		"shareCta": "邀請其他人投票",
+		"ruleOneVote": "每人一票。結束前都可以更改。",
 		"endedEarly": "已提前結束，原定於 {date} 截止。",
-		"invited": "{count} 人受邀",
-		"audience": {
-			"unlisted": "只有持有連結的人能找到，不會出現在動態或搜尋中。",
-			"invite-only": "只有受邀者能看到並投票。"
-		}
+		"moreFrom": "@{username} 的其他投票",
+		"ended": "已結束"
 	},
 	"profile": {
 		"notFoundTitle": "找不到這個個人頁",
@@ -379,7 +377,8 @@
 		"invitation": {
 			"title": "{username} 邀請你參加投票",
 			"signIn": "請用收到邀請的電子郵件地址登入。",
-			"wrongAccount": "這個帳號無法開啟此投票，請用收到邀請的電子郵件地址登入。"
+			"wrongAccount": "這個帳號無法開啟此投票，請用收到邀請的電子郵件地址登入。",
+			"switchAccount": "切換帳號"
 		},
 		"vote": "投票",
 		"updateVote": "更新投票",
@@ -496,6 +495,7 @@
 	"comments": {
 		"title": "討論",
 		"placeholder": "你為什麼這樣投？說說你的理由",
+		"addComment": "新增留言",
 		"post": "發佈",
 		"you": "你",
 		"empty": "還沒有留言，來說說你的選擇吧。",

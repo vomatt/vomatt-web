@@ -129,26 +129,24 @@
 	},
 	"pollDetail": {
 		"backToFeed": "Back",
+		"about": "About this poll",
 		"share": "Share",
 		"notFound": "Poll not found.",
-		"askedBy": "Asked by",
-		"opened": "Opened {date}",
+		"notFoundBody": "It may have been deleted, or the link is wrong.",
+		"notFoundExplore": "Explore polls",
+		"opened": "Opened",
+		"opens": "Opens",
+		"results": "Results",
 		"timeline": "Voting window",
-		"revealsIn": "Results reveal {distance}",
 		"resultsIn": "Voting has closed. Results are in.",
 		"noEnd": "No end time set",
-		"participants": "people voted",
 		"topics": "Topics",
 		"sealedExplainer": "Votes stay sealed until the poll ends, so no one is swayed by the running count. You can change or withdraw your vote until then.",
 		"ruleSealed": "Ballots are sealed. Counts are revealed only when the poll ends.",
-		"ruleOneVote": "One vote per person. You can change or withdraw it until the poll ends.",
-		"shareCta": "Invite others to vote",
+		"ruleOneVote": "One vote per person. You can change it until the end.",
 		"endedEarly": "Ended early. It was set to close {date}.",
-		"invited": "{count} invited",
-		"audience": {
-			"unlisted": "Only people with the link can find it. It isn’t listed in the feed or search.",
-			"invite-only": "Only the people invited can see it and vote."
-		}
+		"moreFrom": "More from @{username}",
+		"ended": "ended"
 	},
 	"profile": {
 		"notFoundTitle": "This profile doesn’t exist",
@@ -387,7 +385,8 @@
 		"invitation": {
 			"title": "{username} invited you to a poll",
 			"signIn": "Log in with the email address the invitation was sent to.",
-			"wrongAccount": "This account can’t open it. Log in with the email address the invitation was sent to."
+			"wrongAccount": "This account can’t open it. Log in with the email address the invitation was sent to.",
+			"switchAccount": "Switch account"
 		},
 		"vote": "Vote",
 		"updateVote": "Update vote",
@@ -506,6 +505,7 @@
 	"comments": {
 		"title": "Discussion",
 		"placeholder": "Why did you vote the way you did?",
+		"addComment": "Add a comment",
 		"post": "Post",
 		"you": "You",
 		"empty": "No comments yet. Make the case for your choice.",
