@@ -9,12 +9,11 @@ import { isDecided, OutcomeChip } from '@/features/polls/components/OutcomeChip'
 import { OwnerActions } from '@/features/polls/components/OwnerActions';
 import { SealMark } from '@/features/polls/components/Seal';
 import { StatusChip } from '@/features/polls/components/StatusChip';
-import { formatPollDate } from '@/features/polls/format';
+import { formatPollMoment } from '@/features/polls/format';
 import { useViewerClock } from '@/features/polls/hooks/useViewerClock';
 import type { Poll } from '@/features/polls/schema';
 import { derivePollStatus, getTurnout, isCancelled, type PollStatus } from '@/features/polls/status';
 import { pollTiming } from '@/features/polls/timing';
-import { useHydrated } from '@/hooks/useHydrated';
 import { toPayloadLocale } from '@/lib/locale';
 import { rich, richList } from '@/lib/rich';
 import { cn } from '@/lib/utils';
@@ -192,9 +191,9 @@ export function AskedRow({
  * an unread dot until they open the results.
  */
 export function VotedRow({ poll }: { poll: Poll }) {
-	const { t, currentLanguage } = useLanguage();
+	const { t } = useLanguage();
 	const voted = useVotedText();
-	const isHydrated = useHydrated();
+	const clock = useViewerClock();
 	const status = derivePollStatus(poll);
 	const choice = <strong className="font-medium">{ballotChoice(poll)}</strong>;
 
@@ -210,9 +209,9 @@ export function VotedRow({ poll }: { poll: Poll }) {
 						<span className="item-title truncate leading-snug">{poll.title}</span>
 						<span className="text-[12px] text-tide-foreground">
 							{t('myPolls.youChose')} {choice}
-							{isHydrated &&
+							{clock &&
 								poll.endTime &&
-								` · ${t('profile.resultsAt', { date: formatPollDate(poll.endTime, currentLanguage) })}`}
+								` · ${t('profile.resultsAt', { date: formatPollMoment(poll.endTime, clock.language, clock.now) })}`}
 						</span>
 					</span>
 					<span className="hidden font-mono text-[12px] tabular-nums text-tide-foreground sm:inline">{voted(poll)}</span>

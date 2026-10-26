@@ -11,18 +11,17 @@ let mockPathname = '/';
 jest.mock('next/navigation', () => ({ usePathname: () => mockPathname }));
 
 describe('ProfileNotFound', () => {
-	it('names the missing username', () => {
+	it('titles the page as a missing profile, without repeating the handle', () => {
 		mockPathname = '/old_name';
 		render(<ProfileNotFound />);
-		expect(screen.getByRole('heading', { name: "This profile doesn’t exist" })).toBeInTheDocument();
-		expect(screen.getByText('@old_name')).toBeInTheDocument();
+		expect(screen.getByRole('heading', { level: 1, name: "This profile doesn’t exist" })).toBeInTheDocument();
+		expect(screen.queryByText(/old_name/)).not.toBeInTheDocument();
 	});
 
 	it('uses page wording for a slug that cannot be a username', () => {
 		mockPathname = '/About-Us';
 		render(<ProfileNotFound />);
-		expect(screen.getByRole('heading', { name: "This page doesn’t exist" })).toBeInTheDocument();
-		expect(screen.queryByText(/^@/)).not.toBeInTheDocument();
+		expect(screen.getByRole('heading', { level: 1, name: "This page doesn’t exist" })).toBeInTheDocument();
 	});
 
 	it('links to Explore and home', () => {

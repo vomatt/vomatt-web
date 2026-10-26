@@ -10,10 +10,11 @@ import { formatMonthYear } from '@/features/polls/format';
 import { Count } from '@/features/profiles/Count';
 import { countText } from '@/lib/count';
 import { profileHref } from '@/lib/routes';
+import { cn } from '@/lib/utils';
 import type { MyProfile } from '@/types/user';
 
-/** What everyone else sees of the owner's profile, always beside their own view. */
-export function PublicPreview({ profile }: { profile: MyProfile }) {
+/** What everyone else sees of the owner's profile: beside their own view, or in its place on narrow screens. */
+export function PublicPreview({ profile, className }: { profile: MyProfile; className?: string }) {
 	const { t, currentLanguage } = useLanguage();
 	const visibility = profile.visibilitySettings ?? {};
 	const shows = (field: 'displayName' | 'bio' | 'membershipLevel') =>
@@ -22,7 +23,7 @@ export function PublicPreview({ profile }: { profile: MyProfile }) {
 	const joined = t('profile.joined', { date: formatMonthYear(profile.joinedAt, currentLanguage) });
 
 	return (
-		<section aria-labelledby="public-preview" className="flex flex-col gap-3">
+		<section aria-labelledby="public-preview" className={cn('flex flex-col gap-3', className)}>
 			<h2 id="public-preview" className="flex items-center gap-1.5 text-[12px] font-medium text-muted-foreground">
 				<Globe aria-hidden className="size-3.5" />
 				{t('profile.everyoneSees')}

@@ -45,7 +45,7 @@ export async function OwnProfile({
 
 export function ProfileSkeleton() {
 	return (
-		<div className="px-contain mx-auto max-w-[1080px] space-y-6 py-6 md:py-10">
+		<div className="px-contain mx-auto max-w-[1280px] space-y-6 pt-8 pb-16">
 			<div className="flex max-w-[720px] items-start gap-5">
 				<Skeleton className="size-18 rounded-full md:size-22" />
 				<div className="flex-1 space-y-2">

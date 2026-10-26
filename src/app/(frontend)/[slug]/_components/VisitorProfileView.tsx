@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useState, useTransition } from 'react';
 import { toast } from 'sonner';
 
-import { BackLink } from '@/components/BackLink';
 import { FilterPills } from '@/components/FilterPills';
 import { Button, buttonVariants } from '@/components/ui/Button';
 import { ArrowLeft, Ban, Ellipsis, Lock } from '@/components/ui/SvgIcons';
@@ -58,9 +57,8 @@ export function VisitorProfileView({
 	const canAct = isAuthenticated && !preview;
 
 	return (
-		<div className="px-contain mx-auto flex max-w-[1080px] flex-col gap-10 py-6 md:py-10 xl:flex-row xl:items-start">
-			<main className="flex min-w-0 flex-1 flex-col gap-6 xl:max-w-[720px]">
-				{!preview && <BackLink href="/">{t('navigation.home')}</BackLink>}
+		<div className="px-contain mx-auto flex max-w-[1280px] flex-col gap-10 pt-8 pb-16 xl:flex-row xl:items-start">
+			<main className="flex min-w-0 flex-col gap-6 xl:max-w-[720px] xl:flex-[999_1_560px]">
 				{preview && (
 					<TidePanel className="flex flex-wrap items-center justify-between gap-3 p-3.5 text-[13px]">
 						<p>{t('profile.previewNote')}</p>
@@ -92,7 +90,7 @@ export function VisitorProfileView({
 
 			{/* What following does, for every visitor: signed out too, before they can follow */}
 			{!preview && (
-				<aside className="flex w-full flex-col gap-3 xl:sticky xl:top-8 xl:w-[280px] xl:shrink-0">
+				<aside className="flex flex-col gap-3 xl:sticky xl:top-8 xl:max-w-[300px] xl:flex-[1_1_280px]">
 					<TidePanel className="p-3.5 text-[13px] leading-relaxed">
 						<p className="mb-1 flex items-center gap-1.5 font-medium">
 							<Lock aria-hidden className="size-3.5 shrink-0 text-tide" />
