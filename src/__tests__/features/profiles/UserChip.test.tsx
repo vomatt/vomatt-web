@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { UserChip } from '@/features/profiles/UserChip';
@@ -13,8 +13,11 @@ jest.mock('next/link', () => {
 	};
 });
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
+const mockFollow = jest.fn();
+jest.mock('@/features/follows/service', () => ({ followUser: (...a: unknown[]) => mockFollow(...a), unfollowUser: jest.fn() }));
 
 const profile = {
+	id: 'u1',
 	username: 'mei',
 	displayName: 'Mei Lin',
 	bio: 'Asks about lunch',
@@ -25,6 +28,12 @@ const profile = {
 	points: null,
 	membershipLevel: null,
 	avatarUrl: 'bot:bear',
+	followersCount: 1204,
+	followingCount: 86,
+	// Signed out
+	isFollowing: null,
+	followsYou: null,
+	isBlocked: null,
 };
 
 // jsdom has no Response; the card only reads ok, status and json()
@@ -56,6 +65,28 @@ describe('UserChip', () => {
 		expect(screen.getByText(/^Joined /)).toBeInTheDocument();
 		expect(screen.queryByText(/points/)).not.toBeInTheDocument();
 		expect(fetchMock).toHaveBeenCalledWith('/api/profiles/mei');
+	});
+
+	it('counts their followers in the stats line, with no Follow signed out', async () => {
+		fetchMock.mockResolvedValueOnce(json({ ...profile, username: 'ana' }));
+		render(<UserChip username="ana" />);
+		await userEvent.hover(screen.getByRole('link', { name: 'ana' }));
+
+		expect(await screen.findByText('1,204')).toHaveClass('font-mono');
+		expect(screen.getByText('1,204').parentElement).toHaveTextContent('1,204 followers');
+		expect(screen.queryByRole('button')).not.toBeInTheDocument();
+	});
+
+	it('offers Follow back to someone who follows the viewer, counting the follow at once', async () => {
+		mockFollow.mockResolvedValue({ ok: true });
+		fetchMock.mockResolvedValueOnce(json({ ...profile, username: 'jtan', isFollowing: false, followsYou: true, isBlocked: false }));
+		render(<UserChip username="jtan" />);
+		await userEvent.hover(screen.getByRole('link', { name: 'jtan' }));
+
+		await userEvent.click(await screen.findByRole('button', { name: 'Follow back' }));
+		expect(mockFollow).toHaveBeenCalledWith('u1');
+		expect(screen.getByText('1,205').parentElement).toHaveTextContent('1,205 followers');
+		await waitFor(() => expect(screen.getByRole('button', { name: 'Following Unfollow', pressed: true })).toBeEnabled());
 	});
 
 	it('puts the @handle under the name even without a display name', async () => {

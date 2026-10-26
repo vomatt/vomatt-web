@@ -1063,7 +1063,9 @@
 		"following": "Following",
 		"listFailed": "Couldn’t load this list.",
 		"listEmptyFollowers": "No followers yet.",
-		"listEmptyFollowing": "Not following anyone yet."
+		"listEmptyFollowing": "Not following anyone yet.",
+		"followBack": "Follow back",
+		"followsYou": "follows you"
 	},
 	"settings": {
 		"voting": "Voting",
