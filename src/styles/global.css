@@ -89,7 +89,7 @@
 	--create-foreground: var(--primary-foreground);
 	--create-icon: var(--highlight);
 	--status-scheduled: oklch(0.914 0.017 304.8);
-	--status-open: oklch(0.917 0.024 145.4);
+	--status-open: oklch(0.932 0.036 141.4);
 	--status-closing: oklch(0.910 0.036 52.7);
 	--status-ended: oklch(0.904 0.040 86.1);
 	/* Avatar circles; the drawings are pictures, so they keep these in dark mode */
@@ -111,7 +111,7 @@
 	--sidebar-border: var(--border);
 	--sidebar-ring: var(--ring);
 
-	--positive: oklch(0.51 0.15 145);
+	--positive: oklch(0.529 0.106 154.6);
 
 	/* Room the phone Header takes, and where sticky bars sit below it (0 while it slides away); both set below */
 	--header-height: 0px;
@@ -172,7 +172,7 @@ html:has([data-slot='tabs-list'][data-sticky]) {
 	--surface-soft: oklch(0.185 0.012 265);
 	--overlay: oklch(0.1 0.01 265 / 0.6);
 	--overlay-strong: oklch(0.1 0.01 265 / 0.8);
-	--field: oklch(0.235 0.012 265);
+	--field: oklch(0.244 0.012 270.9);
 	--highlight: oklch(0.90 0.15 118);
 	--highlight-tint: oklch(0.26 0.04 120);
 	--tide: oklch(0.76 0.09 185);
@@ -185,7 +185,7 @@ html:has([data-slot='tabs-list'][data-sticky]) {
 	--create-icon: var(--highlight-foreground);
 	--status-scheduled: oklch(0.30 0.04 304.8);
 	--status-open: oklch(0.30 0.05 145.4);
-	--status-closing: oklch(0.30 0.055 52.7);
+	--status-closing: oklch(0.322 0.037 50.7);
 	--status-ended: oklch(0.30 0.05 86.1);
 	--sidebar: oklch(0.145 0.012 265);
 	--sidebar-foreground: var(--foreground);
