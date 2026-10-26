@@ -66,6 +66,20 @@ describe('StatusChip', () => {
 		expect(chip(container)).toHaveTextContent('Open');
 	});
 
+	it.each<PollStatus>(['open', 'closing'])('on a card, gives a %s poll the pink tint and its time without a mark', (status) => {
+		const card = chip(render(<StatusChip status={status} poll={poll} time="inline" onCard />).container);
+		expect(card).toHaveClass('bg-status-open-ends');
+		expect(card.querySelector('svg, .rounded-full')).toBeNull();
+		expect(card).toHaveTextContent(/^Ends /);
+	});
+
+	it('on a card, keeps the dot on an ended poll', () => {
+		const ended = { ...poll, endTime: new Date(Date.now() - HOUR).toISOString() };
+		const card = chip(render(<StatusChip status="ended" poll={ended} time="inline" onCard />).container);
+		expect(card).toHaveClass('bg-status-ended');
+		expect(card.querySelector('.rounded-full')).toHaveAttribute('aria-hidden');
+	});
+
 	it('says "Open" for an open poll without an end', () => {
 		const open = { startTime: poll.startTime, endTime: null };
 		expect(chip(render(<StatusChip status="open" poll={open} time="inline" />).container)).toHaveTextContent(/^Open$/);

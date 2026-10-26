@@ -426,7 +426,7 @@
 		"and": " and ",
 		"noVotes": "No votes were cast",
 		"chipOpens": "Opens {date}",
-		"chipOpenEnds": "Open · ends {day}",
+		"chipEnds": "Ends {date}",
 		"chipEndsIn": "Ends in {duration}",
 		"chipEnded": "Ended {day}",
 		"endsIn": "ends in {duration}",

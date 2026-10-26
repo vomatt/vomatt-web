@@ -92,6 +92,9 @@
 	--status-open: oklch(0.917 0.024 145.4);
 	--status-closing: oklch(0.910 0.036 52.7);
 	--status-ended: oklch(0.904 0.040 86.1);
+	/* A poll card's chip while it can still be voted on, and the stamp on a winning result */
+	--status-open-ends: oklch(0.925 0.027 354.5);
+	--elected: oklch(0.605 0.235 27.3);
 	/* Avatar circles; the drawings are pictures, so they keep these in dark mode */
 	--avatar-sand: oklch(0.904 0.040 86.1);
 	--avatar-stone: oklch(0.924 0.008 98.9);
@@ -187,6 +190,8 @@ html:has([data-slot='tabs-list'][data-sticky]) {
 	--status-open: oklch(0.30 0.05 145.4);
 	--status-closing: oklch(0.30 0.055 52.7);
 	--status-ended: oklch(0.30 0.05 86.1);
+	--status-open-ends: oklch(0.30 0.05 354.5);
+	--elected: oklch(0.66 0.2 27);
 	--sidebar: oklch(0.145 0.012 265);
 	--sidebar-foreground: var(--foreground);
 	--sidebar-primary: var(--primary);
@@ -267,6 +272,8 @@ html:has([data-slot='tabs-list'][data-sticky]) {
 	--color-status-open: var(--status-open);
 	--color-status-closing: var(--status-closing);
 	--color-status-ended: var(--status-ended);
+	--color-status-open-ends: var(--status-open-ends);
+	--color-elected: var(--elected);
 	--color-avatar-sand: var(--avatar-sand);
 	--color-avatar-stone: var(--avatar-stone);
 	--color-avatar-green: var(--avatar-green);

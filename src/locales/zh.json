@@ -416,7 +416,7 @@
 		"and": "與",
 		"noVotes": "沒有人投票",
 		"chipOpens": "{date} 開始",
-		"chipOpenEnds": "進行中 · {day}截止",
+		"chipEnds": "{date} 截止",
 		"chipEndsIn": "{duration}後截止",
 		"chipEnded": "{day}結束",
 		"endsIn": "{duration}後截止",

@@ -10,7 +10,7 @@ export type ViewerClock = { now: number; language: LanguageCode; t: Translate };
 
 /** Every way a poll surface says when. Derived; never stored. */
 export type PollTiming = {
-	/** A chip that stands alone: "Opens Mon 9:00", "Open · ends Fri", "Ends in 6h", "Ended Mon". */
+	/** A chip that stands alone: "Opens Mon 9:00", "Ends Fri 20:00", "Ends in 6h", "Ended Mon". */
 	chip: string;
 	/**
 	 * The time for a meta line beside a status-word chip, lower-case mid-sentence: "ends Fri 20:00",
@@ -47,7 +47,7 @@ export function pollTiming(
 		return { chip: t('poll.chipEndsIn', { duration }), when: t('poll.endsIn', { duration }) };
 	}
 	return {
-		chip: t('poll.chipOpenEnds', { day: formatPollDay(endTime, language, now) }),
+		chip: t('poll.chipEnds', { date: formatPollMoment(endTime, language, now) }),
 		when: t('profile.endsAt', { date: formatPollMoment(endTime, language, now) }),
 	};
 }
