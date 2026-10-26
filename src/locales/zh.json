@@ -236,7 +236,6 @@
 		"visibilityPill": "{field}：{state}。變更",
 		"notSet": "未設定",
 		"visibilitySavesHint": "可見範圍會在儲存時一併更新。",
-		"notOpenYet": "尚未開放",
 		"visibilitySaveFailed": "資料已儲存，但可見範圍未能更新，請再試一次。"
 	},
 	"notifications": {
@@ -409,10 +408,16 @@
 		"and": "與",
 		"noVotes": "沒有人投票",
 		"chipOpens": "{date} 開始",
-		"chipEnds": "{date} 結束",
-		"chipEndsIn": "{distance}結束",
-		"chipEnded": "{date} 結束",
-		"chipEndedShort": "已結束",
+		"chipOpenEnds": "進行中 · {day}截止",
+		"chipEndsIn": "{duration}後截止",
+		"chipEnded": "{day}結束",
+		"endsIn": "{duration}後截止",
+		"status": {
+			"scheduled": "即將開始",
+			"open": "進行中",
+			"closing": "即將截止",
+			"ended": "已結束"
+		},
 		"visibility": {
 			"nobody": "結束後，沒有人能看到你選了什麼。",
 			"owner": "結束後，只有發起人能看到你選了什麼。",

@@ -165,6 +165,21 @@ describe('VisitorProfileView', () => {
 		expect(screen.queryByRole('link', { name: /Poll e/ })).not.toBeInTheDocument();
 	});
 
+	it('puts each open poll\'s time in its meta, beside a status-word chip', () => {
+		// Jest runs in Asia/Taipei (jest.config.ts): Wednesday 28 October 2026, 10:00
+		jest.useFakeTimers({ now: Date.parse('2026-10-28T10:00:00+08:00') });
+		const started = '2026-10-20T01:00:00Z';
+		const open = poll('o', { votingActive: true, startTime: started, endTime: '2026-10-30T20:00:00+08:00', participantCount: 1284 });
+		const closing = poll('c', { votingActive: true, startTime: started, endTime: '2026-10-28T16:00:00+08:00', participantCount: 342 });
+		const soon = poll('s', { votingActive: true, startTime: '2026-11-02T09:00:00+08:00', endTime: null });
+		render(<VisitorProfileView profile={visitor} polls={{ items: [open, closing, soon], nextCursor: null }} isAuthenticated={false} />);
+		jest.useRealTimers();
+
+		expect(screen.getByRole('link', { name: /Poll o/ })).toHaveTextContent(/1,284 voted · ends Fri 20:00\s*Open$/);
+		expect(screen.getByRole('link', { name: /Poll c/ })).toHaveTextContent(/342 voted · ends in 6h\s*Closing$/);
+		expect(screen.getByRole('link', { name: /Poll s/ })).toHaveTextContent(/Opens Mon 9:00\s*Soon$/);
+	});
+
 	it("leaves section counts out while more pages remain", () => {
 		render(<VisitorProfileView profile={visitor} polls={{ items: [poll('e')], nextCursor: 'c1' }} isAuthenticated={false} />);
 		expect(screen.getByRole('heading', { level: 3, name: 'Ended' })).toBeInTheDocument();

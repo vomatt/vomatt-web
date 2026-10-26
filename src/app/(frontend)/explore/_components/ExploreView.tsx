@@ -213,7 +213,7 @@ function ExploreResults({
 										/>
 									</span>
 								}
-								aside={<StatusChip status={derivePollStatus(poll)} poll={poll} />}
+								aside={<StatusChip status={derivePollStatus(poll)} poll={poll} time="inline" />}
 							/>
 						))}
 					</ul>

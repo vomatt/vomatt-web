@@ -244,7 +244,6 @@
 		"visibilityPill": "{field}: {state}. Change",
 		"notSet": "Not set",
 		"visibilitySavesHint": "Visibility changes save when you save.",
-		"notOpenYet": "Not open yet",
 		"visibilitySaveFailed": "Your details were saved, but who sees them wasn’t. Try again."
 	},
 	"notifications": {
@@ -417,10 +416,16 @@
 		"and": " and ",
 		"noVotes": "No votes were cast",
 		"chipOpens": "Opens {date}",
-		"chipEnds": "Ends {date}",
-		"chipEndsIn": "Ends {distance}",
-		"chipEnded": "Ended {date}",
-		"chipEndedShort": "Ended",
+		"chipOpenEnds": "Open · ends {day}",
+		"chipEndsIn": "Ends in {duration}",
+		"chipEnded": "Ended {day}",
+		"endsIn": "ends in {duration}",
+		"status": {
+			"scheduled": "Soon",
+			"open": "Open",
+			"closing": "Closing",
+			"ended": "Ended"
+		},
 		"visibility": {
 			"nobody": "After it ends, no one can see what you chose.",
 			"owner": "After it ends, only the poll owner can see what you chose.",

@@ -470,7 +470,7 @@ export function PollCreator({
 												<div className="space-y-3">
 													<p className="text-sm font-medium">{t('pollCreator.reviewPreview')}</p>
 													<div className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-5">
-														<StatusChip status={review.status} poll={review} />
+														<StatusChip status={review.status} poll={review} time="inline" />
 														<div className="space-y-2">
 															<p className="text-[21px] font-medium leading-tight tracking-[-0.02em] wrap-anywhere">
 																{toSingleLine(title)}

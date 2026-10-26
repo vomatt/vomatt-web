@@ -63,13 +63,14 @@ Use these. Don't copy their classes into a new element.
 | Follow a person | `FollowButton` (ink Follow; outline Following that offers Unfollow on hover); `BlockedBadge` once blocked |
 | A detail only the owner sees | `OnlyYouMarker` (the lock) beside it |
 | Rows on a profile | `AskedRow`, `VotedRow` and `ProfileSection` from `features/profiles/ProfileRows` |
-| Status of a poll | `StatusChip` with `derivePollStatus(poll)` |
+| Status of a poll | `StatusChip` with `derivePollStatus(poll)` (tint, an ink dot or a clock while closing, words). Pick `time`: `inline` where the chip stands alone, on cards, the creator's review and Explore ("Open · ends Fri"); `elsewhere` in a row, which puts `pollTiming(…).when` in its meta ("1,284 voted · ends Fri 20:00" beside "Open") |
+| Any date a poll surface shows | `useViewerClock()` (null until hydrated) + `pollTiming()` from `features/polls/timing`, or `formatPollDay` / `formatPollMoment` / `formatDuration` / `formatAge` from `features/polls/format`. Not `Date.now()` or `new Date()` in a component |
 | Other small pill (e.g. ballot outcome) | `chipClassName` from `features/polls/chip.ts` + a `bg-*` tint |
 | Empty list | the `empty-state` utility (dashed `surface-soft` box) |
 | Unread marker | `UnreadDot` with an `aria-label`, right after the name of what is unread: a tab's label, a list row's title (which goes `font-semibold`, with `NewMark` in its meta), a notification's first line (the row is already a card, so no bold title and no "new"), the top-trailing corner of an icon. Never a leading gutter and never the row's far edge: titles keep one left edge and chips one column whether a row is read or not |
 | A rule or promise (Tide) | `TidePanel` for a surface, `TideRules` + `TideRule icon={…}` for a list of rules |
 | The cast Ballot | `Seal` (in full once per cast, then a row) with `SealMark` |
-| Side card of polls (home rail) | `PollSideCard` with a heading key |
+| Side card of polls (home rail) | `PollSideCard` with a `kind`: `resultsIn` (unread titles 600, read 400, "N voted · new") or `closingSoon` ("ends in 2h · 96 voted") |
 | Progress (voting window) | `Progress variant="tide"` |
 | List row for a poll | `PollListItem` with `meta` and `aside` |
 | A person's counts | `ProfileRecord`: `rounded-2xl` `card` cells, a 26px `font-mono` number over a 12px label; `Count` for a count inside a phrase |

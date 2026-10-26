@@ -3,7 +3,7 @@ import type { LanguageCode } from '@/types';
 
 import { toPayloadLocale } from './locale';
 
-type Translate = ReturnType<typeof useLanguage>['t'];
+export type Translate = ReturnType<typeof useLanguage>['t'];
 
 /**
  * A "{count} …" string in the language's plural form: `key_one` for a count of one where the

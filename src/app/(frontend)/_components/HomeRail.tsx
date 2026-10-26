@@ -20,10 +20,8 @@ export async function HomeRail({ signedIn }: { signedIn: boolean }) {
 
 	return (
 		<>
-			{resultsIn.length > 0 && <PollSideCard headingKey="homePage.resultsIn" polls={resultsIn} />}
-			{closingSoon.length > 0 && (
-				<PollSideCard headingKey="homePage.closingSoon" polls={closingSoon} showEndsIn />
-			)}
+			{resultsIn.length > 0 && <PollSideCard kind="resultsIn" polls={resultsIn} />}
+			{closingSoon.length > 0 && <PollSideCard kind="closingSoon" polls={closingSoon} />}
 		</>
 	);
 }

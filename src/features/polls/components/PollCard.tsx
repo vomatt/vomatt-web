@@ -120,7 +120,7 @@ export function PollCard({
 						</time>
 						<AudienceLabel audience={poll.audience} />
 					</div>
-					<StatusChip status={status} poll={poll} />
+					<StatusChip status={status} poll={poll} time="inline" />
 				</div>
 
 				<div>
