@@ -7,11 +7,13 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { FollowButton, useFollow } from '@/features/follows/FollowButton';
+import { FollowListDialog } from '@/features/follows/FollowListDialog';
 import { formatMonthYear } from '@/features/polls/format';
 import { countText } from '@/lib/count';
 import type { UserProfile } from '@/types/user';
 
 import { Count } from './Count';
+import { MutualFollowersLine } from './MutualFollowers';
 
 // Matches the route's max-age, so an edited profile shows within a minute
 const PROFILE_TTL_MS = 60_000;
@@ -83,6 +85,7 @@ export function ProfileHoverCard({
 	children: ReactElement;
 }) {
 	const [stored, setState] = useState<CardState>({ username, status: 'idle' });
+	const [mutualsOpen, setMutualsOpen] = useState(false);
 	const state: CardState = stored.username === username ? stored : { username, status: 'idle' };
 
 	const load = () => {
@@ -106,10 +109,21 @@ export function ProfileHoverCard({
 					<PreviewCard.Popup
 						onClick={(event) => event.stopPropagation()}
 						className="w-80 origin-(--transform-origin) rounded-2xl border border-border bg-card p-4 text-foreground shadow-lg data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95">
-						<ProfileCardBody username={username} avatarUrl={avatarUrl} state={state} />
+						<ProfileCardBody
+							username={username}
+							avatarUrl={avatarUrl}
+							state={state}
+							onOpenMutuals={() => setMutualsOpen(true)}
+						/>
 					</PreviewCard.Popup>
 				</PreviewCard.Positioner>
 			</PreviewCard.Portal>
+			{/* Outside the popup, which closes as the dialog takes focus; its clicks are kept from a row link too */}
+			{mutualsOpen && (
+				<span className="contents" onClick={(event) => event.stopPropagation()}>
+					<FollowListDialog username={username} list="mutuals" onOpenChange={setMutualsOpen} />
+				</span>
+			)}
 		</PreviewCard.Root>
 	);
 }
@@ -121,10 +135,12 @@ function ProfileCardBody({
 	username,
 	avatarUrl,
 	state,
+	onOpenMutuals,
 }: {
 	username: string;
 	avatarUrl?: string | null;
 	state: CardState;
+	onOpenMutuals: () => void;
 }) {
 	const { t, currentLanguage } = useLanguage();
 	const profile = state.status === 'ready' ? state.profile : null;
@@ -172,6 +188,7 @@ function ProfileCardBody({
 					</span>
 				</p>
 			)}
+			{profile && <MutualFollowersLine profile={profile} onOpen={onOpenMutuals} />}
 		</div>
 	);
 }

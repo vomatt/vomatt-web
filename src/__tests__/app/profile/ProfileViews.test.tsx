@@ -18,11 +18,13 @@ jest.mock('@/features/blocks/service', () => ({ blockUser: jest.fn(), unblockUse
 const mockFollow = jest.fn();
 const mockUnfollow = jest.fn();
 const mockGetFollowers = jest.fn();
+const mockGetMutualFollowers = jest.fn();
 jest.mock('@/features/follows/service', () => ({
 	followUser: (...a: unknown[]) => mockFollow(...a),
 	unfollowUser: (...a: unknown[]) => mockUnfollow(...a),
 	getFollowers: (...a: unknown[]) => mockGetFollowers(...a),
 	getFollowing: jest.fn(),
+	getMutualFollowers: (...a: unknown[]) => mockGetMutualFollowers(...a),
 }));
 jest.mock('@/features/avatars/service', () => ({ chooseAvatar: jest.fn() }));
 jest.mock('@/features/notifications/service', () => ({}));
@@ -46,6 +48,10 @@ const visitor: UserProfile = {
 	mutualFollowersCount: 0,
 	mutualFollowersPreview: [],
 };
+
+const jtan = { id: 'u3', username: 'jtan', displayName: 'Jun Tan', avatarUrl: null };
+const rosa = { id: 'u4', username: 'rosa', displayName: null, avatarUrl: null };
+const withMutuals: UserProfile = { ...visitor, mutualFollowersCount: 3, mutualFollowersPreview: [jtan, rosa] };
 
 const me: MyProfile = {
 	id: 'u1',
@@ -235,6 +241,35 @@ describe('VisitorProfileView', () => {
 		render(<VisitorProfileView profile={visitor} polls={null} viewerId={null} />);
 		expect(screen.getByText('Couldn’t load polls.')).toBeInTheDocument();
 		expect(screen.queryByText('No polls yet.')).not.toBeInTheDocument();
+	});
+
+	it('says who the viewer follows among their followers, opening that list', async () => {
+		mockGetMutualFollowers.mockResolvedValue({ ok: true, data: { items: [], nextCursor: null } });
+		render(<VisitorProfileView profile={withMutuals} polls={{ items: [], nextCursor: null }} viewerId="u1" />);
+
+		fireEvent.click(screen.getByRole('button', { name: 'Followed by @jtan and 2 others you follow' }));
+		expect(await screen.findByRole('dialog', { name: 'Followers you know' })).toBeInTheDocument();
+		expect(mockGetMutualFollowers).toHaveBeenCalledWith('amira');
+	});
+
+	it('lists those people in the rail, each linking to their profile, then all their followers', async () => {
+		mockGetFollowers.mockResolvedValue({ ok: true, data: { items: [], nextCursor: null } });
+		render(<VisitorProfileView profile={withMutuals} polls={{ items: [], nextCursor: null }} viewerId="u1" />);
+
+		const card = screen.getByRole('region', { name: 'Followers you know' });
+		expect(within(card).getByRole('link', { name: 'Jun Tan @jtan' })).toHaveAttribute('href', '/jtan');
+		expect(within(card).getByRole('link', { name: 'rosa @rosa' })).toHaveAttribute('href', '/rosa');
+		fireEvent.click(within(card).getByRole('button', { name: 'All 1,204 followers' }));
+		expect(await screen.findByRole('dialog', { name: 'Followers' })).toBeInTheDocument();
+	});
+
+	it.each([
+		['signed out', { mutualFollowersCount: null, mutualFollowersPreview: null }],
+		['with no one in common', { mutualFollowersCount: 0, mutualFollowersPreview: [] }],
+	])('shows no followers in common %s', (_, mutuals) => {
+		render(<VisitorProfileView profile={{ ...visitor, ...mutuals }} polls={{ items: [], nextCursor: null }} viewerId="u1" />);
+		expect(screen.queryByText(/^Followed by/)).not.toBeInTheDocument();
+		expect(screen.queryByRole('region', { name: 'Followers you know' })).not.toBeInTheDocument();
 	});
 
 	it('previews the owner page without visitor controls', () => {

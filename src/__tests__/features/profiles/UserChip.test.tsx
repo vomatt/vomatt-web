@@ -14,7 +14,12 @@ jest.mock('next/link', () => {
 });
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 const mockFollow = jest.fn();
-jest.mock('@/features/follows/service', () => ({ followUser: (...a: unknown[]) => mockFollow(...a), unfollowUser: jest.fn() }));
+const mockGetMutualFollowers = jest.fn();
+jest.mock('@/features/follows/service', () => ({
+	followUser: (...a: unknown[]) => mockFollow(...a),
+	unfollowUser: jest.fn(),
+	getMutualFollowers: (...a: unknown[]) => mockGetMutualFollowers(...a),
+}));
 
 const profile = {
 	id: 'u1',
@@ -34,6 +39,8 @@ const profile = {
 	isFollowing: null,
 	followsYou: null,
 	isBlocked: null,
+	mutualFollowersCount: null,
+	mutualFollowersPreview: null,
 };
 
 // jsdom has no Response; the card only reads ok, status and json()
@@ -87,6 +94,35 @@ describe('UserChip', () => {
 		expect(mockFollow).toHaveBeenCalledWith('u1');
 		expect(screen.getByText('1,205').parentElement).toHaveTextContent('1,205 followers');
 		await waitFor(() => expect(screen.getByRole('button', { name: 'Following Unfollow', pressed: true })).toBeEnabled());
+	});
+
+	it('says who the viewer follows among their followers, opening that list', async () => {
+		const jtan = { id: 'u3', username: 'jtan', displayName: 'Jun Tan', avatarUrl: null };
+		mockGetMutualFollowers.mockResolvedValue({ ok: true, data: { items: [], nextCursor: null } });
+		fetchMock.mockResolvedValueOnce(
+			json({ ...profile, username: 'amira', isFollowing: false, mutualFollowersCount: 1, mutualFollowersPreview: [jtan] })
+		);
+		const onRowClick = jest.fn();
+		render(
+			<div onClick={onRowClick}>
+				<UserChip username="amira" />
+			</div>
+		);
+		await userEvent.hover(screen.getByRole('link', { name: 'amira' }));
+
+		await userEvent.click(await screen.findByRole('button', { name: 'Followed by @jtan' }));
+		expect(await screen.findByRole('dialog', { name: 'Followers you know' })).toBeInTheDocument();
+		expect(mockGetMutualFollowers).toHaveBeenCalledWith('amira');
+		await userEvent.click(await screen.findByText('No one you follow follows them yet.'));
+		expect(onRowClick).not.toHaveBeenCalled();
+	});
+
+	it('names no followers in common signed out', async () => {
+		fetchMock.mockResolvedValueOnce(json({ ...profile, username: 'noa' }));
+		render(<UserChip username="noa" />);
+		await userEvent.hover(screen.getByRole('link', { name: 'noa' }));
+		expect(await screen.findByText('Asks about lunch')).toBeInTheDocument();
+		expect(screen.queryByText(/^Followed by/)).not.toBeInTheDocument();
 	});
 
 	it('puts the @handle under the name even without a display name', async () => {
