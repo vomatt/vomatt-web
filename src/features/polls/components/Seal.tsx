@@ -4,29 +4,29 @@ import { TidePanel } from '@/components/ui/TidePanel';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 
-/** A Tide ring (vomatt's promise) around a Volt check (the voter's own vote). Decorative. */
-export function SealMark({ size = 'sm' }: { size?: 'sm' | 'lg' }) {
-	const isLarge = size === 'lg';
+import { formatPollMoment } from '../format';
+import { useViewerClock } from '../hooks/useViewerClock';
+
+const MARK_SIZES = {
+	sm: { ring: 'size-8', dashed: null, disc: 'size-[13px]', check: 'size-2' },
+	md: { ring: 'size-10', dashed: 'inset-[2.5px] border', disc: 'size-[18px]', check: 'size-2.5' },
+	lg: { ring: 'size-[72px]', dashed: 'inset-[5px] border-[1.5px]', disc: 'size-[34px]', check: 'size-4' },
+};
+
+/**
+ * A Tide ring (vomatt's promise) around a Volt check (the voter's own vote). Decorative.
+ * sm: 32px, for profile rows and notifications; md: 40px with a dashed inner ring, for the Seal row;
+ * lg: 72px with a dashed inner ring, for the Seal moment.
+ */
+export function SealMark({ size = 'sm' }: { size?: keyof typeof MARK_SIZES }) {
+	const { ring, dashed, disc, check } = MARK_SIZES[size];
 	return (
 		<span
 			aria-hidden
-			className={cn(
-				'relative grid shrink-0 place-items-center rounded-full border-2 border-tide',
-				isLarge ? 'size-[72px]' : 'size-9'
-			)}
+			className={cn('relative grid shrink-0 place-items-center rounded-full border-2 border-tide', ring)}
 		>
-			<span
-				className={cn(
-					'absolute rounded-full border border-dashed border-tide',
-					isLarge ? 'inset-1.5' : 'inset-[3px]'
-				)}
-			/>
-			<span
-				className={cn(
-					'grid place-items-center rounded-full bg-highlight text-highlight-foreground',
-					isLarge ? 'size-[30px]' : 'size-[15px]'
-				)}
-			>
+			{dashed && <span className={cn('absolute rounded-full border-dashed border-tide', dashed)} />}
+			<span className={cn('grid place-items-center rounded-full bg-highlight text-highlight-foreground', disc)}>
 				<svg
 					viewBox="0 0 24 24"
 					fill="none"
@@ -34,7 +34,7 @@ export function SealMark({ size = 'sm' }: { size?: 'sm' | 'lg' }) {
 					strokeWidth={3.5}
 					strokeLinecap="round"
 					strokeLinejoin="round"
-					className={isLarge ? 'size-4' : 'size-2.5'}
+					className={check}
 				>
 					<path d="M5 13l4 4L19 7" />
 				</svg>
@@ -44,43 +44,46 @@ export function SealMark({ size = 'sm' }: { size?: 'sm' | 'lg' }) {
 }
 
 type SealProps = {
-	/** In full right after a cast; a compact row on later visits. */
-	full: boolean;
-	/** When the results open, or that they open at the end. */
-	sealedLine: React.ReactNode;
-	visibilityHint?: string | null | false;
-	turnout?: number;
+	/** `moment`: in full, right after a cast here. `row`: on later visits. */
+	variant: 'moment' | 'row';
+	/** When the results open; null for a Poll without an end. */
+	endTime: string | null;
+	/** Withdraw vote and Update vote. */
+	children: React.ReactNode;
 };
 
-/** What a cast Ballot becomes: the Seal, with the reveal date and who will see the choice. */
-export function Seal({ full, sealedLine, visibilityHint, turnout }: SealProps) {
+/** What a cast Ballot becomes: the Seal, saying when the results open, with the vote's actions. */
+export function Seal({ variant, endTime, children }: SealProps) {
 	const { t } = useLanguage();
+	const clock = useViewerClock();
+	// The date needs the viewer's time zone, so a dated line holds its space until hydration
+	const date = endTime && clock ? formatPollMoment(endTime, clock.language, clock.now) : '';
+	const waiting = !!endTime && !clock;
+	const line = endTime ? t('poll.sealed', { date }) : t('poll.sealedNoEnd');
 
-	if (full) {
+	if (variant === 'moment') {
 		return (
-			<TidePanel className="flex flex-col items-center gap-1.5 px-4 py-5 text-center text-[14px] leading-relaxed">
-				<SealMark size="lg" />
-				<p className="mt-2 text-[18px] font-medium tracking-[-0.01em] text-foreground">
+			<TidePanel className="flex flex-col items-center gap-3 px-6 pt-7 pb-6 text-center">
+				<span className="mb-1">
+					<SealMark size="lg" />
+				</span>
+				<p className="text-[21px] font-medium leading-tight tracking-[-0.02em] text-foreground">
 					{t('poll.sealedTitle')}
 				</p>
-				{sealedLine}
-				{visibilityHint && <p>{visibilityHint}</p>}
-				{turnout !== undefined && (
-					<p className="mt-1 font-mono text-[13px] text-foreground tabular-nums">
-						{t('poll.sealedTurnout', { count: turnout.toLocaleString() })}
-					</p>
-				)}
+				<p className={cn('max-w-[420px] text-[14px] leading-5', waiting && 'invisible')}>{line}</p>
+				<div className="mt-1 flex flex-wrap justify-center gap-1.5">{children}</div>
 			</TidePanel>
 		);
 	}
 
 	return (
-		<TidePanel className="flex items-start gap-3 px-3.5 py-3 text-[12px] leading-relaxed">
-			<SealMark />
-			<div className="flex min-w-0 flex-col gap-1 pt-0.5">
-				{sealedLine}
-				{visibilityHint && <p>{visibilityHint}</p>}
+		<TidePanel className="flex flex-wrap items-center gap-4 py-3.5 pr-3.5 pl-4">
+			<SealMark size="md" />
+			<div className="flex min-w-0 flex-[1_1_200px] flex-col gap-0.5">
+				<p className="text-[14px] font-medium leading-5 text-foreground">{t('poll.sealedTitle')}</p>
+				<p className={cn('text-[13px] leading-[18px]', waiting && 'invisible')}>{line}</p>
 			</div>
+			<div className="flex shrink-0 items-center gap-1.5">{children}</div>
 		</TidePanel>
 	);
 }

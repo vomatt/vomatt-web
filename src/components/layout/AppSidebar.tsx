@@ -72,13 +72,8 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 
 	// /account redirects to the profile; link there directly so the row shows as active
 	const accountHref = profile ? profileHref(profile.username) : '/account';
-	// Settings is reached from the profile, so the row stays active there too
-	const accountCurrent =
-		pathname === accountHref
-			? 'page'
-			: pathname === '/settings'
-				? 'true'
-				: undefined;
+	// Settings is a page of its own, reached from More; no row is active there
+	const accountCurrent = pathname === accountHref ? 'page' : undefined;
 
 	return (
 		<Sidebar className="border-sidebar-border">
@@ -128,14 +123,14 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 												/>
 											}
 											className={cn(
-												'group h-9 rounded-lg px-3 cursor-pointer transition-colors duration-150',
+												'group h-10 rounded-lg border border-transparent px-3 cursor-pointer transition-colors duration-150',
 												'text-muted-foreground hover:text-sidebar-foreground',
 												isActive &&
-													'bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent'
+													'bg-card border-border text-foreground hover:bg-card'
 											)}
 										>
 											<item.icon className="size-5 shrink-0" />
-											<span className="text-sm font-medium capitalize">
+											<span className="text-[14px] font-medium capitalize">
 												{t(item.title)}
 											</span>
 											{badge > 0 && (
@@ -158,10 +153,10 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 											/>
 										}
 										className={cn(
-											'group h-9 rounded-lg px-3 cursor-pointer transition-colors duration-150',
+											'group h-10 rounded-lg border border-transparent px-3 cursor-pointer transition-colors duration-150',
 											'text-muted-foreground hover:text-sidebar-foreground',
 											accountCurrent &&
-												'bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent'
+												'bg-card border-border text-foreground hover:bg-card'
 										)}
 									>
 										{profile ? (
@@ -173,7 +168,7 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 										) : (
 											<User className="size-5 shrink-0" />
 										)}
-										<span className="text-sm font-medium capitalize">
+										<span className="text-[14px] font-medium capitalize">
 											{t('navigation.profile')}
 										</span>
 									</SidebarMenuButton>
@@ -199,7 +194,7 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 					<div className="rounded-xl border border-sidebar-border bg-card p-1">
 						<Link
 							href="/login"
-							className="flex items-center gap-2.5 w-full h-9 px-3 rounded-lg text-muted-foreground hover:text-sidebar-foreground transition-colors duration-150 text-sm outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
+							className="flex items-center gap-2.5 w-full h-9 px-3 rounded-lg text-muted-foreground hover:text-sidebar-foreground transition-colors duration-150 text-[14px] outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
 						>
 							<User className="size-4 shrink-0" />
 							<span className="font-medium">{t('loginPrompt.ctaLabel')}</span>

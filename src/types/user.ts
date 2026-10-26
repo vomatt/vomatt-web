@@ -1,3 +1,5 @@
+import type { UserDto } from '@/schemas/user';
+
 export interface UserProfile {
 	id: string;
 	username: string;
@@ -11,12 +13,15 @@ export interface UserProfile {
 	points?: number | null;
 	membershipLevel?: string | null;
 	avatarUrl: string | null; // `bot:<kind>`; older accounts may hold an image URL
-	// Not sent yet (see docs/release/api-integration-notes.md, round 3); the UI shows each once it arrives
-	followersCount?: number;
-	followingCount?: number;
-	/** Whether the viewer follows / has blocked this user; null when signed out, false on their own profile. */
+	followersCount: number;
+	followingCount: number;
+	/** Whether the viewer follows / has blocked this user, and whether they follow the viewer; null when signed out, false on their own profile. */
 	isFollowing: boolean | null;
+	followsYou: boolean | null;
 	isBlocked: boolean | null;
+	/** The people the viewer follows who follow this user, and the first 3 of them ([] when none); null when signed out and on their own profile. */
+	mutualFollowersCount: number | null;
+	mutualFollowersPreview: UserDto[] | null;
 }
 
 /** Response from GET /users/me — the authenticated user's own profile. */
@@ -38,6 +43,8 @@ export interface MyProfile {
 	joinedAt: string; // ISO date string
 	totalPolls: number;
 	totalVotes: number;
+	followersCount: number;
+	followingCount: number;
 	visibilitySettings: Record<string, boolean>;
 	/** Whether a first Ballot is Anonymous unless the voter says otherwise. */
 	anonymousBallotByDefault: boolean;

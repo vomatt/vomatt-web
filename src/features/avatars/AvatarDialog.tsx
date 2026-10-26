@@ -34,17 +34,20 @@ const TILE_GRID =
 	'grid grid-cols-[repeat(auto-fill,minmax(44px,1fr))] gap-1.5 md:grid-cols-[repeat(auto-fill,minmax(72px,1fr))] md:gap-2';
 
 /**
- * The owner's avatar as a button that opens the cast to choose from.
- * Size comes from `className`, as on `UserAvatar`.
+ * The owner's avatar, opening the cast to choose from. Size comes from `className`, as on `UserAvatar`.
+ * `trigger`: `avatar` (default) makes the avatar itself the button; `button` shows the avatar
+ * with a separate Change avatar button beside it (the caller lays the two out).
  */
 export function AvatarDialog({
 	username,
 	avatarUrl,
 	className,
+	trigger = 'avatar',
 }: {
 	username: string;
 	avatarUrl: string | null;
 	className?: string;
+	trigger?: 'avatar' | 'button';
 }) {
 	const { t } = useLanguage();
 	const [open, setOpen] = useState(false);
@@ -109,18 +112,25 @@ export function AvatarDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={openChange}>
-			<DialogTrigger
-				aria-label={t('avatar.change')}
-				className="group relative shrink-0 rounded-full outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:outline-solid"
-			>
-				<ChosenAvatar
-					kind={saved}
-					className={cn('transition-opacity group-hover:opacity-80', className)}
-				/>
-				<span className="absolute -right-0.5 -bottom-0.5 flex size-6 items-center justify-center rounded-full border border-border bg-card text-foreground">
-					<Pencil size={12} aria-hidden />
-				</span>
-			</DialogTrigger>
+			{trigger === 'button' ? (
+				<>
+					<ChosenAvatar kind={saved} className={className} />
+					<DialogTrigger render={<Button variant="outline" size="sm" />}>{t('avatar.change')}</DialogTrigger>
+				</>
+			) : (
+				<DialogTrigger
+					aria-label={t('avatar.change')}
+					className="group relative shrink-0 rounded-full outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:outline-solid"
+				>
+					<ChosenAvatar
+						kind={saved}
+						className={cn('transition-opacity group-hover:opacity-80', className)}
+					/>
+					<span className="absolute -right-0.5 -bottom-0.5 flex size-6 items-center justify-center rounded-full border border-border bg-card text-foreground">
+						<Pencil size={12} aria-hidden />
+					</span>
+				</DialogTrigger>
+			)}
 			<DialogContent
 				closeLabel={t('common.close')}
 				className="max-h-[calc(100dvh-2rem)] grid-rows-[auto_auto_minmax(0,1fr)_auto] sm:max-w-md md:max-w-2xl"

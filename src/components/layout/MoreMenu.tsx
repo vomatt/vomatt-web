@@ -23,7 +23,7 @@ const themes = [
 ] as const;
 
 const itemClassName =
-	'relative flex w-full items-center min-h-10 px-3 rounded-lg text-sm font-medium cursor-pointer select-none transition-colors duration-150 text-muted-foreground data-highlighted:text-popover-foreground outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring';
+	'relative flex w-full items-center min-h-10 px-3 rounded-lg text-[14px] font-medium cursor-pointer select-none transition-colors duration-150 text-muted-foreground data-highlighted:text-popover-foreground outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring';
 
 export function MoreMenu({ signedIn }: { signedIn: boolean }) {
 	const { t } = useLanguage();
@@ -33,7 +33,7 @@ export function MoreMenu({ signedIn }: { signedIn: boolean }) {
 		<Menu.Root>
 			<Menu.Trigger
 				className={cn(
-					'flex items-center gap-3 w-full h-9 px-3 rounded-lg text-sm font-medium text-muted-foreground transition-colors duration-150',
+					'flex items-center gap-3 w-full h-10 px-3 rounded-lg text-[14px] font-medium text-muted-foreground transition-colors duration-150',
 					'hover:text-sidebar-foreground data-popup-open:bg-sidebar-accent data-popup-open:text-sidebar-accent-foreground',
 					'outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring'
 				)}
@@ -50,20 +50,24 @@ export function MoreMenu({ signedIn }: { signedIn: boolean }) {
 				>
 					<Menu.Popup className="w-60 rounded-xl bg-popover p-1.5 text-popover-foreground shadow-md ring-1 ring-foreground/10 outline-none origin-(--transform-origin) data-starting-style:opacity-0 data-ending-style:opacity-0 transition-opacity duration-100">
 						<Menu.Group>
-							<Menu.GroupLabel className="px-3 pt-1.5 pb-2 text-xs text-muted-foreground">
+							<Menu.GroupLabel className="px-3 pt-1.5 pb-2 text-[12px] text-muted-foreground">
 								{t('navigation.appearance')}
 							</Menu.GroupLabel>
 							<ThemeOptions />
 						</Menu.Group>
 						{/* Works signed out too, as the theme does */}
 						<Menu.Group>
-							<Menu.GroupLabel className="px-3 pt-2.5 pb-2 text-xs text-muted-foreground">
+							<Menu.GroupLabel className="px-3 pt-2.5 pb-2 text-[12px] text-muted-foreground">
 								{t('settings.language')}
 							</Menu.GroupLabel>
 							<LanguageOptions />
 						</Menu.Group>
-						<Menu.Separator className="-mx-1.5 my-1.5 h-px bg-border" />
-						{signedIn && <MoreActions onReport={() => setReportOpen(true)} />}
+						{signedIn && (
+							<>
+								<Menu.Separator className="-mx-1.5 my-1.5 h-px bg-border" />
+								<MoreActions onReport={() => setReportOpen(true)} />
+							</>
+						)}
 					</Menu.Popup>
 				</Menu.Positioner>
 			</Menu.Portal>
@@ -73,7 +77,7 @@ export function MoreMenu({ signedIn }: { signedIn: boolean }) {
 }
 
 const segmentClassName = cn(
-	'relative flex h-8 items-center justify-center rounded-md text-xs font-medium text-muted-foreground cursor-pointer select-none transition-[color,background-color,box-shadow] duration-150',
+	'relative flex h-8 items-center justify-center rounded-md text-[12px] font-medium text-muted-foreground cursor-pointer select-none transition-[color,background-color,box-shadow] duration-150',
 	'outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring',
 	'data-highlighted:text-foreground',
 	// The viewer's own choice: Volt tint, as on a selected ballot row

@@ -4,7 +4,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 import AuthContainer from '@/components/auth/AuthContainer';
 import { AuthFlow } from '@/components/auth/AuthFlow';
-import CustomPortableText from '@/components/CustomPortableText';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getSafeRedirectPath } from '@/lib/routes';
 
@@ -18,20 +17,13 @@ export function LogIn({ policyMessage }: { policyMessage?: PortableTextBlock[] |
 	return (
 		<AuthContainer>
 			{sessionExpired && (
-				<p role="status" className="mb-6 rounded-lg border border-border bg-card px-3.5 py-3 text-sm text-foreground">
+				// Plain text ahead of the title: it is there from the first paint, which a live region
+				// wouldn't announce, and reading order reaches it first
+				<p className="mb-6 rounded-[10px] border border-border bg-card px-3.5 py-3 text-[14px] text-foreground">
 					{t(sessionExpired === 'security' ? 'login.sessionRevoked' : 'login.sessionExpired')}
 				</p>
 			)}
-			<AuthFlow
-				onDone={() => router.replace(redirectTo)}
-				footer={
-					policyMessage && (
-						<div className="mt-8 text-xs text-muted-foreground">
-							<CustomPortableText blocks={policyMessage} />
-						</div>
-					)
-				}
-			/>
+			<AuthFlow onDone={() => router.replace(redirectTo)} policyMessage={policyMessage} />
 		</AuthContainer>
 	);
 }

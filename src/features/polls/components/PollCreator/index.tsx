@@ -16,13 +16,7 @@ import {
 	useRef,
 	useState,
 } from 'react';
-import {
-	Controller,
-	useFieldArray,
-	useForm,
-	type UseFormRegisterReturn,
-	useWatch,
-} from 'react-hook-form';
+import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import {
@@ -46,7 +40,7 @@ import {
 import { FieldMessage } from '@/components/ui/Field';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { ArrowLeft, Eye, Lock, Plus, User, Users, X } from '@/components/ui/SvgIcons';
+import { Eye, Lock, Plus, User, Users, X } from '@/components/ui/SvgIcons';
 import { Textarea } from '@/components/ui/Textarea';
 import { TideRule, TideRules } from '@/components/ui/TidePanel';
 import { ENTER, EXIT, Unfold } from '@/components/Unfold';
@@ -54,7 +48,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { apiErrorText } from '@/lib/api/error-text';
 
 import { deleteDraft, type PollDraft, saveDraft } from '../../drafts';
-import { formatPollDate, joinSentences } from '../../format';
+import { joinSentences } from '../../format';
 import {
 	AudienceSchema,
 	type Poll,
@@ -62,7 +56,7 @@ import {
 	POLL_OPTIONS_LIMIT,
 	POLL_OPTIONS_MIN,
 	POLL_TITLE_MAX,
-	VoterVisibilitySchema,
+	type VoterVisibility,
 } from '../../schema';
 import { createPoll, updatePoll } from '../../service';
 import { derivePollStatus, type PollStatus, visibilityLevel } from '../../status';
@@ -75,7 +69,6 @@ import {
 	pollFormSchema,
 	type PollFormValues,
 	pollToForm,
-	TIMING_FIELDS,
 	toDateTimeInput,
 	toSingleLine,
 } from './formSchema';
@@ -87,6 +80,9 @@ const END_PRESETS = [
 	{ key: '3d', label: 'pollCreator.preset3d', ms: 3 * 24 * HOUR },
 	{ key: '1w', label: 'pollCreator.preset1w', ms: 7 * 24 * HOUR },
 ] as const;
+const VISIBILITY_ORDER: VoterVisibility[] = ['owner', 'signed-in', 'nobody'];
+/** The write step's field labels and legends. */
+const LABEL = 'text-[14px] leading-snug font-medium';
 
 /** Writing and review slide toward where the step goes: forward to the left, back to the right. */
 const STEP_VARIANTS = {
@@ -129,7 +125,7 @@ function StepLayer({
 		return () => observer.disconnect();
 	}, [isPresent, onResize, step]);
 	return (
-		<div ref={ref} inert={!isPresent} className="space-y-7 px-4 py-6 sm:px-6">
+		<div ref={ref} inert={!isPresent} className="space-y-4 p-4 sm:px-5">
 			{children}
 		</div>
 	);
@@ -201,8 +197,8 @@ export function PollCreator({
 	const initialPreset = isEdit || draft ? null : '3d';
 	// null while writing
 	const [review, setReview] = useState<ReviewSnapshot | null>(null);
-	const [showSettings, setShowSettings] = useState(false);
 	const [showContext, setShowContext] = useState(!!defaults.description);
+	// null is Custom: the end (and opening) times are typed in
 	const [endPreset, setEndPreset] = useState<string | null>(initialPreset);
 	const [showSaveDraftAlert, setShowSaveDraftAlert] = useState(false);
 
@@ -222,9 +218,9 @@ export function PollCreator({
 		defaultValues: defaults,
 	});
 	const { fields, append, remove } = useFieldArray({ control, name: 'options' });
-	const [title, description, options, startTime, endTime, voterVisibility, audience] = useWatch({
+	const [title, description, options, startTime, voterVisibility, audience] = useWatch({
 		control,
-		name: ['title', 'description', 'options', 'startTime', 'endTime', 'voterVisibility', 'audience'],
+		name: ['title', 'description', 'options', 'startTime', 'voterVisibility', 'audience'],
 	});
 	const isInviteOnly = audience === 'invite-only';
 	const titleRef = useRef<HTMLHeadingElement>(null);
@@ -253,7 +249,6 @@ export function PollCreator({
 		const values = initialValues(poll, draft);
 		reset(values);
 		setReview(null);
-		setShowSettings(false);
 		setShowContext(!!values.description);
 		setEndPreset(initialPreset);
 		setOpen(false);
@@ -288,9 +283,9 @@ export function PollCreator({
 		close();
 	};
 
-	/** Errors in the folded section stay hidden, so unfold it. */
-	const revealTimingErrors = () => {
-		if (TIMING_FIELDS.some((name) => getFieldState(name).invalid)) setShowSettings(true);
+	/** A preset's end can pass while the dialog is open; show the field so the error has a place. */
+	const revealEndError = () => {
+		if (getFieldState('endTime').invalid) setEndPreset(null);
 	};
 
 	// The review's buttons unmount with it, so focus would fall to the page: land on the question
@@ -309,7 +304,7 @@ export function PollCreator({
 	};
 
 	// handleSubmit, not trigger: it focuses the first error and re-validates fields as they change
-	const goToReview = (e: FormEvent) => handleSubmit(showReview, revealTimingErrors)(e);
+	const goToReview = (e: FormEvent) => handleSubmit(showReview, revealEndError)(e);
 
 	const publish = handleSubmit(
 		async (values: PollFormValues) => {
@@ -329,7 +324,7 @@ export function PollCreator({
 		// Something changed since review (e.g. the end passed): back to writing, errors visible
 		() => {
 			setReview(null);
-			revealTimingErrors();
+			revealEndError();
 		}
 	);
 
@@ -377,57 +372,45 @@ export function PollCreator({
 	const canAddOption =
 		fields.length < POLL_OPTIONS_LIMIT && options.every((option) => option.text.trim());
 
-	const formatLocal = (value: string) => {
-		const iso = localToIso(value);
-		return iso ? formatPollDate(iso, currentLanguage) : null;
-	};
-	const endLabel = formatLocal(endTime);
-	const startLabel = formatLocal(startTime);
-	let summaryTop = t('pollCreator.summaryNoEnd');
-	if (endLabel) {
-		summaryTop = startLabel
-			? t('pollCreator.summaryOpensLater', { start: startLabel, end: endLabel })
-			: t('pollCreator.summaryOpensNow', { end: endLabel });
-	}
+	// A typed opening time stays in view even after a preset is picked, since presets count from it
+	const showTimeFields = endPreset === null || !!startTime;
 
 	return (
 		<>
 			<Dialog open={open} onOpenChange={handleOpenChange}>
 				{!isEdit && triggerChildren && <DialogTrigger render={triggerChildren} />}
-				{/* Full screen on phones, a 560px dialog from sm up */}
+				{/* Full screen on phones, a 640px dialog from sm up */}
 				<DialogContent
 					showCloseButton={false}
 					finalFocus={finalFocus}
 					// Writing the question is always the first step
 					initialFocus={() => document.getElementById('title')}
-					className="flex h-dvh max-h-dvh max-w-none flex-col gap-0 rounded-none border-0 bg-background p-0 ring-0 sm:h-auto sm:max-h-[min(90dvh,780px)] sm:max-w-[560px] sm:rounded-xl sm:border sm:ring-1"
+					className="flex h-dvh max-h-dvh max-w-none flex-col gap-0 rounded-none border-0 bg-background p-0 ring-0 sm:h-auto sm:max-h-[90dvh] sm:max-w-[640px] sm:rounded-[20px] sm:ring-1"
 				>
-					<div className="flex h-14 flex-none items-center justify-between gap-2 border-b border-border px-2 sm:px-3">
-						{review ? (
-							<Button key="edit" type="button" variant="ghost" onClick={backToWriting}>
-								<ArrowLeft />
-								{t('common.edit')}
-							</Button>
-						) : (
-							<Button key="cancel" type="button" variant="ghost" onClick={() => handleOpenChange(false)}>
-								{t('common.cancel')}
-							</Button>
-						)}
-						<DialogTitle
-							ref={titleRef}
-							tabIndex={-1}
-							className="truncate text-base font-semibold outline-none"
+					<div className="flex flex-none items-start gap-3 px-4 pt-4 sm:px-5 sm:pt-5">
+						<div className="min-w-0 flex-1 space-y-1">
+							<DialogTitle ref={titleRef} tabIndex={-1} className="outline-none">
+								{review
+									? t('pollCreator.reviewTitle')
+									: t(isEdit ? 'pollCreator.editTitle' : 'pollCreator.title')}
+							</DialogTitle>
+							<DialogDescription className="text-[14px]">
+								{review
+									? t('pollCreator.reviewPreview')
+									: t(isEdit ? 'pollCreator.editSubtitle' : 'pollCreator.subtitle')}
+							</DialogDescription>
+						</div>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon"
+							aria-label={t('common.close')}
+							className="-mt-2 -mr-2"
+							onClick={() => handleOpenChange(false)}
 						>
-							{review
-								? t('pollCreator.reviewTitle')
-								: t(isEdit ? 'pollCreator.editTitle' : 'pollCreator.title')}
-						</DialogTitle>
-						{/* Balances the leading button so the title stays centered */}
-						<span aria-hidden className="w-20" />
+							<X className="size-[18px]" />
+						</Button>
 					</div>
-					<DialogDescription className="sr-only">
-						{t(isEdit ? 'pollCreator.editSubtitle' : 'pollCreator.subtitle')}
-					</DialogDescription>
 
 					<form
 						noValidate
@@ -467,32 +450,29 @@ export function PollCreator({
 									<StepLayer step={review ? 'review' : 'write'} onResize={onStepResize}>
 										{review ? (
 											<>
-												<div className="space-y-3">
-													<p className="text-sm font-medium">{t('pollCreator.reviewPreview')}</p>
-													<div className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-5">
-														<StatusChip status={review.status} poll={review} />
-														<div className="space-y-2">
-															<p className="text-[21px] font-medium leading-tight tracking-[-0.02em] wrap-anywhere">
-																{toSingleLine(title)}
+												<div className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-5">
+													<StatusChip status={review.status} poll={review} time="inline" />
+													<div className="space-y-2">
+														<p className="text-[22px] font-medium leading-[1.2] tracking-[-0.02em] wrap-anywhere">
+															{toSingleLine(title)}
+														</p>
+														{description?.trim() && (
+															<p className="text-[14px] leading-relaxed text-muted-foreground wrap-anywhere">
+																{description.trim()}
 															</p>
-															{description?.trim() && (
-																<p className="text-[14px] leading-relaxed text-muted-foreground wrap-anywhere">
-																	{description.trim()}
-																</p>
-															)}
-														</div>
-														<ul className="space-y-2">
-															{options.map((option, index) => (
-																<li
-																	key={fields[index]?.id ?? index}
-																	className="flex min-h-12 items-center gap-3 rounded-xl border border-border px-4 py-2.5 text-base"
-																>
-																	<BallotMark checked={false} />
-																	<span className="min-w-0 flex-1 wrap-anywhere">{option.text.trim()}</span>
-																</li>
-															))}
-														</ul>
+														)}
 													</div>
+													<ul className="space-y-2">
+														{options.map((option, index) => (
+															<li
+																key={fields[index]?.id ?? index}
+																className="flex min-h-12 items-center gap-3 rounded-xl border border-border px-4 py-2.5 text-base"
+															>
+																<BallotMark state="rest" />
+																<span className="min-w-0 flex-1 wrap-anywhere">{option.text.trim()}</span>
+															</li>
+														))}
+													</ul>
 												</div>
 												<TideRules>
 													<TideRule icon={Users}>{t(`pollCreator.ruleAudience.${audience}`)}</TideRule>
@@ -509,273 +489,280 @@ export function PollCreator({
 											</>
 										) : (
 											<>
-												<div className="space-y-2">
-													<Label htmlFor="title">{t('pollCreator.questionLabel')}</Label>
-													<Textarea
-														id="title"
-														placeholder={t('pollCreator.questionPlaceholder')}
-														className="min-h-24 resize-none text-xl leading-snug tracking-[-0.01em] md:text-xl"
-														maxLength={POLL_TITLE_MAX}
-														aria-invalid={!!errors.title}
-														aria-describedby={errors.title ? 'title-error' : 'title-hint'}
-														enterKeyHint="next"
-														{...register('title')}
-														// The question is one line: Return moves on to the options
-														onKeyDown={(e) => {
-															if (!isPlainReturn(e)) return;
-															e.preventDefault();
-															focusField(e, 'options.0.text');
-														}}
-													/>
-													<div className="flex items-start justify-between gap-3 text-[12px] text-muted-foreground">
-														<FieldMessage
-															hint={t('pollCreator.questionNote')}
-															hintId="title-hint"
-															errors={fieldErrors('title-error', [errors.title?.message])}
-														/>
-														<span className="font-mono tabular-nums">
-															{title.length}/{POLL_TITLE_MAX}
-														</span>
-													</div>
-												</div>
-
-												<AnimatePresence initial={false}>
-													{showContext && (
-														<Unfold key="context">
-															<div className="space-y-2">
-																<Label htmlFor="description">
-																	{t('pollCreator.descriptionLabel')} ({t('common.optional')})
-																</Label>
-																<Textarea
-																	id="description"
-																	placeholder={t('pollCreator.descriptionPlaceholder')}
-																	className="min-h-20 resize-none"
-																	{...register('description')}
+												<section className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-5 sm:p-6">
+													<div className="space-y-2">
+														<div className="space-y-0.5">
+															<Label htmlFor="title" className={LABEL}>
+																{t('pollCreator.questionLabel')}
+															</Label>
+															<p className="text-sm text-muted-foreground">
+																<FieldMessage
+																	hint={t('pollCreator.questionNote')}
+																	hintId="title-hint"
+																	errors={fieldErrors('title-error', [errors.title?.message])}
 																/>
-															</div>
-														</Unfold>
-													)}
-												</AnimatePresence>
-												{!showContext && (
-													<Button
-														type="button"
-														variant="ghost"
-														className="-mx-2 -mt-4 mb-2 px-2"
-														onClick={() => {
-															setShowContext(true);
-															// The button goes away: carry focus into the field it opened
-															setTimeout(() => setFocus('description'));
-														}}
-													>
-														<Plus />
-														{t('pollCreator.addContext')}
-													</Button>
-												)}
-
-												<fieldset className="space-y-2">
-													<legend className="mb-2 text-sm font-medium">
-														{t('pollCreator.pollOptionsLabel')}
-													</legend>
-													{/* -mb-2 takes back the last row's gap, which the fieldset already spaces */}
-													<div className="-mb-2">
-														<AnimatePresence initial={false}>
-															{fields.map((field, index) => (
-																<Unfold key={field.id}>
-																	{/* The gap is padding inside the fold, so it opens and closes with the row */}
-																	<div className="pb-2">
-																		<div className="relative">
-																			<Input
-																				aria-label={`${t('pollCreator.optionsPlaceholder')} ${index + 1}`}
-																				placeholder={`${t('pollCreator.optionsPlaceholder')} ${index + 1}`}
-																				maxLength={POLL_OPTION_MAX}
-																				enterKeyHint="next"
-																				aria-invalid={!!errors.options?.[index]?.text}
-																				aria-describedby={optionDescription(index)}
-																				{...register(`options.${index}.text`)}
-																				// Every row leaves room for the remove button, so adding a third option moves nothing
-																				className="pr-12"
-																				onKeyDown={(e) => {
-																					// Cmd/Ctrl+Return submits the form; Return that commits IME text (Zhuyin etc.) isn't one
-																					if (!isPlainReturn(e)) return;
-																					// Return moves to the next option, or adds one, instead of submitting
-																					e.preventDefault();
-																					if (index < fields.length - 1) focusField(e, `options.${index + 1}.text`);
-																					else if (canAddOption) append({ text: '' });
-																				}}
-																			/>
-																			{fields.length > POLL_OPTIONS_MIN && (
-																				<Button
-																					type="button"
-																					variant="ghost"
-																					size="icon"
-																					aria-label={`${t('pollCreator.removeOption')} ${index + 1}`}
-																					onClick={() => {
-																						remove(index);
-																						// The button leaves with its row: keep focus in the list
-																						setTimeout(() => setFocus(`options.${Math.max(index - 1, 0)}.text`));
-																					}}
-																					className="absolute inset-y-0 right-0.5 my-auto text-muted-foreground duration-150 animate-in fade-in zoom-in-75 motion-reduce:animate-none hover:bg-transparent hover:text-destructive"
-																				>
-																					<X className="size-4" />
-																				</Button>
-																			)}
-																		</div>
-																	</div>
-																</Unfold>
-															))}
-														</AnimatePresence>
-													</div>
-													{fields.length < POLL_OPTIONS_LIMIT && (
-														<Button
-															type="button"
-															variant="outline"
-															onClick={addOption}
-															className="w-full border-dashed bg-transparent"
-														>
-															<Plus />
-															{t('pollCreator.addOptionLabel')}
-														</Button>
-													)}
-													<p className="text-[12px] text-muted-foreground">
-														<FieldMessage
-															hint={t('pollCreator.optionsHint')}
-															hintId="options-hint"
-															errors={fieldErrors('options-error', optionMessages)}
+															</p>
+														</div>
+														<Textarea
+															id="title"
+															placeholder={t('pollCreator.questionPlaceholder')}
+															className="min-h-20 resize-none text-[18px] leading-snug tracking-[-0.01em] md:text-[18px]"
+															maxLength={POLL_TITLE_MAX}
+															aria-invalid={!!errors.title}
+															aria-describedby={errors.title ? 'title-error' : 'title-hint'}
+															enterKeyHint="next"
+															{...register('title')}
+															// The question is one line: Return moves on to the options
+															onKeyDown={(e) => {
+																if (!isPlainReturn(e)) return;
+																e.preventDefault();
+																focusField(e, 'options.0.text');
+															}}
 														/>
-													</p>
-												</fieldset>
-
-												<div className="space-y-3">
-													<button
-														type="button"
-														aria-expanded={showSettings}
-														aria-controls="poll-settings"
-														onClick={() => setShowSettings((value) => !value)}
-														className="flex min-h-16 w-full items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-left transition-colors hover:border-border-strong"
-													>
-														<span className="flex-1 space-y-0.5">
-															<span className="block text-[14px] font-medium">{summaryTop}</span>
-															<span className="block text-sm text-muted-foreground">
-																{joinSentences(
-																	currentLanguage,
-																	t(`pollCreator.summaryAudience.${audience}`),
-																	t(`pollCreator.ruleVisibility.${level}`)
-																)}
-															</span>
-														</span>
-														<span className="text-[14px] font-medium underline underline-offset-4">
-															{showSettings ? t('pollCreator.settingsDone') : t('pollCreator.settingsChange')}
-														</span>
-													</button>
+														<p className="text-right font-mono text-[12px] text-muted-foreground tabular-nums">
+															{title.length}/{POLL_TITLE_MAX}
+														</p>
+													</div>
 
 													<AnimatePresence initial={false}>
-														{showSettings && (
-															<Unfold key="settings">
-																<section
-																	id="poll-settings"
-																	aria-label={t('pollCreator.settingsTitle')}
-																	className="space-y-6 pt-3"
-																>
-																	<div className="space-y-2">
-																		<Label htmlFor="startTime">{t('pollCreator.opensLabel')}</Label>
-																		<Input
-																			id="startTime"
-																			type="datetime-local"
-																			aria-describedby="startTime-hint"
-																			{...register('startTime', { onChange: reapplyPreset })}
-																		/>
-																		<p id="startTime-hint" className="text-[12px] text-muted-foreground">
-																			{t('pollCreator.opensHint')}
-																		</p>
-																	</div>
-
-																	<div className="space-y-2">
-																		<Label htmlFor="endTime">{t('pollCreator.endsLabel')}</Label>
-																		<Input
-																			id="endTime"
-																			type="datetime-local"
-																			aria-invalid={!!errors.endTime}
-																			aria-describedby={errors.endTime ? 'endTime-error' : undefined}
-																			{...register('endTime', { onChange: () => setEndPreset(null) })}
-																		/>
-																		<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-																			{END_PRESETS.map(({ key, label, ms }) => (
-																				<Button
-																					key={key}
-																					type="button"
-																					size="sm"
-																					variant={endPreset === key ? 'default' : 'outline'}
-																					aria-pressed={endPreset === key}
-																					onClick={() => applyPreset(key, ms)}
-																				>
-																					{t(label)}
-																				</Button>
-																			))}
-																		</div>
-																		<p className="text-[12px]">
-																			<FieldMessage errors={fieldErrors('endTime-error', [errors.endTime?.message])} />
-																		</p>
-																	</div>
-
-																	<RadioCards
-																		legend={t('pollCreator.audienceLabel')}
-																		note={t('pollCreator.audienceNote')}
-																		input={register('audience')}
-																		options={AudienceSchema.options.map((level) => ({
-																			value: level,
-																			label: t(`poll.audience.${level}`),
-																			hint: t(`pollCreator.audienceHint.${level}`),
-																		}))}
+														{showContext && (
+															<Unfold key="context">
+																<div className="space-y-2">
+																	<Label htmlFor="description" className={LABEL}>
+																		{t('pollCreator.descriptionLabel')} ({t('common.optional')})
+																	</Label>
+																	<Textarea
+																		id="description"
+																		placeholder={t('pollCreator.descriptionPlaceholder')}
+																		className="min-h-20 resize-none"
+																		{...register('description')}
 																	/>
-
-																	{isInviteOnly && (
-																		<div className="space-y-2">
-																			<Label htmlFor="invitees">{t('pollCreator.inviteesLabel')}</Label>
-																			<Controller
-																				control={control}
-																				name="invitees"
-																				render={({ field }) =>
-																					field.value ? (
-																						<InviteePicker
-																							id="invitees"
-																							withGroups
-																							value={field.value}
-																							onChange={field.onChange}
-																							invalid={!!errors.invitees}
-																							describedBy={errors.invitees ? 'invitees-error' : 'invitees-hint'}
-																						/>
-																					) : (
-																						<p className="text-[12px] text-muted-foreground">
-																							{t('pollCreator.inviteesManaged')}
-																						</p>
-																					)
-																				}
-																			/>
-																			<p className="text-[12px] text-muted-foreground">
-																				<FieldMessage
-																					hint={t('pollCreator.inviteesHint')}
-																					hintId="invitees-hint"
-																					errors={fieldErrors('invitees-error', [errors.invitees?.message])}
-																				/>
-																			</p>
-																		</div>
-																	)}
-
-																	<RadioCards
-																		legend={t('pollCreator.visibilityLabel')}
-																		note={t('pollCreator.visibilityNote')}
-																		input={register('voterVisibility')}
-																		options={VoterVisibilitySchema.options.map((level) => ({
-																			value: level,
-																			label: t(`pollCreator.visibility.${level}`),
-																			hint: t(`pollCreator.visibility.${level}Hint`),
-																		}))}
-																	/>
-																</section>
+																</div>
 															</Unfold>
 														)}
 													</AnimatePresence>
-												</div>
+													{!showContext && (
+														<Button
+															type="button"
+															variant="link"
+															size="md"
+															// Keeps the 44px target without spacing the section apart
+															className="-my-2.5 self-start"
+															onClick={() => {
+																setShowContext(true);
+																// The button goes away: carry focus into the field it opened
+																setTimeout(() => setFocus('description'));
+															}}
+														>
+															{t('pollCreator.addContext')}
+														</Button>
+													)}
+
+													<fieldset>
+														<legend className={LABEL}>{t('pollCreator.pollOptionsLabel')}</legend>
+														<p className="mt-0.5 text-sm text-muted-foreground">
+															<FieldMessage
+																hint={t('pollCreator.optionsHint')}
+																hintId="options-hint"
+																errors={fieldErrors('options-error', optionMessages)}
+															/>
+														</p>
+														<div className="mt-3">
+															<AnimatePresence initial={false}>
+																{fields.map((field, index) => (
+																	<Unfold key={field.id}>
+																		{/* The gap is padding inside the fold, so it opens and closes with the row */}
+																		<div className="pb-2">
+																			<div className="relative">
+																				<Input
+																					aria-label={`${t('pollCreator.optionsPlaceholder')} ${index + 1}`}
+																					placeholder={t('pollCreator.optionsPlaceholder')}
+																					maxLength={POLL_OPTION_MAX}
+																					enterKeyHint="next"
+																					aria-invalid={!!errors.options?.[index]?.text}
+																					aria-describedby={optionDescription(index)}
+																					{...register(`options.${index}.text`)}
+																					// Every row leaves room for the remove button, so adding a third option moves nothing
+																					className="pr-12"
+																					onKeyDown={(e) => {
+																						// Cmd/Ctrl+Return submits the form; Return that commits IME text (Zhuyin etc.) isn't one
+																						if (!isPlainReturn(e)) return;
+																						// Return moves to the next option, or adds one, instead of submitting
+																						e.preventDefault();
+																						if (index < fields.length - 1) focusField(e, `options.${index + 1}.text`);
+																						else if (canAddOption) append({ text: '' });
+																					}}
+																				/>
+																				{fields.length > POLL_OPTIONS_MIN && (
+																					<Button
+																						type="button"
+																						variant="ghost"
+																						size="icon"
+																						aria-label={`${t('pollCreator.removeOption')} ${index + 1}`}
+																						onClick={() => {
+																							remove(index);
+																							// The button leaves with its row: keep focus in the list
+																							setTimeout(() => setFocus(`options.${Math.max(index - 1, 0)}.text`));
+																						}}
+																						className="absolute inset-y-0 right-0.5 my-auto text-muted-foreground duration-150 animate-in fade-in zoom-in-75 motion-reduce:animate-none hover:bg-transparent hover:text-destructive"
+																					>
+																						<X className="size-4" />
+																					</Button>
+																				)}
+																			</div>
+																		</div>
+																	</Unfold>
+																))}
+															</AnimatePresence>
+														</div>
+														{fields.length < POLL_OPTIONS_LIMIT && (
+															<Button type="button" variant="outline" onClick={addOption} className="mt-2">
+																<Plus />
+																{t('pollCreator.addOptionLabel')}
+															</Button>
+														)}
+													</fieldset>
+												</section>
+
+												<section
+													aria-labelledby="poll-settings-title"
+													className="space-y-6 rounded-2xl border border-border bg-card p-5 sm:p-6"
+												>
+													<h3 id="poll-settings-title" className="text-lg font-medium">
+														{t('pollCreator.settingsTitle')}
+													</h3>
+
+													<fieldset>
+														<legend className={LABEL}>{t('pollCreator.endsLabel')}</legend>
+														<div className="mt-3 flex flex-wrap gap-2">
+															{END_PRESETS.map(({ key, label, ms }) => (
+																<Button
+																	key={key}
+																	type="button"
+																	size="sm"
+																	variant={endPreset === key ? 'default' : 'outline'}
+																	aria-pressed={endPreset === key}
+																	className="rounded-full"
+																	onClick={() => applyPreset(key, ms)}
+																>
+																	{t(label)}
+																</Button>
+															))}
+															<Button
+																type="button"
+																size="sm"
+																variant={endPreset === null ? 'default' : 'outline'}
+																aria-pressed={endPreset === null}
+																className="rounded-full"
+																onClick={() => setEndPreset(null)}
+															>
+																{t('pollCreator.presetCustom')}
+															</Button>
+														</div>
+														<AnimatePresence initial={false}>
+															{showTimeFields && (
+																<Unfold key="times">
+																	<div className="grid gap-4 pt-4 sm:grid-cols-2">
+																		<div className="space-y-2">
+																			<Label htmlFor="startTime">{t('pollCreator.opensLabel')}</Label>
+																			<Input
+																				id="startTime"
+																				type="datetime-local"
+																				aria-describedby="startTime-hint"
+																				{...register('startTime', { onChange: reapplyPreset })}
+																			/>
+																			<p id="startTime-hint" className="text-[12px] text-muted-foreground">
+																				{t('pollCreator.opensHint')}
+																			</p>
+																		</div>
+																		<div className="space-y-2">
+																			<Label htmlFor="endTime">{t('pollCreator.endsAtLabel')}</Label>
+																			<Input
+																				id="endTime"
+																				type="datetime-local"
+																				aria-invalid={!!errors.endTime}
+																				aria-describedby={errors.endTime ? 'endTime-error' : undefined}
+																				{...register('endTime', { onChange: () => setEndPreset(null) })}
+																			/>
+																			<p className="text-[12px]">
+																				<FieldMessage errors={fieldErrors('endTime-error', [errors.endTime?.message])} />
+																			</p>
+																		</div>
+																	</div>
+																</Unfold>
+															)}
+														</AnimatePresence>
+													</fieldset>
+
+													<Controller
+														control={control}
+														name="audience"
+														render={({ field }) => (
+															<PillGroup
+																legend={t('pollCreator.audienceLabel')}
+																note={t('pollCreator.audienceNote')}
+																hint={t(`pollCreator.audienceHint.${field.value}`)}
+																value={field.value}
+																onChange={field.onChange}
+																options={AudienceSchema.options.map((value) => ({
+																	value,
+																	label: t(`pollCreator.audienceOption.${value}`),
+																}))}
+															/>
+														)}
+													/>
+
+													{isInviteOnly && (
+														<div className="space-y-2">
+															<Label htmlFor="invitees">{t('pollCreator.inviteesLabel')}</Label>
+															<Controller
+																control={control}
+																name="invitees"
+																render={({ field }) =>
+																	field.value ? (
+																		<InviteePicker
+																			id="invitees"
+																			withGroups
+																			value={field.value}
+																			onChange={field.onChange}
+																			invalid={!!errors.invitees}
+																			describedBy={errors.invitees ? 'invitees-error' : 'invitees-hint'}
+																		/>
+																	) : (
+																		<p className="text-[12px] text-muted-foreground">
+																			{t('pollCreator.inviteesManaged')}
+																		</p>
+																	)
+																}
+															/>
+															<p className="text-[12px] text-muted-foreground">
+																<FieldMessage
+																	hint={t('pollCreator.inviteesHint')}
+																	hintId="invitees-hint"
+																	errors={fieldErrors('invitees-error', [errors.invitees?.message])}
+																/>
+															</p>
+														</div>
+													)}
+
+													<Controller
+														control={control}
+														name="voterVisibility"
+														render={({ field }) => (
+															<PillGroup
+																legend={t('pollCreator.visibilityLabel')}
+																note={t('pollCreator.visibilityNote')}
+																hint={t(`pollCreator.visibility.${visibilityLevel({ voterVisibility: field.value, audience })}Hint`)}
+																value={field.value}
+																onChange={field.onChange}
+																options={VISIBILITY_ORDER.map((value) => ({
+																	value,
+																	label: t(`pollCreator.visibility.${visibilityLevel({ voterVisibility: value, audience })}`),
+																}))}
+															/>
+														)}
+													/>
+												</section>
 											</>
 										)}
 									</StepLayer>
@@ -783,38 +770,28 @@ export function PollCreator({
 							</AnimatePresence>
 						</m.div>
 
-						<div className="flex-none border-t border-border px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-6">
+						<div className="flex-none px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:px-5 sm:pb-5">
 							{/* Rendered empty first, so a failed publish is announced every time, the same error included */}
 							<p role="alert" className="text-sm text-destructive not-empty:mb-3">
 								{review && errors.root?.message}
 							</p>
-							<div className="flex items-center gap-3">
+							<div className="flex flex-wrap justify-end gap-2">
 								{!review && !isEdit && (
-									<Button type="button" variant="ghost" onClick={handleSaveDraft}>
+									<Button type="button" variant="outline" className="flex-1 sm:flex-none" onClick={handleSaveDraft}>
 										{t('pollCreator.saveDraftLabel')}
 									</Button>
 								)}
-								{/* The header's Edit is out of thumb reach on a full-screen phone sheet */}
 								{review && (
-									<Button
-										type="button"
-										variant="ghost"
-										className="sm:hidden"
-										onClick={backToWriting}
-									>
+									<Button type="button" variant="outline" className="flex-1 sm:flex-none" onClick={backToWriting}>
 										{t('common.edit')}
 									</Button>
 								)}
 								{review ? (
-									<Button
-										type="submit"
-										className="flex-1 sm:ml-auto sm:max-w-48"
-										loading={isSubmitting}
-									>
+									<Button type="submit" className="flex-1 sm:flex-none" loading={isSubmitting}>
 										{t(isEdit ? 'pollCreator.saveChanges' : 'pollCreator.publish')}
 									</Button>
 								) : (
-									<Button type="submit" className="flex-1 sm:ml-auto sm:max-w-40">
+									<Button type="submit" className="flex-1 sm:flex-none">
 										{t('pollCreator.review')}
 									</Button>
 								)}
@@ -859,39 +836,44 @@ export function PollCreator({
 	);
 }
 
-type RadioCardsProps = {
+type PillGroupProps<T extends string> = {
 	legend: string;
-	/** Shown under the cards. */
+	/** Under the legend. */
 	note: string;
-	input: UseFormRegisterReturn;
-	options: { value: string; label: string; hint: string }[];
+	/** What the chosen pill means, under the pills. */
+	hint: string;
+	value: T;
+	onChange: (value: T) => void;
+	options: { value: T; label: string }[];
 };
 
-/** A radio group of bordered cards, each a label and a hint, for the folded settings. */
-function RadioCards({ legend, note, input, options }: RadioCardsProps) {
+/** One choice of a few, as toggle pills. */
+function PillGroup<T extends string>({ legend, note, hint, value, onChange, options }: PillGroupProps<T>) {
 	const noteId = useId();
+	const hintId = useId();
 	return (
-		<fieldset className="space-y-2" aria-describedby={noteId}>
-			<legend className="mb-2 text-sm font-medium">{legend}</legend>
-			{options.map(({ value, label, hint }) => (
-				<label
-					key={value}
-					className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-[14px] transition-colors hover:border-border-strong has-[:checked]:border-foreground has-[:checked]:bg-highlight-tint has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring"
-				>
-					<input
-						type="radio"
-						value={value}
-						className="size-5 shrink-0 accent-[var(--foreground)]"
-						{...input}
-					/>
-					<span>
-						<span className="font-medium">{label}</span>
-						<small className="block text-sm text-muted-foreground">{hint}</small>
-					</span>
-				</label>
-			))}
-			<p id={noteId} className="pt-1 text-[12px] text-muted-foreground">
+		<fieldset aria-describedby={`${noteId} ${hintId}`}>
+			<legend className={LABEL}>{legend}</legend>
+			<p id={noteId} className="mt-0.5 text-sm text-muted-foreground">
 				{note}
+			</p>
+			<div className="mt-3 flex flex-wrap gap-2">
+				{options.map((option) => (
+					<Button
+						key={option.value}
+						type="button"
+						size="sm"
+						variant={option.value === value ? 'default' : 'outline'}
+						aria-pressed={option.value === value}
+						className="rounded-full"
+						onClick={() => onChange(option.value)}
+					>
+						{option.label}
+					</Button>
+				))}
+			</div>
+			<p id={hintId} className="mt-2 text-sm text-muted-foreground">
+				{hint}
 			</p>
 		</fieldset>
 	);

@@ -3,6 +3,7 @@
 import { m } from 'motion/react';
 import { useId } from 'react';
 
+import { Check } from '@/components/ui/SvgIcons';
 import { cn } from '@/lib/utils';
 
 import { chipClassName } from '../chip';
@@ -13,51 +14,54 @@ import { chipClassName } from '../chip';
 // Critically damped: settles without overshoot
 const INK = { type: 'spring', stiffness: 520, damping: 46 } as const;
 
-/** A radio circle: polls are single-choice, so a dot fills in when marked. */
-export function BallotMark({ checked }: { checked: boolean }) {
+/** The 22px radio circle: a 2px `input` ring at rest; once chosen, ink filled around an 8px Volt dot. */
+export function BallotMark({ state }: { state: 'rest' | 'selected' }) {
 	return (
 		<span
 			aria-hidden
 			className={cn(
-				'relative grid size-[18px] shrink-0 place-items-center rounded-full border-[1.5px] transition-colors duration-150',
-				checked ? 'border-primary bg-primary text-highlight dark:border-highlight dark:bg-highlight dark:text-highlight-foreground' : 'border-input bg-card'
+				'relative grid size-[22px] shrink-0 place-items-center rounded-full transition-[border-color,background-color] duration-150',
+				state === 'rest' ? 'border-2 border-input bg-card' : 'bg-primary'
 			)}
 		>
-			<m.span
-				className="size-2 rounded-full bg-current"
-				initial={false}
-				animate={{ scale: checked ? 1 : 0, opacity: checked ? 1 : 0 }}
-				transition={{ duration: 0.22, ease: [0.25, 1, 0.5, 1] }}
-			/>
+			{state === 'selected' && (
+				<m.span
+					className="size-2 rounded-full bg-highlight"
+					initial={{ scale: 0 }}
+					animate={{ scale: 1 }}
+					transition={INK}
+				/>
+			)}
 		</span>
 	);
 }
 
-/** Marks the option the viewer voted for: a Volt pill whose check draws in. */
-export function VotedStamp({ label }: { label: string }) {
+/** "your vote": the viewer's option on a result row. Lower-case on purpose. */
+export function YourVotePill({ label }: { label: string }) {
 	return (
 		<m.span
 			initial={{ opacity: 0, scale: 0.85 }}
 			animate={{ opacity: 1, scale: 1 }}
 			exit={{ opacity: 0, scale: 0.85, transition: { duration: 0.15 } }}
 			transition={INK}
-			className={cn(
-				chipClassName,
-				'shrink-0 select-none gap-1 border border-foreground/20 bg-highlight pl-2 text-highlight-foreground'
-			)}
+			className="relative shrink-0 select-none whitespace-nowrap rounded-full border border-highlight-foreground bg-highlight px-2 py-0.5 text-[11px] font-semibold leading-4 text-highlight-foreground"
 		>
-			<svg viewBox="0 0 16 16" className="size-3" fill="none" aria-hidden>
-				<m.path
-					d="M3 8.5 6.5 12 13 4.5"
-					stroke="currentColor"
-					strokeWidth={2.4}
-					strokeLinecap="round"
-					strokeLinejoin="round"
-					initial={{ pathLength: 0 }}
-					animate={{ pathLength: 1 }}
-					transition={{ duration: 0.25, ease: 'easeOut', delay: 0.1 }}
-				/>
-			</svg>
+			{label}
+		</m.span>
+	);
+}
+
+/** "Voted" in the card header once the viewer's Ballot is in. */
+export function VotedPill({ label }: { label: string }) {
+	return (
+		<m.span
+			initial={{ opacity: 0, scale: 0.85 }}
+			animate={{ opacity: 1, scale: 1 }}
+			exit={{ opacity: 0, scale: 0.85, transition: { duration: 0.15 } }}
+			transition={INK}
+			className={cn(chipClassName, 'bg-highlight text-[10px] text-highlight-foreground')}
+		>
+			<Check aria-hidden size={12} strokeWidth={3} />
 			{label}
 		</m.span>
 	);
@@ -93,7 +97,7 @@ export function BallotBoxIcon({ className }: { className?: string }) {
 	);
 }
 
-/** Highlight behind the selected option; slides between options and dims while a request is out. */
+/** The 1.5px ink line and Volt tint behind the chosen option. Slides between options and dims while a request is out. */
 export function SelectionHighlight({ layoutId, inTransit = false }: { layoutId: string; inTransit?: boolean }) {
 	return (
 		<m.span

@@ -2,7 +2,7 @@
 
 import { Menu } from '@base-ui/react/menu';
 import { AnimatePresence, m } from 'motion/react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import {
@@ -16,14 +16,17 @@ import {
 	AlertDialogTitle,
 } from '@/components/ui/AlertDialog';
 import { Button } from '@/components/ui/Button';
+import { menuItemClassName, menuPopupClassName } from '@/components/ui/menu';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { Ban, Copy, Ellipsis, Heart, Link2, Pencil, Reply, Trash2, X } from '@/components/ui/SvgIcons';
+import { Ban, Copy, Ellipsis, Heart, Link2, Pencil, Reply, Trash2, TriangleAlert, X } from '@/components/ui/SvgIcons';
 import { Textarea } from '@/components/ui/Textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { AccountAvatar } from '@/features/avatars/AccountAvatar';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { BlockUserDialog } from '@/features/blocks/BlockUserDialog';
 import { ProfileAvatar, ProfileName } from '@/features/profiles/UserChip';
 import { useHydrated } from '@/hooks/useHydrated';
+import { commentHash } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
 import { chipClassName } from '../chip';
@@ -32,6 +35,7 @@ import type { CommentsState } from '../hooks/useComments';
 import type { Comment } from '../schema';
 import { CreateCommentRequestSchema } from '../schema';
 import { pollUrl } from '../url';
+import { ReportCommentDialog } from './ReportCommentDialog';
 
 const COMMENT_MAX = CreateCommentRequestSchema.shape.text.maxLength ?? 2000;
 // The counter shows once the text is this close to its limit
@@ -45,8 +49,18 @@ function textMax(addressee: string | null) {
 // Like and Reply are 32px pills (36px on phones); the ::before extends the hit area to 44px
 const pillClassName =
 	"relative inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium text-muted-foreground transition-colors before:absolute before:inset-x-0 before:-inset-y-1 before:content-[''] hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring md:h-8";
-const menuItemClassName =
-	'flex h-9 cursor-pointer select-none items-center gap-2.5 rounded-lg px-2.5 text-sm outline-none data-highlighted:bg-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring';
+
+/** The signed-in viewer, whose avatar sits beside the composers. */
+type Viewer = { username: string; avatarUrl: string | null };
+
+/** Guests get the plain account icon. */
+function ViewerAvatar({ viewer, className }: { viewer?: Viewer; className: string }) {
+	return viewer ? (
+		<UserAvatar username={viewer.username} avatarUrl={viewer.avatarUrl} className={cn('shrink-0', className)} />
+	) : (
+		<AccountAvatar className={cn('shrink-0', className)} />
+	);
+}
 
 /** The 2px line that runs down the avatar rail, and the elbow a reply branches off it with. */
 function Elbow({ continues }: { continues: boolean }) {
@@ -62,11 +76,6 @@ function Elbow({ continues }: { continues: boolean }) {
 function splitAddressee(text: string) {
 	const match = /^@([\w.-]+)\s+/.exec(text);
 	return match ? { addressee: match[1], text: text.slice(match[0].length) } : { addressee: null, text };
-}
-
-/** A comment's link: `#comment-<id>`, or `#comment-<rootId>/<replyId>` for a Reply, whose list loads on demand. */
-function commentHash(comment: Comment) {
-	return `#comment-${comment.parentId ? `${comment.parentId}/${comment.id}` : comment.id}`;
 }
 
 /** Scrolls a comment into view and flashes it, for a copied link or an addressee chip. */
@@ -86,12 +95,14 @@ type CommentThreadProps = {
 	pollId: string;
 	/** The signed-in viewer's user id, to offer edit and delete on their comments. */
 	viewerId?: string;
+	viewer?: Viewer;
 	requireAuth: (action: () => void) => void;
 };
 
 /**
- * A copied link names a comment that loads after the page does; this shows it once it has. Call it
- * where the thread lives, not in CommentThread, which unmounts when the discussion folds.
+ * A copied link names a comment that loads after the page does; this shows it once it has, loading
+ * Replies past the previews until it finds the one named. Call it where the thread lives, not in
+ * CommentThread, which unmounts when the discussion folds.
  */
 export function useCommentLink(thread: CommentsState) {
 	const link = useRef<{ rootId: string; replyId?: string } | null>(null);
@@ -111,6 +122,10 @@ export function useCommentLink(thread: CommentsState) {
 			}
 			if (replyList.status === 'loading') return;
 			if (replyList.items.some((r) => r.id === target.replyId)) id = target.replyId;
+			else if (replyList.status === 'ready' && replyList.nextCursor) {
+				thread.loadReplies(target.rootId);
+				return;
+			}
 		}
 		link.current = null;
 		showComment(id);
@@ -118,8 +133,11 @@ export function useCommentLink(thread: CommentsState) {
 }
 
 /** Discussion under a Poll. Results stay sealed while it is open, so this is where people argue their case. */
-export function CommentThread({ thread, pollId, viewerId, requireAuth }: CommentThreadProps) {
+export function CommentThread({ thread, pollId, viewerId, viewer, requireAuth }: CommentThreadProps) {
 	const { t } = useLanguage();
+	// One inline Reply composer at a time; the main composer folds while it is open
+	const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(null);
+	const activeTarget = replyTarget && thread.comments.some((c) => c.id === replyTarget.rootId) ? replyTarget : null;
 
 	return (
 		// tabIndex lets focus land here after a comment is deleted
@@ -128,7 +146,7 @@ export function CommentThread({ thread, pollId, viewerId, requireAuth }: Comment
 			aria-label={t('comments.title')}
 			data-comment-thread
 			tabIndex={-1}
-			className="space-y-[18px] border-t border-border/60 px-5 py-5 outline-none"
+			className="space-y-[18px] rounded-2xl border border-border bg-card p-5 outline-none"
 		>
 			<div className="flex items-baseline gap-2">
 				<h2 className="item-title">{t('comments.title')}</h2>
@@ -138,7 +156,11 @@ export function CommentThread({ thread, pollId, viewerId, requireAuth }: Comment
 			</div>
 
 			<Composer
+				label={t('comments.addComment')}
 				placeholder={t('comments.placeholder')}
+				avatar={<ViewerAvatar viewer={viewer} className="size-8" />}
+				collapsed={activeTarget !== null}
+				className="gap-3"
 				requireAuth={requireAuth}
 				onPost={async (text) => {
 					const ok = await thread.add(text, t('comments.you'));
@@ -182,8 +204,11 @@ export function CommentThread({ thread, pollId, viewerId, requireAuth }: Comment
 								comment={comment}
 								pollId={pollId}
 								viewerId={viewerId}
+								viewer={viewer}
 								thread={thread}
 								requireAuth={requireAuth}
+								replyTarget={activeTarget?.rootId === comment.id ? activeTarget : null}
+								onReplyTargetChange={setReplyTarget}
 							/>
 						</m.li>
 					))}
@@ -205,24 +230,34 @@ export function CommentThread({ thread, pollId, viewerId, requireAuth }: Comment
 	);
 }
 
-/** Who an inline Reply answers: the top-level Comment, or one of its Replies. */
-type ReplyTarget = { reply: Comment | null };
+/** Who an inline Reply answers: the top-level Comment (`reply` null), or one of its Replies. */
+type ReplyTarget = { rootId: string; reply: Comment | null };
 
 function Composer({
 	onPost,
 	requireAuth,
+	label,
 	placeholder,
+	avatar,
+	collapsed = false,
+	className,
 	replyTarget,
 	onCancel,
 }: {
 	onPost: (text: string) => Promise<boolean>;
 	requireAuth: (action: () => void) => void;
+	label: string;
 	placeholder: string;
+	avatar: React.ReactNode;
+	/** One dimmed line while a Reply composer is open; focus brings back its actions. */
+	collapsed?: boolean;
+	className?: string;
 	/** Set for an inline Reply composer; its reply (if any) is named above the field. */
 	replyTarget?: ReplyTarget;
 	onCancel?: () => void;
 }) {
 	const { t } = useLanguage();
+	const fieldId = useId();
 	const [text, setText] = useState('');
 	const [isPosting, setIsPosting] = useState(false);
 	const trimmed = text.trim();
@@ -244,65 +279,80 @@ function Composer({
 
 	return (
 		<form
-			className="flex flex-col gap-2"
+			className={cn(
+				'group/composer flex items-start',
+				collapsed && 'opacity-60 transition-opacity focus-within:opacity-100',
+				className
+			)}
 			onSubmit={(event) => {
 				event.preventDefault();
 				submit();
 			}}
 		>
-			{addressee && (
-				<div className="flex items-center gap-2 text-xs text-muted-foreground">
-					<Reply aria-hidden className="size-[13px] shrink-0" />
-					<span className="shrink-0 font-medium">
-						{t('comments.replyingTo')} <span className="text-foreground">{addressee}</span>
-					</span>
-					{replyTarget?.reply?.text && (
-						<span className="min-w-0 flex-1 truncate">· {splitAddressee(replyTarget.reply.text).text}</span>
-					)}
-					<button
-						type="button"
-						aria-label={t('comments.cancelReply')}
-						onClick={onCancel}
-						className="ml-auto flex size-7 shrink-0 items-center justify-center rounded-full hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring"
-					>
-						<X className="size-4" />
-					</button>
-				</div>
-			)}
-			<Textarea
-				value={text}
-				onChange={(event) => setText(event.target.value)}
-				onKeyDown={(event) => {
-					if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
-						event.preventDefault();
-						submit();
-					}
-				}}
-				placeholder={placeholder}
-				aria-label={placeholder}
-				rows={2}
-				autoFocus={!!onCancel}
-				className="relative min-h-[60px] resize-none"
-			/>
-			<div className="flex items-center justify-end gap-1.5">
-				{text.length > max - COUNTER_WITHIN && (
-					<span
-						className={cn(
-							'mr-auto font-mono text-xs tabular-nums',
-							tooLong ? 'text-destructive' : 'text-muted-foreground'
+			{avatar}
+			<div className="flex min-w-0 flex-1 flex-col gap-2">
+				<label htmlFor={fieldId} className="sr-only">
+					{label}
+				</label>
+				{addressee && (
+					<div className="flex items-center gap-2 text-xs text-muted-foreground">
+						<Reply aria-hidden className="size-[13px] shrink-0" />
+						<span className="shrink-0 font-medium">
+							{t('comments.replyingTo')} <span className="text-foreground">{addressee}</span>
+						</span>
+						{replyTarget?.reply?.text && (
+							<span className="min-w-0 flex-1 truncate">· {splitAddressee(replyTarget.reply.text).text}</span>
 						)}
-					>
-						{text.length} / {max}
-					</span>
+						<button
+							type="button"
+							aria-label={t('comments.cancelReply')}
+							onClick={onCancel}
+							className="ml-auto flex size-7 shrink-0 items-center justify-center rounded-full hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring"
+						>
+							<X className="size-4" />
+						</button>
+					</div>
 				)}
-				{onCancel && (
-					<Button type="button" size="sm" variant="ghost" onClick={onCancel}>
-						{t('common.cancel')}
+				<Textarea
+					id={fieldId}
+					value={text}
+					onChange={(event) => setText(event.target.value)}
+					onKeyDown={(event) => {
+						if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+							event.preventDefault();
+							submit();
+						}
+					}}
+					placeholder={placeholder}
+					rows={collapsed ? 1 : 2}
+					autoFocus={!!onCancel}
+					className={cn('relative resize-none', collapsed ? 'min-h-11' : 'min-h-[60px]')}
+				/>
+				<div
+					className={cn(
+						'items-center justify-end gap-1.5',
+						collapsed ? 'hidden group-focus-within/composer:flex' : 'flex'
+					)}
+				>
+					{text.length > max - COUNTER_WITHIN && (
+						<span
+							className={cn(
+								'mr-auto font-mono text-xs tabular-nums',
+								tooLong ? 'text-destructive' : 'text-muted-foreground'
+							)}
+						>
+							{text.length} / {max}
+						</span>
+					)}
+					{onCancel && (
+						<Button type="button" size="sm" variant="ghost" onClick={onCancel}>
+							{t('common.cancel')}
+						</Button>
+					)}
+					<Button type="submit" size="sm" disabled={!trimmed || tooLong || isPosting}>
+						{onCancel ? t('comments.reply') : t('comments.post')}
 					</Button>
-				)}
-				<Button type="submit" size="sm" disabled={!trimmed || tooLong || isPosting}>
-					{onCancel ? t('comments.reply') : t('comments.post')}
-				</Button>
+				</div>
 			</div>
 		</form>
 	);
@@ -317,15 +367,29 @@ type CommentItemProps = {
 };
 
 /** A top-level Comment and its Replies. Replies are one level deep. */
-function CommentItem({ comment, pollId, viewerId, thread, requireAuth }: CommentItemProps) {
+function CommentItem({
+	comment,
+	pollId,
+	viewerId,
+	viewer,
+	thread,
+	requireAuth,
+	replyTarget,
+	onReplyTargetChange,
+}: CommentItemProps & {
+	viewer?: Viewer;
+	/** The open inline Reply composer, when it answers this Comment or one of its Replies. */
+	replyTarget: ReplyTarget | null;
+	onReplyTargetChange: (target: ReplyTarget | null) => void;
+}) {
 	const { t } = useLanguage();
-	// Replying to a Reply addresses its author; the API files it under this Comment
-	const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(null);
 	const replyList = thread.replies[comment.id];
 	const replyCount = comment.replyCount ?? 0;
-	const openComposer = (reply: Comment | null) => requireAuth(() => setReplyTarget({ reply }));
+	// Replying to a Reply addresses its author; the API files it under this Comment
+	const openComposer = (reply: Comment | null) =>
+		requireAuth(() => onReplyTargetChange({ rootId: comment.id, reply }));
 
-	// One button walks the Replies: view them, retry a failed page, or load more
+	// One button walks the Replies: view them, retry a failed page, or load the ones after those shown
 	let repliesAction: string | null = null;
 	if (!replyList) {
 		if (replyCount > 0) {
@@ -334,20 +398,94 @@ function CommentItem({ comment, pollId, viewerId, thread, requireAuth }: Comment
 	} else if (replyList.status === 'error') {
 		repliesAction = t('comments.retry');
 	} else if (replyList.status === 'ready' && replyList.nextCursor) {
-		repliesAction = t('comments.moreReplies');
+		const more = Math.max(1, replyCount - replyList.items.length);
+		repliesAction = t(more === 1 ? 'comments.moreReply' : 'comments.moreReplies', { count: more });
 	}
 
 	const replies = replyList?.items ?? [];
-	const isLoadingReplies = replyList?.status === 'loading';
-	// The rail runs from the root avatar down to whatever hangs off it last
-	const tail = [isLoadingReplies, !!repliesAction, replyTarget !== null].filter(Boolean).length;
-	const hasRail = replies.length + tail > 0;
 
 	/** The reply a reply's leading `@name` answers: the closest earlier one by that author. */
 	const findAddressee = (from: number, author: string) => {
 		for (let i = from - 1; i >= 0; i--) if (replies[i].author === author) return replies[i];
 		return undefined;
 	};
+
+	// Everything that branches off the rail, in order; the composer sits right under what it answers
+	const rows: { key: string; className?: string; node: React.ReactNode }[] = [];
+	const composerRow = replyTarget && {
+		key: `composer-${replyTarget.reply?.id ?? 'root'}`,
+		node: (
+			<Composer
+				label={t('comments.replyPlaceholder')}
+				placeholder={t('comments.replyPlaceholder')}
+				avatar={<ViewerAvatar viewer={viewer} className="size-6" />}
+				className="min-w-0 flex-1 gap-2.5 pt-1 pb-1.5"
+				replyTarget={replyTarget}
+				requireAuth={requireAuth}
+				onCancel={() => onReplyTargetChange(null)}
+				onPost={async (text) => {
+					// Show the thread the Reply lands in
+					if (!replyList && replyCount > 0) await thread.loadReplies(comment.id);
+					const ok = await thread.add(text, t('comments.you'), comment.id);
+					if (ok) onReplyTargetChange(null);
+					else toast.error(t('comments.postFailed'));
+					return ok;
+				}}
+			/>
+		),
+	};
+	if (composerRow && !replyTarget.reply) rows.push(composerRow);
+	replies.forEach((reply, index) => {
+		const isTarget = replyTarget?.reply?.id === reply.id;
+		rows.push({
+			key: reply.id,
+			node: (
+				<div
+					id={`comment-${reply.id}`}
+					className={cn(
+						'flex min-w-0 flex-1 items-start gap-2.5 rounded-xl',
+						isTarget && '-mr-3 -ml-1 bg-highlight-tint py-1 pr-3 pl-1'
+					)}
+				>
+					<Avatar comment={reply} size="reply" />
+					<CommentBody
+						comment={reply}
+						pollId={pollId}
+						viewerId={viewerId}
+						thread={thread}
+						requireAuth={requireAuth}
+						className="pt-1.5 pb-1.5"
+						replying={isTarget}
+						onReply={() => openComposer(reply)}
+						findAddressee={(author) => findAddressee(index, author)}
+					/>
+				</div>
+			),
+		});
+		if (composerRow && isTarget) rows.push(composerRow);
+	});
+	// A reply that left the list (deleted, or its author blocked) hands the composer to the end
+	if (composerRow && !rows.includes(composerRow)) rows.push(composerRow);
+	if (replyList?.status === 'loading') {
+		rows.push({ key: 'loading', node: <Skeleton className="mt-1 h-10 flex-1 rounded-lg" /> });
+	}
+	if (repliesAction) {
+		rows.push({
+			key: 'replies-action',
+			className: 'items-center',
+			node: (
+				<button
+					type="button"
+					// 32px tall; the ::before extends the hit area to 44px
+					className="relative mt-0.5 inline-flex h-8 items-center px-0.5 text-[12px] font-medium text-muted-foreground before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-[''] hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring"
+					onClick={() => thread.loadReplies(comment.id)}
+				>
+					{repliesAction}
+				</button>
+			),
+		});
+	}
+	const hasRail = rows.length > 0;
 
 	return (
 		<article id={`comment-${comment.id}`} className="flex flex-col">
@@ -368,77 +506,12 @@ function CommentItem({ comment, pollId, viewerId, thread, requireAuth }: Comment
 				/>
 			</div>
 
-			{replies.map((reply, index) => {
-				const isTarget = replyTarget?.reply?.id === reply.id;
-				return (
-					<div key={reply.id} className="flex items-start gap-3">
-						<Elbow continues={index < replies.length - 1 || tail > 0} />
-						<div
-							id={`comment-${reply.id}`}
-							className={cn(
-								'flex min-w-0 flex-1 items-start gap-2.5 rounded-xl',
-								isTarget && '-mr-3 -ml-1 bg-highlight-tint py-1 pr-3 pl-1'
-							)}
-						>
-							<Avatar comment={reply} size="reply" />
-							<CommentBody
-								comment={reply}
-								pollId={pollId}
-								viewerId={viewerId}
-								thread={thread}
-								requireAuth={requireAuth}
-								className="pt-1.5 pb-1.5"
-								replying={isTarget}
-								onReply={() => openComposer(reply)}
-								findAddressee={(author) => findAddressee(index, author)}
-							/>
-						</div>
-					</div>
-				);
-			})}
-
-			{isLoadingReplies && (
-				<div className="flex items-start gap-3">
-					<Elbow continues={tail > 1} />
-					<Skeleton className="mt-1 h-10 flex-1 rounded-lg" />
+			{rows.map((row, index) => (
+				<div key={row.key} className={cn('flex gap-3', row.className ?? 'items-start')}>
+					<Elbow continues={index < rows.length - 1} />
+					{row.node}
 				</div>
-			)}
-
-			{repliesAction && (
-				<div className="flex items-center gap-3">
-					<Elbow continues={replyTarget !== null} />
-					<button
-						type="button"
-						className="mt-0.5 inline-flex h-9 items-center text-[13px] font-medium text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring"
-						onClick={() => thread.loadReplies(comment.id)}
-					>
-						{repliesAction}
-					</button>
-				</div>
-			)}
-
-			{replyTarget !== null && (
-				<div className="flex items-start gap-3">
-					<Elbow continues={false} />
-					<div className="min-w-0 flex-1 pt-1 pb-1.5">
-						<Composer
-							key={replyTarget.reply?.id ?? 'root'}
-							placeholder={t('comments.replyPlaceholder')}
-							replyTarget={replyTarget}
-							requireAuth={requireAuth}
-							onCancel={() => setReplyTarget(null)}
-							onPost={async (text) => {
-								// Show the thread the Reply lands in
-								if (!replyList && replyCount > 0) await thread.loadReplies(comment.id);
-								const ok = await thread.add(text, t('comments.you'), comment.id);
-								if (ok) setReplyTarget(null);
-								else toast.error(t('comments.postFailed'));
-								return ok;
-							}}
-						/>
-					</div>
-				</div>
-			)}
+			))}
 		</article>
 	);
 }
@@ -481,6 +554,7 @@ function CommentBody({
 	const [draft, setDraft] = useState('');
 	const [confirmingDelete, setConfirmingDelete] = useState(false);
 	const [confirmingBlock, setConfirmingBlock] = useState(false);
+	const [reporting, setReporting] = useState(false);
 	// The "…" button gets focus back once whatever the menu opened closes
 	const returnFocus = useRef(false);
 	const moreRef = useRef<HTMLButtonElement>(null);
@@ -568,7 +642,7 @@ function CommentBody({
 					/>
 				)}
 				{isOwn && (
-					<span className={cn(chipClassName, 'bg-highlight px-[7px] leading-4 text-highlight-foreground')}>
+					<span className={cn(chipClassName, 'bg-highlight px-[7px] py-0.5 text-highlight-foreground')}>
 						{t('comments.you')}
 					</span>
 				)}
@@ -655,67 +729,75 @@ function CommentBody({
 						{replying ? t('comments.replying') : t('comments.reply')}
 					</button>
 
-					<Menu.Root>
-						<Menu.Trigger
-							ref={moreRef}
-							aria-label={t('comments.more')}
-							className={cn(pillClassName, 'w-9 justify-center px-0 data-popup-open:bg-field data-popup-open:text-foreground md:w-8')}
-						>
-							<Ellipsis className="size-4" fill="currentColor" />
-						</Menu.Trigger>
-						<Menu.Portal>
-							<Menu.Positioner side="bottom" align="start" sideOffset={4} className="z-50">
-								<Menu.Popup className="w-60 origin-(--transform-origin) rounded-xl bg-popover p-1.5 text-popover-foreground shadow-md ring-1 ring-foreground/10 transition-opacity duration-100 outline-none data-starting-style:opacity-0 data-ending-style:opacity-0">
-									{isOwn && (
-										<Menu.Item className={menuItemClassName} onClick={openEdit}>
-											<Pencil className="size-4" strokeWidth={1.8} />
-											{t('comments.edit')}
+					{!replying && (
+						<Menu.Root>
+							<Menu.Trigger
+								ref={moreRef}
+								aria-label={t('comments.more')}
+								className={cn(pillClassName, 'w-9 justify-center px-0 data-popup-open:bg-field data-popup-open:text-foreground md:w-8')}
+							>
+								<Ellipsis className="size-4" fill="currentColor" />
+							</Menu.Trigger>
+							<Menu.Portal>
+								<Menu.Positioner side="bottom" align="start" sideOffset={4} className="z-50">
+									<Menu.Popup className={cn(menuPopupClassName, 'w-60')}>
+										{isOwn && (
+											<Menu.Item className={menuItemClassName} onClick={openEdit}>
+												<Pencil aria-hidden strokeWidth={1.8} />
+												{t('comments.edit')}
+											</Menu.Item>
+										)}
+										<Menu.Item className={menuItemClassName} onClick={() => copy(text, t('comments.textCopied'))}>
+											<Copy aria-hidden strokeWidth={1.8} />
+											{t('comments.copyText')}
 										</Menu.Item>
-									)}
-									<Menu.Item className={menuItemClassName} onClick={() => copy(text, t('comments.textCopied'))}>
-										<Copy className="size-4" strokeWidth={1.8} />
-										{t('comments.copyText')}
-									</Menu.Item>
-									<Menu.Item
-										className={menuItemClassName}
-										onClick={() => copy(`${pollUrl(pollId)}${commentHash(comment)}`, t('comments.linkCopied'))}
-									>
-										<Link2 className="size-4" strokeWidth={1.8} />
-										{t('comments.copyLink')}
-									</Menu.Item>
-									{(isOwn || blockUserId) && <Menu.Separator className="mx-1 my-1.5 h-px bg-border" />}
-									{isOwn ? (
 										<Menu.Item
-											className={cn(menuItemClassName, 'text-destructive')}
-											onClick={() => setConfirmingDelete(true)}
+											className={menuItemClassName}
+											onClick={() => copy(`${pollUrl(pollId)}${commentHash(comment)}`, t('comments.linkCopied'))}
 										>
-											<Trash2 className="size-4" strokeWidth={1.8} />
-											{t('common.delete')}
+											<Link2 aria-hidden strokeWidth={1.8} />
+											{t('comments.copyLink')}
 										</Menu.Item>
-									) : (
-										blockUserId && (
+										<Menu.Separator className="mx-1 my-1.5 h-px bg-border" />
+										{isOwn ? (
 											<Menu.Item
 												className={cn(menuItemClassName, 'text-destructive')}
-												onClick={() => requireAuth(() => setConfirmingBlock(true))}
+												onClick={() => setConfirmingDelete(true)}
 											>
-												<Ban className="size-4" strokeWidth={1.8} />
-												{t('blocks.block')}
+												<Trash2 aria-hidden strokeWidth={1.8} />
+												{t('common.delete')}
 											</Menu.Item>
-										)
-									)}
-								</Menu.Popup>
-							</Menu.Positioner>
-						</Menu.Portal>
-					</Menu.Root>
+										) : (
+											<>
+												<Menu.Item className={menuItemClassName} onClick={() => requireAuth(() => setReporting(true))}>
+													<TriangleAlert aria-hidden strokeWidth={1.8} />
+													{t('comments.report')}
+												</Menu.Item>
+												{blockUserId && (
+													<Menu.Item
+														className={cn(menuItemClassName, 'text-destructive')}
+														onClick={() => requireAuth(() => setConfirmingBlock(true))}
+													>
+														<Ban aria-hidden strokeWidth={1.8} />
+														{t('blocks.block')}
+													</Menu.Item>
+												)}
+											</>
+										)}
+									</Menu.Popup>
+								</Menu.Positioner>
+							</Menu.Portal>
+						</Menu.Root>
+					)}
 
 					<AlertDialog
 						open={confirmingDelete}
 						onOpenChange={setConfirmingDelete}
 					>
-						<AlertDialogContent finalFocus={() => (isDeleting.current ? false : moreRef.current)}>
+						<AlertDialogContent className="sm:max-w-[440px]" finalFocus={() => (isDeleting.current ? false : moreRef.current)}>
 							<AlertDialogHeader>
 								<AlertDialogTitle>{t('comments.deleteConfirm')}</AlertDialogTitle>
-								<AlertDialogDescription>
+								<AlertDialogDescription className="text-[14px]">
 									{(comment.replyCount ?? 0) > 0
 										? t(comment.replyCount === 1 ? 'comments.deleteBodyReply' : 'comments.deleteBodyReplies', {
 												count: comment.replyCount ?? 0,
@@ -723,7 +805,7 @@ function CommentBody({
 										: t('comments.deleteBody')}
 								</AlertDialogDescription>
 							</AlertDialogHeader>
-							<blockquote className="line-clamp-3 rounded-xl border border-border bg-surface-soft px-3.5 py-2.5 text-sm leading-normal text-muted-foreground">
+							<blockquote className="line-clamp-3 rounded-xl border border-border bg-surface-soft px-3.5 py-2.5 text-[14px] leading-normal text-muted-foreground">
 								{text}
 							</blockquote>
 							<AlertDialogFooter>
@@ -734,6 +816,18 @@ function CommentBody({
 							</AlertDialogFooter>
 						</AlertDialogContent>
 					</AlertDialog>
+
+					{!isOwn && (
+						<ReportCommentDialog
+							pollId={pollId}
+							commentId={comment.id}
+							open={reporting}
+							onOpenChange={(open) => {
+								setReporting(open);
+								if (!open) returnFocus.current = true;
+							}}
+						/>
+					)}
 
 					{blockUserId && (
 						<BlockUserDialog

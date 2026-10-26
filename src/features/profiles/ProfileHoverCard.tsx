@@ -6,12 +6,14 @@ import { type ReactElement, useState } from 'react';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
-import { BlockedBadge, FollowButton } from '@/features/follows/FollowButton';
+import { FollowButton, useFollow } from '@/features/follows/FollowButton';
+import { FollowListDialog } from '@/features/follows/FollowListDialog';
 import { formatMonthYear } from '@/features/polls/format';
 import { countText } from '@/lib/count';
 import type { UserProfile } from '@/types/user';
 
 import { Count } from './Count';
+import { MutualFollowersLine } from './MutualFollowers';
 
 // Matches the route's max-age, so an edited profile shows within a minute
 const PROFILE_TTL_MS = 60_000;
@@ -46,10 +48,14 @@ function loadProfile(username: string) {
 	return entry;
 }
 
-/** Keeps a cached card in step after Follow (from the card or the profile), so reopening it shows the new state. */
+/** Keeps a cached card in step with Follow (from the card, a list or the profile), so reopening it shows the new state and count. */
 export function rememberFollowing(username: string, isFollowing: boolean) {
 	const entry = profiles.get(username);
-	if (entry?.profile) entry.profile = { ...entry.profile, isFollowing };
+	if (entry?.profile) {
+		const { profile } = entry;
+		const followersCount = profile.followersCount + Number(isFollowing) - Number(!!profile.isFollowing);
+		entry.profile = { ...profile, isFollowing, followersCount };
+	}
 	// Still loading: its answer may predate the follow, so the next open asks again
 	else forgetProfile(username);
 }
@@ -79,6 +85,7 @@ export function ProfileHoverCard({
 	children: ReactElement;
 }) {
 	const [stored, setState] = useState<CardState>({ username, status: 'idle' });
+	const [mutualsOpen, setMutualsOpen] = useState(false);
 	const state: CardState = stored.username === username ? stored : { username, status: 'idle' };
 
 	const load = () => {
@@ -102,26 +109,46 @@ export function ProfileHoverCard({
 					<PreviewCard.Popup
 						onClick={(event) => event.stopPropagation()}
 						className="w-80 origin-(--transform-origin) rounded-2xl border border-border bg-card p-4 text-foreground shadow-lg data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95">
-						<ProfileCardBody username={username} avatarUrl={avatarUrl} state={state} />
+						<ProfileCardBody
+							username={username}
+							avatarUrl={avatarUrl}
+							state={state}
+							onOpenMutuals={() => setMutualsOpen(true)}
+						/>
 					</PreviewCard.Popup>
 				</PreviewCard.Positioner>
 			</PreviewCard.Portal>
+			{/* Outside the popup, which closes as the dialog takes focus; its clicks are kept from a row link too */}
+			{mutualsOpen && (
+				<span className="contents" onClick={(event) => event.stopPropagation()}>
+					<FollowListDialog username={username} list="mutuals" onOpenChange={setMutualsOpen} />
+				</span>
+			)}
 		</PreviewCard.Root>
 	);
 }
+
+// Before the profile is in there is no relation, so no button
+const NO_RELATION = { isFollowing: null };
 
 function ProfileCardBody({
 	username,
 	avatarUrl,
 	state,
+	onOpenMutuals,
 }: {
 	username: string;
 	avatarUrl?: string | null;
 	state: CardState;
+	onOpenMutuals: () => void;
 }) {
 	const { t, currentLanguage } = useLanguage();
 	const profile = state.status === 'ready' ? state.profile : null;
 	const displayName = profile?.displayName;
+	// Signed out, and on the viewer's own card, the relation is null too
+	const follow = useFollow(profile?.id ?? '', profile ?? NO_RELATION, {
+		onChange: (following) => rememberFollowing(username, following),
+	});
 
 	return (
 		<div className="space-y-3">
@@ -130,21 +157,9 @@ function ProfileCardBody({
 				<UserAvatar username={username} avatarUrl={avatarUrl ?? profile?.avatarUrl} className="size-12" />
 				<div className="min-w-0 flex-1">
 					<p className="truncate text-[17px] font-medium leading-tight tracking-[-0.02em]">{displayName || username}</p>
-					{displayName && <p className="truncate font-mono text-[12px] text-muted-foreground">@{username}</p>}
+					<p className="truncate font-mono text-[12px] text-muted-foreground">@{username}</p>
 				</div>
-				{/* Signed out, and on the viewer's own card, the relation is null: no one to follow */}
-				{profile?.isBlocked ? (
-					<BlockedBadge />
-				) : (
-					profile?.isFollowing != null && (
-						<FollowButton
-							key={profile.id}
-							userId={profile.id}
-							initialFollowing={profile.isFollowing}
-							onChange={(following) => rememberFollowing(username, following)}
-						/>
-					)
-				)}
+				<FollowButton follow={follow} size="xs" />
 			</div>
 			{state.status === 'loading' && (
 				<div aria-hidden className="space-y-2">
@@ -162,19 +177,18 @@ function ProfileCardBody({
 					<span className="whitespace-nowrap">
 						<Count value={profile.totalPolls} label={countText(t, 'profile.askedCount', profile.totalPolls, currentLanguage)} />
 					</span>
-					{profile.followersCount !== undefined && (
-						<span className="whitespace-nowrap">
-							<Count
-								value={profile.followersCount}
-								label={countText(t, 'profile.followersCount', profile.followersCount, currentLanguage)}
-							/>
-						</span>
-					)}
+					<span className="whitespace-nowrap">
+						<Count
+							value={profile.followersCount + follow.delta}
+							label={countText(t, 'profile.followersCount', profile.followersCount + follow.delta, currentLanguage)}
+						/>
+					</span>
 					<span className="whitespace-nowrap">
 						{t('profile.joined', { date: formatMonthYear(profile.joinedAt, currentLanguage) })}
 					</span>
 				</p>
 			)}
+			{profile && <MutualFollowersLine profile={profile} onOpen={onOpenMutuals} />}
 		</div>
 	);
 }

@@ -29,8 +29,11 @@ import {
 	type PollResults,
 	PollResultsSchema,
 	PollSchema,
+	type ReportCommentRequest,
 	type TagDto,
 	TagDtoSchema,
+	type ThreadComment,
+	ThreadCommentSchema,
 	toApiAudience,
 	toApiVoterVisibility,
 	UserVoteStatusSchema,
@@ -91,8 +94,8 @@ export type PollListQuery = {
 };
 
 /**
- * Explore and Search, from the shared cache. Only Open or Ended Polls;
- * Scheduled ones are never listed.
+ * Explore, Search and the home feed. Only Open or Ended Polls; Scheduled ones are
+ * never listed. Lists drawn as ballot cards pass `asViewer` so each shows the viewer's vote.
  */
 export async function getPolls(
 	query: PollListQuery = {},
@@ -380,17 +383,18 @@ export async function removeInvitee(
 // ── Comments ─────────────────────────────────────────────────────────────────
 
 const CommentPage = cursorPageSchema(CommentSchema);
+const ThreadCommentPage = cursorPageSchema(ThreadCommentSchema);
 const COMMENT_PAGE_SIZE = 20;
 
-/** Top-level Comments, newest first. Public; signed in, `likedByCurrentUser` is set. */
+/** Top-level Comments, newest first, each with its first Replies. Public; signed in, `likedByCurrentUser` is set. */
 export async function getComments(
 	pollId: string,
 	cursor?: string | null
-): Promise<ActionResult<CursorPage<Comment>>> {
+): Promise<ActionResult<CursorPage<ThreadComment>>> {
 	return attempt(async () => {
 		const params = pageParams(cursor, COMMENT_PAGE_SIZE);
 		const data = await apiClient(`/votes/${pollId}/comments?${params}`, { auth: 'optional' });
-		return CommentPage.parse(data);
+		return ThreadCommentPage.parse(data);
 	});
 }
 
@@ -461,6 +465,20 @@ export async function unlikeComment(voteId: string, commentId: string): Promise<
 	return attempt(async () => {
 		await apiClient(`/votes/${voteId}/comments/${commentId}/like`, {
 			method: 'DELETE',
+		});
+	});
+}
+
+/** Reports another person's Comment or Reply to the moderators; reporting it again keeps the first report. */
+export async function reportComment(
+	voteId: string,
+	commentId: string,
+	report: ReportCommentRequest
+): Promise<ActionResult> {
+	return attempt(async () => {
+		await apiClient(`/votes/${voteId}/comments/${commentId}/report`, {
+			method: 'POST',
+			body: JSON.stringify(report),
 		});
 	});
 }

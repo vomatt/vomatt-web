@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useInView } from 'react-intersection-observer';
 
+import { EmptyCard } from '@/components/EmptyCard';
 import { Button, buttonVariants } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -70,7 +71,8 @@ export function PollFeedList({
 
 	return (
 		<div
-			className={cn('w-full flex-1 min-h-[var(--h-main)] max-w-feed', className)}
+			// With the topics' own padding, the pills sit 24px below the top
+			className={cn('w-full flex-1 min-h-[var(--h-main)] max-w-feed pt-4', className)}
 		>
 			{header}
 
@@ -86,10 +88,16 @@ export function PollFeedList({
 			)}
 
 			{initialPage !== null && polls.length === 0 && following && (
-				<div className="flex flex-col items-center gap-3 py-20 text-center">
-					<h2 className="text-3xl">{t('homePage.followingEmpty')}</h2>
-					<p className="text-muted-foreground">{t('homePage.followingEmptyHint')}</p>
-				</div>
+				<EmptyCard
+					className="mt-2"
+					title={t('homePage.followingEmpty')}
+					body={t('homePage.followingEmptyHint')}
+					action={
+						<Link href="/explore" className={buttonVariants({ variant: 'outline' })}>
+							{t('homePage.followingEmptyCta')}
+						</Link>
+					}
+				/>
 			)}
 
 			{initialPage !== null && polls.length === 0 && !following && (
@@ -111,7 +119,7 @@ export function PollFeedList({
 
 			<div
 				data-testid="cFeedList"
-				className="relative flex w-full flex-col gap-3 py-4"
+				className="relative flex w-full flex-col gap-4 pt-2"
 			>
 				{polls.map((poll, index) => (
 					<m.div

@@ -73,7 +73,7 @@ export function CookieSettingsButton() {
 	};
 
 	return (
-		<Button size="sm" variant="outline" className="mt-8" onClick={reopen}>
+		<Button variant="outline" className="mt-8" onClick={reopen}>
 			{t('cookieConsent.settings')}
 		</Button>
 	);

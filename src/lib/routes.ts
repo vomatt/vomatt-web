@@ -59,3 +59,7 @@ export function getSafeRedirectPath(path: string | null) {
 	if (url.origin !== base) return '/';
 	return `${url.pathname}${url.search}${url.hash}`;
 }
+
+/** A comment's link: `#comment-<id>`, or `#comment-<rootId>/<replyId>` for a Reply, whose list loads on demand. */
+export const commentHash = (comment: { id: string; parentId?: string | null }) =>
+	`#comment-${comment.parentId ? `${comment.parentId}/${comment.id}` : comment.id}`;

@@ -4,39 +4,22 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
+import { EmptyCard } from '@/components/EmptyCard';
 import { FilterPills } from '@/components/FilterPills';
 import { LoadMore } from '@/components/LoadMore';
-import { Button, buttonVariants } from '@/components/ui/Button';
-import { Ban, Bell } from '@/components/ui/SvgIcons';
+import { Button } from '@/components/ui/Button';
+import { ChevronRight } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ballotOutcome } from '@/features/account/insights';
-import { isDecided, OutcomeChip } from '@/features/polls/components/OutcomeChip';
-import { SealMark } from '@/features/polls/components/Seal';
-import { NOTIFICATIONS_PAGE_SIZE } from '@/features/polls/constants';
-import { formatFromNow, formatPollDate } from '@/features/polls/format';
-import type { Poll } from '@/features/polls/schema';
-import { getMyPolls } from '@/features/polls/service';
-import { derivePollStatus, getTurnout, isCancelled } from '@/features/polls/status';
-import { endedSummary } from '@/features/profiles/lists';
-import { DecidedText } from '@/features/profiles/ProfileRows';
-import { ProfileAvatar } from '@/features/profiles/UserChip';
 import { useCursorList } from '@/hooks/useCursorList';
 import { useHydrated } from '@/hooks/useHydrated';
 import type { CursorPage } from '@/lib/api/cursor';
-import { toPayloadLocale } from '@/lib/locale';
-import { rich } from '@/lib/rich';
-import { cn } from '@/lib/utils';
 
-import { markNotificationsRead } from './service';
+import { type Entry, entryItems, groupFollows, NotificationRow } from './NotificationRows';
+import { preferencesSummary } from './preferences';
+import type { Notification, NotificationPreferences } from './schema';
+import { getNotifications, markAllNotificationsRead, markNotificationRead } from './service';
 import { useUnreadCount } from './UnreadCountProvider';
-import { UnreadDot } from './UnreadDot';
 
-const fetchPage = (cursor: string) => getMyPolls('ended', cursor, NOTIFICATIONS_PAGE_SIZE);
-
-const markRead = (polls: Poll[], ids: Set<string>) =>
-	polls.map((poll) => (ids.has(poll.id) ? { ...poll, unread: false } : poll));
-
-type Item = { kind: 'invitation' | 'result'; poll: Poll; at: string };
 export type DayGroup = 'today' | 'yesterday' | 'earlier';
 
 /** Which day a moment falls on, in the reader's own calendar. */
@@ -48,86 +31,118 @@ export function dayGroup(iso: string, now = new Date()): DayGroup {
 	return 'earlier';
 }
 
-/** The page's title and intro; rendered outside the list's Suspense boundary. */
-export function NotificationsHeader() {
+/** The page's title and intro, with the list's action beside them; the loading page shows it without one. */
+export function NotificationsHeader({ action }: { action?: React.ReactNode }) {
 	const { t } = useLanguage();
 	return (
-		<div>
-			<h1 className="display-heading text-[30px] text-foreground md:text-[40px]">{t('notifications.title')}</h1>
-			<p className="mt-1.5 text-[14px] text-muted-foreground">{t('notifications.intro')}</p>
+		<div className="flex flex-wrap items-end gap-4">
+			<div className="flex-[1_1_300px]">
+				<h1 className="page-title text-foreground">{t('notifications.title')}</h1>
+				<p className="mt-1.5 text-[14px] text-muted-foreground">{t('notifications.intro')}</p>
+			</div>
+			{action}
 		</div>
 	);
 }
 
 /**
- * Invitations and results in one list, newest first, grouped by day. Results
+ * The feed, newest first, grouped by day, with each run of follows as one row. Results
  * rows stay until opened, so a sealed promise is never lost in the list.
  */
 export function NotificationList({
 	initialPage,
-	invitations: initialInvitations,
+	viewerUsername,
 }: {
-	/** Ended Notifications; null when they couldn't be loaded. */
-	initialPage: CursorPage<Poll> | null;
-	/** Scheduled and Open Invite-only Polls the user is invited to. */
-	invitations: Poll[];
+	/** Null when the feed couldn't be loaded. */
+	initialPage: CursorPage<Notification> | null;
+	viewerUsername: string;
 }) {
 	const { t } = useLanguage();
-	const { refresh } = useUnreadCount();
-	const list = useCursorList(initialPage, fetchPage);
-	const [invitations, setInvitations] = useState(initialInvitations);
+	const { count: unreadCount, refresh } = useUnreadCount();
+	const list = useCursorList(initialPage, getNotifications);
 	const [filter, setFilter] = useState<'all' | 'unread'>('all');
 	const [isMarking, setIsMarking] = useState(false);
 	// Days follow the reader's clock, so the grouping waits for hydration
 	const isHydrated = useHydrated();
 
-	const items: Item[] = [
-		...invitations.map((poll) => ({ kind: 'invitation' as const, poll, at: poll.createdAt })),
-		...list.items.map((poll) => ({ kind: 'result' as const, poll, at: poll.endTime ?? poll.startTime })),
-	].sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
-	const unread = items.filter((item) => item.poll.unread);
-	const shown = filter === 'unread' ? unread : items;
+	const unread = list.items.filter((item) => !item.read);
+	const shown = filter === 'unread' ? unread : list.items;
 
-	const clear = (ids: Set<string>) => {
-		list.setItems((polls) => markRead(polls, ids));
-		setInvitations((polls) => markRead(polls, ids));
+	const setRead = (ids: Set<string>) =>
+		list.setItems((items) => items.map((item) => (ids.has(item.id) ? { ...item, read: true } : item)));
+
+	// The dot clears at once; a failed request leaves it unread on the server, so the next visit shows it again
+	const open = (entry: Entry) => {
+		const ids = entryItems(entry)
+			.filter((item) => !item.read)
+			.map((item) => item.id);
+		if (ids.length === 0) return;
+		setRead(new Set(ids));
+		Promise.all(ids.map((id) => markNotificationRead(id))).then(refresh);
 	};
-
-	// The Poll's page marks it read; clear the dot here at once
-	const open = (poll: Poll) => poll.unread && clear(new Set([poll.id]));
 
 	const markAllRead = async () => {
-		const ids = unread.map((item) => item.poll.id);
 		setIsMarking(true);
-		const read = await markNotificationsRead(ids).catch(() => [] as string[]);
+		const result = await markAllNotificationsRead();
 		setIsMarking(false);
-		// Only the ones the server confirmed; the rest keep their dot
-		clear(new Set(read));
+		if (!result.ok) {
+			toast.error(t('notifications.markAllFailed'));
+			return;
+		}
+		setRead(new Set(unread.map((item) => item.id)));
 		refresh();
-		if (read.length < ids.length) toast.error(t('notifications.markAllFailed'));
 	};
 
-	if (initialPage === null && invitations.length === 0) {
-		return <p className="py-16 text-center text-muted-foreground">{t('notifications.loadFailed')}</p>;
-	}
-	if (items.length === 0) {
+	if (initialPage === null) {
 		return (
-			<div className="empty-state flex flex-col items-start gap-3">
-				<span className="grid size-11 place-items-center rounded-full bg-secondary text-foreground">
-					<Bell className="size-5" />
-				</span>
-				<p>{t('notifications.empty')}</p>
-			</div>
+			<>
+				<NotificationsHeader />
+				<p className="py-16 text-center text-muted-foreground">{t('notifications.loadFailed')}</p>
+			</>
+		);
+	}
+	// Unknown kinds are left out, so an empty page can still have more, or unread ones, after it
+	if (list.items.length === 0 && !list.hasMore && unreadCount === 0) {
+		return (
+			<>
+				<NotificationsHeader />
+				<EmptyCard title={t('notifications.empty')} body={t('notifications.emptyHint')} />
+			</>
 		);
 	}
 
 	const groups = (['today', 'yesterday', 'earlier'] as const)
-		.map((group) => ({ group, items: shown.filter((item) => isHydrated && dayGroup(item.at) === group) }))
-		.filter((group) => group.items.length > 0);
+		.map((group) => ({
+			group,
+			entries: groupFollows(shown.filter((item) => isHydrated && dayGroup(item.createdAt) === group)),
+		}))
+		.filter((group) => group.entries.length > 0);
+	const rows = (entries: Entry[]) => (
+		<ul className="flex flex-col gap-2">
+			{entries.map((entry) => (
+				<NotificationRow key={entry.id} entry={entry} onOpen={() => open(entry)} viewerUsername={viewerUsername} />
+			))}
+		</ul>
+	);
 
 	return (
-		<div className="flex flex-col gap-4">
-			<div className="flex flex-wrap items-center justify-between gap-3">
+		<>
+			<NotificationsHeader
+				action={
+					<Button
+						variant="outline"
+						size="sm"
+						className="text-[14px]"
+						loading={isMarking}
+						// Unread ones may sit past the loaded pages; read-all reaches them too
+						disabled={unread.length === 0 && unreadCount === 0}
+						onClick={markAllRead}
+					>
+						{t('notifications.markAllRead')}
+					</Button>
+				}
+			/>
+			<div className="flex flex-col gap-4">
 				<FilterPills
 					label={t('profile.filterLabel')}
 					value={filter}
@@ -137,164 +152,36 @@ export function NotificationList({
 						{ value: 'unread', label: t('notifications.unread'), count: unread.length },
 					]}
 				/>
-				<Button variant="outline" size="sm" loading={isMarking} disabled={unread.length === 0} onClick={markAllRead}>
-					{t('notifications.markAllRead')}
-				</Button>
-			</div>
 
-			{shown.length === 0 && <p className="empty-state">{t('notifications.caughtUp')}</p>}
-			{!isHydrated && (
-				<ul className="flex flex-col gap-2">
-					{shown.map((item) => (
-						<NotificationRow key={item.poll.id} item={item} onOpen={open} />
-					))}
-				</ul>
-			)}
-			{groups.map(({ group, items: groupItems }) => (
-				<section key={group} aria-labelledby={`day-${group}`} className="flex flex-col gap-2">
-					<h2 id={`day-${group}`} className="mx-0.5 text-[12px] font-medium text-muted-foreground">
-						{t(`notifications.day.${group}`)}
-					</h2>
-					<ul className="flex flex-col gap-2">
-						{groupItems.map((item) => (
-							<NotificationRow key={item.poll.id} item={item} onOpen={open} />
-						))}
-					</ul>
-				</section>
-			))}
-			<LoadMore list={list} />
-		</div>
+				{shown.length === 0 && <p className="empty-state">{t('notifications.caughtUp')}</p>}
+				{!isHydrated && rows(groupFollows(shown))}
+				{groups.map(({ group, entries }) => (
+					<section key={group} aria-labelledby={`day-${group}`} className="flex flex-col gap-2">
+						<h2 id={`day-${group}`} className="mx-0.5 text-[12px] font-medium text-muted-foreground">
+							{t(`notifications.day.${group}`)}
+						</h2>
+						{rows(entries)}
+					</section>
+				))}
+				<LoadMore list={list} />
+			</div>
+		</>
 	);
 }
 
-const rowLink =
-	'rounded-sm outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring';
-
-/** One notification: unread rows are a card with a dot; read ones sit flat until hovered. */
-function NotificationRow({ item, onOpen }: { item: Item; onOpen: (poll: Poll) => void }) {
-	const { t, currentLanguage } = useLanguage();
-	const isHydrated = useHydrated();
-	const { poll } = item;
-	const href = `/poll/${poll.id}`;
-	const ago = isHydrated ? formatFromNow(item.at, currentLanguage) : null;
-	const cancelled = item.kind === 'result' && isCancelled(poll);
-	const isResult = item.kind === 'result' && !cancelled;
-	const strong = (text: string) => <strong className="font-semibold">{text}</strong>;
-	const title = <span className="font-medium">{poll.title}</span>;
-	// The dot trails the first line, as it trails a tab's label, so read and unread rows share one left edge.
-	// The word joiner keeps it on the line of the last word instead of wrapping alone to the left edge.
-	const lineDot = poll.unread && (
-		<>
-			{'⁠'}
-			<UnreadDot label={t('notifications.unread')} className="ml-2 align-middle" />
-		</>
-	);
-	const meta = (...parts: React.ReactNode[]) => (
-		<span className={cn('text-[12px] text-muted-foreground', isResult && poll.unread && 'text-tide-foreground')}>
-			{parts.filter(Boolean).map((part, i) => (
-				<span key={i}>
-					{i > 0 && ' · '}
-					{part}
-				</span>
-			))}
-		</span>
-	);
-
-	let icon: React.ReactNode;
-	let text: React.ReactNode;
-	let aside: React.ReactNode = null;
-
-	if (item.kind === 'invitation') {
-		const status = derivePollStatus(poll);
-		icon = <ProfileAvatar username={poll.creatorUsername} avatarUrl={poll.creatorAvatarUrl} className="size-9" />;
-		text = (
-			<>
-				<span className="text-[15px] leading-snug">
-					{rich(t('notifications.invitedYou'), { name: strong(`@${poll.creatorUsername}`) })} ·{' '}
-					<Link href={href} onClick={() => onOpen(poll)} className={rowLink}>
-						{title}
-					</Link>
-					{lineDot}
-				</span>
-				{meta(
-					t('notifications.inviteOnly'),
-					isHydrated &&
-						(status === 'scheduled'
-							? t('poll.chipOpens', { date: formatPollDate(poll.startTime, currentLanguage) })
-							: poll.endTime && t('profile.endsAt', { date: formatPollDate(poll.endTime, currentLanguage) })),
-					ago
-				)}
-			</>
-		);
-		aside = (
-			<Link
-				href={href}
-				onClick={() => onOpen(poll)}
-				className={buttonVariants({ size: 'sm', variant: poll.myOptionId || status === 'scheduled' ? 'outline' : 'default' })}
-			>
-				{t(poll.myOptionId || status === 'scheduled' ? 'notifications.view' : 'poll.vote')}
-			</Link>
-		);
-	} else if (cancelled) {
-		icon = (
-			<span className="grid size-9 shrink-0 place-items-center rounded-full bg-secondary text-muted-foreground">
-				<Ban aria-hidden className="size-4" />
-			</span>
-		);
-		text = (
-			<>
-				<span className="text-[15px] leading-snug text-muted-foreground">
-					{rich(t('notifications.cancelledBy'), {
-						title: (
-							<Link href={href} onClick={() => onOpen(poll)} className={cn(rowLink, 'text-foreground')}>
-								{title}
-							</Link>
-						),
-						name: `@${poll.creatorUsername}`,
-					})}
-					{lineDot}
-				</span>
-				{meta(poll.myOptionId && t('notifications.neverCounted'), ago)}
-			</>
-		);
-	} else {
-		const outcome = poll.myOptionId ? ballotOutcome(poll, poll.myOptionId) : null;
-		icon = <SealMark />;
-		text = (
-			<>
-				<span className="text-[15px] leading-snug">
-					{poll.unread ? strong(t('notifications.ended')) : t('notifications.ended')} ·{' '}
-					<Link href={href} onClick={() => onOpen(poll)} className={rowLink}>
-						{poll.title}
-					</Link>
-					{lineDot}
-				</span>
-				{meta(
-					endedSummary(poll).kind !== 'none' && <DecidedText poll={poll} />,
-					<span className="font-mono tabular-nums">
-						{t('poll.voted', { count: (getTurnout(poll) ?? 0).toLocaleString(toPayloadLocale(currentLanguage)) })}
-					</span>,
-					ago
-				)}
-			</>
-		);
-		aside = outcome && isDecided(outcome) && <OutcomeChip outcome={outcome} />;
-	}
-
+/** The aside's way to Settings, saying which kinds are on; without the summary when it couldn't be loaded. */
+export function NotificationSettingsLink({ preferences }: { preferences: NotificationPreferences | null }) {
+	const { t } = useLanguage();
 	return (
-		<li
-			className={cn(
-				'flex items-center gap-3.5 rounded-xl border px-4 py-3.5 transition-colors',
-				poll.unread
-					? isResult
-						? 'border-tide-line bg-tide-tint'
-						: 'border-border bg-card hover:border-border-strong'
-					: 'border-transparent hover:border-border hover:bg-card'
-			)}
+		<Link
+			href="/settings#notifications"
+			className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3.5 transition-colors outline-none hover:border-border-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
 		>
-			{icon}
-			<span className="flex min-w-0 flex-1 flex-col gap-0.5">{text}</span>
-			{aside}
-		</li>
+			<span className="flex min-w-0 flex-1 flex-col">
+				<span className="text-[14px] font-medium">{t('notifications.settingsTitle')}</span>
+				{preferences && <span className="text-[12px] text-muted-foreground">{preferencesSummary(preferences, t)}</span>}
+			</span>
+			<ChevronRight aria-hidden className="size-3.5 shrink-0 text-muted-foreground" />
+		</Link>
 	);
 }

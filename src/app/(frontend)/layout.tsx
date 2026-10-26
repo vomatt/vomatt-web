@@ -106,16 +106,20 @@ export default async function RootLayout({
 				{/* The .dark tokens follow the system setting */}
 				<ThemeProvider>
 					{isComingSoon(settings) ? (
-						<main className="h-screen flex flex-col justify-center items-center gap-5 px-contain text-center">
-							<div className="md:w-40 text-secondary-foreground w-28">
-								<BrandLogo />
-							</div>
-							<h1 className="text-2xl">{comingSoon?.heading || 'Coming soon'}</h1>
-							{comingSoon?.message && (
-								<div className="max-w-md text-sm text-muted-foreground">
-									<CustomPortableText blocks={comingSoon.message} />
+						<main className="flex min-h-svh items-center justify-center px-4 py-12">
+							<div className="flex w-full max-w-[480px] flex-col items-start gap-3">
+								<div className="w-28 text-foreground">
+									<BrandLogo />
 								</div>
-							)}
+								<h1 className="mt-4 text-[48px] font-medium leading-[1.1] tracking-[-0.03em]">
+									{comingSoon?.heading || 'Coming soon'}
+								</h1>
+								{comingSoon?.message && (
+									<div className="text-lg text-muted-foreground">
+										<CustomPortableText blocks={comingSoon.message} />
+									</div>
+								)}
+							</div>
 						</main>
 					) : (
 						<LanguageProvider

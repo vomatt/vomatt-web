@@ -84,7 +84,7 @@ export default async function PageSlugRoute(props: Props) {
 
 	return (
 		<Suspense fallback={<ProfileSkeleton />}>
-			<PublicProfile profile={profile} polls={polls} isAuthenticated={!!me} preview={isOwnUsername(me, username)} />
+			<PublicProfile profile={profile} polls={polls} viewerId={me?.id ?? null} preview={isOwnUsername(me, username)} />
 		</Suspense>
 	);
 }
