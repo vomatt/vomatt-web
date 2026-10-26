@@ -11,7 +11,6 @@ import { UserChip } from '@/features/profiles/UserChip';
 
 import { formatAge } from '../format';
 import { useBallot } from '../hooks/useBallot';
-import { useComments } from '../hooks/useComments';
 import { useRequireAuth } from '../hooks/useRequireAuth';
 import { useViewerClock } from '../hooks/useViewerClock';
 import type { Poll } from '../schema';
@@ -19,7 +18,6 @@ import { getPoll } from '../service';
 import { derivePollStatus } from '../status';
 import { Ballot } from './Ballot';
 import { VotedPill } from './BallotMotion';
-import { CommentThread, useCommentLink } from './CommentThread';
 import { getOwnerActions, OwnerActions } from './OwnerActions';
 import { PollFooter } from './PollFooter';
 import { type ResultRow, Results } from './Results';
@@ -33,10 +31,10 @@ interface PollCardProps {
 	/** The viewer's `anonymousBallotByDefault`, which a first vote starts from. */
 	anonymousByDefault?: boolean;
 	/**
-	 * Set on the poll page: the discussion opens right away and folds, and the title is plain text.
-	 * Feed cards link the title and the comments button to the page instead.
+	 * Set on the poll page: the title is plain text and Comments leads to the discussion below.
+	 * Feed cards link both to the page instead.
 	 */
-	defaultShowComments?: boolean;
+	isPage?: boolean;
 	/** Where to go once the owner Deletes the Poll; without it the card just leaves the list. */
 	deletedHref?: string;
 	/** h1 when the card is the page (poll detail); h2 in a list under the page's h1. */
@@ -48,7 +46,7 @@ export function PollCard({
 	poll: initialPoll,
 	viewerId,
 	anonymousByDefault,
-	defaultShowComments = false,
+	isPage = false,
 	deletedHref,
 	headingLevel: Heading = 'h2',
 }: PollCardProps) {
@@ -57,13 +55,7 @@ export function PollCard({
 	const router = useRouter();
 	const [poll, setPoll] = useState(initialPoll);
 	const [isDeleted, setIsDeleted] = useState(false);
-	const [showComments, setShowComments] = useState(defaultShowComments);
 	const { isAuthed, requireAuth, authDialog } = useRequireAuth(!!viewerId);
-	const thread = useComments(initialPoll.id, {
-		enabled: showComments,
-		initialTotal: initialPoll.commentCount,
-	});
-	useCommentLink(thread);
 
 	const refetch = useCallback(async () => {
 		const fresh = await getPoll(poll.id).catch(() => null);
@@ -131,7 +123,7 @@ export function PollCard({
 
 				<div>
 					{/* On the poll page the title is plain, selectable text; in a list it leads to the page */}
-					{defaultShowComments ? (
+					{isPage ? (
 						<Heading className="wrap-anywhere text-[22px] font-medium leading-[1.2] tracking-[-0.02em] text-foreground select-text md:text-[25px]">
 							{title}
 						</Heading>
@@ -186,13 +178,9 @@ export function PollCard({
 				title={title}
 				turnout={ballot.turnout}
 				audience={poll.audience}
-				commentCount={thread.total}
-				onToggleComments={defaultShowComments ? () => setShowComments((value) => !value) : undefined}
+				commentCount={poll.commentCount}
+				isPage={isPage}
 			/>
-
-			{showComments && (
-				<CommentThread thread={thread} pollId={id} viewerId={viewerId} requireAuth={requireAuth} />
-			)}
 
 			{canSeeVoters && (
 				<VotersDialog option={votersOption} voters={voters} onClose={() => setVotersOption(null)} />

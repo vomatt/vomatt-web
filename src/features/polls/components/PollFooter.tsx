@@ -16,8 +16,8 @@ type PollFooterProps = {
 	audience?: Audience;
 	/** Unknown until the discussion has been opened once. */
 	commentCount?: number;
-	/** Set on the poll page, where the discussion folds in place; elsewhere the button leads there. */
-	onToggleComments?: () => void;
+	/** On the poll page Comments leads down to the discussion; elsewhere to the poll page's. */
+	isPage?: boolean;
 };
 
 /** Turnout (and a non-Public Audience), comments and share. Turnout shows in every state. */
@@ -27,7 +27,7 @@ export function PollFooter({
 	turnout,
 	audience,
 	commentCount,
-	onToggleComments,
+	isPage,
 }: PollFooterProps) {
 	const { t } = useLanguage();
 
@@ -50,17 +50,10 @@ export function PollFooter({
 		// Each item is 44px tall; 4px above and below set the text 16px in
 		<div className="flex items-center gap-5 border-t border-border px-5 py-1 text-[14px] text-muted-foreground md:px-8">
 			{meta && <span className="font-mono tabular-nums">{meta}</span>}
-			{onToggleComments ? (
-				<button type="button" onClick={onToggleComments} className={commentsClassName}>
-					<MessageSquare className="size-[18px]" />
-					{commentsLabel}
-				</button>
-			) : (
-				<Link href={`/poll/${pollId}#discussion`} className={commentsClassName}>
-					<MessageSquare className="size-[18px]" />
-					{commentsLabel}
-				</Link>
-			)}
+			<Link href={isPage ? '#discussion' : `/poll/${pollId}#discussion`} className={commentsClassName}>
+				<MessageSquare className="size-[18px]" />
+				{commentsLabel}
+			</Link>
 			<button
 				type="button"
 				onClick={() => share({ id: pollId, title })}

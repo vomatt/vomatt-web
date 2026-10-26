@@ -133,6 +133,7 @@ async function PollDetail({ id }: { id: string }) {
 					anonymousByDefault={profile?.anonymousBallotByDefault}
 					deletedHref="/my-polls"
 					headingLevel="h1"
+					isPage
 				/>
 				<PollDiscussion
 					pollId={poll.id}
