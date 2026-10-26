@@ -71,7 +71,8 @@ Use these. Don't copy their classes into a new element.
 | Status of a poll | `StatusChip` with `derivePollStatus(poll)` (tint, an ink dot or a clock while closing, words). Pick `time`: `inline` where the chip stands alone, on cards, the creator's review and Explore ("Open · ends Fri"); `elsewhere` in a row, which puts `pollTiming(…).when` in its meta ("1,284 voted · ends Fri 20:00" beside "Open") |
 | Any date a poll surface shows | `useViewerClock()` (null until hydrated) + `pollTiming()` from `features/polls/timing`, or `formatPollDay` / `formatPollMoment` / `formatDuration` / `formatAge` from `features/polls/format`. Not `Date.now()` or `new Date()` in a component |
 | Other small pill (e.g. ballot outcome) | `chipClassName` from `features/polls/chip.ts` + a `bg-*` tint |
-| Empty list | the `empty-state` utility (dashed `surface-soft` box) |
+| Empty or missing page (no polls, not found, 404, error) | `EmptyCard`: a centered card with a 56px icon disc on `field`, a 21px title, one 15px line, an optional action |
+| Empty list inside a panel or dialog | the `empty-state` utility (dashed `surface-soft` box) |
 | Unread marker | `UnreadDot` with an `aria-label`, right after the name of what is unread: a tab's label, a list row's title (which goes `font-semibold`, with `NewMark` in its meta), a notification's first line (the row is already a card, so no bold title and no "new"), the top-trailing corner of an icon. Never a leading gutter and never the row's far edge: titles keep one left edge and chips one column whether a row is read or not |
 | A rule or promise (Tide) | `TidePanel` for a surface, `TideRules` + `TideRule icon={…}` for a list of rules |
 | A ballot option's mark | `BallotMark state`: `rest` (a ring; `quiet` once another option is cast), `selected` (a 6px ink ring), `cast` (Volt fill, ink line and check). `SelectionHighlight cast` adds the Volt tint to the cast row only |
