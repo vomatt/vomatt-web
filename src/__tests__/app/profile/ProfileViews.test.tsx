@@ -248,6 +248,18 @@ describe('OwnProfileView', () => {
 		expect(decided).toHaveTextContent('Your pick won');
 	});
 
+	it('says when a sealed ballot\'s results come, in the viewer\'s words for the day', () => {
+		// Jest runs in Asia/Taipei (jest.config.ts): Wednesday 28 October 2026, 10:00
+		jest.useFakeTimers({ now: Date.parse('2026-10-28T10:00:00+08:00') });
+		const today = { ...sealed, id: 't', title: 'Poll t', endTime: '2026-10-28T18:00:00+08:00' };
+		const friday = { ...sealed, id: 'f', title: 'Poll f', endTime: '2026-10-30T20:00:00+08:00' };
+		render(<OwnProfileView profile={me} polls={[today, friday]} initialTab="voted" />);
+		jest.useRealTimers();
+
+		expect(screen.getByRole('link', { name: /Poll t/ })).toHaveTextContent('You chose No · results today at 18:00');
+		expect(screen.getByRole('link', { name: /Poll f/ })).toHaveTextContent('You chose No · results Fri 20:00');
+	});
+
 	it('keeps every owner control in the row menu of an open invite-only poll', async () => {
 		const invited = poll('i', { votingActive: true, endTime: '2099-01-01T00:00:00Z', audience: 'invite-only' });
 		render(<OwnProfileView profile={me} polls={[invited]} />);
