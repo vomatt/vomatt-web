@@ -187,6 +187,8 @@ export const PollSchema = z.object({
 	totalVotes: z.number().int().optional(),
 	participantCount: z.number().int().optional(),
 	commentCount: z.number().int().optional(),
+	/** Distinct signed-in users who shared the Poll; 0 when none. */
+	shareCount: z.number().int().optional(),
 	myOptionId: z.string().nullable().optional(),
 	/** Whether the viewer's Ballot is left out of the voter list; null without a Ballot. */
 	myBallotAnonymous: z.boolean().nullish(),

@@ -24,6 +24,7 @@ import {
 	removeInvitee,
 	reportComment,
 	retractBallot,
+	sharePoll,
 	unlikeComment,
 	updateComment,
 	updatePoll,
@@ -557,6 +558,22 @@ describe('deleteComment()', () => {
 			'/votes/vote-1/comments/comment-1',
 			{ method: 'DELETE' }
 		);
+	});
+});
+
+describe('sharePoll()', () => {
+	it('POSTs the channel and resolves to the share count', async () => {
+		mockApiClient.mockResolvedValue({ shareCount: 18 });
+		await expect(sharePoll('vote-1', 'LINE')).resolves.toEqual({ ok: true, data: 18 });
+		expect(mockApiClient).toHaveBeenCalledWith('/votes/vote-1/share', {
+			method: 'POST',
+			body: JSON.stringify({ channel: 'LINE' }),
+		});
+	});
+
+	it('fails with the status when signed out', async () => {
+		mockApiClient.mockRejectedValue(new AuthError('Unauthorized'));
+		await expect(sharePoll('vote-1', 'COPY_LINK')).resolves.toMatchObject({ ok: false, status: 401 });
 	});
 });
 
