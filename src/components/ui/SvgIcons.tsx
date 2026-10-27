@@ -681,6 +681,25 @@ export function Ellipsis({ size = '1em', ...props }: IconProps) {
 	);
 }
 
+export function ChevronLeft({ size = '1em', ...props }: IconProps) {
+	return (
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			width={size}
+			height={size}
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth={2}
+			strokeLinecap="round"
+			strokeLinejoin="round"
+			{...props}
+		>
+			<path d="m15 18-6-6 6-6" />
+		</svg>
+	);
+}
+
 export function ChevronRight({ size = '1em', ...props }: IconProps) {
 	return (
 		<svg
@@ -825,6 +844,47 @@ export function Trash2({ size = '1em', ...props }: IconProps) {
 	);
 }
 
+export function SquareStop({ size = '1em', ...props }: IconProps) {
+	return (
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			width={size}
+			height={size}
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth={2}
+			strokeLinecap="round"
+			strokeLinejoin="round"
+			{...props}
+		>
+			<rect width="18" height="18" x="3" y="3" rx="2" />
+			<rect width="8" height="8" x="8" y="8" rx="1" />
+		</svg>
+	);
+}
+
+export function TriangleAlert({ size = '1em', ...props }: IconProps) {
+	return (
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			width={size}
+			height={size}
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth={2}
+			strokeLinecap="round"
+			strokeLinejoin="round"
+			{...props}
+		>
+			<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" />
+			<path d="M12 9v4" />
+			<path d="M12 17h.01" />
+		</svg>
+	);
+}
+
 export function Facebook({ size = '1em', ...props }: IconProps) {
 	return (
 		<svg
@@ -948,7 +1008,7 @@ export function PanelLeftIcon(props: IconProps) {
 	);
 }
 
-export function Flag({ size = '1em', ...props }: IconProps) {
+export function CircleMinus({ size = '1em', ...props }: IconProps) {
 	return (
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
@@ -962,7 +1022,8 @@ export function Flag({ size = '1em', ...props }: IconProps) {
 			strokeLinejoin="round"
 			{...props}
 		>
-			<path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528" />
+			<circle cx="12" cy="12" r="9" />
+			<path d="M8 12h8" />
 		</svg>
 	);
 }

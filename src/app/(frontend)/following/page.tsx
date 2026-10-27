@@ -15,7 +15,7 @@ export default async function FollowingPage() {
 	if (!user) redirect('/login');
 
 	return (
-		<div className="px-contain flex flex-col items-center gap-8 py-0 xl:flex-row xl:items-start xl:justify-center">
+		<div className="px-contain flex flex-col items-center gap-8 pb-16 xl:flex-row xl:items-start xl:justify-center">
 			<Suspense
 				fallback={
 					<div className="w-full max-w-feed py-4">
@@ -48,11 +48,7 @@ async function Feed({ viewerId }: { viewerId: string }) {
 				following
 				header={<HomepageHeader tags={tags} signedIn following />}
 			/>
-			<aside className="flex w-full max-w-feed flex-col gap-4 pb-8 xl:sticky xl:top-[calc(var(--header-height)+1rem)] xl:w-[280px] xl:shrink-0 xl:py-4">
-				<Suspense fallback={null}>
-					<HomeRail signedIn />
-				</Suspense>
-			</aside>
+			<HomeRail signedIn />
 		</>
 	);
 }

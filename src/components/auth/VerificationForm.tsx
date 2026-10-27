@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
@@ -8,12 +8,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import type { AuthErrorKey } from '@/lib/api/auth-errors';
 
 import { AuthError } from './AuthError';
-import {
-	InputOTP,
-	InputOTPGroup,
-	InputOTPSeparator,
-	InputOTPSlot,
-} from './InputOTP';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from './InputOTP';
 import type { AuthResult } from './useAuthFlow';
 
 /** Matches the backend's default OTP resend cooldown. */
@@ -21,7 +16,6 @@ export const RESEND_COOLDOWN_SECONDS = 180;
 const CODE_LENGTH = 6;
 
 interface VerificationFormProps {
-	email: string;
 	onSubmitCode: (code: string) => Promise<AuthResult>;
 	onResend: () => Promise<AuthResult>;
 	onEditEmail: () => void;
@@ -34,7 +28,6 @@ function formatCountdown(seconds: number) {
 }
 
 export default function VerificationForm({
-	email,
 	onSubmitCode,
 	onResend,
 	onEditEmail,
@@ -46,6 +39,17 @@ export default function VerificationForm({
 	const [isResending, setIsResending] = useState(false);
 	const [resent, setResent] = useState(false);
 	const [cooldown, setCooldown] = useState(RESEND_COOLDOWN_SECONDS);
+	const inputRef = useRef<HTMLInputElement>(null);
+	// The input is disabled while a code is checked, so it loses focus; a wrong code brings it back
+	const refocusAfterCheck = useRef(false);
+
+	useEffect(() => {
+		if (isLoading || !refocusAfterCheck.current) return;
+		refocusAfterCheck.current = false;
+		const input = inputRef.current;
+		input?.focus();
+		input?.setSelectionRange(0, input.value.length);
+	}, [isLoading]);
 
 	useEffect(() => {
 		if (cooldown <= 0) return;
@@ -61,7 +65,7 @@ export default function VerificationForm({
 			const res = await onSubmitCode(value);
 			if (res.status === 'ERROR') {
 				setError(res.error);
-				setCode('');
+				refocusAfterCheck.current = true;
 			}
 		} finally {
 			setIsLoading(false);
@@ -87,28 +91,27 @@ export default function VerificationForm({
 	}
 
 	return (
-		<div className="flex flex-col">
-			<h1 className="mb-3 display-heading text-[30px]">{t('verificationCode.title')}</h1>
-			<p className="mb-8 text-base leading-relaxed text-muted-foreground">
-				{t('verificationCode.subtitle')}{' '}
-				{/* Own line, so a long address wraps whole instead of splitting mid-word */}
-				<strong className="block font-medium text-foreground wrap-anywhere">{email}</strong>
-			</p>
+		<div className="flex flex-col gap-6">
 			<form
 				onSubmit={(event) => {
 					event.preventDefault();
 					submit(code);
 				}}
-				className="w-full mb-4"
+				className="w-full"
 			>
 				<Field className="mb-6">
 					<InputOTP
+						ref={inputRef}
 						maxLength={CODE_LENGTH}
 						autoFocus
 						value={code}
 						onChange={(value) => {
 							setCode(value.replace(/\D/g, ''));
 							if (error) setError(null);
+						}}
+						// A wrong code stays in the slots, selected, so typing the right one replaces it
+						onFocus={(event) => {
+							if (error) event.currentTarget.setSelectionRange(0, event.currentTarget.value.length);
 						}}
 						onComplete={submit}
 						inputMode="numeric"
@@ -118,13 +121,7 @@ export default function VerificationForm({
 						containerClassName="w-full"
 					>
 						<InputOTPGroup>
-							{[0, 1, 2].map((index) => (
-								<InputOTPSlot key={index} index={index} invalid={!!error} />
-							))}
-						</InputOTPGroup>
-						<InputOTPSeparator className="text-muted-foreground" />
-						<InputOTPGroup>
-							{[3, 4, 5].map((index) => (
+							{Array.from({ length: CODE_LENGTH }, (_, index) => (
 								<InputOTPSlot key={index} index={index} invalid={!!error} />
 							))}
 						</InputOTPGroup>
@@ -146,9 +143,9 @@ export default function VerificationForm({
 				{cooldown > 0 ? '' : t('verificationCode.resendReady')}
 			</p>
 			{/* Both ways out of a missing code sit together, quieter than Continue */}
-			<div className="flex flex-wrap items-center justify-between gap-x-4">
+			<div className="flex flex-col items-start gap-2.5">
 				{cooldown > 0 ? (
-					<p className="flex h-11 items-center text-sm text-muted-foreground tabular-nums">
+					<p className="font-mono text-[14px] text-muted-foreground tabular-nums">
 						{t('verificationCode.resendIn', { time: formatCountdown(cooldown) })}
 					</p>
 				) : (
@@ -160,12 +157,12 @@ export default function VerificationForm({
 				<Button type="button" variant="link" disabled={isLoading} onClick={onEditEmail}>
 					{t('verificationCode.useAnotherEmail')}
 				</Button>
+				{resent && (
+					<p className="text-sm text-positive" role="status">
+						{t('verificationCode.codeSent')}
+					</p>
+				)}
 			</div>
-			{resent && (
-				<p className="text-sm text-positive" role="status">
-					{t('verificationCode.codeSent')}
-				</p>
-			)}
 		</div>
 	);
 }

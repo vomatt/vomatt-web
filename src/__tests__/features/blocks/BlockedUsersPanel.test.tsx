@@ -24,7 +24,7 @@ it('shows the empty state', async () => {
 it('offers Try again when loading fails', async () => {
 	mockGet.mockResolvedValueOnce({ ok: false, message: 'x' });
 	render(<BlockedUsersPanel />);
-	expect(await screen.findByText('Couldn’t load blocked users.')).toBeInTheDocument();
+	expect(await screen.findByText('Couldn’t load blocked people.')).toBeInTheDocument();
 
 	mockGet.mockResolvedValueOnce({ ok: true, data: { items: [bob], nextCursor: null } });
 	fireEvent.click(screen.getByRole('button', { name: 'Try again' }));

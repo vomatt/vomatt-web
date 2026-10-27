@@ -8,18 +8,16 @@ import { useCallback, useState } from 'react';
 import { AuthDialog } from '@/components/auth/AuthDialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserChip } from '@/features/profiles/UserChip';
-import { useHydrated } from '@/hooks/useHydrated';
 
-import { formatFromNow } from '../format';
+import { formatAge } from '../format';
 import { useBallot } from '../hooks/useBallot';
-import { useComments } from '../hooks/useComments';
 import { useRequireAuth } from '../hooks/useRequireAuth';
+import { useViewerClock } from '../hooks/useViewerClock';
 import type { Poll } from '../schema';
 import { getPoll } from '../service';
 import { derivePollStatus } from '../status';
-import { AudienceLabel } from './AudienceLabel';
 import { Ballot } from './Ballot';
-import { CommentThread, useCommentLink } from './CommentThread';
+import { VotedPill } from './BallotMotion';
 import { getOwnerActions, OwnerActions } from './OwnerActions';
 import { PollFooter } from './PollFooter';
 import { type ResultRow, Results } from './Results';
@@ -33,10 +31,10 @@ interface PollCardProps {
 	/** The viewer's `anonymousBallotByDefault`, which a first vote starts from. */
 	anonymousByDefault?: boolean;
 	/**
-	 * Set on the poll page: the discussion opens right away and folds, and the title is plain text.
-	 * Feed cards link the title and the comments button to the page instead.
+	 * Set on the poll page: the title is plain text and Comments leads to the discussion below.
+	 * Feed cards link both to the page instead.
 	 */
-	defaultShowComments?: boolean;
+	isPage?: boolean;
 	/** Where to go once the owner Deletes the Poll; without it the card just leaves the list. */
 	deletedHref?: string;
 	/** h1 when the card is the page (poll detail); h2 in a list under the page's h1. */
@@ -48,22 +46,16 @@ export function PollCard({
 	poll: initialPoll,
 	viewerId,
 	anonymousByDefault,
-	defaultShowComments = false,
+	isPage = false,
 	deletedHref,
 	headingLevel: Heading = 'h2',
 }: PollCardProps) {
-	const { currentLanguage } = useLanguage();
-	const isHydrated = useHydrated();
+	const { t } = useLanguage();
+	const clock = useViewerClock();
 	const router = useRouter();
 	const [poll, setPoll] = useState(initialPoll);
 	const [isDeleted, setIsDeleted] = useState(false);
-	const [showComments, setShowComments] = useState(defaultShowComments);
 	const { isAuthed, requireAuth, authDialog } = useRequireAuth(!!viewerId);
-	const thread = useComments(initialPoll.id, {
-		enabled: showComments,
-		initialTotal: initialPoll.commentCount,
-	});
-	useCommentLink(thread);
 
 	const refetch = useCallback(async () => {
 		const fresh = await getPoll(poll.id).catch(() => null);
@@ -105,39 +97,45 @@ export function PollCard({
 
 	return (
 		<article className="group bg-card border border-border rounded-2xl">
-			<div className="p-4 space-y-4 md:p-6">
-				<div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-					<div className="flex min-w-0 items-center gap-1.5 text-[12px] text-muted-foreground">
+			<div className="flex flex-col gap-4 p-5 md:gap-5 md:px-8 md:pt-7 md:pb-7">
+				<div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+					<div className="flex min-w-0 items-center gap-2.5 text-[14px] text-muted-foreground">
 						<UserChip
 							username={creatorUsername}
 							avatarUrl={poll.creatorAvatarUrl}
+							label={`@${creatorUsername}`}
 							// 44px tall hit area without growing the header row
-							className="-my-2.5 min-h-11 font-medium hover:text-foreground transition-colors"
-							avatarClassName="size-6"
+							className="-my-2.5 min-h-11 gap-2.5 font-medium text-foreground transition-colors hover:text-muted-foreground"
+							avatarClassName="size-7"
 						/>
+						{/* The age needs the viewer's clock; the line holds its height until then */}
 						<time dateTime={createdAt} className="shrink-0 whitespace-nowrap">
-							{isHydrated && formatFromNow(createdAt, currentLanguage)}
+							{clock ? `· ${formatAge(createdAt, clock.language, clock.now)}` : '\u00a0'}
 						</time>
-						<AudienceLabel audience={poll.audience} />
 					</div>
-					<StatusChip status={status} poll={poll} />
+					<div className="flex shrink-0 items-center gap-2">
+						<AnimatePresence initial={false}>
+							{status !== 'ended' && ballot.myOptionId && <VotedPill key="voted" label={t('poll.votedPill')} />}
+						</AnimatePresence>
+						<StatusChip status={status} poll={poll} time="inline" onCard />
+					</div>
 				</div>
 
 				<div>
 					{/* On the poll page the title is plain, selectable text; in a list it leads to the page */}
-					{defaultShowComments ? (
-						<Heading className="wrap-anywhere text-[21px] font-medium leading-tight tracking-[-0.02em] text-foreground select-text md:text-[25px]">
+					{isPage ? (
+						<Heading className="wrap-anywhere text-[22px] font-medium leading-[1.2] tracking-[-0.02em] text-foreground select-text md:text-[25px]">
 							{title}
 						</Heading>
 					) : (
 						<Link href={`/poll/${id}`}>
-							<Heading className="wrap-anywhere text-[21px] font-medium leading-tight tracking-[-0.02em] text-foreground hover:text-muted-foreground transition-colors md:text-[25px]">
+							<Heading className="wrap-anywhere text-[22px] font-medium leading-[1.2] tracking-[-0.02em] text-foreground hover:text-muted-foreground transition-colors md:text-[25px]">
 								{title}
 							</Heading>
 						</Link>
 					)}
 					{description && (
-						<p className="mt-2 max-w-[65ch] wrap-anywhere text-base text-muted-foreground leading-relaxed">
+						<p className="mt-2 max-w-[65ch] wrap-anywhere text-base text-muted-foreground leading-normal">
 							{description}
 						</p>
 					)}
@@ -179,13 +177,10 @@ export function PollCard({
 				pollId={id}
 				title={title}
 				turnout={ballot.turnout}
-				commentCount={thread.total}
-				onToggleComments={defaultShowComments ? () => setShowComments((value) => !value) : undefined}
+				audience={poll.audience}
+				commentCount={poll.commentCount}
+				isPage={isPage}
 			/>
-
-			{showComments && (
-				<CommentThread thread={thread} pollId={id} viewerId={viewerId} requireAuth={requireAuth} />
-			)}
 
 			{canSeeVoters && (
 				<VotersDialog option={votersOption} voters={voters} onClose={() => setVotersOption(null)} />

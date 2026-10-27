@@ -14,7 +14,7 @@ const DateTime = z.string().datetime({ offset: true });
  * Replies stays as a placeholder: `deleted`, with no author, avatar or text.
  * Replies (`parentId` set) always hang off a top-level Comment.
  */
-const CommentBaseSchema = z.object({
+export const CommentSchema = z.object({
 	id: z.string(),
 	voteId: z.string().optional(),
 	userId: z.string().nullish(),
@@ -32,11 +32,11 @@ const CommentBaseSchema = z.object({
 });
 
 /**
- * Top-level Comments carry a preview of their first Replies; `repliesNextCursor`
- * continues from there (null when `replies` holds them all). Replies carry none.
+ * A top-level Comment as the Poll's Comment list sends it: its first Replies (up to 2, oldest
+ * first) and the cursor that continues the Replies after them (null when none remain).
  */
-export const CommentSchema = CommentBaseSchema.extend({
-	replies: z.array(CommentBaseSchema).nullish(),
+export const ThreadCommentSchema = CommentSchema.extend({
+	replies: z.array(CommentSchema).optional(),
 	repliesNextCursor: z.string().nullish(),
 });
 
@@ -260,6 +260,7 @@ export const UpdateCommentRequestSchema = z.object({
 export const COMMENT_REPORT_REASONS = ['SPAM', 'HARASSMENT', 'HATE', 'MISINFORMATION', 'OTHER'] as const;
 export const COMMENT_REPORT_NOTE_MAX = 500;
 
+/** Why someone reports another person's Comment, with an optional note for the moderators. */
 export const ReportCommentRequestSchema = z.object({
 	reason: z.enum(COMMENT_REPORT_REASONS),
 	note: z.string().max(COMMENT_REPORT_NOTE_MAX).optional(),
@@ -290,6 +291,7 @@ export interface PollInput {
 }
 
 export type Comment = z.infer<typeof CommentSchema>;
+export type ThreadComment = z.infer<typeof ThreadCommentSchema>;
 export type PollOption = z.infer<typeof PollOptionSchema>;
 export type TagDto = z.infer<typeof TagDtoSchema>;
 export type VoterVisibility = z.infer<typeof VoterVisibilitySchema>;
@@ -305,5 +307,5 @@ export type PollPage = z.infer<typeof PollPageSchema>;
 export type CreatePollOption = z.infer<typeof CreatePollOptionSchema>;
 export type CreatePollRequest = z.infer<typeof CreatePollRequestSchema>;
 export type CreateCommentRequest = z.infer<typeof CreateCommentRequestSchema>;
-export type ReportCommentRequest = z.infer<typeof ReportCommentRequestSchema>;
 export type UpdateCommentRequest = z.infer<typeof UpdateCommentRequestSchema>;
+export type ReportCommentRequest = z.infer<typeof ReportCommentRequestSchema>;

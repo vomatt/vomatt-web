@@ -95,7 +95,31 @@ describe('Button loading', () => {
 describe('buttonVariants', () => {
 	it("lets the variant's border win over the base's, for a Link styled as a button", () => {
 		const classes = buttonVariants({ variant: 'outline' }).split(' ');
-		expect(classes).toContain('border-border');
+		expect(classes).toContain('border-border-strong');
 		expect(classes).not.toContain('border-transparent');
+	});
+});
+
+describe('Button sizes', () => {
+	// Every size keeps a 44px touch target on phones and only shrinks from md up
+	it.each([
+		['md', 'md:h-10'],
+		['sm', 'md:h-9'],
+		['xs', 'md:h-8'],
+	] as const)('%s is 44px on phones and %s from md', (size, desktop) => {
+		render(<Button size={size}>Save</Button>);
+		expect(screen.getByRole('button', { name: 'Save' })).toHaveClass('h-11', desktop);
+	});
+
+	it('icon-xs is a 44px circle on phones and 32px from md', () => {
+		render(<Button size="icon-xs" aria-label="More" />);
+		expect(screen.getByRole('button', { name: 'More' })).toHaveClass('size-11', 'md:size-8', 'rounded-full');
+	});
+
+	it('default stays 44px at every width', () => {
+		render(<Button>Vote</Button>);
+		const classes = screen.getByRole('button', { name: 'Vote' }).className.split(' ');
+		expect(classes).toContain('h-11');
+		expect(classes.some((c) => c.startsWith('md:h-'))).toBe(false);
 	});
 });

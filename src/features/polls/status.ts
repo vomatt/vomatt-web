@@ -40,6 +40,8 @@ export function visibilityLevel(poll: Pick<Poll, 'voterVisibility' | 'audience'>
 		: poll.voterVisibility;
 }
 
+export type VisibilityLevel = ReturnType<typeof visibilityLevel>;
+
 /**
  * Only the owner and its Invitees can see an Invite-only Poll, so any other
  * viewer of one is an Invitee. The API has no flag for it (integration note R2).

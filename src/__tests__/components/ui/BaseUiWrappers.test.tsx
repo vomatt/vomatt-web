@@ -15,9 +15,6 @@ import { Switch } from '@/components/ui/Switch';
 import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 
 // Polyfill APIs missing in jsdom
-// Base UI's Switch dispatches a PointerEvent on click
-window.PointerEvent = window.PointerEvent || (MouseEvent as any);
-
 window.matchMedia =
 	window.matchMedia ||
 	((query: string) =>
@@ -140,6 +137,18 @@ describe('Base UI wrappers', () => {
 		fireEvent.click(toggle);
 		expect(onCheckedChange).toHaveBeenCalledWith(true, expect.anything());
 		expect(toggle).toHaveAttribute('data-checked');
+	});
+
+	it('Switch is a 44x26 track whose hit area is 44px tall', () => {
+		render(<Switch aria-label="Notify" />);
+		const toggle = screen.getByRole('switch', { name: 'Notify' });
+		expect(toggle).toHaveAttribute('data-size', 'default');
+		expect(toggle).toHaveClass(
+			'data-[size=default]:h-[26px]',
+			'data-[size=default]:w-11',
+			// 24px inside the border plus 10px either side
+			'data-[size=default]:after:-inset-y-2.5'
+		);
 	});
 
 	it('SidebarMenuButton renders a link and only marks it active when active', () => {

@@ -25,7 +25,7 @@ import {
 	DialogTrigger,
 } from '@/components/ui/Dialog';
 import { Input } from '@/components/ui/Input';
-import { ChevronDown, Globe, Lock } from '@/components/ui/SvgIcons';
+import { ChevronDown, Globe, Lock, TriangleAlert } from '@/components/ui/SvgIcons';
 import { Textarea } from '@/components/ui/Textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { isValidUsername, RESERVED_USERNAMES, USERNAME_MAX_LENGTH } from '@/features/account/username';
@@ -185,9 +185,10 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 		}
 	}
 
-	const pill = (fieldLabel: string, ...fields: string[]) => (
+	const pill = (fieldLabel: string, fields: string[], plural = false) => (
 		<VisibilityPill
 			label={fieldLabel}
+			plural={plural}
 			isPublic={isFieldPublic(visibility, fields[0])}
 			onToggle={() => toggleVisibility(...fields)}
 		/>
@@ -203,8 +204,7 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 				</DialogHeader>
 				<form id="edit-profile" onSubmit={submit} noValidate className="flex flex-col gap-4">
 					<div className="flex items-center gap-3.5">
-						<AvatarDialog username={profile.username} avatarUrl={profile.avatarUrl} className="size-16" />
-						<p className="text-[12px] text-muted-foreground">{t('profile.avatarHint')}</p>
+						<AvatarDialog username={profile.username} avatarUrl={profile.avatarUrl} className="size-16" trigger="button" />
 					</div>
 
 					<p className={groupClassName}>{t('profile.groupOnProfile')}</p>
@@ -213,7 +213,7 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 							<label htmlFor="displayName" className={labelClassName}>
 								{t('profile.displayName')}
 							</label>
-							{pill(t('profile.displayName'), 'displayName')}
+							{pill(t('profile.displayName'), ['displayName'])}
 						</div>
 						<Input
 							id="displayName"
@@ -242,18 +242,29 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 							autoCapitalize="none"
 							spellCheck={false}
 							maxLength={USERNAME_MAX_LENGTH}
+							leading="vomatt.com/"
 							className="font-mono"
 							aria-invalid={!!usernameError}
 							aria-describedby="username-hint"
 						/>
 						<p
 							id="username-hint"
-							className={cn('wrap-anywhere text-xs', usernameError ? 'text-destructive' : 'text-muted-foreground')}
+							className={cn(
+								'flex items-start gap-2 wrap-anywhere text-xs',
+								usernameError ? 'text-destructive' : 'text-muted-foreground'
+							)}
 						>
 							{usernameError ??
-								(usernameChanged && values.username
-									? t('account.usernameConfirmBody', { newPath: `/${values.username}`, oldPath: `/${initial.username}` })
-									: t('account.usernameHint', { path: `/${values.username || initial.username}` }))}
+								(usernameChanged && values.username ? (
+									<>
+										<TriangleAlert aria-hidden className="mt-px size-3.5 shrink-0 text-foreground" />
+										<span className="min-w-0">
+											{t('account.usernameConfirmBody', { newPath: `/${values.username}`, oldPath: `/${initial.username}` })}
+										</span>
+									</>
+								) : (
+									t('account.usernameHint', { path: `/${values.username || initial.username}` })
+								))}
 						</p>
 					</div>
 					<div className="flex flex-col gap-1.5">
@@ -261,7 +272,7 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 							<label htmlFor="bio" className={labelClassName}>
 								{t('profile.bio')}
 							</label>
-							{pill(t('profile.bio'), 'bio')}
+							{pill(t('profile.bio'), ['bio'])}
 						</div>
 						<Textarea
 							id="bio"
@@ -329,7 +340,7 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 						</p>
 					)}
 					<ul className="divide-y divide-border rounded-xl border border-border">
-						<VisibilityRow label={t('profile.realName')}>{pill(t('profile.realName'), 'firstName', 'lastName')}</VisibilityRow>
+						<VisibilityRow label={t('profile.realName')}>{pill(t('profile.realName'), ['firstName', 'lastName'])}</VisibilityRow>
 						<VisibilityRow label={t('profile.birthday')}>
 							{/* The API never shows a birthday to anyone else */}
 							<span className={cn(pillClassName, 'border-border bg-secondary text-muted-foreground')}>
@@ -338,26 +349,26 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 							</span>
 						</VisibilityRow>
 						<VisibilityRow label={t('account.field.location')} value={profile.location}>
-							{pill(t('account.field.location'), 'location')}
+							{pill(t('account.field.location'), ['location'])}
 						</VisibilityRow>
 						<VisibilityRow
 							label={t('account.field.points')}
 							value={profile.points.toLocaleString(toPayloadLocale(currentLanguage))}
 							mono
 						>
-							{pill(t('account.field.points'), 'points')}
+							{pill(t('account.field.points'), ['points'], true)}
 						</VisibilityRow>
 						<VisibilityRow label={t('account.field.membershipLevel')} value={profile.membershipLevel}>
-							{pill(t('account.field.membershipLevel'), 'membershipLevel')}
+							{pill(t('account.field.membershipLevel'), ['membershipLevel'])}
 						</VisibilityRow>
 					</ul>
 				</form>
 				<DialogFooter className="items-center">
 					<p className="mr-auto hidden text-[12px] text-muted-foreground sm:block">{t('profile.visibilitySavesHint')}</p>
-					<Button variant="outline" onClick={() => setOpen(false)} disabled={isPending}>
+					<Button variant="outline" size="md" onClick={() => setOpen(false)} disabled={isPending}>
 						{t('common.cancel')}
 					</Button>
-					<Button type="submit" form="edit-profile" loading={isPending}>
+					<Button type="submit" form="edit-profile" size="md" loading={isPending}>
 						{t('profile.saveChanges')}
 					</Button>
 				</DialogFooter>
@@ -386,15 +397,31 @@ const pillClassName =
 // The pill stays small in the dense list, but its hit area reaches 44px
 const pillHitArea = "relative before:absolute before:-inset-y-2 before:inset-x-0 before:content-['']";
 
+const PILL_LABELS = {
+	everyone: { one: 'profile.visibilityPillEveryone', plural: 'profile.visibilityPillEveryonePlural' },
+	onlyYou: { one: 'profile.visibilityPillOnlyYou', plural: 'profile.visibilityPillOnlyYouPlural' },
+} as const;
+
 /** Who sees a detail, as a pill that switches between Everyone and Only you. */
-function VisibilityPill({ label, isPublic, onToggle }: { label: string; isPublic: boolean; onToggle: () => void }) {
+function VisibilityPill({
+	label,
+	plural,
+	isPublic,
+	onToggle,
+}: {
+	label: string;
+	/** The detail reads as plural ("Points: only you see them") */
+	plural: boolean;
+	isPublic: boolean;
+	onToggle: () => void;
+}) {
 	const { t } = useLanguage();
 	const state = t(isPublic ? 'profile.everyone' : 'profile.onlyYouShort');
 	return (
 		<button
 			type="button"
 			onClick={onToggle}
-			aria-label={t('profile.visibilityPill', { field: label, state })}
+			aria-label={t(PILL_LABELS[isPublic ? 'everyone' : 'onlyYou'][plural ? 'plural' : 'one'], { field: label })}
 			className={cn(
 				pillClassName,
 				pillHitArea,

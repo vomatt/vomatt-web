@@ -4,6 +4,7 @@ import type { ReactElement } from 'react';
 
 import { MotionProvider } from '@/components/MotionProvider';
 import { PollCreator } from '@/features/polls/components/PollCreator';
+import { toDateTimeInput } from '@/features/polls/components/PollCreator/formSchema';
 import { listDrafts, saveDraft } from '@/features/polls/drafts';
 import { Poll } from '@/features/polls/schema';
 import { createPoll, updatePoll } from '@/features/polls/service';
@@ -32,7 +33,7 @@ const mockUpdatePoll = updatePoll as jest.Mock;
 
 const TRIGGER = <button>Create Poll</button>;
 const QUESTION = 'Your question';
-const END = 'Ends and reveals results';
+const END = 'Ends';
 
 async function openDialog() {
 	fireEvent.click(screen.getByText('Create Poll'));
@@ -41,7 +42,8 @@ async function openDialog() {
 
 const review = () => fireEvent.click(screen.getByRole('button', { name: 'Review' }));
 const publish = () => fireEvent.click(screen.getByRole('button', { name: 'Publish poll' }));
-const openSettings = () => fireEvent.click(screen.getByRole('button', { name: /Change/ }));
+const pill = (name: string) => screen.getByRole('button', { name });
+const custom = () => fireEvent.click(pill('Custom'));
 
 /** Fills the question and two options on the write screen. */
 function fillPoll(title = 'Which is best?') {
@@ -177,9 +179,8 @@ describe('PollCreator', () => {
 		expect(screen.getByLabelText(QUESTION)).toHaveAccessibleDescription(
 			'Specific, neutral questions get the most honest answers.'
 		);
-		openSettings();
 		expect(screen.getByRole('group', { name: 'Who can see and vote?' })).toHaveAccessibleDescription(
-			"You can’t change this once the poll opens."
+			'You can’t change this once the poll opens. Listed in the feed, Explore and search. Anyone can vote.'
 		);
 	});
 
@@ -322,62 +323,78 @@ describe('PollCreator', () => {
 
 	// ── Timing & privacy ──────────────────────────────────────────────────────
 
-	it('folds timing and privacy into a summary that opens on demand', async () => {
+	it('shows timing and privacy open, ending in 3 days with the times behind Custom', async () => {
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();
-		expect(
-			screen.getByText('Anyone can vote. Only you will see who chose what once it ends.')
-		).toBeInTheDocument();
+		expect(screen.getByRole('heading', { name: 'Timing & privacy' })).toBeInTheDocument();
+		expect(pill('3 days')).toHaveAttribute('aria-pressed', 'true');
+		expect(pill('Everyone')).toHaveAttribute('aria-pressed', 'true');
 		expect(screen.queryByLabelText(END)).not.toBeInTheDocument();
-		openSettings();
+		custom();
+		expect(pill('Custom')).toHaveAttribute('aria-pressed', 'true');
+		expect(screen.getByLabelText('Opens')).toBeInTheDocument();
 		expect(screen.getByLabelText(END)).toBeInTheDocument();
+		fireEvent.click(pill('1 week'));
+		await waitFor(() => expect(screen.queryByLabelText(END)).not.toBeInTheDocument());
 	});
 
 	it('defaults Voter Visibility to Only me and has no multi-choice switch', async () => {
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();
-		openSettings();
-		expect(screen.getByLabelText(/Only me/)).toBeChecked();
-		expect(
-			screen.getByText("You can’t change this once the poll opens. Voters see it before they vote.")
-		).toBeInTheDocument();
+		expect(pill('Only me')).toHaveAttribute('aria-pressed', 'true');
+		expect(screen.getByText('Voters see it before they vote.')).toBeInTheDocument();
 		expect(screen.queryByRole('switch')).not.toBeInTheDocument();
 	});
 
 	it('fills the end time from a preset', async () => {
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();
-		openSettings();
+		custom();
 		fireEvent.change(screen.getByLabelText('Opens'), { target: { value: '2030-01-01T10:00' } });
 		fireEvent.click(screen.getByRole('button', { name: '1 week' }));
 		expect(screen.getByLabelText(END)).toHaveValue('2030-01-08T10:00');
 		expect(screen.getByRole('button', { name: '1 week' })).toHaveAttribute('aria-pressed', 'true');
 	});
 
+	it('names the visible-to-all choice by who can see an invite-only poll', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		expect(screen.getByRole('button', { name: 'Everyone signed in' })).toBeInTheDocument();
+		fireEvent.click(screen.getByRole('button', { name: 'Invite only' }));
+		expect(screen.queryByRole('button', { name: 'Everyone signed in' })).not.toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Everyone invited' })).toBeInTheDocument();
+	});
+
 	it('keeps a chosen preset measured from the opening time when that changes', async () => {
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();
-		openSettings();
-		fireEvent.click(screen.getByRole('button', { name: '1 week' }));
+		custom();
 		fireEvent.change(screen.getByLabelText('Opens'), { target: { value: '2030-03-01T09:00' } });
-		expect(screen.getByLabelText(END)).toHaveValue('2030-03-08T09:00');
+		fireEvent.click(screen.getByRole('button', { name: '1 week' }));
+		fireEvent.change(screen.getByLabelText('Opens'), { target: { value: '2030-04-01T09:00' } });
+		expect(screen.getByLabelText(END)).toHaveValue('2030-04-08T09:00');
 		expect(screen.getByRole('button', { name: '1 week' })).toHaveAttribute('aria-pressed', 'true');
 	});
 
-	it('opens the settings to show a missing end time', async () => {
+	it('shows the end time when a preset’s end has passed', async () => {
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();
 		fillPoll();
-		openSettings();
-		fireEvent.change(screen.getByLabelText(END), { target: { value: '' } });
-		fireEvent.click(screen.getByRole('button', { name: /Done/ })); // fold it away again
-		review();
-		expect(await screen.findByText('Choose when the poll ends.')).toBeInTheDocument();
-		await waitFor(() => expect(screen.getByLabelText(END)).toHaveFocus());
+		fireEvent.click(pill('1 hour'));
+		const realNow = Date.now();
+		const now = jest.spyOn(Date, 'now').mockReturnValue(realNow + 2 * 3600_000);
+		try {
+			review();
+			expect(await screen.findByText('The end must be after the poll opens.')).toBeInTheDocument();
+			await waitFor(() => expect(screen.getByLabelText(END)).toHaveFocus());
+			expect(pill('Custom')).toHaveAttribute('aria-pressed', 'true');
+		} finally {
+			now.mockRestore();
+		}
 		expect(mockCreatePoll).not.toHaveBeenCalled();
 	});
 
-	it('focuses a missing end time in settings that were never opened', async () => {
+	it('focuses a draft’s missing end time', async () => {
 		const draft = saveDraft({
 			title: 'Which is best?',
 			description: '',
@@ -399,7 +416,7 @@ describe('PollCreator', () => {
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();
 		fillPoll();
-		openSettings();
+		custom();
 		fireEvent.change(screen.getByLabelText('Opens'), { target: { value: '2030-01-02T10:00' } });
 		fireEvent.change(screen.getByLabelText(END), { target: { value: '2030-01-01T10:00' } });
 		review();
@@ -431,7 +448,6 @@ describe('PollCreator', () => {
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();
 		fillPoll();
-		openSettings();
 		fireEvent.click(screen.getByRole('button', { name: '24 hours' }));
 		await toReview();
 		expect(await screen.findByText(/^Ends in /)).toBeInTheDocument();
@@ -480,10 +496,10 @@ describe('PollCreator', () => {
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();
 		fillPoll('  Which is best?  ');
-		openSettings();
-		fireEvent.click(screen.getByRole('button', { name: '24 hours' }));
+		custom();
 		fireEvent.change(screen.getByLabelText(END), { target: { value: '2030-01-01T22:00' } });
-		fireEvent.click(screen.getByLabelText(/Nobody/));
+		fireEvent.click(pill('Nobody'));
+		expect(pill('Nobody')).toHaveAttribute('aria-pressed', 'true');
 		await toReview();
 		expect(screen.getByText(/Nobody will see who chose what\./)).toBeInTheDocument();
 		publish();
@@ -507,8 +523,8 @@ describe('PollCreator', () => {
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();
 		fillPoll();
-		openSettings();
-		fireEvent.click(screen.getByLabelText(/Unlisted/));
+		fireEvent.click(pill('Unlisted'));
+		expect(screen.getByText('Not listed anywhere. Anyone with the link can vote.')).toBeInTheDocument();
 		await toReview();
 		expect(screen.getByText('Only people with the link can find it.')).toBeInTheDocument();
 		publish();
@@ -520,8 +536,7 @@ describe('PollCreator', () => {
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();
 		fillPoll();
-		openSettings();
-		fireEvent.click(screen.getByLabelText(/Invite only/));
+		fireEvent.click(pill('Invite only'));
 
 		fireEvent.click(await screen.findByRole('button', { name: 'Book club, 3 members' }));
 		const field = screen.getByLabelText('Invite people');
@@ -548,8 +563,7 @@ describe('PollCreator', () => {
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();
 		fillPoll();
-		openSettings();
-		fireEvent.click(screen.getByLabelText(/Invite only/));
+		fireEvent.click(pill('Invite only'));
 		review();
 		expect(await screen.findByText('Invite at least one person or invite list.')).toBeInTheDocument();
 		expect(screen.getByLabelText('Invite people')).toHaveAccessibleDescription('Invite at least one person or invite list.');
@@ -611,7 +625,7 @@ describe('PollCreator', () => {
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();
 		fireEvent.change(screen.getByLabelText(QUESTION), { target: { value: 'Half-written' } });
-		fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+		fireEvent.click(screen.getByRole('button', { name: 'Close' }));
 
 		expect(await screen.findByText('Keep this poll as a draft?')).toBeInTheDocument();
 		fireEvent.click(screen.getByRole('button', { name: 'Keep draft' }));
@@ -669,8 +683,8 @@ describe('PollCreator', () => {
 		expect(screen.queryByRole('button', { name: 'Save draft' })).not.toBeInTheDocument();
 		expect(screen.getByLabelText(QUESTION)).toHaveValue(poll.title);
 		expect(screen.getByLabelText('Option 2')).toHaveValue('Keep Tuesday');
-		openSettings();
-		expect(screen.getByLabelText(/Nobody/)).toBeChecked();
+		expect(pill('Nobody')).toHaveAttribute('aria-pressed', 'true');
+		expect(screen.getByLabelText('Opens')).toHaveValue(toDateTimeInput(new Date(poll.startTime)));
 		await toReview();
 		fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
 
@@ -709,8 +723,7 @@ describe('PollCreator', () => {
 			],
 		};
 		render(<PollCreator poll={poll} open onOpenChange={jest.fn()} />);
-		openSettings();
-		expect(screen.getByLabelText(/Invite only/)).toBeChecked();
+		expect(pill('Invite only')).toHaveAttribute('aria-pressed', 'true');
 		expect(screen.getByText('Add or remove people with Invitees on the poll.')).toBeInTheDocument();
 		await toReview();
 		fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));

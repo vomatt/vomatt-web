@@ -9,10 +9,11 @@ import { isDecided, OutcomeChip } from '@/features/polls/components/OutcomeChip'
 import { OwnerActions } from '@/features/polls/components/OwnerActions';
 import { SealMark } from '@/features/polls/components/Seal';
 import { StatusChip } from '@/features/polls/components/StatusChip';
-import { formatPollDate } from '@/features/polls/format';
+import { formatPollMoment } from '@/features/polls/format';
+import { useViewerClock } from '@/features/polls/hooks/useViewerClock';
 import type { Poll } from '@/features/polls/schema';
-import { derivePollStatus, getTurnout, isCancelled } from '@/features/polls/status';
-import { useHydrated } from '@/hooks/useHydrated';
+import { derivePollStatus, getTurnout, isCancelled, type PollStatus } from '@/features/polls/status';
+import { pollTiming } from '@/features/polls/timing';
 import { toPayloadLocale } from '@/lib/locale';
 import { rich, richList } from '@/lib/rich';
 import { cn } from '@/lib/utils';
@@ -92,12 +93,19 @@ function EndedMeta({ poll }: { poll: Poll }) {
 	);
 }
 
-/** "1,284 voted", or "Not open yet"; the status chip beside it carries the dates. */
-function OpenMeta({ poll }: { poll: Poll }) {
-	const { t } = useLanguage();
+/** "1,284 voted · ends Fri 20:00", or a Scheduled poll's "Opens Mon 9:00"; the chip beside it says the status word. */
+function OpenMeta({ poll, status }: { poll: Poll; status: PollStatus }) {
 	const voted = useVotedText();
-	if (derivePollStatus(poll) === 'scheduled') return <>{t('profile.notOpenYet')}</>;
-	return <span className="font-mono tabular-nums text-foreground">{voted(poll)}</span>;
+	const clock = useViewerClock();
+	const when = clock && pollTiming(poll, status, clock).when;
+	// The time waits for the browser's clock; a space holds the line's height until then
+	if (status === 'scheduled') return <>{when ?? '\u00a0'}</>;
+	return (
+		<>
+			<span className="font-mono tabular-nums text-foreground">{voted(poll)}</span>
+			{when && ` · ${when}`}
+		</>
+	);
 }
 
 /**
@@ -137,7 +145,7 @@ export function AskedRow({
 		<span className="flex min-w-0 flex-1 flex-col gap-0.5">
 			<RowTitle unread={unread}>{poll.title}</RowTitle>
 			<span className="text-[12px] text-muted-foreground">
-				{ended ? <EndedMeta poll={poll} /> : <OpenMeta poll={poll} />}
+				{ended ? <EndedMeta poll={poll} /> : <OpenMeta poll={poll} status={status} />}
 				{unread && (
 					<>
 						{' · '}
@@ -153,7 +161,7 @@ export function AskedRow({
 			<li>
 				<Link href={`/poll/${poll.id}`} className={cn(profileRowClassName, linkFocus)}>
 					{text}
-					<StatusChip status={status} poll={poll} />
+					<StatusChip status={status} poll={poll} time="elsewhere" />
 				</Link>
 			</li>
 		);
@@ -164,7 +172,7 @@ export function AskedRow({
 			<Link href={`/poll/${poll.id}`} className={cn('flex min-w-0 flex-1 rounded-md', linkFocus)}>
 				{text}
 			</Link>
-			<StatusChip status={status} poll={poll} />
+			<StatusChip status={status} poll={poll} time="elsewhere" />
 			<OwnerActions
 				variant="menu"
 				poll={poll}
@@ -183,9 +191,9 @@ export function AskedRow({
  * an unread dot until they open the results.
  */
 export function VotedRow({ poll }: { poll: Poll }) {
-	const { t, currentLanguage } = useLanguage();
+	const { t } = useLanguage();
 	const voted = useVotedText();
-	const isHydrated = useHydrated();
+	const clock = useViewerClock();
 	const status = derivePollStatus(poll);
 	const choice = <strong className="font-medium">{ballotChoice(poll)}</strong>;
 
@@ -201,9 +209,9 @@ export function VotedRow({ poll }: { poll: Poll }) {
 						<span className="item-title truncate leading-snug">{poll.title}</span>
 						<span className="text-[12px] text-tide-foreground">
 							{t('myPolls.youChose')} {choice}
-							{isHydrated &&
+							{clock &&
 								poll.endTime &&
-								` · ${t('profile.resultsAt', { date: formatPollDate(poll.endTime, currentLanguage) })}`}
+								` · ${t('profile.resultsAt', { date: formatPollMoment(poll.endTime, clock.language, clock.now) })}`}
 						</span>
 					</span>
 					<span className="hidden font-mono text-[12px] tabular-nums text-tide-foreground sm:inline">{voted(poll)}</span>

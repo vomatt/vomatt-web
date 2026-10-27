@@ -9,13 +9,6 @@ export const UserDtoSchema = z.object({
 	avatarUrl: z.string().nullish(),
 });
 
-/** A follower / following list item: a `UserDto` plus the caller's relation to the user (both false on the caller's own entry). */
-export const FollowUserDtoSchema = UserDtoSchema.extend({
-	// default: one item missing a flag shouldn't fail the whole page
-	isFollowing: z.boolean().default(false),
-	followsYou: z.boolean().default(false),
-});
-
 export const UserSummarySchema = z.object({
 	username: z.string(),
 	displayName: z.string().nullable(),
@@ -23,4 +16,3 @@ export const UserSummarySchema = z.object({
 });
 
 export type UserDto = z.infer<typeof UserDtoSchema>;
-export type FollowUserDto = z.infer<typeof FollowUserDtoSchema>;

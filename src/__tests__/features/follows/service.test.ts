@@ -32,10 +32,10 @@ const mockApiClient = apiClient as jest.MockedFunction<typeof apiClient>;
 beforeEach(() => jest.resetAllMocks());
 
 it('lists followed users with a cursor', async () => {
-	mockApiClient.mockResolvedValue({ items: [{ id: 'u1', username: 'bob', isFollowing: true, followsYou: false }], nextCursor: 'c2' });
+	mockApiClient.mockResolvedValue({ items: [{ id: 'u1', username: 'bob' }], nextCursor: 'c2' });
 	const result = await getFollowedUsers('c1');
 	expect(mockApiClient).toHaveBeenCalledWith('/users/me/follows?limit=20&cursor=c1');
-	expect(result).toEqual({ ok: true, data: { items: [{ id: 'u1', username: 'bob', isFollowing: true, followsYou: false }], nextCursor: 'c2' } });
+	expect(result).toEqual({ ok: true, data: { items: [{ id: 'u1', username: 'bob' }], nextCursor: 'c2' } });
 });
 
 it('follows and unfollows by user ID', async () => {
@@ -56,12 +56,10 @@ it('returns the errorCode of a follow of a blocked user', async () => {
 	expect(await followUser('u1')).toMatchObject({ ok: false, status: 400, errorCode: 'user.follow.blocked' });
 });
 
-it('lists a user’s followers and following with a cursor', async () => {
-	mockApiClient.mockResolvedValue({ items: [{ id: 'u1', username: 'bob', isFollowing: true, followsYou: false }], nextCursor: null });
-	expect(await getFollowers('al ice', 'c1')).toEqual({
-		ok: true,
-		data: { items: [{ id: 'u1', username: 'bob', isFollowing: true, followsYou: false }], nextCursor: null },
-	});
+it('lists a user’s followers and following with a cursor, each with its relation to the viewer', async () => {
+	const bob = { id: 'u1', username: 'bob', isFollowing: false, followsYou: true };
+	mockApiClient.mockResolvedValue({ items: [bob], nextCursor: null });
+	expect(await getFollowers('al ice', 'c1')).toEqual({ ok: true, data: { items: [bob], nextCursor: null } });
 	expect(mockApiClient).toHaveBeenCalledWith('/users/al%20ice/followers?limit=20&cursor=c1');
 	await getFollowing('alice');
 	expect(mockApiClient).toHaveBeenLastCalledWith('/users/alice/following?limit=20');
@@ -72,12 +70,9 @@ it('returns the errorCode of a list for an unknown user', async () => {
 	expect(await getFollowers('ghost')).toMatchObject({ ok: false, status: 404, errorCode: 'user.not_found' });
 });
 
-it('lists the followers you also follow', async () => {
-	mockApiClient.mockResolvedValue({
-		items: [{ id: 'u1', username: 'bob', isFollowing: true, followsYou: true }],
-		nextCursor: null,
-	});
-	const result = await getMutualFollowers('al ice', 'c1');
-	expect(mockApiClient).toHaveBeenCalledWith('/users/al%20ice/mutual-followers?limit=20&cursor=c1');
-	expect(result).toMatchObject({ ok: true, data: { items: [{ username: 'bob', followsYou: true }] } });
+it('lists the followers the viewer also follows with a cursor', async () => {
+	const jtan = { id: 'u3', username: 'jtan', isFollowing: true, followsYou: false };
+	mockApiClient.mockResolvedValue({ items: [jtan], nextCursor: 'c2' });
+	expect(await getMutualFollowers('amira', 'c1')).toEqual({ ok: true, data: { items: [jtan], nextCursor: 'c2' } });
+	expect(mockApiClient).toHaveBeenCalledWith('/users/amira/mutual-followers?limit=20&cursor=c1');
 });

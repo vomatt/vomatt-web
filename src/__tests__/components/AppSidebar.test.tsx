@@ -4,8 +4,9 @@ import userEvent from '@testing-library/user-event';
 import { AppSidebar } from '@/components/layout/AppSidebar';
 import { SidebarProvider } from '@/components/ui/Sidebar';
 
+let mockPathname = '/';
 jest.mock('next/navigation', () => ({
-	usePathname: () => '/',
+	usePathname: () => mockPathname,
 	useRouter: () => ({ refresh: jest.fn() }),
 }));
 
@@ -47,6 +48,18 @@ function renderSidebar(userSession: object | null = {}) {
 		</SidebarProvider>
 	);
 }
+
+describe('AppSidebar current page', () => {
+	afterEach(() => {
+		mockPathname = '/';
+	});
+
+	it('marks no row current on Settings, a page of its own', () => {
+		mockPathname = '/settings';
+		renderSidebar();
+		expect(document.querySelector('[aria-current]')).toBeNull();
+	});
+});
 
 describe('AppSidebar unread count', () => {
 	it('shows the unread count', () => {
@@ -90,17 +103,18 @@ describe('AppSidebar more menu', () => {
 		expect(
 			await screen.findByRole('menuitem', { name: 'account.signOut' })
 		).toBeInTheDocument();
+		expect(screen.getByRole('separator')).toBeInTheDocument();
 	});
 
-	it('offers guests only the theme and language choices', async () => {
+	it('offers guests only the theme choices', async () => {
 		renderSidebar(null);
 		await userEvent.click(
 			screen.getByRole('button', { name: 'navigation.more' })
 		);
-		expect(await screen.findAllByRole('menuitemradio')).toHaveLength(5);
-		expect(screen.getByRole('menuitemradio', { name: 'English', checked: true })).toBeInTheDocument();
-		expect(screen.getByRole('menuitemradio', { name: '中文' })).toBeInTheDocument();
+		expect(await screen.findAllByRole('menuitemradio')).toHaveLength(3);
 		expect(screen.queryAllByRole('menuitem')).toHaveLength(0);
+		// Nothing follows the theme choices, so no line closes them off
+		expect(screen.queryByRole('separator')).not.toBeInTheDocument();
 	});
 
 	it('has no My polls row: it folded into Profile › Asked', () => {
@@ -139,6 +153,15 @@ describe('AppSidebar more menu', () => {
 		expect(
 			await screen.findByRole('dialog', { name: 'feedback.title' })
 		).toBeInTheDocument();
+	});
+});
+
+describe('AppSidebar nav', () => {
+	it("marks only the current page's row", () => {
+		renderSidebar();
+		expect(screen.getByRole('link', { name: 'common.home' })).toHaveAttribute('aria-current', 'page');
+		expect(screen.getByRole('link', { name: 'common.explore' })).not.toHaveAttribute('aria-current');
+		expect(screen.getByRole('link', { name: 'navigation.profile' })).not.toHaveAttribute('aria-current');
 	});
 });
 

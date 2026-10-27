@@ -17,7 +17,7 @@ describe('BotAvatar', () => {
 		const { container } = render(<BotAvatar kind="bear" />);
 		const img = container.querySelector('img')!;
 		expect(img).toHaveAttribute('src', '/avatars/bear.svg');
-		expect(img).toHaveClass('rounded-full', 'bg-muted');
+		expect(img).toHaveClass('avatar-frame', 'bg-muted');
 		expect(img).not.toHaveClass('bg-avatar-stone');
 		expect(container.querySelector('[data-slot="tooltip-trigger"]')).toBeNull();
 	});
@@ -26,6 +26,6 @@ describe('BotAvatar', () => {
 		const { container } = render(<BotAvatar kind="bear" variant="round2" />);
 		const img = container.querySelector('img')!;
 		expect(img).toHaveAttribute('src', '/avatars/round2/bear.svg');
-		expect(img).toHaveClass('rounded-full', 'bg-avatar-stone');
+		expect(img).toHaveClass('avatar-frame', 'bg-avatar-stone');
 	});
 });

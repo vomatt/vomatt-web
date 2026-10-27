@@ -78,7 +78,7 @@ The web side of the "Vomatt v2 Design" canvas: Follow everywhere a person is, th
 | # | Design piece | What the web does | Status |
 |---|---|---|---|
 | F1 | One Follow button (Follow / Following → Unfollow on hover / Blocked) on the visitor header and every hover card | Uses `isFollowing` / `isBlocked` from `GET /users/{username}` with the session. That call is no longer cached for signed-in viewers (the relation depends on who asks); signed out it stays cached for 60s. The hover card route answers `private, no-store` when signed in. | OK |
-| F2 | Followers / Following lists under the handle | `GET /users/{u}/followers` and `/following` in a dialog, signed in only (the API requires auth). Shown as plain "Followers" / "Following" until counts exist (B1). | OK |
+| F2 | Followers / Following lists under the handle | `GET /users/{u}/followers` and `/following` in a dialog, signed in only (the API requires auth), with the counts (B1). | OK |
 | F3 | Profile record: polls asked, voted in, people reached, picks that won | Asked and voted in are `totalPolls` / `totalVotes`. People reached and picks that won (owner only) are computed from every page of `/votes/my` (up to 500 open + 500 ended), as A4 already did. | OK, see B5 |
 | F4 | Profile › Voted: Sealed then Decided, with the owner's pick and outcome | `/votes/my` filtered to `creatorId != me && myOptionId`. Outcome from the ended options' counts. | OK, see B6 |
 | F5 | Profile › Asked with drafts and a ••• menu (Edit, End now, Invitees, Share, Delete) | Drafts stay in local storage. The ••• menu reuses the poll card's owner actions. `/my-polls` redirects to the profile. | OK |
@@ -89,14 +89,8 @@ The web side of the "Vomatt v2 Design" canvas: Follow everywhere a person is, th
 
 | # | Request | Why the design needs it | What the web does now |
 |---|---|---|---|
-| B1 | `followersCount` and `followingCount` on `UserProfileResponse` | "1,204 followers · 86 following" under the handle and on the hover card | Typed as optional; rendered as soon as they arrive, plain "Followers" / "Following" links until then |
-| B2 | `followsYou` (the person follows the viewer) on `UserProfileResponse` and on follower list items; `isFollowing` on list items too | "Follow back" on profiles, rows and notifications; a Follow button on each person row in the followers / following lists | Not shown; rows link to the profile, whose hover card has Follow |
-| B3 | A notifications list, e.g. `GET /notifications` (cursor-paged) with a `type` per item: `result`, `invitation`, `follow` ("@x followed you", grouped: "@x and 3 others"), `comment` (comment on your poll, with an excerpt), `closing_soon` (a poll you can vote in ends within a day and you haven't voted), `cancelled`; each with `id`, `createdAt`, `read`, actor and poll refs. The follow endpoint currently says the followed user "is not told", so `follow` items need a product decision too. | The design's rows; today's list is reconstructed from My Polls and misses everything but results and invitations | Only results, invitations and (old) cancelled polls are listed |
-| B4 | `POST /notifications/read-all` | Mark all read without one request per row, and covering rows not loaded yet | One `POST /notifications/{id}/read` per loaded unread row |
 | B5 | Aggregate stats for the owner, e.g. `GET /users/me/stats` → `{ peopleReached, decidedBallots, wonBallots }` | People reached and picks that won are exact only up to 500 + 500 polls, and cost one request per page | Computed on the client |
 | B6 | `role=created\|participated` on `/votes/my` (A3), plus `unread` counts per role | The two profile tabs and their unread badges; today both come from one mixed list | Split on the client |
-| B7 | "Followed by @jtan and 2 others you follow" and "People you both follow": mutuals, e.g. `GET /users/{u}/followers/known?limit=3` with a total | Visitor header, hover card, visitor rail | Not shown |
-| B8 | Notification preferences: per-type switches (results, invitations, comments on your polls, closing soon) and channel (push, email) | Settings › Notifications | Section left out |
 
 ### Open questions
 
@@ -105,3 +99,5 @@ The web side of the "Vomatt v2 Design" canvas: Follow everywhere a person is, th
 | Q1 | Should the hover card and profile header also offer Follow to signed-out visitors (leading to log in)? The web shows nothing until signed in, since the followers lists need auth anyway. |
 | Q2 | Terms / Privacy / Contact links at the foot of Settings: which pages? `docs/legal/legal-pages-draft.md` has drafts but no routes. Left out. |
 | Q3 | The design's collapsed sidebar (icons only, Alert dot, Tide lock) isn't built: the web sidebar doesn't collapse today. Build it? |
+
+B1 (follow counts), B2 (followsYou, isFollowing on list items), B3 (notification feed), B4 (read-all), B7 (mutual followers) and B8 (notification preferences, per kind; no push or email channel exists) are in vomatt-api's feat/design-api branch, 2026-10-26.

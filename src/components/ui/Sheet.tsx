@@ -127,11 +127,11 @@ function SheetDescription({
 
 export {
 	Sheet,
+	SheetTrigger,
 	SheetClose,
 	SheetContent,
-	SheetDescription,
-	SheetFooter,
 	SheetHeader,
+	SheetFooter,
 	SheetTitle,
-	SheetTrigger,
+	SheetDescription,
 };

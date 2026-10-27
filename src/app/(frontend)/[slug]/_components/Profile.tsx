@@ -12,17 +12,18 @@ import { VisitorProfileView } from './VisitorProfileView';
 export async function PublicProfile({
 	profile,
 	polls: pollsPromise,
-	isAuthenticated,
+	viewerId,
 	preview,
 }: {
 	profile: UserProfile;
 	/** Resolves to null when the polls couldn't load */
 	polls: Promise<CursorPage<Poll> | null>;
-	isAuthenticated: boolean;
+	/** The signed-in viewer; null when signed out. */
+	viewerId: string | null;
 	preview?: boolean;
 }) {
 	const polls = await pollsPromise;
-	return <VisitorProfileView profile={profile} polls={polls} isAuthenticated={isAuthenticated} preview={preview} />;
+	return <VisitorProfileView profile={profile} polls={polls} viewerId={viewerId} preview={preview} />;
 }
 
 /** The signed-in user's own profile: their Asked and Voted lists come from every page of My Polls. */
@@ -45,7 +46,7 @@ export async function OwnProfile({
 
 export function ProfileSkeleton() {
 	return (
-		<div className="px-contain mx-auto max-w-[1080px] space-y-6 py-6 md:py-10">
+		<div className="px-contain mx-auto max-w-[1280px] space-y-6 pt-8 pb-16">
 			<div className="flex max-w-[720px] items-start gap-5">
 				<Skeleton className="size-18 rounded-full md:size-22" />
 				<div className="flex-1 space-y-2">

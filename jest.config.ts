@@ -3,6 +3,10 @@ import nextJest from 'next/jest.js';
 
 const createJestConfig = nextJest({ dir: './' });
 
+// Dates render in the viewer's time zone; fix one (set here, so the workers inherit it) so
+// calendar days ("today", "Fri") come out the same on every machine
+process.env.TZ = 'Asia/Taipei';
+
 const config: Config = {
 	coverageProvider: 'v8',
 	testEnvironment: 'jsdom',
