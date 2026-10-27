@@ -556,6 +556,43 @@ describe('CommentThread', () => {
 		expect(within(screen.getByText('Theirs').closest('article')!).getByRole('textbox', { name: 'Write a reply…' })).toBeInTheDocument();
 	});
 
+	it('focuses a reply composer without jumping the page, and keeps the main composer as it was', async () => {
+		const scrollIntoView = jest.fn();
+		const realScroll = Element.prototype.scrollIntoView;
+		Element.prototype.scrollIntoView = scrollIntoView;
+		try {
+			render(<Harness />);
+			await screen.findByText('Theirs');
+			const main = screen.getByRole('textbox', { name: 'Add a comment' });
+
+			fireEvent.click(screen.getAllByRole('button', { name: 'Reply' })[0]);
+
+			expect(screen.getByRole('textbox', { name: 'Write a reply…' })).toHaveFocus();
+			expect(scrollIntoView).not.toHaveBeenCalled();
+			expect(main).not.toHaveAttribute('rows');
+			expect(within(main.closest('form')!).getByRole('button', { name: 'Post' })).toBeVisible();
+		} finally {
+			Element.prototype.scrollIntoView = realScroll;
+		}
+	});
+
+	it('keeps a posted reply on screen as it is saved, rather than replacing it', async () => {
+		let save!: (value: unknown) => void;
+		service.postComment.mockReturnValue(new Promise((resolve) => (save = resolve)));
+		render(<Harness />);
+		await screen.findByText('Theirs');
+
+		fireEvent.click(screen.getAllByRole('button', { name: 'Reply' })[0]);
+		const box = screen.getByRole('textbox', { name: 'Write a reply…' });
+		fireEvent.change(box, { target: { value: 'Saved soon' } });
+		fireEvent.submit(box.closest('form')!);
+		const pending = await screen.findByText('Saved soon');
+
+		await act(async () => save({ ok: true, data: { ...reply, id: 'r9', userId: 'me', author: 'klaus', text: 'Saved soon' } }));
+
+		expect(screen.getByText('Saved soon')).toBe(pending);
+	});
+
 	it('shows a placeholder for a deleted comment that has replies', async () => {
 		service.getComments.mockResolvedValue({
 			ok: true,

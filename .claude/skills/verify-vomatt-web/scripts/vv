@@ -13,8 +13,9 @@ EVIDENCE="$(cd /tmp && pwd -P)/vomatt-verify-evidence/$RUN_ID"
 CLONE="$ROOT/web"
 PROJECT="vomatt-verify-$RUN_ID"
 OVERRIDE="$WEB_REPO/.claude/skills/verify-vomatt-web/scripts/compose.verify.yml"
-# Must match JWT_SECRET in vomatt-api/docker-compose.yml
+# Must match JWT_SECRET and APP_KEY in vomatt-api/docker-compose.yml
 JWT_SECRET="local-dev-only-jwt-secret-0123456789abcdef"
+APP_KEY="local-dev-only-app-key-0123456789abcdef"
 B="${BROWSE_BIN:-$HOME/.claude/skills/gstack/browse/dist/browse}"
 export BROWSE_STATE_FILE="$ROOT/browse.json"
 
@@ -30,6 +31,12 @@ sync_clone() {
 	if [ ! -d "$CLONE/node_modules" ] || ! cmp -s "$WEB_REPO/package-lock.json" "$ROOT/package-lock.json"; then
 		rm -rf "$CLONE/node_modules"
 		cp -cR "$WEB_REPO/node_modules" "$CLONE/node_modules"   # APFS clone: instant, no extra disk
+		# A pnpm-installed node_modules lacks packages npm hoists (Next needs @types/node), so the clone gets its own npm install
+		if [ -f "$CLONE/node_modules/.modules.yaml" ]; then
+			echo "vv: node_modules was installed by pnpm; running npm ci in the clone…"
+			rm -rf "$CLONE/node_modules"
+			(cd "$CLONE" && npm ci --no-audit --no-fund >"$ROOT/npm-ci.log" 2>&1) || die "npm ci failed; see $ROOT/npm-ci.log"
+		fi
 		cp "$WEB_REPO/package-lock.json" "$ROOT/package-lock.json"
 	fi
 	git -C "$WEB_REPO" rev-parse HEAD > "$ROOT/web.rev"
@@ -46,7 +53,7 @@ cmd_up() {
 	(cd "$CLONE" && API_URL="http://localhost:$VERIFY_API_PORT" SESSION_SECRET="$JWT_SECRET" \
 		SITE_URL="http://localhost:$WEB_PORT" API_LOG=1 \
 		nohup node node_modules/next/dist/bin/next dev --port="$WEB_PORT" --turbopack >"$ROOT/web.log" 2>&1 &
-		echo $! >"$ROOT/web.pid")
+		echo $! >"$ROOT/web.pid") </dev/null >/dev/null 2>&1   # it outlives vv; holding vv's stdout would hang a caller's pipe
 	for _ in $(seq 1 90); do
 		[ "$(curl -s -o /dev/null -m 90 -w '%{http_code}' "http://localhost:$WEB_PORT/login")" = 200 ] && break
 		grep -q 'Another next dev server' "$ROOT/web.log" && die "next refused to start: $(tail -5 "$ROOT/web.log")"
@@ -84,7 +91,30 @@ cmd_doctor() {
 
 cmd_otp() {
 	[ $# = 1 ] || die "usage: vv otp <email>"
-	compose exec -T redis redis-cli GET "otp:email:$1" | sed -nE 's/.*"code":"([0-9]{6})".*/\1/p'
+	# The API stores HMAC(HMAC(APP_KEY, "otp"), "<email>:<code>") under otp:email:<sha256(email)>, never the
+	# code, so this tries every 6-digit code against it (about a second)
+	# The email is normalized as the API does (User.normalizeEmail): lower-cased, and a Gmail address canonical
+	local email key record
+	email="$(python3 -I -c '
+import sys
+local, at, domain = sys.argv[1].strip().lower().rpartition("@")
+if at and domain in ("gmail.com", "googlemail.com"):
+    local, domain = local.split("+")[0].replace(".", ""), "gmail.com"
+print(f"{local}{at}{domain}")' "$1")"
+	key="otp:email:$(printf '%s' "$email" | shasum -a 256 | cut -d' ' -f1)"
+	record="$(compose exec -T redis redis-cli GET "$key")"
+	[ -n "$record" ] || return 0
+	python3 -I - "$APP_KEY" "$email" "$record" <<'PY'
+import hashlib, hmac, json, sys
+app_key, email, record = sys.argv[1:]
+otp_key = hmac.new(app_key.encode(), b"otp", hashlib.sha256).digest()
+want = json.loads(record)["codeHash"]
+for i in range(1_000_000):
+    code = f"{i:06d}"
+    if hmac.new(otp_key, f"{email}:{code}".encode(), hashlib.sha256).hexdigest() == want:
+        print(code)
+        break
+PY
 }
 
 cmd_login() {
