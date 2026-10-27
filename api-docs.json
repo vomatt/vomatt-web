@@ -1910,6 +1910,38 @@
         },
         "type" : "object"
       },
+      "ApiResponseVoteShareResponse" : {
+        "description" : "Envelope of every API response, success or error",
+        "properties" : {
+          "data" : {
+            "$ref" : "#/components/schemas/VoteShareResponse"
+          },
+          "error" : {
+            "description" : "Legacy duplicate of `message` on errors; null on success. Use `message` instead",
+            "example" : "Poll not found",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "errorCode" : {
+            "description" : "Stable machine-readable error code (lowercase, dot-separated); branch on this, not on `message`. Null on success",
+            "example" : "vote.not_found",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "message" : {
+            "description" : "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",
+            "example" : "Operation completed",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "success" : {
+            "description" : "true on success, false on error",
+            "example" : true,
+            "type" : "boolean"
+          }
+        },
+        "type" : "object"
+      },
       "AppleAuthRequest" : {
         "description" : "Sign in with Apple request",
         "properties" : {
@@ -3669,6 +3701,19 @@
         },
         "type" : "object"
       },
+      "ShareVoteRequest" : {
+        "description" : "Where the caller shared the Poll's link",
+        "properties" : {
+          "channel" : {
+            "description" : "Share target: COPY_LINK, NATIVE (system share sheet), LINE, FACEBOOK, X, THREADS or OTHER",
+            "enum" : [ "COPY_LINK", "NATIVE", "LINE", "FACEBOOK", "X", "THREADS", "OTHER" ],
+            "example" : "LINE",
+            "type" : "string"
+          }
+        },
+        "required" : [ "channel" ],
+        "type" : "object"
+      },
       "SimpleResultResponse" : {
         "description" : "Generic action result, used when an operation has no specific payload or only returns an id/status",
         "nullable" : true,
@@ -4651,6 +4696,12 @@
             "format" : "int64",
             "type" : "integer"
           },
+          "shareCount" : {
+            "description" : "Number of distinct users who shared the Poll through its share button (`POST /api/votes/{voteId}/share`); repeat shares by the same user count once. Signed-out shares are not counted",
+            "example" : 18,
+            "format" : "int64",
+            "type" : "integer"
+          },
           "startTime" : {
             "description" : "When the Poll opens (or opened)",
             "example" : "2026-10-12T09:00:00+08:00",
@@ -4794,6 +4845,19 @@
           },
           "votingActive" : {
             "type" : "boolean"
+          }
+        },
+        "type" : "object"
+      },
+      "VoteShareResponse" : {
+        "description" : "A Poll's share count after the caller's share",
+        "nullable" : true,
+        "properties" : {
+          "shareCount" : {
+            "description" : "Number of distinct users who shared the Poll, the caller included",
+            "example" : 18,
+            "format" : "int64",
+            "type" : "integer"
           }
         },
         "type" : "object"
@@ -7964,6 +8028,7 @@
                               "votes" : null
                             } ],
                             "participantCount" : 42,
+                            "shareCount" : 18,
                             "startTime" : "2026-10-12T09:00:00+08:00",
                             "tags" : [ ],
                             "title" : "Which language should we use for the next side project?",
@@ -8212,6 +8277,7 @@
                             "votes" : null
                           } ],
                           "participantCount" : 42,
+                          "shareCount" : 18,
                           "startTime" : "2026-10-12T09:00:00+08:00",
                           "tags" : [ ],
                           "title" : "Which language should we use for the next side project?",
@@ -8367,6 +8433,7 @@
                             "votes" : null
                           } ],
                           "participantCount" : 42,
+                          "shareCount" : 18,
                           "startTime" : "2026-10-12T09:00:00+08:00",
                           "tags" : [ ],
                           "title" : "Which language should we use for the next side project?",
@@ -8544,6 +8611,7 @@
                             "votes" : null
                           } ],
                           "participantCount" : 42,
+                          "shareCount" : 18,
                           "startTime" : "2026-10-12T09:00:00+08:00",
                           "tags" : [ ],
                           "title" : "Which language should we use for the next side project?",
@@ -9251,7 +9319,7 @@
     },
     "/api/auth/logout" : {
       "post" : {
-        "description" : "**Auth**: public (identified by the refresh token in the body)\n**Precondition**: none; an unknown or already-revoked token is not an error\n**Behavior**: revokes the given refresh token. Other devices' refresh tokens stay valid\n**Side effects**: the refresh token can no longer be refreshed. The access token is stateless and stays valid until it expires (default 15 minutes), so the client must discard it\n**Errors**:\n- 400 `common.validation_failed`: `refreshToken` is blank",
+        "description" : "**Auth**: public (identified by the refresh token in the body)\n**Precondition**: none; an unknown or already-revoked token is not an error\n**Behavior**: revokes the given refresh token. A token that was already refreshed signs out the sign-in it belongs to: the refresh token that replaced it can no longer be refreshed. Other devices' refresh tokens stay valid\n**Side effects**: the refresh token can no longer be refreshed. The access token is stateless and stays valid until it expires (default 15 minutes), so the client must discard it\n**Errors**:\n- 400 `common.validation_failed`: `refreshToken` is blank",
         "operationId" : "logout",
         "requestBody" : {
           "content" : {
@@ -9523,7 +9591,7 @@
     },
     "/api/auth/refresh" : {
       "post" : {
-        "description" : "**Auth**: public (authenticated by the refresh token in the body, not by the Authorization header)\n**Precondition**: a refresh token from a previous login or refresh\n**Behavior**: rotates the refresh token: the old one is spent and a new access token and refresh token are returned. The response `user` is null; keep the user info from login. Roles are re-read from the database, so a role change takes effect on refresh; the token keeps the scope of its sign-in, so only an admin console session refreshes into a token that grants the admin role. A second call with the same old token within the grace window (default 60 s) returns the same new pair instead of failing, so concurrent refreshes are safe\n**Side effects**: the old refresh token is spent. If a spent token is presented again after the grace window, that sign-in is ended: its latest refresh token can no longer be refreshed (401 `auth.refresh_token.invalid`), so it must sign in again once its access token expires; the user's other devices stay signed in. If the user is missing or suspended, all their refresh tokens are revoked too\n**Errors**:\n- 401 `auth.refresh_token.invalid`: the token is unknown, expired, revoked, or its user is missing or suspended\n- 401 `auth.suspicious_login`: a spent token was reused after the grace window; the session it belonged to is now signed out\n- 429 `common.rate_limited` / 503 `common.service_unavailable`: the token was not checked or spent; keep the tokens and retry later. Only the two 401s end the session",
+        "description" : "**Auth**: public (authenticated by the refresh token in the body, not by the Authorization header)\n**Precondition**: a refresh token from a previous login or refresh\n**Behavior**: rotates the refresh token: the old one is spent and a new access token and refresh token are returned. The response `user` is null; keep the user info from login. Roles are re-read from the database, so a role change takes effect on refresh; the token keeps the scope of its sign-in, so only an admin console session refreshes into a token that grants the admin role. A second call with the same old token within the grace window (default 60 s) returns the same new pair instead of failing, so concurrent refreshes are safe; not once that sign-in was logged out or revoked or its user suspended (401 `auth.refresh_token.invalid`)\n**Side effects**: the old refresh token is spent. If a spent token is presented again after the grace window, that sign-in is ended: its latest refresh token can no longer be refreshed (401 `auth.refresh_token.invalid`), so it must sign in again once its access token expires; the user's other devices stay signed in. If the user is missing or suspended, all their refresh tokens are revoked too\n**Errors**:\n- 401 `auth.refresh_token.invalid`: the token is unknown, expired, revoked, or its user is missing or suspended\n- 401 `auth.suspicious_login`: a spent token was reused after the grace window; the session it belonged to is now signed out\n- 429 `common.rate_limited` / 503 `common.service_unavailable`: the token was not checked or spent; keep the tokens and retry later. Only the two 401s end the session",
         "operationId" : "refresh",
         "requestBody" : {
           "content" : {
@@ -13906,6 +13974,7 @@
                             "votes" : null
                           } ],
                           "participantCount" : 42,
+                          "shareCount" : 18,
                           "startTime" : "2026-10-12T09:00:00+08:00",
                           "title" : "Which language should we use for the next side project?",
                           "voterVisibility" : "OWNER",
@@ -14051,6 +14120,7 @@
                             "votes" : null
                           } ],
                           "participantCount" : 42,
+                          "shareCount" : 18,
                           "startTime" : "2026-10-12T09:00:00+08:00",
                           "title" : "Which language should we use for the next side project?",
                           "voterVisibility" : "OWNER",
@@ -14182,6 +14252,7 @@
                           "votes" : null
                         } ],
                         "participantCount" : 0,
+                        "shareCount" : 18,
                         "startTime" : "2026-10-12T09:00:00+08:00",
                         "tags" : [ {
                           "description" : null,
@@ -14333,6 +14404,7 @@
                             "votes" : null
                           } ],
                           "participantCount" : 42,
+                          "shareCount" : 18,
                           "startTime" : "2026-10-12T09:00:00+08:00",
                           "title" : "Which language should we use for the next side project?",
                           "voterVisibility" : "OWNER",
@@ -14462,6 +14534,7 @@
                             "votes" : null
                           } ],
                           "participantCount" : 42,
+                          "shareCount" : 18,
                           "startTime" : "2026-10-12T09:00:00+08:00",
                           "title" : "Which language should we use for the next side project?",
                           "voterVisibility" : "OWNER",
@@ -14697,6 +14770,7 @@
                           "votes" : 15
                         } ],
                         "participantCount" : 42,
+                        "shareCount" : 18,
                         "startTime" : "2026-10-12T09:00:00+08:00",
                         "tags" : [ {
                           "description" : null,
@@ -14754,6 +14828,7 @@
                           "votes" : null
                         } ],
                         "participantCount" : 42,
+                        "shareCount" : 18,
                         "startTime" : "2026-10-12T09:00:00+08:00",
                         "tags" : [ {
                           "description" : null,
@@ -14900,6 +14975,7 @@
                           "votes" : null
                         } ],
                         "participantCount" : 0,
+                        "shareCount" : 18,
                         "startTime" : "2026-10-12T09:00:00+08:00",
                         "tags" : [ {
                           "description" : null,
@@ -16994,6 +17070,140 @@
         "tags" : [ "Vote" ]
       }
     },
+    "/api/votes/{voteId}/share" : {
+      "post" : {
+        "description" : "**Auth**: required\n**Precondition**: the caller can reach the Poll (any state: Scheduled, Open or Ended)\n**Behavior**: call after the caller shared the Poll's link with the share button; `channel` says where (COPY_LINK, NATIVE for the system share sheet, LINE, FACEBOOK, X, THREADS or OTHER). Idempotent per user and Poll: a repeat share succeeds, keeps the first `channel` and leaves the count unchanged, so the count is distinct sharers. Returns the Poll's `shareCount`, the same value the Poll response carries. A signed-out viewer can still share the link, but nothing is counted.\n**Side effects**: none besides the count; nobody is notified\n**Errors**:\n- 400 `common.validation_failed`: `channel` missing\n- 400 `common.bad_request`: `channel` is not one of the values above\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is INVITE_ONLY and the caller is neither its owner nor an Invitee\n",
+        "operationId" : "share",
+        "parameters" : [ {
+          "description" : "Poll ID",
+          "example" : "0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05",
+          "in" : "path",
+          "name" : "voteId",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "examples" : {
+                "Copy link" : {
+                  "description" : "Copy link",
+                  "value" : {
+                    "channel" : "COPY_LINK"
+                  }
+                },
+                "LINE" : {
+                  "description" : "LINE",
+                  "value" : {
+                    "channel" : "LINE"
+                  }
+                }
+              },
+              "schema" : {
+                "$ref" : "#/components/schemas/ShareVoteRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "examples" : {
+                  "Counted" : {
+                    "description" : "Counted",
+                    "value" : {
+                      "data" : {
+                        "shareCount" : 18
+                      },
+                      "error" : null,
+                      "errorCode" : null,
+                      "message" : null,
+                      "success" : true
+                    }
+                  }
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResponseVoteShareResponse"
+                }
+              }
+            },
+            "description" : "Success"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Authenticated but not allowed (errorCode `common.forbidden`)"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "examples" : {
+                  "vote.not_found" : {
+                    "description" : "vote.not_found",
+                    "value" : {
+                      "data" : null,
+                      "error" : "Poll not found",
+                      "errorCode" : "vote.not_found",
+                      "message" : "Poll not found",
+                      "success" : false
+                    }
+                  }
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Poll does not exist, is Deleted, or is Invite-only and hidden from the caller (`vote.not_found`)"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          }
+        },
+        "summary" : "Count a share of a Poll",
+        "tags" : [ "Vote" ]
+      }
+    },
     "/api/votes/{voteId}/vote" : {
       "delete" : {
         "description" : "**Auth**: required\n**Precondition**: the Poll is Open (not Scheduled, not Ended)\n**Behavior**: withdraws the caller's whole Ballot (Retraction); the caller is no longer a Participant. Idempotent: succeeds, changing nothing, when the caller holds no Ballot.\n**Side effects**: Turnout -1 when a Ballot was removed. A Participant who Retracted gets no Ended Notification, unless they are an Invitee: every Invitee of an INVITE_ONLY Poll still gets it.\n**Errors**:\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is INVITE_ONLY and the caller is neither its owner nor an Invitee\n- 400 `vote.ended`: the Poll has Ended; Ballots are frozen\n- 400 `vote.not_allowed`: the Poll is still Scheduled\n- 429 `common.rate_limited`: more than 30 Ballot writes (cast, Retract, remove Selection) by the caller within 60 seconds; no `Retry-After`\n- 409 `common.conflict`: the Poll stayed busy with other changes for 3 seconds; nothing was recorded, try again\n",
@@ -17048,6 +17258,7 @@
                           "votes" : null
                         } ],
                         "participantCount" : 42,
+                        "shareCount" : 18,
                         "startTime" : "2026-10-12T09:00:00+08:00",
                         "tags" : [ {
                           "description" : null,
@@ -17226,6 +17437,7 @@
                           "votes" : null
                         } ],
                         "participantCount" : 42,
+                        "shareCount" : 18,
                         "startTime" : "2026-10-12T09:00:00+08:00",
                         "tags" : [ {
                           "description" : null,
@@ -17391,6 +17603,7 @@
                           "votes" : null
                         } ],
                         "participantCount" : 42,
+                        "shareCount" : 18,
                         "startTime" : "2026-10-12T09:00:00+08:00",
                         "tags" : [ {
                           "description" : null,
