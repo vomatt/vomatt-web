@@ -107,3 +107,31 @@ export async function verifyPasskeyRegistration(
 		})
 	);
 }
+
+/**
+ * Request options for signing in with any passkey on the device (no email
+ * needed); pass them to `PublicKeyCredential.parseRequestOptionsFromJSON`.
+ * Each call issues a challenge that lasts 5 minutes and is spent by one verify call.
+ */
+export async function getPasskeyLoginOptions(): Promise<
+	{ status: 'SUCCESS'; options: PublicKeyCredentialRequestOptionsJSON } | AuthFailure
+> {
+	try {
+		const options = await postJson('/auth/passkey/login/options', undefined);
+		return { status: 'SUCCESS', options };
+	} catch (error) {
+		return toFailure(error);
+	}
+}
+
+/** Starts the session from the signed-in passkey's `credential.toJSON()`, like `verifyOtp`. */
+export async function verifyPasskeyLogin(credential: PublicKeyCredentialJSON): Promise<{ status: 'SUCCESS' } | AuthFailure> {
+	try {
+		const tokens = readAuthTokens(await postJson('/auth/passkey/login/verify', { credential }));
+		if (!tokens) return { status: 'ERROR', error: 'serverError' };
+		await setAuthTokens(tokens);
+		return { status: 'SUCCESS' };
+	} catch (error) {
+		return toFailure(error);
+	}
+}

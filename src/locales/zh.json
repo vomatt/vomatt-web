@@ -494,7 +494,8 @@
 		"deletePollEllipsis": "刪除投票…"
 	},
 	"auth": {
-		"continueWithEmail": "使用電子郵件繼續"
+		"continueWithEmail": "使用電子郵件繼續",
+		"continueWithPasskey": "使用通行密鑰繼續"
 	},
 	"authError": {
 		"invalidCode": "驗證碼不正確，請確認信件後再試一次。",
