@@ -7,7 +7,6 @@ import { useState, useTransition } from 'react';
 import { EmptyCard } from '@/components/EmptyCard';
 import { FilterPills } from '@/components/FilterPills';
 import { Button, buttonVariants } from '@/components/ui/Button';
-import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { CirclePlus, Lock, Settings } from '@/components/ui/SvgIcons';
 import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { TidePanel } from '@/components/ui/TidePanel';
@@ -22,7 +21,6 @@ import type { Poll } from '@/features/polls/schema';
 import { getTurnout } from '@/features/polls/status';
 import { askedPolls, picksWonRate, splitAsked, splitVoted, votedPolls } from '@/features/profiles/lists';
 import { AskedRow, ProfileSection, VotedRow } from '@/features/profiles/ProfileRows';
-import { cn } from '@/lib/utils';
 import type { MyProfile } from '@/types/user';
 
 import EditProfileDialog from './EditProfileDialog';
@@ -34,14 +32,12 @@ import { ShowMore, usePaged } from './ShowMore';
 export type ProfileTab = 'asked' | 'voted';
 type AskedFilter = 'all' | 'drafts' | 'open' | 'ended';
 type VotedFilter = 'all' | 'sealed' | 'decided';
-type ViewAs = 'you' | 'everyone';
 
 /**
  * The owner's profile: their record, and two lists one at a time. Asked holds
  * their polls (drafts and the ••• controls are theirs alone); Voted holds the
  * polls they voted in and what they chose, which only they ever see. Beside it,
- * what everyone else sees; below `xl`, where the rail can't sit beside, the owner
- * flips between the two.
+ * from `xl`, what everyone else sees.
  */
 export function OwnProfileView({
 	profile,
@@ -62,7 +58,6 @@ export function OwnProfileView({
 	const [askedFilter, setAskedFilter] = useState<AskedFilter>('all');
 	const [votedFilter, setVotedFilter] = useState<VotedFilter>('all');
 	const [list, setList] = useState<FollowList | null>(null);
-	const [viewAs, setViewAs] = useState<ViewAs>('you');
 	// Follows from the lists move the count until a newer profile arrives with the server's own
 	const [follows, setFollows] = useState({ on: profile, delta: 0 });
 	const followingDelta = follows.on === profile ? follows.delta : 0;
@@ -82,24 +77,7 @@ export function OwnProfileView({
 
 	return (
 		<div className="px-contain mx-auto flex max-w-[1280px] flex-col gap-6 pt-8 pb-16 xl:flex-row xl:items-start xl:gap-10">
-			<SegmentedControl
-				label={t('profile.viewAsLabel')}
-				value={viewAs}
-				onValueChange={setViewAs}
-				options={[
-					{ value: 'you', label: t('profile.viewAsYou') },
-					{ value: 'everyone', label: t('profile.everyone') },
-				]}
-				className="self-start xl:hidden"
-			/>
-			{/* The header and its h1 hide with the lists; the page still needs its title */}
-			{viewAs === 'everyone' && <h1 className="sr-only xl:hidden">{profile.displayName || profile.username}</h1>}
-			<main
-				className={cn(
-					'flex min-w-0 flex-col gap-6 xl:max-w-[720px] xl:flex-[999_1_560px]',
-					viewAs === 'everyone' && 'max-xl:hidden'
-				)}
-			>
+			<main className="flex min-w-0 flex-col gap-6 xl:max-w-[720px] xl:flex-[999_1_560px]">
 				<ProfileHeader
 					profile={{ ...profile, followingCount: profile.followingCount + followingDelta }}
 					isOwn
@@ -146,7 +124,7 @@ export function OwnProfileView({
 
 				<Tabs value={tab} onValueChange={(value) => setTab(value as ProfileTab)} className="gap-2">
 					{/* Two lists side by side would split attention; tabs keep one at a time */}
-					<div className="sticky follow-header z-10 flex flex-wrap items-center gap-x-4 border-b border-border bg-background">
+					<div className="flex flex-wrap items-center gap-x-4 border-b border-border">
 						<TabsList variant="line" fit>
 							<TabsTrigger value="asked">
 								{t('profile.tabAsked')}
@@ -209,8 +187,8 @@ export function OwnProfileView({
 			</main>
 
 			<aside className="flex flex-col gap-3 xl:sticky xl:top-8 xl:max-w-[300px] xl:flex-[1_1_280px]">
-				<PublicPreview profile={profile} className={cn(viewAs === 'you' && 'max-xl:hidden')} />
-				<TidePanel className={cn('p-3.5 text-[13px] leading-relaxed', viewAs === 'everyone' && 'max-xl:hidden')}>
+				<PublicPreview profile={profile} className="max-xl:hidden" />
+				<TidePanel className="p-3.5 text-[13px] leading-relaxed">
 					<p className="mb-1 flex items-center gap-1.5 font-medium">
 						<Lock aria-hidden className="size-3.5 shrink-0 text-tide" />
 						{t(tab === 'voted' ? 'profile.votedNoteTitle' : 'profile.askedNoteTitle')}

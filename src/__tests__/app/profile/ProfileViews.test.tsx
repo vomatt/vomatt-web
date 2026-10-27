@@ -398,21 +398,11 @@ describe('OwnProfileView', () => {
 		expect(screen.getByRole('button', { name: 'Create a poll' })).toHaveAttribute('aria-haspopup', 'dialog');
 	});
 
-	it('flips narrow screens between your view and what everyone sees', () => {
+	it('shows what everyone sees only beside the lists, from xl', () => {
 		render(<OwnProfileView profile={me} polls={[]} />);
-		const lists = screen.getByRole('main');
-		const preview = screen.getByRole('region', { name: 'What everyone sees' });
-		expect(screen.getByRole('radio', { name: 'You' })).toBeChecked();
-		// jsdom has no layout, so the classes that hide each view below xl stand in for it
-		expect(lists).not.toHaveClass('max-xl:hidden');
-		expect(preview).toHaveClass('max-xl:hidden');
-
-		fireEvent.click(screen.getByRole('radio', { name: 'Everyone' }));
-		expect(screen.getByRole('radio', { name: 'Everyone' })).toBeChecked();
-		expect(lists).toHaveClass('max-xl:hidden');
-		expect(preview).not.toHaveClass('max-xl:hidden');
-		// With the header hidden, the page keeps a title for screen readers
-		expect(screen.getAllByRole('heading', { level: 1 }).find((h) => !lists.contains(h))).toHaveClass('sr-only');
+		expect(screen.queryByRole('radiogroup')).not.toBeInTheDocument();
+		// jsdom has no layout, so the class that hides the preview below xl stands in for it
+		expect(screen.getByRole('region', { name: 'What everyone sees' })).toHaveClass('max-xl:hidden');
 	});
 
 	it("says the polls couldn't load, and retries", () => {

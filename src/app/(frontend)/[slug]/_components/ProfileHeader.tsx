@@ -91,7 +91,7 @@ export default function ProfileHeader({
 			) : (
 				<UserAvatar username={profile.username} avatarUrl={profile.avatarUrl} className="size-18 md:size-22" />
 			)}
-			<div className="min-w-0 flex-[1_1_20rem]">
+			<div className="min-w-0 flex-[1_1_20rem] max-sm:order-last max-sm:basis-full">
 				<h1 className="wrap-anywhere display-heading text-[26px] md:text-[30px]">
 					{name}
 					{isHidden('displayName') && <OnlyYouMarker className="ml-2 size-4 align-baseline" />}
@@ -113,8 +113,8 @@ export default function ProfileHeader({
 				</div>
 				{mutuals && <div className="mt-2 empty:hidden">{mutuals}</div>}
 			</div>
-			{/* Wraps under the details on phones */}
-			<div className="flex gap-2 empty:hidden">{actions}</div>
+			{/* Beside the avatar on phones, with the details under both */}
+			<div className="flex gap-2 empty:hidden max-sm:ml-auto max-sm:self-center">{actions}</div>
 		</header>
 	);
 }
