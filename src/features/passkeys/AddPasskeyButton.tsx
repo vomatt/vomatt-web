@@ -12,7 +12,7 @@ import { getPasskeyRegistrationOptions, verifyPasskeyRegistration } from '@/lib/
 const CANCELLED = ['NotAllowedError', 'AbortError'];
 
 /** Registers a passkey on this device for the signed-in account. Render it only when useSupportsPasskeys(). */
-export function AddPasskeyButton() {
+export function AddPasskeyButton({ onAdded }: { onAdded?: () => void }) {
 	const { t } = useLanguage();
 	const [isAdding, setIsAdding] = useState(false);
 
@@ -47,6 +47,7 @@ export function AddPasskeyButton() {
 				return;
 			}
 			toast.success(t('passkey.added'));
+			onAdded?.();
 		} finally {
 			setIsAdding(false);
 		}

@@ -58,4 +58,6 @@ export interface Passkey {
 	createdAt: string;
 	/** Null until it is used to sign in */
 	lastUsedAt: string | null;
+	/** How the browser reaches the authenticator (internal, hybrid, usb...); empty when not reported */
+	transports: string[];
 }

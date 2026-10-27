@@ -29,6 +29,10 @@ jest.mock('@/features/follows/service', () => ({
 	getFollowedUsers: jest.fn().mockResolvedValue({ ok: true, data: { items: [], nextCursor: null } }),
 	unfollowUser: jest.fn(),
 }));
+jest.mock('@/features/passkeys/service', () => ({
+	getPasskeys: jest.fn().mockResolvedValue({ ok: true, data: [] }),
+	deletePasskey: jest.fn(),
+}));
 jest.mock('@/lib/api/services/users', () => ({
 	deleteMyAccount: jest.fn(),
 	editProfile: jest.fn(),
@@ -166,9 +170,10 @@ describe('AccountSettings', () => {
 			expect(screen.getByRole('button', { name: 'Add passkey' })).toBeInTheDocument();
 		});
 
-		it('is hidden without PublicKeyCredential', () => {
+		it('lists passkeys but hides Add passkey without PublicKeyCredential', async () => {
 			render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
-			expect(screen.queryByText('Passkeys')).not.toBeInTheDocument();
+			const account = screen.getByRole('region', { name: 'Account' });
+			expect(await within(account).findByText('No passkeys yet.')).toBeInTheDocument();
 			expect(screen.queryByRole('button', { name: 'Add passkey' })).not.toBeInTheDocument();
 		});
 

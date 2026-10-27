@@ -1133,6 +1133,18 @@
 		"add": "新增通行密鑰",
 		"added": "已新增通行密鑰",
 		"alreadyAdded": "這部裝置已經有你帳號的通行密鑰。",
-		"addFailed": "無法新增通行密鑰，請再試一次。"
+		"addFailed": "無法新增通行密鑰，請再試一次。",
+		"unnamed": "通行密鑰",
+		"created": "新增於 {date}",
+		"lastUsed": "上次使用 {date}",
+		"neverUsed": "尚未使用",
+		"empty": "還沒有通行密鑰。",
+		"loadFailed": "無法載入你的通行密鑰。",
+		"delete": "移除",
+		"deleteLabel": "移除 {name}",
+		"deleteConfirmTitle": "要移除這個通行密鑰嗎？",
+		"deleteConfirmBody": "移除後就不能再用 {name} 登入。裝置上的通行密鑰要到裝置設定中另外刪除。",
+		"deleted": "已移除通行密鑰",
+		"deleteFailed": "無法移除通行密鑰，請再試一次。"
 	}
 }

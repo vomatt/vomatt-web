@@ -31,8 +31,7 @@ import { NOTIFICATION_SWITCHES } from '@/features/notifications/preferences';
 import type { NotificationPreferences } from '@/features/notifications/schema';
 import { updateNotificationPreferences } from '@/features/notifications/service';
 import { useUnreadCount } from '@/features/notifications/UnreadCountProvider';
-import { AddPasskeyButton } from '@/features/passkeys/AddPasskeyButton';
-import { useSupportsPasskeys } from '@/features/passkeys/support';
+import { PasskeysPanel } from '@/features/passkeys/PasskeysPanel';
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
 import { useHydrated } from '@/hooks/useHydrated';
 import { htmlLang, SUPPORTED_LANGUAGES } from '@/i18n-config';
@@ -104,7 +103,6 @@ export default function AccountSettings({
 	const [announcement, setAnnouncement] = useState('');
 	const visibility = profile.visibilitySettings ?? {};
 	const shownCount = VISIBILITY_FIELDS.filter((field) => isFieldPublic(visibility, field)).length;
-	const supportsPasskeys = useSupportsPasskeys();
 
 	const toggleAnonymousDefault = async (value: boolean) => {
 		setAnonymousDefault(value);
@@ -213,12 +211,9 @@ export default function AccountSettings({
 							{t('account.signOut')}
 						</Button>
 					</div>
-					{supportsPasskeys && (
-						<div className={cn(rowClassName, 'flex-wrap')}>
-							<RowText title={t('passkey.title')} body={t('passkey.body')} />
-							<AddPasskeyButton />
-						</div>
-					)}
+					<div className={cn(rowClassName, 'flex-col items-stretch')}>
+						<PasskeysPanel />
+					</div>
 					<ExportData />
 				</Card>
 			</Section>

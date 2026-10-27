@@ -1152,6 +1152,43 @@
         },
         "type" : "object"
       },
+      "ApiResponseListPasskeyResponse" : {
+        "description" : "Envelope of every API response, success or error",
+        "properties" : {
+          "data" : {
+            "description" : "Response payload; null on errors (a few business errors carry structured data) and on operations without a result",
+            "items" : {
+              "$ref" : "#/components/schemas/PasskeyResponse"
+            },
+            "nullable" : true,
+            "type" : "array"
+          },
+          "error" : {
+            "description" : "Legacy duplicate of `message` on errors; null on success. Use `message` instead",
+            "example" : "Poll not found",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "errorCode" : {
+            "description" : "Stable machine-readable error code (lowercase, dot-separated); branch on this, not on `message`. Null on success",
+            "example" : "vote.not_found",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "message" : {
+            "description" : "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",
+            "example" : "Operation completed",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "success" : {
+            "description" : "true on success, false on error",
+            "example" : true,
+            "type" : "boolean"
+          }
+        },
+        "type" : "object"
+      },
       "ApiResponseListTagDto" : {
         "description" : "Envelope of every API response, success or error",
         "properties" : {
@@ -3764,6 +3801,16 @@
             "example" : "iPhone",
             "nullable" : true,
             "type" : "string"
+          },
+          "transports" : {
+            "description" : "How the browser can reach the authenticator (internal, hybrid, usb, nfc, ble...); empty when not reported",
+            "example" : [ "hybrid", "internal" ],
+            "items" : {
+              "description" : "How the browser can reach the authenticator (internal, hybrid, usb, nfc, ble...); empty when not reported",
+              "example" : "[\"hybrid\",\"internal\"]",
+              "type" : "string"
+            },
+            "type" : "array"
           }
         },
         "type" : "object"
@@ -9875,7 +9922,8 @@
                     "createdAt" : "2026-10-27T08:30:00Z",
                     "id" : "0199c3a2-7b5e-7c1d-9a4f-3e2b1d5c6f70",
                     "lastUsedAt" : null,
-                    "name" : "iPhone"
+                    "name" : "iPhone",
+                    "transports" : [ "hybrid", "internal" ]
                   },
                   "error" : null,
                   "errorCode" : null,
@@ -13689,6 +13737,193 @@
         },
         "summary" : "Update notification preferences",
         "tags" : [ "Notification" ]
+      }
+    },
+    "/api/users/me/passkeys" : {
+      "get" : {
+        "description" : "**Auth**: required\n**Precondition**: none\n**Behavior**: the caller's passkeys, oldest first (`[]` when none). Key material (credential id, public key, signature counter) is never returned; `name` is null when none was given at registration, `lastUsedAt` null until the passkey is first used to sign in\n**Side effects**: none\n**Errors**: none beyond 401",
+        "operationId" : "listMyPasskeys",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "data" : [ {
+                    "createdAt" : "2026-10-27T08:30:00Z",
+                    "id" : "0199c3a2-7b5e-7c1d-9a4f-3e2b1d5c6f70",
+                    "lastUsedAt" : "2026-10-28T09:15:00Z",
+                    "name" : "iPhone",
+                    "transports" : [ "hybrid", "internal" ]
+                  }, {
+                    "createdAt" : "2026-10-27T10:00:00Z",
+                    "id" : "0199c3a4-1d2e-7f3a-8b4c-5d6e7f8a9b0c",
+                    "lastUsedAt" : null,
+                    "name" : null,
+                    "transports" : [ ]
+                  } ],
+                  "error" : null,
+                  "errorCode" : null,
+                  "message" : null,
+                  "success" : true
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResponseListPasskeyResponse"
+                }
+              }
+            },
+            "description" : "Success"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Authenticated but not allowed (errorCode `common.forbidden`)"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          }
+        },
+        "summary" : "List my passkeys",
+        "tags" : [ "User" ]
+      }
+    },
+    "/api/users/me/passkeys/{passkeyId}" : {
+      "delete" : {
+        "description" : "**Auth**: required\n**Precondition**: the passkey belongs to the caller\n**Behavior**: removes the passkey, so it can no longer sign in to this account. Deleting the last passkey is allowed: the account keeps its other sign-in methods. The passkey stays on the device until the user removes it there\n**Side effects**: the delete is written to the audit log\n**Errors**:\n- 400 `common.type_mismatch`: `passkeyId` is not a valid UUID\n- 404 `common.not_found`: no passkey with this ID, or it belongs to another user",
+        "operationId" : "deleteMyPasskey",
+        "parameters" : [ {
+          "description" : "Id of the passkey to delete",
+          "example" : "0199c3a2-7b5e-7c1d-9a4f-3e2b1d5c6f70",
+          "in" : "path",
+          "name" : "passkeyId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "data" : {
+                    "id" : null,
+                    "message" : null,
+                    "status" : null,
+                    "success" : true
+                  },
+                  "error" : null,
+                  "errorCode" : null,
+                  "message" : null,
+                  "success" : true
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResponseSimpleResultResponse"
+                }
+              }
+            },
+            "description" : "Success"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Authenticated but not allowed (errorCode `common.forbidden`)"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "data" : null,
+                  "error" : "The requested resource was not found",
+                  "errorCode" : "common.not_found",
+                  "message" : "The requested resource was not found",
+                  "success" : false
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "No passkey with this ID belongs to the caller (errorCode `common.not_found`)"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          }
+        },
+        "summary" : "Delete one of my passkeys",
+        "tags" : [ "User" ]
       }
     },
     "/api/users/me/visibility" : {

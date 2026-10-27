@@ -1147,6 +1147,18 @@
 		"add": "Add passkey",
 		"added": "Passkey added",
 		"alreadyAdded": "This device already has a passkey for your account.",
-		"addFailed": "Couldn't add the passkey. Please try again."
+		"addFailed": "Couldn't add the passkey. Please try again.",
+		"unnamed": "Passkey",
+		"created": "Added {date}",
+		"lastUsed": "last used {date}",
+		"neverUsed": "never used",
+		"empty": "No passkeys yet.",
+		"loadFailed": "Couldn’t load your passkeys.",
+		"delete": "Remove",
+		"deleteLabel": "Remove {name}",
+		"deleteConfirmTitle": "Remove this passkey?",
+		"deleteConfirmBody": "{name} will no longer sign you in. It stays on the device until you remove it there.",
+		"deleted": "Passkey removed",
+		"deleteFailed": "Couldn’t remove the passkey. Please try again."
 	}
 }
