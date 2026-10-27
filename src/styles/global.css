@@ -286,6 +286,10 @@ html:has([data-slot='tabs-list'][data-sticky]) {
 	--spacing-header: var(--header-height);
 	/* The home feed column; the feed and its loading skeleton share it */
 	--container-feed: 640px;
+	/* PageShell: every page's column and the rail beside it from xl; page is main + gap-10 + rail */
+	--container-main: 680px;
+	--container-rail: 300px;
+	--container-page: calc(var(--container-main) + 2.5rem + var(--container-rail));
 	/* The phone Header's slide and the sticky bars that follow it: unhurried, settling softly */
 	--ease-header: cubic-bezier(0.32, 0.72, 0, 1);
 	--z-index-header: 48;

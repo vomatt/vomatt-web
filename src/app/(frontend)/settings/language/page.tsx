@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 
+import { PageShell } from '@/components/layout/PageShell';
 import { getServerLocale } from '@/lib/getServerLocale';
 import en from '@/locales/en.json';
 import zh from '@/locales/zh.json';
@@ -13,8 +14,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function LanguagePage() {
 	return (
-		<div className="px-contain mx-auto max-w-[680px] pt-8 pb-16">
+		<PageShell>
 			<LanguagePreferences />
-		</div>
+		</PageShell>
 	);
 }

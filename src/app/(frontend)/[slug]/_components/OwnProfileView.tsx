@@ -6,6 +6,7 @@ import { useState, useTransition } from 'react';
 
 import { EmptyCard } from '@/components/EmptyCard';
 import { FilterPills } from '@/components/FilterPills';
+import { PageShell } from '@/components/layout/PageShell';
 import { Button, buttonVariants } from '@/components/ui/Button';
 import { CirclePlus, Lock, Settings } from '@/components/ui/SvgIcons';
 import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from '@/components/ui/Tabs';
@@ -76,8 +77,21 @@ export function OwnProfileView({
 	);
 
 	return (
-		<div className="px-contain mx-auto flex max-w-[1280px] flex-col gap-6 pt-8 pb-16 xl:flex-row xl:items-start xl:gap-10">
-			<main className="flex min-w-0 flex-col gap-6 xl:max-w-[720px] xl:flex-[999_1_560px]">
+		<PageShell
+			rail={
+				<aside className="flex flex-col gap-3 xl:sticky xl:top-8">
+					<PublicPreview profile={profile} className="max-xl:hidden" />
+					<TidePanel className="p-3.5 text-[13px] leading-relaxed">
+						<p className="mb-1 flex items-center gap-1.5 font-medium">
+							<Lock aria-hidden className="size-3.5 shrink-0 text-tide" />
+							{t(tab === 'voted' ? 'profile.votedNoteTitle' : 'profile.askedNoteTitle')}
+						</p>
+						<p>{t(tab === 'voted' ? 'profile.votedNoteBody' : 'profile.askedNoteBody')}</p>
+					</TidePanel>
+				</aside>
+			}
+		>
+			<div className="flex flex-col gap-6">
 				<ProfileHeader
 					profile={{ ...profile, followingCount: profile.followingCount + followingDelta }}
 					isOwn
@@ -184,19 +198,8 @@ export function OwnProfileView({
 						{polls === null ? <LoadFailed /> : <VotedList split={votedSplit} filter={votedFilter} />}
 					</TabsContent>
 				</Tabs>
-			</main>
-
-			<aside className="flex flex-col gap-3 xl:sticky xl:top-8 xl:max-w-[300px] xl:flex-[1_1_280px]">
-				<PublicPreview profile={profile} className="max-xl:hidden" />
-				<TidePanel className="p-3.5 text-[13px] leading-relaxed">
-					<p className="mb-1 flex items-center gap-1.5 font-medium">
-						<Lock aria-hidden className="size-3.5 shrink-0 text-tide" />
-						{t(tab === 'voted' ? 'profile.votedNoteTitle' : 'profile.askedNoteTitle')}
-					</p>
-					<p>{t(tab === 'voted' ? 'profile.votedNoteBody' : 'profile.askedNoteBody')}</p>
-				</TidePanel>
-			</aside>
-		</div>
+			</div>
+		</PageShell>
 	);
 }
 

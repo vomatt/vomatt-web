@@ -70,7 +70,7 @@ export function ExploreView({
 	const [initialQuery] = useState(apiQuery);
 
 	return (
-		<div className="mx-auto flex max-w-feed flex-col gap-4">
+		<div className="flex max-w-feed flex-col gap-4">
 			<h1 className="page-title text-foreground">{t('explore.title')}</h1>
 
 			<div className="flex flex-col gap-3">
