@@ -64,6 +64,8 @@ export function useComments(
 	const [isLoadingMore, setIsLoadingMore] = useState(false);
 	// Collapsing and reopening a card keeps the comments already loaded
 	const hasLoaded = useRef(false);
+	// A posted Comment keeps the key it was rendered under while pending, so it isn't remounted once saved
+	const pendingKeys = useRef(new Map<string, string>());
 
 	const applyFirstPage = useCallback((result: Awaited<ReturnType<typeof getComments>>) => {
 		if (!result.ok) {
@@ -178,6 +180,7 @@ export function useComments(
 			setTotal((count) => shiftCount(count, 1));
 
 			const result = await postComment(pollId, text, rootId);
+			if (result.ok) pendingKeys.current.set(result.data.id, tempId);
 			setList((list) =>
 				result.ok
 					? list.map((c) => (c.id === tempId ? result.data : c))
@@ -294,6 +297,7 @@ export function useComments(
 		remove,
 		dropUser,
 		toggleLike,
+		keyOf: (id: string) => pendingKeys.current.get(id) ?? id,
 	};
 }
 

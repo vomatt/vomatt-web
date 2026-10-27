@@ -1,7 +1,7 @@
 'use client';
 
 import { Menu } from '@base-ui/react/menu';
-import { AnimatePresence, m } from 'motion/react';
+import { AnimatePresence, m, useReducedMotion } from 'motion/react';
 import { useEffect, useId, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -20,6 +20,7 @@ import { menuItemClassName, menuPopupClassName } from '@/components/ui/menu';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Ban, Copy, Ellipsis, Heart, Link2, Pencil, Reply, Trash2, TriangleAlert, X } from '@/components/ui/SvgIcons';
 import { Textarea } from '@/components/ui/Textarea';
+import { ENTER, Unfold } from '@/components/Unfold';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { AccountAvatar } from '@/features/avatars/AccountAvatar';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
@@ -106,6 +107,8 @@ type CommentThreadProps = {
  */
 export function useCommentLink(thread: CommentsState) {
 	const link = useRef<{ rootId: string; replyId?: string } | null>(null);
+	const scrollTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+	useEffect(() => () => clearTimeout(scrollTimer.current), []);
 	useEffect(() => {
 		const match = /^#comment-([^/]+)(?:\/(.+))?$/.exec(window.location.hash);
 		if (match) link.current = { rootId: match[1], replyId: match[2] };
@@ -128,7 +131,9 @@ export function useCommentLink(thread: CommentsState) {
 			}
 		}
 		link.current = null;
-		showComment(id);
+		// Replies the link loaded are still unfolding; scroll once they have their height
+		if (id === target.rootId) showComment(id);
+		else scrollTimer.current = setTimeout(() => showComment(id), ENTER.duration * 1000);
 	});
 }
 
@@ -189,31 +194,32 @@ export function CommentThread({ thread, pollId, viewerId, viewer, requireAuth }:
 				<p className="text-sm text-muted-foreground">{t('comments.empty')}</p>
 			)}
 
-			<ul className="space-y-5">
-				<AnimatePresence initial={false}>
-					{thread.comments.map((comment) => (
-						<m.li
-							key={comment.id}
-							layout
-							initial={{ opacity: 0, y: -8 }}
-							animate={{ opacity: 1, y: 0 }}
-							exit={{ opacity: 0, height: 0 }}
-							transition={{ duration: 0.2 }}
-						>
-							<CommentItem
-								comment={comment}
-								pollId={pollId}
-								viewerId={viewerId}
-								viewer={viewer}
-								thread={thread}
-								requireAuth={requireAuth}
-								replyTarget={activeTarget?.rootId === comment.id ? activeTarget : null}
-								onReplyTargetChange={setReplyTarget}
-							/>
-						</m.li>
-					))}
-				</AnimatePresence>
-			</ul>
+			{/* Mounts with the first page, so only comments added later unfold. The gap is padding inside
+			    each Unfold, so it grows and folds with the comment instead of snapping. */}
+			{thread.status === 'ready' && (
+				<ul className="has-[>li]:-mt-5">
+					<AnimatePresence initial={false}>
+						{thread.comments.map((comment) => (
+							<li key={thread.keyOf(comment.id)}>
+								<Unfold>
+									<div className="pt-5">
+										<CommentItem
+											comment={comment}
+											pollId={pollId}
+											viewerId={viewerId}
+											viewer={viewer}
+											thread={thread}
+											requireAuth={requireAuth}
+											replyTarget={activeTarget?.rootId === comment.id ? activeTarget : null}
+											onReplyTargetChange={setReplyTarget}
+										/>
+									</div>
+								</Unfold>
+							</li>
+						))}
+					</AnimatePresence>
+				</ul>
+			)}
 
 			{thread.hasMore && (
 				<Button
@@ -249,7 +255,7 @@ function Composer({
 	label: string;
 	placeholder: string;
 	avatar: React.ReactNode;
-	/** One dimmed line while a Reply composer is open; focus brings back its actions. */
+	/** Dimmed while a Reply composer is open; it keeps its size, so the comments below stay put. */
 	collapsed?: boolean;
 	className?: string;
 	/** Set for an inline Reply composer; its reply (if any) is named above the field. */
@@ -264,6 +270,26 @@ function Composer({
 	const addressee = replyTarget?.reply?.author ?? null;
 	const max = textMax(addressee);
 	const tooLong = text.length > max;
+	const fieldRef = useRef<HTMLTextAreaElement>(null);
+	const isInline = !!onCancel;
+
+	const reduceMotion = useReducedMotion();
+
+	// autoFocus would jump the page to a field that is still unfolding; this focuses in place, then
+	// scrolls only if the unfolded composer ends up off screen and the viewer hasn't scrolled meanwhile
+	useEffect(() => {
+		if (!isInline) return;
+		const field = fieldRef.current;
+		field?.focus({ preventScroll: true });
+		const scrollY = window.scrollY;
+		const timer = setTimeout(() => {
+			if (window.scrollY !== scrollY || document.activeElement !== field) return;
+			field?.closest('form')?.scrollIntoView({ block: 'nearest', behavior: reduceMotion ? 'auto' : 'smooth' });
+		}, ENTER.duration * 1000);
+		return () => clearTimeout(timer);
+		// Runs once per composer; a later reduced-motion change doesn't need to refocus it
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [isInline]);
 
 	// Signed-out visitors sign in first; the text stays put if they back out
 	const submit = () => {
@@ -280,7 +306,7 @@ function Composer({
 	return (
 		<form
 			className={cn(
-				'group/composer flex items-start',
+				'flex items-start',
 				collapsed && 'opacity-60 transition-opacity focus-within:opacity-100',
 				className
 			)}
@@ -324,16 +350,10 @@ function Composer({
 						}
 					}}
 					placeholder={placeholder}
-					rows={collapsed ? 1 : 2}
-					autoFocus={!!onCancel}
-					className={cn('relative resize-none', collapsed ? 'min-h-11' : 'min-h-[60px]')}
+					ref={fieldRef}
+					className="relative min-h-[60px] resize-none"
 				/>
-				<div
-					className={cn(
-						'items-center justify-end gap-1.5',
-						collapsed ? 'hidden group-focus-within/composer:flex' : 'flex'
-					)}
-				>
+				<div className="flex items-center justify-end gap-1.5">
 					{text.length > max - COUNTER_WITHIN && (
 						<span
 							className={cn(
@@ -438,13 +458,14 @@ function CommentItem({
 	replies.forEach((reply, index) => {
 		const isTarget = replyTarget?.reply?.id === reply.id;
 		rows.push({
-			key: reply.id,
+			key: thread.keyOf(reply.id),
 			node: (
 				<div
 					id={`comment-${reply.id}`}
 					className={cn(
 						'flex min-w-0 flex-1 items-start gap-2.5 rounded-xl',
-						isTarget && '-mr-3 -ml-1 bg-highlight-tint py-1 pr-3 pl-1'
+						// Within the 8px Unfold leaves past each edge, or the highlight's corners clip
+						isTarget && '-mr-2 -ml-1 bg-highlight-tint py-1 pr-2 pl-1'
 					)}
 				>
 					<Avatar comment={reply} size="reply" />
@@ -506,12 +527,16 @@ function CommentItem({
 				/>
 			</div>
 
-			{rows.map((row, index) => (
-				<div key={row.key} className={cn('flex gap-3', row.className ?? 'items-start')}>
-					<Elbow continues={index < rows.length - 1} />
-					{row.node}
-				</div>
-			))}
+			<AnimatePresence initial={false}>
+				{rows.map((row, index) => (
+					<Unfold key={row.key}>
+						<div className={cn('flex gap-3', row.className ?? 'items-start')}>
+							<Elbow continues={index < rows.length - 1} />
+							{row.node}
+						</div>
+					</Unfold>
+				))}
+			</AnimatePresence>
 		</article>
 	);
 }
