@@ -3,10 +3,12 @@
  */
 import { apiClient, ApiError, publicFetch } from '@/lib/api/client';
 import {
+	getPasskeyLoginOptions,
 	getPasskeyRegistrationOptions,
 	requestOtp,
 	signout,
 	verifyOtp,
+	verifyPasskeyLogin,
 	verifyPasskeyRegistration,
 } from '@/lib/api/services/auth';
 
@@ -171,5 +173,36 @@ describe('passkey registration', () => {
 			status: 400,
 			errorCode: 'auth.passkey.invalid',
 		});
+	});
+});
+
+describe('passkey sign-in', () => {
+	const credential = { id: 'c1', rawId: 'c1', type: 'public-key' } as unknown as PublicKeyCredentialJSON;
+
+	it('asks the API for request options without signing in', async () => {
+		mockPublicFetch.mockResolvedValueOnce({ challenge: 'abc' });
+		expect(await getPasskeyLoginOptions()).toEqual({ status: 'SUCCESS', options: { challenge: 'abc' } });
+		expect(mockPublicFetch.mock.calls[0][0]).toBe('/auth/passkey/login/options');
+		expect(mockApiClient).not.toHaveBeenCalled();
+	});
+
+	it('stores both tokens once the credential verifies', async () => {
+		mockPublicFetch.mockResolvedValueOnce({ token: 'a1', refreshToken: 'r1', isNewUser: false, user: {} });
+
+		expect(await verifyPasskeyLogin(credential)).toEqual({ status: 'SUCCESS' });
+		expect(mockPublicFetch.mock.calls[0][0]).toBe('/auth/passkey/login/verify');
+		expect(bodyOf(0)).toEqual({ credential });
+		expect(authCookies.setAuthTokens).toHaveBeenCalledWith({ accessToken: 'a1', refreshToken: 'r1' });
+	});
+
+	it('maps a rejected passkey without storing tokens', async () => {
+		mockPublicFetch.mockRejectedValueOnce(new ApiError('bad', 401, { errorCode: 'auth.passkey.invalid' }));
+		expect(await verifyPasskeyLogin(credential)).toEqual({ status: 'ERROR', error: 'apiError.auth.passkey.invalid' });
+		expect(authCookies.setAuthTokens).not.toHaveBeenCalled();
+	});
+
+	it('maps a suspended account', async () => {
+		mockPublicFetch.mockRejectedValueOnce(new ApiError('banned', 403, { errorCode: 'auth.account_banned' }));
+		expect(await verifyPasskeyLogin(credential)).toEqual({ status: 'ERROR', error: 'accountSuspended' });
 	});
 });
