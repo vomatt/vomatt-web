@@ -17,14 +17,19 @@ export function useSharePoll() {
 	return async ({ id, title }: { id: string; title: string }) => {
 		const url = pollUrl(id);
 		if (navigator.share) {
+			// null: the sheet failed (not dismissed), so fall back to the clipboard
 			const shared = await navigator.share({ title, url }).then(
 				() => true,
-				() => false
+				(error: unknown) => (error instanceof DOMException && error.name === 'AbortError' ? false : null)
 			);
 			if (shared) void sharePoll(id, 'NATIVE');
-			return;
+			if (shared !== null) return;
 		}
-		await navigator.clipboard.writeText(url);
+		const copied = await navigator.clipboard.writeText(url).then(
+			() => true,
+			() => false
+		);
+		if (!copied) return;
 		void sharePoll(id, 'COPY_LINK');
 		toast(t('poll.linkCopied'));
 	};

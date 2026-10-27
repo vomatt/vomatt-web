@@ -22,7 +22,24 @@ describe('useSharePoll()', () => {
 	});
 
 	it('does not count a dismissed share sheet', async () => {
-		Object.assign(navigator, { share: jest.fn().mockRejectedValue(new Error('AbortError')) });
+		Object.assign(navigator, { share: jest.fn().mockRejectedValue(new DOMException('', 'AbortError')) });
+		await renderHook(() => useSharePoll()).result.current(poll);
+		expect(sharePoll).not.toHaveBeenCalled();
+	});
+
+	it('copies the link when the share sheet fails', async () => {
+		const writeText = jest.fn().mockResolvedValue(undefined);
+		Object.assign(navigator, {
+			share: jest.fn().mockRejectedValue(new DOMException('', 'NotAllowedError')),
+			clipboard: { writeText },
+		});
+		await renderHook(() => useSharePoll()).result.current(poll);
+		expect(writeText).toHaveBeenCalled();
+		expect(sharePoll).toHaveBeenCalledWith('poll-1', 'COPY_LINK');
+	});
+
+	it('does not count a link that could not be copied', async () => {
+		Object.assign(navigator, { clipboard: { writeText: jest.fn().mockRejectedValue(new Error('denied')) } });
 		await renderHook(() => useSharePoll()).result.current(poll);
 		expect(sharePoll).not.toHaveBeenCalled();
 	});
