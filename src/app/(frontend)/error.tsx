@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 
 import { EmptyCard } from '@/components/EmptyCard';
+import { PageShell } from '@/components/layout/PageShell';
 import { Button } from '@/components/ui/Button';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -21,13 +22,14 @@ export default function Error({
 
 	// The raw message stays in the console: it is written for developers, not for the reader
 	return (
-		<div className="px-contain mx-auto w-full max-w-feed pt-8 pb-16">
+		<PageShell>
 			<EmptyCard
+				className="max-w-feed"
 				headingLevel={1}
 				title={t('common.error')}
 				body={t('common.errorBody')}
 				action={<Button onClick={reset}>{t('common.tryAgain')}</Button>}
 			/>
-		</div>
+		</PageShell>
 	);
 }

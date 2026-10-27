@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
 
+import { PageShell } from '@/components/layout/PageShell';
 import { T } from '@/components/T';
 import { Lock } from '@/components/ui/SvgIcons';
 import { TidePanel } from '@/components/ui/TidePanel';
@@ -11,8 +12,10 @@ import {
 	NotificationSettingsLink,
 	NotificationsHeader,
 } from '@/features/notifications/NotificationList';
+import type { Notification, NotificationPreferences } from '@/features/notifications/schema';
 import { getNotificationPreferences, getNotifications } from '@/features/notifications/service';
 import { PollRowListSkeleton } from '@/features/polls/components/PollCardSkeleton';
+import type { CursorPage } from '@/lib/api/cursor';
 
 export const metadata: Metadata = { title: 'Notifications' };
 
@@ -20,52 +23,62 @@ export default async function NotificationsPage() {
 	const profile = await getMyProfile();
 	if (!profile) redirect('/login?redirect=/notifications');
 
+	// Started together; the list and the rail each stream in when theirs resolves
+	const firstPage = getNotifications().catch(() => null);
+	const preferences = getNotificationPreferences().catch(() => null);
+
 	return (
-		<div className="px-contain mx-auto flex max-w-[1000px] flex-col gap-10 pt-8 pb-16 xl:flex-row xl:items-start">
-			<Suspense
-				fallback={
-					<Column>
-						<NotificationsHeader />
-						<PollRowListSkeleton chip={false} />
-					</Column>
-				}
-			>
-				<Notifications viewerUsername={profile.username} />
-			</Suspense>
-		</div>
+		<PageShell
+			rail={
+				<Suspense fallback={null}>
+					<NotificationsRail firstPage={firstPage} preferences={preferences} />
+				</Suspense>
+			}
+		>
+			<div className="flex flex-col gap-5">
+				<Suspense
+					fallback={
+						<>
+							<NotificationsHeader />
+							<PollRowListSkeleton chip={false} />
+						</>
+					}
+				>
+					<Notifications firstPage={firstPage} viewerUsername={profile.username} />
+				</Suspense>
+			</div>
+		</PageShell>
 	);
 }
 
-function Column({ children }: { children: React.ReactNode }) {
-	return <div className="flex min-w-0 flex-1 flex-col gap-5 xl:max-w-[680px]">{children}</div>;
+type FirstPage = Promise<CursorPage<Notification> | null>;
+
+async function Notifications({ firstPage, viewerUsername }: { firstPage: FirstPage; viewerUsername: string }) {
+	return <NotificationList initialPage={await firstPage} viewerUsername={viewerUsername} />;
 }
 
-async function Notifications({ viewerUsername }: { viewerUsername: string }) {
-	const [firstPage, preferences] = await Promise.all([
-		getNotifications().catch(() => null),
-		getNotificationPreferences().catch(() => null),
-	]);
-	const empty = firstPage?.items.length === 0;
+async function NotificationsRail({
+	firstPage,
+	preferences,
+}: {
+	firstPage: FirstPage;
+	preferences: Promise<NotificationPreferences | null>;
+}) {
+	const [page, prefs] = await Promise.all([firstPage, preferences]);
+	// How rows are read means nothing until there is a row
+	if (page?.items.length === 0) return null;
 	return (
-		<>
-			<Column>
-				<NotificationList initialPage={firstPage} viewerUsername={viewerUsername} />
-			</Column>
-			{/* How rows are read means nothing until there is a row */}
-			{!empty && (
-				<aside className="flex w-full flex-col gap-3 xl:sticky xl:top-8 xl:w-[280px] xl:shrink-0">
-					<TidePanel className="p-3.5 text-[13px] leading-relaxed">
-						<p className="mb-1 flex items-center gap-1.5 font-medium">
-							<Lock aria-hidden className="size-3.5 shrink-0 text-tide" />
-							<T k="notifications.railTitle" />
-						</p>
-						<p>
-							<T k="notifications.railBody" />
-						</p>
-					</TidePanel>
-					<NotificationSettingsLink preferences={preferences} />
-				</aside>
-			)}
-		</>
+		<aside className="flex w-full flex-col gap-3 xl:sticky xl:top-8">
+			<TidePanel className="p-3.5 text-[13px] leading-relaxed">
+				<p className="mb-1 flex items-center gap-1.5 font-medium">
+					<Lock aria-hidden className="size-3.5 shrink-0 text-tide" />
+					<T k="notifications.railTitle" />
+				</p>
+				<p>
+					<T k="notifications.railBody" />
+				</p>
+			</TidePanel>
+			<NotificationSettingsLink preferences={prefs} />
+		</aside>
 	);
 }

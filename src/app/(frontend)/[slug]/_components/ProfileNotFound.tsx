@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import { EmptyCard } from '@/components/EmptyCard';
+import { PageShell } from '@/components/layout/PageShell';
 import { buttonVariants } from '@/components/ui/Button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { isValidUsername, usernameFromSlug } from '@/features/account/username';
@@ -16,7 +17,7 @@ export default function ProfileNotFound() {
 	const isHandle = !!slug && isValidUsername(slug);
 
 	return (
-		<div className="px-contain mx-auto max-w-[1024px] pt-8 pb-16">
+		<PageShell>
 			<EmptyCard
 				className="max-w-[640px]"
 				headingLevel={1}
@@ -33,6 +34,6 @@ export default function ProfileNotFound() {
 					</div>
 				}
 			/>
-		</div>
+		</PageShell>
 	);
 }

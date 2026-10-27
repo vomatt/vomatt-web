@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
 
+import { PageShell } from '@/components/layout/PageShell';
 import { getMyProfile, getUserSession } from '@/data/auth';
 import { PollListSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import { getFollowingFeed, getPopularTags } from '@/features/polls/service';
@@ -15,7 +16,7 @@ export default async function FollowingPage() {
 	if (!user) redirect('/login');
 
 	return (
-		<div className="px-contain flex flex-col items-center gap-8 pb-16 xl:flex-row xl:items-start xl:justify-center">
+		<PageShell className="pt-0" rail={<HomeRail signedIn />}>
 			<Suspense
 				fallback={
 					<div className="w-full max-w-feed py-4">
@@ -25,7 +26,7 @@ export default async function FollowingPage() {
 			>
 				<Feed viewerId={user.sub} />
 			</Suspense>
-		</div>
+		</PageShell>
 	);
 }
 
@@ -38,17 +39,14 @@ async function Feed({ viewerId }: { viewerId: string }) {
 	]);
 
 	return (
-		<>
-			<PollFeedList
-				// A new poll at the top starts a fresh list
-				key={firstPage?.items[0]?.id ?? ''}
-				viewerId={viewerId}
-				anonymousByDefault={profile?.anonymousBallotByDefault}
-				initialPage={firstPage}
-				following
-				header={<HomepageHeader tags={tags} signedIn following />}
-			/>
-			<HomeRail signedIn />
-		</>
+		<PollFeedList
+			// A new poll at the top starts a fresh list
+			key={firstPage?.items[0]?.id ?? ''}
+			viewerId={viewerId}
+			anonymousByDefault={profile?.anonymousBallotByDefault}
+			initialPage={firstPage}
+			following
+			header={<HomepageHeader tags={tags} signedIn following />}
+		/>
 	);
 }

@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 
+import { PageShell } from '@/components/layout/PageShell';
 import { getMyProfile, getUserSession } from '@/data/auth';
 import { PollListSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import { getFeed, getPopularTags } from '@/features/polls/service';
@@ -14,10 +15,11 @@ export default async function Page({ searchParams }: Props) {
 	const { tag: tagParam } = await searchParams;
 	// Repeated ?tag= arrives as an array; the feed filters by one topic
 	const tag = Array.isArray(tagParam) ? tagParam[0] : tagParam;
+	// Read from the cookie, so the rail paints with the shell instead of after the feed
+	const user = await getUserSession();
 
 	return (
-		// The rail sits beside the feed from xl up, where both fit next to the sidebar; below that it follows the feed
-		<div className="px-contain flex flex-col items-center gap-8 pb-16 xl:flex-row xl:items-start xl:justify-center">
+		<PageShell className="pt-0" rail={<HomeRail signedIn={!!user} />}>
 			<Suspense
 				fallback={
 					<div className="w-full max-w-feed py-4">
@@ -25,33 +27,29 @@ export default async function Page({ searchParams }: Props) {
 					</div>
 				}
 			>
-				<Feed tag={tag} />
+				<Feed tag={tag} viewerId={user?.sub} />
 			</Suspense>
-		</div>
+		</PageShell>
 	);
 }
 
 /** Streams in behind the skeleton so the shell paints first. */
-async function Feed({ tag }: { tag: string | undefined }) {
-	const [user, profile, firstPage, tags] = await Promise.all([
-		getUserSession(),
+async function Feed({ tag, viewerId }: { tag: string | undefined; viewerId: string | undefined }) {
+	const [profile, firstPage, tags] = await Promise.all([
 		getMyProfile(),
 		getFeed(null, 10, tag).catch(() => null),
 		getPopularTags(),
 	]);
 
 	return (
-		<>
-			<PollFeedList
-				// Another topic, or a new poll at the top, starts a fresh list
-				key={`${tag ?? ''}:${firstPage?.items[0]?.id ?? ''}`}
-				viewerId={user?.sub}
-				anonymousByDefault={profile?.anonymousBallotByDefault}
-				initialPage={firstPage}
-				tag={tag}
-				header={<HomepageHeader tags={tags} activeTag={tag} signedIn={!!user} />}
-			/>
-			<HomeRail signedIn={!!user} />
-		</>
+		<PollFeedList
+			// Another topic, or a new poll at the top, starts a fresh list
+			key={`${tag ?? ''}:${firstPage?.items[0]?.id ?? ''}`}
+			viewerId={viewerId}
+			anonymousByDefault={profile?.anonymousBallotByDefault}
+			initialPage={firstPage}
+			tag={tag}
+			header={<HomepageHeader tags={tags} activeTag={tag} signedIn={!!viewerId} />}
+		/>
 	);
 }

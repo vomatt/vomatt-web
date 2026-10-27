@@ -1,13 +1,15 @@
 import Link from 'next/link';
 
 import { EmptyCard } from '@/components/EmptyCard';
+import { PageShell } from '@/components/layout/PageShell';
 import { T } from '@/components/T';
 import { buttonVariants } from '@/components/ui/Button';
 
 async function NotFound() {
 	return (
-		<div className="px-contain mx-auto w-full max-w-feed pt-8 pb-16">
+		<PageShell>
 			<EmptyCard
+				className="max-w-feed"
 				headingLevel={1}
 				title={<T k="common.notFoundTitle" />}
 				body={<T k="common.notFoundBody" />}
@@ -17,7 +19,7 @@ async function NotFound() {
 					</Link>
 				}
 			/>
-		</div>
+		</PageShell>
 	);
 }
 

@@ -83,7 +83,7 @@ export default async function PageSlugRoute(props: Props) {
 	if (!profile) notFound();
 
 	return (
-		<Suspense fallback={<ProfileSkeleton />}>
+		<Suspense fallback={<ProfileSkeleton rail={!isOwnUsername(me, username)} />}>
 			<PublicProfile profile={profile} polls={polls} viewerId={me?.id ?? null} preview={isOwnUsername(me, username)} />
 		</Suspense>
 	);

@@ -1,3 +1,4 @@
+import { PageShell } from '@/components/layout/PageShell';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { PollRowListSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import type { Poll } from '@/features/polls/schema';
@@ -44,22 +45,25 @@ export async function OwnProfile({
 	return <OwnProfileView profile={profile} polls={polls} initialTab={initialTab} openEdit={openEdit} />;
 }
 
-export function ProfileSkeleton() {
+/** `rail={false}` for the owner's public preview, which has no rail. */
+export function ProfileSkeleton({ rail = true }: { rail?: boolean }) {
 	return (
-		<div className="px-contain mx-auto max-w-[1280px] space-y-6 pt-8 pb-16">
-			<div className="flex max-w-[720px] items-start gap-5">
-				<Skeleton className="size-18 rounded-full md:size-22" />
-				<div className="flex-1 space-y-2">
-					<Skeleton className="h-8 w-48" />
-					<Skeleton className="h-3.5 w-24" />
-					<Skeleton className="h-3.5 w-64" />
+		<PageShell rail={rail && <Skeleton className="h-28 rounded-2xl" />}>
+			<div className="space-y-6">
+				<div className="flex items-start gap-5">
+					<Skeleton className="size-18 rounded-full md:size-22" />
+					<div className="flex-1 space-y-2">
+						<Skeleton className="h-8 w-48" />
+						<Skeleton className="h-3.5 w-24" />
+						<Skeleton className="h-3.5 w-64" />
+					</div>
+				</div>
+				<Skeleton className="h-[86px] rounded-2xl" />
+				<div>
+					<Skeleton className="mb-4 h-11 w-48" />
+					<PollRowListSkeleton />
 				</div>
 			</div>
-			<Skeleton className="h-[86px] max-w-[720px] rounded-2xl" />
-			<div className="max-w-[720px]">
-				<Skeleton className="mb-4 h-11 w-48" />
-				<PollRowListSkeleton />
-			</div>
-		</div>
+		</PageShell>
 	);
 }

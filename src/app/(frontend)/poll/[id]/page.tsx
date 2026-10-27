@@ -4,6 +4,7 @@ import { cache, Suspense } from 'react';
 
 import { BackLink } from '@/components/BackLink';
 import { EmptyCard } from '@/components/EmptyCard';
+import { PageShell } from '@/components/layout/PageShell';
 import { LoginPrompt } from '@/components/LoginPrompt';
 import { T } from '@/components/T';
 import { buttonVariants } from '@/components/ui/Button';
@@ -59,14 +60,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function PollDetailPage({ params }: Props) {
 	const { id } = await params;
 	return (
-		<div className="px-contain mx-auto flex max-w-[1024px] flex-col gap-8 pt-8 pb-16">
-			<BackLink href="/">
-				<T k="pollDetail.backToFeed" />
-			</BackLink>
-			<Suspense fallback={<PollDetailSkeleton />}>
-				<PollDetail id={id} />
-			</Suspense>
-		</div>
+		<PageShell
+			rail={
+				<Suspense fallback={<PollRailSkeleton />}>
+					<PollRail id={id} />
+				</Suspense>
+			}
+		>
+			<div className="flex flex-col gap-8">
+				<BackLink href="/">
+					<T k="pollDetail.backToFeed" />
+				</BackLink>
+				<Suspense fallback={<PollCardSkeleton options={4} />}>
+					<PollDetail id={id} />
+				</Suspense>
+			</div>
+		</PageShell>
 	);
 }
 
@@ -117,34 +126,40 @@ async function PollDetail({ id }: { id: string }) {
 		(ended ? !isCancelled(poll) && (poll.creatorId === user.sub || invited || !!poll.myOptionId) : invited);
 
 	return (
-		// The rail sits beside the poll from xl up, where both fit next to the sidebar; below that it follows
-		<div className="flex flex-col gap-8 xl:flex-row xl:items-start">
+		<div className="flex flex-col gap-6">
 			{hasNotification && <MarkNotificationRead pollId={poll.id} />}
-			<div className="flex min-w-0 flex-col gap-6 xl:flex-[999_1_560px]">
-				<PollCard
-					poll={poll}
-					viewerId={user?.sub}
-					anonymousByDefault={profile?.anonymousBallotByDefault}
-					deletedHref="/my-polls"
-					headingLevel="h1"
-					isPage
-				/>
-				<PollDiscussion
-					pollId={poll.id}
-					commentCount={poll.commentCount}
-					viewerId={user?.sub}
-					viewer={profile ? { username: profile.username, avatarUrl: profile.avatarUrl } : undefined}
-				/>
-			</div>
-			<aside className="flex flex-col gap-4 xl:sticky xl:top-8 xl:max-w-[320px] xl:flex-[1_1_260px]">
-				<PollAbout poll={poll} />
-				{!ended && (
-					<Suspense fallback={null}>
-						<MoreFrom username={poll.creatorUsername} pollId={poll.id} />
-					</Suspense>
-				)}
-			</aside>
+			<PollCard
+				poll={poll}
+				viewerId={user?.sub}
+				anonymousByDefault={profile?.anonymousBallotByDefault}
+				deletedHref="/my-polls"
+				headingLevel="h1"
+				isPage
+			/>
+			<PollDiscussion
+				pollId={poll.id}
+				commentCount={poll.commentCount}
+				viewerId={user?.sub}
+				viewer={profile ? { username: profile.username, avatarUrl: profile.avatarUrl } : undefined}
+			/>
 		</div>
+	);
+}
+
+/** Shares PollDetail's cached lookup; empty when the poll doesn't open. */
+async function PollRail({ id }: { id: string }) {
+	const { poll } = await lookupPoll(id);
+	if (!poll) return null;
+	return (
+		// pt-13 is the BackLink's line plus gap-8, so the rail starts level with the poll card
+		<aside className="flex flex-col gap-4 xl:sticky xl:top-8 xl:pt-13">
+			<PollAbout poll={poll} />
+			{derivePollStatus(poll) !== 'ended' && (
+				<Suspense fallback={null}>
+					<MoreFrom username={poll.creatorUsername} pollId={poll.id} />
+				</Suspense>
+			)}
+		</aside>
 	);
 }
 
@@ -155,17 +170,12 @@ async function MoreFrom({ username, pollId }: { username: string; pollId: string
 	return polls.length > 0 && <MoreFromAuthor username={username} polls={polls} />;
 }
 
-function PollDetailSkeleton() {
+function PollRailSkeleton() {
 	return (
-		<div className="flex flex-col gap-8 xl:flex-row xl:items-start">
-			<div className="min-w-0 xl:flex-[999_1_560px]">
-				<PollCardSkeleton options={4} />
-			</div>
-			<div className="space-y-4 rounded-2xl border border-border bg-card p-5 xl:max-w-[320px] xl:flex-[1_1_260px]">
-				<Skeleton className="h-3.5 w-28" />
-				<Skeleton className="h-3.5 w-full" />
-				<Skeleton className="h-3.5 w-5/6" />
-			</div>
+		<div className="space-y-4 rounded-2xl border border-border bg-card p-5 xl:mt-13">
+			<Skeleton className="h-3.5 w-28" />
+			<Skeleton className="h-3.5 w-full" />
+			<Skeleton className="h-3.5 w-5/6" />
 		</div>
 	);
 }
