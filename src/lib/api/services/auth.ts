@@ -3,11 +3,13 @@
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
+import { type ActionResult, attempt } from '@/lib/api/action';
 import { clearAuthTokens, getTokens, setAuthTokens } from '@/lib/api/auth';
 import { type AuthErrorKey, toAuthErrorKey } from '@/lib/api/auth-errors';
-import { ApiError, publicFetch } from '@/lib/api/client';
+import { apiClient, ApiError, publicFetch } from '@/lib/api/client';
 import { clientIpHeaders } from '@/lib/api/client-ip';
 import { readAuthTokens } from '@/lib/api/tokens';
+import type { Passkey } from '@/types/user';
 
 type AuthFailure = { status: 'ERROR'; error: AuthErrorKey };
 
@@ -76,4 +78,32 @@ export async function signout() {
 	}
 	await clearAuthTokens();
 	redirect('/');
+}
+
+/**
+ * Creation options for a new passkey on the signed-in account; pass them to
+ * `PublicKeyCredential.parseCreationOptionsFromJSON`. Each call issues a
+ * challenge that lasts 5 minutes and is spent by one verify call.
+ */
+export async function getPasskeyRegistrationOptions(): Promise<ActionResult<PublicKeyCredentialCreationOptionsJSON>> {
+	return attempt(() =>
+		apiClient<PublicKeyCredentialCreationOptionsJSON>('/auth/passkey/register/options', {
+			method: 'POST',
+			cache: 'no-store',
+		})
+	);
+}
+
+/** Stores the passkey from `credential.toJSON()`; a failure needs new options to retry. */
+export async function verifyPasskeyRegistration(
+	credential: PublicKeyCredentialJSON,
+	name?: string
+): Promise<ActionResult<Passkey>> {
+	return attempt(() =>
+		apiClient<Passkey>('/auth/passkey/register/verify', {
+			method: 'POST',
+			body: JSON.stringify({ credential, name }),
+			cache: 'no-store',
+		})
+	);
 }

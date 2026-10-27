@@ -945,7 +945,10 @@
 				"not_configured": "Apple 登入尚未設定"
 			},
 			"email_not_verified": "此 OAuth 帳號的 email 尚未驗證，無法登入或合併既有帳號",
-			"account_banned": "此帳號已被停權，無法登入"
+			"account_banned": "此帳號已被停權，無法登入",
+			"passkey": {
+				"invalid": "通行密鑰驗證失敗，請重新操作一次"
+			}
 		},
 		"user": {
 			"not_found": "找不到此用戶",
@@ -1123,5 +1126,13 @@
 		"notifyOn": "已開啟「{name}」通知。",
 		"notifyOff": "已關閉「{name}」通知。",
 		"notificationsFailed": "無法載入你的通知設定。"
+	},
+	"passkey": {
+		"title": "通行密鑰",
+		"body": "改用 Face ID、Touch ID 或裝置密碼登入，不必再收驗證碼。",
+		"add": "新增通行密鑰",
+		"added": "已新增通行密鑰",
+		"alreadyAdded": "這部裝置已經有你帳號的通行密鑰。",
+		"addFailed": "無法新增通行密鑰，請再試一次。"
 	}
 }

@@ -50,3 +50,12 @@ export interface MyProfile {
 	anonymousBallotByDefault: boolean;
 	avatarUrl: string | null; // `bot:<kind>`; older accounts may hold an image URL
 }
+
+/** A passkey on the signed-in account. */
+export interface Passkey {
+	id: string;
+	name: string | null;
+	createdAt: string;
+	/** Null until it is used to sign in */
+	lastUsedAt: string | null;
+}

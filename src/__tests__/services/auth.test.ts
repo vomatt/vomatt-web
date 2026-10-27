@@ -1,12 +1,18 @@
 /**
  * @jest-environment node
  */
-import { ApiError, publicFetch } from '@/lib/api/client';
-import { requestOtp, signout, verifyOtp } from '@/lib/api/services/auth';
+import { apiClient, ApiError, publicFetch } from '@/lib/api/client';
+import {
+	getPasskeyRegistrationOptions,
+	requestOtp,
+	signout,
+	verifyOtp,
+	verifyPasskeyRegistration,
+} from '@/lib/api/services/auth';
 
 jest.mock('@/lib/api/client', () => {
 	const actual = jest.requireActual('@/lib/api/client');
-	return { ...actual, publicFetch: jest.fn() };
+	return { ...actual, apiClient: jest.fn(), publicFetch: jest.fn() };
 });
 
 jest.mock('@/lib/api/auth', () => ({
@@ -21,9 +27,11 @@ jest.mock('next/headers', () => ({ headers: async () => mockRequestHeaders }));
 const mockRedirect = jest.fn();
 jest.mock('next/navigation', () => ({
 	redirect: (...args: unknown[]) => mockRedirect(...args),
+	unstable_rethrow: jest.fn(),
 }));
 
 const mockPublicFetch = publicFetch as jest.MockedFunction<typeof publicFetch>;
+const mockApiClient = apiClient as jest.MockedFunction<typeof apiClient>;
  
 const authCookies = require('@/lib/api/auth') as Record<string, jest.Mock>;
 
@@ -136,5 +144,32 @@ describe('signout()', () => {
 		await signout();
 
 		expect(authCookies.clearAuthTokens).toHaveBeenCalled();
+	});
+});
+
+describe('passkey registration', () => {
+	it('asks the API for creation options as the signed-in user', async () => {
+		mockApiClient.mockResolvedValue({ challenge: 'abc' });
+		await expect(getPasskeyRegistrationOptions()).resolves.toEqual({ ok: true, data: { challenge: 'abc' } });
+		expect(mockApiClient).toHaveBeenCalledWith('/auth/passkey/register/options', expect.objectContaining({ method: 'POST' }));
+	});
+
+	it('sends the credential JSON and the optional name to verify', async () => {
+		const credential = { id: 'c1', rawId: 'c1', type: 'public-key' } as unknown as PublicKeyCredentialJSON;
+		mockApiClient.mockResolvedValue({ id: 'p1' });
+		await verifyPasskeyRegistration(credential, 'iPhone');
+		const [endpoint, init] = mockApiClient.mock.calls[0];
+		expect(endpoint).toBe('/auth/passkey/register/verify');
+		expect(init?.method).toBe('POST');
+		expect(JSON.parse(String(init?.body))).toEqual({ credential, name: 'iPhone' });
+	});
+
+	it('returns the errorCode of a failed verify instead of throwing', async () => {
+		mockApiClient.mockRejectedValue(new ApiError('bad', 400, { errorCode: 'auth.passkey.invalid' }));
+		await expect(verifyPasskeyRegistration({} as PublicKeyCredentialJSON)).resolves.toMatchObject({
+			ok: false,
+			status: 400,
+			errorCode: 'auth.passkey.invalid',
+		});
 	});
 });

@@ -149,6 +149,37 @@ describe('AccountSettings', () => {
 		expect(screen.getByRole('button', { name: 'Download' })).toBeInTheDocument();
 	});
 
+	describe('the Passkeys row', () => {
+		afterEach(() => {
+			delete (window as { PublicKeyCredential?: unknown }).PublicKeyCredential;
+			delete (navigator as { credentials?: unknown }).credentials;
+		});
+
+		it('offers Add passkey when the browser has WebAuthn with the JSON helpers', () => {
+			Object.defineProperty(window, 'PublicKeyCredential', {
+				configurable: true,
+				value: { parseCreationOptionsFromJSON: jest.fn() },
+			});
+			Object.defineProperty(navigator, 'credentials', { configurable: true, value: { create: jest.fn() } });
+			render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+			expect(screen.getByText('Passkeys')).toBeInTheDocument();
+			expect(screen.getByRole('button', { name: 'Add passkey' })).toBeInTheDocument();
+		});
+
+		it('is hidden without PublicKeyCredential', () => {
+			render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+			expect(screen.queryByText('Passkeys')).not.toBeInTheDocument();
+			expect(screen.queryByRole('button', { name: 'Add passkey' })).not.toBeInTheDocument();
+		});
+
+		it('is hidden when PublicKeyCredential predates parseCreationOptionsFromJSON', () => {
+			Object.defineProperty(window, 'PublicKeyCredential', { configurable: true, value: {} });
+			Object.defineProperty(navigator, 'credentials', { configurable: true, value: { create: jest.fn() } });
+			render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+			expect(screen.queryByRole('button', { name: 'Add passkey' })).not.toBeInTheDocument();
+		});
+	});
+
 	it('lets the owner vote anonymously by default from Settings', async () => {
 		const { editProfile } = jest.requireMock('@/lib/api/services/users');
 		editProfile.mockResolvedValue({ ok: true });
