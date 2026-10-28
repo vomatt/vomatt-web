@@ -8,7 +8,7 @@
 		"explore": "探索",
 		"notifications": "通知",
 		"login": "登入",
-		"email": "信箱",
+		"email": "電子郵件",
 		"welcome": "歡迎",
 		"loading": "載入中",
 		"signingIn": "正在登入",
@@ -84,8 +84,8 @@
 	},
 	"verificationCode": {
 		"title": "請查看你的信箱",
-		"subtitle": "請輸入我們寄送的 6 位數驗證碼至",
-		"resendVerificationCode": "重新發送驗證碼",
+		"subtitle": "我們已將 6 位數驗證碼寄至",
+		"resendVerificationCode": "重新寄送驗證碼",
 		"codeSent": "新的驗證碼已寄出。",
 		"invalidVerificationCode": "驗證碼錯誤",
 		"useAnotherEmail": "使用其他電子郵件",
@@ -139,8 +139,8 @@
 		"notFound": "找不到投票。",
 		"notFoundBody": "它可能已被刪除，或連結有誤。",
 		"notFoundExplore": "探索投票",
-		"opened": "開始",
-		"opens": "開始",
+		"opened": "已開始",
+		"opens": "開始時間",
 		"results": "公布結果",
 		"timeline": "投票期間",
 		"resultsIn": "投票已結束，結果出爐。",
@@ -201,7 +201,7 @@
 		"recordAsked": "發起的投票",
 		"recordVoted": "參與的投票",
 		"recordReached": "觸及人數",
-		"recordPicksWon": "選擇勝出率",
+		"recordPicksWon": "勝出的選擇",
 		"recordAskedCount": "發起 {count} 則投票",
 		"recordVotedCount": "參與 {count} 則",
 		"tabAsked": "發起",
@@ -387,7 +387,7 @@
 		}
 	},
 	"homePage": {
-		"feedListNoData": "發起投票，引領群眾。",
+		"feedListNoData": "還沒有投票，發起第一則吧。",
 		"allTopics": "為你推薦",
 		"following": "追蹤中",
 		"followingEmpty": "你追蹤的人還沒有投票。",
@@ -402,7 +402,7 @@
 		"resultsTie": "平手",
 		"closingSoon": "即將結束",
 		"askTitle": "有問題想問大家嗎？",
-		"askBody": "寫一則投票只要一分鐘，開始的那一刻就會自動封存。",
+		"askBody": "寫一則投票只要一分鐘，一開始就會自動密封。",
 		"askCta": "寫一則"
 	},
 	"poll": {
@@ -414,7 +414,7 @@
 		},
 		"vote": "投票",
 		"updateVote": "更新投票",
-		"updatingHint": "將取代你投給「{option}」的票，結果仍封存至投票結束。",
+		"updatingHint": "將取代你投給「{option}」的票，結果在投票結束前仍保持密封。",
 		"withdrawVote": "撤回投票",
 		"withdrawTitle": "要撤回你的投票嗎？",
 		"withdrawBody": "撤回後不會被計入，也不會收到通知。",
@@ -425,7 +425,7 @@
 		"revealHint": "投票結束後才會公開結果",
 		"sealed": "結果將於 {date} 公開，屆時會通知你。",
 		"sealedNoEnd": "結果將於投票結束後公開，屆時會通知你。",
-		"sealedTitle": "已封存，謝謝你。",
+		"sealedTitle": "已密封，謝謝你。",
 		"opensHint": "投票將於{distance}開始",
 		"voted": "{count} 人已投票",
 		"votedPill": "已投票",
@@ -958,7 +958,7 @@
 			}
 		},
 		"user": {
-			"not_found": "找不到此用戶",
+			"not_found": "找不到此使用者",
 			"username": {
 				"taken": "使用者名稱已被使用"
 			},
@@ -1080,16 +1080,16 @@
 		"blockEllipsis": "封鎖…"
 	},
 	"follows": {
-		"title": "追蹤中的用戶",
+		"title": "追蹤中的人",
 		"intro": "你追蹤的人所發起的進行中公開投票會顯示在「追蹤中」動態。你追蹤對方時，對方會收到通知；已登入的使用者也可在個人頁看到追蹤關係。",
 		"empty": "你尚未追蹤任何人。",
-		"loadFailed": "無法載入追蹤中的用戶。",
+		"loadFailed": "無法載入追蹤中的人。",
 		"unfollow": "取消追蹤",
 		"unfollowed": "已取消追蹤 @{username}",
 		"unfollowFailed": "無法取消追蹤，請再試一次。",
 		"follow": "追蹤",
 		"followed": "已追蹤 @{username}",
-		"manage": "管理追蹤中的用戶",
+		"manage": "管理追蹤中的人",
 		"followFailed": "無法追蹤，請再試一次。",
 		"notFound": "找不到要追蹤的使用者。",
 		"following": "追蹤中",
@@ -1122,6 +1122,7 @@
 		"legal": "法律資訊",
 		"terms": "服務條款",
 		"privacyPolicy": "隱私權政策",
+		"cookies": "Cookie 政策",
 		"notifyResultsIn": "結果出爐",
 		"notifyResultsInBody": "你參與或發起的投票結束時通知你。這是每張選票的承諾。",
 		"notifyInvitations": "邀請",

@@ -6,15 +6,13 @@ import { T } from '@/components/T';
 import { getMyProfile } from '@/data/auth';
 import { getGroups } from '@/features/groups/service';
 import { getNotificationPreferences } from '@/features/notifications/service';
-import { getServerLocale } from '@/lib/getServerLocale';
-import en from '@/locales/en.json';
-import zh from '@/locales/zh.json';
+import { getServerMessages } from '@/lib/getServerLocale';
 
 import AccountSettings, { SettingsNav } from './_components/AccountSettings';
 
 export async function generateMetadata(): Promise<Metadata> {
-	const { language } = await getServerLocale();
-	return { title: (language === 'zh' ? zh : en).navigation.settings };
+	const { messages } = await getServerMessages();
+	return { title: messages.navigation.settings };
 }
 
 export default async function SettingsPage() {

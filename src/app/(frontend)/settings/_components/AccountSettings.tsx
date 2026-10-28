@@ -6,6 +6,7 @@ import { useTheme } from 'next-themes';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
+import { LegalLinks } from '@/components/layout/LegalLinks';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -221,14 +222,7 @@ export default function AccountSettings({
 			{/* Kept apart, at the end, and quiet until opened */}
 			<DeleteAccount username={profile.username} />
 
-			<nav aria-label={t('settings.legal')} className="flex gap-4.5 text-[13px] text-muted-foreground">
-				<Link href="/terms-of-service" className="hover:text-foreground">
-					{t('settings.terms')}
-				</Link>
-				<Link href="/privacy-policy" className="hover:text-foreground">
-					{t('settings.privacyPolicy')}
-				</Link>
-			</nav>
+			<LegalLinks className="flex gap-4.5 text-[13px] text-muted-foreground" />
 		</div>
 	);
 }
