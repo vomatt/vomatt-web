@@ -2,7 +2,7 @@
 	"common": {
 		"back": "Back",
 		"busy": "Another change is in progress. Try again in a moment.",
-		"home": "home",
+		"home": "Home",
 		"createPoll": "Create a poll",
 		"myPolls": "My Polls",
 		"explore": "Explore",
@@ -80,7 +80,7 @@
 		"subtitle": "Enter your email and we’ll send you a code. New here? We’ll create your account.",
 		"sessionExpired": "Your session expired. Please log in again.",
 		"dialogDescription": "Log in or sign up with your email to continue",
-		"sessionRevoked": "For your security, you were signed out on this device. Please sign in again."
+		"sessionRevoked": "For your security, you were signed out on this device. Please log in again."
 	},
 	"verificationCode": {
 		"title": "Check your email",
@@ -210,8 +210,8 @@
 		"recordPicksWon": "picks that won",
 		"recordAskedCount": "{count} polls asked",
 		"recordAskedCount_one": "{count} poll asked",
-		"recordVotedCount": "{count} voted in",
-		"recordVotedCount_one": "{count} voted in",
+		"recordVotedCount": "{count} polls voted in",
+		"recordVotedCount_one": "{count} poll voted in",
 		"tabAsked": "Asked",
 		"tabVoted": "Voted",
 		"askedUnread": "Results are in on your polls",
@@ -361,7 +361,7 @@
 		"keepDraftBody": "You can finish it later from Drafts in My Polls.",
 		"keepDraft": "Keep draft",
 		"addContext": "Add context (optional)",
-		"optionsHint": "Press Return for the next option.",
+		"optionsHint": "Press Enter for the next option.",
 		"settingsTitle": "Timing & privacy",
 		"review": "Review",
 		"reviewTitle": "Review your poll",
@@ -397,7 +397,7 @@
 		}
 	},
 	"homePage": {
-		"feedListNoData": "Start the poll, lead the crowd.",
+		"feedListNoData": "No polls yet. Start the first one.",
 		"allTopics": "For you",
 		"following": "Following",
 		"followingEmpty": "Nothing from people you follow yet.",
@@ -1136,6 +1136,7 @@
 		"legal": "Legal",
 		"terms": "Terms",
 		"privacyPolicy": "Privacy",
+		"cookies": "Cookies",
 		"notifyResultsIn": "Results are in",
 		"notifyResultsInBody": "When a poll you voted in or asked ends. This is the promise on every ballot.",
 		"notifyInvitations": "Invitations",

@@ -6,6 +6,7 @@ export const RESERVED_USERNAMES = new Set([
 	'search',
 	'account',
 	'explore',
+	'following',
 	'login',
 	'notifications',
 	'poll',

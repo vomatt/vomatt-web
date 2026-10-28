@@ -18,9 +18,7 @@ import { LanguageProvider } from '@/contexts/LanguageContext';
 import { SESSION_UNCONFIRMED_HEADER } from '@/data/constants';
 import { htmlLang } from '@/i18n-config';
 import { isComingSoon } from '@/lib/comingSoon';
-import { getServerLocale } from '@/lib/getServerLocale';
-import enTranslations from '@/locales/en.json';
-import zhTranslations from '@/locales/zh.json';
+import { getServerLocale, getServerMessages } from '@/lib/getServerLocale';
 import { buildShareImageUrl, imageBuilder } from '@/sanity/lib/image';
 import { sanityFetch } from '@/sanity/lib/live';
 import { siteSharingQuery } from '@/sanity/lib/queries';
@@ -75,7 +73,6 @@ export async function generateMetadata() {
 			videos: shareVideoUrl
 				? [{ url: shareVideoUrl, width: 1200, height: 630, type: 'video/mp4' }]
 				: [],
-			url: process.env.SITE_URL,
 			siteName: siteTitle,
 			locale: language === 'zh' ? 'zh_TW' : 'en_US',
 			type: 'website',
@@ -98,12 +95,11 @@ export default async function RootLayout({
 }: {
 	children: ReactNode;
 }) {
-	const [{ language }, settings, requestHeaders] = await Promise.all([
-		getServerLocale(),
+	const [{ language, messages: translations }, settings, requestHeaders] = await Promise.all([
+		getServerMessages(),
 		getSiteSettings(),
 		headers(),
 	]);
-	const translations = language === 'zh' ? zhTranslations : enTranslations;
 	const comingSoon = settings?.comingSoon;
 
 	return (

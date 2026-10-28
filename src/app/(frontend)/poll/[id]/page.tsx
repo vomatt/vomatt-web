@@ -46,7 +46,7 @@ type Props = { params: Promise<{ id: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
 	const { id } = await params;
 	const { poll } = await lookupPoll(id);
-	if (!poll) return { title: 'Vomatt' };
+	if (!poll) return { title: 'Vomatt', robots: { index: false } };
 
 	const description = shareDescription(poll);
 	return {
