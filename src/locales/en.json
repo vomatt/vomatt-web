@@ -1087,7 +1087,7 @@
 		"manage": "Manage blocked people",
 		"blockFailed": "Couldn’t block. Try again.",
 		"confirmTitle": "Block @{username}?",
-		"confirmBody": "Their polls and comments will no longer show up for you. They won’t be told. You can unblock them from their profile or in Settings.",
+		"confirmBody": "Their polls and comments will no longer show up for you, and your polls will no longer be reachable for them. They won’t be told. You can unblock them from their profile or in Settings.",
 		"blockedBadge": "Blocked",
 		"blockEllipsis": "Block…"
 	},
