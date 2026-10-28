@@ -4,8 +4,7 @@ import { m, useAnimate } from 'motion/react';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
-import { Lock } from '@/components/ui/SvgIcons';
-import { Switch } from '@/components/ui/Switch';
+import { Check, Eye, EyeOff, Lock } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useHydrated } from '@/hooks/useHydrated';
 import { cn } from '@/lib/utils';
@@ -45,6 +44,8 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 	const isScheduled = status === 'scheduled';
 	// A first vote in flight already has a Ballot; its Vote button stays (busy) until it is in
 	const view = isScheduled ? 'scheduled' : !myOptionId || pendingAction === 'vote' ? 'vote' : mode.kind;
+	// Nobody sees the voter list on a 'nobody' Poll, so there is nothing to hide from
+	const canHideName = !isScheduled && anonymous !== null && poll.voterVisibility !== 'nobody';
 
 	const [optionsRef, animateOptions] = useAnimate<HTMLFieldSetElement>();
 	/** The options recoil when a request is rolled back. */
@@ -135,8 +136,31 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 			</div>
 		);
 	} else if (view === 'moment' || view === 'row') {
+		// Once cast, the choice applies at once, so it reads as where the name stands with one action
+		const nameLine = canHideName && (
+			<div className="flex items-center gap-2.5 border-t border-tide-line py-1 pr-2 pl-4 text-[13px] leading-[18px]">
+				{anonymous ? (
+					<EyeOff aria-hidden className="size-4 shrink-0 text-tide" />
+				) : (
+					<Eye aria-hidden className="size-4 shrink-0 text-tide" />
+				)}
+				<p role="status" className="min-w-0 flex-1">
+					{anonymous ? t('poll.nameHidden') : t('poll.nameListed')}
+				</p>
+				{/* aria-disabled, not disabled: a disabled button drops keyboard focus while the request runs */}
+				<Button
+					size="xs"
+					variant="ghost"
+					aria-disabled={isPending}
+					onClick={() => !isPending && setAnonymous(!anonymous)}
+					className="shrink-0 text-foreground underline underline-offset-3"
+				>
+					{anonymous ? t('poll.showMyName') : t('poll.hideMyName')}
+				</Button>
+			</div>
+		);
 		actions = (
-			<Seal variant={view} endTime={poll.endTime}>
+			<Seal variant={view} endTime={poll.endTime} footer={nameLine}>
 				{sealActions}
 			</Seal>
 		);
@@ -222,30 +246,37 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 				})}
 			</fieldset>
 
-			{/* Nobody sees the voter list on a 'nobody' Poll, so there is nothing to hide from */}
-			{!isScheduled && anonymous !== null && poll.voterVisibility !== 'nobody' && (
-				<div className="flex items-start justify-between gap-6">
-					{/* Both lines, the label and who sees voters, are the touch target */}
-					<label
-						htmlFor={`anonymous-${poll.id}`}
-						className="flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col justify-center gap-1"
+			{/* Before a vote the choice only rides along with it, so a checkbox, not a switch that acts at once */}
+			{canHideName && view === 'vote' && (
+				// Both lines, the label and who sees voters, are the touch target
+				<label className="flex min-h-11 cursor-pointer items-start gap-2.5 self-start py-0.5 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50">
+					<input
+						type="checkbox"
+						checked={anonymous}
+						disabled={isPending}
+						onChange={(event) => setAnonymous(event.target.checked)}
+						aria-labelledby={`anonymous-${poll.id}-label`}
+						aria-describedby={`anonymous-${poll.id}-help`}
+						className="peer sr-only"
+					/>
+					<span
+						aria-hidden
+						className={cn(
+							'grid size-5 shrink-0 place-items-center rounded-md transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-ring',
+							anonymous ? 'bg-primary text-highlight' : 'border-[1.5px] border-input bg-card'
+						)}
 					>
+						{anonymous && <Check aria-hidden className="size-3.5" strokeWidth={3} />}
+					</span>
+					<span className="flex min-w-0 flex-col gap-0.5">
 						<span id={`anonymous-${poll.id}-label`} className="text-[14px] font-medium leading-5 text-foreground">
 							{t('poll.anonymousToggle')}
 						</span>
 						<span id={`anonymous-${poll.id}-help`} className="text-[13px] leading-[18px] text-muted-foreground">
-							{t(`poll.visibility.${visibilityLevel(poll)}`)}
+							{anonymous ? t('poll.anonymousHidden') : t(`poll.visibility.${visibilityLevel(poll)}`)}
 						</span>
-					</label>
-					<Switch
-						id={`anonymous-${poll.id}`}
-						aria-labelledby={`anonymous-${poll.id}-label`}
-						aria-describedby={`anonymous-${poll.id}-help`}
-						checked={anonymous}
-						disabled={isPending}
-						onCheckedChange={setAnonymous}
-					/>
-				</div>
+					</span>
+				</label>
 			)}
 
 			<div className="border-t border-border pt-4 md:pt-5">
