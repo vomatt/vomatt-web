@@ -6,6 +6,7 @@ import { Header } from '@/components/layout/Header';
 import { Main } from '@/components/layout/Main';
 import { TabBar } from '@/components/layout/TabBar';
 import { MotionProvider } from '@/components/MotionProvider';
+import { ReloadWhenSessionUnconfirmed } from '@/components/SessionRetry';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/Sidebar';
 import { getMyProfile, getUserSession } from '@/data/auth';
 import { UnreadCountProvider } from '@/features/notifications/UnreadCountProvider';
@@ -25,6 +26,7 @@ export async function Layout({ children }: LayoutProps) {
 			<UnreadCountProvider signedIn={!!userSession}>
 				{/* Wraps the nav too: the poll creator opens from the sidebar and TabBar */}
 				<MotionProvider>
+					<ReloadWhenSessionUnconfirmed />
 					<AdaSkip />
 					<AppSidebar userSession={userSession} profile={profile} />
 					<Header />
