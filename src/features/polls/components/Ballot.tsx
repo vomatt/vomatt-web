@@ -1,7 +1,7 @@
 'use client';
 
 import { m, useAnimate } from 'motion/react';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { Check, Eye, EyeOff, Lock } from '@/components/ui/SvgIcons';
@@ -44,6 +44,9 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 	const isScheduled = status === 'scheduled';
 	// A first vote in flight already has a Ballot; its Vote button stays (busy) until it is in
 	const view = isScheduled ? 'scheduled' : !myOptionId || pendingAction === 'vote' ? 'vote' : mode.kind;
+	// One id per Ballot, not per Poll: the feed card and the Poll page each have a Ballot for the same Poll,
+	// and a shared layoutId flies the highlight from one to the other on navigation
+	const highlightId = useId();
 	// Nobody sees the voter list on a 'nobody' Poll, so there is nothing to hide from
 	const canHideName = !isScheduled && anonymous !== null && poll.voterVisibility !== 'nobody';
 
@@ -216,7 +219,7 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 
 	return (
 		<div className="flex flex-col gap-4 md:gap-5">
-			<fieldset ref={optionsRef} disabled={isScheduled || isPending} className="space-y-2.5">
+			<fieldset ref={optionsRef} disabled={isScheduled || isPending} className="isolate space-y-2.5">
 				<legend className="sr-only">{poll.title}</legend>
 				{poll.options.map((option) => {
 					const isSelected = selected === option.id;
@@ -226,11 +229,12 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 							className={cn(
 								'relative flex min-h-14 cursor-pointer items-center gap-3.5 rounded-xl border border-border bg-card px-5 py-2.5 text-[16px] font-medium transition-colors',
 								'has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring',
-								isSelected ? 'border-transparent' : 'hover:border-border-strong',
+								// Raised so the highlight slides over the other options, not under the ones after it
+								isSelected ? 'z-10 border-transparent' : 'hover:border-border-strong',
 								isScheduled && 'cursor-not-allowed text-muted-foreground'
 							)}
 						>
-							{isSelected && <SelectionHighlight layoutId={`ballot-${poll.id}`} inTransit={isPending} />}
+							{isSelected && <SelectionHighlight layoutId={highlightId} inTransit={isPending} />}
 							<input
 								type="radio"
 								name={`ballot-${poll.id}`}
