@@ -34,4 +34,4 @@ Preconditions:
 - Radios are visually hidden (`sr-only`), so clicking `role=radio` times out. Click the label (`label >> text="<option>"`) and assert with `vv b is checked 'role=radio[name="<option>"]'`.
 - Open polls never show counts; asserting a percentage on an open poll is a wrong expectation, not a bug.
 - `vote-results` needs an ended poll: as its creator, use `End now` on the poll page (confirm dialog), then reload.
-- The `Hide my name from voter lists` switch is hidden when the poll's voter visibility is `Nobody`.
+- Before voting, `Hide my name from voter lists` is a visually hidden checkbox: click `label >> text="Hide my name from voter lists"`. After voting it becomes `Hide my name` / `Show my name` in the Seal. Neither shows when the poll's voter visibility is `Nobody`.

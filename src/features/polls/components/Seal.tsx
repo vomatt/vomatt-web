@@ -50,10 +50,12 @@ type SealProps = {
 	endTime: string | null;
 	/** Withdraw vote and Update vote. */
 	children: React.ReactNode;
+	/** A full-width strip along the bottom of the panel. */
+	footer?: React.ReactNode;
 };
 
 /** What a cast Ballot becomes: the Seal, saying when the results open, with the vote's actions. */
-export function Seal({ variant, endTime, children }: SealProps) {
+export function Seal({ variant, endTime, children, footer }: SealProps) {
 	const { t } = useLanguage();
 	const clock = useViewerClock();
 	// The date needs the viewer's time zone, so a dated line holds its space until hydration
@@ -63,27 +65,33 @@ export function Seal({ variant, endTime, children }: SealProps) {
 
 	if (variant === 'moment') {
 		return (
-			<TidePanel className="flex flex-col items-center gap-3 px-6 pt-7 pb-6 text-center">
-				<span className="mb-1">
-					<SealMark size="lg" />
-				</span>
-				<p className="text-[21px] font-medium leading-tight tracking-[-0.02em] text-foreground">
-					{t('poll.sealedTitle')}
-				</p>
-				<p className={cn('max-w-[420px] text-[14px] leading-5', waiting && 'invisible')}>{line}</p>
-				<div className="mt-1 flex flex-wrap justify-center gap-1.5">{children}</div>
+			<TidePanel>
+				<div className="flex flex-col items-center gap-3 px-6 pt-7 pb-6 text-center">
+					<span className="mb-1">
+						<SealMark size="lg" />
+					</span>
+					<p className="text-[21px] font-medium leading-tight tracking-[-0.02em] text-foreground">
+						{t('poll.sealedTitle')}
+					</p>
+					<p className={cn('max-w-[420px] text-[14px] leading-5', waiting && 'invisible')}>{line}</p>
+					<div className="mt-1 flex flex-wrap justify-center gap-1.5">{children}</div>
+				</div>
+				{footer}
 			</TidePanel>
 		);
 	}
 
 	return (
-		<TidePanel className="flex flex-wrap items-center gap-4 py-3.5 pr-3.5 pl-4">
-			<SealMark size="md" />
-			<div className="flex min-w-0 flex-[1_1_200px] flex-col gap-0.5">
-				<p className="text-[14px] font-medium leading-5 text-foreground">{t('poll.sealedTitle')}</p>
-				<p className={cn('text-[13px] leading-[18px]', waiting && 'invisible')}>{line}</p>
+		<TidePanel>
+			<div className="flex flex-wrap items-center gap-4 py-3.5 pr-3.5 pl-4">
+				<SealMark size="md" />
+				<div className="flex min-w-0 flex-[1_1_200px] flex-col gap-0.5">
+					<p className="text-[14px] font-medium leading-5 text-foreground">{t('poll.sealedTitle')}</p>
+					<p className={cn('text-[13px] leading-[18px]', waiting && 'invisible')}>{line}</p>
+				</div>
+				<div className="flex shrink-0 items-center gap-1.5">{children}</div>
 			</div>
-			<div className="flex shrink-0 items-center gap-1.5">{children}</div>
+			{footer}
 		</TidePanel>
 	);
 }

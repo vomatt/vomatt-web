@@ -141,20 +141,42 @@ describe('PollCard state A · Open, no Ballot', () => {
 		expect(screen.queryByText(/%/)).not.toBeInTheDocument();
 	});
 
-	it('says under the anonymity switch who sees voters once the poll ends', () => {
+	it('says under the hide-my-name checkbox who sees voters once the poll ends', () => {
 		render(<PollCard poll={{ ...openPoll, voterVisibility: 'signed-in' }} viewerId="user-voter" />);
-		expect(screen.getByRole('switch', { name: 'Hide my name from voter lists' })).toHaveAccessibleDescription(
+		expect(screen.getByRole('checkbox', { name: 'Hide my name from voter lists' })).toHaveAccessibleDescription(
 			'After it ends, anyone signed in can see what you chose.'
 		);
 	});
 
-	it('offers the anonymity switch before voting, set from the account default', () => {
+	it('says a hidden voter is still counted once the box is checked', () => {
+		render(<PollCard poll={openPoll} viewerId="user-voter" />);
+		const box = screen.getByRole('checkbox', { name: 'Hide my name from voter lists' });
+		fireEvent.click(box);
+		expect(box).toHaveAccessibleDescription('You’re counted, but left out of the voter list.');
+	});
+
+	it('offers the hide-my-name checkbox before voting, set from the account default', () => {
 		render(<PollCard poll={openPoll} viewerId="user-voter" anonymousByDefault />);
-		const toggle = screen.getByRole('switch', { name: 'Hide my name from voter lists' });
-		expect(toggle).toBeChecked();
-		fireEvent.click(toggle);
-		expect(toggle).not.toBeChecked();
+		const box = screen.getByRole('checkbox', { name: 'Hide my name from voter lists' });
+		expect(box).toBeChecked();
+		fireEvent.click(box);
+		expect(box).not.toBeChecked();
 		expect(mockCastBallot).not.toHaveBeenCalled();
+	});
+
+	it('toggles the checkbox from its text too, a full-height touch target', () => {
+		render(<PollCard poll={openPoll} viewerId="user-voter" />);
+		const label = screen.getByText('Hide my name from voter lists').closest('label')!;
+		expect(label).toHaveClass('min-h-11');
+		fireEvent.click(screen.getByText('After it ends, only the poll owner can see what you chose.'));
+		expect(screen.getByRole('checkbox', { name: 'Hide my name from voter lists' })).toBeChecked();
+	});
+
+	it('sends the checked box with the first vote', () => {
+		render(<PollCard poll={openPoll} viewerId="user-voter" />);
+		fireEvent.click(screen.getByRole('checkbox', { name: 'Hide my name from voter lists' }));
+		vote('Saturday');
+		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-sat', true);
 	});
 
 	it('keeps Support sealed even when the API still sends counts', () => {
@@ -239,12 +261,14 @@ describe('PollCard state B · Open, has Ballot', () => {
 		expect(screen.queryByText('your vote')).not.toBeInTheDocument();
 	});
 
-	it('keeps the anonymity switch and Withdraw and Update vote beside the Seal row', () => {
+	it('says in the Seal row whether the name is listed, beside Withdraw and Update vote', () => {
 		render(
 			<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun', myBallotAnonymous: false }} viewerId="user-voter" />
 		);
 		expect(screen.getByText('Sealed. Thank you.')).toBeInTheDocument();
-		expect(screen.getByRole('switch', { name: 'Hide my name from voter lists' })).toBeInTheDocument();
+		expect(screen.getByText('Your name shows in the voter list')).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Hide my name' })).toBeInTheDocument();
+		expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
 		expect(screen.getByRole('button', { name: 'Withdraw vote' })).toBeInTheDocument();
 		expect(screen.getByRole('button', { name: 'Update vote' })).toBeInTheDocument();
 		expect(screen.queryByRole('link', { name: /Change vote/ })).not.toBeInTheDocument();
@@ -351,29 +375,27 @@ describe('PollCard state B · Open, has Ballot', () => {
 		render(
 			<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun', myBallotAnonymous: false }} viewerId="user-voter" />
 		);
-		const toggle = screen.getByRole('switch', { name: 'Hide my name from voter lists' });
-		fireEvent.click(toggle);
+		fireEvent.click(screen.getByRole('button', { name: 'Hide my name' }));
 		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-sun', true);
-		await waitFor(() => expect(toggle).toBeChecked());
+		expect(await screen.findByText('Your name is hidden from the voter list')).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Show my name' })).toBeInTheDocument();
 	});
 
-	it('toggles anonymity from its label too, a full-height touch target', () => {
-		mockCastBallot.mockResolvedValue({ ok: true, data: { ...openPoll, myOptionId: 'opt-sun', myBallotAnonymous: true } });
-		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun', myBallotAnonymous: false }} viewerId="user-voter" />);
-		const label = screen.getByText('Hide my name from voter lists').closest('label')!;
-		expect(label).toHaveClass('min-h-11');
-		fireEvent.click(label);
-		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-sun', true);
+	it('lets a hidden voter show their name again', () => {
+		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun', myBallotAnonymous: true }} viewerId="user-voter" />);
+		fireEvent.click(screen.getByRole('button', { name: 'Show my name' }));
+		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-sun', false);
 	});
 
-	it('offers no anonymity switch when nobody can see voters', () => {
+	it('says nothing about names when nobody can see voters', () => {
 		render(
 			<PollCard
 				poll={{ ...openPoll, myOptionId: 'opt-sun', myBallotAnonymous: false, voterVisibility: 'nobody' }}
 				viewerId="user-voter"
 			/>
 		);
-		expect(screen.queryByRole('switch')).not.toBeInTheDocument();
+		expect(screen.queryByText('Your name shows in the voter list')).not.toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Hide my name' })).not.toBeInTheDocument();
 	});
 
 	it('Keep cancels the withdraw confirm', () => {
