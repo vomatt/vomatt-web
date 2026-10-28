@@ -3,6 +3,7 @@ import '@/styles/global.css';
 import type { SanityImageSource } from '@sanity/image-url';
 import clsx from 'clsx';
 import { Geist, Geist_Mono } from 'next/font/google';
+import { headers } from 'next/headers';
 import { cache, ReactNode } from 'react';
 import { Toaster } from 'sonner';
 
@@ -10,9 +11,11 @@ import BrandLogo from '@/components/BrandLogo';
 import CustomPortableText from '@/components/CustomPortableText';
 import { Layout } from '@/components/layout';
 import { CookieConsent } from '@/components/layout/CookieConsent';
+import { SessionRetry } from '@/components/SessionRetry';
 import { ThemeProvider } from '@/components/ui/ThemeProvider';
 import { TooltipProvider } from '@/components/ui/Tooltip';
 import { LanguageProvider } from '@/contexts/LanguageContext';
+import { SESSION_UNCONFIRMED_HEADER } from '@/data/constants';
 import { htmlLang } from '@/i18n-config';
 import { isComingSoon } from '@/lib/comingSoon';
 import { getServerLocale } from '@/lib/getServerLocale';
@@ -95,7 +98,11 @@ export default async function RootLayout({
 }: {
 	children: ReactNode;
 }) {
-	const [{ language }, settings] = await Promise.all([getServerLocale(), getSiteSettings()]);
+	const [{ language }, settings, requestHeaders] = await Promise.all([
+		getServerLocale(),
+		getSiteSettings(),
+		headers(),
+	]);
 	const translations = language === 'zh' ? zhTranslations : enTranslations;
 	const comingSoon = settings?.comingSoon;
 
@@ -126,19 +133,26 @@ export default async function RootLayout({
 							initialLanguage={language}
 							defaultTranslations={translations}
 						>
-							<TooltipProvider>
-								<Layout>{children}</Layout>
-							</TooltipProvider>
-							<Toaster
-								theme="system"
-								richColors
-								closeButton
-								position="bottom-center"
-								// Above the TabBar on phones
-								offset={{ bottom: 'calc(var(--tabbar-space) + 24px)' }}
-								mobileOffset={{ bottom: 'calc(var(--tabbar-space) + 16px)' }}
-							/>
-							<CookieConsent integrations={settings?.integrations} />
+							{/* Nothing of the signed-out page renders, so none of it shows through */}
+							{requestHeaders.has(SESSION_UNCONFIRMED_HEADER) ? (
+								<SessionRetry />
+							) : (
+								<>
+									<TooltipProvider>
+										<Layout>{children}</Layout>
+									</TooltipProvider>
+									<Toaster
+										theme="system"
+										richColors
+										closeButton
+										position="bottom-center"
+										// Above the TabBar on phones
+										offset={{ bottom: 'calc(var(--tabbar-space) + 24px)' }}
+										mobileOffset={{ bottom: 'calc(var(--tabbar-space) + 16px)' }}
+									/>
+									<CookieConsent integrations={settings?.integrations} />
+								</>
+							)}
 						</LanguageProvider>
 					)}
 				</ThemeProvider>
