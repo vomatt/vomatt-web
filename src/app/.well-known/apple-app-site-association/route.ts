@@ -8,7 +8,7 @@ type Component = { '/': string; exclude?: true; comment?: string };
 
 /**
  * Universal links for the iOS app: polls and profiles open in the app, every
- * other path stays on the web. iOS uses the first component that matches, and
+ * other path stays on the web. webcredentials lets the app use this domain's passkeys. iOS uses the first component that matches, and
  * `*` matches across `/`, so excludes come before the catch-all profile rule.
  * Not served (404) until IOS_APP_IDS is set.
  */
@@ -36,5 +36,8 @@ export async function GET() {
 		{ '/': '/*', comment: 'Profile' },
 	];
 
-	return Response.json({ applinks: { details: [{ appIDs, components }] } });
+	return Response.json({
+		applinks: { details: [{ appIDs, components }] },
+		webcredentials: { apps: appIDs },
+	});
 }
