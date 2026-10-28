@@ -45,6 +45,14 @@ jest.mock('@/features/polls/service', () => ({
 	getVoters: (...args: any[]) => mockGetVoters(...args),
 }));
 
+// Exposes the layoutId that motion would use to fly the highlight between elements
+jest.mock('@/features/polls/components/BallotMotion', () => ({
+	...jest.requireActual('@/features/polls/components/BallotMotion'),
+	SelectionHighlight: ({ layoutId }: { layoutId: string }) => (
+		<span data-testid="selection-highlight" data-layout-id={layoutId} />
+	),
+}));
+
 jest.mock('@/components/auth/AuthDialog', () => ({
 	AuthDialog: ({ open, onAuthSuccess }: any) => {
 		if (!open) return null;
@@ -201,6 +209,28 @@ describe('PollCard state B · Open, has Ballot', () => {
 		expect(screen.getByLabelText(/Sunday/)).toBeChecked();
 		expect(screen.getByText('Voted')).toBeInTheDocument();
 		expect(mockGetMyBallot).not.toHaveBeenCalled();
+	});
+
+	it('slides the highlight within one card but never to another card of the same poll', () => {
+		const poll = { ...openPoll, myOptionId: 'opt-sun' };
+		render(
+			<>
+				<PollCard poll={poll} viewerId="user-voter" />
+				<PollCard poll={poll} viewerId="user-voter" />
+			</>
+		);
+		const [first, second] = screen.getAllByTestId('selection-highlight');
+		const firstId = first.getAttribute('data-layout-id');
+		expect(firstId).not.toBe(second.getAttribute('data-layout-id'));
+
+		fireEvent.click(screen.getAllByLabelText('Friday')[0]);
+		expect(screen.getAllByTestId('selection-highlight')[0]).toHaveAttribute('data-layout-id', firstId);
+	});
+
+	it('raises the chosen option above the later ones, so the highlight slides over them', () => {
+		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-fri' }} viewerId="user-voter" />);
+		expect(screen.getByLabelText('Friday').closest('label')).toHaveClass('z-10');
+		expect(screen.getByLabelText('Saturday').closest('label')).not.toHaveClass('z-10');
 	});
 
 	it('keeps every option choosable after a vote is cast, with no pill on the rows', () => {
