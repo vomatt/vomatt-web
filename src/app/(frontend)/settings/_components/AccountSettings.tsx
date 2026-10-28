@@ -31,6 +31,7 @@ import { NOTIFICATION_SWITCHES } from '@/features/notifications/preferences';
 import type { NotificationPreferences } from '@/features/notifications/schema';
 import { updateNotificationPreferences } from '@/features/notifications/service';
 import { useUnreadCount } from '@/features/notifications/UnreadCountProvider';
+import { PasskeysPanel } from '@/features/passkeys/PasskeysPanel';
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
 import { useHydrated } from '@/hooks/useHydrated';
 import { htmlLang, SUPPORTED_LANGUAGES } from '@/i18n-config';
@@ -209,6 +210,9 @@ export default function AccountSettings({
 						<Button variant="outline" size="md" onClick={() => signout()}>
 							{t('account.signOut')}
 						</Button>
+					</div>
+					<div className={cn(rowClassName, 'flex-col items-stretch')}>
+						<PasskeysPanel />
 					</div>
 					<ExportData />
 				</Card>

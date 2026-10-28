@@ -510,7 +510,8 @@
 		"deletePollEllipsis": "Delete poll…"
 	},
 	"auth": {
-		"continueWithEmail": "Continue with email"
+		"continueWithEmail": "Continue with email",
+		"continueWithPasskey": "Continue with a passkey"
 	},
 	"authError": {
 		"invalidCode": "That code is not right. Check the email and try again.",
@@ -963,7 +964,10 @@
 				"not_configured": "Apple Sign In is not configured"
 			},
 			"email_not_verified": "This OAuth account’s email is not verified; cannot sign in or merge an existing account",
-			"account_banned": "This account has been banned and cannot sign in"
+			"account_banned": "This account has been banned and cannot sign in",
+			"passkey": {
+				"invalid": "Passkey verification failed. Please try again"
+			}
 		},
 		"user": {
 			"not_found": "User not found",
@@ -1142,5 +1146,25 @@
 		"notifyOn": "{name} notifications on.",
 		"notifyOff": "{name} notifications off.",
 		"notificationsFailed": "Couldn’t load your notification settings."
+	},
+	"passkey": {
+		"title": "Passkeys",
+		"body": "Sign in with Face ID, Touch ID or your device PIN instead of a code.",
+		"add": "Add passkey",
+		"added": "Passkey added",
+		"alreadyAdded": "This device already has a passkey for your account.",
+		"addFailed": "Couldn't add the passkey. Please try again.",
+		"unnamed": "Passkey",
+		"created": "Added {date}",
+		"lastUsed": "last used {date}",
+		"neverUsed": "never used",
+		"empty": "No passkeys yet.",
+		"loadFailed": "Couldn’t load your passkeys.",
+		"delete": "Remove",
+		"deleteLabel": "Remove {name}",
+		"deleteConfirmTitle": "Remove this passkey?",
+		"deleteConfirmBody": "{name} will no longer sign you in. It stays on the device until you remove it there.",
+		"deleted": "Passkey removed",
+		"deleteFailed": "Couldn’t remove the passkey. Please try again."
 	}
 }

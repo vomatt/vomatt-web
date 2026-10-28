@@ -499,7 +499,8 @@
 		"deletePollEllipsis": "刪除投票…"
 	},
 	"auth": {
-		"continueWithEmail": "使用電子郵件繼續"
+		"continueWithEmail": "使用電子郵件繼續",
+		"continueWithPasskey": "使用通行密鑰繼續"
 	},
 	"authError": {
 		"invalidCode": "驗證碼不正確，請確認信件後再試一次。",
@@ -950,7 +951,10 @@
 				"not_configured": "Apple 登入尚未設定"
 			},
 			"email_not_verified": "此 OAuth 帳號的 email 尚未驗證，無法登入或合併既有帳號",
-			"account_banned": "此帳號已被停權，無法登入"
+			"account_banned": "此帳號已被停權，無法登入",
+			"passkey": {
+				"invalid": "通行密鑰驗證失敗，請重新操作一次"
+			}
 		},
 		"user": {
 			"not_found": "找不到此用戶",
@@ -1128,5 +1132,25 @@
 		"notifyOn": "已開啟「{name}」通知。",
 		"notifyOff": "已關閉「{name}」通知。",
 		"notificationsFailed": "無法載入你的通知設定。"
+	},
+	"passkey": {
+		"title": "通行密鑰",
+		"body": "改用 Face ID、Touch ID 或裝置密碼登入，不必再收驗證碼。",
+		"add": "新增通行密鑰",
+		"added": "已新增通行密鑰",
+		"alreadyAdded": "這部裝置已經有你帳號的通行密鑰。",
+		"addFailed": "無法新增通行密鑰，請再試一次。",
+		"unnamed": "通行密鑰",
+		"created": "新增於 {date}",
+		"lastUsed": "上次使用 {date}",
+		"neverUsed": "尚未使用",
+		"empty": "還沒有通行密鑰。",
+		"loadFailed": "無法載入你的通行密鑰。",
+		"delete": "移除",
+		"deleteLabel": "移除 {name}",
+		"deleteConfirmTitle": "要移除這個通行密鑰嗎？",
+		"deleteConfirmBody": "移除後就不能再用 {name} 登入。裝置上的通行密鑰要到裝置設定中另外刪除。",
+		"deleted": "已移除通行密鑰",
+		"deleteFailed": "無法移除通行密鑰，請再試一次。"
 	}
 }

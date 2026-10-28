@@ -11,6 +11,7 @@ import { DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/Di
 import { Field, FieldLabel, FieldMessage } from '@/components/ui/Field';
 import { Input } from '@/components/ui/Input';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { PasskeyLoginButton } from '@/features/passkeys/PasskeyLoginButton';
 import type { AuthErrorKey } from '@/lib/api/auth-errors';
 import { cn } from '@/lib/utils';
 
@@ -70,7 +71,12 @@ export function AuthFlow({ onDone, policyMessage, inDialog = false }: AuthFlowPr
 		};
 		body = (
 			<>
-				<EmailStep defaultEmail={flow.email} onSubmit={flow.submitEmail} />
+				<EmailStep
+					defaultEmail={flow.email}
+					onSubmit={flow.submitEmail}
+					// The login page only: a dialog over another page shouldn't claim its autofill
+					onPasskeySignIn={inDialog ? undefined : onDone}
+				/>
 				{policyMessage && (
 					<div className="text-[12px] text-muted-foreground">
 						<CustomPortableText blocks={policyMessage} />
@@ -102,9 +108,12 @@ export function AuthFlow({ onDone, policyMessage, inDialog = false }: AuthFlowPr
 function EmailStep({
 	defaultEmail,
 	onSubmit,
+	onPasskeySignIn,
 }: {
 	defaultEmail: string;
 	onSubmit: (email: string) => Promise<AuthResult>;
+	/** Offers passkey sign-in, by button and from the email field's autofill. */
+	onPasskeySignIn?: () => void;
 }) {
 	const { t } = useLanguage();
 	const [error, setError] = useState<AuthErrorKey | null>(null);
@@ -131,7 +140,7 @@ function EmailStep({
 							{...field}
 							type="email"
 							id="authEmail"
-							autoComplete="email"
+							autoComplete={onPasskeySignIn ? 'username webauthn' : 'email'}
 							autoFocus
 							aria-invalid={fieldState.invalid}
 							aria-describedby={fieldState.invalid ? 'authEmail-error' : undefined}
@@ -152,6 +161,7 @@ function EmailStep({
 			<Button className="w-full" type="submit" loading={form.formState.isSubmitting}>
 				{t('auth.continueWithEmail')}
 			</Button>
+			{onPasskeySignIn && <PasskeyLoginButton onSignedIn={onPasskeySignIn} onError={setError} />}
 			<AuthError error={error} className="mt-3" />
 		</form>
 	);
