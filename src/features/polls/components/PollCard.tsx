@@ -67,11 +67,15 @@ export function PollCard({
 	}, [poll.id]);
 
 	const [isReporting, setIsReporting] = useState(false);
+	const [isBookmarking, setIsBookmarking] = useState(false);
 	const toggleBookmark = () =>
 		requireAuth(async () => {
+			if (isBookmarking) return;
 			const next = !poll.bookmarked;
 			setPoll((current) => ({ ...current, bookmarked: next }));
+			setIsBookmarking(true);
 			const result = await settle(next ? bookmarkPoll(poll.id) : unbookmarkPoll(poll.id));
+			setIsBookmarking(false);
 			if (result.ok) return;
 			setPoll((current) => ({ ...current, bookmarked: !next }));
 			toast.error(apiErrorText(t, result, next ? 'poll.bookmarkFailed' : 'poll.unbookmarkFailed'));
