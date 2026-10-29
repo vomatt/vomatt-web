@@ -2,7 +2,7 @@
 	"common": {
 		"back": "Back",
 		"busy": "Another change is in progress. Try again in a moment.",
-		"home": "home",
+		"home": "Home",
 		"createPoll": "Create a poll",
 		"myPolls": "My Polls",
 		"explore": "Explore",
@@ -11,6 +11,7 @@
 		"email": "Email",
 		"welcome": "Welcome",
 		"loading": "Loading",
+		"signingIn": "Signing you in",
 		"error": "Something went wrong",
 		"cancel": "Cancel",
 		"close": "Close",
@@ -79,7 +80,7 @@
 		"subtitle": "Enter your email and we’ll send you a code. New here? We’ll create your account.",
 		"sessionExpired": "Your session expired. Please log in again.",
 		"dialogDescription": "Log in or sign up with your email to continue",
-		"sessionRevoked": "For your security, you were signed out on this device. Please sign in again."
+		"sessionRevoked": "For your security, you were signed out on this device. Please log in again."
 	},
 	"verificationCode": {
 		"title": "Check your email",
@@ -209,8 +210,8 @@
 		"recordPicksWon": "picks that won",
 		"recordAskedCount": "{count} polls asked",
 		"recordAskedCount_one": "{count} poll asked",
-		"recordVotedCount": "{count} voted in",
-		"recordVotedCount_one": "{count} voted in",
+		"recordVotedCount": "{count} polls voted in",
+		"recordVotedCount_one": "{count} poll voted in",
 		"tabAsked": "Asked",
 		"tabVoted": "Voted",
 		"askedUnread": "Results are in on your polls",
@@ -287,6 +288,7 @@
 		"followedYouGroup_one": "{name} and {count} other followed you",
 		"seeFollowers": "See followers",
 		"commented": "{name} made the case under {title}",
+		"mentioned": "{name} mentioned you in {title}",
 		"excerpt": "“{text}”",
 		"endsIn": "{title} ends in {duration}",
 		"notVoted": "You haven’t voted",
@@ -296,6 +298,7 @@
 			"resultsIn": "results",
 			"invitations": "invitations",
 			"comments": "comments",
+			"mentions": "mentions",
 			"closingSoon": "closing soon"
 		},
 		"summaryOn": "{kinds} on",
@@ -360,7 +363,7 @@
 		"keepDraftBody": "You can finish it later from Drafts in My Polls.",
 		"keepDraft": "Keep draft",
 		"addContext": "Add context (optional)",
-		"optionsHint": "Press Return for the next option.",
+		"optionsHint": "Press Enter for the next option.",
 		"settingsTitle": "Timing & privacy",
 		"review": "Review",
 		"reviewTitle": "Review your poll",
@@ -396,12 +399,19 @@
 		}
 	},
 	"homePage": {
-		"feedListNoData": "Start the poll, lead the crowd.",
+		"feedListNoData": "No polls yet. Start the first one.",
 		"allTopics": "For you",
 		"following": "Following",
 		"followingEmpty": "Nothing from people you follow yet.",
 		"followingEmptyHint": "Open polls by people you follow show up here. Follow someone from their profile.",
 		"followingEmptyCta": "Explore polls",
+		"bookmarks": "Saved",
+		"bookmarksEmpty": "No saved polls yet.",
+		"bookmarksEmptyHint": "Save a poll to find it here, and to hear when it ends.",
+		"followTopic": "Follow topic",
+		"followingTopic": "Following topic",
+		"followTopicFailed": "Couldn’t follow the topic. Try again.",
+		"unfollowTopicFailed": "Couldn’t unfollow the topic. Try again.",
 		"topics": "Topics",
 		"feedFailed": "Couldn’t load polls right now.",
 		"topicEmpty": "No polls on this topic yet.",
@@ -441,6 +451,16 @@
 		"comments": "{count} comments",
 		"comment": "1 comment",
 		"share": "Share",
+		"bookmark": "Save",
+		"bookmarked": "Saved",
+		"bookmarkFailed": "Couldn’t save the poll. Try again.",
+		"unbookmarkFailed": "Couldn’t remove the poll from your saved ones. Try again.",
+		"moreOptions": "More options",
+		"report": "Report poll",
+		"reportTitle": "Report this poll",
+		"reportBody": "A moderator will look at it. The owner won’t be told.",
+		"reportDone": "Thanks. We’ll review it.",
+		"reportFailed": "Couldn’t send the report. Try again.",
 		"linkCopied": "Link copied",
 		"justEnded": "This poll just ended.",
 		"voteCast": "Vote cast.",
@@ -510,7 +530,8 @@
 		"deletePollEllipsis": "Delete poll…"
 	},
 	"auth": {
-		"continueWithEmail": "Continue with email"
+		"continueWithEmail": "Continue with email",
+		"continueWithPasskey": "Continue with a passkey"
 	},
 	"authError": {
 		"invalidCode": "That code is not right. Check the email and try again.",
@@ -963,7 +984,10 @@
 				"not_configured": "Apple Sign In is not configured"
 			},
 			"email_not_verified": "This OAuth account’s email is not verified; cannot sign in or merge an existing account",
-			"account_banned": "This account has been banned and cannot sign in"
+			"account_banned": "This account has been banned and cannot sign in",
+			"passkey": {
+				"invalid": "Passkey verification failed. Please try again"
+			}
 		},
 		"user": {
 			"not_found": "User not found",
@@ -981,6 +1005,9 @@
 			}
 		},
 		"vote": {
+			"report": {
+				"self": "You cannot report your own poll"
+			},
 			"not_found": "Vote not found",
 			"option": {
 				"not_found": "Vote option not found",
@@ -1083,7 +1110,7 @@
 		"manage": "Manage blocked people",
 		"blockFailed": "Couldn’t block. Try again.",
 		"confirmTitle": "Block @{username}?",
-		"confirmBody": "Their polls and comments will no longer show up for you. They won’t be told. You can unblock them from their profile or in Settings.",
+		"confirmBody": "Their polls and comments will no longer show up for you, and your polls will no longer be reachable for them. They won’t be told. You can unblock them from their profile or in Settings.",
 		"blockedBadge": "Blocked",
 		"blockEllipsis": "Block…"
 	},
@@ -1131,16 +1158,39 @@
 		"legal": "Legal",
 		"terms": "Terms",
 		"privacyPolicy": "Privacy",
+		"cookies": "Cookies",
 		"notifyResultsIn": "Results are in",
 		"notifyResultsInBody": "When a poll you voted in or asked ends. This is the promise on every ballot.",
 		"notifyInvitations": "Invitations",
 		"notifyInvitationsBody": "When someone invites you to an Invite-only poll.",
 		"notifyComments": "Comments on your polls",
 		"notifyCommentsBody": "When someone makes their case under a poll you asked.",
+		"notifyMentions": "Mentions",
+		"notifyMentionsBody": "When someone writes your @username in a comment.",
 		"notifyClosingSoon": "Closing soon",
 		"notifyClosingSoonBody": "A nudge the day before a poll you haven’t voted in ends.",
 		"notifyOn": "{name} notifications on.",
 		"notifyOff": "{name} notifications off.",
 		"notificationsFailed": "Couldn’t load your notification settings."
+	},
+	"passkey": {
+		"title": "Passkeys",
+		"body": "Sign in with Face ID, Touch ID or your device PIN instead of a code.",
+		"add": "Add passkey",
+		"added": "Passkey added",
+		"alreadyAdded": "This device already has a passkey for your account.",
+		"addFailed": "Couldn't add the passkey. Please try again.",
+		"unnamed": "Passkey",
+		"created": "Added {date}",
+		"lastUsed": "last used {date}",
+		"neverUsed": "never used",
+		"empty": "No passkeys yet.",
+		"loadFailed": "Couldn’t load your passkeys.",
+		"delete": "Remove",
+		"deleteLabel": "Remove {name}",
+		"deleteConfirmTitle": "Remove this passkey?",
+		"deleteConfirmBody": "{name} will no longer sign you in. It stays on the device until you remove it there.",
+		"deleted": "Passkey removed",
+		"deleteFailed": "Couldn’t remove the passkey. Please try again."
 	}
 }

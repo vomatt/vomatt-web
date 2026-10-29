@@ -8,9 +8,10 @@
 		"explore": "探索",
 		"notifications": "通知",
 		"login": "登入",
-		"email": "信箱",
+		"email": "電子郵件",
 		"welcome": "歡迎",
 		"loading": "載入中",
+		"signingIn": "正在登入",
 		"error": "發生錯誤",
 		"cancel": "取消",
 		"close": "關閉",
@@ -83,8 +84,8 @@
 	},
 	"verificationCode": {
 		"title": "請查看你的信箱",
-		"subtitle": "請輸入我們寄送的 6 位數驗證碼至",
-		"resendVerificationCode": "重新發送驗證碼",
+		"subtitle": "我們已將 6 位數驗證碼寄至",
+		"resendVerificationCode": "重新寄送驗證碼",
 		"codeSent": "新的驗證碼已寄出。",
 		"invalidVerificationCode": "驗證碼錯誤",
 		"useAnotherEmail": "使用其他電子郵件",
@@ -138,8 +139,8 @@
 		"notFound": "找不到投票。",
 		"notFoundBody": "它可能已被刪除，或連結有誤。",
 		"notFoundExplore": "探索投票",
-		"opened": "開始",
-		"opens": "開始",
+		"opened": "已開始",
+		"opens": "開始時間",
 		"results": "公布結果",
 		"timeline": "投票期間",
 		"resultsIn": "投票已結束，結果出爐。",
@@ -200,7 +201,7 @@
 		"recordAsked": "發起的投票",
 		"recordVoted": "參與的投票",
 		"recordReached": "觸及人數",
-		"recordPicksWon": "選擇勝出率",
+		"recordPicksWon": "勝出的選擇",
 		"recordAskedCount": "發起 {count} 則投票",
 		"recordVotedCount": "參與 {count} 則",
 		"tabAsked": "發起",
@@ -277,6 +278,7 @@
 		"followedYouGroup_one": "{name} 和其他 {count} 人追蹤了你",
 		"seeFollowers": "查看追蹤者",
 		"commented": "{name} 在 {title} 下發表了看法",
+		"mentioned": "{name} 在 {title} 提到了你",
 		"excerpt": "「{text}」",
 		"endsIn": "{title} 將在 {duration}後截止",
 		"notVoted": "你還沒投票",
@@ -286,6 +288,7 @@
 			"resultsIn": "結果",
 			"invitations": "邀請",
 			"comments": "留言",
+			"mentions": "提及",
 			"closingSoon": "即將結束"
 		},
 		"summaryOn": "{kinds}已開啟",
@@ -386,12 +389,19 @@
 		}
 	},
 	"homePage": {
-		"feedListNoData": "發起投票，引領群眾。",
+		"feedListNoData": "還沒有投票，發起第一則吧。",
 		"allTopics": "為你推薦",
 		"following": "追蹤中",
 		"followingEmpty": "你追蹤的人還沒有投票。",
 		"followingEmptyHint": "你追蹤的人所發起的進行中投票會顯示在這裡。到對方的個人檔案即可追蹤。",
 		"followingEmptyCta": "探索投票",
+		"bookmarks": "收藏",
+		"bookmarksEmpty": "還沒有收藏的投票。",
+		"bookmarksEmptyHint": "收藏投票就能在這裡找到，結束時也會通知你。",
+		"followTopic": "追蹤主題",
+		"followingTopic": "已追蹤主題",
+		"followTopicFailed": "無法追蹤主題，請再試一次。",
+		"unfollowTopicFailed": "無法取消追蹤主題，請再試一次。",
 		"topics": "主題",
 		"feedFailed": "目前無法載入投票。",
 		"topicEmpty": "這個主題還沒有投票。",
@@ -401,7 +411,7 @@
 		"resultsTie": "平手",
 		"closingSoon": "即將結束",
 		"askTitle": "有問題想問大家嗎？",
-		"askBody": "寫一則投票只要一分鐘，開始的那一刻就會自動封存。",
+		"askBody": "寫一則投票只要一分鐘，一開始就會自動密封。",
 		"askCta": "寫一則"
 	},
 	"poll": {
@@ -413,7 +423,7 @@
 		},
 		"vote": "投票",
 		"updateVote": "更新投票",
-		"updatingHint": "將取代你投給「{option}」的票，結果仍封存至投票結束。",
+		"updatingHint": "將取代你投給「{option}」的票，結果在投票結束前仍保持密封。",
 		"withdrawVote": "撤回投票",
 		"withdrawTitle": "要撤回你的投票嗎？",
 		"withdrawBody": "撤回後不會被計入，也不會收到通知。",
@@ -424,13 +434,23 @@
 		"revealHint": "投票結束後才會公開結果",
 		"sealed": "結果將於 {date} 公開，屆時會通知你。",
 		"sealedNoEnd": "結果將於投票結束後公開，屆時會通知你。",
-		"sealedTitle": "已封存，謝謝你。",
+		"sealedTitle": "已密封，謝謝你。",
 		"opensHint": "投票將於{distance}開始",
 		"voted": "{count} 人已投票",
 		"votedPill": "已投票",
 		"comments": "{count} 則留言",
 		"comment": "1 則留言",
 		"share": "分享",
+		"bookmark": "收藏",
+		"bookmarked": "已收藏",
+		"bookmarkFailed": "無法收藏這個投票，請再試一次。",
+		"unbookmarkFailed": "無法取消收藏，請再試一次。",
+		"moreOptions": "更多選項",
+		"report": "檢舉投票",
+		"reportTitle": "檢舉這個投票",
+		"reportBody": "管理員會查看。發起人不會收到通知。",
+		"reportDone": "謝謝，我們會審查。",
+		"reportFailed": "無法送出檢舉，請再試一次。",
 		"linkCopied": "已複製連結",
 		"justEnded": "這個投票剛剛結束了。",
 		"voteCast": "已完成投票。",
@@ -499,7 +519,8 @@
 		"deletePollEllipsis": "刪除投票…"
 	},
 	"auth": {
-		"continueWithEmail": "使用電子郵件繼續"
+		"continueWithEmail": "使用電子郵件繼續",
+		"continueWithPasskey": "使用通行密鑰繼續"
 	},
 	"authError": {
 		"invalidCode": "驗證碼不正確，請確認信件後再試一次。",
@@ -950,10 +971,13 @@
 				"not_configured": "Apple 登入尚未設定"
 			},
 			"email_not_verified": "此 OAuth 帳號的 email 尚未驗證，無法登入或合併既有帳號",
-			"account_banned": "此帳號已被停權，無法登入"
+			"account_banned": "此帳號已被停權，無法登入",
+			"passkey": {
+				"invalid": "通行密鑰驗證失敗，請重新操作一次"
+			}
 		},
 		"user": {
-			"not_found": "找不到此用戶",
+			"not_found": "找不到此使用者",
 			"username": {
 				"taken": "使用者名稱已被使用"
 			},
@@ -968,6 +992,9 @@
 			}
 		},
 		"vote": {
+			"report": {
+				"self": "不能檢舉自己的投票"
+			},
 			"not_found": "找不到投票",
 			"option": {
 				"not_found": "找不到投票選項",
@@ -1070,21 +1097,21 @@
 		"manage": "管理已封鎖的人",
 		"blockFailed": "無法封鎖，請再試一次。",
 		"confirmTitle": "要封鎖 @{username} 嗎？",
-		"confirmBody": "你將不再看到他們的投票與留言。對方不會收到通知。你可以在對方的個人頁面或設定中解除封鎖。",
+		"confirmBody": "你將不再看到他們的投票與留言，對方也無法再開啟你建立的投票。對方不會收到通知。你可以在對方的個人頁面或設定中解除封鎖。",
 		"blockedBadge": "已封鎖",
 		"blockEllipsis": "封鎖…"
 	},
 	"follows": {
-		"title": "追蹤中的用戶",
+		"title": "追蹤中的人",
 		"intro": "你追蹤的人所發起的進行中公開投票會顯示在「追蹤中」動態。你追蹤對方時，對方會收到通知；已登入的使用者也可在個人頁看到追蹤關係。",
 		"empty": "你尚未追蹤任何人。",
-		"loadFailed": "無法載入追蹤中的用戶。",
+		"loadFailed": "無法載入追蹤中的人。",
 		"unfollow": "取消追蹤",
 		"unfollowed": "已取消追蹤 @{username}",
 		"unfollowFailed": "無法取消追蹤，請再試一次。",
 		"follow": "追蹤",
 		"followed": "已追蹤 @{username}",
-		"manage": "管理追蹤中的用戶",
+		"manage": "管理追蹤中的人",
 		"followFailed": "無法追蹤，請再試一次。",
 		"notFound": "找不到要追蹤的使用者。",
 		"following": "追蹤中",
@@ -1117,16 +1144,39 @@
 		"legal": "法律資訊",
 		"terms": "服務條款",
 		"privacyPolicy": "隱私權政策",
+		"cookies": "Cookie 政策",
 		"notifyResultsIn": "結果出爐",
 		"notifyResultsInBody": "你參與或發起的投票結束時通知你。這是每張選票的承諾。",
 		"notifyInvitations": "邀請",
 		"notifyInvitationsBody": "有人邀請你參加僅限受邀的投票時。",
 		"notifyComments": "你的投票的留言",
 		"notifyCommentsBody": "有人在你發起的投票下發表看法時。",
+		"notifyMentions": "提及",
+		"notifyMentionsBody": "有人在留言中寫到你的 @使用者名稱時。",
 		"notifyClosingSoon": "即將結束",
 		"notifyClosingSoonBody": "你還沒投的投票結束前一天提醒你。",
 		"notifyOn": "已開啟「{name}」通知。",
 		"notifyOff": "已關閉「{name}」通知。",
 		"notificationsFailed": "無法載入你的通知設定。"
+	},
+	"passkey": {
+		"title": "通行密鑰",
+		"body": "改用 Face ID、Touch ID 或裝置密碼登入，不必再收驗證碼。",
+		"add": "新增通行密鑰",
+		"added": "已新增通行密鑰",
+		"alreadyAdded": "這部裝置已經有你帳號的通行密鑰。",
+		"addFailed": "無法新增通行密鑰，請再試一次。",
+		"unnamed": "通行密鑰",
+		"created": "新增於 {date}",
+		"lastUsed": "上次使用 {date}",
+		"neverUsed": "尚未使用",
+		"empty": "還沒有通行密鑰。",
+		"loadFailed": "無法載入你的通行密鑰。",
+		"delete": "移除",
+		"deleteLabel": "移除 {name}",
+		"deleteConfirmTitle": "要移除這個通行密鑰嗎？",
+		"deleteConfirmBody": "移除後就不能再用 {name} 登入。裝置上的通行密鑰要到裝置設定中另外刪除。",
+		"deleted": "已移除通行密鑰",
+		"deleteFailed": "無法移除通行密鑰，請再試一次。"
 	}
 }

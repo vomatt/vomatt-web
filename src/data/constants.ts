@@ -1,5 +1,11 @@
 export const ACCESS_TOKEN = 'accessToken';
 export const REFRESH_TOKEN = 'refreshToken';
+/** Set by the proxy on a request whose token refresh couldn't reach the API. */
+export const SESSION_UNCONFIRMED_HEADER = 'x-session-unconfirmed';
+/** Sent by SessionRetry; the proxy answers 503 while the API is still unreachable, else 204. */
+export const SESSION_PROBE_HEADER = 'x-session-probe';
+/** Readable cookie the proxy sets while the session is unconfirmed, for client navigations. */
+export const SESSION_UNCONFIRMED = 'session-unconfirmed';
 
 export const USER_SESSION = 'USER_SESSION';
 export const USER_LANG = 'USER_LANG';

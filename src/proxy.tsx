@@ -3,7 +3,13 @@ import Negotiator from 'negotiator';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-import { ACCESS_TOKEN, REFRESH_TOKEN } from '@/data/constants';
+import {
+	ACCESS_TOKEN,
+	REFRESH_TOKEN,
+	SESSION_PROBE_HEADER,
+	SESSION_UNCONFIRMED,
+	SESSION_UNCONFIRMED_HEADER,
+} from '@/data/constants';
 import { clientIpHeaders } from '@/lib/api/client-ip';
 import {
 	AUTH_COOKIE_BASE,
@@ -66,6 +72,7 @@ type SessionResult =
 	| { status: 'refreshed'; tokens: AuthTokens }
 	| { status: 'misconfigured'; tokens: AuthTokens }
 	| { status: 'none' }
+	| { status: 'unreachable' }
 	| { status: 'dead'; suspicious?: true };
 
 /**
@@ -80,7 +87,8 @@ const KEY_MISMATCH = 'auth-key-mismatch';
  * Valid access token → valid. Missing, invalid or nearly expired → one
  * refresh attempt. A refresh token the backend refuses is dead and gets
  * cleared, so later requests don't retry it. When the backend can't be
- * reached the cookies stay, and the next request tries again.
+ * reached the cookies stay, the page shows it is still signing in, and the
+ * next request tries again.
  */
 async function resolveSession(request: NextRequest): Promise<SessionResult> {
 	const accessToken = request.cookies.get(ACCESS_TOKEN)?.value;
@@ -104,7 +112,7 @@ async function resolveSession(request: NextRequest): Promise<SessionResult> {
 	}
 	// Keep a still-valid access token for its last seconds rather than signing out early
 	if (payload) return { status: 'valid' };
-	if (result.status === 'unavailable') return { status: 'none' };
+	if (result.status === 'unavailable') return { status: 'unreachable' };
 	return result.suspicious ? { status: 'dead', suspicious: true } : { status: 'dead' };
 }
 
@@ -141,8 +149,20 @@ export async function proxy(request: NextRequest) {
 			res.cookies.delete(REFRESH_TOKEN);
 		}
 		if (mismatchMark) res.cookies.set(KEY_MISMATCH, mismatchMark, AUTH_COOKIE_BASE);
+		// Readable by the page: a client navigation can't show SessionRetry, so it reloads instead
+		if (session.status === 'unreachable') {
+			res.cookies.set(SESSION_UNCONFIRMED, '1', { ...AUTH_COOKIE_BASE, httpOnly: false });
+		} else if (request.cookies.has(SESSION_UNCONFIRMED)) {
+			res.cookies.delete(SESSION_UNCONFIRMED);
+		}
 		return res;
 	};
+
+	// SessionRetry asks whether the session can be settled yet, without a render
+	if (request.headers.has(SESSION_PROBE_HEADER)) {
+		const status = session.status === 'unreachable' ? 503 : 204;
+		return applyAuthCookies(new NextResponse(null, { status }));
+	}
 
 	// Redirect authenticated users away from auth pages, unless the API rejected
 	// their session and they were sent to sign in again
@@ -162,8 +182,13 @@ export async function proxy(request: NextRequest) {
 		return applyAuthCookies(NextResponse.redirect(loginUrl));
 	}
 
+	// The root layout renders SessionRetry in place of the page
+	const requestHeaders = new Headers(request.headers);
+	requestHeaders.delete(SESSION_UNCONFIRMED_HEADER);
+	if (session.status === 'unreachable') requestHeaders.set(SESSION_UNCONFIRMED_HEADER, '1');
+
 	const response = applyAuthCookies(
-		NextResponse.next({ request: { headers: request.headers } })
+		NextResponse.next({ request: { headers: requestHeaders } })
 	);
 
 	// Check for language preference in cookie (if you want to set one)

@@ -9,17 +9,14 @@ import { getUserPolls } from '@/features/polls/service';
 import { getUserProfile } from '@/lib/api/services/users';
 import defineMetadata from '@/lib/defineMetadata';
 import { sanityFetch } from '@/sanity/lib/live';
-import { pageGeneralQuery, pageGeneralSlugsQuery } from '@/sanity/lib/queries';
+import { getPageSlugs } from '@/sanity/lib/pageSlugs';
+import { pageGeneralQuery } from '@/sanity/lib/queries';
 
 import PageGeneral from '../_components/PageGeneral';
 import { OwnProfile, ProfileSkeleton, PublicProfile } from './_components/Profile';
 
 export async function generateStaticParams() {
-	const { data } = await sanityFetch({
-		query: pageGeneralSlugsQuery,
-	});
-
-	return data;
+	return (await getPageSlugs()).map((slug) => ({ slug }));
 }
 
 // Metadata and the page ask once per request; signed in, the lookup is uncached

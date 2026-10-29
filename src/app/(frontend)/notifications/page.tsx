@@ -16,8 +16,12 @@ import type { Notification, NotificationPreferences } from '@/features/notificat
 import { getNotificationPreferences, getNotifications } from '@/features/notifications/service';
 import { PollRowListSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import type { CursorPage } from '@/lib/api/cursor';
+import { getServerMessages } from '@/lib/getServerLocale';
 
-export const metadata: Metadata = { title: 'Notifications' };
+export async function generateMetadata(): Promise<Metadata> {
+	const { messages } = await getServerMessages();
+	return { title: messages.notifications.title };
+}
 
 export default async function NotificationsPage() {
 	const profile = await getMyProfile();

@@ -1,5 +1,7 @@
 import { cookies, headers } from 'next/headers';
 
+import en from '@/locales/en.json';
+import zh from '@/locales/zh.json';
 import type { LanguageCode } from '@/types';
 
 import { toPayloadLocale } from './locale';
@@ -35,4 +37,10 @@ export async function getServerLocale(): Promise<{
 		language: lang,
 		payloadLocale: toPayloadLocale(lang),
 	};
+}
+
+/** The user's language and its strings, for server-rendered text like page titles. */
+export async function getServerMessages() {
+	const { language } = await getServerLocale();
+	return { language, messages: language === 'zh' ? zh : en };
 }

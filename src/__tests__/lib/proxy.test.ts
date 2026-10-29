@@ -145,6 +145,64 @@ describe('proxy auth', () => {
 		expect(res.cookies.get('refreshToken')).toBeUndefined();
 	});
 
+	it('tells rendering the session could not be checked when the backend is unreachable', async () => {
+		fetchMock.mockResolvedValue(new Response('', { status: 503 }));
+
+		const res = await proxy(requestFor('/', { refreshToken: 'r1' }));
+
+		expect(res.headers.get('x-middleware-request-x-session-unconfirmed')).toBe('1');
+	});
+
+	it('sends an unconfirmed session on a protected page to login without saying it expired', async () => {
+		fetchMock.mockResolvedValue(new Response('', { status: 503 }));
+
+		const res = await proxy(requestFor('/account', { refreshToken: 'r1' }));
+
+		// No session_expired, so login sends the user back once the retry signs them in
+		expect(res.headers.get('location')).toBe('http://localhost:3000/login?redirect=%2Faccount');
+		expect(res.cookies.get('refreshToken')).toBeUndefined();
+	});
+
+	it('answers a session probe with 503 while the backend is unreachable', async () => {
+		fetchMock.mockResolvedValue(new Response('', { status: 503 }));
+
+		const res = await proxy(requestFor('/account', { refreshToken: 'r1' }, { 'x-session-probe': '1' }));
+
+		expect(res.status).toBe(503);
+		expect(res.headers.get('location')).toBeNull();
+	});
+
+	it('answers a session probe with 204 and the rotated cookies once refreshed', async () => {
+		const fresh = await signToken();
+		fetchMock.mockResolvedValue(refreshResponse(fresh));
+
+		const res = await proxy(requestFor('/login', { refreshToken: 'r1' }, { 'x-session-probe': '1' }));
+
+		expect(res.status).toBe(204);
+		expect(res.cookies.get('accessToken')?.value).toBe(fresh);
+	});
+
+	it('marks an unconfirmed session in a cookie the page can read', async () => {
+		fetchMock.mockResolvedValue(new Response('', { status: 503 }));
+
+		const res = await proxy(requestFor('/explore', { refreshToken: 'r1' }));
+
+		expect(res.cookies.get('session-unconfirmed')).toMatchObject({ value: '1', httpOnly: false, path: '/' });
+	});
+
+	it('clears the unconfirmed mark once the session settles', async () => {
+		fetchMock.mockResolvedValue(refreshResponse(await signToken()));
+
+		const res = await proxy(requestFor('/explore', { refreshToken: 'r1', 'session-unconfirmed': '1' }));
+
+		expect(res.cookies.get('session-unconfirmed')?.value).toBe('');
+	});
+
+	it('does not let a browser claim the session is unconfirmed', async () => {
+		const res = await proxy(requestFor('/', {}, { 'x-session-unconfirmed': '1' }));
+		expect(res.headers.get('x-middleware-request-x-session-unconfirmed')).toBeNull();
+	});
+
 	it('keeps refreshed cookies when redirecting away from login', async () => {
 		const fresh = await signToken();
 		fetchMock.mockResolvedValue(refreshResponse(fresh));

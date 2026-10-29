@@ -1,15 +1,13 @@
 import type { Metadata } from 'next';
 
 import { PageShell } from '@/components/layout/PageShell';
-import { getServerLocale } from '@/lib/getServerLocale';
-import en from '@/locales/en.json';
-import zh from '@/locales/zh.json';
+import { getServerMessages } from '@/lib/getServerLocale';
 
 import { LanguagePreferences } from './_components/LanguagePreferences';
 
 export async function generateMetadata(): Promise<Metadata> {
-	const { language } = await getServerLocale();
-	return { title: (language === 'zh' ? zh : en).settings.languageTitle };
+	const { messages } = await getServerMessages();
+	return { title: messages.settings.languageTitle };
 }
 
 export default function LanguagePage() {

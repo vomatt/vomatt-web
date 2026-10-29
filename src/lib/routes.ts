@@ -63,3 +63,15 @@ export function getSafeRedirectPath(path: string | null) {
 /** A comment's link: `#comment-<id>`, or `#comment-<rootId>/<replyId>` for a Reply, whose list loads on demand. */
 export const commentHash = (comment: { id: string; parentId?: string | null }) =>
 	`#comment-${comment.parentId ? `${comment.parentId}/${comment.id}` : comment.id}`;
+
+/** Root segments that are app routes, not usernames; matches the folders in app/(frontend). */
+export const APP_ROOT_SEGMENTS = [
+	'account',
+	'explore',
+	'following',
+	'login',
+	'my-polls',
+	'notifications',
+	'poll',
+	'settings',
+];

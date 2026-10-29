@@ -50,17 +50,18 @@ describe('apple-app-site-association', () => {
 		expect((await GET()).status).toBe(404);
 	});
 
-	it('serves JSON with every app ID from IOS_APP_IDS', async () => {
+	it('serves applinks and webcredentials for every app ID in IOS_APP_IDS', async () => {
 		process.env.IOS_APP_IDS = 'TEAM1.com.vomatt.app, TEAM2.com.vomatt.app';
 
 		const res = await GET();
 
 		expect(res.status).toBe(200);
 		expect(res.headers.get('content-type')).toBe('application/json');
-		expect((await res.json()).applinks.details[0].appIDs).toEqual([
-			'TEAM1.com.vomatt.app',
-			'TEAM2.com.vomatt.app',
-		]);
+		const body = await res.json();
+		const appIDs = ['TEAM1.com.vomatt.app', 'TEAM2.com.vomatt.app'];
+		expect(body.applinks.details).toHaveLength(1);
+		expect(body.applinks.details[0].appIDs).toEqual(appIDs);
+		expect(body.webcredentials).toEqual({ apps: appIDs });
 	});
 
 	it.each(['/poll/abc123', '/alice', '/bob_99'])('opens %s in the app', async (path) => {
@@ -74,6 +75,9 @@ describe('apple-app-site-association', () => {
 		'/my-polls',
 		'/notifications',
 		'/account',
+		'/following',
+		'/settings',
+		'/poll',
 		'/sanity',
 		'/api',
 		'/about',

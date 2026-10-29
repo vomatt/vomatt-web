@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import { BrandLink } from '@/components/BrandLink';
+import { LegalLinks } from '@/components/layout/LegalLinks';
 import { MoreMenu } from '@/components/layout/MoreMenu';
 import { Button, buttonVariants } from '@/components/ui/Button';
 import {
@@ -207,6 +208,7 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 						<MoreMenu signedIn={Boolean(userSession)} />
 					</SidebarMenuItem>
 				</SidebarMenu>
+				<LegalLinks className="flex flex-wrap gap-x-3 gap-y-1 px-3 text-[12px] text-muted-foreground" />
 			</SidebarFooter>
 		</Sidebar>
 	);

@@ -6,6 +6,7 @@ import { useTheme } from 'next-themes';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
+import { LegalLinks } from '@/components/layout/LegalLinks';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -31,6 +32,7 @@ import { NOTIFICATION_SWITCHES } from '@/features/notifications/preferences';
 import type { NotificationPreferences } from '@/features/notifications/schema';
 import { updateNotificationPreferences } from '@/features/notifications/service';
 import { useUnreadCount } from '@/features/notifications/UnreadCountProvider';
+import { PasskeysPanel } from '@/features/passkeys/PasskeysPanel';
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
 import { useHydrated } from '@/hooks/useHydrated';
 import { htmlLang, SUPPORTED_LANGUAGES } from '@/i18n-config';
@@ -210,6 +212,9 @@ export default function AccountSettings({
 							{t('account.signOut')}
 						</Button>
 					</div>
+					<div className={cn(rowClassName, 'flex-col items-stretch')}>
+						<PasskeysPanel />
+					</div>
 					<ExportData />
 				</Card>
 			</Section>
@@ -217,14 +222,7 @@ export default function AccountSettings({
 			{/* Kept apart, at the end, and quiet until opened */}
 			<DeleteAccount username={profile.username} />
 
-			<nav aria-label={t('settings.legal')} className="flex gap-4.5 text-[13px] text-muted-foreground">
-				<Link href="/terms-of-service" className="hover:text-foreground">
-					{t('settings.terms')}
-				</Link>
-				<Link href="/privacy-policy" className="hover:text-foreground">
-					{t('settings.privacyPolicy')}
-				</Link>
-			</nav>
+			<LegalLinks className="flex gap-4.5 text-[13px] text-muted-foreground" />
 		</div>
 	);
 }
