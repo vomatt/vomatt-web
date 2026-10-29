@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { type ComponentType, useState } from 'react';
+import { type ComponentType, useEffect, useRef, useState } from 'react';
 
 import { Button, buttonVariants } from '@/components/ui/Button';
 import { Ban, Clock } from '@/components/ui/SvgIcons';
@@ -61,6 +61,8 @@ type RowProps<E extends Entry> = {
 	entry: E;
 	/** Marks the entry read: the person opened it or acted on it. */
 	onOpen: () => void;
+	/** Called once the row has been on screen long enough to count as read; none when it shouldn't. */
+	onSeen?: () => void;
 	/** The signed-in viewer, whose followers a group of follows opens. */
 	viewerUsername: string;
 };
@@ -81,8 +83,9 @@ export function NotificationRow(props: RowProps<Entry>) {
 	return <Row {...props} />;
 }
 
+// Above the row's own link, so each keeps its own target
 const rowLink =
-	'rounded-sm outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring';
+	'relative z-10 rounded-sm outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring';
 
 const strong = (text: string) => <strong className="font-semibold">{text}</strong>;
 
@@ -92,11 +95,62 @@ function useAge(iso: string) {
 	return clock && formatAge(iso, clock.language, clock.now);
 }
 
+/** How long a row stays at least half on screen before it counts as read. */
+export const SEEN_MS = 1000;
+
+/** Calls `onSeen` once the element has been at least half on screen, in a visible tab, for `SEEN_MS`. */
+function useSeen(onSeen: (() => void) | undefined) {
+	const ref = useRef<HTMLLIElement>(null);
+	const onSeenRef = useRef(onSeen);
+	useEffect(() => {
+		onSeenRef.current = onSeen;
+	});
+	const isWatching = !!onSeen;
+	useEffect(() => {
+		const element = ref.current;
+		if (!isWatching || !element) return;
+		let timer: ReturnType<typeof setTimeout> | undefined;
+		let isInView = false;
+		// The observer reports nothing while the tab is hidden, so the tab's own visibility restarts the wait
+		const restart = () => {
+			clearTimeout(timer);
+			if (!isInView || document.visibilityState !== 'visible') return;
+			timer = setTimeout(() => {
+				stop();
+				onSeenRef.current?.();
+			}, SEEN_MS);
+		};
+		const observer = new IntersectionObserver(
+			(entries) => {
+				// isIntersecting is true for any overlap; several entries in one call come oldest first
+				const entry = entries[entries.length - 1];
+				isInView = entry.isIntersecting && entry.intersectionRatio >= 0.5;
+				restart();
+			},
+			{ threshold: 0.5 }
+		);
+		const stop = () => {
+			clearTimeout(timer);
+			observer.disconnect();
+			document.removeEventListener('visibilitychange', restart);
+		};
+		observer.observe(element);
+		document.addEventListener('visibilitychange', restart);
+		return stop;
+	}, [isWatching]);
+	return ref;
+}
+
 /**
  * One notification: unread rows are a card with a dot after the first line, read ones sit flat
- * until hovered. `tide` is a result's promise kept.
+ * until hovered. `tide` is a result's promise kept. The whole row opens `href`, or calls
+ * `onOpen` without one; that target is for pointers only, as the row's own links and actions
+ * already reach it by keyboard.
  */
 function RowShell({
+	href,
+	onOpen,
+	onSeen,
 	unread,
 	tide = false,
 	muted = false,
@@ -105,6 +159,9 @@ function RowShell({
 	meta,
 	action,
 }: {
+	href?: string;
+	onOpen: () => void;
+	onSeen?: () => void;
 	unread: boolean;
 	tide?: boolean;
 	muted?: boolean;
@@ -114,10 +171,15 @@ function RowShell({
 	action?: React.ReactNode;
 }) {
 	const { t } = useLanguage();
+	const ref = useSeen(onSeen);
+	const cover = 'absolute inset-0 rounded-xl';
+	// Above the cover, but only its links and buttons take the pointer: the rest still opens the row
+	const raised = 'relative z-10 pointer-events-none [&_a]:pointer-events-auto [&_button]:pointer-events-auto';
 	return (
 		<li
+			ref={ref}
 			className={cn(
-				'flex items-center gap-3.5 rounded-xl border px-4 py-3.5 transition-colors',
+				'relative isolate flex items-center gap-3.5 rounded-xl border px-4 py-3.5 transition-colors',
 				unread
 					? tide
 						? 'border-tide-line bg-tide-tint'
@@ -125,7 +187,20 @@ function RowShell({
 					: 'border-transparent hover:border-border hover:bg-card'
 			)}
 		>
-			{icon}
+			{href ? (
+				<Link href={href} onClick={onOpen} aria-hidden tabIndex={-1} className={cover} />
+			) : (
+				<button
+					type="button"
+					onClick={onOpen}
+					// Never focused, so a dialog it opens doesn't hand focus back to a hidden element
+					onMouseDown={(event) => event.preventDefault()}
+					aria-hidden
+					tabIndex={-1}
+					className={cn(cover, 'cursor-pointer')}
+				/>
+			)}
+			<span className={cn(raised, 'shrink-0')}>{icon}</span>
 			<span className="flex min-w-0 flex-1 flex-col gap-0.5">
 				<span className={cn('text-[15px] leading-snug', muted && 'text-muted-foreground')}>
 					{line}
@@ -146,7 +221,7 @@ function RowShell({
 					))}
 				</span>
 			</span>
-			{action}
+			{action && <span className={cn(raised, 'flex shrink-0 items-center')}>{action}</span>}
 		</li>
 	);
 }
@@ -196,13 +271,16 @@ function WinnersText({ poll }: { poll: PollSummary }) {
 	return rich(t('profile.tieBetween'), { options: richList(labels, toPayloadLocale(currentLanguage), option) });
 }
 
-function ResultRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'RESULT' }>>) {
+function ResultRow({ entry, onOpen, onSeen }: RowProps<Extract<Entry, { kind: 'RESULT' }>>) {
 	const { t, currentLanguage } = useLanguage();
 	const { poll } = entry;
 	const unread = !entry.read;
 	const outcome = pickOutcome(poll);
 	return (
 		<RowShell
+			href={pollHref(poll.id)}
+			onOpen={onOpen}
+			onSeen={onSeen}
 			unread={unread}
 			tide
 			icon={<SealMark />}
@@ -227,11 +305,14 @@ function ResultRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'RESULT' }
 }
 
 /** Words only, no action: there is nothing left to do. */
-function CancelledRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'CANCELLED' }>>) {
+function CancelledRow({ entry, onOpen, onSeen }: RowProps<Extract<Entry, { kind: 'CANCELLED' }>>) {
 	const { t } = useLanguage();
 	const { poll } = entry;
 	return (
 		<RowShell
+			href={pollHref(poll.id)}
+			onOpen={onOpen}
+			onSeen={onSeen}
 			unread={!entry.read}
 			muted
 			icon={
@@ -253,7 +334,7 @@ function CancelledRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'CANCEL
 }
 
 /** The action is the vote; once cast, or before the poll opens, it is View. */
-function InvitationRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'INVITATION' }>>) {
+function InvitationRow({ entry, onOpen, onSeen }: RowProps<Extract<Entry, { kind: 'INVITATION' }>>) {
 	const { t } = useLanguage();
 	const clock = useViewerClock();
 	const { poll, actor } = entry;
@@ -267,6 +348,9 @@ function InvitationRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'INVIT
 	const canVote = !poll.myOptionId && isOpen;
 	return (
 		<RowShell
+			href={href}
+			onOpen={onOpen}
+			onSeen={onSeen}
 			unread={!entry.read}
 			icon={<ProfileAvatar username={actor.username} avatarUrl={actor.avatarUrl} className="size-9" />}
 			line={
@@ -288,7 +372,7 @@ function InvitationRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'INVIT
 }
 
 /** Follow back on the row; once following, the button says so. */
-function FollowedRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'FOLLOWED' }>>) {
+function FollowedRow({ entry, onOpen, onSeen }: RowProps<Extract<Entry, { kind: 'FOLLOWED' }>>) {
 	const { t } = useLanguage();
 	const { actor } = entry;
 	const follow = useFollow(actor.id, actor, {
@@ -299,6 +383,9 @@ function FollowedRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'FOLLOWE
 	});
 	return (
 		<RowShell
+			href={profileHref(actor.username)}
+			onOpen={onOpen}
+			onSeen={onSeen}
 			unread={!entry.read}
 			icon={<ProfileAvatar username={actor.username} avatarUrl={actor.avatarUrl} className="size-9" />}
 			line={rich(t('notifications.followedYou'), {
@@ -311,13 +398,19 @@ function FollowedRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'FOLLOWE
 }
 
 /** The newest follower names the group; See followers opens the whole list. */
-function FollowGroupRow({ entry, onOpen, viewerUsername }: RowProps<FollowGroup>) {
+function FollowGroupRow({ entry, onOpen, onSeen, viewerUsername }: RowProps<FollowGroup>) {
 	const { t, currentLanguage } = useLanguage();
 	const [open, setOpen] = useState(false);
 	const [{ actor, createdAt }] = entry.items;
 	const others = entry.items.length - 1;
+	const seeFollowers = () => {
+		setOpen(true);
+		onOpen();
+	};
 	return (
 		<RowShell
+			onOpen={seeFollowers}
+			onSeen={onSeen}
 			unread={entry.items.some((item) => !item.read)}
 			icon={<ProfileAvatar username={actor.username} avatarUrl={actor.avatarUrl} className="size-9" />}
 			// countText fills in the count and leaves `{name}` for rich to put the link in
@@ -327,14 +420,7 @@ function FollowGroupRow({ entry, onOpen, viewerUsername }: RowProps<FollowGroup>
 			meta={[useAge(createdAt)]}
 			action={
 				<>
-					<Button
-						variant="outline"
-						size="xs"
-						onClick={() => {
-							setOpen(true);
-							onOpen();
-						}}
-					>
+					<Button variant="outline" size="xs" onClick={seeFollowers}>
 						{t('notifications.seeFollowers')}
 					</Button>
 					<FollowListDialog username={viewerUsername} list={open ? 'followers' : null} onOpenChange={setOpen} />
@@ -345,12 +431,15 @@ function FollowGroupRow({ entry, onOpen, viewerUsername }: RowProps<FollowGroup>
 }
 
 /** A comment on the viewer's poll or reply, or a mention of them; both open the comment. */
-function CommentRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'COMMENT' | 'MENTION' }>>) {
+function CommentRow({ entry, onOpen, onSeen }: RowProps<Extract<Entry, { kind: 'COMMENT' | 'MENTION' }>>) {
 	const { t } = useLanguage();
 	const { actor, poll, comment } = entry;
 	const href = `${pollHref(poll.id)}${commentHash(comment)}`;
 	return (
 		<RowShell
+			href={href}
+			onOpen={onOpen}
+			onSeen={onSeen}
 			unread={!entry.read}
 			icon={<ProfileAvatar username={actor.username} avatarUrl={actor.avatarUrl} className="size-9" />}
 			line={rich(t(entry.kind === 'MENTION' ? 'notifications.mentioned' : 'notifications.commented'), {
@@ -372,7 +461,7 @@ function CommentRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'COMMENT'
 }
 
 /** Only while the viewer holds no Ballot, so the turnout is all there is to say: the counts stay sealed. */
-function ClosingSoonRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'CLOSING_SOON' }>>) {
+function ClosingSoonRow({ entry, onOpen, onSeen }: RowProps<Extract<Entry, { kind: 'CLOSING_SOON' }>>) {
 	const { t, currentLanguage } = useLanguage();
 	const clock = useViewerClock();
 	const { poll } = entry;
@@ -387,6 +476,9 @@ function ClosingSoonRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'CLOS
 	);
 	return (
 		<RowShell
+			href={href}
+			onOpen={onOpen}
+			onSeen={onSeen}
 			unread={!entry.read}
 			icon={
 				<IconDisc>
