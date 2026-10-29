@@ -1,3 +1,5 @@
+'use client';
+
 import type { PortableTextBlock } from '@portabletext/react';
 import clsx from 'clsx';
 import React from 'react';

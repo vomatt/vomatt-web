@@ -107,7 +107,58 @@ const freeformFields = defineQuery(`
 	}
 `);
 
+const sectionHeadingFields = defineQuery(`
+	eyebrow,
+	heading,
+	intro
+`);
+
 const pageModuleFields = defineQuery(`
+	_type in ['hero', 'callout'] => {
+		_type,
+		_key,
+		${sectionHeadingFields},
+		actions[]{
+			_key,
+			${callToActionFields}
+		}
+	},
+	_type == 'editorial' => {
+		_type,
+		_key,
+		${sectionHeadingFields},
+		body[]{
+			${portableTextContentFields}
+		},
+		media {
+			${imageMetaFields}
+		},
+		mediaPosition
+	},
+	_type == 'featureList' => {
+		_type,
+		_key,
+		${sectionHeadingFields},
+		layout,
+		items[]{
+			_key,
+			icon,
+			title,
+			body
+		}
+	},
+	_type == 'accordionList' => {
+		_type,
+		_key,
+		${sectionHeadingFields},
+		items[]{
+			_key,
+			title,
+			content[]{
+				${portableTextContentFields}
+			}
+		}
+	},
 	_type == 'freeform' => {
 		${freeformFields}
 	},
