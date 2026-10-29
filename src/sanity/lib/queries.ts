@@ -280,7 +280,9 @@ export const siteSharingQuery = defineQuery(`
 export const pageGeneralQuery = defineQuery(`
 	*[_type == "pGeneral" && slug.current == $slug][0]{
 		${baseFields},
+		_updatedAt,
 		layout,
+		showLastUpdated,
 		content[]{
 			${portableTextContentFields}
 		},
