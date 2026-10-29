@@ -7,6 +7,7 @@ export const NOTIFICATION_SWITCHES = [
 	{ key: 'resultsIn', title: 'settings.notifyResultsIn', body: 'settings.notifyResultsInBody', name: 'notifications.kindName.resultsIn' },
 	{ key: 'invitations', title: 'settings.notifyInvitations', body: 'settings.notifyInvitationsBody', name: 'notifications.kindName.invitations' },
 	{ key: 'comments', title: 'settings.notifyComments', body: 'settings.notifyCommentsBody', name: 'notifications.kindName.comments' },
+	{ key: 'mentions', title: 'settings.notifyMentions', body: 'settings.notifyMentionsBody', name: 'notifications.kindName.mentions' },
 	{ key: 'closingSoon', title: 'settings.notifyClosingSoon', body: 'settings.notifyClosingSoonBody', name: 'notifications.kindName.closingSoon' },
 ] as const satisfies readonly { key: keyof NotificationPreferences; title: string; body: string; name: string }[];
 

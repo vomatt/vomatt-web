@@ -12,7 +12,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { CreatePollTrigger } from '@/features/polls/components/CreatePollTrigger';
 import { PollCard } from '@/features/polls/components/PollCard';
 import type { Poll } from '@/features/polls/schema';
-import { getFeed, getFollowingFeed } from '@/features/polls/service';
+import { getBookmarkedPolls, getFeed, getFollowingFeed } from '@/features/polls/service';
 import { mergeById } from '@/lib/api/cursor';
 import { cn } from '@/lib/utils';
 
@@ -25,6 +25,8 @@ type PollFeedListProps = {
 	tag?: string;
 	/** Only Polls by followed people, instead of the home feed. */
 	following?: boolean;
+	/** Only the viewer's saved Polls, in any state. */
+	bookmarked?: boolean;
 	header: React.ReactNode;
 };
 
@@ -35,6 +37,7 @@ export function PollFeedList({
 	initialPage,
 	tag,
 	following,
+	bookmarked,
 	header,
 }: PollFeedListProps) {
 	const { t } = useLanguage();
@@ -51,7 +54,11 @@ export function PollFeedList({
 		setIsLoading(true);
 		setLoadFailed(false);
 		try {
-			const page = following ? await getFollowingFeed(nextCursor) : await getFeed(nextCursor, 10, tag);
+			const page = bookmarked
+				? await getBookmarkedPolls(nextCursor)
+				: following
+					? await getFollowingFeed(nextCursor)
+					: await getFeed(nextCursor, 10, tag);
 			setPolls((prev) => mergeById(prev, page.items));
 			setNextCursor(page.nextCursor);
 		} catch {
@@ -100,7 +107,20 @@ export function PollFeedList({
 				/>
 			)}
 
-			{initialPage !== null && polls.length === 0 && !following && (
+			{initialPage !== null && polls.length === 0 && bookmarked && (
+				<EmptyCard
+					className="mt-2"
+					title={t('homePage.bookmarksEmpty')}
+					body={t('homePage.bookmarksEmptyHint')}
+					action={
+						<Link href="/explore" className={buttonVariants({ variant: 'outline' })}>
+							{t('homePage.followingEmptyCta')}
+						</Link>
+					}
+				/>
+			)}
+
+			{initialPage !== null && polls.length === 0 && !following && !bookmarked && (
 				<div className="flex flex-col items-center gap-6 py-20 text-center">
 					<h2 className="text-3xl">
 						{t(tag ? 'homePage.topicEmpty' : 'homePage.feedListNoData')}

@@ -36,6 +36,13 @@ export const NotificationSchema = z.discriminatedUnion('kind', [
 		poll: PollSummarySchema,
 		comment: z.object({ id: z.string(), parentId: z.string().nullish(), excerpt: z.string() }),
 	}),
+	z.object({
+		...base,
+		kind: z.literal('MENTION'),
+		actor: FollowUserDtoSchema,
+		poll: PollSummarySchema,
+		comment: z.object({ id: z.string(), parentId: z.string().nullish(), excerpt: z.string() }),
+	}),
 	z.object({ ...base, kind: z.literal('CLOSING_SOON'), actor: FollowUserDtoSchema, poll: PollSummarySchema }),
 ]);
 
@@ -46,6 +53,7 @@ export const NotificationPreferencesSchema = z.object({
 	resultsIn: z.boolean(),
 	invitations: z.boolean(),
 	comments: z.boolean(),
+	mentions: z.boolean(),
 	closingSoon: z.boolean(),
 });
 

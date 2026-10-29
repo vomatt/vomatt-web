@@ -197,6 +197,8 @@ export const PollSchema = z.object({
 	 * Ended Notification (`status=ended`).
 	 */
 	unread: z.boolean().nullish(),
+	/** Whether the signed-in viewer bookmarked the Poll; null when signed out. */
+	bookmarked: z.boolean().nullish(),
 	options: z.array(PollOptionSchema),
 	tags: z.array(TagDtoSchema).nullish(),
 });
@@ -311,3 +313,5 @@ export type CreatePollRequest = z.infer<typeof CreatePollRequestSchema>;
 export type CreateCommentRequest = z.infer<typeof CreateCommentRequestSchema>;
 export type UpdateCommentRequest = z.infer<typeof UpdateCommentRequestSchema>;
 export type ReportCommentRequest = z.infer<typeof ReportCommentRequestSchema>;
+/** A Poll report has the same shape as a Comment report. */
+export type ReportPollRequest = ReportCommentRequest;

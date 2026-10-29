@@ -30,6 +30,9 @@ const mockGetComments = jest.fn();
 const mockClosePoll = jest.fn();
 const mockDeletePoll = jest.fn();
 const mockGetVoters = jest.fn();
+const mockBookmarkPoll = jest.fn();
+const mockUnbookmarkPoll = jest.fn();
+const mockReportPoll = jest.fn();
 
 jest.mock('@/features/blocks/service', () => ({ blockUser: jest.fn() }));
 jest.mock('@/features/polls/service', () => ({
@@ -43,6 +46,9 @@ jest.mock('@/features/polls/service', () => ({
 	postComment: (...args: any[]) => mockPostComment(...args),
 	getComments: (...args: any[]) => mockGetComments(...args),
 	getVoters: (...args: any[]) => mockGetVoters(...args),
+	bookmarkPoll: (...args: any[]) => mockBookmarkPoll(...args),
+	unbookmarkPoll: (...args: any[]) => mockUnbookmarkPoll(...args),
+	reportPoll: (...args: any[]) => mockReportPoll(...args),
 }));
 
 // Exposes the layoutId that motion would use to fly the highlight between elements
@@ -780,6 +786,35 @@ describe('PollCard signed-out visitor', () => {
 		render(<PollCard poll={openPoll} headingLevel="h1" isPage />);
 		expect(screen.queryByRole('link', { name: openPoll.title })).not.toBeInTheDocument();
 		expect(screen.getByRole('heading', { level: 1, name: openPoll.title })).toBeInTheDocument();
+	});
+
+	it('saves a poll at once and puts it back when the request fails', async () => {
+		mockBookmarkPoll.mockResolvedValueOnce({ ok: true }).mockResolvedValueOnce({ ok: false, message: 'x' });
+		mockUnbookmarkPoll.mockResolvedValue({ ok: false, message: 'x' });
+		render(<PollCard poll={openPoll} viewerId="user-voter" />);
+		fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+		expect(await screen.findByRole('button', { name: 'Saved' })).toHaveAttribute('aria-pressed', 'true');
+		expect(mockBookmarkPoll).toHaveBeenCalledWith('poll-1');
+
+		fireEvent.click(screen.getByRole('button', { name: 'Saved' }));
+		await waitFor(() => expect(toast.error).toHaveBeenCalled());
+		expect(screen.getByRole('button', { name: 'Saved' })).toBeInTheDocument();
+		expect(mockUnbookmarkPoll).toHaveBeenCalledWith('poll-1');
+	});
+
+	it('asks a guest to sign in before saving', () => {
+		render(<PollCard poll={openPoll} />);
+		fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+		expect(screen.getByTestId('auth-dialog')).toBeInTheDocument();
+		expect(mockBookmarkPoll).not.toHaveBeenCalled();
+	});
+
+	it('offers Report to everyone but the owner', () => {
+		const { unmount } = render(<PollCard poll={openPoll} viewerId="user-1" />);
+		expect(screen.queryByRole('button', { name: 'More options' })).not.toBeInTheDocument();
+		unmount();
+		render(<PollCard poll={openPoll} viewerId="user-voter" />);
+		expect(screen.getByRole('button', { name: 'More options' })).toBeInTheDocument();
 	});
 
 	it('leads Comments down to the discussion on the poll page', () => {

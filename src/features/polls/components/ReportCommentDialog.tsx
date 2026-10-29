@@ -20,11 +20,14 @@ import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
 
 import { COMMENT_REPORT_NOTE_MAX, COMMENT_REPORT_REASONS, type ReportCommentRequest } from '../schema';
-import { reportComment } from '../service';
+import { reportComment, reportPoll } from '../service';
 
 type Reason = ReportCommentRequest['reason'];
 
-/** Reports another person's comment to the moderators: a reason, and a note if they want to add one. */
+/**
+ * Reports another person's comment, or with no `commentId` the Poll itself, to the moderators:
+ * a reason, and a note if they want to add one.
+ */
 export function ReportCommentDialog({
 	pollId,
 	commentId,
@@ -32,7 +35,7 @@ export function ReportCommentDialog({
 	onOpenChange,
 }: {
 	pollId: string;
-	commentId: string;
+	commentId?: string;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 }) {
@@ -47,8 +50,10 @@ export function ReportCommentDialog({
 	);
 }
 
-function ReportForm({ pollId, commentId, onDone }: { pollId: string; commentId: string; onDone: () => void }) {
+function ReportForm({ pollId, commentId, onDone }: { pollId: string; commentId?: string; onDone: () => void }) {
 	const { t } = useLanguage();
+	// Comment reports and Poll reports share their reasons, with their own words around them
+	const copy = commentId ? 'comments' : 'poll';
 	const reasonsId = useId();
 	const noteId = useId();
 	const [reason, setReason] = useState<Reason | null>(null);
@@ -59,21 +64,22 @@ function ReportForm({ pollId, commentId, onDone }: { pollId: string; commentId: 
 		event.preventDefault();
 		if (!reason) return;
 		setIsSending(true);
-		const result = await settle(reportComment(pollId, commentId, { reason, note: note.trim() || undefined }));
+		const report = { reason, note: note.trim() || undefined };
+		const result = await settle(commentId ? reportComment(pollId, commentId, report) : reportPoll(pollId, report));
 		setIsSending(false);
 		if (!result.ok) {
-			toast.error(apiErrorText(t, result, 'comments.reportFailed'));
+			toast.error(apiErrorText(t, result, `${copy}.reportFailed`));
 			return;
 		}
 		onDone();
-		toast.success(t('comments.reportDone'));
+		toast.success(t(`${copy}.reportDone`));
 	};
 
 	return (
 		<>
 			<DialogHeader>
-				<DialogTitle>{t('comments.reportTitle')}</DialogTitle>
-				<DialogDescription className="text-[14px]">{t('comments.reportBody')}</DialogDescription>
+				<DialogTitle>{t(`${copy}.reportTitle`)}</DialogTitle>
+				<DialogDescription className="text-[14px]">{t(`${copy}.reportBody`)}</DialogDescription>
 			</DialogHeader>
 			<form onSubmit={submit} className="grid gap-4">
 				<div className="grid gap-1">
@@ -126,7 +132,7 @@ function ReportForm({ pollId, commentId, onDone }: { pollId: string; commentId: 
 						{t('common.cancel')}
 					</Button>
 					<Button type="submit" size="md" disabled={!reason} loading={isSending}>
-						{t('comments.report')}
+						{t(`${copy}.report`)}
 					</Button>
 				</DialogFooter>
 			</form>

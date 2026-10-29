@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 
 import { HomepageHeader } from '@/app/(frontend)/_components/HomepageHeader';
 import { topicHref } from '@/lib/routes';
@@ -13,6 +13,8 @@ jest.mock('next/link', () => {
 	};
 });
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
+const mockFollowTag = jest.fn();
+jest.mock('@/features/polls/service', () => ({ followTag: (...args: any[]) => mockFollowTag(...args), unfollowTag: jest.fn() }));
 
 const tags = [{ id: 't1', name: 'Housing', slug: 'housing' }];
 
@@ -35,6 +37,29 @@ describe('HomepageHeader', () => {
 
 		render(<HomepageHeader tags={tags} />);
 		expect(screen.queryByRole('link', { name: 'Following' })).not.toBeInTheDocument();
+	});
+
+	it('adds a Saved topic for signed-in viewers, marked on its own page', () => {
+		render(<HomepageHeader tags={tags} signedIn saved />);
+		expect(screen.getByRole('link', { name: 'Saved' })).toHaveAttribute('href', '/following/saved');
+		expect(screen.getByRole('link', { name: 'Saved' })).toHaveAttribute('aria-current', 'page');
+		expect(screen.getByRole('link', { name: 'For you' })).not.toHaveAttribute('aria-current');
+	});
+
+	it('offers Follow on a topic page and follows it at once', async () => {
+		mockFollowTag.mockResolvedValue({ ok: true });
+		render(<HomepageHeader tags={tags} activeTag="housing" signedIn followedTagIds={[]} />);
+		fireEvent.click(screen.getByRole('button', { name: 'Follow topic' }));
+		expect(await screen.findByRole('button', { name: 'Following topic' })).toHaveAttribute('aria-pressed', 'true');
+		expect(mockFollowTag).toHaveBeenCalledWith('t1');
+	});
+
+	it('shows a followed topic as followed, and offers no Follow to guests', () => {
+		const { unmount } = render(<HomepageHeader tags={tags} activeTag="housing" signedIn followedTagIds={['t1']} />);
+		expect(screen.getByRole('button', { name: 'Following topic' })).toBeInTheDocument();
+		unmount();
+		render(<HomepageHeader tags={tags} activeTag="housing" />);
+		expect(screen.queryByRole('button', { name: /topic/ })).not.toBeInTheDocument();
 	});
 
 	it('invites guests to log in above the topics, and no one else', () => {

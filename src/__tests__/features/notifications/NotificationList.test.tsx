@@ -229,6 +229,13 @@ describe('NotificationList rows', () => {
 		expect(within(row).getByRole('link', { name: 'Vote' })).toHaveAttribute('href', '/poll/p4');
 	});
 
+	it('words a mention and links to the comment', () => {
+		renderList([{ ...comment, id: 'mention_c1', kind: 'MENTION', read: false }]);
+		const row = rowOf('Saturday market');
+		expect(row).toHaveTextContent('@rosa mentioned you in Saturday market');
+		expect(within(row).getByRole('link', { name: 'Reply' })).toHaveAttribute('href', '/poll/p3#comment-c1');
+	});
+
 	it('words a cancelled poll without an action', () => {
 		renderList([cancelled]);
 		const row = rowOf('Night bus');
@@ -346,19 +353,19 @@ describe('NotificationList', () => {
 
 describe('NotificationSettingsLink', () => {
 	it('sums up the switches and links to them in Settings', () => {
-		render(<NotificationSettingsLink preferences={{ resultsIn: true, invitations: true, comments: true, closingSoon: false }} />);
+		render(<NotificationSettingsLink preferences={{ resultsIn: true, invitations: true, comments: true, mentions: true, closingSoon: false }} />);
 		const link = screen.getByRole('link', { name: /Notification settings/ });
 		expect(link).toHaveAttribute('href', '/settings#notifications');
-		expect(link).toHaveTextContent('Results, invitations, comments on · closing soon off');
+		expect(link).toHaveTextContent('Results, invitations, comments, mentions on · closing soon off');
 	});
 
 	it('names only what is on, or only what is off', () => {
 		const { rerender } = render(
-			<NotificationSettingsLink preferences={{ resultsIn: true, invitations: true, comments: true, closingSoon: true }} />
+			<NotificationSettingsLink preferences={{ resultsIn: true, invitations: true, comments: true, mentions: true, closingSoon: true }} />
 		);
-		expect(screen.getByRole('link')).toHaveTextContent('Results, invitations, comments, closing soon on');
-		rerender(<NotificationSettingsLink preferences={{ resultsIn: false, invitations: false, comments: false, closingSoon: false }} />);
-		expect(screen.getByRole('link')).toHaveTextContent('Results, invitations, comments, closing soon off');
+		expect(screen.getByRole('link')).toHaveTextContent('Results, invitations, comments, mentions, closing soon on');
+		rerender(<NotificationSettingsLink preferences={{ resultsIn: false, invitations: false, comments: false, mentions: false, closingSoon: false }} />);
+		expect(screen.getByRole('link')).toHaveTextContent('Results, invitations, comments, mentions, closing soon off');
 	});
 
 	it('leaves the summary out when the switches could not be loaded', () => {

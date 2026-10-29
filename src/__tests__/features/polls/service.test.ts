@@ -1,14 +1,18 @@
 import { isPollEnded, isSealed } from '@/features/polls/errors';
 import {
 	addInvitees,
+	bookmarkPoll,
 	castBallot,
 	closePoll,
 	createPoll,
 	deleteComment,
 	deletePoll,
+	followTag,
 	getAllMyPolls,
+	getBookmarkedPolls,
 	getComments,
 	getFeed,
+	getFollowedTags,
 	getInviteOnlyCreator,
 	getInvitees,
 	getMyBallot,
@@ -23,8 +27,11 @@ import {
 	postComment,
 	removeInvitee,
 	reportComment,
+	reportPoll,
 	retractBallot,
 	sharePoll,
+	unbookmarkPoll,
+	unfollowTag,
 	unlikeComment,
 	updateComment,
 	updatePoll,
@@ -667,6 +674,60 @@ describe('reportComment()', () => {
 			ok: false,
 			errorCode: 'comment.report.self',
 		});
+	});
+});
+
+describe('reportPoll()', () => {
+	it('posts the reason and note to the Poll\'s report endpoint', async () => {
+		mockApiClient.mockResolvedValue({ success: true });
+		const result = await reportPoll('poll-1', { reason: 'HATE', note: 'Slurs' });
+		expect(result).toEqual({ ok: true, data: undefined });
+		expect(mockApiClient).toHaveBeenCalledWith('/votes/poll-1/report', {
+			method: 'POST',
+			body: JSON.stringify({ reason: 'HATE', note: 'Slurs' }),
+		});
+	});
+
+	it('returns the error code of a report on the viewer\'s own Poll', async () => {
+		mockApiClient.mockRejectedValue(new ApiError('own', 400, { errorCode: 'vote.report.self' }));
+		expect(await reportPoll('poll-1', { reason: 'OTHER' })).toMatchObject({ ok: false, errorCode: 'vote.report.self' });
+	});
+});
+
+describe('bookmarks', () => {
+	it('bookmarks with PUT and removes with DELETE', async () => {
+		mockApiClient.mockResolvedValue({ success: true });
+		expect(await bookmarkPoll('poll-1')).toEqual({ ok: true, data: undefined });
+		expect(mockApiClient).toHaveBeenLastCalledWith('/votes/poll-1/bookmark', { method: 'PUT' });
+		expect(await unbookmarkPoll('poll-1')).toEqual({ ok: true, data: undefined });
+		expect(mockApiClient).toHaveBeenLastCalledWith('/votes/poll-1/bookmark', { method: 'DELETE' });
+	});
+
+	it('returns the error code of a Poll that can no longer be reached', async () => {
+		mockApiClient.mockRejectedValue(new ApiError('gone', 404, { errorCode: 'vote.not_found' }));
+		expect(await bookmarkPoll('poll-1')).toMatchObject({ ok: false, errorCode: 'vote.not_found' });
+	});
+
+	it('pages the bookmarked Polls per viewer', async () => {
+		mockApiClient.mockResolvedValue({ items: [], nextCursor: null });
+		await getBookmarkedPolls('abc', 5);
+		expect(mockApiClient).toHaveBeenCalledWith(expect.stringMatching(/^\/votes\/bookmarked\?.*cursor=abc/));
+	});
+});
+
+describe('followed tags', () => {
+	it('follows with PUT and unfollows with DELETE', async () => {
+		mockApiClient.mockResolvedValue({ success: true });
+		expect(await followTag('t1')).toEqual({ ok: true, data: undefined });
+		expect(mockApiClient).toHaveBeenLastCalledWith('/tags/t1/follow', { method: 'PUT' });
+		expect(await unfollowTag('t1')).toEqual({ ok: true, data: undefined });
+		expect(mockApiClient).toHaveBeenLastCalledWith('/tags/t1/follow', { method: 'DELETE' });
+	});
+
+	it('lists the followed tags', async () => {
+		mockApiClient.mockResolvedValue([{ id: 't1', name: 'Food', slug: 'food' }]);
+		expect(await getFollowedTags()).toEqual({ ok: true, data: [{ id: 't1', name: 'Food', slug: 'food' }] });
+		expect(mockApiClient).toHaveBeenCalledWith('/tags/following');
 	});
 });
 
