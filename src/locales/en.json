@@ -1175,7 +1175,7 @@
 		"add": "Add passkey",
 		"added": "Passkey added",
 		"alreadyAdded": "This device already has a passkey for your account.",
-		"addFailed": "Couldn't add the passkey. Please try again.",
+		"addFailed": "Couldn’t add the passkey. Please try again.",
 		"unnamed": "Passkey",
 		"created": "Added {date}",
 		"lastUsed": "last used {date}",

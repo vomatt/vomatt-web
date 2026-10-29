@@ -171,7 +171,7 @@ function ProfileCardBody({
 			{state.status === 'ready' && !profile && (
 				<p className="text-[12px] text-muted-foreground">{t('profile.notFoundTitle')}</p>
 			)}
-			{profile?.bio && <p className="line-clamp-3 text-[13px] leading-snug">{profile.bio}</p>}
+			{profile?.bio && <p className="line-clamp-3 text-[13px] leading-normal">{profile.bio}</p>}
 			{profile && (
 				<p className="flex flex-wrap gap-x-3 gap-y-1 text-[12px] text-muted-foreground">
 					<span className="whitespace-nowrap">

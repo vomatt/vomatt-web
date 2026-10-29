@@ -314,6 +314,31 @@ html:has([data-slot='tabs-list'][data-sticky]) {
 		@apply bg-background text-foreground;
 	}
 
+	/* Selected text is the viewer's own: Volt with ink, in both themes */
+	::selection {
+		@apply bg-highlight text-highlight-foreground;
+	}
+	/* On a Volt surface (Voted pill, You chip) it inverts, so the selection still shows */
+	.bg-highlight::selection,
+	.bg-highlight ::selection {
+		@apply bg-highlight-foreground text-highlight;
+	}
+
+	/* Titles break into even lines; running text never ends on a lone word. The style
+	   longhand only, so an inherited nowrap or truncate still holds */
+	h1,
+	h2,
+	h3,
+	h4 {
+		text-wrap-style: balance;
+	}
+	p,
+	li,
+	dd,
+	blockquote {
+		text-wrap-style: pretty;
+	}
+
 	/* Controls draw their own pressed state, so no gray tap flash under it */
 	button,
 	[role='button'],
@@ -381,6 +406,15 @@ html:has([data-slot='tabs-list'][data-sticky]) {
 	font-weight: 500;
 	line-height: 1.3;
 	letter-spacing: -0.03em;
+}
+
+/* A poll's title on its card and in the creator's review: 22px, balanced lines; cards add md:text-[25px] */
+@utility poll-title {
+	font-size: 22px;
+	font-weight: 500;
+	line-height: 1.2;
+	letter-spacing: -0.02em;
+	text-wrap-style: balance;
 }
 
 /* Titles in list rows and side cards: 16px at weight 500; leading goes beside it */
