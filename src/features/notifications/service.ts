@@ -63,6 +63,27 @@ export async function markNotificationRead(id: string): Promise<boolean> {
 	}
 }
 
+/** The most ids one `markNotificationsRead` call reads, and how many requests it has open at once. */
+export const MARK_READ_MAX = 50;
+const MARK_READ_CONCURRENCY = 5;
+
+/**
+ * Marks several notifications read in one round trip from the browser; see `markNotificationRead`.
+ * Its data is the ids left unread: those whose request failed, and any past `MARK_READ_MAX`.
+ */
+export async function markNotificationsRead(ids: string[]): Promise<ActionResult<string[]>> {
+	return attempt(async () => {
+		const unread = ids.slice(MARK_READ_MAX);
+		const taken = ids.slice(0, MARK_READ_MAX);
+		for (let i = 0; i < taken.length; i += MARK_READ_CONCURRENCY) {
+			const chunk = taken.slice(i, i + MARK_READ_CONCURRENCY);
+			const results = await Promise.all(chunk.map((id) => markNotificationRead(id)));
+			unread.push(...chunk.filter((_, j) => !results[j]));
+		}
+		return unread;
+	});
+}
+
 /** Reads everything up to now, every kind; later notifications arrive unread. */
 export async function markAllNotificationsRead(): Promise<ActionResult> {
 	return attempt(async () => {
