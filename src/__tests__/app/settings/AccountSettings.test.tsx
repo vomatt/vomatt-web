@@ -39,7 +39,7 @@ jest.mock('@/features/notifications/service', () => ({
 	updateNotificationPreferences: (...args: unknown[]) => mockUpdatePreferences(...args),
 }));
 
-const preferences = { resultsIn: true, invitations: true, comments: true, mentions: true, closingSoon: false };
+const preferences = { resultsIn: true, invitations: true, comments: true, mentions: true, likes: true, closingSoon: false };
 
 const myProfile: MyProfile = {
 	id: 'u1',
@@ -291,7 +291,7 @@ describe('AccountSettings', () => {
 		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
 		const section = screen.getByRole('region', { name: 'Notifications' });
 		const switches = within(section).getAllByRole('switch');
-		expect(switches.map((s) => s.getAttribute('aria-checked'))).toEqual(['true', 'true', 'true', 'true', 'false']);
+		expect(switches.map((s) => s.getAttribute('aria-checked'))).toEqual(['true', 'true', 'true', 'true', 'true', 'false']);
 		expect(within(section).getByRole('switch', { name: 'Comments on your polls' })).toHaveAccessibleDescription(
 			'When someone makes their case under a poll you asked.'
 		);

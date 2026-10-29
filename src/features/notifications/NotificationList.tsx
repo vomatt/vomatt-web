@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 
 import { EmptyCard } from '@/components/EmptyCard';
@@ -16,7 +16,12 @@ import type { CursorPage } from '@/lib/api/cursor';
 
 import { type Entry, entryItems, groupFollows, NotificationRow } from './NotificationRows';
 import { preferencesSummary } from './preferences';
-import type { Notification, NotificationPreferences } from './schema';
+import {
+	type Notification,
+	NOTIFICATION_CATEGORIES,
+	type NotificationCategory,
+	type NotificationPreferences,
+} from './schema';
 import { getNotifications, markAllNotificationsRead } from './service';
 import { useUnreadCount } from './UnreadCountProvider';
 import { useMarkRead } from './useMarkRead';
@@ -61,7 +66,17 @@ export function NotificationList({
 }) {
 	const { t } = useLanguage();
 	const { count: unreadCount, refresh } = useUnreadCount();
-	const list = useCursorList(initialPage, getNotifications);
+	// The server page is the unfiltered feed; a tab's reset brings its own fetcher so cursors stay with one category
+	const fetchPage = useCallback((cursor: string) => getNotifications(cursor), []);
+	const list = useCursorList(initialPage, fetchPage);
+	const [category, setCategory] = useState<NotificationCategory | 'all'>('all');
+	// A fresh server page replaces the filtered list, so the tab goes back to All
+	const [seed, setSeed] = useState(initialPage);
+	if (initialPage !== seed) {
+		setSeed(initialPage);
+		setCategory('all');
+	}
+	const [isSwitching, setIsSwitching] = useState(false);
 	const [filter, setFilter] = useState<'all' | 'unread'>('all');
 	const [isMarking, setIsMarking] = useState(false);
 	// Days follow the reader's clock, so the grouping waits for hydration
@@ -111,6 +126,21 @@ export function NotificationList({
 		refresh();
 	};
 
+	const changeCategory = async (next: NotificationCategory | 'all') => {
+		// A Load more in flight would append the old tab's page after the reset
+		if (next === category || isSwitching || list.isLoading) return;
+		setIsSwitching(true);
+		try {
+			const nextCategory = next === 'all' ? undefined : next;
+			list.reset(await getNotifications(null, nextCategory), (cursor) => getNotifications(cursor, nextCategory));
+			setCategory(next);
+		} catch {
+			toast.error(t('notifications.categoryFailed'));
+		} finally {
+			setIsSwitching(false);
+		}
+	};
+
 	if (initialPage === null) {
 		return (
 			<>
@@ -120,7 +150,7 @@ export function NotificationList({
 		);
 	}
 	// Unknown kinds are left out, so an empty page can still have more, or unread ones, after it
-	if (list.items.length === 0 && !list.hasMore && unreadCount === 0) {
+	if (list.items.length === 0 && !list.hasMore && unreadCount === 0 && category === 'all') {
 		return (
 			<>
 				<NotificationsHeader />
@@ -177,7 +207,21 @@ export function NotificationList({
 					]}
 				/>
 
-				{shown.length === 0 && <p className="empty-state">{t('notifications.caughtUp')}</p>}
+				<FilterPills
+					label={t('notifications.categoryLabel')}
+					value={category}
+					onChange={changeCategory}
+					options={[
+						{ value: 'all', label: t('profile.filterAll') },
+						...NOTIFICATION_CATEGORIES.map((value) => ({ value, label: t(`notifications.category.${value}`) })),
+					]}
+				/>
+
+				{shown.length === 0 && (
+					<p className="empty-state">
+						{t(category === 'all' || filter === 'unread' ? 'notifications.caughtUp' : 'notifications.categoryEmpty')}
+					</p>
+				)}
 				{!isHydrated && rows(groupFollows(shown))}
 				{groups.map(({ group, entries }) => (
 					<section key={group} aria-labelledby={`day-${group}`} className="flex flex-col gap-2">

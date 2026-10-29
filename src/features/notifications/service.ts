@@ -9,6 +9,7 @@ import { type CursorPage, cursorPageSchema, pageParams } from '@/lib/api/cursor'
 
 import {
 	type Notification,
+	type NotificationCategory,
 	type NotificationPreferences,
 	NotificationPreferencesSchema,
 	NotificationSchema,
@@ -16,10 +17,11 @@ import {
 
 const UnreadCountSchema = z.object({ count: z.number().int() });
 
-/** Unread notifications of every kind the user's preferences leave on; null once the session is gone. */
-export async function getUnreadCount(): Promise<number | null> {
+/** Unread notifications of every kind the user's preferences leave on (one category's with `category`); null once the session is gone. */
+export async function getUnreadCount(category?: NotificationCategory): Promise<number | null> {
 	try {
-		return UnreadCountSchema.parse(await apiClient('/notifications/unread-count')).count;
+		const query = category ? `?${new URLSearchParams({ category })}` : '';
+		return UnreadCountSchema.parse(await apiClient(`/notifications/unread-count${query}`)).count;
 	} catch (error) {
 		if (error instanceof AuthError) return null;
 		throw error;
@@ -30,11 +32,17 @@ const KINDS = new Set<string>(NotificationSchema.options.map((option) => option.
 const RawPage = cursorPageSchema(z.object({ kind: z.string() }).passthrough());
 
 /**
- * The feed, newest first; each item carries all its row shows.
+ * The feed, newest first; each item carries all its row shows. With `category`, only that tab's
+ * items; pass the same one with every page.
  * A kind this client doesn't know yet, or an item that doesn't fit its kind, is left out rather than failing the page.
  */
-export async function getNotifications(cursor?: string | null): Promise<CursorPage<Notification>> {
-	const page = RawPage.parse(await apiClient(`/notifications?${pageParams(cursor, NOTIFICATIONS_PAGE_SIZE)}`));
+export async function getNotifications(
+	cursor?: string | null,
+	category?: NotificationCategory
+): Promise<CursorPage<Notification>> {
+	const params = pageParams(cursor, NOTIFICATIONS_PAGE_SIZE);
+	if (category) params.set('category', category);
+	const page = RawPage.parse(await apiClient(`/notifications?${params}`));
 	const items = page.items.flatMap((item) => {
 		if (!KINDS.has(item.kind)) return [];
 		const parsed = NotificationSchema.safeParse(item);
@@ -95,7 +103,7 @@ export async function getNotificationPreferences(): Promise<NotificationPreferen
 	return NotificationPreferencesSchema.parse(await apiClient('/users/me/notification-preferences'));
 }
 
-/** Sets the switches sent and returns all four. */
+/** Sets the switches sent and returns all of them. */
 export async function updateNotificationPreferences(
 	change: Partial<NotificationPreferences>
 ): Promise<ActionResult<NotificationPreferences>> {

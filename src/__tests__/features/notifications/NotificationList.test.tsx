@@ -265,6 +265,13 @@ describe('NotificationList rows', () => {
 		expect(within(row).getByRole('link', { name: 'Reply' })).toHaveAttribute('href', '/poll/p3#comment-c1');
 	});
 
+	it('words a like and links to the liked comment', () => {
+		renderList([{ ...comment, id: 'like_c1', kind: 'LIKE', read: false }]);
+		const row = rowOf('Saturday market');
+		expect(row).toHaveTextContent('@rosa liked your comment in Saturday market');
+		expect(within(row).getByRole('link', { name: 'Reply' })).toHaveAttribute('href', '/poll/p3#comment-c1');
+	});
+
 	it('words a cancelled poll without an action', () => {
 		renderList([cancelled]);
 		const row = rowOf('Night bus');
@@ -531,6 +538,41 @@ describe('NotificationList', () => {
 		expect(screen.getByRole('region', { name: 'Earlier' })).toHaveTextContent('Results are in');
 	});
 
+	it('loads a category tab and keeps its category while paging', async () => {
+		const { getNotifications } = jest.requireMock('@/features/notifications/service');
+		const like = { ...comment, id: 'like_c1', kind: 'LIKE' };
+		getNotifications.mockResolvedValueOnce({ items: [like], nextCursor: 'n1' }).mockResolvedValueOnce({ items: [], nextCursor: null });
+		renderList([result, comment]);
+
+		fireEvent.click(screen.getByRole('button', { name: 'Likes' }));
+		await waitFor(() => expect(getNotifications).toHaveBeenCalledWith(null, 'LIKE'));
+		expect(await screen.findByText(/liked your comment/)).toBeInTheDocument();
+		expect(screen.queryByText('Results are in', { exact: false })).not.toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Likes' })).toHaveAttribute('aria-pressed', 'true');
+
+		fireEvent.click(screen.getByRole('button', { name: /Load more/ }));
+		await waitFor(() => expect(getNotifications).toHaveBeenCalledWith('n1', 'LIKE'));
+	});
+
+	it('says so when a category tab is empty, and keeps the tabs', async () => {
+		const { getNotifications } = jest.requireMock('@/features/notifications/service');
+		getNotifications.mockResolvedValueOnce({ items: [], nextCursor: null });
+		renderList([result]);
+		fireEvent.click(screen.getByRole('button', { name: 'Follows' }));
+		expect(await screen.findByText('Nothing here yet.')).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Follows' })).toBeInTheDocument();
+	});
+
+	it('stays on the current tab and says so when a category fails to load', async () => {
+		const { getNotifications } = jest.requireMock('@/features/notifications/service');
+		getNotifications.mockRejectedValueOnce(new Error('down'));
+		renderList([result]);
+		fireEvent.click(screen.getByRole('button', { name: 'Likes' }));
+		await waitFor(() => expect(mockToastError).toHaveBeenCalledWith('Couldn’t load that tab. Try again.'));
+		expect(screen.getByRole('button', { name: 'Likes' })).toHaveAttribute('aria-pressed', 'false');
+		expect(screen.getByText('Results are in', { exact: false })).toBeInTheDocument();
+	});
+
 	it('shows the empty state only when there is nothing at all', () => {
 		renderList([]);
 		expect(screen.getByRole('heading', { level: 1, name: 'Notifications' })).toBeInTheDocument();
@@ -547,19 +589,19 @@ describe('NotificationList', () => {
 
 describe('NotificationSettingsLink', () => {
 	it('sums up the switches and links to them in Settings', () => {
-		render(<NotificationSettingsLink preferences={{ resultsIn: true, invitations: true, comments: true, mentions: true, closingSoon: false }} />);
+		render(<NotificationSettingsLink preferences={{ resultsIn: true, invitations: true, comments: true, mentions: true, likes: true, closingSoon: false }} />);
 		const link = screen.getByRole('link', { name: /Notification settings/ });
 		expect(link).toHaveAttribute('href', '/settings#notifications');
-		expect(link).toHaveTextContent('Results, invitations, comments, mentions on · closing soon off');
+		expect(link).toHaveTextContent('Results, invitations, comments, mentions, likes on · closing soon off');
 	});
 
 	it('names only what is on, or only what is off', () => {
 		const { rerender } = render(
-			<NotificationSettingsLink preferences={{ resultsIn: true, invitations: true, comments: true, mentions: true, closingSoon: true }} />
+			<NotificationSettingsLink preferences={{ resultsIn: true, invitations: true, comments: true, mentions: true, likes: true, closingSoon: true }} />
 		);
-		expect(screen.getByRole('link')).toHaveTextContent('Results, invitations, comments, mentions, closing soon on');
-		rerender(<NotificationSettingsLink preferences={{ resultsIn: false, invitations: false, comments: false, mentions: false, closingSoon: false }} />);
-		expect(screen.getByRole('link')).toHaveTextContent('Results, invitations, comments, mentions, closing soon off');
+		expect(screen.getByRole('link')).toHaveTextContent('Results, invitations, comments, mentions, likes, closing soon on');
+		rerender(<NotificationSettingsLink preferences={{ resultsIn: false, invitations: false, comments: false, mentions: false, likes: false, closingSoon: false }} />);
+		expect(screen.getByRole('link')).toHaveTextContent('Results, invitations, comments, mentions, likes, closing soon off');
 	});
 
 	it('leaves the summary out when the switches could not be loaded', () => {

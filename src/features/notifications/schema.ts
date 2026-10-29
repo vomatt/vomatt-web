@@ -23,6 +23,10 @@ export type PollSummary = z.infer<typeof PollSummarySchema>;
 
 const base = { id: z.string(), createdAt: z.string(), read: z.boolean() };
 
+/** The tab a notification is filed under, fixed by its `kind`; the feed and the unread count filter by it. */
+export const NOTIFICATION_CATEGORIES = ['CONVERSATION', 'LIKE', 'POLL_END', 'INVITATION', 'FOLLOW'] as const;
+export type NotificationCategory = (typeof NOTIFICATION_CATEGORIES)[number];
+
 /** One item of `GET /notifications`; which of `actor`, `poll` and `comment` it carries follows its `kind`. */
 export const NotificationSchema = z.discriminatedUnion('kind', [
 	z.object({ ...base, kind: z.literal('RESULT'), poll: PollSummarySchema }),
@@ -44,6 +48,13 @@ export const NotificationSchema = z.discriminatedUnion('kind', [
 		comment: z.object({ id: z.string(), parentId: z.string().nullish(), excerpt: z.string() }),
 	}),
 	z.object({ ...base, kind: z.literal('CLOSING_SOON'), actor: FollowUserDtoSchema, poll: PollSummarySchema }),
+	z.object({
+		...base,
+		kind: z.literal('LIKE'),
+		actor: FollowUserDtoSchema,
+		poll: PollSummarySchema,
+		comment: z.object({ id: z.string(), parentId: z.string().nullish(), excerpt: z.string() }),
+	}),
 ]);
 
 export type Notification = z.infer<typeof NotificationSchema>;
@@ -54,6 +65,7 @@ export const NotificationPreferencesSchema = z.object({
 	invitations: z.boolean(),
 	comments: z.boolean(),
 	mentions: z.boolean(),
+	likes: z.boolean(),
 	closingSoon: z.boolean(),
 });
 

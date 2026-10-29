@@ -51,10 +51,14 @@ async function Feed({ tag, viewerId }: { tag: string | undefined; viewerId: stri
 			anonymousByDefault={profile?.anonymousBallotByDefault}
 			initialPage={firstPage}
 			tag={tag}
-			header={<HomepageHeader tags={tags} activeTag={tag}
+			header={
+				<HomepageHeader
+					tags={tags}
+					activeTag={tag}
 					signedIn={!!viewerId}
 					followedTagIds={followedTags?.ok ? followedTags.data.map((followed) => followed.id) : undefined}
-				/>}
+				/>
+			}
 		/>
 	);
 }

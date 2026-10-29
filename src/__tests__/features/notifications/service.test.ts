@@ -36,6 +36,14 @@ describe('getUnreadCount()', () => {
 	});
 });
 
+describe('getUnreadCount() for a category', () => {
+	it('counts one tab', async () => {
+		mockApiClient.mockResolvedValue({ count: 2 });
+		expect(await getUnreadCount('LIKE')).toBe(2);
+		expect(mockApiClient).toHaveBeenCalledWith('/notifications/unread-count?category=LIKE');
+	});
+});
+
 describe('getUnreadCount() when signed out', () => {
 	it('returns null instead of throwing', async () => {
 		mockApiClient.mockRejectedValue(new AuthError('expired'));
@@ -124,6 +132,18 @@ describe('getNotifications()', () => {
 		expect(page.items[2]).toMatchObject({ comment: { id: 'r1', parentId: 'c1' } });
 	});
 
+	it('asks for one category and reads a like', async () => {
+		mockApiClient.mockResolvedValue({
+			items: [
+				{ id: 'like_1', kind: 'LIKE', category: 'LIKE', createdAt: '2026-10-26T10:00:00Z', read: false, actor: rosa, poll, comment: { id: 'c1', parentId: null, excerpt: 'Tabs' } },
+			],
+			nextCursor: null,
+		});
+		const page = await getNotifications('cur', 'LIKE');
+		expect(mockApiClient).toHaveBeenCalledWith('/notifications?limit=20&cursor=cur&category=LIKE');
+		expect(page.items[0]).toMatchObject({ kind: 'LIKE', actor: { username: 'rosa' }, comment: { id: 'c1' } });
+	});
+
 	it('leaves out a kind it does not know rather than failing the page', async () => {
 		mockApiClient.mockResolvedValue({
 			items: [
@@ -177,7 +197,7 @@ describe('markAllNotificationsRead()', () => {
 });
 
 describe('notification preferences', () => {
-	const preferences = { resultsIn: true, invitations: true, comments: true, mentions: true, closingSoon: false };
+	const preferences = { resultsIn: true, invitations: true, comments: true, mentions: true, likes: true, closingSoon: false };
 
 	it('reads the switches', async () => {
 		mockApiClient.mockResolvedValue(preferences);
