@@ -1,8 +1,11 @@
 'use client';
 
+import { Menu } from '@base-ui/react/menu';
 import Link from 'next/link';
 
-import { MessageSquare, Share2 } from '@/components/ui/SvgIcons';
+import { Button } from '@/components/ui/Button';
+import { menuItemClassName, menuPopupClassName } from '@/components/ui/menu';
+import { Bookmark, Ellipsis, Flag, MessageSquare, Share2 } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toPayloadLocale } from '@/lib/locale';
 
@@ -19,9 +22,14 @@ type PollFooterProps = {
 	commentCount?: number;
 	/** On the poll page Comments leads down to the discussion; elsewhere to the poll page's. */
 	isPage?: boolean;
+	/** Whether the viewer saved the Poll; the toggle shows once `onToggleBookmark` is given. */
+	bookmarked?: boolean;
+	onToggleBookmark?: () => void;
+	/** Offered to everyone but the owner. */
+	onReport?: () => void;
 };
 
-/** Turnout (and a non-Public Audience), comments and share. Turnout shows in every state. */
+/** Turnout (and a non-Public Audience), comments, save, share and report. Turnout shows in every state. */
 export function PollFooter({
 	pollId,
 	title,
@@ -29,6 +37,9 @@ export function PollFooter({
 	audience,
 	commentCount,
 	isPage,
+	bookmarked,
+	onToggleBookmark,
+	onReport,
 }: PollFooterProps) {
 	const { t, currentLanguage } = useLanguage();
 
@@ -55,14 +66,48 @@ export function PollFooter({
 				<MessageSquare className="size-[18px]" />
 				{commentsLabel}
 			</Link>
-			<button
-				type="button"
-				onClick={() => share({ id: pollId, title })}
-				className="ml-auto flex min-h-11 items-center gap-2 transition-colors hover:text-foreground"
-			>
-				<Share2 className="size-[18px]" />
-				{t('poll.share')}
-			</button>
+			<div className="ml-auto flex items-center gap-5">
+				{onToggleBookmark && (
+					<button
+						type="button"
+						onClick={onToggleBookmark}
+						aria-pressed={!!bookmarked}
+						className="flex min-h-11 items-center gap-2 transition-colors hover:text-foreground aria-pressed:text-foreground"
+					>
+						<Bookmark className="size-[18px]" fill={bookmarked ? 'currentColor' : 'none'} />
+						{t(bookmarked ? 'poll.bookmarked' : 'poll.bookmark')}
+					</button>
+				)}
+				<button
+					type="button"
+					onClick={() => share({ id: pollId, title })}
+					className="flex min-h-11 items-center gap-2 transition-colors hover:text-foreground"
+				>
+					<Share2 className="size-[18px]" />
+					{t('poll.share')}
+				</button>
+				{onReport && (
+					<Menu.Root>
+						<Menu.Trigger
+							render={<Button variant="ghost" size="icon-xs" />}
+							aria-label={t('poll.moreOptions')}
+							className="-mx-2 data-popup-open:bg-muted"
+						>
+							<Ellipsis aria-hidden />
+						</Menu.Trigger>
+						<Menu.Portal>
+							<Menu.Positioner side="top" align="end" sideOffset={4} className="z-50">
+								<Menu.Popup className={menuPopupClassName}>
+									<Menu.Item onClick={onReport} className={menuItemClassName}>
+										<Flag aria-hidden />
+										{t('poll.report')}
+									</Menu.Item>
+								</Menu.Popup>
+							</Menu.Positioner>
+						</Menu.Portal>
+					</Menu.Root>
+				)}
+			</div>
 		</div>
 	);
 }

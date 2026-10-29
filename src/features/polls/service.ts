@@ -30,6 +30,7 @@ import {
 	PollResultsSchema,
 	PollSchema,
 	type ReportCommentRequest,
+	type ReportPollRequest,
 	type TagDto,
 	TagDtoSchema,
 	type ThreadComment,
@@ -123,6 +124,11 @@ export async function getFeed(cursor?: string | null, size = 10, tag?: string) {
  */
 export async function getFollowingFeed(cursor?: string | null, size = 10) {
 	return PollPage.parse(await apiClient(`/votes/following?${pageParams(cursor, size)}`));
+}
+
+/** The viewer's bookmarked Polls, most recently bookmarked first, in any state. Sign-in required. */
+export async function getBookmarkedPolls(cursor?: string | null, size = 10) {
+	return PollPage.parse(await apiClient(`/votes/bookmarked?${pageParams(cursor, size)}`));
 }
 
 const TagPage = cursorPageSchema(TagDtoSchema);
@@ -499,5 +505,45 @@ export async function reportComment(
 			method: 'POST',
 			body: JSON.stringify(report),
 		});
+	});
+}
+
+/** Reports another person's Poll to the moderators; reporting it again keeps the first report. */
+export async function reportPoll(voteId: string, report: ReportPollRequest): Promise<ActionResult> {
+	return attempt(async () => {
+		await apiClient(`/votes/${voteId}/report`, { method: 'POST', body: JSON.stringify(report) });
+	});
+}
+
+/** Idempotent: bookmarking a bookmarked Poll keeps its first place in the list. */
+export async function bookmarkPoll(voteId: string): Promise<ActionResult> {
+	return attempt(async () => {
+		await apiClient(`/votes/${voteId}/bookmark`, { method: 'PUT' });
+	});
+}
+
+/** Idempotent: succeeds when the Poll was not bookmarked. */
+export async function unbookmarkPoll(voteId: string): Promise<ActionResult> {
+	return attempt(async () => {
+		await apiClient(`/votes/${voteId}/bookmark`, { method: 'DELETE' });
+	});
+}
+
+/** The viewer's followed tags, most recently followed first; not paginated. Sign-in required. */
+export async function getFollowedTags(): Promise<ActionResult<TagDto[]>> {
+	return attempt(async () => z.array(TagDtoSchema).parse(await apiClient('/tags/following')));
+}
+
+/** Idempotent: following a followed tag succeeds. Followed tags add their Open Polls to the Following feed. */
+export async function followTag(tagId: string): Promise<ActionResult> {
+	return attempt(async () => {
+		await apiClient(`/tags/${encodeURIComponent(tagId)}/follow`, { method: 'PUT' });
+	});
+}
+
+/** Idempotent: succeeds when the tag was not followed. */
+export async function unfollowTag(tagId: string): Promise<ActionResult> {
+	return attempt(async () => {
+		await apiClient(`/tags/${encodeURIComponent(tagId)}/follow`, { method: 'DELETE' });
 	});
 }

@@ -145,7 +145,7 @@ describe('markAllNotificationsRead()', () => {
 });
 
 describe('notification preferences', () => {
-	const preferences = { resultsIn: true, invitations: true, comments: true, closingSoon: false };
+	const preferences = { resultsIn: true, invitations: true, comments: true, mentions: true, closingSoon: false };
 
 	it('reads the switches', async () => {
 		mockApiClient.mockResolvedValue(preferences);

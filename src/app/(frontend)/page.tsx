@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 import { PageShell } from '@/components/layout/PageShell';
 import { getMyProfile, getUserSession } from '@/data/auth';
 import { PollListSkeleton } from '@/features/polls/components/PollCardSkeleton';
-import { getFeed, getPopularTags } from '@/features/polls/service';
+import { getFeed, getFollowedTags, getPopularTags } from '@/features/polls/service';
 
 import { HomepageHeader } from './_components/HomepageHeader';
 import { HomeRail } from './_components/HomeRail';
@@ -35,10 +35,12 @@ export default async function Page({ searchParams }: Props) {
 
 /** Streams in behind the skeleton so the shell paints first. */
 async function Feed({ tag, viewerId }: { tag: string | undefined; viewerId: string | undefined }) {
-	const [profile, firstPage, tags] = await Promise.all([
+	const [profile, firstPage, tags, followedTags] = await Promise.all([
 		getMyProfile(),
 		getFeed(null, 10, tag).catch(() => null),
 		getPopularTags(),
+		// Only a topic's page offers Follow
+		viewerId && tag ? getFollowedTags() : null,
 	]);
 
 	return (
@@ -49,7 +51,10 @@ async function Feed({ tag, viewerId }: { tag: string | undefined; viewerId: stri
 			anonymousByDefault={profile?.anonymousBallotByDefault}
 			initialPage={firstPage}
 			tag={tag}
-			header={<HomepageHeader tags={tags} activeTag={tag} signedIn={!!viewerId} />}
+			header={<HomepageHeader tags={tags} activeTag={tag}
+					signedIn={!!viewerId}
+					followedTagIds={followedTags?.ok ? followedTags.data.map((followed) => followed.id) : undefined}
+				/>}
 		/>
 	);
 }

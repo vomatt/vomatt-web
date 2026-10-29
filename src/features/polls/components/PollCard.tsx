@@ -4,22 +4,26 @@ import { AnimatePresence, m } from 'motion/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useState } from 'react';
+import { toast } from 'sonner';
 
 import { AuthDialog } from '@/components/auth/AuthDialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserChip } from '@/features/profiles/UserChip';
+import { apiErrorText } from '@/lib/api/error-text';
+import { settle } from '@/lib/api/settle';
 
 import { formatAge } from '../format';
 import { useBallot } from '../hooks/useBallot';
 import { useRequireAuth } from '../hooks/useRequireAuth';
 import { useViewerClock } from '../hooks/useViewerClock';
 import type { Poll } from '../schema';
-import { getPoll } from '../service';
+import { bookmarkPoll, getPoll, unbookmarkPoll } from '../service';
 import { derivePollStatus } from '../status';
 import { Ballot } from './Ballot';
 import { VotedPill } from './BallotMotion';
 import { getOwnerActions, OwnerActions } from './OwnerActions';
 import { PollFooter } from './PollFooter';
+import { ReportCommentDialog } from './ReportCommentDialog';
 import { type ResultRow, Results } from './Results';
 import { StatusChip } from './StatusChip';
 import { useVoters, VotersDialog } from './VoterList';
@@ -61,6 +65,21 @@ export function PollCard({
 		const fresh = await getPoll(poll.id).catch(() => null);
 		if (fresh) setPoll(fresh);
 	}, [poll.id]);
+
+	const [isReporting, setIsReporting] = useState(false);
+	const [isBookmarking, setIsBookmarking] = useState(false);
+	const toggleBookmark = () =>
+		requireAuth(async () => {
+			if (isBookmarking) return;
+			const next = !poll.bookmarked;
+			setPoll((current) => ({ ...current, bookmarked: next }));
+			setIsBookmarking(true);
+			const result = await settle(next ? bookmarkPoll(poll.id) : unbookmarkPoll(poll.id));
+			setIsBookmarking(false);
+			if (result.ok) return;
+			setPoll((current) => ({ ...current, bookmarked: !next }));
+			toast.error(apiErrorText(t, result, next ? 'poll.bookmarkFailed' : 'poll.unbookmarkFailed'));
+		});
 
 	const handlePollEnded = useCallback(
 		(ended?: Poll) => (ended ? setPoll(ended) : refetch()),
@@ -180,7 +199,12 @@ export function PollCard({
 				audience={poll.audience}
 				commentCount={poll.commentCount}
 				isPage={isPage}
+				bookmarked={!!poll.bookmarked}
+				onToggleBookmark={toggleBookmark}
+				onReport={isOwner ? undefined : () => requireAuth(() => setIsReporting(true))}
 			/>
+
+			{isReporting && <ReportCommentDialog pollId={id} open onOpenChange={setIsReporting} />}
 
 			{canSeeVoters && (
 				<VotersDialog option={votersOption} voters={voters} onClose={() => setVotersOption(null)} />
