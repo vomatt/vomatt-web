@@ -134,7 +134,6 @@
 		"sortTop": "最多人投票"
 	},
 	"pollDetail": {
-		"backToFeed": "返回",
 		"about": "關於這個投票",
 		"share": "分享",
 		"notFound": "找不到投票。",
@@ -255,8 +254,6 @@
 		"empty": "目前沒有通知。",
 		"emptyHint": "你發起或參與的投票結果會顯示在這裡。",
 		"unread": "未讀",
-		"intro": "投票結果、邀請、追蹤你的人，以及你的投票下的留言。",
-		"markAllHint": "打開投票即標為已讀。",
 		"loadFailed": "無法載入通知。",
 		"ended": "結果出爐",
 		"cancelled": "已取消",

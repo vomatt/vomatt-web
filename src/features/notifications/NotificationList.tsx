@@ -36,17 +36,10 @@ export function dayGroup(iso: string, now = new Date()): DayGroup {
 	return 'earlier';
 }
 
-/** The page's title and intro. */
+/** The page's title. */
 export function NotificationsHeader() {
 	const { t } = useLanguage();
-	return (
-		<div className="flex flex-wrap items-end gap-4">
-			<div className="flex-[1_1_300px]">
-				<h1 className="page-title text-foreground">{t('notifications.title')}</h1>
-				<p className="mt-1.5 text-[14px] text-muted-foreground">{t('notifications.intro')}</p>
-			</div>
-		</div>
-	);
+	return <h1 className="page-title text-foreground">{t('notifications.title')}</h1>;
 }
 
 /**

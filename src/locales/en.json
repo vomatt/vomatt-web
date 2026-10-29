@@ -134,7 +134,6 @@
 		"sortTop": "Most voted"
 	},
 	"pollDetail": {
-		"backToFeed": "Back",
 		"about": "About this poll",
 		"share": "Share",
 		"notFound": "Poll not found.",
@@ -265,8 +264,6 @@
 		"empty": "No notifications yet.",
 		"emptyHint": "Results of polls you asked or voted in show up here.",
 		"unread": "Unread",
-		"intro": "Results, invitations, people who followed you, and comments on your polls.",
-		"markAllHint": "Opening a poll marks it read.",
 		"loadFailed": "Couldn’t load notifications.",
 		"ended": "Results are in",
 		"cancelled": "Cancelled",

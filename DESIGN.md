@@ -10,7 +10,7 @@ Cool canvas, navy ink actions, two signals: Volt (`highlight`) marks what is you
 |---|---|---|
 | Canvas | `background` | Page background |
 | Surface | `card` | Cards, ballot rows, outline buttons, text fields |
-| Soft surface | `surface-soft` | Folded settings, empty states |
+| Soft surface | `surface-soft` | Folded settings, empty states, read notification rows |
 | Field | `field` | Icon discs, segmented tracks and other recessed fills (text fields are `card`) |
 | Ink | `foreground`, `primary` | Text and the primary action (same ink) |
 | Quiet text | `muted-foreground` | Meta, hints, secondary copy |

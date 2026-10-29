@@ -143,8 +143,8 @@ function useSeen(onSeen: (() => void) | undefined) {
 }
 
 /**
- * One notification: unread rows are a card with a dot after the first line, read ones sit flat
- * until hovered. `tide` is a result's promise kept. The whole row opens `href`, or calls
+ * One notification: unread rows are a card with a dot after the first line, read ones a soft fill
+ * that turns into a card when hovered. `tide` is a result's promise kept. The whole row opens `href`, or calls
  * `onOpen` without one; that target is for pointers only, as the row's own links and actions
  * already reach it by keyboard.
  */
@@ -185,7 +185,7 @@ function RowShell({
 					? tide
 						? 'border-tide-line bg-tide-tint'
 						: 'border-border bg-card hover:border-border-strong'
-					: 'border-transparent hover:border-border hover:bg-card'
+					: 'border-transparent bg-surface-soft hover:border-border hover:bg-card'
 			)}
 		>
 			{href ? (

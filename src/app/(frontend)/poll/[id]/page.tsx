@@ -69,7 +69,7 @@ export default async function PollDetailPage({ params }: Props) {
 		>
 			<div className="flex flex-col gap-8">
 				<BackLink href="/">
-					<T k="pollDetail.backToFeed" />
+					<T k="common.back" />
 				</BackLink>
 				<Suspense fallback={<PollCardSkeleton options={4} />}>
 					<PollDetail id={id} />

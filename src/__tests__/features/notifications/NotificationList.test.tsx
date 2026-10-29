@@ -192,6 +192,13 @@ describe('NotificationList rows', () => {
 		expect(row).toHaveTextContent('Tied for first');
 	});
 
+	it('gives read rows a soft fill and keeps unread ones a card', () => {
+		renderList([invitation, closingSoon]);
+		expect(rowOf('Which stall')).toHaveClass('bg-card');
+		expect(rowOf('Which stall')).not.toHaveClass('bg-surface-soft');
+		expect(rowOf('Bike lane on Minsheng')).toHaveClass('bg-surface-soft');
+	});
+
 	it('says the pick lost, and leaves the outcome out when no Ballot named an option', () => {
 		renderList([
 			{ ...result, poll: { ...result.poll, myOptionId: 'b' } },
@@ -518,7 +525,6 @@ describe('NotificationList', () => {
 	it('shows the empty state only when there is nothing at all', () => {
 		renderList([]);
 		expect(screen.getByRole('heading', { level: 1, name: 'Notifications' })).toBeInTheDocument();
-		expect(screen.getByText('Results, invitations, people who followed you, and comments on your polls.')).toBeInTheDocument();
 		expect(screen.getByRole('heading', { level: 2, name: 'No notifications yet.' })).toBeInTheDocument();
 	});
 
