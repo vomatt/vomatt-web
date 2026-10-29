@@ -22,18 +22,21 @@ export type BotVariant = 'flat' | 'round2';
  * One character of the cast. Size comes from `className` (default 32px).
  * `variant` picks the drawing: `flat` (default, Round 4.1: flat line art on a muted circle, the Skeleton's colour) or
  * `round2` (the earlier set on its tinted circle; drawn for the first four families only, not cats or dogs).
- * With `tooltip`, hovering shows the character's name and trait (the profile page and the picker).
+ * With `tooltip`, hovering shows the character's name and trait (the profile page and the picker);
+ * `tooltipBoundary` keeps it inside that element (the picker's scrolling grid) instead of the viewport.
  * The drawings are static files in public/avatars (flat) and public/avatars/round2, so pages don't ship them as JS.
  */
 export function BotAvatar({
 	kind,
 	className,
 	tooltip = false,
+	tooltipBoundary,
 	variant = 'flat',
 }: {
 	kind: BotKind;
 	className?: string;
 	tooltip?: boolean;
+	tooltipBoundary?: Element | null;
 	variant?: BotVariant;
 }) {
 	const { t } = useLanguage();
@@ -59,7 +62,7 @@ export function BotAvatar({
 	return (
 		<Tooltip>
 			<TooltipTrigger render={image} />
-			<TooltipContent className="flex-col items-start gap-0">
+			<TooltipContent collisionBoundary={tooltipBoundary ?? undefined} className="flex-col items-start gap-0">
 				<span className="font-medium">{t(`avatar.bots.${kind}.name`)}</span>
 				<span className="opacity-70">{t(`avatar.bots.${kind}.trait`)}</span>
 			</TooltipContent>

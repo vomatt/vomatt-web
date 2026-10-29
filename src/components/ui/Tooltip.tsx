@@ -31,18 +31,20 @@ function TooltipContent({
 	sideOffset = 4,
 	align = 'center',
 	alignOffset = 0,
+	collisionBoundary,
 	children,
 	...props
 }: TooltipPrimitive.Popup.Props &
 	Pick<
 		TooltipPrimitive.Positioner.Props,
-		'align' | 'alignOffset' | 'side' | 'sideOffset'
+		'align' | 'alignOffset' | 'collisionBoundary' | 'side' | 'sideOffset'
 	>) {
 	return (
 		<TooltipPrimitive.Portal>
 			<TooltipPrimitive.Positioner
 				align={align}
 				alignOffset={alignOffset}
+				collisionBoundary={collisionBoundary}
 				side={side}
 				sideOffset={sideOffset}
 				className="isolate z-50"

@@ -55,6 +55,8 @@ export function AvatarDialog({
 	const saved = resolveAvatar(username, avatarUrl);
 	const [selected, setSelected] = useState<AvatarChoice>(saved);
 	const [isSaving, setIsSaving] = useState(false);
+	// Tile tooltips stay inside the scrolling grid, so they flip or shift rather than cover the header
+	const [grid, setGrid] = useState<HTMLDivElement | null>(null);
 	const unchanged = selected === saved;
 
 	const openChange = (next: boolean) => {
@@ -106,7 +108,7 @@ export function AvatarDialog({
 					: 'hover:bg-border-strong'
 			)}
 		>
-			<ChosenAvatar kind={kind} className="size-full" tooltip />
+			<ChosenAvatar kind={kind} className="size-full" tooltip tooltipBoundary={grid} />
 			{kind === selected && (
 				<span
 					aria-hidden
@@ -166,7 +168,7 @@ export function AvatarDialog({
 					</Button>
 				</div>
 
-				<div className="-mx-4 space-y-5 overflow-y-auto overscroll-contain px-4 pb-1">
+				<div ref={setGrid} className="-mx-4 space-y-5 overflow-y-auto overscroll-contain px-4 pb-1">
 					{/* No character first, as its own group, then the cast */}
 					<div className="space-y-2">
 						<p className="text-xs text-muted-foreground">{t('avatar.families.plain')}</p>
