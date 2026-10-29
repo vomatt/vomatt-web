@@ -18,6 +18,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { formatFromNow, formatPollDate } from '@/features/polls/format';
 import { apiErrorText } from '@/lib/api/error-text';
+import { loginHref } from '@/lib/routes';
 import type { SignedInSession } from '@/types/user';
 
 import { deviceName } from './deviceName';
@@ -37,6 +38,10 @@ export function SessionsPanel() {
 	const [confirming, setConfirming] = useState<Confirming | null>(null);
 	const [isSigningOut, setIsSigningOut] = useState(false);
 
+	const goToLogin = () => {
+		window.location.assign(loginHref({ sessionExpired: 'revoked' }));
+	};
+
 	// Bumped by Try again to load the list once more
 	const [loadCount, setLoadCount] = useState(0);
 
@@ -44,31 +49,42 @@ export function SessionsPanel() {
 		let ignore = false;
 		getSessions().then((result) => {
 			if (ignore) return;
+			if (!result.ok && result.errorCode === 'auth.session_revoked') {
+				goToLogin();
+				return;
+			}
 			setLoadFailed(!result.ok);
 			if (result.ok) setSessions(result.data);
+			else setSessions(null);
 		});
 		return () => {
 			ignore = true;
 		};
 	}, [loadCount]);
 
-	const signOut = async () => {
-		if (!confirming) return;
+	const signOut = async (event: React.MouseEvent) => {
+		// Keep the dialog open (and the button loading) until the request settles
+		event.preventDefault();
+		if (!confirming || isSigningOut) return;
 		setIsSigningOut(true);
-		const result = confirming === 'others' ? await revokeOtherSessions() : await revokeSession(confirming.sessionId);
-		setIsSigningOut(false);
 		const target = confirming;
+		const result = target === 'others' ? await revokeOtherSessions() : await revokeSession(target.sessionId);
+		setIsSigningOut(false);
 		setConfirming(null);
+		if (!result.ok && result.errorCode === 'auth.session_revoked') {
+			// This device's own sign-in was ended elsewhere
+			goToLogin();
+			return;
+		}
 		// Already gone is the outcome the user wanted
 		const alreadyGone = !result.ok && result.errorCode === 'auth.session_not_found';
 		if (!result.ok && !alreadyGone) {
 			toast.error(apiErrorText(t, result, 'sessions.signOutFailed'), { duration: Infinity });
 			return;
 		}
-		setSessions((list) =>
-			list?.filter((session) => (target === 'others' ? session.current : session.sessionId !== target.sessionId)) ?? null
-		);
 		toast.success(t(target === 'others' ? 'sessions.othersSignedOut' : 'sessions.signedOut'));
+		// The list may have changed meanwhile; reload rather than patch it
+		setLoadCount((n) => n + 1);
 	};
 
 	const nameOf = (session: SignedInSession) =>

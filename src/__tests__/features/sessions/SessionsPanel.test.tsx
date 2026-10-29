@@ -66,6 +66,7 @@ describe('SessionsPanel', () => {
 	it('signs out one device after a confirmation', async () => {
 		render(<SessionsPanel />);
 		await waitFor(() => expect(items()).toHaveLength(2));
+		mockGetSessions.mockResolvedValue({ ok: true, data: [mac] });
 
 		fireEvent.click(screen.getByRole('button', { name: 'Sign out Unknown device' }));
 		fireEvent.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Sign out' }));
@@ -78,6 +79,7 @@ describe('SessionsPanel', () => {
 	it('signs out the other devices and keeps this one', async () => {
 		render(<SessionsPanel />);
 		await waitFor(() => expect(items()).toHaveLength(2));
+		mockGetSessions.mockResolvedValue({ ok: true, data: [mac] });
 
 		fireEvent.click(screen.getByRole('button', { name: 'Sign out other devices' }));
 		fireEvent.click(
