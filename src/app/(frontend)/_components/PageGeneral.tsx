@@ -1,10 +1,8 @@
-'use client';
-
 import { ReactNode } from 'react';
 
 import CustomPortableText from '@/components/CustomPortableText';
 import { PageShell } from '@/components/layout/PageShell';
-import PageModules from '@/components/PageModules';
+import PageModules, { type PageModule } from '@/components/PageModules';
 
 export default function PageGeneral({ data, children }: { data: any; children?: ReactNode }) {
 	const { title, layout, content, pageModules: modules } = data;
@@ -14,7 +12,7 @@ export default function PageGeneral({ data, children }: { data: any; children?: 
 			<PageShell>
 				<article className="page-general">
 					<h1 className="mb-4 display-heading text-[30px] text-foreground md:text-[40px]">{title}</h1>
-					<div className="text-lg leading-[1.6] [&_a]:underline [&_a]:underline-offset-2 [&>*+*]:mt-4 [&_h2]:mt-8 [&_h2]:text-[24px] [&_h2]:leading-[1.3] [&_h2]:font-medium [&_h2]:tracking-[-0.02em] [&_li]:mt-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5">
+					<div className="cms-prose text-lg">
 						{content && <CustomPortableText blocks={content} />}
 					</div>
 					{children}
@@ -23,12 +21,18 @@ export default function PageGeneral({ data, children }: { data: any; children?: 
 		);
 	}
 
+	// A Hero with a heading carries the page's h1; without one the title still names the page
+	const hasHeroHeading = modules?.some((module: PageModule) => module._type === 'hero' && module.heading);
+
 	return (
-		<div className="page-general">
-			{modules?.map((module: any, i: number) => (
-				<PageModules key={i} module={module} />
-			))}
-			{children}
-		</div>
+		<PageShell>
+			<div className="page-general flex flex-col gap-14 md:gap-16">
+				{!hasHeroHeading && <h1 className="sr-only">{title}</h1>}
+				{modules?.map((module: PageModule) => (
+					<PageModules key={module._key} module={module} />
+				))}
+				{children}
+			</div>
+		</PageShell>
 	);
 }
