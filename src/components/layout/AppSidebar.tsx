@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import { BrandLink } from '@/components/BrandLink';
-import { LegalLinks } from '@/components/layout/LegalLinks';
 import { MoreMenu } from '@/components/layout/MoreMenu';
 import { Button, buttonVariants } from '@/components/ui/Button';
 import {
@@ -66,7 +65,11 @@ interface AppSidebarProps {
 	loginLink?: string;
 }
 
-export function AppSidebar({ userSession, profile, loginLink = '/login' }: AppSidebarProps) {
+export function AppSidebar({
+	userSession,
+	profile,
+	loginLink = '/login',
+}: AppSidebarProps) {
 	const { t } = useLanguage();
 	const pathname = usePathname();
 	const { count: unreadCount } = useUnreadCount();
@@ -192,7 +195,7 @@ export function AppSidebar({ userSession, profile, loginLink = '/login' }: AppSi
 			</SidebarContent>
 
 			{/* Footer */}
-			<SidebarFooter className="px-3 py-10 gap-2">
+			<SidebarFooter className="px-3 py-3 gap-2">
 				{!userSession && (
 					<div className="rounded-xl border border-sidebar-border bg-card p-1">
 						<Link
@@ -210,7 +213,6 @@ export function AppSidebar({ userSession, profile, loginLink = '/login' }: AppSi
 						<MoreMenu signedIn={Boolean(userSession)} />
 					</SidebarMenuItem>
 				</SidebarMenu>
-				<LegalLinks className="flex flex-wrap gap-x-3 gap-y-1 px-3 text-[12px] text-muted-foreground" />
 			</SidebarFooter>
 		</Sidebar>
 	);
