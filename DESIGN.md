@@ -16,7 +16,7 @@ Cool canvas, navy ink actions, two signals: Volt (`highlight`) marks what is you
 | Quiet text | `muted-foreground` | Meta, hints, secondary copy |
 | Lines | `border`, `border-strong` | `border` for cards, rows and dividers; `border-strong` for outline buttons and pills at rest (hover fills them, the line stays) |
 | Controls | `input` | Text field borders, checkbox marks and switch tracks: the 3:1 boundary a control needs at rest |
-| Highlight (Volt) | `highlight`, `highlight-foreground`, `highlight-tint` | The create action (`Button variant="create"`: a Volt icon on ink in light, a Volt button in dark), the viewer's choice on a ballot (`highlight-tint` behind the chosen row, chosen or cast, and the `BallotMark`'s dot), the poll card's Voted pill, `YourVotePill` on results, the Seal's check, the You chip. Text on it is always `highlight-foreground` ink. Never decoration, never a notification |
+| Highlight (Volt) | `highlight`, `highlight-foreground`, `highlight-tint` | The create action (`Button variant="create"`: a Volt icon on ink in light, a Volt button in dark), the viewer's choice on a ballot (`highlight-tint` behind the chosen row, chosen or cast, and the `BallotMark`'s dot), the poll card's Voted pill, `YourVotePill` on results, the Seal's check, the You chip, selected text (`::selection`). Text on it is always `highlight-foreground` ink. Never decoration, never a notification |
 | Alert | `alert`, `alert-foreground` | The unread count and `UnreadDot`: something asking to be looked at. White on red, so it reads as a notification. Never a button, a status or an error |
 | Tide | `tide`, `tide-tint`, `tide-line`, `tide-foreground` | The promise: the Seal after voting (`tide-tint` surface, `tide` ring, a Volt check, and Withdraw vote as a Tide-ink ghost button inside it), the ballot's lock line beside Vote, the rules ("How vomatt counts" in the sidebar, the poll page's About rules, the creator's rules summary), the voting-window bar (`Progress variant="tide"`). Never links, headers or hovers |
 | Poll status | `status-scheduled/open/closing/ended`, `status-open-ends` | Status chip tints, always with a text label. Closing is peach, the `avatar-peach` hue. On a poll card an Open or closing poll's chip is pink `status-open-ends` with no mark ("Ends Fri 18:00") |
@@ -30,13 +30,14 @@ Cool canvas, navy ink actions, two signals: Volt (`highlight`) marks what is you
 
 - **Geist** (`font-sans`) for everything, with PingFang TC / Microsoft JhengHei / Noto Sans TC fallbacks for Traditional Chinese. **Geist Mono** (`font-mono`, `tabular-nums`) for counts, times and handles.
 - Every title is weight 500: confident, not shouting.
+- Wrapping is set once in `global.css`: `h1`–`h4` balance their lines and `p`, `li`, `dd`, `blockquote` keep a lone word off the last line (`text-wrap-style`, so `truncate` and `whitespace-nowrap` still win). A title that isn't a heading element takes `text-balance`.
 - **Display**: the `display-heading` utility sets weight 500, leading 1.25 and -0.03em tracking; the size goes beside it.
   - Page titles (Explore, Notifications, Settings): the `page-title` utility, 28px at every width with leading 1.3
   - CMS page titles: `display-heading text-[30px] md:text-[40px]`
   - Auth titles: 30px, leading 1.2, -0.02em (every auth step; in the auth dialog the step's title is the dialog's own 21px title)
   - Person names: `display-heading text-[26px] md:text-[30px]` on a profile; `text-2xl` elsewhere
   - CMS body 17px, leading 1.6, section headings 24px; coming soon headline 48px, leading 1.1
-- **Poll title** (card and preview): `text-[22px] font-medium leading-[1.2] tracking-[-0.02em]`; cards add `md:text-[25px]`.
+- **Poll title** (card and preview): the `poll-title` utility (22px, weight 500, leading 1.2, -0.02em, balanced lines); cards add `md:text-[25px]`.
 - **Item title** (list rows): the `item-title` utility (16px, weight 500, -0.01em); leading goes beside it. Rail card titles are 15px (`PollSideCard`).
 - **Body** `text-[14px]` (card descriptions `text-base`; ballot and result options 16px, weight 500); **meta** `text-[12px]` in rows, `text-[14px]` on a poll card (author line, footer, the ballot's Tide lines, the results caption), `text-[13px]` in the rail; **chip** `text-[11px]` uppercase semibold, `.06em` tracking (`chipClassName`), 10px on a poll card.
 - Sidebar and More rows 14px, their group labels and segments 12px. The policy line under log in is 12px (`text-xs` is 11px here).

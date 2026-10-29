@@ -143,12 +143,12 @@ export function PollCard({
 				<div>
 					{/* On the poll page the title is plain, selectable text; in a list it leads to the page */}
 					{isPage ? (
-						<Heading className="wrap-anywhere text-[22px] font-medium leading-[1.2] tracking-[-0.02em] text-foreground select-text md:text-[25px]">
+						<Heading className="poll-title wrap-anywhere text-foreground select-text md:text-[25px]">
 							{title}
 						</Heading>
 					) : (
 						<Link href={`/poll/${id}`}>
-							<Heading className="wrap-anywhere text-[22px] font-medium leading-[1.2] tracking-[-0.02em] text-foreground hover:text-muted-foreground transition-colors md:text-[25px]">
+							<Heading className="poll-title wrap-anywhere text-foreground hover:text-muted-foreground transition-colors md:text-[25px]">
 								{title}
 							</Heading>
 						</Link>
