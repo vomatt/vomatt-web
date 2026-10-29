@@ -14,7 +14,7 @@ export const READ_MAX_WAIT_MS = 5000;
  * Marks notifications read on the server, each id once, and recounts the unread badge after.
  * `read` sends now (the person opened it); `queue` waits for the batch (it was seen), and
  * leaving the page or hiding the tab sends what is queued. Ids the server leaves unread are
- * queued again. `markedAll` drops the queue once everything has been read another way.
+ * queued again.
  */
 export function useMarkRead() {
 	const { refresh } = useUnreadCount();
@@ -59,9 +59,6 @@ export function useMarkRead() {
 		batchTimer.current = setTimeout(sendQueued, READ_BATCH_MS);
 		maxWaitTimer.current ??= setTimeout(sendQueued, READ_MAX_WAIT_MS);
 	};
-	const markedAll = () => {
-		for (const id of takeQueued()) sentIds.current.add(id);
-	};
 
 	useEffect(() => {
 		const onHide = () => {
@@ -76,5 +73,5 @@ export function useMarkRead() {
 		};
 	}, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-	return { read, queue, markedAll };
+	return { read, queue };
 }

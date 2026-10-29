@@ -82,7 +82,7 @@ The web side of the "Vomatt v2 Design" canvas: Follow everywhere a person is, th
 | F3 | Profile record: polls asked, voted in, people reached, picks that won | Asked and voted in are `totalPolls` / `totalVotes`. People reached and picks that won (owner only) are computed from every page of `/votes/my` (up to 500 open + 500 ended), as A4 already did. | OK, see B5 |
 | F4 | Profile › Voted: Sealed then Decided, with the owner's pick and outcome | `/votes/my` filtered to `creatorId != me && myOptionId`. Outcome from the ended options' counts. | OK, see B6 |
 | F5 | Profile › Asked with drafts and a ••• menu (Edit, End now, Invitees, Share, Delete) | Drafts stay in local storage. The ••• menu reuses the poll card's owner actions. `/my-polls` redirects to the profile. | OK |
-| F6 | Notifications: Today / Yesterday / Earlier, All / Unread, Mark all read | Invitations (Invite-only polls in `/votes/my?status=open`) and results (`/votes/my?status=ended`) merged and grouped on the client. Mark all read calls `POST /notifications/{id}/read` once per unread row that's loaded. | OK, see B3, B4 |
+| F6 | Notifications: Today / Yesterday / Earlier | Invitations (Invite-only polls in `/votes/my?status=open`) and results (`/votes/my?status=ended`) merged and grouped on the client. Rows are read when opened or seen; the All / Unread filter and Mark all read were removed 2026-10-29. | OK, see B3 |
 | F7 | Visibility per field in Edit profile, "3 of 7 shown" in Settings | `PATCH /users/me/visibility` on Save with only the changed keys. Real name toggles `firstName` and `lastName` together. Birthday always reads "Only you" (never public). | OK |
 
 ### Needs the backend (UI hidden until the field or endpoint exists)
@@ -100,4 +100,4 @@ The web side of the "Vomatt v2 Design" canvas: Follow everywhere a person is, th
 | Q2 | Terms / Privacy / Contact links at the foot of Settings: which pages? `docs/legal/legal-pages-draft.md` has drafts but no routes. Left out. |
 | Q3 | The design's collapsed sidebar (icons only, Alert dot, Tide lock) isn't built: the web sidebar doesn't collapse today. Build it? |
 
-B1 (follow counts), B2 (followsYou, isFollowing on list items), B3 (notification feed), B4 (read-all), B7 (mutual followers) and B8 (notification preferences, per kind; no push or email channel exists) are in vomatt-api's feat/design-api branch, 2026-10-26.
+B1 (follow counts), B2 (followsYou, isFollowing on list items), B3 (notification feed), B4 (read-all), B7 (mutual followers) and B8 (notification preferences, per kind; no push or email channel exists) are in vomatt-api's feat/design-api branch, 2026-10-26. This app no longer calls B4: Mark all read was removed 2026-10-29.

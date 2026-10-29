@@ -270,8 +270,6 @@
 		"loadFailed": "Couldn’t load notifications.",
 		"ended": "Results are in",
 		"cancelled": "Cancelled",
-		"markAllRead": "Mark all read",
-		"caughtUp": "You’re all caught up.",
 		"day": {
 			"today": "Today",
 			"yesterday": "Yesterday",
@@ -283,7 +281,6 @@
 		"cancelledBy": "{title} was cancelled by {name}",
 		"railTitle": "Opening a poll marks it read",
 		"railBody": "Results rows stay until you open them, so a sealed promise is never lost in the list.",
-		"markAllFailed": "Couldn’t mark notifications read. Try again.",
 		"followedYou": "{name} followed you",
 		"followedYouGroup": "{name} and {count} others followed you",
 		"followedYouGroup_one": "{name} and {count} other followed you",

@@ -17,11 +17,9 @@ jest.mock('next/link', () => {
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 jest.mock('@/features/polls/service', () => ({}));
 const mockMarkRead = jest.fn();
-const mockMarkAllRead = jest.fn();
 jest.mock('@/features/notifications/service', () => ({
 	getNotifications: jest.fn(),
 	markNotificationsRead: (...a: unknown[]) => mockMarkRead(...a),
-	markAllNotificationsRead: () => mockMarkAllRead(),
 }));
 jest.mock('@/features/follows/service', () => ({ followUser: jest.fn().mockResolvedValue({ ok: true, data: undefined }) }));
 jest.mock('@/features/follows/FollowListDialog', () => ({
@@ -313,10 +311,10 @@ describe('NotificationList follows', () => {
 describe('NotificationList read state', () => {
 	it('marks an item read by its notification id when it is opened', async () => {
 		renderList([invitation, result]);
-		expect(screen.getByRole('button', { name: /Unread 2/ })).toBeInTheDocument();
+		expect(within(rowOf('Which stall')).getByText('Unread')).toBeInTheDocument();
 
 		fireEvent.click(screen.getByText(invitation.poll.title));
-		expect(screen.getByRole('button', { name: /Unread 1/ })).toBeInTheDocument();
+		expect(within(rowOf('Which stall')).queryByText('Unread')).not.toBeInTheDocument();
 		expect(mockMarkRead).toHaveBeenCalledWith(['invitation_p2']);
 		await waitFor(() => expect(mockRefresh).toHaveBeenCalled());
 
@@ -414,29 +412,6 @@ describe('NotificationList read state', () => {
 		expect(mockMarkRead).toHaveBeenCalledWith(['invitation_p2']);
 	});
 
-	it('drops what was seen once everything is marked read', async () => {
-		mockMarkAllRead.mockResolvedValue({ ok: true, data: undefined });
-		// The badge hasn't caught up with the seen row yet
-		mockUnreadCount = 1;
-		renderList([invitation]);
-		scrollIntoView(rowOf('Which stall'));
-		await act(() => jest.advanceTimersByTimeAsync(SEEN_MS));
-		fireEvent.click(screen.getByRole('button', { name: 'Mark all read' }));
-		await waitFor(() => expect(mockRefresh).toHaveBeenCalled());
-		await act(() => jest.advanceTimersByTimeAsync(READ_MAX_WAIT_MS));
-		expect(mockMarkRead).not.toHaveBeenCalled();
-	});
-
-	it('counts a seen row as read, keeping it under Unread for this visit', async () => {
-		renderList([invitation, comment]);
-		fireEvent.click(screen.getByRole('button', { name: /Unread/ }));
-		scrollIntoView(rowOf('Which stall'));
-		await act(() => jest.advanceTimersByTimeAsync(SEEN_MS));
-		expect(screen.getByRole('button', { name: /Unread/ })).toHaveTextContent(/^Unread0$/);
-		expect(rowOf('Which stall')).toBeInTheDocument();
-		expect(screen.getByRole('button', { name: 'Mark all read' })).toBeDisabled();
-	});
-
 	it('sends ids the server left unread again with the next batch', async () => {
 		mockMarkRead.mockResolvedValueOnce({ ok: true, data: ['follow_bkim'] }).mockRejectedValueOnce(new Error('offline'));
 		jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -496,39 +471,6 @@ describe('NotificationList read state', () => {
 		expect(mockMarkRead).toHaveBeenCalledWith(['follow_jtan']);
 		expect(await screen.findByRole('button', { name: /Following/ })).toBeInTheDocument();
 	});
-
-	it('marks everything read in one request', async () => {
-		mockMarkAllRead.mockResolvedValue({ ok: true, data: undefined });
-		renderList([result, invitation, follow('jtan', 10)]);
-
-		fireEvent.click(screen.getByRole('button', { name: 'Mark all read' }));
-		await waitFor(() => expect(mockRefresh).toHaveBeenCalled());
-		expect(mockMarkAllRead).toHaveBeenCalledTimes(1);
-		expect(mockMarkRead).not.toHaveBeenCalled();
-		expect(screen.queryByText('Unread', { selector: '.sr-only' })).not.toBeInTheDocument();
-	});
-
-	it('keeps the dots and says so when marking all read fails', async () => {
-		mockMarkAllRead.mockResolvedValue({ ok: false, message: 'x' });
-		renderList([result]);
-
-		fireEvent.click(screen.getByRole('button', { name: 'Mark all read' }));
-		await waitFor(() => expect(mockToastError).toHaveBeenCalledWith('Couldn’t mark notifications read. Try again.'));
-		expect(screen.getByRole('button', { name: /Unread 1/ })).toBeInTheDocument();
-	});
-
-	it('still offers Mark all read when the unread ones are past the loaded page', () => {
-		mockUnreadCount = 3;
-		renderList([comment]);
-		expect(screen.getByRole('button', { name: 'Mark all read' })).toBeEnabled();
-	});
-
-	it('filters to unread, and says when everything is read', () => {
-		renderList([comment]);
-		expect(screen.getByRole('button', { name: 'Mark all read' })).toBeDisabled();
-		fireEvent.click(screen.getByRole('button', { name: /Unread/ }));
-		expect(screen.getByText('You’re all caught up.')).toBeInTheDocument();
-	});
 });
 
 describe('NotificationList', () => {
@@ -578,7 +520,12 @@ describe('NotificationList', () => {
 		expect(screen.getByRole('heading', { level: 1, name: 'Notifications' })).toBeInTheDocument();
 		expect(screen.getByText('Results, invitations, people who followed you, and comments on your polls.')).toBeInTheDocument();
 		expect(screen.getByRole('heading', { level: 2, name: 'No notifications yet.' })).toBeInTheDocument();
+	});
+
+	it('offers no read-all or unread filter', () => {
+		renderList([invitation, comment]);
 		expect(screen.queryByRole('button', { name: 'Mark all read' })).not.toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: /Unread/ })).not.toBeInTheDocument();
 	});
 
 	it('says when the feed could not be loaded', () => {

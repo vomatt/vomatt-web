@@ -260,8 +260,6 @@
 		"loadFailed": "無法載入通知。",
 		"ended": "結果出爐",
 		"cancelled": "已取消",
-		"markAllRead": "全部標為已讀",
-		"caughtUp": "沒有未讀通知。",
 		"day": {
 			"today": "今天",
 			"yesterday": "昨天",
@@ -273,7 +271,6 @@
 		"cancelledBy": "{title} 已被 {name} 取消",
 		"railTitle": "打開投票即標為已讀",
 		"railBody": "結果通知會保留到你打開為止，密封的承諾不會在列表中遺失。",
-		"markAllFailed": "無法將通知標為已讀，請再試一次。",
 		"followedYou": "{name} 追蹤了你",
 		"followedYouGroup": "{name} 和其他 {count} 人追蹤了你",
 		"followedYouGroup_one": "{name} 和其他 {count} 人追蹤了你",

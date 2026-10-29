@@ -3,7 +3,6 @@ import {
 	getNotificationPreferences,
 	getNotifications,
 	getUnreadCount,
-	markAllNotificationsRead,
 	markNotificationRead,
 	markNotificationsRead,
 	updateNotificationPreferences,
@@ -184,15 +183,6 @@ describe('markNotificationsRead()', () => {
 		expect(await markNotificationsRead(ids)).toEqual({ ok: true, data: ids.slice(MARK_READ_MAX) });
 		expect(mockApiClient).toHaveBeenCalledTimes(MARK_READ_MAX);
 		expect(mostOpen).toBeLessThanOrEqual(5);
-	});
-});
-
-describe('markAllNotificationsRead()', () => {
-	it('reads everything with one request', async () => {
-		mockApiClient.mockResolvedValue({ success: true });
-		expect(await markAllNotificationsRead()).toEqual({ ok: true, data: undefined });
-		expect(mockApiClient).toHaveBeenCalledTimes(1);
-		expect(mockApiClient).toHaveBeenCalledWith('/notifications/read-all', { method: 'POST' });
 	});
 });
 

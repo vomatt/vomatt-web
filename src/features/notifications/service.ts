@@ -92,13 +92,6 @@ export async function markNotificationsRead(ids: string[]): Promise<ActionResult
 	});
 }
 
-/** Reads everything up to now, every kind; later notifications arrive unread. */
-export async function markAllNotificationsRead(): Promise<ActionResult> {
-	return attempt(async () => {
-		await apiClient('/notifications/read-all', { method: 'POST' });
-	});
-}
-
 export async function getNotificationPreferences(): Promise<NotificationPreferences> {
 	return NotificationPreferencesSchema.parse(await apiClient('/users/me/notification-preferences'));
 }

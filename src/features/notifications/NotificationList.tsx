@@ -7,7 +7,6 @@ import { toast } from 'sonner';
 import { EmptyCard } from '@/components/EmptyCard';
 import { FilterPills } from '@/components/FilterPills';
 import { LoadMore } from '@/components/LoadMore';
-import { Button } from '@/components/ui/Button';
 import { ChevronRight } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCursorList } from '@/hooks/useCursorList';
@@ -22,7 +21,7 @@ import {
 	type NotificationCategory,
 	type NotificationPreferences,
 } from './schema';
-import { getNotifications, markAllNotificationsRead } from './service';
+import { getNotifications } from './service';
 import { useUnreadCount } from './UnreadCountProvider';
 import { useMarkRead } from './useMarkRead';
 
@@ -37,8 +36,8 @@ export function dayGroup(iso: string, now = new Date()): DayGroup {
 	return 'earlier';
 }
 
-/** The page's title and intro, with the list's action beside them; the loading page shows it without one. */
-export function NotificationsHeader({ action }: { action?: React.ReactNode }) {
+/** The page's title and intro. */
+export function NotificationsHeader() {
 	const { t } = useLanguage();
 	return (
 		<div className="flex flex-wrap items-end gap-4">
@@ -46,7 +45,6 @@ export function NotificationsHeader({ action }: { action?: React.ReactNode }) {
 				<h1 className="page-title text-foreground">{t('notifications.title')}</h1>
 				<p className="mt-1.5 text-[14px] text-muted-foreground">{t('notifications.intro')}</p>
 			</div>
-			{action}
 		</div>
 	);
 }
@@ -65,7 +63,7 @@ export function NotificationList({
 	viewerUsername: string;
 }) {
 	const { t } = useLanguage();
-	const { count: unreadCount, refresh } = useUnreadCount();
+	const { count: unreadCount } = useUnreadCount();
 	// The server page is the unfiltered feed; a tab's reset brings its own fetcher so cursors stay with one category
 	const fetchPage = useCallback((cursor: string) => getNotifications(cursor), []);
 	const list = useCursorList(initialPage, fetchPage);
@@ -77,17 +75,11 @@ export function NotificationList({
 		setCategory('all');
 	}
 	const [isSwitching, setIsSwitching] = useState(false);
-	const [filter, setFilter] = useState<'all' | 'unread'>('all');
-	const [isMarking, setIsMarking] = useState(false);
 	// Days follow the reader's clock, so the grouping waits for hydration
 	const isHydrated = useHydrated();
 
-	// Read this visit by being seen: their dots, and their place under Unread, stay until the next one
+	// Read this visit by being seen: their dots stay until the next one
 	const [seenIds, setSeenIds] = useState<ReadonlySet<string>>(new Set());
-	const unread = list.items.filter((item) => !item.read);
-	// What the server still counts, like the badge
-	const unreadCountHere = unread.filter((item) => !seenIds.has(item.id)).length;
-	const shown = filter === 'unread' ? unread : list.items;
 
 	const setRead = (ids: Set<string>) =>
 		list.setItems((items) => items.map((item) => (ids.has(item.id) ? { ...item, read: true } : item)));
@@ -112,19 +104,6 @@ export function NotificationList({
 		markRead.queue(ids);
 	};
 	const watchesSeen = (entry: Entry) => entry.kind !== 'RESULT' && unreadIds(entry).some((id) => !seenIds.has(id));
-
-	const markAllRead = async () => {
-		setIsMarking(true);
-		const result = await markAllNotificationsRead();
-		setIsMarking(false);
-		if (!result.ok) {
-			toast.error(t('notifications.markAllFailed'));
-			return;
-		}
-		markRead.markedAll();
-		setRead(new Set(unread.map((item) => item.id)));
-		refresh();
-	};
 
 	const changeCategory = async (next: NotificationCategory | 'all') => {
 		// A Load more in flight would append the old tab's page after the reset
@@ -162,7 +141,7 @@ export function NotificationList({
 	const groups = (['today', 'yesterday', 'earlier'] as const)
 		.map((group) => ({
 			group,
-			entries: groupFollows(shown.filter((item) => isHydrated && dayGroup(item.createdAt) === group)),
+			entries: groupFollows(list.items.filter((item) => isHydrated && dayGroup(item.createdAt) === group)),
 		}))
 		.filter((group) => group.entries.length > 0);
 	const rows = (entries: Entry[]) => (
@@ -181,32 +160,8 @@ export function NotificationList({
 
 	return (
 		<>
-			<NotificationsHeader
-				action={
-					<Button
-						variant="outline"
-						size="sm"
-						className="text-[14px]"
-						loading={isMarking}
-						// Unread ones may sit past the loaded pages; read-all reaches them too
-						disabled={unreadCountHere === 0 && unreadCount === 0}
-						onClick={markAllRead}
-					>
-						{t('notifications.markAllRead')}
-					</Button>
-				}
-			/>
+			<NotificationsHeader />
 			<div className="flex flex-col gap-4">
-				<FilterPills
-					label={t('profile.filterLabel')}
-					value={filter}
-					onChange={setFilter}
-					options={[
-						{ value: 'all', label: t('profile.filterAll') },
-						{ value: 'unread', label: t('notifications.unread'), count: unreadCountHere },
-					]}
-				/>
-
 				<FilterPills
 					label={t('notifications.categoryLabel')}
 					value={category}
@@ -217,12 +172,12 @@ export function NotificationList({
 					]}
 				/>
 
-				{shown.length === 0 && (
+				{list.items.length === 0 && (
 					<p className="empty-state">
-						{t(category === 'all' || filter === 'unread' ? 'notifications.caughtUp' : 'notifications.categoryEmpty')}
+						{t('notifications.categoryEmpty')}
 					</p>
 				)}
-				{!isHydrated && rows(groupFollows(shown))}
+				{!isHydrated && rows(groupFollows(list.items))}
 				{groups.map(({ group, entries }) => (
 					<section key={group} aria-labelledby={`day-${group}`} className="flex flex-col gap-2">
 						<h2 id={`day-${group}`} className="mx-0.5 text-[12px] font-medium text-muted-foreground">
