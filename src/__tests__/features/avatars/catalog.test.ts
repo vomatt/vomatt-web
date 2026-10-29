@@ -14,19 +14,31 @@ import en from '@/locales/en.json';
 import zh from '@/locales/zh.json';
 
 describe('the cast', () => {
-	it('has 48 characters, twelve per family, none twice', () => {
-		expect(BOT_KINDS).toHaveLength(48);
-		expect(new Set(BOT_KINDS).size).toBe(48);
+	it('has 72 characters, twelve per family, none twice', () => {
+		expect(BOT_KINDS).toHaveLength(72);
+		expect(new Set(BOT_KINDS).size).toBe(72);
 		Object.values(BOT_FAMILIES).forEach((kinds) => expect(kinds).toHaveLength(12));
 	});
 
-	it('gives every character a drawing in both sets, a tint and copy in both languages', () => {
+	it('gives every character a drawing, a tint and copy in both languages', () => {
 		BOT_KINDS.forEach((kind) => {
 			expect(existsSync(path.join(process.cwd(), 'public/avatars', `${kind}.svg`))).toBe(true);
-			expect(existsSync(path.join(process.cwd(), 'public/avatars/round2', `${kind}.svg`))).toBe(true);
 			expect(BOT_TINTS[kind]).toBeTruthy();
 			expect(en.avatar.bots[kind].name).toBeTruthy();
 			expect(zh.avatar.bots[kind].trait).toBeTruthy();
+		});
+	});
+
+	it('has a Round 2 drawing for every character of the first four families', () => {
+		[...BOT_FAMILIES.bites, ...BOT_FAMILIES.guardians, ...BOT_FAMILIES.visitors, ...BOT_FAMILIES.animals].forEach(
+			(kind) => expect(existsSync(path.join(process.cwd(), 'public/avatars/round2', `${kind}.svg`))).toBe(true)
+		);
+	});
+
+	it('names every family in both languages', () => {
+		Object.keys(BOT_FAMILIES).forEach((family) => {
+			expect(en.avatar.families[family as keyof typeof en.avatar.families]).toBeTruthy();
+			expect(zh.avatar.families[family as keyof typeof zh.avatar.families]).toBeTruthy();
 		});
 	});
 

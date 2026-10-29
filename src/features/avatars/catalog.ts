@@ -1,9 +1,11 @@
-/** The Round 2 cast: 48 characters in four families of twelve, in display order. */
+/** The cast: 72 characters in six families of twelve, in display order. */
 export const BOT_FAMILIES = {
 	bites: ['boba', 'bao', 'oolong', 'su', 'egg', 'ice', 'youtiao', 'tofu', 'sausage', 'chip', 'tower', 'lumen'],
 	guardians: ['mazu', 'tudi', 'yuelao', 'qiye', 'baye', 'shi', 'long', 'denglong', 'ding', 'jiaobei', 'xiang', 'banyan'],
 	visitors: ['gray', 'nordic', 'reptile', 'mantis', 'anu', 'tallwhite', 'moth', 'blob', 'cyclops', 'probe', 'saucer', 'trio'],
 	animals: ['bear', 'magpie', 'pangolin', 'shihu', 'macaque', 'deer', 'pheasant', 'firefly', 'crab', 'flyfish', 'turtle', 'dog'],
+	cats: ['fold', 'munchkin', 'chinchilla', 'mainecoon', 'siamese', 'orange', 'tuxedo', 'calico', 'sphynx', 'ragdoll', 'british', 'bengal'],
+	dogs: ['shiba', 'corgi', 'golden', 'husky', 'pug', 'dachshund', 'poodle', 'frenchie', 'beagle', 'collie', 'dalmatian', 'labrador'],
 } as const;
 
 export type BotFamily = keyof typeof BOT_FAMILIES;
@@ -23,6 +25,10 @@ export const BOT_TINTS: Record<BotKind, BotTint> = {
 	moth: 'lavender', blob: 'green', cyclops: 'sky', probe: 'stone', saucer: 'sky', trio: 'green',
 	bear: 'stone', magpie: 'sky', pangolin: 'sand', shihu: 'peach', macaque: 'lavender', deer: 'green',
 	pheasant: 'sand', firefly: 'green', crab: 'peach', flyfish: 'sky', turtle: 'sky', dog: 'sand',
+	fold: 'stone', munchkin: 'peach', chinchilla: 'lavender', mainecoon: 'stone', siamese: 'sky', orange: 'sand',
+	tuxedo: 'stone', calico: 'peach', sphynx: 'peach', ragdoll: 'sky', british: 'stone', bengal: 'sand',
+	shiba: 'sand', corgi: 'sand', golden: 'sand', husky: 'sky', pug: 'sand', dachshund: 'sand',
+	poodle: 'peach', frenchie: 'stone', beagle: 'peach', collie: 'stone', dalmatian: 'stone', labrador: 'sand',
 };
 
 /** No character: the user chose the plain account icon, stored as `bot:none`. Never a default. */

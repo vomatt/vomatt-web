@@ -21,7 +21,7 @@ export type BotVariant = 'flat' | 'round2';
 /**
  * One character of the cast. Size comes from `className` (default 32px).
  * `variant` picks the drawing: `flat` (default, Round 4.1: flat line art on a muted circle, the Skeleton's colour) or
- * `round2` (the earlier set on its tinted circle).
+ * `round2` (the earlier set on its tinted circle; drawn for the first four families only, not cats or dogs).
  * With `tooltip`, hovering shows the character's name and trait (the profile page and the picker).
  * The drawings are static files in public/avatars (flat) and public/avatars/round2, so pages don't ship them as JS.
  */

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g stroke="oklch(0.205 0.014 265)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none">
+<path d="M33 36 L31 20 L44 28 Z" fill="oklch(0.995 0.002 265)" stroke="oklch(0.205 0.014 265)" stroke-width="2.6"/><path d="M67 36 L69 20 L56 28 Z" fill="oklch(0.995 0.002 265)" stroke="oklch(0.205 0.014 265)" stroke-width="2.6"/>
+<path d="M50.0 30.0 Q56.9 25.8 61.3 32.6 Q69.3 31.8 70.3 39.8 Q77.9 42.5 75.3 50.2 Q81.0 56.0 75.3 61.8 Q77.9 69.5 70.3 72.2 Q69.3 80.2 61.3 79.4 Q56.9 86.2 50.0 82.0 Q43.1 86.2 38.7 79.4 Q30.7 80.2 29.7 72.2 Q22.1 69.5 24.7 61.8 Q19.0 56.0 24.7 50.2 Q22.1 42.5 29.7 39.8 Q30.7 31.8 38.7 32.6 Q43.1 25.8 50.0 30.0 Z" fill="oklch(0.995 0.002 265)" stroke="oklch(0.205 0.014 265)" stroke-width="2.6"/>
+<path d="M30 70 q3 -3 1 -7 M36 76 q2 -3 0 -7 M70 70 q-3 -3 -1 -7 M64 76 q-2 -3 0 -7" stroke="oklch(0.47 0.014 265)" stroke-width="1.8"/>
+<path d="M14 58 H26 M15 65 L26 63 M86 58 H74 M85 65 L74 63" stroke-width="2"/>
+<circle cx="40" cy="55" r="5" fill="oklch(0.205 0.014 265)" stroke="none"/><circle cx="60" cy="55" r="5" fill="oklch(0.205 0.014 265)" stroke="none"/>
+<circle cx="41.8" cy="53.2" r="1.7" fill="oklch(0.995 0.002 265)" stroke="none"/><circle cx="61.8" cy="53.2" r="1.7" fill="oklch(0.995 0.002 265)" stroke="none"/>
+<path d="M48.5 62 H51.5 L50 64 Z" fill="oklch(0.82 0.045 52.7)" stroke="oklch(0.205 0.014 265)" stroke-width="1.4"/>
+<path d="M46 67 q4 3 8 0" stroke="oklch(0.205 0.014 265)" stroke-width="2.2"/>
+<circle cx="31.3" cy="63" r="3" fill="oklch(0.82 0.045 52.7)" stroke="none"/><circle cx="68.7" cy="63" r="3" fill="oklch(0.82 0.045 52.7)" stroke="none"/>
+</g></svg>

@@ -726,7 +726,9 @@
 			"bites": "Taiwan bites",
 			"guardians": "Temple guardians",
 			"visitors": "Visitors",
-			"animals": "Island animals"
+			"animals": "Island animals",
+			"cats": "Cats",
+			"dogs": "Dogs"
 		},
 		"none": {
 			"name": "Account icon",
@@ -924,6 +926,102 @@
 			"dog": {
 				"name": "Tugou",
 				"trait": "Taiwan dog, curly tail"
+			},
+			"fold": {
+				"name": "Fold",
+				"trait": "Silver tabby, unimpressed"
+			},
+			"munchkin": {
+				"name": "Munchkin",
+				"trait": "White, short legs, big plans"
+			},
+			"chinchilla": {
+				"name": "Chinchilla",
+				"trait": "White fluff, flat face"
+			},
+			"mainecoon": {
+				"name": "Maine Coon",
+				"trait": "Black, lynx tips, gentle giant"
+			},
+			"siamese": {
+				"name": "Siamese",
+				"trait": "Dark points, loud opinions"
+			},
+			"orange": {
+				"name": "Orange",
+				"trait": "Tabby, shares one brain cell"
+			},
+			"tuxedo": {
+				"name": "Tuxedo",
+				"trait": "Dressed for every vote"
+			},
+			"calico": {
+				"name": "Calico",
+				"trait": "Three colours, three moods"
+			},
+			"sphynx": {
+				"name": "Sphynx",
+				"trait": "No fur, all wrinkles"
+			},
+			"ragdoll": {
+				"name": "Ragdoll",
+				"trait": "Goes limp when held"
+			},
+			"british": {
+				"name": "British",
+				"trait": "Blue shorthair, chunky cheeks"
+			},
+			"bengal": {
+				"name": "Bengal",
+				"trait": "Rosettes, climbs everything"
+			},
+			"shiba": {
+				"name": "Shiba",
+				"trait": "Fox face, own agenda"
+			},
+			"corgi": {
+				"name": "Corgi",
+				"trait": "Big ears, no legs"
+			},
+			"golden": {
+				"name": "Golden",
+				"trait": "Loves everyone, equally"
+			},
+			"husky": {
+				"name": "Husky",
+				"trait": "Talks back, loudly"
+			},
+			"pug": {
+				"name": "Pug",
+				"trait": "Snores in every meeting"
+			},
+			"dachshund": {
+				"name": "Dachshund",
+				"trait": "Long story, short legs"
+			},
+			"poodle": {
+				"name": "Poodle",
+				"trait": "Fresh from the salon"
+			},
+			"frenchie": {
+				"name": "Frenchie",
+				"trait": "Bat ears, flat face"
+			},
+			"beagle": {
+				"name": "Beagle",
+				"trait": "Nose first, always"
+			},
+			"collie": {
+				"name": "Collie",
+				"trait": "Herds the whole group"
+			},
+			"dalmatian": {
+				"name": "Dalmatian",
+				"trait": "Counts its own spots"
+			},
+			"labrador": {
+				"name": "Lab",
+				"trait": "Black, tongue out, treats in"
 			}
 		}
 	},

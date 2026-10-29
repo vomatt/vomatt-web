@@ -1,8 +1,8 @@
+import { MARK_READ_MAX } from '@/features/notifications/constants';
 import {
 	getNotificationPreferences,
 	getNotifications,
 	getUnreadCount,
-	MARK_READ_MAX,
 	markAllNotificationsRead,
 	markNotificationRead,
 	markNotificationsRead,

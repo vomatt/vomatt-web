@@ -7,6 +7,7 @@ import { type ActionResult, attempt } from '@/lib/api/action';
 import { apiClient, ApiError, AuthError } from '@/lib/api/client';
 import { type CursorPage, cursorPageSchema, pageParams } from '@/lib/api/cursor';
 
+import { MARK_READ_MAX } from './constants';
 import {
 	type Notification,
 	type NotificationCategory,
@@ -71,8 +72,7 @@ export async function markNotificationRead(id: string): Promise<boolean> {
 	}
 }
 
-/** The most ids one `markNotificationsRead` call reads, and how many requests it has open at once. */
-export const MARK_READ_MAX = 50;
+/** How many requests one `markNotificationsRead` call has open at once. */
 const MARK_READ_CONCURRENCY = 5;
 
 /**

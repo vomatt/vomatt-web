@@ -713,7 +713,9 @@
 			"bites": "台灣小吃",
 			"guardians": "廟宇守護",
 			"visitors": "外星訪客",
-			"animals": "島上動物"
+			"animals": "島上動物",
+			"cats": "貓咪",
+			"dogs": "狗狗"
 		},
 		"none": {
 			"name": "帳號圖示",
@@ -911,6 +913,102 @@
 			"dog": {
 				"name": "台灣土狗",
 				"trait": "捲尾巴"
+			},
+			"fold": {
+				"name": "摺耳貓",
+				"trait": "銀虎斑，不為所動"
+			},
+			"munchkin": {
+				"name": "曼赤肯",
+				"trait": "白色短腿，大計畫"
+			},
+			"chinchilla": {
+				"name": "金吉拉",
+				"trait": "白色蓬毛，扁扁臉"
+			},
+			"mainecoon": {
+				"name": "緬因貓",
+				"trait": "黑色，耳尖簇毛，溫柔巨人"
+			},
+			"siamese": {
+				"name": "暹羅貓",
+				"trait": "深色重點色，意見很多"
+			},
+			"orange": {
+				"name": "橘貓",
+				"trait": "虎斑，共用一顆腦細胞"
+			},
+			"tuxedo": {
+				"name": "賓士貓",
+				"trait": "每次投票都穿正式"
+			},
+			"calico": {
+				"name": "三花貓",
+				"trait": "三種顏色，三種心情"
+			},
+			"sphynx": {
+				"name": "無毛貓",
+				"trait": "沒有毛，全是皺摺"
+			},
+			"ragdoll": {
+				"name": "布偶貓",
+				"trait": "一抱就軟掉"
+			},
+			"british": {
+				"name": "英短",
+				"trait": "藍色短毛，肉肉臉頰"
+			},
+			"bengal": {
+				"name": "豹貓",
+				"trait": "玫瑰斑點，什麼都爬"
+			},
+			"shiba": {
+				"name": "柴犬",
+				"trait": "狐狸臉，自有主張"
+			},
+			"corgi": {
+				"name": "柯基",
+				"trait": "大耳朵，沒有腿"
+			},
+			"golden": {
+				"name": "黃金獵犬",
+				"trait": "每個人都一樣愛"
+			},
+			"husky": {
+				"name": "哈士奇",
+				"trait": "會頂嘴，很大聲"
+			},
+			"pug": {
+				"name": "巴哥",
+				"trait": "每場會議都在打呼"
+			},
+			"dachshund": {
+				"name": "臘腸狗",
+				"trait": "故事很長，腿很短"
+			},
+			"poodle": {
+				"name": "貴賓狗",
+				"trait": "剛從美容院回來"
+			},
+			"frenchie": {
+				"name": "法鬥",
+				"trait": "蝙蝠耳，扁扁臉"
+			},
+			"beagle": {
+				"name": "米格魯",
+				"trait": "永遠鼻子先走"
+			},
+			"collie": {
+				"name": "牧羊犬",
+				"trait": "把整群人趕在一起"
+			},
+			"dalmatian": {
+				"name": "大麥町",
+				"trait": "自己數自己的斑點"
+			},
+			"labrador": {
+				"name": "拉不拉多",
+				"trait": "黑色，吐舌頭，等零食"
 			}
 		}
 	},
