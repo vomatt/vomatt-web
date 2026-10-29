@@ -64,7 +64,7 @@ Use these. Don't copy their classes into a new element.
 |---|---|
 | Any button or link styled as one | `Button`, or `buttonVariants()` on a `Link` |
 | Toggle pill or preset | `<Button size="sm" variant={active ? 'default' : 'outline'} aria-pressed={active}>`, add `rounded-full` for pills. Home's topics are the same pill on a `Link` (`buttonVariants`, `aria-current`) |
-| Text field | `Input`, `Textarea` (these already carry the focus outline); fixed text inside the field before the value ("vomatt.com/") is `Input leading` |
+| Text field | `Input`, `Textarea` (these already carry the focus outline); fixed text inside the field before the value (the username's "@") is `Input leading` |
 | Underlined tabs | `<TabsList variant="line">` + `TabsTrigger`, no className overrides; `fit` sizes them to their labels so a row can hold filters beside them (the row draws the line) |
 | Filter pills over one list | `FilterPills` |
 | One choice of a few in a settings row (Settings' Theme) | `SegmentedControl`: a radiogroup in a pill track, the checked segment a `card` with a small shadow; `value` stays undefined until it is known, so nothing is checked. MoreMenu keeps its own Volt menu segments |

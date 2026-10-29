@@ -8,6 +8,7 @@ import { isFieldPublic } from '@/features/account/visibility';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { formatMonthYear } from '@/features/polls/format';
 import { Count } from '@/features/profiles/Count';
+import { profileName } from '@/features/profiles/name';
 import { countText } from '@/lib/count';
 import { profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
@@ -17,10 +18,15 @@ import type { MyProfile } from '@/types/user';
 export function PublicPreview({ profile, className }: { profile: MyProfile; className?: string }) {
 	const { t, currentLanguage } = useLanguage();
 	const visibility = profile.visibilitySettings ?? {};
-	const shows = (field: 'displayName' | 'bio' | 'membershipLevel') =>
+	const shows = (field: 'displayName' | 'bio' | 'firstName' | 'lastName') =>
 		isFieldPublic(visibility, field) && !!profile[field];
-	const name = shows('displayName') ? profile.displayName : null;
-	const joined = t('profile.joined', { date: formatMonthYear(profile.joinedAt, currentLanguage) });
+	// Built from what visitors get, so hidden names never leak into the preview
+	const name = profileName({
+		username: profile.username,
+		displayName: shows('displayName') ? profile.displayName : null,
+		firstName: shows('firstName') ? profile.firstName : null,
+		lastName: shows('lastName') ? profile.lastName : null,
+	});
 
 	return (
 		<section aria-labelledby="public-preview" className={cn('flex flex-col gap-3', className)}>
@@ -32,13 +38,16 @@ export function PublicPreview({ profile, className }: { profile: MyProfile; clas
 				<div className="flex items-center gap-3">
 					<UserAvatar username={profile.username} avatarUrl={profile.avatarUrl} className="size-11" />
 					<div className="min-w-0">
-						<p className="truncate text-[17px] font-medium leading-tight tracking-[-0.02em]">{name || profile.username}</p>
+						<p className="truncate text-[17px] font-medium leading-tight tracking-[-0.02em]">
+							{name.primary}
+							{name.secondary && <span className="text-muted-foreground"> {name.secondary}</span>}
+						</p>
 						<p className="truncate font-mono text-[12px] text-muted-foreground">@{profile.username}</p>
 					</div>
 				</div>
 				{shows('bio') && <p className="line-clamp-3 wrap-anywhere text-[13px]">{profile.bio}</p>}
 				<p className="text-[12px] text-muted-foreground">
-					{shows('membershipLevel') ? `${t('profile.membership', { level: profile.membershipLevel! })} · ${joined}` : joined}
+					{t('profile.joined', { date: formatMonthYear(profile.joinedAt, currentLanguage) })}
 				</p>
 				<p className="text-[12px] text-muted-foreground">
 					<Count value={profile.totalPolls} label={countText(t, 'profile.recordAskedCount', profile.totalPolls, currentLanguage)} />

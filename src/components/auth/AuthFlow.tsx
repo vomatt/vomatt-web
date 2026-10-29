@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { PortableTextBlock } from '@portabletext/react';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 import CustomPortableText from '@/components/CustomPortableText';
 import { Button } from '@/components/ui/Button';
@@ -28,13 +29,15 @@ import VerificationForm from './VerificationForm';
 type AuthFlowProps = {
 	/** Called once the user is signed in (and, for a new account, past the profile step). */
 	onDone: () => void;
+	/** Called when a new account is signed in and the profile step opens, before `onDone`. */
+	onSignedIn?: () => void;
 	/** The terms a new account agrees to, shown under the email step. */
 	policyMessage?: PortableTextBlock[] | null;
 	/** Each step's title becomes the dialog's title instead of the page's h1. */
 	inDialog?: boolean;
 };
 
-export function AuthFlow({ onDone, policyMessage, inDialog = false }: AuthFlowProps) {
+export function AuthFlow({ onDone, onSignedIn, policyMessage, inDialog = false }: AuthFlowProps) {
 	const { t } = useLanguage();
 	const flow = useAuthFlow();
 
@@ -54,7 +57,10 @@ export function AuthFlow({ onDone, policyMessage, inDialog = false }: AuthFlowPr
 			<VerificationForm
 				onSubmitCode={async (code) => {
 					const res = await flow.submitCode(code);
-					if (res.status === 'OK' && res.done) onDone();
+					if (res.status === 'OK') {
+						if (res.done) onDone();
+						else onSignedIn?.();
+					}
 					return res;
 				}}
 				onResend={flow.resendCode}
@@ -63,7 +69,7 @@ export function AuthFlow({ onDone, policyMessage, inDialog = false }: AuthFlowPr
 		);
 	} else if (flow.step === 'profile') {
 		heading = { title: t('onboarding.title'), subtitle: t('onboarding.subtitle') };
-		body = <ProfileStep email={flow.email} onSave={flow.submitProfile} onDone={onDone} />;
+		body = <ProfileStep onSave={flow.submitProfile} onDone={onDone} />;
 	} else {
 		heading = {
 			title: t('login.title'),
@@ -168,70 +174,58 @@ function EmailStep({
 }
 
 function ProfileStep({
-	email,
 	onSave,
 	onDone,
 }: {
-	email: string;
-	onSave: (displayName: string) => Promise<AuthResult>;
+	onSave: (name: ProfileFormData) => Promise<AuthResult>;
 	onDone: () => void;
 }) {
 	const { t } = useLanguage();
-	const [error, setError] = useState<AuthErrorKey | null>(null);
 	const form = useForm<ProfileFormData>({
 		resolver: zodResolver(profileSchema),
-		defaultValues: { displayName: email.split('@')[0] ?? '' },
+		defaultValues: { firstName: '', lastName: '' },
 	});
 
-	async function submit({ displayName }: ProfileFormData) {
-		setError(null);
-		const res = await onSave(displayName);
-		if (res.status === 'ERROR') {
-			setError(res.error);
-			return;
-		}
+	async function submit(name: ProfileFormData) {
+		const res = await onSave(name);
+		// The account is already signed in, so a failed save mustn't hold the person here
+		if (res.status === 'ERROR') toast.error(t('onboarding.saveFailed'));
 		onDone();
 	}
 
+	const nameField = (name: keyof ProfileFormData, id: string, label: string, autoComplete: string, autoFocus = false) => (
+		<Controller
+			control={form.control}
+			name={name}
+			render={({ field, fieldState }) => (
+				<Field data-invalid={fieldState.invalid}>
+					<FieldLabel htmlFor={id}>{label}</FieldLabel>
+					<Input
+						{...field}
+						id={id}
+						autoComplete={autoComplete}
+						autoFocus={autoFocus}
+						maxLength={50}
+						aria-invalid={fieldState.invalid}
+						aria-describedby={fieldState.invalid ? `${id}-error` : undefined}
+					/>
+					<FieldMessage
+						errors={fieldState.error?.message ? [{ id: `${id}-error`, text: t(fieldState.error.message) }] : []}
+					/>
+				</Field>
+			)}
+		/>
+	);
+
 	return (
 		<form onSubmit={form.handleSubmit(submit)} noValidate>
-			<Controller
-				control={form.control}
-				name="displayName"
-				render={({ field, fieldState }) => (
-					<Field className="mb-6" data-invalid={fieldState.invalid}>
-						<FieldLabel htmlFor="authDisplayName">{t('onboarding.displayName')}</FieldLabel>
-						<Input
-							{...field}
-							id="authDisplayName"
-							autoComplete="nickname"
-							autoFocus
-							maxLength={100}
-							aria-invalid={fieldState.invalid}
-							aria-describedby={fieldState.invalid ? 'authDisplayName-error' : 'authDisplayName-hint'}
-						/>
-						<FieldMessage
-							className="text-sm leading-normal text-muted-foreground"
-							hint={t('onboarding.displayNameHint')}
-							hintId="authDisplayName-hint"
-							errors={
-								fieldState.error?.message
-									? [{ id: 'authDisplayName-error', text: t(fieldState.error.message) }]
-									: []
-							}
-						/>
-					</Field>
-				)}
-			/>
-			<div className="flex gap-2">
-				<Button className="flex-1" type="submit" loading={form.formState.isSubmitting}>
-					{t('onboarding.finish')}
-				</Button>
-				<Button type="button" variant="ghost" onClick={onDone}>
-					{t('onboarding.skip')}
-				</Button>
+			<div className="mb-4 grid gap-3 sm:grid-cols-2">
+				{nameField('firstName', 'authFirstName', t('profile.firstName'), 'given-name', true)}
+				{nameField('lastName', 'authLastName', t('profile.lastName'), 'family-name')}
 			</div>
-			<AuthError error={error} className="mt-3" />
+			<Button className="w-full" type="submit" loading={form.formState.isSubmitting}>
+				{t('onboarding.finish')}
+			</Button>
 		</form>
 	);
 }

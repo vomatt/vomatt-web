@@ -118,7 +118,7 @@ PY
 }
 
 cmd_login() {
-	# Email-OTP sign-in through the real UI; finishes the profile step for new accounts.
+	# Email-OTP sign-in through the real UI; fills the name step for new accounts.
 	[ $# = 1 ] || die "usage: vv login <email>"
 	local code
 	"$B" goto "http://localhost:$WEB_PORT/login" >/dev/null
@@ -129,7 +129,8 @@ cmd_login() {
 	[ -n "$code" ] || die "no OTP in redis for $1"
 	"$B" fill 'role=textbox[name="6-digit verification code"]' "$code" >/dev/null
 	for _ in $(seq 1 20); do
-		if "$B" is visible 'text=What should we call you?' 2>/dev/null | grep -q true; then
+		if "$B" is visible '#authFirstName' 2>/dev/null | grep -q true; then
+			"$B" fill '#authFirstName' Verify >/dev/null
 			"$B" click 'role=button[name="Finish"]' >/dev/null
 		fi
 		case "$("$B" url)" in *"/login"*) sleep 0.5 ;; *) echo "vv: signed in as $1 → $("$B" url)"; return ;; esac

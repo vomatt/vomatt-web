@@ -67,14 +67,6 @@ describe('AvatarDialog', () => {
 		expect(mockChooseAvatar).toHaveBeenCalledWith('none');
 	});
 
-	it('can leave the avatar plain, with Change avatar as its own button', () => {
-		render(<AvatarDialog username="mei" avatarUrl="bot:boba" trigger="button" />);
-		const change = screen.getByRole('button', { name: 'Change avatar' });
-		expect(change).toHaveTextContent('Change avatar');
-		fireEvent.click(change);
-		expect(screen.getByRole('button', { name: 'Choose Boba' })).toHaveAttribute('aria-pressed', 'true');
-	});
-
 	it('shows the account icon as already saved', () => {
 		openDialog('bot:none');
 		expect(screen.getByRole('button', { name: 'Choose Account icon' })).toHaveAttribute('aria-pressed', 'true');

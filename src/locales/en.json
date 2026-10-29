@@ -165,11 +165,8 @@
 		"noPollsYet": "No polls yet.",
 		"noPollsYetOwn": "Your polls show up here once they open.",
 		"pollsLoadFailed": "Couldn’t load polls.",
-		"points": "{count} points",
-		"points_one": "{count} point",
 		"cardFailed": "Couldn’t load this profile.",
 		"joined": "Joined {date}",
-		"membership": "{level} member",
 		"followers": "Followers",
 		"following": "Following",
 		"noFollowers": "No followers yet.",
@@ -246,17 +243,12 @@
 		"allFollowers": "All {count} followers",
 		"allFollowers_one": "All {count} follower",
 		"editIntro": "Each detail says who sees it. Change it right where you type.",
-		"groupOnProfile": "On your profile",
-		"groupAboutYou": "About you",
 		"alwaysShown": "Always shown",
 		"realName": "Real name",
 		"onlyYouShort": "Only you",
 		"everyone": "Everyone",
 		"visibilityPillEveryone": "{field}: everyone sees it. Change",
 		"visibilityPillOnlyYou": "{field}: only you see it. Change",
-		"visibilityPillEveryonePlural": "{field}: everyone sees them. Change",
-		"visibilityPillOnlyYouPlural": "{field}: only you see them. Change",
-		"notSet": "Not set",
 		"visibilitySavesHint": "Visibility changes save when you save.",
 		"visibilitySaveFailed": "Your details were saved, but who sees them wasn’t. Try again."
 	},
@@ -553,13 +545,10 @@
 		"serverError": "Something went wrong. Please try again later."
 	},
 	"onboarding": {
-		"title": "What should we call you?",
-		"subtitle": "This is how other voters will see you.",
-		"displayName": "Display name",
-		"displayNameHint": "You can change it later in your account.",
-		"displayNameTooLong": "Keep it under 100 characters.",
-		"finish": "Finish",
-		"skip": "Skip for now"
+		"title": "What's your name?",
+		"subtitle": "You can change these, and who sees them, in Edit profile.",
+		"saveFailed": "Your name wasn’t saved. Add it in Edit profile.",
+		"finish": "Finish"
 	},
 	"comments": {
 		"title": "Discussion",
@@ -632,10 +621,7 @@
 		"anonymousDefaultOff": "New votes show your name by default.",
 		"field": {
 			"displayName": "Display name",
-			"bio": "Bio",
-			"location": "Location",
-			"points": "Points",
-			"membershipLevel": "Membership level"
+			"bio": "Bio"
 		},
 		"saveFailed": "Couldn’t save. Try again.",
 		"exportTitle": "Download your data",

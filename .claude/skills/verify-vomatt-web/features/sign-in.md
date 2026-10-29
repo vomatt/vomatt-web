@@ -1,6 +1,6 @@
 # Sign in
 
-A visitor signs in or signs up with one email-code flow: enter an email, enter the 6-digit code, and (new accounts only) choose a display name. Signed-in users land where they were headed; protected pages send signed-out visitors to the login page.
+A visitor signs in or signs up with one email-code flow: enter an email, enter the 6-digit code, and (new accounts only) give a first and last name. Signed-in users land where they were headed; protected pages send signed-out visitors to the login page.
 
 ## Sub-features
 
@@ -23,8 +23,8 @@ Preconditions:
 - Baseline state; the browser is signed out (fresh run, or after `signin-signout`).
 
 - **Email step.** Run `vv b goto $W/login`, `vv b fill '#authEmail' verify-$RUN_ID@example.test`, `vv b click 'role=button[name="Continue with email"]'`. Heading `Check your email` appears with the address in bold.
-- **Code step.** Run `vv b fill 'role=textbox[name="6-digit verification code"]' "$(vv otp verify-$RUN_ID@example.test)"`. Six digits submit automatically; heading `What should we call you?` appears with `Display name` prefilled from the email.
-- **Profile step.** Run `vv b click 'role=button[name="Finish"]'`. URL becomes `$W/` and the sidebar shows `Notifications` and a profile card instead of `Sign in`.
+- **Code step.** Run `vv b fill 'role=textbox[name="6-digit verification code"]' "$(vv otp verify-$RUN_ID@example.test)"`. Six digits submit automatically; heading `What's your name?` appears with empty `First name` and `Last name` fields.
+- **Profile step.** Run `vv b fill '#authFirstName' Verify`, then `vv b click 'role=button[name="Finish"]'`. URL becomes `$W/` and the sidebar shows `Notifications` and a profile card instead of `Sign in`.
 - **One-shot.** `vv login <email>` runs the three steps above and prints the landing URL.
 - **Bad code.** On the code step, fill `000000`. The text `That code is not right. Check the email and try again.` appears and the URL stays `/login`.
 - **Redirect.** Signed out, run `vv b goto $W/notifications`. URL becomes `/login?redirect=%2Fnotifications`; after the email and code steps it lands on `/notifications` with heading `Notifications`.

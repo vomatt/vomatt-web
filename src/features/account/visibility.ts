@@ -1,13 +1,8 @@
-/** Profile fields other people can see once their owner allows it (the API's visibility keys). */
-export const VISIBILITY_FIELDS = [
-	'displayName',
-	'bio',
-	'firstName',
-	'lastName',
-	'location',
-	'points',
-	'membershipLevel',
-] as const;
+/**
+ * Profile fields other people can see once their owner allows it: the API's visibility keys this app
+ * shows. Location, points and membership level are left out, since no page shows them.
+ */
+export const VISIBILITY_FIELDS = ['displayName', 'bio', 'firstName', 'lastName'] as const;
 
 export type VisibilityField = (typeof VISIBILITY_FIELDS)[number];
 

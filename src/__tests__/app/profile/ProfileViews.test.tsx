@@ -108,13 +108,24 @@ describe('VisitorProfileView', () => {
 		render(<VisitorProfileView profile={visitor} polls={{ items: [], nextCursor: null }} viewerId={null} />);
 
 		expect(screen.getByRole('heading', { level: 1, name: 'Amira Haddad' })).toBeInTheDocument();
-		expect(screen.getByText('Taipei')).toBeInTheDocument();
+		expect(screen.queryByText('Taipei')).not.toBeInTheDocument();
 		expect(cell('polls asked')).toHaveTextContent('31');
 		expect(cell('polls voted in')).toHaveTextContent('204');
 		expect(screen.queryByText('people reached')).not.toBeInTheDocument();
 		expect(screen.queryByRole('tab')).not.toBeInTheDocument();
 		expect(screen.getByRole('heading', { level: 2, name: 'Asked 31' })).toBeInTheDocument();
 		expect(screen.getByText('No polls yet.')).toBeInTheDocument();
+	});
+
+	it('leads with the real name the owner made public, then the display name', () => {
+		render(
+			<VisitorProfileView
+				profile={{ ...visitor, firstName: 'Amira', lastName: 'Haddad', displayName: 'Ami' }}
+				polls={{ items: [], nextCursor: null }}
+				viewerId={null}
+			/>
+		);
+		expect(screen.getByRole('heading', { level: 1, name: 'Amira Haddad Ami' })).toBeInTheDocument();
 	});
 
 	it('says what following does, even signed out', () => {
@@ -301,13 +312,18 @@ describe('OwnProfileView', () => {
 	const sealed = poll('s', { creatorId: 'u9', votingActive: true, endTime: '2099-01-01T00:00:00Z', myOptionId: 'b', options: [{ id: 'a', text: 'Yes' }, { id: 'b', text: 'No' }] });
 	const mine = poll('m', { participantCount: 40 });
 
-	it('shows every field, marking hidden ones with the lock', () => {
+	it('shows the owner their hidden real name with the lock, and keeps it out of the public preview', () => {
+		render(<OwnProfileView profile={{ ...me, firstName: 'Mei', lastName: 'Lin' }} polls={[]} />);
+		expect(screen.getByRole('heading', { level: 1, name: 'Mei Lin (Only you can see this) Mei' })).toBeInTheDocument();
+		expect(screen.getByRole('region', { name: 'What everyone sees' })).not.toHaveTextContent('Mei Lin');
+	});
+
+	it('leaves out location and points, even ones made public', () => {
 		render(<OwnProfileView profile={me} polls={[]} />);
 
 		expect(screen.getByRole('heading', { level: 1, name: 'Mei' })).toBeInTheDocument();
-		// Location is hidden by default; points were made public
-		expect(screen.getByText('Taipei')).toHaveTextContent('Taipei(Only you can see this)');
-		expect(screen.getByText(/120 points/)).not.toHaveTextContent('Only you');
+		expect(screen.queryByText('Taipei')).not.toBeInTheDocument();
+		expect(screen.queryByText(/120 points/)).not.toBeInTheDocument();
 		expect(screen.getByRole('link', { name: 'Settings' })).toHaveAttribute('href', '/settings');
 		expect(screen.getByRole('button', { name: 'Change avatar' })).toBeInTheDocument();
 	});

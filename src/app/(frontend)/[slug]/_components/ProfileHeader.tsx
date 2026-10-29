@@ -7,8 +7,9 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { AvatarDialog } from '@/features/avatars/AvatarDialog';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import type { FollowList } from '@/features/follows/FollowListDialog';
+import { formatMonthYear } from '@/features/polls/format';
 import { Count } from '@/features/profiles/Count';
-import { profileDetails } from '@/features/profiles/details';
+import { profileName, realName } from '@/features/profiles/name';
 import { countText } from '@/lib/count';
 import { cn } from '@/lib/utils';
 import type { UserProfile } from '@/types/user';
@@ -17,12 +18,11 @@ type HeaderProfile = Pick<
 	UserProfile,
 	| 'username'
 	| 'displayName'
+	| 'firstName'
+	| 'lastName'
 	| 'bio'
 	| 'joinedAt'
 	| 'avatarUrl'
-	| 'location'
-	| 'points'
-	| 'membershipLevel'
 	| 'followersCount'
 	| 'followingCount'
 >;
@@ -56,18 +56,10 @@ export default function ProfileHeader({
 	mutuals?: ReactNode;
 }) {
 	const { t, currentLanguage } = useLanguage();
-	const name = profile.displayName || profile.username;
+	const name = profileName(profile);
 	const isHidden = (field: string) => hiddenFields.includes(field);
-	const details = profileDetails(profile, t, currentLanguage);
-	const before = details.filter((part) => part.field === 'location' || part.field === 'points');
-	const after = details.filter((part) => part.field !== 'location' && part.field !== 'points');
-
-	const detail = (part: { field: string; text: string }) => (
-		<span key={part.field} className={cn('inline-flex items-center gap-1', part.field === 'points' && 'font-mono tabular-nums')}>
-			{part.text}
-			{isHidden(part.field) && <OnlyYouMarker className="size-3" />}
-		</span>
-	);
+	const leadsWithRealName = realName(profile) !== null;
+	const primaryHidden = leadsWithRealName ? isHidden('firstName') || isHidden('lastName') : isHidden('displayName');
 
 	const listCount = (list: FollowList, count: number) => {
 		const label = (
@@ -93,8 +85,15 @@ export default function ProfileHeader({
 			)}
 			<div className="min-w-0 flex-[1_1_20rem] max-sm:order-last max-sm:basis-full">
 				<h1 className="wrap-anywhere display-heading text-[26px] md:text-[30px]">
-					{name}
-					{isHidden('displayName') && <OnlyYouMarker className="ml-2 size-4 align-baseline" />}
+					{name.primary}
+					{primaryHidden && <OnlyYouMarker className="ml-2 size-4 align-baseline" />}
+					{name.secondary && (
+						<span className="text-muted-foreground">
+							{' '}
+							{name.secondary}
+							{isHidden('displayName') && <OnlyYouMarker className="ml-2 size-4 align-baseline" />}
+						</span>
+					)}
 				</h1>
 				<p className="wrap-anywhere font-mono text-[14px] text-muted-foreground">@{profile.username}</p>
 				{profile.bio && (
@@ -106,10 +105,9 @@ export default function ProfileHeader({
 				)}
 				{/* Items set apart by space and kept whole when they wrap */}
 				<div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-muted-foreground">
-					{before.map(detail)}
 					{listCount('followers', profile.followersCount)}
 					{listCount('following', profile.followingCount)}
-					{after.map(detail)}
+					<span>{t('profile.joined', { date: formatMonthYear(profile.joinedAt, currentLanguage) })}</span>
 				</div>
 				{mutuals && <div className="mt-2 empty:hidden">{mutuals}</div>}
 			</div>

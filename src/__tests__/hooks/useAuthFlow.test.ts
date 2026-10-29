@@ -103,13 +103,17 @@ describe('useAuthFlow', () => {
 		expect(mockRequestOtp).toHaveBeenLastCalledWith('User@Test.com');
 	});
 
-	it('saves the trimmed display name', async () => {
+	it('saves the trimmed names, leaving out a blank last name', async () => {
 		const { result } = await atCodeStep();
 		mockUpdateProfile.mockResolvedValue({});
 		await act(async () => {
-			await result.current.submitProfile('  Alice ');
+			await result.current.submitProfile({ firstName: '  Alice ', lastName: ' Chen ' });
 		});
-		expect(mockUpdateProfile).toHaveBeenCalledWith({ displayName: 'Alice' });
+		expect(mockUpdateProfile).toHaveBeenLastCalledWith({ firstName: 'Alice', lastName: 'Chen' });
+		await act(async () => {
+			await result.current.submitProfile({ firstName: 'Cher', lastName: '  ' });
+		});
+		expect(mockUpdateProfile).toHaveBeenLastCalledWith({ firstName: 'Cher' });
 	});
 
 	it('goes back to edit the email', async () => {

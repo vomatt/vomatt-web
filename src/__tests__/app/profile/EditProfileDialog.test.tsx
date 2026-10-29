@@ -124,11 +124,11 @@ describe('EditProfileDialog', () => {
 		expect(mockEditProfile).not.toHaveBeenCalled();
 	});
 
-	it('shows the address before the username, inside its field', () => {
+	it('shows the handle sign as fixed text before the username, inside its field', () => {
 		open();
 		const input = screen.getByLabelText('Username');
 		expect(input).toHaveValue('mei');
-		expect(input.parentElement).toHaveTextContent('vomatt.com/');
+		expect(input.previousElementSibling).toHaveTextContent(/^@$/);
 	});
 
 	it('counts the bio against its limit', () => {
@@ -184,10 +184,10 @@ describe('EditProfileDialog', () => {
 
 	it('saves only the visibility that changed, beside the field', async () => {
 		open();
-		fireEvent.click(screen.getByRole('button', { name: 'Location: only you see it. Change' }));
+		fireEvent.click(screen.getByRole('button', { name: 'Real name: only you see it. Change' }));
 		fireEvent.click(screen.getByRole('button', { name: 'Bio: everyone sees it. Change' }));
 		save();
-		await waitFor(() => expect(mockUpdateVisibility).toHaveBeenCalledWith({ bio: false, location: true }));
+		await waitFor(() => expect(mockUpdateVisibility).toHaveBeenCalledWith({ bio: false, firstName: true, lastName: true }));
 		expect(mockEditProfile).not.toHaveBeenCalled();
 		expect(mockRefresh).toHaveBeenCalled();
 	});
@@ -206,7 +206,7 @@ describe('EditProfileDialog', () => {
 		mockUpdateVisibility.mockRejectedValue(new Error('down'));
 		open();
 		fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'mei_lin' } });
-		fireEvent.click(screen.getByRole('button', { name: 'Location: only you see it. Change' }));
+		fireEvent.click(screen.getByRole('button', { name: 'Real name: only you see it. Change' }));
 		save();
 		confirmRename();
 		await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/mei_lin'));
@@ -225,8 +225,8 @@ describe('EditProfileDialog', () => {
 	it('names each pill by its detail and who sees it, and the label follows a switch', () => {
 		open();
 		expect(screen.getByRole('button', { name: 'Display name: everyone sees it. Change' })).toBeInTheDocument();
-		fireEvent.click(screen.getByRole('button', { name: 'Points: only you see them. Change' }));
-		expect(screen.getByRole('button', { name: 'Points: everyone sees them. Change' })).toBeInTheDocument();
+		fireEvent.click(screen.getByRole('button', { name: 'Bio: everyone sees it. Change' }));
+		expect(screen.getByRole('button', { name: 'Bio: only you see it. Change' })).toBeInTheDocument();
 	});
 
 	it('drops abandoned edits when reopened', async () => {

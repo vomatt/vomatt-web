@@ -34,6 +34,8 @@ jest.mock('@/components/CustomPortableText', () => ({
 
 const mockGetPolicyMessage = jest.fn();
 
+const mockToastError = jest.fn();
+jest.mock('sonner', () => ({ toast: { error: (...a: unknown[]) => mockToastError(...a) } }));
 jest.mock('@/components/auth/policy', () => ({
 	getPolicyMessage: () => mockGetPolicyMessage(),
 }));
@@ -139,7 +141,7 @@ describe('AuthDialog', () => {
 		expect(mockVerifyOtp).toHaveBeenCalledWith('user@test.com', '123456');
 	});
 
-	it('asks a new user for a display name before finishing', async () => {
+	it('asks a new user for their first and last name before finishing', async () => {
 		mockRequestOtp.mockResolvedValue({ status: 'SUCCESS' });
 		mockVerifyOtp.mockResolvedValue({ status: 'SUCCESS', isNewUser: true });
 		mockUpdateProfile.mockResolvedValue({});
@@ -148,27 +150,74 @@ describe('AuthDialog', () => {
 		await submitEmail('newbie@test.com');
 		fillOTP('123456');
 
-		const name = await screen.findByLabelText('onboarding.displayName');
-		expect(name).toHaveValue('newbie');
+		const first = await screen.findByLabelText('profile.firstName');
+		expect(first).toHaveValue('');
+		expect(screen.queryByLabelText('profile.displayName')).not.toBeInTheDocument();
 		expect(baseProps.onAuthSuccess).not.toHaveBeenCalled();
 
-		fireEvent.change(name, { target: { value: 'New Bie' } });
+		fireEvent.change(first, { target: { value: 'New' } });
+		fireEvent.change(screen.getByLabelText('profile.lastName'), { target: { value: 'Bie' } });
 		fireEvent.click(screen.getByRole('button', { name: 'onboarding.finish' }));
 
 		await waitFor(() => expect(baseProps.onAuthSuccess).toHaveBeenCalled());
-		expect(mockUpdateProfile).toHaveBeenCalledWith({ displayName: 'New Bie' });
+		expect(mockUpdateProfile).toHaveBeenCalledWith({ firstName: 'New', lastName: 'Bie' });
 	});
 
-	it('lets a new user skip the display name', async () => {
+	it('needs a first name to finish, but not a last name', async () => {
+		mockRequestOtp.mockResolvedValue({ status: 'SUCCESS' });
+		mockVerifyOtp.mockResolvedValue({ status: 'SUCCESS', isNewUser: true });
+		mockUpdateProfile.mockResolvedValue({});
+		render(<AuthDialog {...baseProps} />);
+
+		await submitEmail('newbie@test.com');
+		fillOTP('123456');
+		fireEvent.click(await screen.findByRole('button', { name: 'onboarding.finish' }));
+		expect(await screen.findByText('common.required')).toBeInTheDocument();
+		expect(mockUpdateProfile).not.toHaveBeenCalled();
+
+		fireEvent.change(screen.getByLabelText('profile.firstName'), { target: { value: 'Cher' } });
+		fireEvent.click(screen.getByRole('button', { name: 'onboarding.finish' }));
+		await waitFor(() => expect(mockUpdateProfile).toHaveBeenCalledWith({ firstName: 'Cher' }));
+	});
+
+	it('resumes the started action when the dialog is closed at the name step', async () => {
 		mockRequestOtp.mockResolvedValue({ status: 'SUCCESS' });
 		mockVerifyOtp.mockResolvedValue({ status: 'SUCCESS', isNewUser: true });
 		render(<AuthDialog {...baseProps} />);
 
 		await submitEmail();
 		fillOTP('123456');
-		fireEvent.click(await screen.findByRole('button', { name: 'onboarding.skip' }));
+		await screen.findByLabelText('profile.firstName');
+		fireEvent.click(screen.getAllByRole('button', { name: 'common.close' })[0]);
 
 		expect(baseProps.onAuthSuccess).toHaveBeenCalled();
+		expect(baseProps.onOpenChange).not.toHaveBeenCalledWith(false);
 		expect(mockUpdateProfile).not.toHaveBeenCalled();
+	});
+
+	it('closes as cancelled before the code is entered', async () => {
+		mockRequestOtp.mockResolvedValue({ status: 'SUCCESS' });
+		render(<AuthDialog {...baseProps} />);
+
+		await submitEmail();
+		fireEvent.click(screen.getAllByRole('button', { name: 'common.close' })[0]);
+
+		expect(baseProps.onOpenChange).toHaveBeenCalledWith(false);
+		expect(baseProps.onAuthSuccess).not.toHaveBeenCalled();
+	});
+
+	it('lets a new user through when their name fails to save, and says so', async () => {
+		mockRequestOtp.mockResolvedValue({ status: 'SUCCESS' });
+		mockVerifyOtp.mockResolvedValue({ status: 'SUCCESS', isNewUser: true });
+		mockUpdateProfile.mockRejectedValue(new Error('down'));
+		render(<AuthDialog {...baseProps} />);
+
+		await submitEmail();
+		fillOTP('123456');
+		fireEvent.change(await screen.findByLabelText('profile.firstName'), { target: { value: 'Mei' } });
+		fireEvent.click(screen.getByRole('button', { name: 'onboarding.finish' }));
+
+		await waitFor(() => expect(baseProps.onAuthSuccess).toHaveBeenCalled());
+		expect(mockToastError).toHaveBeenCalledWith('onboarding.saveFailed');
 	});
 });
