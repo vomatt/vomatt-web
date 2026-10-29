@@ -24,7 +24,7 @@ import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { ChevronRight } from '@/components/ui/SvgIcons';
 import { Switch } from '@/components/ui/Switch';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { isFieldPublic, VISIBILITY_FIELDS } from '@/features/account/visibility';
+import { isFieldPublic } from '@/features/account/visibility';
 import { BlockedUsersPanel } from '@/features/blocks/BlockedUsersPanel';
 import { GroupsPanel } from '@/features/groups/GroupsPanel';
 import { NOTIFICATION_SWITCHES } from '@/features/notifications/preferences';
@@ -102,7 +102,9 @@ export default function AccountSettings({
 	// Read out by screen readers after each save; the switch itself shows the change
 	const [announcement, setAnnouncement] = useState('');
 	const visibility = profile.visibilitySettings ?? {};
-	const shownCount = VISIBILITY_FIELDS.filter((field) => isFieldPublic(visibility, field)).length;
+	// One per Edit profile setting; the real name shows when either half does
+	const settings = [['displayName'], ['bio'], ['firstName', 'lastName']];
+	const shownCount = settings.filter((fields) => fields.some((field) => isFieldPublic(visibility, field))).length;
 
 	const toggleAnonymousDefault = async (value: boolean) => {
 		setAnonymousDefault(value);
@@ -192,7 +194,7 @@ export default function AccountSettings({
 					<Link href={`${profileHref(profile.username)}?edit=1`} className={rowLinkClassName}>
 						<RowText title={t('account.privacyTitle')} body={t('settings.whatOthersSeeBody')} />
 						<span className="text-[14px] text-muted-foreground">
-							{t('settings.shownCount', { shown: shownCount, total: VISIBILITY_FIELDS.length })}
+							{t('settings.shownCount', { shown: shownCount, total: settings.length })}
 						</span>
 						<ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
 					</Link>

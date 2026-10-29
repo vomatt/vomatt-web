@@ -76,6 +76,14 @@ describe('UserChip', () => {
 		expect(fetchMock).toHaveBeenCalledWith('/api/profiles/mei');
 	});
 
+	it('leads with the real name on hover, then the display name, as the profile does', async () => {
+		fetchMock.mockResolvedValueOnce(json({ ...profile, username: 'ruby', firstName: 'Ruby', lastName: 'Ho', displayName: 'rubes' }));
+		render(<UserChip username="ruby" />);
+		await userEvent.hover(screen.getByRole('link', { name: 'ruby' }));
+
+		expect(await screen.findByText('Ruby Ho')).toHaveTextContent('Ruby Ho rubes');
+	});
+
 	it('counts their followers in the stats line, with no Follow signed out', async () => {
 		fetchMock.mockResolvedValueOnce(json({ ...profile, username: 'ana' }));
 		render(<UserChip username="ana" />);

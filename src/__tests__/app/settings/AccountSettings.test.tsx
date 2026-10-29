@@ -61,7 +61,7 @@ const myProfile: MyProfile = {
 	totalVotes: 12,
 	followersCount: 0,
 	followingCount: 0,
-	visibilitySettings: { points: true },
+	visibilitySettings: { points: true, firstName: false, lastName: true },
 	avatarUrl: 'bot:boba',
 	anonymousBallotByDefault: false,
 };
@@ -70,9 +70,9 @@ describe('AccountSettings', () => {
 	it('counts what others see and sends the owner to Edit profile to change it', () => {
 		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
 
-		// Display name and bio are public by default, points by choice
+		// Display name and bio are public by default; the real name shows through its last half; points no page shows
 		const link = screen.getByRole('link', { name: /What others see/ });
-		expect(link).toHaveTextContent('3 of 7 shown');
+		expect(link).toHaveTextContent('3 of 3 shown');
 		expect(link).toHaveAttribute('href', '/mei?edit=1');
 	});
 

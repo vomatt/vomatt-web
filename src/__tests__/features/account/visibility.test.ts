@@ -15,10 +15,14 @@ describe('isFieldPublic()', () => {
 
 describe('visibilityChanges()', () => {
 	it('lists only the fields whose visibility changed, defaults included', () => {
-		expect(visibilityChanges({ bio: true }, { bio: true, location: true, displayName: false })).toEqual({
-			location: true,
+		expect(visibilityChanges({ bio: true }, { bio: true, firstName: true, displayName: false })).toEqual({
+			firstName: true,
 			displayName: false,
 		});
+	});
+
+	it('never sends the fields no page shows', () => {
+		expect(visibilityChanges({}, { location: true, points: true, membershipLevel: true })).toEqual({});
 	});
 
 	it('is empty when nothing changed', () => {

@@ -30,11 +30,9 @@ import { Textarea } from '@/components/ui/Textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { isValidUsername, RESERVED_USERNAMES, USERNAME_MAX_LENGTH } from '@/features/account/username';
 import { isFieldPublic, visibilityChanges } from '@/features/account/visibility';
-import { AvatarDialog } from '@/features/avatars/AvatarDialog';
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
 import { apiErrorText } from '@/lib/api/error-text';
 import { editProfile, updateVisibility } from '@/lib/api/services/users';
-import { toPayloadLocale } from '@/lib/locale';
 import { profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 import type { MyProfile } from '@/types/user';
@@ -50,14 +48,14 @@ const latestBirthday = () =>
 	new Date(Date.now() - 86_400_000).toLocaleDateString('en-CA', { timeZone: 'Asia/Taipei' });
 
 const labelClassName = 'text-sm font-medium text-foreground';
-const groupClassName = 'text-[12px] font-medium text-muted-foreground';
+const sublabelClassName = 'text-[12px] text-muted-foreground';
 
 /**
  * Edit profile: each detail says who sees it, and the owner changes that right
  * where they type. Details and visibility save together with Save.
  */
 export default function EditProfileDialog({ profile, defaultOpen = false }: { profile: MyProfile; defaultOpen?: boolean }) {
-	const { t, currentLanguage } = useLanguage();
+	const { t } = useLanguage();
 	const router = useRouter();
 	const initial = {
 		username: profile.username,
@@ -185,10 +183,9 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 		}
 	}
 
-	const pill = (fieldLabel: string, fields: string[], plural = false) => (
+	const pill = (fieldLabel: string, fields: string[]) => (
 		<VisibilityPill
 			label={fieldLabel}
-			plural={plural}
 			isPublic={isFieldPublic(visibility, fields[0])}
 			onToggle={() => toggleVisibility(...fields)}
 		/>
@@ -203,26 +200,6 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 					<DialogDescription>{t('profile.editIntro')}</DialogDescription>
 				</DialogHeader>
 				<form id="edit-profile" onSubmit={submit} noValidate className="flex flex-col gap-4">
-					<div className="flex items-center gap-3.5">
-						<AvatarDialog username={profile.username} avatarUrl={profile.avatarUrl} className="size-16" trigger="button" />
-					</div>
-
-					<p className={groupClassName}>{t('profile.groupOnProfile')}</p>
-					<div className="-mt-2 flex flex-col gap-1.5">
-						<div className="flex min-h-7 items-center justify-between gap-2">
-							<label htmlFor="displayName" className={labelClassName}>
-								{t('profile.displayName')}
-							</label>
-							{pill(t('profile.displayName'), ['displayName'])}
-						</div>
-						<Input
-							id="displayName"
-							value={values.displayName}
-							onChange={(e) => set('displayName')(e.target.value)}
-							placeholder={t('profile.displayNamePlaceholder')}
-							maxLength={100}
-						/>
-					</div>
 					<div className="flex flex-col gap-1.5">
 						<div className="flex min-h-7 items-center justify-between gap-2">
 							<label htmlFor="username" className={labelClassName}>
@@ -242,7 +219,7 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 							autoCapitalize="none"
 							spellCheck={false}
 							maxLength={USERNAME_MAX_LENGTH}
-							leading="vomatt.com/"
+							leading="@"
 							className="font-mono"
 							aria-invalid={!!usernameError}
 							aria-describedby="username-hint"
@@ -267,6 +244,87 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 								))}
 						</p>
 					</div>
+					{/* First and last name share one visibility setting, so they share one header */}
+					<div role="group" aria-labelledby="realName" className="flex flex-col gap-1.5">
+						<div className="flex min-h-7 items-center justify-between gap-2">
+							<span id="realName" className={labelClassName}>
+								{t('profile.realName')}
+							</span>
+							{pill(t('profile.realName'), ['firstName', 'lastName'])}
+						</div>
+						<div className="grid gap-2.5 sm:grid-cols-2">
+							<div className="flex flex-col gap-1">
+								<label htmlFor="firstName" className={sublabelClassName}>
+									{t('profile.firstName')}
+								</label>
+								<Input
+									id="firstName"
+									value={values.firstName}
+									onChange={(e) => set('firstName')(e.target.value)}
+									autoComplete="given-name"
+									maxLength={50}
+								/>
+							</div>
+							<div className="flex flex-col gap-1">
+								<label htmlFor="lastName" className={sublabelClassName}>
+									{t('profile.lastName')}
+								</label>
+								<Input
+									id="lastName"
+									value={values.lastName}
+									onChange={(e) => set('lastName')(e.target.value)}
+									autoComplete="family-name"
+									maxLength={50}
+								/>
+							</div>
+						</div>
+					</div>
+					<div className="flex flex-col gap-1.5">
+						<div className="flex min-h-7 items-center justify-between gap-2">
+							<label htmlFor="displayName" className={labelClassName}>
+								{t('profile.displayName')}
+							</label>
+							{pill(t('profile.displayName'), ['displayName'])}
+						</div>
+						<Input
+							id="displayName"
+							value={values.displayName}
+							onChange={(e) => set('displayName')(e.target.value)}
+							placeholder={t('profile.displayNamePlaceholder')}
+							maxLength={100}
+						/>
+					</div>
+					<div className="flex flex-col gap-1.5">
+						<div className="flex min-h-7 items-center justify-between gap-2">
+							<label htmlFor="birthday" className={labelClassName}>
+								{t('profile.birthday')}
+							</label>
+							{/* The API never shows a birthday to anyone else */}
+							<span className={cn(pillClassName, 'border-border bg-secondary text-muted-foreground')}>
+								<Lock aria-hidden className="size-3" />
+								{t('profile.onlyYouShort')}
+							</span>
+						</div>
+						<Input
+							id="birthday"
+							type="date"
+							value={values.birthday}
+							onChange={(e) => {
+								set('birthday')(e.target.value);
+								setBirthdayError(false);
+							}}
+							min={BIRTHDAY_MIN}
+							max={latestBirthday()}
+							autoComplete="bday"
+							aria-invalid={birthdayError}
+							aria-describedby={birthdayError ? 'birthday-error' : undefined}
+						/>
+						{birthdayError && (
+							<p id="birthday-error" className="text-xs text-destructive">
+								{t('profile.birthdayInvalid')}
+							</p>
+						)}
+					</div>
 					<div className="flex flex-col gap-1.5">
 						<div className="flex min-h-7 items-center justify-between gap-2">
 							<label htmlFor="bio" className={labelClassName}>
@@ -287,81 +345,6 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 							{values.bio.length} / {BIO_MAX_LENGTH}
 						</p>
 					</div>
-
-					<p className={groupClassName}>{t('profile.groupAboutYou')}</p>
-					<div className="-mt-2 grid gap-2.5 sm:grid-cols-3">
-						<div className="flex flex-col gap-1.5">
-							<label htmlFor="firstName" className={labelClassName}>
-								{t('profile.firstName')}
-							</label>
-							<Input
-								id="firstName"
-								value={values.firstName}
-								onChange={(e) => set('firstName')(e.target.value)}
-								autoComplete="given-name"
-								maxLength={50}
-							/>
-						</div>
-						<div className="flex flex-col gap-1.5">
-							<label htmlFor="lastName" className={labelClassName}>
-								{t('profile.lastName')}
-							</label>
-							<Input
-								id="lastName"
-								value={values.lastName}
-								onChange={(e) => set('lastName')(e.target.value)}
-								autoComplete="family-name"
-								maxLength={50}
-							/>
-						</div>
-						<div className="flex flex-col gap-1.5">
-							<label htmlFor="birthday" className={labelClassName}>
-								{t('profile.birthday')}
-							</label>
-							<Input
-								id="birthday"
-								type="date"
-								value={values.birthday}
-								onChange={(e) => {
-									set('birthday')(e.target.value);
-									setBirthdayError(false);
-								}}
-								min={BIRTHDAY_MIN}
-								max={latestBirthday()}
-								autoComplete="bday"
-								aria-invalid={birthdayError}
-								aria-describedby={birthdayError ? 'birthday-error' : undefined}
-							/>
-						</div>
-					</div>
-					{birthdayError && (
-						<p id="birthday-error" className="-mt-2 text-xs text-destructive">
-							{t('profile.birthdayInvalid')}
-						</p>
-					)}
-					<ul className="divide-y divide-border rounded-xl border border-border">
-						<VisibilityRow label={t('profile.realName')}>{pill(t('profile.realName'), ['firstName', 'lastName'])}</VisibilityRow>
-						<VisibilityRow label={t('profile.birthday')}>
-							{/* The API never shows a birthday to anyone else */}
-							<span className={cn(pillClassName, 'border-border bg-secondary text-muted-foreground')}>
-								<Lock aria-hidden className="size-3" />
-								{t('profile.onlyYouShort')}
-							</span>
-						</VisibilityRow>
-						<VisibilityRow label={t('account.field.location')} value={profile.location}>
-							{pill(t('account.field.location'), ['location'])}
-						</VisibilityRow>
-						<VisibilityRow
-							label={t('account.field.points')}
-							value={profile.points.toLocaleString(toPayloadLocale(currentLanguage))}
-							mono
-						>
-							{pill(t('account.field.points'), ['points'], true)}
-						</VisibilityRow>
-						<VisibilityRow label={t('account.field.membershipLevel')} value={profile.membershipLevel}>
-							{pill(t('account.field.membershipLevel'), ['membershipLevel'])}
-						</VisibilityRow>
-					</ul>
 				</form>
 				<DialogFooter className="items-center">
 					<p className="mr-auto hidden text-[12px] text-muted-foreground sm:block">{t('profile.visibilitySavesHint')}</p>
@@ -394,24 +377,21 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 
 const pillClassName =
 	'inline-flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 text-[12px] font-medium';
-// The pill stays small in the dense list, but its hit area reaches 44px
+// The pill stays small beside its label, but its hit area reaches 44px
 const pillHitArea = "relative before:absolute before:-inset-y-2 before:inset-x-0 before:content-['']";
 
 const PILL_LABELS = {
-	everyone: { one: 'profile.visibilityPillEveryone', plural: 'profile.visibilityPillEveryonePlural' },
-	onlyYou: { one: 'profile.visibilityPillOnlyYou', plural: 'profile.visibilityPillOnlyYouPlural' },
+	everyone: 'profile.visibilityPillEveryone',
+	onlyYou: 'profile.visibilityPillOnlyYou',
 } as const;
 
 /** Who sees a detail, as a pill that switches between Everyone and Only you. */
 function VisibilityPill({
 	label,
-	plural,
 	isPublic,
 	onToggle,
 }: {
 	label: string;
-	/** The detail reads as plural ("Points: only you see them") */
-	plural: boolean;
 	isPublic: boolean;
 	onToggle: () => void;
 }) {
@@ -421,7 +401,7 @@ function VisibilityPill({
 		<button
 			type="button"
 			onClick={onToggle}
-			aria-label={t(PILL_LABELS[isPublic ? 'everyone' : 'onlyYou'][plural ? 'plural' : 'one'], { field: label })}
+			aria-label={t(PILL_LABELS[isPublic ? 'everyone' : 'onlyYou'], { field: label })}
 			className={cn(
 				pillClassName,
 				pillHitArea,
@@ -435,33 +415,5 @@ function VisibilityPill({
 			{state}
 			<ChevronDown aria-hidden className="size-2.5" />
 		</button>
-	);
-}
-
-function VisibilityRow({
-	label,
-	value,
-	mono = false,
-	children,
-}: {
-	label: string;
-	/** The detail itself when it can't be edited here; "Not set" when empty. */
-	value?: string | null;
-	mono?: boolean;
-	children: React.ReactNode;
-}) {
-	const { t } = useLanguage();
-	return (
-		<li className="flex min-h-13 items-center gap-3 px-3.5">
-			<span className="flex min-w-0 flex-1 items-baseline gap-2 text-[14px]">
-				{label}
-				{value !== undefined && (
-					<span className={cn('truncate text-[12px] text-muted-foreground', mono && 'font-mono tabular-nums')}>
-						{value || t('profile.notSet')}
-					</span>
-				)}
-			</span>
-			{children}
-		</li>
 	);
 }

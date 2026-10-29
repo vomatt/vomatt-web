@@ -59,10 +59,12 @@ export function useAuthFlow() {
 		[email]
 	);
 
-	/** Saves the display name for a new account. The account already exists, so failure isn't fatal. */
-	const submitProfile = useCallback(async (displayName: string): Promise<AuthResult> => {
+	/** Saves a new account's real name. The account already exists, so failure isn't fatal. */
+	const submitProfile = useCallback(async (name: { firstName: string; lastName: string }): Promise<AuthResult> => {
+		const lastName = name.lastName.trim();
 		try {
-			await updateProfile({ displayName: displayName.trim() });
+			// A blank last name is left out: sending it empty would clear it
+			await updateProfile({ firstName: name.firstName.trim(), ...(lastName && { lastName }) });
 			return OK;
 		} catch {
 			return SERVER_ERROR;

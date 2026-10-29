@@ -9,6 +9,8 @@ export interface UserProfile {
 	totalPolls: number;
 	totalVotes: number;
 	// Null when the owner keeps them hidden (the default) or never set them
+	firstName?: string | null;
+	lastName?: string | null;
 	location?: string | null;
 	points?: number | null;
 	membershipLevel?: string | null;

@@ -14,6 +14,7 @@ import type { UserProfile } from '@/types/user';
 
 import { Count } from './Count';
 import { MutualFollowersLine } from './MutualFollowers';
+import { profileName } from './name';
 
 // Matches the route's max-age, so an edited profile shows within a minute
 const PROFILE_TTL_MS = 60_000;
@@ -156,14 +157,17 @@ function ProfileCardBody({
 }) {
 	const { t, currentLanguage } = useLanguage();
 	const profile = state.status === 'ready' ? state.profile : null;
-	const displayName = profile?.displayName;
+	const name = profileName({ ...profile, username });
 
 	return (
 		<div className="space-y-3">
 			<div className="flex items-start gap-3">
 				<UserAvatar username={username} avatarUrl={avatarUrl} className="size-12" />
 				<div className="min-w-0 flex-1">
-					<p className="truncate text-[17px] font-medium leading-tight tracking-[-0.02em]">{displayName || username}</p>
+					<p className="truncate text-[17px] font-medium leading-tight tracking-[-0.02em]">
+						{name.primary}
+						{name.secondary && <span className="text-muted-foreground"> {name.secondary}</span>}
+					</p>
 					<p className="truncate font-mono text-[12px] text-muted-foreground">@{username}</p>
 				</div>
 				<FollowButton follow={follow} username={username} avatarUrl={avatarUrl} size="xs" withConfirm={false} />

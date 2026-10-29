@@ -164,10 +164,8 @@
 		"noPollsYet": "還沒有投票。",
 		"noPollsYetOwn": "你的投票開放後會顯示在這裡。",
 		"pollsLoadFailed": "無法載入投票。",
-		"points": "{count} 點",
 		"cardFailed": "無法載入個人資料。",
 		"joined": "{date} 加入",
-		"membership": "{level} 會員",
 		"followers": "追蹤者",
 		"following": "追蹤中",
 		"noFollowers": "尚無追蹤者。",
@@ -235,17 +233,12 @@
 		"mutualFollowers": "你認識的追蹤者",
 		"allFollowers": "全部 {count} 位追蹤者",
 		"editIntro": "每項資料都標示誰看得到，可在輸入處直接變更。",
-		"groupOnProfile": "個人頁上",
-		"groupAboutYou": "關於你",
 		"alwaysShown": "一律公開",
 		"realName": "真實姓名",
 		"onlyYouShort": "只有你",
 		"everyone": "所有人",
 		"visibilityPillEveryone": "{field}：所有人都看得到。變更",
 		"visibilityPillOnlyYou": "{field}：只有你看得到。變更",
-		"visibilityPillEveryonePlural": "{field}：所有人都看得到。變更",
-		"visibilityPillOnlyYouPlural": "{field}：只有你看得到。變更",
-		"notSet": "未設定",
 		"visibilitySavesHint": "可見範圍會在儲存時一併更新。",
 		"visibilitySaveFailed": "資料已儲存，但可見範圍未能更新，請再試一次。"
 	},
@@ -541,13 +534,10 @@
 		"serverError": "發生錯誤，請稍後再試。"
 	},
 	"onboarding": {
-		"title": "我們該怎麼稱呼你？",
-		"subtitle": "其他投票者會看到這個名字。",
-		"displayName": "顯示名稱",
-		"displayNameHint": "之後可以在帳號頁面修改。",
-		"displayNameTooLong": "請少於 100 個字元。",
-		"finish": "完成",
-		"skip": "先跳過"
+		"title": "你叫什麼名字？",
+		"subtitle": "之後可以在編輯個人資料中修改，並決定誰看得到。",
+		"saveFailed": "名字未儲存，請到編輯個人資料中新增。",
+		"finish": "完成"
 	},
 	"comments": {
 		"title": "討論",
@@ -619,10 +609,7 @@
 		"anonymousDefaultOff": "新的投票預設會顯示你的名字。",
 		"field": {
 			"displayName": "顯示名稱",
-			"bio": "自我介紹",
-			"location": "地區",
-			"points": "點數",
-			"membershipLevel": "會員等級"
+			"bio": "自我介紹"
 		},
 		"saveFailed": "儲存失敗，請再試一次。",
 		"exportTitle": "下載我的資料",
