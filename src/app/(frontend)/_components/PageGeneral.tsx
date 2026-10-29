@@ -4,14 +4,17 @@ import CustomPortableText from '@/components/CustomPortableText';
 import { PageShell } from '@/components/layout/PageShell';
 import PageModules, { type PageModule } from '@/components/PageModules';
 
+import { LastUpdated } from './LastUpdated';
+
 export default function PageGeneral({ data, children }: { data: any; children?: ReactNode }) {
-	const { title, layout, content, pageModules: modules } = data;
+	const { title, layout, content, pageModules: modules, showLastUpdated, _updatedAt } = data;
 
 	if (layout === 'editor') {
 		return (
 			<PageShell>
 				<article className="page-general">
 					<h1 className="mb-4 display-heading text-[30px] text-foreground md:text-[40px]">{title}</h1>
+					{showLastUpdated && _updatedAt && <LastUpdated updatedAt={_updatedAt} />}
 					<div className="cms-prose text-lg">
 						{content && <CustomPortableText blocks={content} />}
 					</div>

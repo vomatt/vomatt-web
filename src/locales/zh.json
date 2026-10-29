@@ -631,6 +631,9 @@
 		"tabGroups": "邀請名單",
 		"deleteCtaEllipsis": "刪除帳號…"
 	},
+	"page": {
+		"lastUpdated": "最後更新"
+	},
 	"cookieConsent": {
 		"label": "Cookie 同意",
 		"message": "我們想使用分析 Cookie 來了解 vomatt 的使用情形。登入與語言 Cookie 會一直啟用。",

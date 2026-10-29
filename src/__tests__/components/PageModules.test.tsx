@@ -8,6 +8,7 @@ jest.mock('@/components/CustomPortableText', () => ({
 	__esModule: true,
 	default: () => null,
 }));
+jest.mock('@/contexts/LanguageContext', () => require('../helpers/mockLanguage'));
 
 const link = (href: string) => ({ _type: 'link', href, isNewTab: false });
 
@@ -74,6 +75,35 @@ describe('PageModules', () => {
 	});
 });
 
+describe('PageGeneral editor layout', () => {
+	it('shows when the page was last published when the page asks for it', () => {
+		render(
+			<PageGeneral
+				data={{
+					title: 'Privacy Policy',
+					layout: 'editor',
+					showLastUpdated: true,
+					_updatedAt: '2026-10-29T15:17:34Z',
+				}}
+			/>
+		);
+		const date = screen.getByText('October 29, 2026');
+		expect(date).toHaveAttribute('dateTime', '2026-10-29T15:17:34Z');
+		expect(date.closest('p')).toHaveTextContent('Last updated October 29, 2026');
+	});
+
+	it('dates the page by the day in Taiwan', () => {
+		// 01:30 on October 30 in Taipei
+		render(<PageGeneral data={{ title: 'Terms', layout: 'editor', showLastUpdated: true, _updatedAt: '2026-10-29T17:30:00Z' }} />);
+		expect(screen.getByText('October 30, 2026')).toBeInTheDocument();
+	});
+
+	it('leaves the date out by default', () => {
+		render(<PageGeneral data={{ title: 'Resources', layout: 'editor', _updatedAt: '2026-10-29T15:17:34Z' }} />);
+		expect(screen.queryByText(/Last updated/)).not.toBeInTheDocument();
+	});
+});
+
 describe('PageGeneral modules layout', () => {
 	it('titles the page from its title when no Hero does', () => {
 		render(
@@ -114,5 +144,20 @@ describe('PageGeneral modules layout', () => {
 		);
 		expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
 		expect(screen.getByRole('heading', { level: 1, name: 'Ask everyone.' })).toBeInTheDocument();
+	});
+
+	it('shows no date, even when the switch was left on from the editor layout', () => {
+		render(
+			<PageGeneral
+				data={{
+					title: 'About',
+					layout: 'modules',
+					showLastUpdated: true,
+					_updatedAt: '2026-10-29T15:17:34Z',
+					pageModules: [{ _type: 'callout', _key: 'c', heading: 'Ask the next question' }],
+				}}
+			/>
+		);
+		expect(screen.queryByText(/Last updated/)).not.toBeInTheDocument();
 	});
 });
