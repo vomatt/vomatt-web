@@ -13,7 +13,7 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from '@/components/ui/Dialog';
-import { Pencil } from '@/components/ui/SvgIcons';
+import { Check, Pencil } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { apiErrorText } from '@/lib/api/error-text';
 import { cn } from '@/lib/utils';
@@ -99,14 +99,22 @@ export function AvatarDialog({
 			aria-label={t('avatar.choose', { name: t(`${avatarCopyKey(kind)}.name`) })}
 			onClick={() => setSelected(kind)}
 			className={cn(
-				'aspect-square rounded-full p-0.5 transition-shadow outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring',
+				'relative aspect-square rounded-full p-0.5 transition-shadow outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring',
 				kind === selected
-					? // Forced colors drop the ring and fill; the outline survives as the selection
-						'bg-foreground ring-4 ring-highlight forced-colors:outline-2 forced-colors:outline-offset-2 forced-colors:outline-solid'
+					? // Forced colors drop the ring; the outline survives as the selection
+						'ring-2 ring-primary forced-colors:outline-2 forced-colors:outline-offset-2 forced-colors:outline-solid'
 					: 'hover:bg-border-strong'
 			)}
 		>
 			<ChosenAvatar kind={kind} className="size-full" tooltip />
+			{kind === selected && (
+				<span
+					aria-hidden
+					className="absolute -right-0.5 -bottom-0.5 grid size-5 place-items-center rounded-full bg-primary text-primary-foreground ring-2 ring-popover"
+				>
+					<Check size={12} />
+				</span>
+			)}
 		</button>
 	);
 

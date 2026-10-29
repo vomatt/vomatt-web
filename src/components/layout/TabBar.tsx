@@ -21,6 +21,8 @@ import { cn } from '@/lib/utils';
 type TabBarProps = {
 	className?: string;
 	userSession?: any;
+	/** Where the signed-out create button goes; carries `session_expired` when the API refused the session. */
+	loginLink?: string;
 	username?: string;
 	avatarUrl?: string | null;
 };
@@ -30,7 +32,7 @@ const createClassName = cn(buttonVariants({ variant: 'create' }), 'w-13 px-0');
 const cellClassName =
 	'flex-1 h-full flex justify-center items-center outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring';
 
-export function TabBar({ className, userSession, username, avatarUrl }: TabBarProps) {
+export function TabBar({ className, userSession, loginLink = '/login', username, avatarUrl }: TabBarProps) {
 	const pathname = usePathname();
 	const { t } = useLanguage();
 	const { count: unreadCount } = useUnreadCount();
@@ -115,7 +117,7 @@ export function TabBar({ className, userSession, username, avatarUrl }: TabBarPr
 					</CreatePollTrigger>
 				</div>
 			) : (
-				<NextLink href="/login" aria-label={t('common.createPoll')} className={cellClassName}>
+				<NextLink href={loginLink} aria-label={t('common.createPoll')} className={cellClassName}>
 					<span className={createClassName}>
 						<Plus className="size-5.5" />
 					</span>

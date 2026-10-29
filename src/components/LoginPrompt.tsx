@@ -3,6 +3,7 @@ import NextLink from 'next/link';
 
 import { buttonVariants } from '@/components/ui/Button';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { loginHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
 type LoginPromptProps = {
@@ -17,10 +18,7 @@ type LoginPromptProps = {
 
 /** A full-width card: the invitation to log in beside the Log in button, stacked on phones. */
 export function LoginPrompt({ className, redirectTo, sessionExpired, forPoll }: LoginPromptProps) {
-	const params = new URLSearchParams();
-	if (redirectTo) params.set('redirect', redirectTo);
-	if (sessionExpired) params.set('session_expired', '1');
-	const href = params.size ? `/login?${params}` : '/login';
+	const href = loginHref({ redirect: redirectTo, sessionExpired: sessionExpired ? '1' : undefined });
 	const { t } = useLanguage();
 
 	return (

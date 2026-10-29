@@ -4,20 +4,12 @@ import type { ActionResult } from '@/lib/api/action';
 import { attempt } from '@/lib/api/action';
 import { apiClient } from '@/lib/api/client';
 import { type CursorPage, cursorPageSchema, pageParams } from '@/lib/api/cursor';
-import type { UserDto } from '@/schemas/user';
-import { UserDtoSchema } from '@/schemas/user';
 
 import { type FollowUserDto, FollowUserDtoSchema } from './schema';
 
-const UserPage = cursorPageSchema(UserDtoSchema);
 const FollowUserPage = cursorPageSchema(FollowUserDtoSchema);
 
 const followPath = (userId: string) => `/users/me/follows/${encodeURIComponent(userId)}`;
-
-/** Users the signed-in user follows, most recently followed first. Items match `/users/search`. */
-export async function getFollowedUsers(cursor?: string): Promise<ActionResult<CursorPage<UserDto>>> {
-	return attempt(async () => UserPage.parse(await apiClient(`/users/me/follows?${pageParams(cursor, 20)}`)));
-}
 
 /** Idempotent: succeeds when the user was already followed. */
 export async function followUser(userId: string): Promise<ActionResult> {

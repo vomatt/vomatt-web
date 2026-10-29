@@ -25,10 +25,6 @@ jest.mock('@/features/blocks/service', () => ({
 	}),
 	unblockUser: jest.fn(),
 }));
-jest.mock('@/features/follows/service', () => ({
-	getFollowedUsers: jest.fn().mockResolvedValue({ ok: true, data: { items: [], nextCursor: null } }),
-	unfollowUser: jest.fn(),
-}));
 jest.mock('@/features/passkeys/service', () => ({
 	getPasskeys: jest.fn().mockResolvedValue({ ok: true, data: [] }),
 	deletePasskey: jest.fn(),
@@ -139,12 +135,10 @@ describe('AccountSettings', () => {
 		expect(within(card).getAllByRole('button', { name: 'Unblock' })).toHaveLength(2);
 	});
 
-	it('keeps the Following panel below the privacy card', async () => {
+	it('leaves the people you follow to your profile', async () => {
 		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
-		const card = screen.getByRole('link', { name: /What others see/ }).parentElement!;
-		const following = await screen.findByRole('heading', { name: 'Following' });
-		expect(card).not.toContainElement(following);
-		expect(screen.getByText('You aren’t following anyone.')).toBeInTheDocument();
+		await screen.findByRole('heading', { name: 'Blocked people' });
+		expect(screen.queryByRole('heading', { name: 'Following' })).not.toBeInTheDocument();
 	});
 
 	it('keeps the Download your data row', () => {

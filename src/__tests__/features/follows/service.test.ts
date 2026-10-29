@@ -2,7 +2,6 @@ jest.unmock('@/features/follows/service');
 
 import {
 	followUser,
-	getFollowedUsers,
 	getFollowers,
 	getFollowing,
 	getMutualFollowers,
@@ -30,13 +29,6 @@ jest.mock('@/lib/api/client', () => {
 const mockApiClient = apiClient as jest.MockedFunction<typeof apiClient>;
 
 beforeEach(() => jest.resetAllMocks());
-
-it('lists followed users with a cursor', async () => {
-	mockApiClient.mockResolvedValue({ items: [{ id: 'u1', username: 'bob' }], nextCursor: 'c2' });
-	const result = await getFollowedUsers('c1');
-	expect(mockApiClient).toHaveBeenCalledWith('/users/me/follows?limit=20&cursor=c1');
-	expect(result).toEqual({ ok: true, data: { items: [{ id: 'u1', username: 'bob' }], nextCursor: 'c2' } });
-});
 
 it('follows and unfollows by user ID', async () => {
 	mockApiClient.mockResolvedValue(undefined);

@@ -20,7 +20,13 @@ export function LogIn({ policyMessage }: { policyMessage?: PortableTextBlock[] |
 				// Plain text ahead of the title: it is there from the first paint, which a live region
 				// wouldn't announce, and reading order reaches it first
 				<p className="mb-6 rounded-[10px] border border-border bg-card px-3.5 py-3 text-[14px] text-foreground">
-					{t(sessionExpired === 'security' ? 'login.sessionRevoked' : 'login.sessionExpired')}
+					{t(
+						sessionExpired === 'security'
+							? 'login.sessionRevoked'
+							: sessionExpired === 'deleted'
+								? 'login.accountDeleted'
+								: 'login.sessionExpired'
+					)}
 				</p>
 			)}
 			<AuthFlow onDone={() => router.replace(redirectTo)} policyMessage={policyMessage} />

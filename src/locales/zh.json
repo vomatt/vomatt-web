@@ -78,6 +78,7 @@
 		"brandRuleOneVote": "一人一票。",
 		"brandRuleResults": "結果會送回每一位投票的人。",
 		"subtitle": "輸入電子郵件，我們會寄送驗證碼給你。第一次使用？我們會自動為你建立帳號。",
+		"accountDeleted": "這個帳號已刪除。用同一個電子郵件登入會建立新帳號。",
 		"sessionExpired": "登入已過期，請重新登入。",
 		"dialogDescription": "使用電子郵件登入或註冊以繼續",
 		"sessionRevoked": "為了你的帳號安全，已登出這個裝置，請重新登入。"
@@ -1080,12 +1081,7 @@
 		"blockEllipsis": "封鎖…"
 	},
 	"follows": {
-		"title": "追蹤中的人",
-		"intro": "你追蹤的人所發起的進行中公開投票會顯示在「追蹤中」動態。你追蹤對方時，對方會收到通知；已登入的使用者也可在個人頁看到追蹤關係。",
-		"empty": "你尚未追蹤任何人。",
-		"loadFailed": "無法載入追蹤中的人。",
 		"unfollow": "取消追蹤",
-		"unfollowed": "已取消追蹤 @{username}",
 		"unfollowFailed": "無法取消追蹤，請再試一次。",
 		"follow": "追蹤",
 		"followed": "已追蹤 @{username}",
@@ -1105,7 +1101,7 @@
 		"inviteListsBody": "可重複使用的名單，用於僅限受邀的投票。名單中的人不會收到通知。",
 		"inviteListCount": "{count} 份名單",
 		"theme": "主題",
-		"themeBody": "「自動」會跟隨系統設定。也可在側邊欄的「更多」選單中變更。",
+		"themeBody": "「自動」會跟隨系統設定。",
 		"language": "語言",
 		"privacy": "隱私與安全",
 		"whatOthersSeeBody": "在「編輯個人資料」中逐項設定。",
