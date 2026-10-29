@@ -11,9 +11,22 @@ const mockChooseAvatar = jest.fn();
 jest.mock('@/features/avatars/service', () => ({
 	chooseAvatar: (...a: unknown[]) => mockChooseAvatar(...a),
 }));
+// Records where each tile tooltip may be placed; jsdom has no layout to show it
+const mockTooltipBoundaries: unknown[] = [];
+jest.mock('@/components/ui/Tooltip', () => {
+	const actual = jest.requireActual('@/components/ui/Tooltip');
+	return {
+		...actual,
+		TooltipContent: (props: { collisionBoundary?: unknown }) => {
+			mockTooltipBoundaries.push(props.collisionBoundary);
+			return actual.TooltipContent(props);
+		},
+	};
+});
 
 beforeEach(() => {
 	jest.clearAllMocks();
+	mockTooltipBoundaries.length = 0;
 	mockChooseAvatar.mockResolvedValue({ ok: true, data: undefined });
 });
 
@@ -92,6 +105,14 @@ describe('AvatarDialog', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Save avatar' }));
 		await waitFor(() => expect(mockToastError).toHaveBeenCalledWith("Couldn’t save. Try again.", { duration: Infinity }));
 		expect(screen.getByRole('button', { name: 'Save avatar' })).toBeEnabled();
+	});
+
+	it("keeps tile tooltips inside the scrolling grid, off the dialog's header", () => {
+		openDialog('bot:boba');
+		const grid = screen.getByRole('button', { name: 'Choose Boba' }).closest('.overflow-y-auto');
+		expect(grid).not.toBeNull();
+		expect(mockTooltipBoundaries.length).toBeGreaterThan(0);
+		expect(mockTooltipBoundaries.at(-1)).toBe(grid);
 	});
 
 	it('Surprise me picks a different bot', () => {

@@ -7,13 +7,15 @@ export function ChosenAvatar({
 	kind,
 	className,
 	tooltip,
+	tooltipBoundary,
 }: {
 	kind: AvatarChoice;
 	className?: string;
 	tooltip?: boolean;
+	tooltipBoundary?: Element | null;
 }) {
 	if (kind === NO_BOT) return <AccountAvatar className={className} />;
-	return <BotAvatar kind={kind} className={className} tooltip={tooltip} />;
+	return <BotAvatar kind={kind} className={className} tooltip={tooltip} tooltipBoundary={tooltipBoundary} />;
 }
 
 /**
