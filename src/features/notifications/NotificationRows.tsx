@@ -74,6 +74,7 @@ const ROWS: { [K in Entry['kind']]: ComponentType<RowProps<Extract<Entry, { kind
 	COMMENT: CommentRow,
 	MENTION: CommentRow,
 	CLOSING_SOON: ClosingSoonRow,
+	LIKE: CommentRow,
 };
 
 export function NotificationRow(props: RowProps<Entry>) {
@@ -344,8 +345,14 @@ function FollowGroupRow({ entry, onOpen, viewerUsername }: RowProps<FollowGroup>
 	);
 }
 
-/** A comment on the viewer's poll or reply, or a mention of them; both open the comment. */
-function CommentRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'COMMENT' | 'MENTION' }>>) {
+const COMMENT_ROW_LINE = {
+	COMMENT: 'notifications.commented',
+	MENTION: 'notifications.mentioned',
+	LIKE: 'notifications.liked',
+} as const;
+
+/** A comment on the viewer's poll or reply, a mention of them, or a like of their comment; all open the comment. */
+function CommentRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'COMMENT' | 'MENTION' | 'LIKE' }>>) {
 	const { t } = useLanguage();
 	const { actor, poll, comment } = entry;
 	const href = `${pollHref(poll.id)}${commentHash(comment)}`;
@@ -353,7 +360,7 @@ function CommentRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'COMMENT'
 		<RowShell
 			unread={!entry.read}
 			icon={<ProfileAvatar username={actor.username} avatarUrl={actor.avatarUrl} className="size-9" />}
-			line={rich(t(entry.kind === 'MENTION' ? 'notifications.mentioned' : 'notifications.commented'), {
+			line={rich(t(COMMENT_ROW_LINE[entry.kind]), {
 				name: strong(`@${actor.username}`),
 				title: (
 					<RowLink href={href} onOpen={onOpen} className="font-medium">

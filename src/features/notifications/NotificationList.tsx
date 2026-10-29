@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { EmptyCard } from '@/components/EmptyCard';
@@ -16,7 +16,12 @@ import type { CursorPage } from '@/lib/api/cursor';
 
 import { type Entry, entryItems, groupFollows, NotificationRow } from './NotificationRows';
 import { preferencesSummary } from './preferences';
-import type { Notification, NotificationPreferences } from './schema';
+import {
+	type Notification,
+	NOTIFICATION_CATEGORIES,
+	type NotificationCategory,
+	type NotificationPreferences,
+} from './schema';
 import { getNotifications, markAllNotificationsRead, markNotificationRead } from './service';
 import { useUnreadCount } from './UnreadCountProvider';
 
@@ -59,7 +64,12 @@ export function NotificationList({
 }) {
 	const { t } = useLanguage();
 	const { count: unreadCount, refresh } = useUnreadCount();
-	const list = useCursorList(initialPage, getNotifications);
+	// The tab the loaded pages belong to; Load more reads it so its cursors stay with one category
+	const categoryRef = useRef<NotificationCategory | undefined>(undefined);
+	const fetchPage = useCallback((cursor: string) => getNotifications(cursor, categoryRef.current), []);
+	const list = useCursorList(initialPage, fetchPage);
+	const [category, setCategory] = useState<NotificationCategory | 'all'>('all');
+	const [isSwitching, setIsSwitching] = useState(false);
 	const [filter, setFilter] = useState<'all' | 'unread'>('all');
 	const [isMarking, setIsMarking] = useState(false);
 	// Days follow the reader's clock, so the grouping waits for hydration
@@ -93,6 +103,21 @@ export function NotificationList({
 		refresh();
 	};
 
+	const changeCategory = async (next: NotificationCategory | 'all') => {
+		if (next === category || isSwitching) return;
+		setIsSwitching(true);
+		try {
+			const nextCategory = next === 'all' ? undefined : next;
+			list.reset(await getNotifications(null, nextCategory));
+			categoryRef.current = nextCategory;
+			setCategory(next);
+		} catch {
+			toast.error(t('notifications.categoryFailed'));
+		} finally {
+			setIsSwitching(false);
+		}
+	};
+
 	if (initialPage === null) {
 		return (
 			<>
@@ -102,7 +127,7 @@ export function NotificationList({
 		);
 	}
 	// Unknown kinds are left out, so an empty page can still have more, or unread ones, after it
-	if (list.items.length === 0 && !list.hasMore && unreadCount === 0) {
+	if (list.items.length === 0 && !list.hasMore && unreadCount === 0 && category === 'all') {
 		return (
 			<>
 				<NotificationsHeader />
@@ -153,7 +178,21 @@ export function NotificationList({
 					]}
 				/>
 
-				{shown.length === 0 && <p className="empty-state">{t('notifications.caughtUp')}</p>}
+				<FilterPills
+					label={t('notifications.categoryLabel')}
+					value={category}
+					onChange={changeCategory}
+					options={[
+						{ value: 'all', label: t('profile.filterAll') },
+						...NOTIFICATION_CATEGORIES.map((value) => ({ value, label: t(`notifications.category.${value}`) })),
+					]}
+				/>
+
+				{shown.length === 0 && (
+					<p className="empty-state">
+						{t(category === 'all' || filter === 'unread' ? 'notifications.caughtUp' : 'notifications.categoryEmpty')}
+					</p>
+				)}
 				{!isHydrated && rows(groupFollows(shown))}
 				{groups.map(({ group, entries }) => (
 					<section key={group} aria-labelledby={`day-${group}`} className="flex flex-col gap-2">
