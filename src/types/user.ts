@@ -61,3 +61,16 @@ export interface Passkey {
 	/** How the browser reaches the authenticator (internal, hybrid, usb...); empty when not reported */
 	transports: string[];
 }
+
+/** A device the user is signed in on; the fields the API did not record for an older sign-in are null. */
+export interface SignedInSession {
+	sessionId: string;
+	/** Raw User-Agent: parse it for display */
+	userAgent: string | null;
+	createdAt: string | null;
+	/** Latest sign-in or refresh, accurate to about 15 minutes */
+	lastSeenAt: string | null;
+	/** The session making the request */
+	current: boolean;
+	adminScope: boolean;
+}

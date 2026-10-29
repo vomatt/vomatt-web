@@ -32,6 +32,7 @@ import type { NotificationPreferences } from '@/features/notifications/schema';
 import { updateNotificationPreferences } from '@/features/notifications/service';
 import { useUnreadCount } from '@/features/notifications/UnreadCountProvider';
 import { PasskeysPanel } from '@/features/passkeys/PasskeysPanel';
+import { SessionsPanel } from '@/features/sessions/SessionsPanel';
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
 import { useHydrated } from '@/hooks/useHydrated';
 import { htmlLang, SUPPORTED_LANGUAGES } from '@/i18n-config';
@@ -212,6 +213,9 @@ export default function AccountSettings({
 					</div>
 					<div className={cn(rowClassName, 'flex-col items-stretch')}>
 						<PasskeysPanel />
+					</div>
+					<div className={cn(rowClassName, 'flex-col items-stretch')}>
+						<SessionsPanel />
 					</div>
 					<ExportData />
 				</Card>

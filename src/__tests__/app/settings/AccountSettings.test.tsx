@@ -29,6 +29,11 @@ jest.mock('@/features/passkeys/service', () => ({
 	getPasskeys: jest.fn().mockResolvedValue({ ok: true, data: [] }),
 	deletePasskey: jest.fn(),
 }));
+jest.mock('@/features/sessions/service', () => ({
+	getSessions: jest.fn().mockResolvedValue({ ok: true, data: [] }),
+	revokeSession: jest.fn(),
+	revokeOtherSessions: jest.fn(),
+}));
 jest.mock('@/lib/api/services/users', () => ({
 	deleteMyAccount: jest.fn(),
 	editProfile: jest.fn(),
