@@ -62,9 +62,15 @@ export function getSafeRedirectPath(path: string | null) {
 
 /**
  * The login page. `sessionExpired` says why the visitor is there ('security': signed out after a reused token;
- * 'deleted': the account is gone) and lets the page open while the proxy still sees the old token as valid.
+ * 'deleted': the account is gone; 'revoked': signed out of this device from another) and lets the page open while the proxy still sees the old token as valid.
  */
-export function loginHref({ redirect, sessionExpired }: { redirect?: string; sessionExpired?: '1' | 'security' | 'deleted' }) {
+export function loginHref({
+	redirect,
+	sessionExpired,
+}: {
+	redirect?: string;
+	sessionExpired?: '1' | 'security' | 'deleted' | 'revoked';
+}) {
 	const params = new URLSearchParams();
 	if (redirect) params.set('redirect', redirect);
 	if (sessionExpired) params.set('session_expired', sessionExpired);

@@ -90,6 +90,13 @@ describe('apiClient', () => {
 		expect(fetchMock).toHaveBeenCalledTimes(1);
 	});
 
+	it('carries the errorCode of a 401, so a revoked session is told from an expired one', async () => {
+		mockGetTokens.mockResolvedValue({ accessToken: 'a1', refreshToken: 'r1' });
+		fetchMock.mockResolvedValue(json({ success: false, errorCode: 'auth.session_revoked' }, 401));
+
+		await expect(apiClient('/users/me')).rejects.toMatchObject({ errorCode: 'auth.session_revoked' });
+	});
+
 	it('throws AuthError when signed out and auth is required', async () => {
 		mockGetTokens.mockResolvedValue({ accessToken: '', refreshToken: 'r1' });
 		await expect(apiClient('/users/me')).rejects.toBeInstanceOf(AuthError);

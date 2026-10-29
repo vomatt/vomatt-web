@@ -17,7 +17,9 @@ interface ApiFetchOptions extends RequestInit {
 export class AuthError extends Error {
 	constructor(
 		message: string,
-		public statusCode: number = 401
+		public statusCode: number = 401,
+		/** `auth.session_revoked`: this sign-in was ended elsewhere; signing in again is the only way on. */
+		public errorCode?: string
 	) {
 		super(message);
 		this.name = 'AuthError';
@@ -134,7 +136,11 @@ export async function apiClient<T = any>(
 	});
 
 	if (response.status === 401) {
-		throw new AuthError('Your session has expired. Please log in again.');
+		const errorCode = await response.json().then(
+			(body) => (typeof body?.errorCode === 'string' ? body.errorCode : undefined),
+			() => undefined
+		);
+		throw new AuthError('Your session has expired. Please log in again.', 401, errorCode);
 	}
 
 	return parseApiResponseBody<T>(response);

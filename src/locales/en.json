@@ -81,7 +81,8 @@
 		"accountDeleted": "This account was deleted. Logging in with that email starts a new account.",
 		"sessionExpired": "Your session expired. Please log in again.",
 		"dialogDescription": "Log in or sign up with your email to continue",
-		"sessionRevoked": "For your security, you were signed out on this device. Please log in again."
+		"sessionRevoked": "For your security, you were signed out on this device. Please log in again.",
+		"signedOutHere": "You were signed out on this device. Please log in again."
 	},
 	"verificationCode": {
 		"title": "Check your email",
@@ -1090,6 +1091,8 @@
 			},
 			"email_not_verified": "This OAuth account’s email is not verified; cannot sign in or merge an existing account",
 			"account_banned": "This account has been banned and cannot sign in",
+			"session_revoked": "This device has been signed out. Please sign in again",
+			"session_not_found": "Signed-in device not found",
 			"passkey": {
 				"invalid": "Passkey verification failed. Please try again"
 			}
@@ -1295,5 +1298,27 @@
 		"deleteConfirmBody": "{name} will no longer sign you in. It stays on the device until you remove it there.",
 		"deleted": "Passkey removed",
 		"deleteFailed": "Couldn’t remove the passkey. Please try again."
+	},
+	"sessions": {
+		"title": "Signed-in devices",
+		"body": "Where you’re logged in. Sign out any you don’t recognize.",
+		"thisDevice": "This device",
+		"unknownDevice": "Unknown device",
+		"adminConsole": "Admin console",
+		"lastActive": "active {time}",
+		"activityUnknown": "activity unknown",
+		"signedInOn": "signed in {date}",
+		"empty": "No other devices are signed in.",
+		"loadFailed": "Couldn’t load your devices.",
+		"signOut": "Sign out",
+		"signOutLabel": "Sign out {name}",
+		"signOutOthers": "Sign out other devices",
+		"signOutConfirmTitle": "Sign out this device?",
+		"signOutConfirmBody": "{name} will be signed out and will need a new code to log in.",
+		"signOutOthersConfirmTitle": "Sign out all other devices?",
+		"signOutOthersConfirmBody": "Every device except this one will be signed out and will need a new code to log in.",
+		"signedOut": "Device signed out",
+		"othersSignedOut": "Other devices signed out",
+		"signOutFailed": "Couldn’t sign out. Please try again."
 	}
 }

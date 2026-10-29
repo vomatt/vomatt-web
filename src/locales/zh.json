@@ -81,7 +81,8 @@
 		"accountDeleted": "這個帳號已刪除。用同一個電子郵件登入會建立新帳號。",
 		"sessionExpired": "登入已過期，請重新登入。",
 		"dialogDescription": "使用電子郵件登入或註冊以繼續",
-		"sessionRevoked": "為了你的帳號安全，已登出這個裝置，請重新登入。"
+		"sessionRevoked": "為了你的帳號安全，已登出這個裝置，請重新登入。",
+		"signedOutHere": "你已在這個裝置登出，請重新登入。"
 	},
 	"verificationCode": {
 		"title": "請查看你的信箱",
@@ -1077,6 +1078,8 @@
 			},
 			"email_not_verified": "此 OAuth 帳號的 email 尚未驗證，無法登入或合併既有帳號",
 			"account_banned": "此帳號已被停權，無法登入",
+			"session_revoked": "此裝置已被登出，請重新登入",
+			"session_not_found": "找不到此登入裝置",
 			"passkey": {
 				"invalid": "通行密鑰驗證失敗，請重新操作一次"
 			}
@@ -1281,5 +1284,27 @@
 		"deleteConfirmBody": "移除後就不能再用 {name} 登入。裝置上的通行密鑰要到裝置設定中另外刪除。",
 		"deleted": "已移除通行密鑰",
 		"deleteFailed": "無法移除通行密鑰，請再試一次。"
+	},
+	"sessions": {
+		"title": "已登入的裝置",
+		"body": "你目前登入的地方。不認得的裝置可以直接登出。",
+		"thisDevice": "這個裝置",
+		"unknownDevice": "未知裝置",
+		"adminConsole": "管理後台",
+		"lastActive": "{time}活躍",
+		"activityUnknown": "活動時間不明",
+		"signedInOn": "登入於 {date}",
+		"empty": "沒有已登入的裝置。",
+		"loadFailed": "無法載入你的裝置。",
+		"signOut": "登出",
+		"signOutLabel": "登出 {name}",
+		"signOutOthers": "登出其他裝置",
+		"signOutConfirmTitle": "登出這個裝置？",
+		"signOutConfirmBody": "{name} 會被登出，再登入時需要新的驗證碼。",
+		"signOutOthersConfirmTitle": "登出所有其他裝置？",
+		"signOutOthersConfirmBody": "除了這個裝置，其他裝置都會被登出，再登入時需要新的驗證碼。",
+		"signedOut": "已登出該裝置",
+		"othersSignedOut": "已登出其他裝置",
+		"signOutFailed": "無法登出，請再試一次。"
 	}
 }

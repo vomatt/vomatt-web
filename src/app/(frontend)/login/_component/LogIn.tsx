@@ -25,7 +25,9 @@ export function LogIn({ policyMessage }: { policyMessage?: PortableTextBlock[] |
 							? 'login.sessionRevoked'
 							: sessionExpired === 'deleted'
 								? 'login.accountDeleted'
-								: 'login.sessionExpired'
+								: sessionExpired === 'revoked'
+									? 'login.signedOutHere'
+									: 'login.sessionExpired'
 					)}
 				</p>
 			)}
