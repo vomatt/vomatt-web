@@ -223,7 +223,7 @@ describe('NotificationList rows', () => {
 		expect(jtan).toHaveTextContent('@jtan followed you');
 		expect(jtan).toHaveTextContent('2h · Jun Tan');
 		expect(within(jtan).getByRole('button', { name: 'Follow back' })).toBeInTheDocument();
-		expect(within(rowOf('@tpark')).getByRole('button', { name: /Following/ })).toHaveAttribute('aria-pressed', 'true');
+		expect(within(rowOf('@tpark')).getByRole('button', { name: /Following/ })).toHaveAttribute('aria-haspopup', 'dialog');
 	});
 
 	it('quotes a comment and replies under it on the poll page', () => {

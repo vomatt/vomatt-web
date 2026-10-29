@@ -229,7 +229,7 @@
 		"previewBack": "回到你的個人頁",
 		"moreFor": "@{username} 的更多動作",
 		"followingNoteTitle": "追蹤代表什麼",
-		"followingNoteBody": "對方的投票會出現在你的「追蹤中」動態。對方不會看到你怎麼投，隨時一鍵取消。",
+		"followingNoteBody": "對方的投票會出現在你的「追蹤中」動態。對方不會看到你怎麼投，隨時都能取消。",
 		"mutualsOne": "追蹤者包括 @{name}",
 		"mutualsTwo": "追蹤者包括 @{name} 和 @{other}",
 		"mutualsMore": "追蹤者包括 @{name} 和另外 {count} 位你追蹤的人",
@@ -1214,6 +1214,7 @@
 	},
 	"follows": {
 		"unfollow": "取消追蹤",
+		"confirmUnfollow": "要取消追蹤 @{username} 嗎？",
 		"unfollowFailed": "無法取消追蹤，請再試一次。",
 		"follow": "追蹤",
 		"followed": "已追蹤 @{username}",

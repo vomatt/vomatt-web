@@ -393,7 +393,7 @@ function FollowedRow({ entry, onOpen, onSeen }: RowProps<Extract<Entry, { kind: 
 				name: <ActorName username={actor.username} avatarUrl={actor.avatarUrl} onOpen={onOpen} />,
 			})}
 			meta={[useAge(entry.createdAt), actor.displayName]}
-			action={<FollowButton follow={follow} size="xs" />}
+			action={<FollowButton follow={follow} username={actor.username} avatarUrl={actor.avatarUrl} size="xs" />}
 		/>
 	);
 }

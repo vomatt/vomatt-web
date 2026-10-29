@@ -56,7 +56,7 @@ it('offers Follow back, and says so, to someone who follows the viewer', async (
 it('shows Following for someone the viewer follows, and Follow for anyone else', async () => {
 	showList([rosa, bob]);
 
-	expect(within(await rowOf(/^Rosa Ortega/)).getByRole('button', { pressed: true })).toHaveTextContent('Following');
+	expect(within(await rowOf(/^Rosa Ortega/)).getByRole('button', { name: 'Following' })).toHaveTextContent('Following');
 	expect(within(await rowOf(/^Bob Chen/)).getByRole('button', { name: 'Follow' })).toBeInTheDocument();
 	expect(screen.queryByText(/follows you/)).not.toBeInTheDocument();
 });
@@ -84,7 +84,7 @@ it('lists the followers the viewer follows under its own title', async () => {
 	render(<FollowListDialog username="amira" list="mutuals" onOpenChange={jest.fn()} />);
 
 	expect(screen.getByRole('dialog', { name: 'Followers you know' })).toBeInTheDocument();
-	expect(within(await rowOf('Rosa Ortega @rosa')).getByRole('button', { pressed: true })).toHaveTextContent('Following');
+	expect(within(await rowOf('Rosa Ortega @rosa')).getByRole('button', { name: 'Following' })).toHaveTextContent('Following');
 	expect(mockGetMutualFollowers).toHaveBeenCalledWith('amira');
 	expect(mockGetFollowers).not.toHaveBeenCalled();
 });

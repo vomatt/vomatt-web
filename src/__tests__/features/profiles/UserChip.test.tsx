@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { UserChip } from '@/features/profiles/UserChip';
@@ -14,10 +14,11 @@ jest.mock('next/link', () => {
 });
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 const mockFollow = jest.fn();
+const mockUnfollow = jest.fn();
 const mockGetMutualFollowers = jest.fn();
 jest.mock('@/features/follows/service', () => ({
 	followUser: (...a: unknown[]) => mockFollow(...a),
-	unfollowUser: jest.fn(),
+	unfollowUser: (...a: unknown[]) => mockUnfollow(...a),
 	getMutualFollowers: (...a: unknown[]) => mockGetMutualFollowers(...a),
 }));
 
@@ -49,6 +50,7 @@ const fetchMock = jest.fn();
 
 beforeEach(() => {
 	fetchMock.mockReset();
+	mockUnfollow.mockClear();
 	global.fetch = fetchMock;
 });
 
@@ -93,7 +95,32 @@ describe('UserChip', () => {
 		await userEvent.click(await screen.findByRole('button', { name: 'Follow back' }));
 		expect(mockFollow).toHaveBeenCalledWith('u1');
 		expect(screen.getByText('1,205').parentElement).toHaveTextContent('1,205 followers');
-		await waitFor(() => expect(screen.getByRole('button', { name: 'Following Unfollow', pressed: true })).toBeEnabled());
+		await waitFor(() => expect(screen.getByRole('button', { name: 'Following' })).toBeEnabled());
+	});
+
+	it('asks before unfollowing from the card', async () => {
+		mockUnfollow.mockResolvedValue({ ok: true });
+		fetchMock.mockResolvedValueOnce(json({ ...profile, username: 'jtan', isFollowing: true, followsYou: false, isBlocked: false }));
+		render(<UserChip username="jtan" />);
+		await userEvent.hover(screen.getByRole('link', { name: 'jtan' }));
+
+		await userEvent.click(await screen.findByRole('button', { name: 'Following' }));
+		expect(mockUnfollow).not.toHaveBeenCalled();
+		const confirm = await screen.findByRole('alertdialog', { name: 'Unfollow @jtan?' });
+		await userEvent.click(within(confirm).getByRole('button', { name: 'Unfollow' }));
+		expect(mockUnfollow).toHaveBeenCalledWith('u1');
+	});
+
+	it('hands focus back to the chip when the confirm is cancelled from the card', async () => {
+		fetchMock.mockResolvedValueOnce(json({ ...profile, username: 'kai', isFollowing: true, followsYou: false, isBlocked: false }));
+		render(<UserChip username="kai" />);
+		await userEvent.hover(screen.getByRole('link', { name: 'kai' }));
+
+		await userEvent.click(await screen.findByRole('button', { name: 'Following' }));
+		await userEvent.click(await screen.findByRole('button', { name: 'Cancel' }));
+		await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+		expect(screen.getByRole('link', { name: 'kai' })).toHaveFocus();
+		expect(mockUnfollow).not.toHaveBeenCalled();
 	});
 
 	it('says who the viewer follows among their followers, opening that list', async () => {

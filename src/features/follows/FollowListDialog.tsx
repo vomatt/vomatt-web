@@ -155,7 +155,7 @@ function PersonRow({ user, viewerId, onFollowChange }: RowProps & { user: Follow
 					</span>
 				</Link>
 			</ProfileHoverCard>
-			<FollowButton follow={follow} size="xs" />
+			<FollowButton follow={follow} username={user.username} avatarUrl={user.avatarUrl} size="xs" />
 		</li>
 	);
 }

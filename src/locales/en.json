@@ -237,7 +237,7 @@
 		"previewBack": "Back to your profile",
 		"moreFor": "More for @{username}",
 		"followingNoteTitle": "What following does",
-		"followingNoteBody": "Their polls join your Following feed. It never shows them how you voted, and you can undo it with one tap.",
+		"followingNoteBody": "Their polls join your Following feed. It never shows them how you voted, and you can undo it anytime.",
 		"mutualsOne": "Followed by @{name}",
 		"mutualsTwo": "Followed by @{name} and @{other}",
 		"mutualsMore": "Followed by @{name} and {count} others you follow",
@@ -1227,6 +1227,7 @@
 	},
 	"follows": {
 		"unfollow": "Unfollow",
+		"confirmUnfollow": "Unfollow @{username}?",
 		"unfollowFailed": "Couldn’t unfollow. Try again.",
 		"follow": "Follow",
 		"followed": "Following @{username}",

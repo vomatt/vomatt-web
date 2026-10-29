@@ -1,12 +1,12 @@
 'use client';
 
 import { PreviewCard } from '@base-ui/react/preview-card';
-import { type ReactElement, useState } from 'react';
+import { type ReactElement, useRef, useState } from 'react';
 
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
-import { FollowButton, useFollow } from '@/features/follows/FollowButton';
+import { type Follow, FollowButton, UnfollowDialog, useFollow } from '@/features/follows/FollowButton';
 import { FollowListDialog } from '@/features/follows/FollowListDialog';
 import { formatMonthYear } from '@/features/polls/format';
 import { countText } from '@/lib/count';
@@ -86,7 +86,16 @@ export function ProfileHoverCard({
 }) {
 	const [stored, setState] = useState<CardState>({ username, status: 'idle' });
 	const [mutualsOpen, setMutualsOpen] = useState(false);
+	const triggerRef = useRef<HTMLAnchorElement>(null);
 	const state: CardState = stored.username === username ? stored : { username, status: 'idle' };
+	const profile = state.status === 'ready' ? state.profile : null;
+	// The page's avatarUrl is fresher than the cached profile
+	const shownAvatarUrl = avatarUrl ?? profile?.avatarUrl;
+	// Here, not in the card, so the unfollow confirm and its request outlive the card closing.
+	// Signed out, and on the viewer's own card, the relation is null too
+	const follow = useFollow(profile?.id ?? '', profile ?? NO_RELATION, {
+		onChange: (following) => rememberFollowing(username, following),
+	});
 
 	const load = () => {
 		const entry = loadProfile(username);
@@ -102,7 +111,7 @@ export function ProfileHoverCard({
 
 	return (
 		<PreviewCard.Root onOpenChange={(open) => open && load()}>
-			<PreviewCard.Trigger render={children} />
+			<PreviewCard.Trigger ref={triggerRef} render={children} />
 			<PreviewCard.Portal>
 				<PreviewCard.Positioner side="bottom" align="start" sideOffset={8} className="isolate z-50">
 					{/* React events bubble out of portals: keep clicks in the card from reaching a row link around the trigger */}
@@ -111,19 +120,20 @@ export function ProfileHoverCard({
 						className="w-80 origin-(--transform-origin) rounded-2xl border border-border bg-card p-4 text-foreground shadow-lg data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95">
 						<ProfileCardBody
 							username={username}
-							avatarUrl={avatarUrl}
+							avatarUrl={shownAvatarUrl}
 							state={state}
+							follow={follow}
 							onOpenMutuals={() => setMutualsOpen(true)}
 						/>
 					</PreviewCard.Popup>
 				</PreviewCard.Positioner>
 			</PreviewCard.Portal>
-			{/* Outside the popup, which closes as the dialog takes focus; its clicks are kept from a row link too */}
-			{mutualsOpen && (
-				<span className="contents" onClick={(event) => event.stopPropagation()}>
-					<FollowListDialog username={username} list="mutuals" onOpenChange={setMutualsOpen} />
-				</span>
-			)}
+			{/* Outside the popup, which closes as a dialog takes focus; their clicks are kept from a row link too */}
+			<span className="contents" onClick={(event) => event.stopPropagation()}>
+				{mutualsOpen && <FollowListDialog username={username} list="mutuals" onOpenChange={setMutualsOpen} />}
+				{/* Focus goes back to the trigger: the button that opened it left with the card */}
+				<UnfollowDialog follow={follow} username={username} avatarUrl={shownAvatarUrl} finalFocus={triggerRef} />
+			</span>
 		</PreviewCard.Root>
 	);
 }
@@ -135,31 +145,28 @@ function ProfileCardBody({
 	username,
 	avatarUrl,
 	state,
+	follow,
 	onOpenMutuals,
 }: {
 	username: string;
 	avatarUrl?: string | null;
 	state: CardState;
+	follow: Follow;
 	onOpenMutuals: () => void;
 }) {
 	const { t, currentLanguage } = useLanguage();
 	const profile = state.status === 'ready' ? state.profile : null;
 	const displayName = profile?.displayName;
-	// Signed out, and on the viewer's own card, the relation is null too
-	const follow = useFollow(profile?.id ?? '', profile ?? NO_RELATION, {
-		onChange: (following) => rememberFollowing(username, following),
-	});
 
 	return (
 		<div className="space-y-3">
 			<div className="flex items-start gap-3">
-				{/* The page's avatarUrl is fresher than the cached profile */}
-				<UserAvatar username={username} avatarUrl={avatarUrl ?? profile?.avatarUrl} className="size-12" />
+				<UserAvatar username={username} avatarUrl={avatarUrl} className="size-12" />
 				<div className="min-w-0 flex-1">
 					<p className="truncate text-[17px] font-medium leading-tight tracking-[-0.02em]">{displayName || username}</p>
 					<p className="truncate font-mono text-[12px] text-muted-foreground">@{username}</p>
 				</div>
-				<FollowButton follow={follow} size="xs" />
+				<FollowButton follow={follow} username={username} avatarUrl={avatarUrl} size="xs" withConfirm={false} />
 			</div>
 			{state.status === 'loading' && (
 				<div aria-hidden className="space-y-2">

@@ -148,7 +148,7 @@ function VisitorActions({ profile, follow }: { profile: UserProfile; follow: Fol
 
 	return (
 		<>
-			<FollowButton follow={follow} />
+			<FollowButton follow={follow} username={profile.username} avatarUrl={profile.avatarUrl} />
 			<Menu.Root>
 				<Menu.Trigger
 					render={<Button variant="outline" size="icon-sm" />}

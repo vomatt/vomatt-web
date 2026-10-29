@@ -148,7 +148,7 @@ describe('VisitorProfileView', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: 'Follow' }));
 		expect(mockFollow).toHaveBeenCalledWith('u2');
-		expect(screen.getByRole('button', { name: 'Following Unfollow', pressed: true })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Following' })).toBeInTheDocument();
 		expect(screen.getByRole('button', { name: '1,205 followers' })).toBeInTheDocument();
 		expect(screen.getByRole('button', { name: 'More for @amira' })).toBeInTheDocument();
 	});
@@ -171,13 +171,27 @@ describe('VisitorProfileView', () => {
 		);
 
 		fireEvent.click(screen.getByRole('button', { name: 'Follow back' }));
-		await waitFor(() => expect(screen.getByRole('button', { name: 'Following Unfollow', pressed: true })).toBeEnabled());
+		await waitFor(() => expect(screen.getByRole('button', { name: 'Following' })).toBeEnabled());
 		expect(screen.getByRole('button', { name: '1,205 followers' })).toBeInTheDocument();
 
-		fireEvent.click(screen.getByRole('button', { name: 'Following Unfollow' }));
+		fireEvent.click(screen.getByRole('button', { name: 'Following' }));
+		expect(mockUnfollow).not.toHaveBeenCalled();
+		const confirm = await screen.findByRole('alertdialog', { name: 'Unfollow @amira?' });
+		fireEvent.click(within(confirm).getByRole('button', { name: 'Unfollow' }));
 		expect(mockUnfollow).toHaveBeenCalledWith('u2');
 		await waitFor(() => expect(screen.getByRole('button', { name: 'Follow back' })).toBeEnabled());
 		expect(screen.getByRole('button', { name: '1,204 followers' })).toBeInTheDocument();
+	});
+
+	it('keeps following when the unfollow confirm is cancelled', async () => {
+		render(<VisitorProfileView profile={{ ...visitor, isFollowing: true }} polls={{ items: [], nextCursor: null }} viewerId="u1" />);
+
+		fireEvent.click(screen.getByRole('button', { name: 'Following' }));
+		const confirm = await screen.findByRole('alertdialog', { name: 'Unfollow @amira?' });
+		fireEvent.click(within(confirm).getByRole('button', { name: 'Cancel' }));
+		await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+		expect(mockUnfollow).not.toHaveBeenCalled();
+		expect(screen.getByRole('button', { name: 'Following' })).toBeInTheDocument();
 	});
 
 	it('keeps them blocked and says so when unblocking fails', async () => {
