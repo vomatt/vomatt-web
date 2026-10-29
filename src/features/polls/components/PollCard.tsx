@@ -11,6 +11,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { UserChip } from '@/features/profiles/UserChip';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
+import { cn } from '@/lib/utils';
 
 import { formatAge } from '../format';
 import { useBallot } from '../hooks/useBallot';
@@ -115,7 +116,8 @@ export function PollCard({
 	);
 
 	return (
-		<article className="group bg-card border border-border rounded-2xl">
+		// In a list the title's link stretches over the card; the controls sit above it (z-10)
+		<article className={cn('group bg-card border border-border rounded-2xl', !isPage && 'relative')}>
 			<div className="flex flex-col gap-4 p-5 md:gap-5 md:px-8 md:pt-7 md:pb-7">
 				<div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
 					<div className="flex min-w-0 items-center gap-2.5 text-[14px] text-muted-foreground">
@@ -124,7 +126,7 @@ export function PollCard({
 							avatarUrl={poll.creatorAvatarUrl}
 							label={`@${creatorUsername}`}
 							// 44px tall hit area without growing the header row
-							className="-my-2.5 min-h-11 gap-2.5 font-medium text-foreground transition-colors hover:text-muted-foreground"
+							className="relative z-10 -my-2.5 min-h-11 gap-2.5 font-medium text-foreground transition-colors hover:text-muted-foreground"
 							avatarClassName="size-7"
 						/>
 						{/* The age needs the viewer's clock; the line holds its height until then */}
@@ -147,7 +149,7 @@ export function PollCard({
 							{title}
 						</Heading>
 					) : (
-						<Link href={`/poll/${id}`}>
+						<Link href={`/poll/${id}`} className="after:absolute after:inset-0 after:rounded-2xl">
 							<Heading className="poll-title wrap-anywhere text-foreground hover:text-muted-foreground transition-colors md:text-[25px]">
 								{title}
 							</Heading>
@@ -164,6 +166,7 @@ export function PollCard({
 				<AnimatePresence mode="wait" initial={false}>
 					<m.div
 						key={status === 'ended' ? 'results' : 'ballot'}
+						className="relative z-10"
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
@@ -189,20 +192,22 @@ export function PollCard({
 				</AnimatePresence>
 
 				{/* One fixed place, so a status change never remounts an open owner dialog */}
-				{ownerActions && <div className="flex justify-end">{ownerActions}</div>}
+				{ownerActions && <div className="relative z-10 flex justify-end">{ownerActions}</div>}
 			</div>
 
-			<PollFooter
-				pollId={id}
-				title={title}
-				turnout={ballot.turnout}
-				audience={poll.audience}
-				commentCount={poll.commentCount}
-				isPage={isPage}
-				bookmarked={!!poll.bookmarked}
-				onToggleBookmark={toggleBookmark}
-				onReport={isOwner ? undefined : () => requireAuth(() => setIsReporting(true))}
-			/>
+			<div className="relative z-10">
+				<PollFooter
+					pollId={id}
+					title={title}
+					turnout={ballot.turnout}
+					audience={poll.audience}
+					commentCount={poll.commentCount}
+					isPage={isPage}
+					bookmarked={!!poll.bookmarked}
+					onToggleBookmark={toggleBookmark}
+					onReport={isOwner ? undefined : () => requireAuth(() => setIsReporting(true))}
+				/>
+			</div>
 
 			{isReporting && <ReportCommentDialog pollId={id} open onOpenChange={setIsReporting} />}
 
