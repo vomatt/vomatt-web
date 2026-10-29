@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 
 import { EmptyCard } from '@/components/EmptyCard';
@@ -64,11 +64,16 @@ export function NotificationList({
 }) {
 	const { t } = useLanguage();
 	const { count: unreadCount, refresh } = useUnreadCount();
-	// The tab the loaded pages belong to; Load more reads it so its cursors stay with one category
-	const categoryRef = useRef<NotificationCategory | undefined>(undefined);
-	const fetchPage = useCallback((cursor: string) => getNotifications(cursor, categoryRef.current), []);
+	// The server page is the unfiltered feed; a tab's reset brings its own fetcher so cursors stay with one category
+	const fetchPage = useCallback((cursor: string) => getNotifications(cursor), []);
 	const list = useCursorList(initialPage, fetchPage);
 	const [category, setCategory] = useState<NotificationCategory | 'all'>('all');
+	// A fresh server page replaces the filtered list, so the tab goes back to All
+	const [seed, setSeed] = useState(initialPage);
+	if (initialPage !== seed) {
+		setSeed(initialPage);
+		setCategory('all');
+	}
 	const [isSwitching, setIsSwitching] = useState(false);
 	const [filter, setFilter] = useState<'all' | 'unread'>('all');
 	const [isMarking, setIsMarking] = useState(false);
@@ -104,12 +109,12 @@ export function NotificationList({
 	};
 
 	const changeCategory = async (next: NotificationCategory | 'all') => {
-		if (next === category || isSwitching) return;
+		// A Load more in flight would append the old tab's page after the reset
+		if (next === category || isSwitching || list.isLoading) return;
 		setIsSwitching(true);
 		try {
 			const nextCategory = next === 'all' ? undefined : next;
-			list.reset(await getNotifications(null, nextCategory));
-			categoryRef.current = nextCategory;
+			list.reset(await getNotifications(null, nextCategory), (cursor) => getNotifications(cursor, nextCategory));
 			setCategory(next);
 		} catch {
 			toast.error(t('notifications.categoryFailed'));

@@ -47,12 +47,13 @@ export function useCursorList<T extends { id: string }>(
 		}
 	}, [fetchListed, isLoading, nextCursor]);
 
+	// `fetchNext` replaces the fetcher Load more uses for the new pages (default: `fetchPage`)
 	const reset = useCallback(
-		(page: CursorPage<T>) => {
+		(page: CursorPage<T>, fetchNext: (cursor: string) => Promise<CursorPage<T>> = fetchPage) => {
 			setItems(page.items);
 			setNextCursor(page.nextCursor);
 			setLoadFailed(false);
-			setFetchListed(() => fetchPage);
+			setFetchListed(() => fetchNext);
 		},
 		[fetchPage]
 	);
