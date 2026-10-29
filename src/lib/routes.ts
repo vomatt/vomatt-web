@@ -60,6 +60,17 @@ export function getSafeRedirectPath(path: string | null) {
 	return `${url.pathname}${url.search}${url.hash}`;
 }
 
+/**
+ * The login page. `sessionExpired` says why the visitor is there ('security': signed out after a reused token;
+ * 'deleted': the account is gone) and lets the page open while the proxy still sees the old token as valid.
+ */
+export function loginHref({ redirect, sessionExpired }: { redirect?: string; sessionExpired?: '1' | 'security' | 'deleted' }) {
+	const params = new URLSearchParams();
+	if (redirect) params.set('redirect', redirect);
+	if (sessionExpired) params.set('session_expired', sessionExpired);
+	return params.size ? `/login?${params}` : '/login';
+}
+
 /** A comment's link: `#comment-<id>`, or `#comment-<rootId>/<replyId>` for a Reply, whose list loads on demand. */
 export const commentHash = (comment: { id: string; parentId?: string | null }) =>
 	`#comment-${comment.parentId ? `${comment.parentId}/${comment.id}` : comment.id}`;

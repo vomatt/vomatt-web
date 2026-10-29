@@ -62,9 +62,11 @@ const navigationItems = [
 interface AppSidebarProps {
 	userSession: any;
 	profile: MyProfile | null;
+	/** Where Log in goes; carries `session_expired` when the API refused the session. */
+	loginLink?: string;
 }
 
-export function AppSidebar({ userSession, profile }: AppSidebarProps) {
+export function AppSidebar({ userSession, profile, loginLink = '/login' }: AppSidebarProps) {
 	const { t } = useLanguage();
 	const pathname = usePathname();
 	const { count: unreadCount } = useUnreadCount();
@@ -94,7 +96,7 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 					</CreatePollTrigger>
 				) : (
 					<Link
-						href="/login"
+						href={loginLink}
 						className={cn(buttonVariants({ variant: 'create' }), 'w-full')}
 					>
 						<PlusCircle />
@@ -194,7 +196,7 @@ export function AppSidebar({ userSession, profile }: AppSidebarProps) {
 				{!userSession && (
 					<div className="rounded-xl border border-sidebar-border bg-card p-1">
 						<Link
-							href="/login"
+							href={loginLink}
 							className="flex items-center gap-2.5 w-full h-9 px-3 rounded-lg text-muted-foreground hover:text-sidebar-foreground transition-colors duration-150 text-[14px] outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
 						>
 							<User className="size-4 shrink-0" />

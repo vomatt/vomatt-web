@@ -9,10 +9,10 @@ const bob = { id: 'u1', username: 'bob', displayName: 'Bob', avatarUrl: 'bot:bob
 const cy = { id: 'u2', username: 'cy', displayName: null, avatarUrl: null };
 
 function renderEmbedded(load: jest.Mock) {
-	return render(<UserRelationPanel ns="blocks" action="unblock" load={load} remove={jest.fn()} variant="embedded" />);
+	return render(<UserRelationPanel ns="blocks" action="unblock" load={load} remove={jest.fn()} />);
 }
 
-describe('UserRelationPanel embedded', () => {
+describe('UserRelationPanel', () => {
 	it('titles the row with the count and shows each person by handle only', async () => {
 		const load = jest.fn().mockResolvedValue({ ok: true, data: { items: [bob, cy], nextCursor: null } });
 		renderEmbedded(load);

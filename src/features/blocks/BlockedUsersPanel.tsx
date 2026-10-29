@@ -6,5 +6,5 @@ import { getBlockedUsers, unblockUser } from './service';
 
 /** Settings: people the user blocked, with a way to unblock each; a row inside the Privacy card. */
 export function BlockedUsersPanel() {
-	return <UserRelationPanel ns="blocks" action="unblock" load={getBlockedUsers} remove={unblockUser} variant="embedded" />;
+	return <UserRelationPanel ns="blocks" action="unblock" load={getBlockedUsers} remove={unblockUser} />;
 }

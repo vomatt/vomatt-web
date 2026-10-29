@@ -1,12 +1,11 @@
 import type { Metadata } from 'next';
-import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
 
 import { PageShell } from '@/components/layout/PageShell';
 import { T } from '@/components/T';
 import { Lock } from '@/components/ui/SvgIcons';
 import { TidePanel } from '@/components/ui/TidePanel';
-import { getMyProfile } from '@/data/auth';
+import { getMyProfile, redirectToLogin } from '@/data/auth';
 import {
 	NotificationList,
 	NotificationSettingsLink,
@@ -25,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function NotificationsPage() {
 	const profile = await getMyProfile();
-	if (!profile) redirect('/login?redirect=/notifications');
+	if (!profile) return redirectToLogin('/notifications');
 
 	// Started together; the list and the rail each stream in when theirs resolves
 	const firstPage = getNotifications().catch(() => null);

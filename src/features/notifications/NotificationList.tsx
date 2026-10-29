@@ -22,8 +22,9 @@ import {
 	type NotificationCategory,
 	type NotificationPreferences,
 } from './schema';
-import { getNotifications, markAllNotificationsRead, markNotificationRead } from './service';
+import { getNotifications, markAllNotificationsRead } from './service';
 import { useUnreadCount } from './UnreadCountProvider';
+import { useMarkRead } from './useMarkRead';
 
 export type DayGroup = 'today' | 'yesterday' | 'earlier';
 
@@ -51,8 +52,9 @@ export function NotificationsHeader({ action }: { action?: React.ReactNode }) {
 }
 
 /**
- * The feed, newest first, grouped by day, with each run of follows as one row. Results
- * rows stay until opened, so a sealed promise is never lost in the list.
+ * The feed, newest first, grouped by day, with each run of follows as one row. A row on screen
+ * for a moment is read, but keeps its dot until the next visit so the list doesn't change under
+ * the reader. Results rows stay until opened, so a sealed promise is never lost in the list.
  */
 export function NotificationList({
 	initialPage,
@@ -80,21 +82,36 @@ export function NotificationList({
 	// Days follow the reader's clock, so the grouping waits for hydration
 	const isHydrated = useHydrated();
 
+	// Read this visit by being seen: their dots, and their place under Unread, stay until the next one
+	const [seenIds, setSeenIds] = useState<ReadonlySet<string>>(new Set());
 	const unread = list.items.filter((item) => !item.read);
+	// What the server still counts, like the badge
+	const unreadCountHere = unread.filter((item) => !seenIds.has(item.id)).length;
 	const shown = filter === 'unread' ? unread : list.items;
 
 	const setRead = (ids: Set<string>) =>
 		list.setItems((items) => items.map((item) => (ids.has(item.id) ? { ...item, read: true } : item)));
+	const markRead = useMarkRead();
+
+	const unreadIds = (entry: Entry) =>
+		entryItems(entry)
+			.filter((item) => !item.read)
+			.map((item) => item.id);
 
 	// The dot clears at once; a failed request leaves it unread on the server, so the next visit shows it again
 	const open = (entry: Entry) => {
-		const ids = entryItems(entry)
-			.filter((item) => !item.read)
-			.map((item) => item.id);
+		const ids = unreadIds(entry);
 		if (ids.length === 0) return;
 		setRead(new Set(ids));
-		Promise.all(ids.map((id) => markNotificationRead(id))).then(refresh);
+		markRead.read(ids);
 	};
+
+	const seen = (entry: Entry) => {
+		const ids = unreadIds(entry);
+		setSeenIds((current) => new Set([...current, ...ids]));
+		markRead.queue(ids);
+	};
+	const watchesSeen = (entry: Entry) => entry.kind !== 'RESULT' && unreadIds(entry).some((id) => !seenIds.has(id));
 
 	const markAllRead = async () => {
 		setIsMarking(true);
@@ -104,6 +121,7 @@ export function NotificationList({
 			toast.error(t('notifications.markAllFailed'));
 			return;
 		}
+		markRead.markedAll();
 		setRead(new Set(unread.map((item) => item.id)));
 		refresh();
 	};
@@ -150,7 +168,13 @@ export function NotificationList({
 	const rows = (entries: Entry[]) => (
 		<ul className="flex flex-col gap-2">
 			{entries.map((entry) => (
-				<NotificationRow key={entry.id} entry={entry} onOpen={() => open(entry)} viewerUsername={viewerUsername} />
+				<NotificationRow
+					key={entry.id}
+					entry={entry}
+					onOpen={() => open(entry)}
+					onSeen={watchesSeen(entry) ? () => seen(entry) : undefined}
+					viewerUsername={viewerUsername}
+				/>
 			))}
 		</ul>
 	);
@@ -165,7 +189,7 @@ export function NotificationList({
 						className="text-[14px]"
 						loading={isMarking}
 						// Unread ones may sit past the loaded pages; read-all reaches them too
-						disabled={unread.length === 0 && unreadCount === 0}
+						disabled={unreadCountHere === 0 && unreadCount === 0}
 						onClick={markAllRead}
 					>
 						{t('notifications.markAllRead')}
@@ -179,7 +203,7 @@ export function NotificationList({
 					onChange={setFilter}
 					options={[
 						{ value: 'all', label: t('profile.filterAll') },
-						{ value: 'unread', label: t('notifications.unread'), count: unread.length },
+						{ value: 'unread', label: t('notifications.unread'), count: unreadCountHere },
 					]}
 				/>
 

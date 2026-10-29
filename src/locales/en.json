@@ -78,6 +78,7 @@
 		"brandRuleOneVote": "One person, one vote.",
 		"brandRuleResults": "Results go back to everyone who voted.",
 		"subtitle": "Enter your email and we’ll send you a code. New here? We’ll create your account.",
+		"accountDeleted": "This account was deleted. Logging in with that email starts a new account.",
 		"sessionExpired": "Your session expired. Please log in again.",
 		"dialogDescription": "Log in or sign up with your email to continue",
 		"sessionRevoked": "For your security, you were signed out on this device. Please log in again."
@@ -1127,12 +1128,7 @@
 		"blockEllipsis": "Block…"
 	},
 	"follows": {
-		"title": "Following",
-		"intro": "Open public polls by people you follow appear in your Following feed. They get a notification when you follow them, and signed-in users can see who follows whom on profiles.",
-		"empty": "You aren’t following anyone.",
-		"loadFailed": "Couldn’t load followed users.",
 		"unfollow": "Unfollow",
-		"unfollowed": "Unfollowed @{username}",
 		"unfollowFailed": "Couldn’t unfollow. Try again.",
 		"follow": "Follow",
 		"followed": "Following @{username}",
@@ -1153,7 +1149,7 @@
 		"inviteListCount": "{count} lists",
 		"inviteListCount_one": "{count} list",
 		"theme": "Theme",
-		"themeBody": "Auto follows your system. Also in the sidebar’s More menu.",
+		"themeBody": "Auto follows your system.",
 		"language": "Language",
 		"privacy": "Privacy and safety",
 		"whatOthersSeeBody": "Set it beside each detail in Edit profile.",
