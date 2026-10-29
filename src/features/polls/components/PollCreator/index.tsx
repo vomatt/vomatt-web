@@ -1,7 +1,12 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AnimatePresence, m, useIsPresent, useReducedMotion } from 'motion/react';
+import {
+	AnimatePresence,
+	m,
+	useIsPresent,
+	useReducedMotion,
+} from 'motion/react';
 import { useRouter } from 'next/navigation';
 import {
 	type FormEvent,
@@ -59,7 +64,11 @@ import {
 	type VoterVisibility,
 } from '../../schema';
 import { createPoll, updatePoll } from '../../service';
-import { derivePollStatus, type PollStatus, visibilityLevel } from '../../status';
+import {
+	derivePollStatus,
+	type PollStatus,
+	visibilityLevel,
+} from '../../status';
 import { BallotMark } from '../BallotMotion';
 import { InviteePicker } from '../InviteePicker';
 import { StatusChip } from '../StatusChip';
@@ -86,7 +95,11 @@ const LABEL = 'text-[14px] leading-snug font-medium';
 
 /** Writing and review slide toward where the step goes: forward to the left, back to the right. */
 const STEP_VARIANTS = {
-	enter: (direction: number) => ({ opacity: 0, x: direction * 16, filter: 'blur(4px)' }),
+	enter: (direction: number) => ({
+		opacity: 0,
+		x: direction * 16,
+		filter: 'blur(4px)',
+	}),
 	center: { opacity: 1, x: 0, filter: 'blur(0px)', transition: ENTER },
 	exit: (direction: number) => ({
 		opacity: 0,
@@ -120,7 +133,10 @@ function StepLayer({
 	useLayoutEffect(() => {
 		const element = ref.current;
 		if (!isPresent || !element) return;
-		const observer = new ResizeObserver(() => onResize(step, element.offsetHeight));
+		// Unrounded: an offsetHeight short of the content would leave the scroller a sub-pixel overflow
+		const observer = new ResizeObserver(() =>
+			onResize(step, element.getBoundingClientRect().height)
+		);
 		observer.observe(element);
 		return () => observer.disconnect();
 	}, [isPresent, onResize, step]);
@@ -135,7 +151,11 @@ function StepLayer({
  * Write everything on one screen, then review it the way voters will see it.
  * Status and times are fixed when entering review; a Closing chip still counts down.
  */
-type ReviewSnapshot = { status: PollStatus; startTime: string; endTime: string };
+type ReviewSnapshot = {
+	status: PollStatus;
+	startTime: string;
+	endTime: string;
+};
 
 export interface PollCreatorProps {
 	/** A single button element; it becomes the dialog trigger. */
@@ -159,7 +179,11 @@ function initialValues(poll?: Poll, draft?: PollDraft) {
 /** Return alone: not Cmd/Ctrl+Return (submits), not Return that commits IME text. */
 function isPlainReturn(e: KeyboardEvent) {
 	return (
-		e.key === 'Enter' && !e.metaKey && !e.ctrlKey && !e.nativeEvent.isComposing && e.keyCode !== 229
+		e.key === 'Enter' &&
+		!e.metaKey &&
+		!e.ctrlKey &&
+		!e.nativeEvent.isComposing &&
+		e.keyCode !== 229
 	);
 }
 
@@ -167,7 +191,10 @@ function isPlainReturn(e: KeyboardEvent) {
  * Focus another field right away. react-hook-form's setFocus waits a tick,
  * so keys typed in between would land in the field being left.
  */
-function focusField(e: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>, name: string) {
+function focusField(
+	e: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>,
+	name: string
+) {
 	const field = e.currentTarget.form?.elements.namedItem(name);
 	if (field instanceof HTMLElement) field.focus();
 }
@@ -217,20 +244,38 @@ export function PollCreator({
 		resolver: zodResolver(pollFormSchema),
 		defaultValues: defaults,
 	});
-	const { fields, append, remove } = useFieldArray({ control, name: 'options' });
-	const [title, description, options, startTime, voterVisibility, audience] = useWatch({
+	const { fields, append, remove } = useFieldArray({
 		control,
-		name: ['title', 'description', 'options', 'startTime', 'voterVisibility', 'audience'],
+		name: 'options',
 	});
+	const [title, description, options, startTime, voterVisibility, audience] =
+		useWatch({
+			control,
+			name: [
+				'title',
+				'description',
+				'options',
+				'startTime',
+				'voterVisibility',
+				'audience',
+			],
+		});
 	const isInviteOnly = audience === 'invite-only';
 	const titleRef = useRef<HTMLHeadingElement>(null);
 	const reduceMotion = useReducedMotion();
 	// The scroller follows the current step's height: animated when the step changes, at once
 	// as the step itself grows (a section unfolding animates on its own)
-	const [stepHeight, setStepHeight] = useState<{ height: number; animate: boolean }>();
+	const [stepHeight, setStepHeight] = useState<{
+		height: number;
+		animate: boolean;
+	}>();
 	const measuredStep = useRef<string>(undefined);
 	const onStepResize = useCallback((step: string, height: number) => {
-		setStepHeight({ height, animate: measuredStep.current !== undefined && measuredStep.current !== step });
+		setStepHeight({
+			height,
+			animate:
+				measuredStep.current !== undefined && measuredStep.current !== step,
+		});
 		measuredStep.current = step;
 	}, []);
 
@@ -297,19 +342,26 @@ export function PollCreator({
 	const showReview = (values: PollFormValues) => {
 		const now = Date.now();
 		// localToIso, not formToInput: a corrupt draft time must not throw here
-		const startTime = localToIso(values.startTime) ?? new Date(now).toISOString();
+		const startTime =
+			localToIso(values.startTime) ?? new Date(now).toISOString();
 		const endTime = localToIso(values.endTime) ?? startTime;
-		const status = derivePollStatus({ active: true, votingActive: true, startTime, endTime }, now);
+		const status = derivePollStatus(
+			{ active: true, votingActive: true, startTime, endTime },
+			now
+		);
 		setReview({ status, startTime, endTime });
 	};
 
 	// handleSubmit, not trigger: it focuses the first error and re-validates fields as they change
-	const goToReview = (e: FormEvent) => handleSubmit(showReview, revealEndError)(e);
+	const goToReview = (e: FormEvent) =>
+		handleSubmit(showReview, revealEndError)(e);
 
 	const publish = handleSubmit(
 		async (values: PollFormValues) => {
 			const input = formToInput(values);
-			const result = isEdit ? await updatePoll(poll.id, input) : await createPoll(input);
+			const result = isEdit
+				? await updatePoll(poll.id, input)
+				: await createPoll(input);
 			if (!result.ok) {
 				setError('root', { message: apiErrorText(t, result) });
 				return;
@@ -346,14 +398,18 @@ export function PollCreator({
 
 	// Each distinct message once, translated, with an id for aria-describedby (the first takes `id` itself)
 	const fieldErrors = (id: string, messages: (string | undefined)[]) =>
-		[...new Set(messages.filter((key): key is string => !!key))].map((key, index) => ({
-			id: index ? `${id}-${index}` : id,
-			text: t(key),
-		}));
+		[...new Set(messages.filter((key): key is string => !!key))].map(
+			(key, index) => ({
+				id: index ? `${id}-${index}` : id,
+				text: t(key),
+			})
+		);
 
 	// One line under the list says each distinct problem once; every option points at its own
 	const optionMessages = [
-		...new Set(fields.flatMap((_, index) => errors.options?.[index]?.text?.message ?? [])),
+		...new Set(
+			fields.flatMap((_, index) => errors.options?.[index]?.text?.message ?? [])
+		),
 	];
 	const optionDescription = (index: number) => {
 		const message = errors.options?.[index]?.text?.message;
@@ -370,7 +426,8 @@ export function PollCreator({
 	};
 
 	const canAddOption =
-		fields.length < POLL_OPTIONS_LIMIT && options.every((option) => option.text.trim());
+		fields.length < POLL_OPTIONS_LIMIT &&
+		options.every((option) => option.text.trim());
 
 	// A typed opening time stays in view even after a preset is picked, since presets count from it
 	const showTimeFields = endPreset === null || !!startTime;
@@ -378,18 +435,24 @@ export function PollCreator({
 	return (
 		<>
 			<Dialog open={open} onOpenChange={handleOpenChange}>
-				{!isEdit && triggerChildren && <DialogTrigger render={triggerChildren} />}
+				{!isEdit && triggerChildren && (
+					<DialogTrigger render={triggerChildren} />
+				)}
 				{/* Full screen on phones, a 640px dialog from sm up */}
 				<DialogContent
 					showCloseButton={false}
 					finalFocus={finalFocus}
 					// Writing the question is always the first step
 					initialFocus={() => document.getElementById('title')}
-					className="flex h-dvh max-h-dvh max-w-none flex-col gap-0 rounded-none border-0 bg-background p-0 ring-0 sm:h-auto sm:max-h-[90dvh] sm:max-w-[640px] sm:rounded-[20px] sm:ring-1"
+					className="flex h-dvh max-h-dvh max-w-none flex-col gap-0 rounded-none border-0 bg-background p-0 ring-0 sm:h-auto sm:max-h-[90dvh] sm:max-w-2xl sm:rounded-[20px] sm:ring-1"
 				>
-					<div className="flex flex-none items-start gap-3 px-4 pt-4 sm:px-5 sm:pt-5">
+					<div className="flex flex-none items-start gap-3 p-4 sm:p-5">
 						<div className="min-w-0 flex-1 space-y-1">
-							<DialogTitle ref={titleRef} tabIndex={-1} className="outline-none">
+							<DialogTitle
+								ref={titleRef}
+								tabIndex={-1}
+								className="outline-none"
+							>
 								{review
 									? t('pollCreator.reviewTitle')
 									: t(isEdit ? 'pollCreator.editTitle' : 'pollCreator.title')}
@@ -397,7 +460,11 @@ export function PollCreator({
 							<DialogDescription className="text-[14px]">
 								{review
 									? t('pollCreator.reviewPreview')
-									: t(isEdit ? 'pollCreator.editSubtitle' : 'pollCreator.subtitle')}
+									: t(
+											isEdit
+												? 'pollCreator.editSubtitle'
+												: 'pollCreator.subtitle'
+										)}
 							</DialogDescription>
 						</div>
 						<Button
@@ -431,14 +498,22 @@ export function PollCreator({
 						}}
 					>
 						{/* relative: the leaving step is laid over the arriving one while both animate.
-						    flex-auto, not flex-1: the height it animates to must count */}
+						    flex-auto, not flex-1: the height it animates to must count.
+						    A stable gutter on both edges: the leaving step's scrollbar would narrow the arriving
+						    step, which then rewraps and snaps to a new height when the scrollbar goes */}
 						<m.div
 							className="relative min-h-0 flex-auto overflow-x-hidden overflow-y-auto"
 							initial={false}
 							animate={stepHeight && { height: stepHeight.height }}
-							transition={stepHeight?.animate && !reduceMotion ? ENTER : { duration: 0 }}
+							transition={
+								stepHeight?.animate && !reduceMotion ? ENTER : { duration: 0 }
+							}
 						>
-							<AnimatePresence initial={false} mode="popLayout" custom={review ? 1 : -1}>
+							<AnimatePresence
+								initial={false}
+								mode="popLayout"
+								custom={review ? 1 : -1}
+							>
 								<m.div
 									key={review ? 'review' : 'write'}
 									custom={review ? 1 : -1}
@@ -447,11 +522,18 @@ export function PollCreator({
 									animate="center"
 									exit="exit"
 								>
-									<StepLayer step={review ? 'review' : 'write'} onResize={onStepResize}>
+									<StepLayer
+										step={review ? 'review' : 'write'}
+										onResize={onStepResize}
+									>
 										{review ? (
 											<>
 												<div className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-5">
-													<StatusChip status={review.status} poll={review} time="inline" />
+													<StatusChip
+														status={review.status}
+														poll={review}
+														time="inline"
+													/>
 													<div className="space-y-2">
 														<p className="poll-title wrap-anywhere">
 															{toSingleLine(title)}
@@ -469,14 +551,20 @@ export function PollCreator({
 																className="flex min-h-12 items-center gap-3 rounded-xl border border-border px-4 py-2.5 text-base"
 															>
 																<BallotMark state="rest" />
-																<span className="min-w-0 flex-1 wrap-anywhere">{option.text.trim()}</span>
+																<span className="min-w-0 flex-1 wrap-anywhere">
+																	{option.text.trim()}
+																</span>
 															</li>
 														))}
 													</ul>
 												</div>
 												<TideRules>
-													<TideRule icon={Users}>{t(`pollCreator.ruleAudience.${audience}`)}</TideRule>
-													<TideRule icon={Lock}>{t('pollCreator.ruleSealed')}</TideRule>
+													<TideRule icon={Users}>
+														{t(`pollCreator.ruleAudience.${audience}`)}
+													</TideRule>
+													<TideRule icon={Lock}>
+														{t('pollCreator.ruleSealed')}
+													</TideRule>
 													<TideRule icon={Eye}>
 														{joinSentences(
 															currentLanguage,
@@ -484,7 +572,9 @@ export function PollCreator({
 															t('pollCreator.ruleFixed')
 														)}
 													</TideRule>
-													<TideRule icon={User}>{t('pollCreator.ruleOneVote')}</TideRule>
+													<TideRule icon={User}>
+														{t('pollCreator.ruleOneVote')}
+													</TideRule>
 												</TideRules>
 											</>
 										) : (
@@ -499,7 +589,9 @@ export function PollCreator({
 																<FieldMessage
 																	hint={t('pollCreator.questionNote')}
 																	hintId="title-hint"
-																	errors={fieldErrors('title-error', [errors.title?.message])}
+																	errors={fieldErrors('title-error', [
+																		errors.title?.message,
+																	])}
 																/>
 															</p>
 														</div>
@@ -509,7 +601,9 @@ export function PollCreator({
 															className="min-h-20 resize-none text-[18px] leading-snug tracking-[-0.01em] md:text-[18px]"
 															maxLength={POLL_TITLE_MAX}
 															aria-invalid={!!errors.title}
-															aria-describedby={errors.title ? 'title-error' : 'title-hint'}
+															aria-describedby={
+																errors.title ? 'title-error' : 'title-hint'
+															}
 															enterKeyHint="next"
 															{...register('title')}
 															// The question is one line: Return moves on to the options
@@ -528,12 +622,18 @@ export function PollCreator({
 														{showContext && (
 															<Unfold key="context">
 																<div className="space-y-2">
-																	<Label htmlFor="description" className={LABEL}>
-																		{t('pollCreator.descriptionLabel')} ({t('common.optional')})
+																	<Label
+																		htmlFor="description"
+																		className={LABEL}
+																	>
+																		{t('pollCreator.descriptionLabel')} (
+																		{t('common.optional')})
 																	</Label>
 																	<Textarea
 																		id="description"
-																		placeholder={t('pollCreator.descriptionPlaceholder')}
+																		placeholder={t(
+																			'pollCreator.descriptionPlaceholder'
+																		)}
 																		className="min-h-20 resize-none"
 																		{...register('description')}
 																	/>
@@ -559,12 +659,17 @@ export function PollCreator({
 													)}
 
 													<fieldset>
-														<legend className={LABEL}>{t('pollCreator.pollOptionsLabel')}</legend>
+														<legend className={LABEL}>
+															{t('pollCreator.pollOptionsLabel')}
+														</legend>
 														<p className="mt-0.5 text-sm text-muted-foreground">
 															<FieldMessage
 																hint={t('pollCreator.optionsHint')}
 																hintId="options-hint"
-																errors={fieldErrors('options-error', optionMessages)}
+																errors={fieldErrors(
+																	'options-error',
+																	optionMessages
+																)}
 															/>
 														</p>
 														<div className="mt-3">
@@ -576,11 +681,17 @@ export function PollCreator({
 																			<div className="relative">
 																				<Input
 																					aria-label={`${t('pollCreator.optionsPlaceholder')} ${index + 1}`}
-																					placeholder={t('pollCreator.optionsPlaceholder')}
+																					placeholder={t(
+																						'pollCreator.optionsPlaceholder'
+																					)}
 																					maxLength={POLL_OPTION_MAX}
 																					enterKeyHint="next"
-																					aria-invalid={!!errors.options?.[index]?.text}
-																					aria-describedby={optionDescription(index)}
+																					aria-invalid={
+																						!!errors.options?.[index]?.text
+																					}
+																					aria-describedby={optionDescription(
+																						index
+																					)}
 																					{...register(`options.${index}.text`)}
 																					// Every row leaves room for the remove button, so adding a third option moves nothing
 																					className="pr-12"
@@ -589,8 +700,13 @@ export function PollCreator({
 																						if (!isPlainReturn(e)) return;
 																						// Return moves to the next option, or adds one, instead of submitting
 																						e.preventDefault();
-																						if (index < fields.length - 1) focusField(e, `options.${index + 1}.text`);
-																						else if (canAddOption) append({ text: '' });
+																						if (index < fields.length - 1)
+																							focusField(
+																								e,
+																								`options.${index + 1}.text`
+																							);
+																						else if (canAddOption)
+																							append({ text: '' });
 																					}}
 																				/>
 																				{fields.length > POLL_OPTIONS_MIN && (
@@ -602,7 +718,11 @@ export function PollCreator({
 																						onClick={() => {
 																							remove(index);
 																							// The button leaves with its row: keep focus in the list
-																							setTimeout(() => setFocus(`options.${Math.max(index - 1, 0)}.text`));
+																							setTimeout(() =>
+																								setFocus(
+																									`options.${Math.max(index - 1, 0)}.text`
+																								)
+																							);
 																						}}
 																						className="absolute inset-y-0 right-0.5 my-auto text-muted-foreground duration-150 animate-in fade-in zoom-in-75 motion-reduce:animate-none hover:bg-transparent hover:text-destructive"
 																					>
@@ -616,7 +736,12 @@ export function PollCreator({
 															</AnimatePresence>
 														</div>
 														{fields.length < POLL_OPTIONS_LIMIT && (
-															<Button type="button" variant="outline" onClick={addOption} className="mt-2">
+															<Button
+																type="button"
+																variant="outline"
+																onClick={addOption}
+																className="mt-2"
+															>
 																<Plus />
 																{t('pollCreator.addOptionLabel')}
 															</Button>
@@ -628,19 +753,26 @@ export function PollCreator({
 													aria-labelledby="poll-settings-title"
 													className="space-y-6 rounded-2xl border border-border bg-card p-5 sm:p-6"
 												>
-													<h3 id="poll-settings-title" className="text-lg font-medium">
+													<h3
+														id="poll-settings-title"
+														className="text-lg font-medium"
+													>
 														{t('pollCreator.settingsTitle')}
 													</h3>
 
 													<fieldset>
-														<legend className={LABEL}>{t('pollCreator.endsLabel')}</legend>
+														<legend className={LABEL}>
+															{t('pollCreator.endsLabel')}
+														</legend>
 														<div className="mt-3 flex flex-wrap gap-2">
 															{END_PRESETS.map(({ key, label, ms }) => (
 																<Button
 																	key={key}
 																	type="button"
 																	size="sm"
-																	variant={endPreset === key ? 'default' : 'outline'}
+																	variant={
+																		endPreset === key ? 'default' : 'outline'
+																	}
 																	aria-pressed={endPreset === key}
 																	className="rounded-full"
 																	onClick={() => applyPreset(key, ms)}
@@ -651,7 +783,9 @@ export function PollCreator({
 															<Button
 																type="button"
 																size="sm"
-																variant={endPreset === null ? 'default' : 'outline'}
+																variant={
+																	endPreset === null ? 'default' : 'outline'
+																}
 																aria-pressed={endPreset === null}
 																className="rounded-full"
 																onClick={() => setEndPreset(null)}
@@ -664,28 +798,47 @@ export function PollCreator({
 																<Unfold key="times">
 																	<div className="grid gap-4 pt-4 sm:grid-cols-2">
 																		<div className="space-y-2">
-																			<Label htmlFor="startTime">{t('pollCreator.opensLabel')}</Label>
+																			<Label htmlFor="startTime">
+																				{t('pollCreator.opensLabel')}
+																			</Label>
 																			<Input
 																				id="startTime"
 																				type="datetime-local"
 																				aria-describedby="startTime-hint"
-																				{...register('startTime', { onChange: reapplyPreset })}
+																				{...register('startTime', {
+																					onChange: reapplyPreset,
+																				})}
 																			/>
-																			<p id="startTime-hint" className="text-[12px] text-muted-foreground">
+																			<p
+																				id="startTime-hint"
+																				className="text-[12px] text-muted-foreground"
+																			>
 																				{t('pollCreator.opensHint')}
 																			</p>
 																		</div>
 																		<div className="space-y-2">
-																			<Label htmlFor="endTime">{t('pollCreator.endsAtLabel')}</Label>
+																			<Label htmlFor="endTime">
+																				{t('pollCreator.endsAtLabel')}
+																			</Label>
 																			<Input
 																				id="endTime"
 																				type="datetime-local"
 																				aria-invalid={!!errors.endTime}
-																				aria-describedby={errors.endTime ? 'endTime-error' : undefined}
-																				{...register('endTime', { onChange: () => setEndPreset(null) })}
+																				aria-describedby={
+																					errors.endTime
+																						? 'endTime-error'
+																						: undefined
+																				}
+																				{...register('endTime', {
+																					onChange: () => setEndPreset(null),
+																				})}
 																			/>
 																			<p className="text-[12px]">
-																				<FieldMessage errors={fieldErrors('endTime-error', [errors.endTime?.message])} />
+																				<FieldMessage
+																					errors={fieldErrors('endTime-error', [
+																						errors.endTime?.message,
+																					])}
+																				/>
 																			</p>
 																		</div>
 																	</div>
@@ -701,20 +854,28 @@ export function PollCreator({
 															<PillGroup
 																legend={t('pollCreator.audienceLabel')}
 																note={t('pollCreator.audienceNote')}
-																hint={t(`pollCreator.audienceHint.${field.value}`)}
+																hint={t(
+																	`pollCreator.audienceHint.${field.value}`
+																)}
 																value={field.value}
 																onChange={field.onChange}
-																options={AudienceSchema.options.map((value) => ({
-																	value,
-																	label: t(`pollCreator.audienceOption.${value}`),
-																}))}
+																options={AudienceSchema.options.map(
+																	(value) => ({
+																		value,
+																		label: t(
+																			`pollCreator.audienceOption.${value}`
+																		),
+																	})
+																)}
 															/>
 														)}
 													/>
 
 													{isInviteOnly && (
 														<div className="space-y-2">
-															<Label htmlFor="invitees">{t('pollCreator.inviteesLabel')}</Label>
+															<Label htmlFor="invitees">
+																{t('pollCreator.inviteesLabel')}
+															</Label>
 															<Controller
 																control={control}
 																name="invitees"
@@ -726,7 +887,11 @@ export function PollCreator({
 																			value={field.value}
 																			onChange={field.onChange}
 																			invalid={!!errors.invitees}
-																			describedBy={errors.invitees ? 'invitees-error' : 'invitees-hint'}
+																			describedBy={
+																				errors.invitees
+																					? 'invitees-error'
+																					: 'invitees-hint'
+																			}
 																		/>
 																	) : (
 																		<p className="text-[12px] text-muted-foreground">
@@ -739,7 +904,9 @@ export function PollCreator({
 																<FieldMessage
 																	hint={t('pollCreator.inviteesHint')}
 																	hintId="invitees-hint"
-																	errors={fieldErrors('invitees-error', [errors.invitees?.message])}
+																	errors={fieldErrors('invitees-error', [
+																		errors.invitees?.message,
+																	])}
 																/>
 															</p>
 														</div>
@@ -752,12 +919,16 @@ export function PollCreator({
 															<PillGroup
 																legend={t('pollCreator.visibilityLabel')}
 																note={t('pollCreator.visibilityNote')}
-																hint={t(`pollCreator.visibility.${visibilityLevel({ voterVisibility: field.value, audience })}Hint`)}
+																hint={t(
+																	`pollCreator.visibility.${visibilityLevel({ voterVisibility: field.value, audience })}Hint`
+																)}
 																value={field.value}
 																onChange={field.onChange}
 																options={VISIBILITY_ORDER.map((value) => ({
 																	value,
-																	label: t(`pollCreator.visibility.${visibilityLevel({ voterVisibility: value, audience })}`),
+																	label: t(
+																		`pollCreator.visibility.${visibilityLevel({ voterVisibility: value, audience })}`
+																	),
 																}))}
 															/>
 														)}
@@ -770,25 +941,44 @@ export function PollCreator({
 							</AnimatePresence>
 						</m.div>
 
-						<div className="flex-none px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:px-5 sm:pb-5">
+						<div className="flex-none p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:p-5">
 							{/* Rendered empty first, so a failed publish is announced every time, the same error included */}
-							<p role="alert" className="text-sm text-destructive not-empty:mb-3">
+							<p
+								role="alert"
+								className="text-sm text-destructive not-empty:mb-3"
+							>
 								{review && errors.root?.message}
 							</p>
 							<div className="flex flex-wrap justify-end gap-2">
 								{!review && !isEdit && (
-									<Button type="button" variant="outline" className="flex-1 sm:flex-none" onClick={handleSaveDraft}>
+									<Button
+										type="button"
+										variant="outline"
+										className="flex-1 sm:flex-none"
+										onClick={handleSaveDraft}
+									>
 										{t('pollCreator.saveDraftLabel')}
 									</Button>
 								)}
 								{review && (
-									<Button type="button" variant="outline" className="flex-1 sm:flex-none" onClick={backToWriting}>
+									<Button
+										type="button"
+										variant="outline"
+										className="flex-1 sm:flex-none"
+										onClick={backToWriting}
+									>
 										{t('common.edit')}
 									</Button>
 								)}
 								{review ? (
-									<Button type="submit" className="flex-1 sm:flex-none" loading={isSubmitting}>
-										{t(isEdit ? 'pollCreator.saveChanges' : 'pollCreator.publish')}
+									<Button
+										type="submit"
+										className="flex-1 sm:flex-none"
+										loading={isSubmitting}
+									>
+										{t(
+											isEdit ? 'pollCreator.saveChanges' : 'pollCreator.publish'
+										)}
 									</Button>
 								) : (
 									<Button type="submit" className="flex-1 sm:flex-none">
@@ -801,15 +991,24 @@ export function PollCreator({
 				</DialogContent>
 			</Dialog>
 
-			<AlertDialog open={showSaveDraftAlert} onOpenChange={setShowSaveDraftAlert}>
+			<AlertDialog
+				open={showSaveDraftAlert}
+				onOpenChange={setShowSaveDraftAlert}
+			>
 				{isEdit ? (
 					<AlertDialogContent>
 						<AlertDialogHeader>
-							<AlertDialogTitle>{t('pollCreator.discardEditTitle')}</AlertDialogTitle>
-							<AlertDialogDescription>{t('pollCreator.discardEditBody')}</AlertDialogDescription>
+							<AlertDialogTitle>
+								{t('pollCreator.discardEditTitle')}
+							</AlertDialogTitle>
+							<AlertDialogDescription>
+								{t('pollCreator.discardEditBody')}
+							</AlertDialogDescription>
 						</AlertDialogHeader>
 						<AlertDialogFooter>
-							<AlertDialogCancel>{t('pollCreator.keepEditing')}</AlertDialogCancel>
+							<AlertDialogCancel>
+								{t('pollCreator.keepEditing')}
+							</AlertDialogCancel>
 							<AlertDialogAction onClick={handleDiscard}>
 								{t('pollCreator.discardEdit')}
 							</AlertDialogAction>
@@ -818,8 +1017,12 @@ export function PollCreator({
 				) : (
 					<AlertDialogContent>
 						<AlertDialogHeader>
-							<AlertDialogTitle>{t('pollCreator.keepDraftTitle')}</AlertDialogTitle>
-							<AlertDialogDescription>{t('pollCreator.keepDraftBody')}</AlertDialogDescription>
+							<AlertDialogTitle>
+								{t('pollCreator.keepDraftTitle')}
+							</AlertDialogTitle>
+							<AlertDialogDescription>
+								{t('pollCreator.keepDraftBody')}
+							</AlertDialogDescription>
 						</AlertDialogHeader>
 						<AlertDialogFooter>
 							<AlertDialogCancel onClick={handleDiscard}>
@@ -848,7 +1051,14 @@ type PillGroupProps<T extends string> = {
 };
 
 /** One choice of a few, as toggle pills. */
-function PillGroup<T extends string>({ legend, note, hint, value, onChange, options }: PillGroupProps<T>) {
+function PillGroup<T extends string>({
+	legend,
+	note,
+	hint,
+	value,
+	onChange,
+	options,
+}: PillGroupProps<T>) {
 	const noteId = useId();
 	const hintId = useId();
 	return (
