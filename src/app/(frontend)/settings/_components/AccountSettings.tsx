@@ -304,24 +304,63 @@ function ThemeChoice() {
 	);
 }
 
-/** Highlights the section in view in the On this page list. */
+/**
+ * Highlights the section in view in the On this page list: the last one whose top has passed
+ * the top fifth of the viewport, or the last section once a scrolling page reaches its end (its
+ * top may never get that high). A clicked section stays marked until the page scrolls away
+ * from where the click took it, as the page can't always bring it to the top.
+ */
 export function useSectionInView(ids: readonly string[]) {
 	const [current, setCurrent] = useState<string>(ids[0]);
+	// Where the page stood once the clicked link's jump was done; undefined until then
+	const pin = useRef<{ y?: number } | null>(null);
 	useEffect(() => {
-		const observer = new IntersectionObserver(
-			(entries) => {
-				const visible = entries.filter((entry) => entry.isIntersecting);
-				if (visible[0]) setCurrent(visible[0].target.id);
-			},
-			{ rootMargin: '-20% 0px -70% 0px' }
-		);
-		for (const id of ids) {
-			const element = document.getElementById(id);
-			if (element) observer.observe(element);
-		}
-		return () => observer.disconnect();
+		const update = () => {
+			if (pin.current) {
+				if (pin.current.y === undefined || Math.abs(window.scrollY - pin.current.y) < 1) return;
+				pin.current = null;
+			}
+			const { scrollHeight } = document.documentElement;
+			const scrolls = scrollHeight > window.innerHeight;
+			if (scrolls && window.innerHeight + window.scrollY >= scrollHeight - 1) {
+				setCurrent(ids[ids.length - 1]);
+				return;
+			}
+			let passed = ids[0];
+			for (const id of ids) {
+				const element = document.getElementById(id);
+				if (element && element.getBoundingClientRect().top <= window.innerHeight * 0.2) passed = id;
+			}
+			setCurrent(passed);
+		};
+		// Measured once per frame, however many scroll events it brings
+		let frame = 0;
+		const schedule = () => {
+			if (!frame)
+				frame = requestAnimationFrame(() => {
+					frame = 0;
+					update();
+				});
+		};
+		update();
+		window.addEventListener('scroll', schedule, { passive: true });
+		window.addEventListener('resize', schedule);
+		return () => {
+			cancelAnimationFrame(frame);
+			window.removeEventListener('scroll', schedule);
+			window.removeEventListener('resize', schedule);
+		};
 	}, [ids]);
-	return current;
+	const select = (id: string) => {
+		const clicked = { y: undefined as number | undefined };
+		pin.current = clicked;
+		setCurrent(id);
+		// The link's jump happens after this handler, before the next frame
+		requestAnimationFrame(() => {
+			clicked.y = window.scrollY;
+		});
+	};
+	return [current, select] as const;
 }
 
 function ExportData() {
@@ -457,7 +496,7 @@ const SECTION_TITLES: Record<(typeof SETTINGS_SECTIONS)[number], string> = {
 /** On this page: the sections as links, the one in view marked. */
 export function SettingsNav() {
 	const { t } = useLanguage();
-	const current = useSectionInView(SETTINGS_SECTIONS);
+	const [current, select] = useSectionInView(SETTINGS_SECTIONS);
 	return (
 		<nav aria-labelledby="settings-nav">
 			<p id="settings-nav" className="mb-2 text-[12px] font-medium text-muted-foreground">
@@ -468,6 +507,11 @@ export function SettingsNav() {
 					<li key={id}>
 						<a
 							href={`#${id}`}
+							onClick={(event) => {
+								// A modifier opens the link elsewhere and leaves this page where it is
+								if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+								select(id);
+							}}
 							aria-current={current === id ? 'location' : undefined}
 							className={cn(
 								'block border-l-2 border-border px-3 py-1.5 text-[14px] text-muted-foreground transition-colors hover:text-foreground',

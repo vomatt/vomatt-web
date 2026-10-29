@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { toast } from 'sonner';
 
-import AccountSettings from '@/app/(frontend)/settings/_components/AccountSettings';
+import AccountSettings, { SETTINGS_SECTIONS, SettingsNav } from '@/app/(frontend)/settings/_components/AccountSettings';
 import type { MyProfile } from '@/types/user';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
@@ -363,5 +363,100 @@ describe('AccountSettings', () => {
 		});
 		fireEvent.click(screen.getAllByRole('button', { name: 'Delete account' }).at(-1)!);
 		await waitFor(() => expect(toast.error).toHaveBeenCalledWith(message, { duration: Infinity }));
+	});
+});
+
+describe('SettingsNav', () => {
+	// Section tops, relative to the viewport, as jsdom has no layout
+	const tops: Record<string, number> = {};
+	let pageHeight = 3000;
+	const faked = [
+		[window, 'innerHeight'],
+		[window, 'scrollY'],
+		[document.documentElement, 'scrollHeight'],
+	] as const;
+	const originals = faked.map(([target, key]) => Object.getOwnPropertyDescriptor(target, key));
+
+	beforeEach(() => {
+		jest.useFakeTimers();
+		for (const [index, id] of SETTINGS_SECTIONS.entries()) tops[id] = 100 + index * 500;
+		pageHeight = 3000;
+		Object.defineProperty(document.documentElement, 'scrollHeight', { configurable: true, get: () => pageHeight });
+		Object.defineProperty(window, 'innerHeight', { configurable: true, value: 1000 });
+		Object.defineProperty(window, 'scrollY', { configurable: true, writable: true, value: 0 });
+	});
+
+	afterEach(() => {
+		jest.useRealTimers();
+		faked.forEach(([target, key], index) => {
+			const original = originals[index];
+			if (original) Object.defineProperty(target, key, original);
+			else delete (target as unknown as Record<string, unknown>)[key];
+		});
+	});
+
+	const renderNav = () =>
+		render(
+			<>
+				{SETTINGS_SECTIONS.map((id) => (
+					<section
+						key={id}
+						id={id}
+						ref={(element) => {
+							if (element) element.getBoundingClientRect = () => ({ top: tops[id] }) as DOMRect;
+						}}
+					/>
+				))}
+				<SettingsNav />
+			</>
+		);
+
+	// Scroll events are measured on the next frame
+	const scrollTo = (y: number) =>
+		act(() => {
+			for (const id of SETTINGS_SECTIONS) tops[id] -= y - window.scrollY;
+			window.scrollY = y;
+			window.dispatchEvent(new Event('scroll'));
+			jest.advanceTimersByTime(20);
+		});
+
+	const marked = () =>
+		screen.getAllByRole('link').find((link) => link.getAttribute('aria-current') === 'location')?.textContent;
+
+	it('marks the section whose top has passed the top of the viewport', () => {
+		renderNav();
+		expect(marked()).toBe('Voting');
+		scrollTo(1000);
+		expect(marked()).toBe('Appearance and language');
+	});
+
+	it('marks the last section at the bottom of the page, though its top never reaches the top', () => {
+		renderNav();
+		scrollTo(2000);
+		expect(marked()).toBe('Account');
+	});
+
+	it('marks the first section when the whole page fits the viewport', () => {
+		pageHeight = 1000;
+		renderNav();
+		expect(marked()).toBe('Voting');
+	});
+
+	it('marks a clicked section even when the page cannot scroll it to the top', () => {
+		renderNav();
+		scrollTo(2000);
+		fireEvent.click(screen.getByRole('link', { name: 'Privacy and safety' }));
+		// The jump lands where the page already was
+		scrollTo(2000);
+		expect(marked()).toBe('Privacy and safety');
+		// Any scroll away from there, by hand or by Back, follows the page again
+		scrollTo(1000);
+		expect(marked()).toBe('Appearance and language');
+	});
+
+	it('leaves the mark alone when a link is opened elsewhere with a modifier', () => {
+		renderNav();
+		fireEvent.click(screen.getByRole('link', { name: 'Account' }), { metaKey: true });
+		expect(marked()).toBe('Voting');
 	});
 });
