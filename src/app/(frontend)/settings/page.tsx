@@ -1,9 +1,8 @@
 import type { Metadata } from 'next';
-import { redirect } from 'next/navigation';
 
 import { PageShell } from '@/components/layout/PageShell';
 import { T } from '@/components/T';
-import { getMyProfile } from '@/data/auth';
+import { getMyProfile, redirectToLogin } from '@/data/auth';
 import { getGroups } from '@/features/groups/service';
 import { getNotificationPreferences } from '@/features/notifications/service';
 import { getServerMessages } from '@/lib/getServerLocale';
@@ -21,7 +20,7 @@ export default async function SettingsPage() {
 		getGroups(),
 		getNotificationPreferences().catch(() => null),
 	]);
-	if (!profile) redirect('/login?redirect=/settings');
+	if (!profile) return redirectToLogin('/settings');
 
 	return (
 		<PageShell

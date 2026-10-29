@@ -37,6 +37,13 @@ describe('LogIn', () => {
 		expect(notice.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 	});
 
+	it('says a deleted account is gone, not merely expired', () => {
+		mockSearch = 'session_expired=deleted';
+		render(<LogIn />);
+		expect(screen.getByText(/This account was deleted/)).toBeInTheDocument();
+		expect(screen.queryByText(/session expired/)).not.toBeInTheDocument();
+	});
+
 	it('shows no notice on a plain visit', () => {
 		mockSearch = '';
 		render(<LogIn />);

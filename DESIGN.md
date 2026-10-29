@@ -22,6 +22,7 @@ Cool canvas, navy ink actions, two signals: Volt (`highlight`) marks what is you
 | Poll status | `status-scheduled/open/closing/ended`, `status-open-ends` | Status chip tints, always with a text label. Closing is peach, the `avatar-peach` hue. On a poll card an Open or closing poll's chip is pink `status-open-ends` with no mark ("Ends Fri 18:00") |
 | Elected | `elected` | The red stamp on a winning result (a graphic with an accessible name, never text or a button) |
 | Error | `destructive` | Validation and destructive actions |
+| Focus | `ring` | Keyboard focus only (`outline-ring`, full strength, never `/50`): a blue no other state uses, so a focused control never reads as chosen (ink line) or yours (Volt). Selection in a picker (the avatar grid) is an ink ring with an ink check badge, not a Volt halo, which is 1.1:1 on white |
 
 `sidebar` is one step deeper than the canvas, divided by a 1px `sidebar-border`; the other `sidebar-*` tokens alias the base tokens, so change the base, not the alias.
 
@@ -71,7 +72,7 @@ Use these. Don't copy their classes into a new element.
 | People the viewer follows who follow this person | `MutualFollowersLine` ("Followed by @a and 2 others you follow", 12px with two stacked 16px avatars) under a visitor profile's details and on the hover card, opening the mutuals list; `MutualFollowersCard` ("Followers you know") in the visitor profile's rail |
 | A row's ••• menu | Base UI `Menu` with `Button variant="ghost" size="icon-xs"` as the trigger and `menuPopupClassName` / `menuItemClassName` from `components/ui/menu.ts` (ink 16px icons; a destructive item adds `text-destructive`) |
 | Back to the parent page | `BackLink` ("‹ Back": a quiet 14px link with a 44px hit area that takes no extra space). Visitor profiles and Settings have none |
-| People a user blocked or follows (Settings) | `UserRelationPanel`: `panel` is a section of its own (Following, below the Privacy card); `embedded` is a row inside a settings card (Blocked people: the title with a mono count, then soft tiles of a 28px avatar, the @handle and an `xs` action) |
+| People a user blocked (Settings) | `UserRelationPanel`, a row inside a settings card: the title with a mono count, then soft tiles of a 28px avatar, the @handle and an `xs` action. Who you follow lives on your profile (the following count opens the list, each row with its `FollowButton`), not in Settings |
 | A detail only the owner sees | `OnlyYouMarker` (the lock) beside it |
 | Rows on a profile | `AskedRow`, `VotedRow` and `ProfileSection` from `features/profiles/ProfileRows` |
 | Status of a poll | `StatusChip` with `derivePollStatus(poll)` (tint, an ink dot or a clock while closing, words). Pick `time`: `inline` where the chip stands alone, on cards and the creator's review ("Ends Fri 20:00"); `elsewhere` in a row, which puts `pollTiming(…).when` in its meta ("1,284 voted · ends Fri 20:00" beside "Open") |

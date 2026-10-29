@@ -26,7 +26,6 @@ import { Switch } from '@/components/ui/Switch';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { isFieldPublic, VISIBILITY_FIELDS } from '@/features/account/visibility';
 import { BlockedUsersPanel } from '@/features/blocks/BlockedUsersPanel';
-import { FollowedUsersPanel } from '@/features/follows/FollowedUsersPanel';
 import { GroupsPanel } from '@/features/groups/GroupsPanel';
 import { NOTIFICATION_SWITCHES } from '@/features/notifications/preferences';
 import type { NotificationPreferences } from '@/features/notifications/schema';
@@ -201,7 +200,6 @@ export default function AccountSettings({
 						<BlockedUsersPanel />
 					</div>
 				</Card>
-				<FollowedUsersPanel />
 			</Section>
 
 			<Section id="account" title={t('settings.account')}>

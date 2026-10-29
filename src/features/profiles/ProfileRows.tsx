@@ -117,7 +117,7 @@ function RowTitle({ unread, children }: { unread?: boolean | null; children: Rea
 	const { t } = useLanguage();
 	return (
 		<span className="flex min-w-0 items-center gap-2">
-			<span className={cn('item-title min-w-0 truncate leading-snug', unread && 'font-semibold')}>{children}</span>
+			<span className={cn('item-title line-clamp-2 min-w-0 leading-snug wrap-break-word', unread && 'font-semibold')}>{children}</span>
 			{unread && <UnreadDot label={t('notifications.unread')} className="shrink-0" />}
 		</span>
 	);
@@ -206,7 +206,7 @@ export function VotedRow({ poll }: { poll: Poll }) {
 				>
 					<SealMark />
 					<span className="flex min-w-0 flex-1 flex-col gap-0.5">
-						<span className="item-title truncate leading-snug">{poll.title}</span>
+						<span className="item-title line-clamp-2 leading-snug wrap-break-word">{poll.title}</span>
 						<span className="text-[12px] text-tide-foreground">
 							{t('myPolls.youChose')} {choice}
 							{clock &&
