@@ -71,9 +71,9 @@ export function ExploreView({
 
 	return (
 		<div className="flex max-w-feed flex-col gap-4">
-			<h1 className="page-title text-foreground">{t('explore.title')}</h1>
+			<h1 className="sr-only">{t('explore.title')}</h1>
 
-			<div className="flex flex-col gap-3">
+			<div className="sticky follow-header z-20 -mx-1 flex flex-col gap-3 bg-background/60 px-1 py-2 backdrop-blur-sm">
 				<label htmlFor={searchId} className="sr-only">
 					{t('explore.searchLabel')}
 				</label>
