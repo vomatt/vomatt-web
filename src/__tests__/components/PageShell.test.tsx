@@ -20,4 +20,11 @@ describe('PageShell', () => {
 		expect(column).toBeEmptyDOMElement();
 		expect(column).toHaveClass('xl:w-rail', 'xl:shrink-0');
 	});
+
+	it('drops the rail column on a wide page, keeping the frame', () => {
+		render(<PageShell wide>Main</PageShell>);
+		const main = screen.getByText('Main');
+		expect(main.nextElementSibling).toBeNull();
+		expect(main.parentElement).toHaveClass('max-w-main', 'xl:max-w-page');
+	});
 });

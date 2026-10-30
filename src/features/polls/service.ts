@@ -145,6 +145,17 @@ export async function getPopularTags(size = 12): Promise<TagDto[]> {
 	}
 }
 
+/** Every topic, most used first, for Explore's topic search. Empty when the API is down. */
+export async function getTags(): Promise<TagDto[]> {
+	try {
+		const data = await publicFetch('/tags', { next: { revalidate: 300 } } as RequestInit);
+		// The API sends display order; sorted once here, not on every keystroke
+		return z.array(TagDtoSchema).parse(data).sort((a, b) => (b.usageCount ?? 0) - (a.usageCount ?? 0));
+	} catch {
+		return [];
+	}
+}
+
 /** A user's opened Polls (Open and Ended), most recently opened first. */
 export async function getUserPolls(
 	username: string,

@@ -119,7 +119,9 @@
 	},
 	"explore": {
 		"title": "Explore",
-		"searchPlaceholder": "Search poll titles and descriptions…",
+		"searchPlaceholder": "Search polls and topics…",
+		"topics": "Topics",
+		"moreOptions": "+{count} more",
 		"searchLabel": "Search",
 		"filterActive": "Open",
 		"filterEnded": "Ended",
@@ -127,6 +129,7 @@
 		"noResults": "No polls found.",
 		"noResultsHint": "Try other words, or switch to Ended polls.",
 		"noResultsHintEnded": "Try other words, or switch to Open polls.",
+		"noResultsHintTopic": "Try another topic, or tap it again to see every poll.",
 		"status": "Status",
 		"sort": "Sort",
 		"sortEnding": "Ending soon",

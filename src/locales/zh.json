@@ -119,7 +119,9 @@
 	},
 	"explore": {
 		"title": "探索",
-		"searchPlaceholder": "搜尋投票標題與說明…",
+		"searchPlaceholder": "搜尋投票與主題…",
+		"topics": "主題",
+		"moreOptions": "還有 {count} 個",
 		"searchLabel": "搜尋",
 		"filterActive": "進行中",
 		"filterEnded": "已結束",
@@ -127,6 +129,7 @@
 		"noResults": "找不到投票。",
 		"noResultsHint": "試試其他字詞，或切換到已結束的投票。",
 		"noResultsHintEnded": "試試其他字詞，或切換到進行中的投票。",
+		"noResultsHintTopic": "試試其他主題，或再點一次目前的主題來查看所有投票。",
 		"status": "狀態",
 		"sort": "排序",
 		"sortEnding": "即將結束",

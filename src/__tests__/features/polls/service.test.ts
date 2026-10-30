@@ -13,14 +13,15 @@ import {
 	getComments,
 	getFeed,
 	getFollowedTags,
-	getInviteOnlyCreator,
 	getInvitees,
+	getInviteOnlyCreator,
 	getMyBallot,
 	getMyPolls,
 	getPoll,
 	getPolls,
 	getReplies,
 	getResults,
+	getTags,
 	getUserPolls,
 	getVoters,
 	likeComment,
@@ -763,5 +764,20 @@ describe('getInviteOnlyCreator()', () => {
 	it('returns null for an ID the API rejects, like getPoll does', async () => {
 		mockPublicFetch.mockRejectedValue(new ApiError('Bad request', 400, { errorCode: 'common.validation_failed' }));
 		expect(await getInviteOnlyCreator('abc')).toBeNull();
+	});
+});
+
+describe('getTags()', () => {
+	it('returns every topic, most used first', async () => {
+		mockPublicFetch.mockResolvedValue([
+			{ id: 'a', slug: 'food', name: 'Food', usageCount: 3 },
+			{ id: 'b', slug: 'transport', name: 'Transport', usageCount: 9 },
+		]);
+		expect((await getTags()).map((tag) => tag.slug)).toEqual(['transport', 'food']);
+	});
+
+	it('returns no topics when the API is down', async () => {
+		mockPublicFetch.mockRejectedValue(new Error('down'));
+		expect(await getTags()).toEqual([]);
 	});
 });

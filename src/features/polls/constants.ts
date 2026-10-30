@@ -1,5 +1,5 @@
-/** Page size for Explore and search results. */
-export const EXPLORE_PAGE_SIZE = 20;
+/** Page size for Explore and search results; divisible by 2 and 3, so full pages fill the grid's rows. */
+export const EXPLORE_PAGE_SIZE = 24;
 
 /** Page size for the notifications list. */
 export const NOTIFICATIONS_PAGE_SIZE = 20;

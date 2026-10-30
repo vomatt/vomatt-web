@@ -1,7 +1,8 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 
 import { ExploreView } from '@/app/(frontend)/explore/_components/ExploreView';
-import type { Poll } from '@/features/polls/schema';
+import { EXPLORE_PAGE_SIZE } from '@/features/polls/constants';
+import type { Poll, TagDto } from '@/features/polls/schema';
 
 jest.mock('@/contexts/LanguageContext', () => require('../helpers/mockLanguage'));
 jest.mock('next/link', () => {
@@ -12,10 +13,6 @@ jest.mock('next/link', () => {
 const mockGetPolls = jest.fn();
 jest.mock('@/features/polls/service', () => ({
 	getPolls: (...args: unknown[]) => mockGetPolls(...args),
-}));
-// The card itself has its own tests; here it only has to show which Poll it is
-jest.mock('@/features/polls/components/PollCard', () => ({
-	PollCard: ({ poll }: { poll: Poll }) => <article>{poll.title}</article>,
 }));
 
 const poll = (id: string, title: string) =>
@@ -31,6 +28,9 @@ const poll = (id: string, title: string) =>
 		endTime: '2099-10-10T00:00:00Z',
 		options: [],
 	}) as Poll;
+
+const noTopics: TagDto[] = [];
+const topic = (slug: string, name: string, usageCount: number): TagDto => ({ id: slug, slug, name, usageCount });
 
 beforeEach(() => {
 	jest.useFakeTimers();
@@ -50,7 +50,7 @@ async function renderView(...args: Parameters<typeof render>) {
 
 describe('ExploreView', () => {
 	it('shows the server page without refetching it', async () => {
-		await renderView(<ExploreView initialPage={Promise.resolve({ items: [poll('p1', 'Lunch?')], nextCursor: null })} />);
+		await renderView(<ExploreView topics={noTopics} initialPage={Promise.resolve({ items: [poll('p1', 'Lunch?')], nextCursor: null })} />);
 		await act(async () => jest.advanceTimersByTime(1000));
 		expect(screen.getByText('Lunch?')).toBeInTheDocument();
 		expect(mockGetPolls).not.toHaveBeenCalled();
@@ -58,18 +58,18 @@ describe('ExploreView', () => {
 
 	it('refetches from the first page when the filter changes', async () => {
 		mockGetPolls.mockResolvedValue({ items: [poll('p2', 'Dinner?')], nextCursor: null });
-		await renderView(<ExploreView initialPage={Promise.resolve({ items: [poll('p1', 'Lunch?')], nextCursor: null })} />);
+		await renderView(<ExploreView topics={noTopics} initialPage={Promise.resolve({ items: [poll('p1', 'Lunch?')], nextCursor: null })} />);
 
 		fireEvent.click(screen.getByRole('button', { name: 'Ended' }));
 		await act(async () => jest.advanceTimersByTime(300));
 
-		expect(mockGetPolls).toHaveBeenCalledWith({ status: 'ended', sort: undefined, q: undefined }, null, 20, { asViewer: true });
+		expect(mockGetPolls).toHaveBeenCalledWith({ status: 'ended', sort: undefined, q: undefined, tag: undefined }, null, EXPLORE_PAGE_SIZE, { asViewer: true });
 		expect(await screen.findByText('Dinner?')).toBeInTheDocument();
 	});
 
 	it('waits for a pause in typing and skips one-character searches', async () => {
 		mockGetPolls.mockResolvedValue({ items: [], nextCursor: null });
-		await renderView(<ExploreView initialPage={Promise.resolve({ items: [], nextCursor: null })} />);
+		await renderView(<ExploreView topics={noTopics} initialPage={Promise.resolve({ items: [], nextCursor: null })} />);
 		const box = screen.getByRole('searchbox');
 
 		fireEvent.change(box, { target: { value: 'l' } });
@@ -80,31 +80,31 @@ describe('ExploreView', () => {
 		fireEvent.change(box, { target: { value: 'lun' } });
 		await act(async () => jest.advanceTimersByTime(300));
 		expect(mockGetPolls).toHaveBeenCalledTimes(1);
-		expect(mockGetPolls).toHaveBeenCalledWith({ status: 'open', sort: 'newest', q: 'lun' }, null, 20, { asViewer: true });
+		expect(mockGetPolls).toHaveBeenCalledWith({ status: 'open', sort: 'newest', q: 'lun', tag: undefined }, null, EXPLORE_PAGE_SIZE, { asViewer: true });
 	});
 
 	it('sorts open polls by most voted', async () => {
 		mockGetPolls.mockResolvedValue({ items: [], nextCursor: null });
-		await renderView(<ExploreView initialPage={Promise.resolve({ items: [], nextCursor: null })} />);
+		await renderView(<ExploreView topics={noTopics} initialPage={Promise.resolve({ items: [], nextCursor: null })} />);
 		fireEvent.click(screen.getByRole('button', { name: 'Most voted' }));
 		await act(async () => jest.advanceTimersByTime(300));
-		expect(mockGetPolls).toHaveBeenCalledWith({ status: 'open', sort: 'top', q: undefined }, null, 20, { asViewer: true });
+		expect(mockGetPolls).toHaveBeenCalledWith({ status: 'open', sort: 'top', q: undefined, tag: undefined }, null, EXPLORE_PAGE_SIZE, { asViewer: true });
 	});
 
 	it('loads more of the listed polls until the new sort\'s first page arrives', async () => {
 		mockGetPolls.mockResolvedValue({ items: [poll('p2', 'Dinner?')], nextCursor: null });
-		await renderView(<ExploreView initialPage={Promise.resolve({ items: [poll('p1', 'Lunch?')], nextCursor: 'c1' })} />);
+		await renderView(<ExploreView topics={noTopics} initialPage={Promise.resolve({ items: [poll('p1', 'Lunch?')], nextCursor: 'c1' })} />);
 
 		fireEvent.click(screen.getByRole('button', { name: 'Most voted' }));
 		fireEvent.click(screen.getByRole('button', { name: 'Load more' }));
 		// The cursor belongs to the newest ordering, so it goes back with that query
-		expect(mockGetPolls).toHaveBeenCalledWith({ status: 'open', sort: 'newest', q: undefined }, 'c1', 20, { asViewer: true });
+		expect(mockGetPolls).toHaveBeenCalledWith({ status: 'open', sort: 'newest', q: undefined, tag: undefined }, 'c1', EXPLORE_PAGE_SIZE, { asViewer: true });
 		await act(async () => jest.advanceTimersByTime(300));
 	});
 
 	it('keeps the previous results, inert, while a new query loads', async () => {
 		mockGetPolls.mockReturnValue(new Promise(() => {}));
-		await renderView(<ExploreView initialPage={Promise.resolve({ items: [poll('p1', 'Lunch?')], nextCursor: null })} />);
+		await renderView(<ExploreView topics={noTopics} initialPage={Promise.resolve({ items: [poll('p1', 'Lunch?')], nextCursor: null })} />);
 
 		fireEvent.click(screen.getByRole('button', { name: 'Ended' }));
 		await act(async () => jest.advanceTimersByTime(300));
@@ -115,20 +115,53 @@ describe('ExploreView', () => {
 	});
 
 	it('names the search box and each filter group', async () => {
-		await renderView(<ExploreView initialPage={Promise.resolve({ items: [], nextCursor: null })} />);
+		await renderView(<ExploreView topics={noTopics} initialPage={Promise.resolve({ items: [], nextCursor: null })} />);
 		expect(screen.getByRole('searchbox', { name: 'Search' })).toBeInTheDocument();
 		expect(screen.getByRole('group', { name: 'Status' })).toBeInTheDocument();
 		expect(screen.getByRole('group', { name: 'Sort' })).toBeInTheDocument();
 	});
 
-	it('shows each Poll as a full card', async () => {
-		await renderView(<ExploreView initialPage={Promise.resolve({ items: [poll('p1', 'Lunch?')], nextCursor: null })} />);
-		expect(screen.getByRole('article')).toHaveTextContent('Lunch?');
+	it('lists each Poll as a tile linking to its page, with no ballot', async () => {
+		await renderView(<ExploreView topics={noTopics} initialPage={Promise.resolve({ items: [poll('p1', 'Lunch?')], nextCursor: null })} />);
+		expect(screen.getByRole('link', { name: 'Lunch?' })).toHaveAttribute('href', '/poll/p1');
+		expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+	});
+
+	it('offers the topics and filters by the one picked', async () => {
+		mockGetPolls.mockResolvedValue({ items: [], nextCursor: null });
+		const topics = [topic('transport', 'Transport', 9), topic('food', 'Food', 3)];
+		await renderView(<ExploreView topics={topics} initialPage={Promise.resolve({ items: [], nextCursor: null })} />);
+		const pills = screen.getByRole('list', { name: 'Topics' });
+		expect(pills).toHaveTextContent('TransportFood');
+
+		fireEvent.click(screen.getByRole('button', { name: 'Food' }));
+		await act(async () => jest.advanceTimersByTime(300));
+		expect(mockGetPolls).toHaveBeenCalledWith(
+			{ status: 'open', sort: 'newest', q: undefined, tag: 'food' }, null, EXPLORE_PAGE_SIZE, { asViewer: true }
+		);
+		expect(screen.getByRole('button', { name: 'Food' })).toHaveAttribute('aria-pressed', 'true');
+	});
+
+	it('shows the topics a search matches, and picking one replaces the search', async () => {
+		mockGetPolls.mockResolvedValue({ items: [], nextCursor: null });
+		const topics = [topic('food', 'Food', 3), topic('transport', 'Transport', 9)];
+		await renderView(<ExploreView topics={topics} initialPage={Promise.resolve({ items: [], nextCursor: null })} />);
+		const box = screen.getByRole('searchbox');
+
+		fireEvent.change(box, { target: { value: 'tran' } });
+		expect(screen.queryByRole('button', { name: 'Food' })).not.toBeInTheDocument();
+		fireEvent.click(screen.getByRole('button', { name: 'Transport' }));
+		await act(async () => jest.advanceTimersByTime(300));
+
+		expect(box).toHaveValue('');
+		expect(mockGetPolls).toHaveBeenLastCalledWith(
+			{ status: 'open', sort: 'newest', q: undefined, tag: 'transport' }, null, EXPLORE_PAGE_SIZE, { asViewer: true }
+		);
 	});
 
 	it('suggests the other status when nothing is found', async () => {
 		mockGetPolls.mockResolvedValue({ items: [], nextCursor: null });
-		await renderView(<ExploreView initialPage={Promise.resolve({ items: [], nextCursor: null })} />);
+		await renderView(<ExploreView topics={noTopics} initialPage={Promise.resolve({ items: [], nextCursor: null })} />);
 		expect(screen.getByRole('heading', { name: 'No polls found.' })).toBeInTheDocument();
 		expect(screen.getByText('Try other words, or switch to Ended polls.')).toBeInTheDocument();
 
@@ -141,7 +174,7 @@ describe('ExploreView', () => {
 		mockGetPolls.mockResolvedValue({ items: [poll('p2', 'Dinner?')], nextCursor: null });
 		let resolveFirst!: (page: { items: Poll[]; nextCursor: null }) => void;
 		const firstPage = new Promise<{ items: Poll[]; nextCursor: null }>((resolve) => (resolveFirst = resolve));
-		await renderView(<ExploreView initialPage={firstPage} />);
+		await renderView(<ExploreView topics={noTopics} initialPage={firstPage} />);
 
 		// The filters render before the list streams in
 		await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Ended' })));
@@ -150,7 +183,43 @@ describe('ExploreView', () => {
 		await act(async () => jest.advanceTimersByTime(300));
 		await act(async () => jest.advanceTimersByTime(300));
 
-		expect(mockGetPolls).toHaveBeenCalledWith({ status: 'ended', sort: undefined, q: undefined }, null, 20, { asViewer: true });
+		expect(mockGetPolls).toHaveBeenCalledWith({ status: 'ended', sort: undefined, q: undefined, tag: undefined }, null, EXPLORE_PAGE_SIZE, { asViewer: true });
 		expect(await screen.findByText('Dinner?')).toBeInTheDocument();
+	});
+
+	it('clears the topic when its pill is tapped again', async () => {
+		mockGetPolls.mockResolvedValue({ items: [], nextCursor: null });
+		await renderView(<ExploreView topics={[topic('food', 'Food', 3)]} initialPage={Promise.resolve({ items: [], nextCursor: null })} />);
+
+		fireEvent.click(screen.getByRole('button', { name: 'Food' }));
+		await act(async () => jest.advanceTimersByTime(300));
+		fireEvent.click(screen.getByRole('button', { name: 'Food' }));
+		await act(async () => jest.advanceTimersByTime(300));
+
+		expect(screen.getByRole('button', { name: 'Food' })).toHaveAttribute('aria-pressed', 'false');
+		expect(mockGetPolls).toHaveBeenLastCalledWith(
+			{ status: 'open', sort: 'newest', q: undefined, tag: undefined }, null, EXPLORE_PAGE_SIZE, { asViewer: true }
+		);
+	});
+
+	it('keeps the picked topic first while a search matches other topics', async () => {
+		mockGetPolls.mockResolvedValue({ items: [], nextCursor: null });
+		const topics = [topic('transport', 'Transport', 9), topic('food', 'Food', 3)];
+		await renderView(<ExploreView topics={topics} initialPage={Promise.resolve({ items: [], nextCursor: null })} />);
+
+		fireEvent.click(screen.getByRole('button', { name: 'Food' }));
+		fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'tran' } });
+
+		expect(screen.getByRole('list', { name: 'Topics' })).toHaveTextContent('FoodTransport');
+	});
+
+	it('points at the topic when it is what emptied the grid', async () => {
+		mockGetPolls.mockResolvedValue({ items: [], nextCursor: null });
+		await renderView(<ExploreView topics={[topic('food', 'Food', 3)]} initialPage={Promise.resolve({ items: [], nextCursor: null })} />);
+
+		fireEvent.click(screen.getByRole('button', { name: 'Food' }));
+		await act(async () => jest.advanceTimersByTime(300));
+
+		expect(screen.getByText('Try another topic, or tap it again to see every poll.')).toBeInTheDocument();
 	});
 });

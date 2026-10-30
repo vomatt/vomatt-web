@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, use, useCallback, useEffect, useId, useMemo, useState } from 'react';
+import { memo, Suspense, use, useCallback, useEffect, useId, useMemo, useState } from 'react';
 
 import { EmptyCard } from '@/components/EmptyCard';
 import { LoadMore } from '@/components/LoadMore';
@@ -8,10 +8,10 @@ import { StickyBar } from '@/components/StickyBar';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { PollCard } from '@/features/polls/components/PollCard';
-import { PollListSkeleton } from '@/features/polls/components/PollCardSkeleton';
+import { PollTileGridSkeleton } from '@/features/polls/components/PollCardSkeleton';
+import { PollTile, PollTileGrid } from '@/features/polls/components/PollTile';
 import { EXPLORE_PAGE_SIZE, SEARCH_DEBOUNCE_MS, SEARCH_MIN_LENGTH } from '@/features/polls/constants';
-import type { Poll } from '@/features/polls/schema';
+import type { Poll, TagDto } from '@/features/polls/schema';
 import { getPolls, type PollListQuery } from '@/features/polls/service';
 import { useCursorList } from '@/hooks/useCursorList';
 import type { CursorPage } from '@/lib/api/cursor';
@@ -21,14 +21,29 @@ type Status = 'open' | 'ended';
 type Sort = 'newest' | 'closing' | 'top';
 
 /** The query sent to the API; a search under the minimum length is no search. */
-export function toExploreQuery(query: string, status: Status, sort: Sort): PollListQuery {
+export function toExploreQuery(query: string, status: Status, sort: Sort, tag?: string): PollListQuery {
 	const q = query.trim();
 	return {
 		status,
 		// Ended Polls have a fixed order; the API rejects a sort for them
 		sort: status === 'open' ? sort : undefined,
 		q: q.length >= SEARCH_MIN_LENGTH ? q : undefined,
+		tag,
 	};
+}
+
+const TOPIC_LIMIT = 8;
+
+/**
+ * The topics to offer from `topics` (most used first): those whose name or slug contains the
+ * search, or the most used ones without a search. `q` is already trimmed and long enough, or undefined.
+ */
+export function topicsFor(topics: TagDto[], q: string | undefined): TagDto[] {
+	const needle = q?.toLocaleLowerCase();
+	const matches = needle
+		? topics.filter((tag) => tag.name.toLocaleLowerCase().includes(needle) || tag.slug.includes(needle))
+		: topics;
+	return matches.slice(0, TOPIC_LIMIT);
 }
 
 function Pill({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
@@ -48,13 +63,12 @@ function Pill({ active, onClick, children }: { active: boolean; onClick: () => v
 
 export function ExploreView({
 	initialPage,
-	viewerId,
-	anonymousByDefault,
+	topics,
 }: {
 	/** Open Polls, newest first; null when the API couldn't be reached. */
 	initialPage: Promise<CursorPage<Poll> | null>;
-	viewerId?: string;
-	anonymousByDefault?: boolean;
+	/** Every topic, most used first; empty when the API couldn't be reached. */
+	topics: TagDto[];
 }) {
 	const { t } = useLanguage();
 	const searchId = useId();
@@ -63,15 +77,23 @@ export function ExploreView({
 	const [query, setQuery] = useState('');
 	const [status, setStatus] = useState<Status>('open');
 	const [sort, setSort] = useState<Sort>('newest');
+	const [tag, setTag] = useState<string>();
 
 	// Memoized on its fields, so keystrokes that don't change the query don't refetch
-	const { sort: apiSort, q } = toExploreQuery(query, status, sort);
-	const apiQuery = useMemo(() => ({ status, sort: apiSort, q }), [status, apiSort, q]);
+	const { sort: apiSort, q, tag: apiTag } = toExploreQuery(query, status, sort, tag);
+	const apiQuery = useMemo(() => ({ status, sort: apiSort, q, tag: apiTag }), [status, apiSort, q, apiTag]);
 	// The query the server's first page answers
 	const [initialQuery] = useState(apiQuery);
 
+	// A topic the search found replaces the search: the grid then shows that topic's Polls
+	const pickTopic = (slug: string) => {
+		if (slug === tag) return setTag(undefined);
+		setTag(slug);
+		if (q) setQuery('');
+	};
+
 	return (
-		<div className="flex max-w-feed flex-col gap-4">
+		<div className="flex flex-col gap-4">
 			<h1 className="sr-only">{t('explore.title')}</h1>
 
 			<StickyBar className="-mx-1 flex flex-col gap-3 px-1 py-2">
@@ -110,17 +132,12 @@ export function ExploreView({
 					</div>
 				</div>
 			</StickyBar>
+			{/* Under the bar, not in it: a fourth stuck row would cover too much of a phone */}
+			<TopicPills topics={topics} q={q} activeTag={tag} onPick={pickTopic} />
 
 			{/* Filters and search render at once; only the results wait for the server */}
-			<Suspense fallback={<PollListSkeleton />}>
-				<ExploreResults
-					initialPage={initialPage}
-					initialQuery={initialQuery}
-					apiQuery={apiQuery}
-					status={status}
-					viewerId={viewerId}
-					anonymousByDefault={anonymousByDefault}
-				/>
+			<Suspense fallback={<PollTileGridSkeleton />}>
+				<ExploreResults initialPage={initialPage} initialQuery={initialQuery} apiQuery={apiQuery} status={status} />
 			</Suspense>
 			{query.trim().length > 0 && query.trim().length < SEARCH_MIN_LENGTH && (
 				<p className="text-center text-xs text-muted-foreground">{t('explore.searchTooShort')}</p>
@@ -129,14 +146,51 @@ export function ExploreView({
 	);
 }
 
-/** The listed Polls for `apiQuery`; a new query starts from its own first page. */
-function ExploreResults({
+/** Topic toggles: the ones the search matches, or the most used; the picked one stays first. */
+function TopicPills({
+	topics,
+	q,
+	activeTag,
+	onPick,
+}: {
+	topics: TagDto[];
+	q: string | undefined;
+	activeTag: string | undefined;
+	onPick: (slug: string) => void;
+}) {
+	const { t } = useLanguage();
+	const labelId = useId();
+	const active = topics.find((tag) => tag.slug === activeTag);
+	const rest = topicsFor(topics, q).filter((tag) => tag !== active);
+	const shown = active ? [active, ...rest] : rest;
+	if (shown.length === 0) return null;
+
+	return (
+		<div className="flex items-center gap-4">
+			<span id={labelId} className="shrink-0 text-[13px] text-muted-foreground">
+				{t('explore.topics')}
+			</span>
+			{/* Padded inside the scroller, so the end pills' focus rings aren't clipped */}
+			<ul aria-labelledby={labelId} className="-m-1 flex gap-2 overflow-x-auto p-1 scrollbar-none">
+				{shown.map((tag) => (
+					<li key={tag.id} className="shrink-0">
+						<Pill active={tag === active} onClick={() => onPick(tag.slug)}>{tag.name}</Pill>
+					</li>
+				))}
+			</ul>
+		</div>
+	);
+}
+
+/**
+ * The listed Polls for `apiQuery`; a new query starts from its own first page. Memoized, so
+ * keystrokes that don't change the query don't re-render every tile.
+ */
+const ExploreResults = memo(function ExploreResults({
 	initialPage,
 	initialQuery,
 	apiQuery,
 	status,
-	viewerId,
-	anonymousByDefault,
 }: {
 	initialPage: Promise<CursorPage<Poll> | null>;
 	/** The query `initialPage` answers, so it isn't fetched again. */
@@ -144,8 +198,6 @@ function ExploreResults({
 	apiQuery: PollListQuery;
 	/** The status picked, so an empty result suggests the other one. */
 	status: Status;
-	viewerId?: string;
-	anonymousByDefault?: boolean;
 }) {
 	const { t } = useLanguage();
 	const firstPage = use(initialPage);
@@ -195,17 +247,24 @@ function ExploreResults({
 				) : list.items.length === 0 ? (
 					<EmptyCard
 						title={t('explore.noResults')}
-						body={t(status === 'open' ? 'explore.noResultsHint' : 'explore.noResultsHintEnded')}
+						body={t(
+							// A topic with no search is what emptied the grid, so point at it
+							apiQuery.tag && !apiQuery.q
+								? 'explore.noResultsHintTopic'
+								: status === 'open'
+									? 'explore.noResultsHint'
+									: 'explore.noResultsHintEnded'
+						)}
 					/>
 				) : (
-					<div className="flex flex-col gap-4">
+					<PollTileGrid>
 						{list.items.map((poll) => (
-							<PollCard key={poll.id} poll={poll} viewerId={viewerId} anonymousByDefault={anonymousByDefault} />
+							<PollTile key={poll.id} poll={poll} />
 						))}
-					</div>
+					</PollTileGrid>
 				)}
 			</div>
 			{!isSearching && !searchFailed && <LoadMore list={list} />}
 		</>
 	);
-}
+});

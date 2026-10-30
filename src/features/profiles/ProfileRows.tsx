@@ -7,18 +7,17 @@ import { ballotChoice, ballotOutcome } from '@/features/account/insights';
 import { NewMark, UnreadDot } from '@/features/notifications/UnreadDot';
 import { isDecided, OutcomeChip } from '@/features/polls/components/OutcomeChip';
 import { OwnerActions } from '@/features/polls/components/OwnerActions';
+import { EndedMeta, useVotedText } from '@/features/polls/components/PollMeta';
 import { SealMark } from '@/features/polls/components/Seal';
 import { StatusChip } from '@/features/polls/components/StatusChip';
 import { formatPollMoment } from '@/features/polls/format';
 import { useViewerClock } from '@/features/polls/hooks/useViewerClock';
 import type { Poll } from '@/features/polls/schema';
-import { derivePollStatus, getTurnout, isCancelled, type PollStatus } from '@/features/polls/status';
+import { derivePollStatus, isCancelled, type PollStatus } from '@/features/polls/status';
 import { pollTiming } from '@/features/polls/timing';
 import { toPayloadLocale } from '@/lib/locale';
-import { rich, richList } from '@/lib/rich';
 import { cn } from '@/lib/utils';
 
-import { endedSummary } from './lists';
 
 /** The row frame every profile list shares; hover lifts its line one step. */
 export const profileRowClassName =
@@ -53,43 +52,6 @@ export function ProfileSection({
 			)}
 			{note && ` · ${note}`}
 		</h3>
-	);
-}
-
-function useVotedText() {
-	const { t, currentLanguage } = useLanguage();
-	return (poll: Poll) => {
-		const turnout = (getTurnout(poll) ?? 0).toLocaleString(toPayloadLocale(currentLanguage));
-		return t('poll.voted', { count: turnout });
-	};
-}
-
-/** What an Ended Poll decided, "**Yes** won" or "Tie between **A** and **B**"; nothing when there is no winner to name. */
-export function DecidedText({ poll }: { poll: Poll }) {
-	const { t, currentLanguage } = useLanguage();
-	const summary = endedSummary(poll);
-	const strong = (text: string) => <strong className="font-medium text-foreground">{text}</strong>;
-	if (summary.kind === 'won') return rich(t('profile.wonBy'), { option: strong(summary.winner) });
-	if (summary.kind === 'tie') {
-		return rich(t('profile.tieBetween'), { options: richList(summary.winners, toPayloadLocale(currentLanguage), strong) });
-	}
-	return null;
-}
-
-/** "**Yes** won · 2,061 voted", "Tie between **A** and **B** · 88 voted", or the turnout alone. */
-function EndedMeta({ poll }: { poll: Poll }) {
-	const { t } = useLanguage();
-	const voted = useVotedText();
-	if (isCancelled(poll)) return <>{t('notifications.cancelled')}</>;
-	return (
-		<>
-			{endedSummary(poll).kind !== 'none' && (
-				<>
-					<DecidedText poll={poll} /> ·{' '}
-				</>
-			)}
-			<span className="font-mono tabular-nums">{voted(poll)}</span>
-		</>
 	);
 }
 

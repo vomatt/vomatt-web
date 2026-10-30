@@ -5,6 +5,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 
 import { pollRowFrameClassName } from './PollListItem';
+import { pollTileFrameClassName, PollTileGrid } from './PollTile';
 
 /** Placeholder with the PollCard's shape, shown while a page's data loads. */
 export function PollCardSkeleton({ options = 3 }: { options?: number }) {
@@ -61,6 +62,32 @@ export function PollListSkeleton() {
 			{Array.from({ length: 3 }, (_, i) => (
 				<PollCardSkeleton key={i} options={3 + (i % 2)} />
 			))}
+		</div>
+	);
+}
+
+/** Placeholder tiles in PollTileGrid, shown while Explore's results load. */
+export function PollTileGridSkeleton() {
+	const { t } = useLanguage();
+	return (
+		<div role="status" aria-busy>
+			<span className="sr-only">{t('common.loading')}</span>
+			<PollTileGrid>
+				{Array.from({ length: 6 }, (_, i) => (
+					<li key={i} aria-hidden className={pollTileFrameClassName}>
+						<Skeleton className="h-5 w-24 rounded-full" />
+						<div className="space-y-2">
+							<Skeleton className="h-6 w-full" />
+							<Skeleton className="h-6 w-2/3" />
+						</div>
+						<div className="space-y-1.5">
+							<Skeleton className="h-4 w-1/2" />
+							<Skeleton className="h-4 w-2/5" />
+						</div>
+						<Skeleton className="mt-auto h-4 w-20" />
+					</li>
+				))}
+			</PollTileGrid>
 		</div>
 	);
 }
