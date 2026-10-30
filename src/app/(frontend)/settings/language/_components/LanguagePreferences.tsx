@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useId } from 'react';
 
+import { StickyBar } from '@/components/StickyBar';
 import { Check, ChevronLeft } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { htmlLang, SUPPORTED_LANGUAGES } from '@/i18n-config';
@@ -20,7 +21,7 @@ export function LanguagePreferences() {
 
 	return (
 		<div className="flex flex-col gap-8">
-			<div data-sticky-bar className="sticky follow-header z-20 flex items-center gap-2 bg-background">
+			<StickyBar data-sticky-bar className="flex items-center gap-2">
 				<Link
 					href="/settings"
 					aria-label={t('settings.backToSettings')}
@@ -29,7 +30,7 @@ export function LanguagePreferences() {
 					<ChevronLeft aria-hidden className="size-5.5" />
 				</Link>
 				<h1 className="page-title text-foreground">{t('settings.languageTitle')}</h1>
-			</div>
+			</StickyBar>
 			<section aria-labelledby={headingId} className="flex flex-col gap-3">
 				<div>
 					<h2 id={headingId} className="text-[16px] font-medium tracking-[-0.01em]">

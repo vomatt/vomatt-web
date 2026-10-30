@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+import { StickyBar } from '@/components/StickyBar';
 import { ChevronLeft } from '@/components/ui/SvgIcons';
 
 /** The Navigation API; TypeScript's DOM types don't include it yet. */
@@ -29,7 +30,7 @@ export function BackLink({ href, children }: { href: string; children: React.Rea
 
 	return (
 		// Stays under the phone Header as the page scrolls; the bar's 44px backs the hit area
-		<div data-sticky-bar className="sticky follow-header z-20 -my-3 bg-background">
+		<StickyBar data-sticky-bar className="-my-3">
 			<Link
 				href={href}
 				onClick={goBack}
@@ -38,6 +39,6 @@ export function BackLink({ href, children }: { href: string; children: React.Rea
 				<ChevronLeft aria-hidden className="size-3.5 shrink-0" />
 				{children}
 			</Link>
-		</div>
+		</StickyBar>
 	);
 }
