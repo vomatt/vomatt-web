@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 import { LoginPrompt } from '@/components/LoginPrompt';
+import { StickyBar } from '@/components/StickyBar';
 import { Button, buttonVariants } from '@/components/ui/Button';
 import { Check, Plus } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -85,10 +86,7 @@ export function HomepageHeader({
 			{/* The feed has no visible title; the page still needs one for headings navigation */}
 			<h1 className="sr-only">{heading}</h1>
 			{!signedIn && <LoginPrompt className="my-2" />}
-			<nav
-				aria-label={t('homePage.topics')}
-				className="sticky follow-header z-20 -mx-1 bg-background/60 backdrop-blur-sm"
-			>
+			<StickyBar as="nav" aria-label={t('homePage.topics')} className="-mx-1">
 				<ul className="flex gap-2 overflow-x-auto px-1 py-2 scrollbar-none">
 					{items.map(({ label, href, isActive }) => (
 						<li key={href} className="shrink-0">
@@ -107,7 +105,7 @@ export function HomepageHeader({
 						</li>
 					))}
 				</ul>
-			</nav>
+			</StickyBar>
 			{signedIn && activeTagDto && followedTagIds && (
 				<TopicFollowButton
 					key={activeTagDto.id}

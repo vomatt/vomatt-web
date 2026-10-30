@@ -35,11 +35,11 @@ const tabsListVariants = cva(
 		variants: {
 			variant: {
 				default: 'bg-muted',
-				line: 'w-full gap-0 border-b border-border bg-transparent p-0 group-data-horizontal/tabs:h-11',
+				line: 'w-full gap-0 border-b border-border p-0 group-data-horizontal/tabs:h-11',
 			},
 			// A page's own tabs: they stay under the phone Header as the list scrolls
 			sticky: {
-				true: 'sticky follow-header z-20 bg-background',
+				true: 'sticky follow-header z-20',
 			},
 			// Line tabs sized to their labels, so a row can hold controls beside them; the row draws the line
 			fit: {
@@ -84,6 +84,7 @@ function TabsList({
 			{...props}
 		>
 			<HoverMarkContext value={hover.mark}>{children}</HoverMarkContext>
+			{sticky && <span data-sticky-fade aria-hidden />}
 		</TabsPrimitive.List>
 	);
 }
