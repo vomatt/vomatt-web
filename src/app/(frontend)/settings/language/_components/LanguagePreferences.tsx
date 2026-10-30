@@ -20,7 +20,7 @@ export function LanguagePreferences() {
 
 	return (
 		<div className="flex flex-col gap-8">
-			<div className="flex items-center gap-2">
+			<div data-sticky-bar className="sticky follow-header z-20 flex items-center gap-2 bg-background">
 				<Link
 					href="/settings"
 					aria-label={t('settings.backToSettings')}

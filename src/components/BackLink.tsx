@@ -28,13 +28,16 @@ export function BackLink({ href, children }: { href: string; children: React.Rea
 	}
 
 	return (
-		<Link
-			href={href}
-			onClick={goBack}
-			className="-my-3 inline-flex min-h-11 items-center gap-1 self-start rounded-sm text-[14px] leading-5 text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
-		>
-			<ChevronLeft aria-hidden className="size-3.5 shrink-0" />
-			{children}
-		</Link>
+		// Stays under the phone Header as the page scrolls; the bar's 44px backs the hit area
+		<div data-sticky-bar className="sticky follow-header z-20 -my-3 bg-background">
+			<Link
+				href={href}
+				onClick={goBack}
+				className="inline-flex min-h-11 items-center gap-1 rounded-sm text-[14px] leading-5 text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
+			>
+				<ChevronLeft aria-hidden className="size-3.5 shrink-0" />
+				{children}
+			</Link>
+		</div>
 	);
 }

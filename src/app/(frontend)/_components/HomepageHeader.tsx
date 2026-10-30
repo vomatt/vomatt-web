@@ -28,14 +28,38 @@ type HomepageHeaderProps = {
 };
 
 /** Topic pills over the feed. Each is a link, so a topic can be shared and server-rendered. */
-export function HomepageHeader({ tags, activeTag, signedIn, following, saved, followedTagIds }: HomepageHeaderProps) {
+export function HomepageHeader({
+	tags,
+	activeTag,
+	signedIn,
+	following,
+	saved,
+	followedTagIds,
+}: HomepageHeaderProps) {
 	const { t } = useLanguage();
-	const items: { slug?: string; label: string; href: string; isActive?: boolean }[] = [
-		{ label: t('homePage.allTopics'), href: '/', isActive: !following && !saved && !activeTag },
+	const items: {
+		slug?: string;
+		label: string;
+		href: string;
+		isActive?: boolean;
+	}[] = [
+		{
+			label: t('homePage.allTopics'),
+			href: '/',
+			isActive: !following && !saved && !activeTag,
+		},
 		...(signedIn
 			? [
-					{ label: t('homePage.following'), href: '/following', isActive: following },
-					{ label: t('homePage.bookmarks'), href: '/following/saved', isActive: saved },
+					{
+						label: t('homePage.following'),
+						href: '/following',
+						isActive: following,
+					},
+					{
+						label: t('homePage.bookmarks'),
+						href: '/following/saved',
+						isActive: saved,
+					},
 				]
 			: []),
 		...tags.map((tag) => ({
@@ -61,8 +85,11 @@ export function HomepageHeader({ tags, activeTag, signedIn, following, saved, fo
 			{/* The feed has no visible title; the page still needs one for headings navigation */}
 			<h1 className="sr-only">{heading}</h1>
 			{!signedIn && <LoginPrompt className="my-2" />}
-			<nav aria-label={t('homePage.topics')} className="sticky follow-header z-10 -mx-1 bg-background">
-				<ul className="flex gap-2 overflow-x-auto px-1 py-2 [scrollbar-width:none]">
+			<nav
+				aria-label={t('homePage.topics')}
+				className="sticky follow-header z-20 -mx-1 bg-background/60 backdrop-blur-sm"
+			>
+				<ul className="flex gap-2 overflow-x-auto px-1 py-2 scrollbar-none">
 					{items.map(({ label, href, isActive }) => (
 						<li key={href} className="shrink-0">
 							<Link
@@ -82,14 +109,24 @@ export function HomepageHeader({ tags, activeTag, signedIn, following, saved, fo
 				</ul>
 			</nav>
 			{signedIn && activeTagDto && followedTagIds && (
-				<TopicFollowButton key={activeTagDto.id} tagId={activeTagDto.id} initiallyFollowing={followedTagIds.includes(activeTagDto.id)} />
+				<TopicFollowButton
+					key={activeTagDto.id}
+					tagId={activeTagDto.id}
+					initiallyFollowing={followedTagIds.includes(activeTagDto.id)}
+				/>
 			)}
 		</>
 	);
 }
 
 /** Following a topic adds its Open Public Polls to the Following feed. One tap undoes it. */
-function TopicFollowButton({ tagId, initiallyFollowing }: { tagId: string; initiallyFollowing: boolean }) {
+function TopicFollowButton({
+	tagId,
+	initiallyFollowing,
+}: {
+	tagId: string;
+	initiallyFollowing: boolean;
+}) {
 	const { t } = useLanguage();
 	const [following, setFollowing] = useState(initiallyFollowing);
 	const [isPending, setIsPending] = useState(false);
@@ -102,7 +139,13 @@ function TopicFollowButton({ tagId, initiallyFollowing }: { tagId: string; initi
 		setIsPending(false);
 		if (!result.ok) {
 			setFollowing(!next);
-			toast.error(apiErrorText(t, result, next ? 'homePage.followTopicFailed' : 'homePage.unfollowTopicFailed'));
+			toast.error(
+				apiErrorText(
+					t,
+					result,
+					next ? 'homePage.followTopicFailed' : 'homePage.unfollowTopicFailed'
+				)
+			);
 		}
 	};
 

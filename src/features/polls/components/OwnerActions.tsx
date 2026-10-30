@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/AlertDialog';
 import { Button } from '@/components/ui/Button';
 import { menuItemClassName, menuPopupClassName } from '@/components/ui/menu';
-import { Ellipsis, Pencil, Share2, SquareStop, Trash2, Users } from '@/components/ui/SvgIcons';
+import { Ellipsis, Pencil, Share, SquareStop, Trash2, Users } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { apiErrorText } from '@/lib/api/error-text';
 import { cn } from '@/lib/utils';
@@ -255,7 +255,7 @@ function OwnerMenu({
 							</Menu.Item>
 						)}
 						<Menu.Item onClick={() => share({ id: poll.id, title: poll.title })} className={menuItemClassName}>
-							<Share2 aria-hidden />
+							<Share aria-hidden />
 							{t('poll.share')}
 						</Menu.Item>
 						{canDelete && (

@@ -59,18 +59,32 @@ export default function ProfileHeader({
 	const name = profileName(profile);
 	const isHidden = (field: string) => hiddenFields.includes(field);
 	const leadsWithRealName = realName(profile) !== null;
-	const primaryHidden = leadsWithRealName ? isHidden('firstName') || isHidden('lastName') : isHidden('displayName');
+	const primaryHidden = leadsWithRealName
+		? isHidden('firstName') || isHidden('lastName')
+		: isHidden('displayName');
 
 	const listCount = (list: FollowList, count: number) => {
 		const label = (
 			<Count
 				value={count}
-				label={countText(t, list === 'followers' ? 'profile.followersCount' : 'profile.followingCount', count, currentLanguage)}
+				label={countText(
+					t,
+					list === 'followers'
+						? 'profile.followersCount'
+						: 'profile.followingCount',
+					count,
+					currentLanguage
+				)}
 			/>
 		);
 		if (!onOpenList) return <span key={list}>{label}</span>;
 		return (
-			<button key={list} type="button" onClick={() => onOpenList(list)} className={detailLink}>
+			<button
+				key={list}
+				type="button"
+				onClick={() => onOpenList(list)}
+				className={detailLink}
+			>
 				{label}
 			</button>
 		);
@@ -79,40 +93,62 @@ export default function ProfileHeader({
 	return (
 		<header className="flex flex-wrap items-start gap-5">
 			{isOwn ? (
-				<AvatarDialog username={profile.username} avatarUrl={profile.avatarUrl} className="size-18 md:size-22" />
+				<AvatarDialog
+					username={profile.username}
+					avatarUrl={profile.avatarUrl}
+					className="size-18 md:size-22"
+				/>
 			) : (
-				<UserAvatar username={profile.username} avatarUrl={profile.avatarUrl} className="size-18 md:size-22" />
+				<UserAvatar
+					username={profile.username}
+					avatarUrl={profile.avatarUrl}
+					className="size-18 md:size-22"
+				/>
 			)}
 			<div className="min-w-0 flex-[1_1_20rem] max-sm:order-last max-sm:basis-full">
-				<h1 className="wrap-anywhere display-heading text-[26px] md:text-[30px]">
+				<h1 className="wrap-anywhere display-heading text-xl">
 					{name.primary}
-					{primaryHidden && <OnlyYouMarker className="ml-2 size-4 align-baseline" />}
+					{primaryHidden && (
+						<OnlyYouMarker className="ml-2 size-4 align-baseline" />
+					)}
 					{name.secondary && (
 						<span className="text-muted-foreground">
 							{' '}
 							{name.secondary}
-							{isHidden('displayName') && <OnlyYouMarker className="ml-2 size-4 align-baseline" />}
+							{isHidden('displayName') && (
+								<OnlyYouMarker className="ml-2 size-4 align-baseline" />
+							)}
 						</span>
 					)}
 				</h1>
-				<p className="wrap-anywhere font-mono text-[14px] text-muted-foreground">@{profile.username}</p>
+				<p className="wrap-anywhere font-mono text-[14px] text-muted-foreground">
+					@{profile.username}
+				</p>
 				{profile.bio && (
 					// Capped measure (~68 characters); Geist's wide 0 makes `ch` overshoot, so the cap is in rem
 					<p className="mt-2.5 max-w-[30rem] wrap-anywhere whitespace-pre-line text-[14px]">
 						{profile.bio}
-						{isHidden('bio') && <OnlyYouMarker className="ml-1.5 size-3.5 align-[-0.125em]" />}
+						{isHidden('bio') && (
+							<OnlyYouMarker className="ml-1.5 size-3.5 align-[-0.125em]" />
+						)}
 					</p>
 				)}
 				{/* Items set apart by space and kept whole when they wrap */}
 				<div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-muted-foreground">
 					{listCount('followers', profile.followersCount)}
 					{listCount('following', profile.followingCount)}
-					<span>{t('profile.joined', { date: formatMonthYear(profile.joinedAt, currentLanguage) })}</span>
+					<span>
+						{t('profile.joined', {
+							date: formatMonthYear(profile.joinedAt, currentLanguage),
+						})}
+					</span>
 				</div>
 				{mutuals && <div className="mt-2 empty:hidden">{mutuals}</div>}
 			</div>
 			{/* Beside the avatar on phones, with the details under both */}
-			<div className="flex gap-2 empty:hidden max-sm:ml-auto max-sm:self-center">{actions}</div>
+			<div className="flex gap-2 empty:hidden max-sm:ml-auto max-sm:self-center">
+				{actions}
+			</div>
 		</header>
 	);
 }
@@ -122,7 +158,10 @@ export function OnlyYouMarker({ className }: { className?: string }) {
 	const { t } = useLanguage();
 	return (
 		<>
-			<Lock aria-hidden className={cn('inline shrink-0 text-muted-foreground', className)} />
+			<Lock
+				aria-hidden
+				className={cn('inline shrink-0 text-muted-foreground', className)}
+			/>
 			<span className="sr-only">({t('profile.onlyYou')})</span>
 		</>
 	);

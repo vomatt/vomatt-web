@@ -5,7 +5,13 @@ import Link from 'next/link';
 
 import { Button } from '@/components/ui/Button';
 import { menuItemClassName, menuPopupClassName } from '@/components/ui/menu';
-import { Bookmark, Ellipsis, Flag, MessageSquare, Share2 } from '@/components/ui/SvgIcons';
+import {
+	Bookmark,
+	Ellipsis,
+	Flag,
+	MessageSquare,
+	Share,
+} from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toPayloadLocale } from '@/lib/locale';
 
@@ -50,9 +56,13 @@ export function PollFooter({
 			: commentCount === 1
 				? t('poll.comment')
 				: t('poll.comments', { count: commentCount });
-	const commentsClassName = 'flex min-h-11 items-center gap-2 transition-colors hover:text-foreground';
+	const commentsClassName =
+		'flex min-h-11 items-center gap-2 transition-colors hover:text-foreground';
 	const meta = [
-		turnout !== undefined && t('poll.voted', { count: turnout.toLocaleString(toPayloadLocale(currentLanguage)) }),
+		turnout !== undefined &&
+			t('poll.voted', {
+				count: turnout.toLocaleString(toPayloadLocale(currentLanguage)),
+			}),
 		audience && audience !== 'public' && t(`poll.audienceMeta.${audience}`),
 	]
 		.filter(Boolean)
@@ -62,7 +72,10 @@ export function PollFooter({
 		// Each item is 44px tall; 4px above and below set the text 16px in
 		<div className="flex items-center gap-5 border-t border-border px-5 py-1 text-[14px] text-muted-foreground md:px-8">
 			{meta && <span className="font-mono tabular-nums">{meta}</span>}
-			<Link href={isPage ? '#discussion' : `/poll/${pollId}#discussion`} className={commentsClassName}>
+			<Link
+				href={isPage ? '#discussion' : `/poll/${pollId}#discussion`}
+				className={commentsClassName}
+			>
 				<MessageSquare className="size-[18px]" />
 				{commentsLabel}
 			</Link>
@@ -72,19 +85,23 @@ export function PollFooter({
 						type="button"
 						onClick={onToggleBookmark}
 						aria-pressed={!!bookmarked}
-						className="flex min-h-11 items-center gap-2 transition-colors hover:text-foreground aria-pressed:text-foreground"
+						aria-label={t(bookmarked ? 'poll.bookmarked' : 'poll.bookmark')}
+						className="-mx-3 flex min-h-11 min-w-11 items-center justify-center transition-colors hover:text-foreground aria-pressed:text-foreground"
 					>
-						<Bookmark className="size-[18px]" fill={bookmarked ? 'currentColor' : 'none'} />
-						{t(bookmarked ? 'poll.bookmarked' : 'poll.bookmark')}
+						<Bookmark
+							aria-hidden
+							className="size-[18px]"
+							fill={bookmarked ? 'currentColor' : 'none'}
+						/>
 					</button>
 				)}
 				<button
 					type="button"
 					onClick={() => share({ id: pollId, title })}
-					className="flex min-h-11 items-center gap-2 transition-colors hover:text-foreground"
+					aria-label={t('poll.share')}
+					className="-mx-3 flex min-h-11 min-w-11 items-center justify-center transition-colors hover:text-foreground"
 				>
-					<Share2 className="size-[18px]" />
-					{t('poll.share')}
+					<Share aria-hidden className="size-[18px]" />
 				</button>
 				{onReport && (
 					<Menu.Root>
@@ -96,7 +113,12 @@ export function PollFooter({
 							<Ellipsis aria-hidden />
 						</Menu.Trigger>
 						<Menu.Portal>
-							<Menu.Positioner side="top" align="end" sideOffset={4} className="z-50">
+							<Menu.Positioner
+								side="top"
+								align="end"
+								sideOffset={4}
+								className="z-50"
+							>
 								<Menu.Popup className={menuPopupClassName}>
 									<Menu.Item onClick={onReport} className={menuItemClassName}>
 										<Flag aria-hidden />

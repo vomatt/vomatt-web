@@ -143,8 +143,8 @@
 html {
 	scroll-padding-top: var(--header-offset);
 }
-/* A sticky tab list (44px) sits under it too */
-html:has([data-slot='tabs-list'][data-sticky]) {
+/* A sticky tab list or back bar (44px) sits under it too */
+html:has([data-slot='tabs-list'][data-sticky], [data-sticky-bar]) {
 	scroll-padding-top: calc(var(--header-offset) + 44px);
 }
 

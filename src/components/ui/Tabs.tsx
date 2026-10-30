@@ -39,7 +39,7 @@ const tabsListVariants = cva(
 			},
 			// A page's own tabs: they stay under the phone Header as the list scrolls
 			sticky: {
-				true: 'sticky follow-header z-10 bg-background',
+				true: 'sticky follow-header z-20 bg-background',
 			},
 			// Line tabs sized to their labels, so a row can hold controls beside them; the row draws the line
 			fit: {
