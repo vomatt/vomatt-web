@@ -572,6 +572,7 @@
 		"deleteFailed": "Couldn’t delete the comment.",
 		"reply": "Reply",
 		"replyPlaceholder": "Write a reply…",
+		"mentionSuggestions": "People to mention",
 		"viewReply": "View 1 reply",
 		"viewReplies": "View {count} replies",
 		"moreReply": "View 1 more reply",

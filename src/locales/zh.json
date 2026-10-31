@@ -562,6 +562,7 @@
 		"deleteFailed": "無法刪除留言。",
 		"reply": "回覆",
 		"replyPlaceholder": "寫下你的回覆…",
+		"mentionSuggestions": "可標註的人",
 		"viewReply": "查看 1 則回覆",
 		"viewReplies": "查看 {count} 則回覆",
 		"moreReply": "查看另外 1 則回覆",

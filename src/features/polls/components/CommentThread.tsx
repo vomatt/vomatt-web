@@ -37,6 +37,7 @@ import type { CommentsState } from '../hooks/useComments';
 import type { Comment } from '../schema';
 import { CreateCommentRequestSchema } from '../schema';
 import { pollUrl } from '../url';
+import { MentionTextarea } from './MentionTextarea';
 import { ReportCommentDialog } from './ReportCommentDialog';
 
 const COMMENT_MAX = CreateCommentRequestSchema.shape.text.maxLength ?? 2000;
@@ -185,6 +186,7 @@ export function CommentThread({ thread, pollId, viewerId, viewer, requireAuth }:
 				label={t('comments.addComment')}
 				placeholder={t('comments.placeholder')}
 				avatar={<ViewerAvatar viewer={viewer} className="size-8" />}
+				viewerUsername={viewer?.username}
 				collapsed={activeTarget !== null}
 				className="gap-3"
 				requireAuth={requireAuth}
@@ -270,6 +272,7 @@ function Composer({
 	className,
 	replyTarget,
 	onCancel,
+	viewerUsername,
 }: {
 	onPost: (text: string) => Promise<boolean>;
 	requireAuth: (action: () => void) => void;
@@ -282,6 +285,8 @@ function Composer({
 	/** Set for an inline Reply composer; its reply (if any) is named above the field. */
 	replyTarget?: ReplyTarget;
 	onCancel?: () => void;
+	/** Signed in: an `@handle` being typed suggests people. */
+	viewerUsername?: string;
 }) {
 	const { t } = useLanguage();
 	const fieldId = useId();
@@ -360,10 +365,11 @@ function Composer({
 						</button>
 					</div>
 				)}
-				<Textarea
+				<MentionTextarea
 					id={fieldId}
 					value={text}
-					onChange={(event) => setText(event.target.value)}
+					onValueChange={setText}
+					viewerUsername={viewerUsername}
 					onKeyDown={(event) => {
 						if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
 							event.preventDefault();
@@ -460,6 +466,7 @@ function CommentItem({
 				label={t('comments.replyPlaceholder')}
 				placeholder={t('comments.replyPlaceholder')}
 				avatar={<ViewerAvatar viewer={viewer} className="size-6" />}
+				viewerUsername={viewer?.username}
 				className="min-w-0 flex-1 gap-2.5 pt-1 pb-1.5"
 				replyTarget={replyTarget}
 				requireAuth={requireAuth}
