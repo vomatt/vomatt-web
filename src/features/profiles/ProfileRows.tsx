@@ -47,7 +47,7 @@ export function ProfileSection({
 			{count !== undefined && (
 				<>
 					{' · '}
-					<span className="font-mono tabular-nums">{count.toLocaleString(toPayloadLocale(currentLanguage))}</span>
+					<span className="tabular-nums">{count.toLocaleString(toPayloadLocale(currentLanguage))}</span>
 				</>
 			)}
 			{note && ` · ${note}`}
@@ -64,7 +64,7 @@ function OpenMeta({ poll, status }: { poll: Poll; status: PollStatus }) {
 	if (status === 'scheduled') return <>{when ?? '\u00a0'}</>;
 	return (
 		<>
-			<span className="font-mono tabular-nums text-foreground">{voted(poll)}</span>
+			<span className="tabular-nums text-foreground">{voted(poll)}</span>
 			{when && ` · ${when}`}
 		</>
 	);
@@ -176,7 +176,7 @@ export function VotedRow({ poll }: { poll: Poll }) {
 								` · ${t('profile.resultsAt', { date: formatPollMoment(poll.endTime, clock.language, clock.now) })}`}
 						</span>
 					</span>
-					<span className="hidden font-mono text-[12px] tabular-nums text-tide-foreground sm:inline">{voted(poll)}</span>
+					<span className="hidden text-[12px] tabular-nums text-tide-foreground sm:inline">{voted(poll)}</span>
 				</Link>
 			</li>
 		);
@@ -191,7 +191,7 @@ export function VotedRow({ poll }: { poll: Poll }) {
 					<span className="text-[12px] text-muted-foreground">
 						{t('myPolls.youChose')} <strong className="font-medium text-foreground">{ballotChoice(poll)}</strong>
 						{' · '}
-						{isCancelled(poll) ? t('notifications.cancelled') : <span className="font-mono tabular-nums">{voted(poll)}</span>}
+						{isCancelled(poll) ? t('notifications.cancelled') : <span className="tabular-nums">{voted(poll)}</span>}
 						{poll.unread && (
 							<>
 								{' · '}

@@ -142,16 +142,16 @@ export function OwnProfileView({
 						<TabsList variant="line" fit>
 							<TabsTrigger value="asked">
 								{t('profile.tabAsked')}
-								<span className="font-mono tabular-nums text-muted-foreground">{asked.length}</span>
+								<span className="tabular-nums text-muted-foreground">{asked.length}</span>
 								{askedUnread && <UnreadDot label={t('profile.askedUnread')} />}
 							</TabsTrigger>
 							<TabsTrigger value="voted">
 								{t('profile.tabVoted')}
-								<span className="font-mono tabular-nums text-muted-foreground">{voted.length}</span>
+								<span className="tabular-nums text-muted-foreground">{voted.length}</span>
 								<Lock aria-hidden className="size-3 text-muted-foreground" />
 								<span className="sr-only">({t('profile.onlyYou')})</span>
 								{votedUnread > 0 && (
-									<span className="min-w-4.5 rounded-full bg-alert px-1.5 text-center font-mono text-[10px] font-semibold leading-4.5 text-alert-foreground tabular-nums">
+									<span className="min-w-4.5 rounded-full bg-alert px-1.5 text-center text-[10px] font-semibold leading-4.5 text-alert-foreground tabular-nums">
 										{formatUnreadCount(votedUnread)}
 										<span className="sr-only"> {t('notifications.unread')}</span>
 									</span>

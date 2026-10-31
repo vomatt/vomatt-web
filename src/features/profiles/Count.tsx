@@ -13,7 +13,7 @@ export function Count({ value, label }: { value: number; label: string }) {
 	return (
 		<>
 			{label.slice(0, at)}
-			<span className="font-mono tabular-nums text-foreground">{number}</span>
+			<span className="tabular-nums text-foreground">{number}</span>
 			{label.slice(at + number.length)}
 		</>
 	);

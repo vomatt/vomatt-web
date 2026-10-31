@@ -70,7 +70,7 @@ export default function FeatureList({ data }: { data: FeatureListData }) {
 						<li key={item._key} className="flex gap-4">
 							<span
 								aria-hidden
-								className="grid size-8 shrink-0 place-items-center rounded-full border border-border bg-card font-mono text-[13px] tabular-nums text-foreground"
+								className="grid size-8 shrink-0 place-items-center rounded-full border border-border bg-card text-[13px] tabular-nums text-foreground"
 							>
 								{i + 1}
 							</span>

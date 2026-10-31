@@ -19,7 +19,7 @@ function Input({ className, type, leading, ...props }: InputProps) {
 					'has-aria-invalid:border-destructive'
 				)}
 			>
-				<span className="border-input bg-field text-muted-foreground flex shrink-0 items-center border-r px-3.5 font-mono select-none">
+				<span className="border-input bg-field text-muted-foreground flex shrink-0 items-center border-r px-3.5 select-none">
 					{leading}
 				</span>
 				<input

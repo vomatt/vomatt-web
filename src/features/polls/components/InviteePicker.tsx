@@ -167,7 +167,7 @@ export function InviteePicker({
 									aria-label={t('invitees.groupPill', { name: group.name, count: group.memberCount })}
 								>
 									{group.name}
-									<span className="ml-1 font-mono tabular-nums">{group.memberCount}</span>
+									<span className="ml-1 tabular-nums">{group.memberCount}</span>
 								</Button>
 							);
 						})}

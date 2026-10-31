@@ -42,7 +42,7 @@ export function PublicPreview({ profile, className }: { profile: MyProfile; clas
 							{name.primary}
 							{name.secondary && <span className="text-muted-foreground"> {name.secondary}</span>}
 						</p>
-						<p className="truncate font-mono text-[12px] text-muted-foreground">@{profile.username}</p>
+						<p className="truncate text-[12px] text-muted-foreground">@{profile.username}</p>
 					</div>
 				</div>
 				{shows('bio') && <p className="line-clamp-3 wrap-anywhere text-[13px]">{profile.bio}</p>}

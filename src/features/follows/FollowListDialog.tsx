@@ -148,7 +148,7 @@ function PersonRow({ user, viewerId, onFollowChange }: RowProps & { user: Follow
 					<UserAvatar username={user.username} avatarUrl={user.avatarUrl} />
 					<span className="flex min-w-0 flex-col gap-0.5">
 						<span className="truncate text-[14px] font-medium">{user.displayName || user.username}</span>
-						<span className="truncate font-mono text-[12px] text-muted-foreground">
+						<span className="truncate text-[12px] text-muted-foreground">
 							@{user.username}
 							{user.followsYou && ` · ${t('follows.followsYou')}`}
 						</span>

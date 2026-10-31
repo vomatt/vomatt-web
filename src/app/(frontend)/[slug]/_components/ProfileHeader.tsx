@@ -121,7 +121,7 @@ export default function ProfileHeader({
 						</span>
 					)}
 				</h1>
-				<p className="wrap-anywhere font-mono text-[14px] text-muted-foreground">
+				<p className="wrap-anywhere text-[14px] text-muted-foreground">
 					@{profile.username}
 				</p>
 				{profile.bio && (

@@ -146,7 +146,7 @@ export function SessionsPanel() {
 										</span>
 									)}
 								</span>
-								<span className="block font-mono text-[12px] text-muted-foreground">
+								<span className="block text-[12px] text-muted-foreground">
 									{session.lastSeenAt
 										? t('sessions.lastActive', { time: formatFromNow(session.lastSeenAt, currentLanguage) })
 										: t('sessions.activityUnknown')}

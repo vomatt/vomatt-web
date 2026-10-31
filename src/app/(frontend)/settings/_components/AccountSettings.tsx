@@ -140,7 +140,7 @@ export default function AccountSettings({
 					<button type="button" onClick={() => setInvitesOpen(true)} className={cn(rowLinkClassName, 'w-full text-left')}>
 						<RowText title={t('account.tabGroups')} body={t('settings.inviteListsBody')} />
 						{inviteListCount !== null && (
-							<span className="font-mono text-[14px] whitespace-nowrap text-muted-foreground">
+							<span className="text-[14px] whitespace-nowrap text-muted-foreground">
 								{countText(t, 'settings.inviteListCount', inviteListCount, currentLanguage)}
 							</span>
 						)}

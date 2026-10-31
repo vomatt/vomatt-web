@@ -26,7 +26,7 @@ export function ProfileRecord({ cells }: { cells: RecordCell[] }) {
 						{cell.label}
 						{cell.private && <OnlyYouMarker className="size-3" />}
 					</dt>
-					<dd className="font-mono text-[26px] font-medium leading-tight tracking-[-0.02em] tabular-nums">
+					<dd className="text-[26px] font-medium leading-tight tracking-[-0.02em] tabular-nums">
 						{cell.value === null ? '–' : `${cell.value.toLocaleString(toPayloadLocale(currentLanguage))}${cell.suffix ?? ''}`}
 					</dd>
 				</div>

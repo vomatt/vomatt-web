@@ -208,7 +208,7 @@ function AskedList({
 			<div className="flex flex-wrap items-center gap-x-4 border-b border-border">
 				<h2 className="relative inline-flex h-11 items-center gap-1.5 text-[15px] font-medium after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-foreground">
 					{t('profile.tabAsked')}
-					<span className="font-mono tabular-nums text-muted-foreground">
+					<span className="tabular-nums text-muted-foreground">
 						{total.toLocaleString(toPayloadLocale(currentLanguage))}
 					</span>
 				</h2>

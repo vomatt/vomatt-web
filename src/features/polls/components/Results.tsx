@@ -181,7 +181,7 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }:
 								{row === myRow && <YourVotePill label={t('poll.yourVoteShort')} />}
 								<span
 									className={cn(
-										'shrink-0 font-mono text-[14px] tabular-nums',
+										'shrink-0 text-[14px] tabular-nums',
 										!isWinner && 'text-muted-foreground'
 									)}
 								>

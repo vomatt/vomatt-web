@@ -156,7 +156,7 @@ export function CommentThread({ thread, pollId, viewerId, viewer, requireAuth }:
 			<div className="flex items-baseline gap-2">
 				<h2 className="item-title">{t('comments.title')}</h2>
 				{thread.total !== undefined && (
-					<span className="font-mono text-[13px] text-muted-foreground tabular-nums">{thread.total}</span>
+					<span className="text-[13px] text-muted-foreground tabular-nums">{thread.total}</span>
 				)}
 			</div>
 
@@ -357,7 +357,7 @@ function Composer({
 					{text.length > max - COUNTER_WITHIN && (
 						<span
 							className={cn(
-								'mr-auto font-mono text-xs tabular-nums',
+								'mr-auto text-xs tabular-nums',
 								tooLong ? 'text-destructive' : 'text-muted-foreground'
 							)}
 						>
@@ -675,7 +675,7 @@ function CommentBody({
 					<span>{t('comments.editing')}</span>
 				) : (
 					<>
-						<time dateTime={comment.createdAt} className="font-mono">
+						<time dateTime={comment.createdAt}>
 							{isHydrated && formatFromNow(comment.createdAt, currentLanguage)}
 						</time>
 						{comment.edited && <span>{t('comments.edited')}</span>}
@@ -695,7 +695,7 @@ function CommentBody({
 						autoFocus
 					/>
 					<div className="flex items-center gap-1.5">
-						<span className="mr-auto font-mono text-xs text-muted-foreground tabular-nums">
+						<span className="mr-auto text-xs text-muted-foreground tabular-nums">
 							{draft.length} / {textMax(addressee)}
 						</span>
 						<Button size="sm" variant="ghost" onClick={closeEdit}>
@@ -741,7 +741,7 @@ function CommentBody({
 						>
 							<Heart className={cn('size-[15px]', comment.likedByCurrentUser && 'fill-current')} strokeWidth={1.8} />
 						</m.span>
-						{likes > 0 && <span className="font-mono tabular-nums">{likes}</span>}
+						{likes > 0 && <span className="tabular-nums">{likes}</span>}
 					</button>
 
 					<button

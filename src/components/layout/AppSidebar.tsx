@@ -140,7 +140,7 @@ export function AppSidebar({
 												{t(item.title)}
 											</span>
 											{badge > 0 && (
-												<span className="ml-auto min-w-5 rounded-full bg-alert px-1.5 text-center font-mono text-[10px] font-semibold leading-5 text-alert-foreground tabular-nums">
+												<span className="ml-auto min-w-5 rounded-full bg-alert px-1.5 text-center text-[10px] font-semibold leading-5 text-alert-foreground tabular-nums">
 													{formatUnreadCount(badge)}
 												</span>
 											)}

@@ -220,7 +220,6 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 							spellCheck={false}
 							maxLength={USERNAME_MAX_LENGTH}
 							leading="@"
-							className="font-mono"
 							aria-invalid={!!usernameError}
 							aria-describedby="username-hint"
 						/>
@@ -341,7 +340,7 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 							rows={3}
 							aria-describedby="bio-count"
 						/>
-						<p id="bio-count" className="text-right font-mono text-xs tabular-nums text-muted-foreground">
+						<p id="bio-count" className="text-right text-xs tabular-nums text-muted-foreground">
 							{values.bio.length} / {BIO_MAX_LENGTH}
 						</p>
 					</div>

@@ -28,7 +28,7 @@ Cool canvas, navy ink actions, two signals: Volt (`highlight`) marks what is you
 
 ## Type
 
-- **Geist** (`font-sans`) for everything, with PingFang TC / Microsoft JhengHei / Noto Sans TC fallbacks for Traditional Chinese. **Geist Mono** (`font-mono`, `tabular-nums`) for counts, times and handles.
+- **Geist** (`font-sans`) for everything, with PingFang TC / Microsoft JhengHei / Noto Sans TC fallbacks for Traditional Chinese. Counts, timers and other changing numbers take `tabular-nums` so digits keep one width; there is no monospace face.
 - Every title is weight 500: confident, not shouting.
 - Wrapping is set once in `global.css`: `h1`–`h4` balance their lines and `p`, `li`, `dd`, `blockquote` keep a lone word off the last line (`text-wrap-style`, so `truncate` and `whitespace-nowrap` still win). A title that isn't a heading element takes `text-balance`.
 - **Display**: the `display-heading` utility sets weight 500, leading 1.25 and -0.03em tracking; the size goes beside it.
@@ -46,7 +46,7 @@ Cool canvas, navy ink actions, two signals: Volt (`highlight`) marks what is you
 
 ## Shape and layout
 
-- Borders stay quiet: 1px, `border` by default. Fields are white `card` with an `input` border (the border carries the 3:1 contrast at rest), 10px radius, 15px text from `md`; the six code slots are 48x56 from `md`, mono 22px, and a wrong code stays in them. Only the chosen ballot row and the viewer's own result row get an ink border.
+- Borders stay quiet: 1px, `border` by default. Fields are white `card` with an `input` border (the border carries the 3:1 contrast at rest), 10px radius, 15px text from `md`; the six code slots are 48x56 from `md`, 22px tabular figures, and a wrong code stays in them. Only the chosen ballot row and the viewer's own result row get an ink border.
 - Radius: `rounded-2xl` (16px) for cards and panels (`PollCard`, side cards, the About panel, settings panels); `rounded-xl` (12px) for ballot rows, list rows and the Tide surfaces inside a card; `--radius` (10px) for buttons, set once in `Button`, and for text fields; `rounded-full` for chips, pills and avatars.
 - Every page sits in `PageShell` (`components/layout/PageShell`), 32px from the top and 64px from the bottom: a main column up to 680px (`max-w-main`) and, from `xl`, a 300px rail (`w-rail`) 40px to its right, in a 1020px frame (`max-w-page`) centered in the content area. The rail column is kept when a page has no rail or it is still loading, so the main column starts at the same x on every page and in every skeleton; a page's skeleton renders inside the same `PageShell`. Below `xl` the rail follows the main column. Rails: Home and Following `HomeRail` ("Results are in", "Closing soon", "Got a question for everyone?" with Write one for signed-in viewers; "How vomatt counts" for guests); a poll's About this poll and More from @author; Profile's notes (and the owner's public preview); Notifications' aside (none when empty); Settings' sticky On this page list (from `xl` only, since the rail column starts there). Explore, Language preferences, CMS pages and not-found pages have none. Explore is `PageShell wide`: no rail column, so from `xl` its main column takes the whole 1020px frame and still starts at the same x.
 - The home feed column is `max-w-feed` (640px, `--container-feed`) inside the main column, its cards 16px apart (`gap-4`), 16px from the top. Explore lists its results as `PollTile`s in a `PollTileGrid` instead. Below `xl` the owner's profile flips between You and Everyone with a `SegmentedControl`. Guests get `LoginPrompt` at the top of the feed, at every width.
@@ -69,11 +69,11 @@ Use these. Don't copy their classes into a new element.
 | Filter pills over one list | `FilterPills` |
 | One choice of a few in a settings row (Settings' Theme) | `SegmentedControl`: a radiogroup in a pill track, the checked segment a `card` with a small shadow; `value` stays undefined until it is known, so nothing is checked. MoreMenu keeps its own Volt menu segments |
 | Follow a person | `FollowButton follow={useFollow(…)}`: one derived state, follow (ink, plus), followBack (ink, no icon), following (outline, Unfollow on hover), blocked, or none on your own entry. `size="sm"` (36px) in a profile header, `xs` (32px) on the hover card, in follower rows (meta "@jtan · follows you") and notification rows |
-| A person's follow counts | "128 followers · 42 following", mono numbers, shown to everyone and buttons that open the list when signed in |
+| A person's follow counts | "128 followers · 42 following", tabular numbers, shown to everyone and buttons that open the list when signed in |
 | People the viewer follows who follow this person | `MutualFollowersLine` ("Followed by @a and 2 others you follow", 12px with two stacked 16px avatars) under a visitor profile's details and on the hover card, opening the mutuals list; `MutualFollowersCard` ("Followers you know") in the visitor profile's rail |
 | A row's ••• menu | Base UI `Menu` with `Button variant="ghost" size="icon-xs"` as the trigger and `menuPopupClassName` / `menuItemClassName` from `components/ui/menu.ts` (ink 16px icons; a destructive item adds `text-destructive`) |
 | Back to the parent page | `BackLink` ("‹ Back": a quiet 14px link with a 44px hit area that takes no extra space, sticking under the phone Header as the page scrolls). Visitor profiles and Settings have none |
-| People a user blocked (Settings) | `UserRelationPanel`, a row inside a settings card: the title with a mono count, then soft tiles of a 28px avatar, the @handle and an `xs` action. Who you follow lives on your profile (the following count opens the list, each row with its `FollowButton`), not in Settings |
+| People a user blocked (Settings) | `UserRelationPanel`, a row inside a settings card: the title with a tabular count, then soft tiles of a 28px avatar, the @handle and an `xs` action. Who you follow lives on your profile (the following count opens the list, each row with its `FollowButton`), not in Settings |
 | A detail only the owner sees | `OnlyYouMarker` (the lock) beside it |
 | Rows on a profile | `AskedRow`, `VotedRow` and `ProfileSection` from `features/profiles/ProfileRows` |
 | Status of a poll | `StatusChip` with `derivePollStatus(poll)` (tint, an ink dot or a clock while closing, words). Pick `time`: `inline` where the chip stands alone, on cards and the creator's review ("Ends Fri 20:00"); `elsewhere` in a row, which puts `pollTiming(…).when` in its meta ("1,284 voted · ends Fri 20:00" beside "Open") |
@@ -87,15 +87,15 @@ Use these. Don't copy their classes into a new element.
 | The viewer has voted (card header) | `VotedPill` (Volt, check) beside the status chip |
 | The viewer's option on results | `YourVotePill` ("your vote", lower-case, Volt with an ink line) |
 | The cast Ballot | `Seal` (in full once per cast, then a row) with `SealMark`: `sm` 32px on profile rows and notifications, `md` 40px dashed in the Seal row, `lg` 72px with a 58px dashed ring in the full Seal. "Sealed. Thank you.", when results open, and Withdraw vote / Update vote inside it. Updating and the withdraw confirm are modes of the Ballot (`SealedMode`), not extra flags |
-| A poll card's footer | `PollFooter` with `audience` and `isPage`: the turnout in muted mono, then a non-Public audience ("18 voted · invite only"); Comments leads to `#discussion` |
+| A poll card's footer | `PollFooter` with `audience` and `isPage`: the turnout in muted tabular figures, then a non-Public audience ("18 voted · invite only"); Comments leads to `#discussion` |
 | A poll's discussion | `CommentThread` in its own `rounded-2xl` card (`PollDiscussion` on the poll page); composers show the viewer's avatar, a reply composer sits under the reply it answers |
-| Side card of polls (home rail) | `PollSideCard` with a `kind`: `resultsIn` (unread titles 600, read 400, "**Yes** won · N voted · new" in sans) or `closingSoon` ("ends in 2h · 96 voted", mono) |
+| Side card of polls (home rail) | `PollSideCard` with a `kind`: `resultsIn` (unread titles 600, read 400, "**Yes** won · N voted · new") or `closingSoon` ("ends in 2h · 96 voted", tabular figures) |
 | Filter pills | `FilterPills`: 30px from `md`, 13px |
 | A notification | one row component per `kind` (`features/notifications/NotificationRows`); consecutive follows group into one row with See followers |
 | Progress (voting window) | `Progress variant="tide"` |
 | List row for a poll | `PollListItem` with `meta` and `aside` |
 | Polls to scan in a grid (Explore) | `PollTileGrid` of `PollTile`s: 1, 2 or 3 columns by the grid's own width (container queries); each tile links to the poll page and holds no ballot, so no counts while open |
-| A person's counts | `ProfileRecord`: `rounded-2xl` `card` cells, a 26px `font-mono` number over a 12px label; `Count` for a count inside a phrase |
+| A person's counts | `ProfileRecord`: `rounded-2xl` `card` cells, a 26px `tabular-nums` number over a 12px label; `Count` for a count inside a phrase |
 | Active nav link | `isActivePath(pathname, href)` from `lib/routes.ts` |
 
 If a building block doesn't fit, change its variant or add one. Don't override it at the call site.

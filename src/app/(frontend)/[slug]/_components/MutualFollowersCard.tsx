@@ -48,7 +48,7 @@ export function MutualFollowersCard({
 									<UserAvatar username={user.username} avatarUrl={user.avatarUrl} />
 									<span className="flex min-w-0 flex-col">
 										<span className="truncate text-[14px] font-medium">{user.displayName || user.username}</span>
-										<span className="truncate font-mono text-[12px] text-muted-foreground">@{user.username}</span>
+										<span className="truncate text-[12px] text-muted-foreground">@{user.username}</span>
 									</span>
 								</Link>
 							</ProfileHoverCard>

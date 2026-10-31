@@ -613,7 +613,7 @@ export function PollCreator({
 																focusField(e, 'options.0.text');
 															}}
 														/>
-														<p className="text-right font-mono text-[12px] text-muted-foreground tabular-nums">
+														<p className="text-right text-[12px] text-muted-foreground tabular-nums">
 															{title.length}/{POLL_TITLE_MAX}
 														</p>
 													</div>

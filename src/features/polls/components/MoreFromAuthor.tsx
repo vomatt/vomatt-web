@@ -37,7 +37,7 @@ export function MoreFromAuthor({ username, polls }: { username: string; polls: P
 								<span className="line-clamp-2 text-[15px] leading-[1.35] font-medium tracking-[-0.01em] text-foreground">
 									{poll.title}
 								</span>
-								<span className="font-mono text-[13px] text-muted-foreground tabular-nums">
+								<span className="text-[13px] text-muted-foreground tabular-nums">
 									{when ? `${when} · ${turnout}` : turnout}
 								</span>
 							</Link>

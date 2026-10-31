@@ -114,7 +114,7 @@ function ReportForm({ pollId, commentId, onDone }: { pollId: string; commentId?:
 						<label htmlFor={noteId} className="text-[14px] font-medium">
 							{t('comments.reportNote')}
 						</label>
-						<span className="font-mono text-xs text-muted-foreground tabular-nums">
+						<span className="text-xs text-muted-foreground tabular-nums">
 							{note.length} / {COMMENT_REPORT_NOTE_MAX}
 						</span>
 					</div>

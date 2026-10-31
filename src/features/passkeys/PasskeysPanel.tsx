@@ -109,7 +109,7 @@ export function PasskeysPanel() {
 						>
 							<span className="min-w-0 flex-1">
 								<span className="block truncate text-[14px] font-medium">{nameOf(passkey)}</span>
-								<span className="block font-mono text-[12px] text-muted-foreground">
+								<span className="block text-[12px] text-muted-foreground">
 									{t('passkey.created', { date: formatPollDate(passkey.createdAt, currentLanguage) })}
 									{' · '}
 									{passkey.lastUsedAt

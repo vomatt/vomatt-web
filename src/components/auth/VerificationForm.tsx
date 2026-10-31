@@ -145,7 +145,7 @@ export default function VerificationForm({
 			{/* Both ways out of a missing code sit together, quieter than Continue */}
 			<div className="flex flex-col items-start gap-2.5">
 				{cooldown > 0 ? (
-					<p className="font-mono text-[14px] text-muted-foreground tabular-nums">
+					<p className="text-[14px] text-muted-foreground tabular-nums">
 						{t('verificationCode.resendIn', { time: formatCountdown(cooldown) })}
 					</p>
 				) : (

@@ -83,7 +83,7 @@ export function PollSideCard({ kind, polls }: PollSideCardProps) {
 									<span
 										className={cn(
 											'mt-0.5 block text-[13px] text-muted-foreground',
-											kind === 'closingSoon' && 'font-mono tabular-nums'
+											kind === 'closingSoon' && 'tabular-nums'
 										)}
 									>
 										{meta.map((part, i) => (

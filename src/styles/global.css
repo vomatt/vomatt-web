@@ -208,7 +208,6 @@ html:has([data-slot='tabs-list'][data-sticky], [data-sticky-bar]) {
 @theme inline {
 
 	--font-sans: var(--font-geist-sans), 'PingFang TC', 'Microsoft JhengHei', 'Noto Sans TC', system-ui, sans-serif;
-	--font-mono: var(--font-geist-mono), ui-monospace, Menlo, monospace;
 	--font-family-monospace: Menlo, Monaco, Consolas, Courier New, monospace;
 	--font-family-default: Helvetica, Arial, sans-serif;
 	--font-family-serif: ui-serif, New York Small, New York, Georgia, Times New Roman, Times, serif;

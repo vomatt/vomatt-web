@@ -48,7 +48,7 @@ export function PollAbout({ poll }: { poll: Poll }) {
 								<span className="text-muted-foreground">
 									{t(status === 'scheduled' ? 'pollDetail.opens' : 'pollDetail.opened')}
 								</span>
-								<span className="font-mono">{formatPollDate(poll.startTime, currentLanguage)}</span>
+								<span>{formatPollDate(poll.startTime, currentLanguage)}</span>
 							</p>
 							{progress !== null && (
 								<Progress
@@ -60,7 +60,7 @@ export function PollAbout({ poll }: { poll: Poll }) {
 							)}
 							<p className="flex justify-between gap-3">
 								<span className="text-muted-foreground">{t('pollDetail.results')}</span>
-								<span className={poll.endTime ? 'font-mono' : undefined}>
+								<span>
 									{poll.endTime ? formatPollDate(poll.endTime, currentLanguage) : t('pollDetail.noEnd')}
 								</span>
 							</p>

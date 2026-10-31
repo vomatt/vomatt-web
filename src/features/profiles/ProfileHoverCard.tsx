@@ -168,7 +168,7 @@ function ProfileCardBody({
 						{name.primary}
 						{name.secondary && <span className="text-muted-foreground"> {name.secondary}</span>}
 					</p>
-					<p className="truncate font-mono text-[12px] text-muted-foreground">@{username}</p>
+					<p className="truncate text-[12px] text-muted-foreground">@{username}</p>
 				</div>
 				<FollowButton follow={follow} username={username} avatarUrl={avatarUrl} size="xs" withConfirm={false} />
 			</div>

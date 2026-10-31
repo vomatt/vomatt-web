@@ -295,7 +295,7 @@ function ResultRow({ entry, onOpen, onSeen }: RowProps<Extract<Entry, { kind: 'R
 			}
 			meta={[
 				!!poll.winningOptionLabels?.length && <WinnersText key="outcome" poll={poll} />,
-				<span key="turnout" className="font-mono tabular-nums">
+				<span key="turnout" className="tabular-nums">
 					{t('poll.voted', { count: (poll.turnout ?? 0).toLocaleString(toPayloadLocale(currentLanguage)) })}
 				</span>,
 				useAge(entry.createdAt),
@@ -502,7 +502,7 @@ function ClosingSoonRow({ entry, onOpen, onSeen }: RowProps<Extract<Entry, { kin
 			}
 			meta={[
 				t('notifications.notVoted'),
-				<span key="turnout" className="font-mono tabular-nums">
+				<span key="turnout" className="tabular-nums">
 					{t('notifications.votedSoFar', { count: (poll.turnout ?? 0).toLocaleString(toPayloadLocale(currentLanguage)) })}
 				</span>,
 				useAge(entry.createdAt),

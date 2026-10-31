@@ -96,7 +96,7 @@ export function UserRelationPanel({ ns, action, load, remove }: UserRelationPane
 				<h3 className="flex-1 font-medium">{t(`${ns}.title`)}</h3>
 				{/* Only once every page is in, so it is the whole count */}
 				{!!users?.length && !nextCursor && (
-					<span className="font-mono text-[14px] text-muted-foreground tabular-nums">{users.length}</span>
+					<span className="text-[14px] text-muted-foreground tabular-nums">{users.length}</span>
 				)}
 			</div>
 			{users === null && !loadFailed && (
@@ -121,7 +121,7 @@ export function UserRelationPanel({ ns, action, load, remove }: UserRelationPane
 							className="flex items-center gap-2.5 rounded-xl border border-border bg-surface-soft px-2.5 py-2"
 						>
 							<UserAvatar username={user.username} avatarUrl={user.avatarUrl} className="size-7" />
-							<p className="min-w-0 flex-1 truncate font-mono text-[14px]">@{user.username}</p>
+							<p className="min-w-0 flex-1 truncate text-[14px]">@{user.username}</p>
 							<Button variant="outline" size="xs" loading={pendingId === user.id} onClick={() => undo(user)}>
 								{t(`${ns}.${action}`)}
 							</Button>
