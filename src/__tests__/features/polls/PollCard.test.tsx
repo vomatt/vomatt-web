@@ -229,6 +229,20 @@ describe('PollCard state B · Open, has Ballot', () => {
 		expect(await screen.findByText('Voted')).toBeInTheDocument();
 	});
 
+	it('keeps the vote and Turnout when the poll is saved after voting', async () => {
+		mockBookmarkPoll.mockResolvedValue({ ok: true });
+		render(<PollCard poll={openPoll} viewerId="user-voter" />);
+		vote('Saturday');
+		await screen.findByText('Voted');
+
+		fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+		await screen.findByRole('button', { name: 'Saved' });
+
+		expect(screen.getByLabelText('Saturday')).toBeChecked();
+		expect(screen.getByText('Voted')).toBeInTheDocument();
+		expect(screen.getByText('129 voted')).toBeInTheDocument();
+	});
+
 	it('shows a returning voter their choice from the status call', async () => {
 		mockGetMyBallot.mockResolvedValue('opt-sun');
 		const { myOptionId, ...withoutField } = openPoll;
