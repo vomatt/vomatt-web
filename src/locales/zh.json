@@ -458,6 +458,7 @@
 		"linkCopied": "已複製連結",
 		"justEnded": "這個投票剛剛結束了。",
 		"voteCast": "已完成投票。",
+		"voteWithdrawn": "已撤回投票。",
 		"voteFailed": "無法儲存你的投票，請再試一次。",
 		"withdrawFailed": "無法撤回你的投票，請再試一次。",
 		"tooManyVotes": "投票太頻繁了，請稍候一分鐘再試。",

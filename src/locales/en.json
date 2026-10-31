@@ -467,6 +467,7 @@
 		"linkCopied": "Link copied",
 		"justEnded": "This poll just ended.",
 		"voteCast": "Vote cast.",
+		"voteWithdrawn": "Vote withdrawn.",
 		"voteFailed": "Couldn’t save your vote. Try again.",
 		"withdrawFailed": "Couldn’t withdraw your vote. Try again.",
 		"tooManyVotes": "You’re voting too fast. Wait a minute and try again.",
