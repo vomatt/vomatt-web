@@ -50,11 +50,15 @@ export function useBallot(poll: Poll, { isAuthed, anonymousByDefault, onPollEnde
 	// Whether the viewer has voted or withdrawn here
 	const hasActed = useRef(false);
 
-	// A refetched Poll carries fresh counts, and a fresh myOptionId once the API sends it
+	// A refetched Poll carries fresh counts, and a fresh myOptionId once the API sends it. Only what
+	// changed is taken: a copy made to save the Poll still holds the counts and Ballot it loaded with
 	if (poll !== prevPoll) {
 		setPrevPoll(poll);
-		setTurnout(getTurnout(poll));
-		if (poll.myOptionId !== undefined) {
+		if (getTurnout(poll) !== getTurnout(prevPoll)) setTurnout(getTurnout(poll));
+		if (
+			poll.myOptionId !== undefined &&
+			(poll.myOptionId !== prevPoll.myOptionId || poll.myBallotAnonymous !== prevPoll.myBallotAnonymous)
+		) {
 			setMyOptionId(poll.myOptionId);
 			setSelected(poll.myOptionId);
 			setAnonymousFlag(poll.myBallotAnonymous ?? null);

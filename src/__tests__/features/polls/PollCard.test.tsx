@@ -132,6 +132,12 @@ describe('PollCard state A · Open, no Ballot', () => {
 		expect(screen.getAllByRole('radio')).toHaveLength(3);
 	});
 
+	it('keeps the line breaks of the description', () => {
+		render(<PollCard poll={{ ...openPoll, description: 'First line\nSecond line' }} />);
+		const description = screen.getByText((_, el) => el?.tagName === 'P' && el.textContent === 'First line\nSecond line');
+		expect(description).toHaveClass('whitespace-pre-line');
+	});
+
 	it('names the creator by handle, with the poll\'s short age', () => {
 		render(<PollCard poll={openPoll} />);
 		expect(screen.getByRole('link', { name: /@mei\.lin/ })).toHaveAttribute('href', '/mei.lin');
@@ -221,6 +227,20 @@ describe('PollCard state B · Open, has Ballot', () => {
 		expect(screen.queryByText('Voted')).not.toBeInTheDocument();
 		vote('Saturday');
 		expect(await screen.findByText('Voted')).toBeInTheDocument();
+	});
+
+	it('keeps the vote and Turnout when the poll is saved after voting', async () => {
+		mockBookmarkPoll.mockResolvedValue({ ok: true });
+		render(<PollCard poll={openPoll} viewerId="user-voter" />);
+		vote('Saturday');
+		await screen.findByText('Voted');
+
+		fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+		await screen.findByRole('button', { name: 'Saved' });
+
+		expect(screen.getByLabelText('Saturday')).toBeChecked();
+		expect(screen.getByText('Voted')).toBeInTheDocument();
+		expect(screen.getByText('129 voted')).toBeInTheDocument();
 	});
 
 	it('shows a returning voter their choice from the status call', async () => {
