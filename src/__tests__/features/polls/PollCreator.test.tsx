@@ -173,6 +173,17 @@ describe('PollCreator', () => {
 		expect(screen.queryByLabelText('Option 3')).not.toBeInTheDocument();
 	});
 
+	it('says why Add option went to an empty option, until it is filled', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		fireEvent.change(screen.getByLabelText('Option 1'), { target: { value: 'Option A' } });
+		fireEvent.click(screen.getByRole('button', { name: 'Add option' }));
+		await waitFor(() => expect(screen.getByLabelText('Option 2')).toHaveFocus());
+		expect(screen.getByLabelText('Option 2')).toHaveAccessibleDescription('Fill in every option.');
+		fireEvent.change(screen.getByLabelText('Option 2'), { target: { value: 'Option B' } });
+		await waitFor(() => expect(screen.queryByText('Fill in every option.')).not.toBeInTheDocument());
+	});
+
 	it('reads the hints with their fields', async () => {
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();
