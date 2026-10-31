@@ -581,6 +581,31 @@ describe('CommentThread', () => {
 		expect(screen.getByRole('textbox', { name: 'Write a reply…' })).toHaveValue('');
 	});
 
+	it('drops a reply draft whose comment left the list, instead of carrying it to another', async () => {
+		function Dropping() {
+			const thread = useComments('poll-1', { enabled: true, initialTotal: 2 });
+			const [dropped, setDropped] = useState(false);
+			const shown = dropped ? { ...thread, comments: thread.comments.filter((c) => c.id !== 'c1') } : thread;
+			return (
+				<>
+					<button type="button" onClick={() => setDropped(true)}>
+						Drop
+					</button>
+					<CommentThread thread={shown} pollId="poll-1" viewerId="me" requireAuth={(action) => action()} />
+				</>
+			);
+		}
+		render(<Dropping />);
+		await screen.findByText('Mine');
+
+		fireEvent.click(within(screen.getByText('Mine').closest('article')!).getByRole('button', { name: 'Reply' }));
+		fireEvent.change(screen.getByRole('textbox', { name: 'Write a reply…' }), { target: { value: 'For Mine' } });
+		fireEvent.click(screen.getByRole('button', { name: 'Drop' }));
+
+		fireEvent.click(screen.getByRole('button', { name: 'Reply' }));
+		expect(screen.getByRole('textbox', { name: 'Write a reply…' })).toHaveValue('');
+	});
+
 	it('focuses a reply composer without jumping the page, and keeps the main composer as it was', async () => {
 		const scrollIntoView = jest.fn();
 		const realScroll = Element.prototype.scrollIntoView;
@@ -795,5 +820,23 @@ describe('useComments', () => {
 		});
 
 		expect(result.current.comments.map((c) => c.text)).toEqual(['Early', 'Theirs']);
+	});
+
+	it('takes a posted comment from the page once a reload lists it', async () => {
+		service.getComments.mockResolvedValueOnce({ ok: true, data: { items: [theirs], nextCursor: null } });
+		service.postComment.mockResolvedValue({ ok: true, data: { ...mine, id: 'c9', text: 'Early' } });
+		const { result } = renderHook(() => useComments('poll-1', { enabled: true }));
+		await waitFor(() => expect(result.current.status).toBe('ready'));
+		await act(async () => {
+			await result.current.add('Early', 'You');
+		});
+
+		service.getComments.mockResolvedValueOnce({
+			ok: true,
+			data: { items: [theirs, { ...mine, id: 'c9', text: 'Early (edited)' }], nextCursor: null },
+		});
+		await act(async () => result.current.reload());
+
+		expect(result.current.comments.map((c) => c.text)).toEqual(['Theirs', 'Early (edited)']);
 	});
 });

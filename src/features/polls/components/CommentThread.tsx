@@ -143,12 +143,14 @@ export function CommentThread({ thread, pollId, viewerId, viewer, requireAuth }:
 	// One inline Reply composer at a time; the main composer folds while it is open
 	const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(null);
 	// The draft follows the composer to whichever comment it moves to, and goes only on cancel or post
-	const replyDraft = useState('');
+	// Held outside state, so typing re-renders only the composer
+	const [replyDraft] = useState(newDraft);
+	const activeTarget = replyTarget && thread.comments.some((c) => c.id === replyTarget.rootId) ? replyTarget : null;
 	const changeReplyTarget = (target: ReplyTarget | null) => {
-		if (!target) replyDraft[1]('');
+		// A draft whose comment left the list was never moved, so it doesn't follow either
+		if (!target || !activeTarget) replyDraft.write('');
 		setReplyTarget(target);
 	};
-	const activeTarget = replyTarget && thread.comments.some((c) => c.id === replyTarget.rootId) ? replyTarget : null;
 
 	return (
 		// tabIndex lets focus land here after a comment is deleted
@@ -246,7 +248,17 @@ export function CommentThread({ thread, pollId, viewerId, viewer, requireAuth }:
 /** Who an inline Reply answers: the top-level Comment (`reply` null), or one of its Replies. */
 type ReplyTarget = { rootId: string; reply: Comment | null };
 
-type Draft = [string, (text: string) => void];
+type Draft = { read: () => string; write: (text: string) => void };
+
+function newDraft(): Draft {
+	let text = '';
+	return {
+		read: () => text,
+		write: (next) => {
+			text = next;
+		},
+	};
+}
 
 function Composer({
 	onPost,
@@ -276,8 +288,11 @@ function Composer({
 }) {
 	const { t } = useLanguage();
 	const fieldId = useId();
-	const ownText = useState('');
-	const [text, setText] = draft ?? ownText;
+	const [text, setTextState] = useState(() => draft?.read() ?? '');
+	const setText = (next: string) => {
+		draft?.write(next);
+		setTextState(next);
+	};
 	const [isPosting, setIsPosting] = useState(false);
 	const trimmed = text.trim();
 	const addressee = replyTarget?.reply?.author ?? null;
