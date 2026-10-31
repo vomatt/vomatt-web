@@ -50,9 +50,8 @@ export function useBallot(poll: Poll, { isAuthed, anonymousByDefault, onPollEnde
 	// Whether the viewer has voted or withdrawn here
 	const hasActed = useRef(false);
 
-	// A refetched Poll carries fresh counts, and a fresh myOptionId once the API sends it. Only changed
-	// values count: a patched copy (a bookmark, a comment count) still holds what the card first loaded,
-	// which a vote or withdrawal made here has since replaced.
+	// A refetched Poll carries fresh counts, and a fresh myOptionId once the API sends it. Only what
+	// changed is taken: a copy made to save the Poll still holds the counts and Ballot it loaded with
 	if (poll !== prevPoll) {
 		setPrevPoll(poll);
 		if (getTurnout(poll) !== getTurnout(prevPoll)) setTurnout(getTurnout(poll));

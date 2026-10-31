@@ -362,6 +362,15 @@ describe('OwnProfileView', () => {
 		expect(cell('picks that won')).toHaveTextContent('Only you can see this');
 	});
 
+	it('counts the same polls in the record as in the Asked and Voted tabs', () => {
+		render(<OwnProfileView profile={me} polls={[mine, voted, sealed]} />);
+
+		expect(cell('polls asked')).toHaveTextContent('1');
+		expect(screen.getByRole('tab', { name: /Asked/ })).toHaveTextContent('1');
+		expect(cell('polls voted in')).toHaveTextContent('2');
+		expect(screen.getByRole('tab', { name: /Voted/ })).toHaveTextContent('2');
+	});
+
 	it('lists asked polls with the owner menu, and voted ones with the pick and outcome', () => {
 		render(<OwnProfileView profile={me} polls={[mine, voted, sealed]} />);
 
@@ -437,6 +446,7 @@ describe('OwnProfileView', () => {
 
 	it("says the polls couldn't load, and retries", () => {
 		render(<OwnProfileView profile={me} polls={null} />);
+		expect(cell('polls asked')).toHaveTextContent('–');
 		expect(cell('people reached')).toHaveTextContent('–');
 		fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
 		expect(mockRefresh).toHaveBeenCalled();

@@ -1,6 +1,8 @@
 import type { NextConfig } from 'next';
 import * as path from 'path';
 
+import { aboutHref, ABOUT_SITE_SLUGS } from './src/lib/aboutSite';
+
 const studioUrl = process.env.NEXT_PUBLIC_SANITY_STUDIO_URL?.replace(/\/+$/, '');
 
 const nextConfig: NextConfig = {
@@ -27,6 +29,8 @@ const nextConfig: NextConfig = {
 			{ source: '/signup', destination: '/login', permanent: true },
 			// Profiles moved to the root, next to Sanity pages
 			{ source: '/profile/:username', destination: '/:username', permanent: true },
+			// About and the legal pages moved to the about site
+			...ABOUT_SITE_SLUGS.map((slug) => ({ source: `/${slug}`, destination: aboutHref(slug), permanent: true })),
 			// The Studio moved to vomatt-admin
 			...(studioUrl
 				? [

@@ -1,14 +1,20 @@
 'use client';
 
-import Link from 'next/link';
 import { useSyncExternalStore } from 'react';
 
 import { HeadTrackingCode, Integrations } from '@/components/layout/HeadTrackingCode';
 import { Button } from '@/components/ui/Button';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { aboutHref } from '@/lib/aboutSite';
 
 export const CONSENT_COOKIE = 'cookie-consent';
 type Consent = 'granted' | 'denied';
+
+/** The consent cookie, set on vomatt.com so the app and about.vomatt.com share one answer. Mirrors vomatt-about's. */
+export function consentCookie(value: Consent, hostname: string) {
+	const shared = hostname === 'vomatt.com' || hostname.endsWith('.vomatt.com');
+	return `${CONSENT_COOKIE}=${value}; path=/; max-age=${365 * 24 * 60 * 60}; samesite=lax${shared ? '; domain=vomatt.com' : ''}`;
+}
 
 function readConsent(): Consent | null {
 	const match = document.cookie.match(new RegExp(`(?:^|; )${CONSENT_COOKIE}=(granted|denied)`));
@@ -31,7 +37,7 @@ export function CookieConsent({ integrations }: { integrations?: Integrations | 
 	if (!hasAnalytics) return null;
 
 	const choose = (value: Consent) => {
-		document.cookie = `${CONSENT_COOKIE}=${value}; path=/; max-age=${365 * 24 * 60 * 60}; samesite=lax`;
+		document.cookie = consentCookie(value, window.location.hostname);
 		listeners.forEach((listener) => listener());
 	};
 
@@ -45,9 +51,9 @@ export function CookieConsent({ integrations }: { integrations?: Integrations | 
 		>
 			<p className="text-caption-1">
 				{t('cookieConsent.message')}{' '}
-				<Link href="/cookies-policy" className="underline underline-offset-2">
+				<a href={aboutHref('cookies-policy')} className="underline underline-offset-2">
 					{t('cookieConsent.policy')}
-				</Link>
+				</a>
 			</p>
 			<div className="mt-3 flex gap-2">
 				<Button size="sm" onClick={() => choose('granted')}>
@@ -58,23 +64,5 @@ export function CookieConsent({ integrations }: { integrations?: Integrations | 
 				</Button>
 			</div>
 		</section>
-	);
-}
-
-/** Clears the saved choice so the banner asks again; reloads if analytics already ran. */
-export function CookieSettingsButton() {
-	const { t } = useLanguage();
-
-	const reopen = () => {
-		const wasGranted = readConsent() === 'granted';
-		document.cookie = `${CONSENT_COOKIE}=; path=/; max-age=0`;
-		if (wasGranted) window.location.reload();
-		else listeners.forEach((listener) => listener());
-	};
-
-	return (
-		<Button variant="outline" className="mt-8" onClick={reopen}>
-			{t('cookieConsent.settings')}
-		</Button>
 	);
 }
