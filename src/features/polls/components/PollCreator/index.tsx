@@ -539,7 +539,7 @@ export function PollCreator({
 															{toSingleLine(title)}
 														</p>
 														{description?.trim() && (
-															<p className="text-body-4 leading-relaxed text-muted-foreground wrap-anywhere">
+															<p className="text-body-4 leading-relaxed text-muted-foreground wrap-anywhere whitespace-pre-line">
 																{description.trim()}
 															</p>
 														)}
