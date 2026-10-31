@@ -231,6 +231,16 @@ describe('CommentThread', () => {
 		await waitFor(() => expect(within(article).getByRole('button', { name: 'More' })).toHaveFocus());
 	});
 
+	it('puts the caret after the text when editing starts', async () => {
+		render(<Harness />);
+		await screen.findByText('Mine');
+
+		fireEvent.click(within(await openMenu('Mine')).getByRole('menuitem', { name: 'Edit' }));
+		const box = screen.getByRole<HTMLTextAreaElement>('textbox', { name: 'Edit' });
+		await waitFor(() => expect(box).toHaveFocus());
+		expect([box.selectionStart, box.selectionEnd]).toEqual(['Mine'.length, 'Mine'.length]);
+	});
+
 	it('loads replies on demand', async () => {
 		service.getComments.mockResolvedValue({
 			ok: true,

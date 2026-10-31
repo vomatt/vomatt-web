@@ -591,6 +591,14 @@ function CommentBody({
 		moreRef.current?.focus();
 		returnFocus.current = false;
 	});
+	// autoFocus leaves the caret before the text, so what the author adds would land in front of it
+	const editRef = useRef<HTMLTextAreaElement>(null);
+	useEffect(() => {
+		const field = editRef.current;
+		if (!isEditing || !field) return;
+		field.focus();
+		field.setSelectionRange(field.value.length, field.value.length);
+	}, [isEditing]);
 	const isPending = comment.id.startsWith('pending-');
 	const isOwn = !!viewerId && comment.userId === viewerId;
 	const likes = comment.likeCount ?? 0;
@@ -692,7 +700,7 @@ function CommentBody({
 						maxLength={textMax(addressee)}
 						rows={3}
 						className="resize-none"
-						autoFocus
+						ref={editRef}
 					/>
 					<div className="flex items-center gap-1.5">
 						<span className="mr-auto text-caption-3 text-muted-foreground tabular-nums">
