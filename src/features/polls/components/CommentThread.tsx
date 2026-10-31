@@ -85,7 +85,8 @@ const MENTION = /(?<![\p{L}\p{N}_])@([a-z0-9_]{3,50})(?![a-z0-9_])/giu;
 
 /** Comment text with each `@handle` the API resolved as a mention linked to that profile; other handles stay plain. */
 function MentionText({ text, mentions }: { text: string; mentions: Comment['mentions'] }) {
-	const handles = new Set(mentions?.map((mention) => mention.username.toLowerCase()));
+	if (!mentions?.length) return text;
+	const handles = new Set(mentions.map((mention) => mention.username.toLowerCase()));
 	const parts: React.ReactNode[] = [];
 	let last = 0;
 	for (const match of text.matchAll(MENTION)) {
