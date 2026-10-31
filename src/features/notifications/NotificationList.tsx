@@ -112,7 +112,10 @@ export function NotificationList({
 			const nextCategory = next === 'all' ? undefined : next;
 			list.reset(await getNotifications(null, nextCategory), (cursor) => getNotifications(cursor, nextCategory));
 			setCategory(next);
-			window.history.replaceState(null, '', nextCategory ? `?tab=${nextCategory.toLowerCase()}` : window.location.pathname);
+			const url = new URL(window.location.href);
+			if (nextCategory) url.searchParams.set('tab', nextCategory.toLowerCase());
+			else url.searchParams.delete('tab');
+			window.history.replaceState(null, '', url);
 		} catch {
 			toast.error(t('notifications.categoryFailed'));
 		} finally {

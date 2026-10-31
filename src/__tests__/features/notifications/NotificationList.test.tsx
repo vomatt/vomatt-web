@@ -544,6 +544,18 @@ describe('NotificationList', () => {
 		window.history.replaceState(null, '', '/');
 	});
 
+	it('keeps address parameters that are not the tab', async () => {
+		const { getNotifications } = jest.requireMock('@/features/notifications/service');
+		getNotifications.mockResolvedValue({ items: [], nextCursor: null });
+		window.history.replaceState(null, '', '/notifications?utm_source=mail');
+		renderList([result]);
+		fireEvent.click(screen.getByRole('button', { name: 'Follows' }));
+		await waitFor(() => expect(window.location.search).toBe('?utm_source=mail&tab=follow'));
+		fireEvent.click(screen.getByRole('button', { name: 'All' }));
+		await waitFor(() => expect(window.location.search).toBe('?utm_source=mail'));
+		window.history.replaceState(null, '', '/');
+	});
+
 	it('offers no read-all or unread filter', () => {
 		renderList([invitation, comment]);
 		expect(screen.queryByRole('button', { name: 'Mark all read' })).not.toBeInTheDocument();
