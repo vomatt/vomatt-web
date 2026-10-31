@@ -33,10 +33,10 @@ export function PollListItem({ poll, meta, aside, onClick, className }: PollList
 			>
 				<div className="min-w-0 flex-1 space-y-1.5">
 					{aside && <div className="flex gap-2">{aside}</div>}
-					<p className="item-title line-clamp-2 leading-snug text-foreground">
+					<p className="text-title-4 line-clamp-2 leading-snug text-foreground">
 						{poll.title}
 					</p>
-					<p className="text-[12px] tabular-nums text-muted-foreground">{meta}</p>
+					<p className="text-caption-2 tabular-nums text-muted-foreground">{meta}</p>
 				</div>
 				<ArrowRight
 					aria-hidden

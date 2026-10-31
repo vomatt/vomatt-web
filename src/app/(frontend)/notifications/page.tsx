@@ -72,7 +72,7 @@ async function NotificationsRail({
 	if (page?.items.length === 0) return null;
 	return (
 		<aside className="flex w-full flex-col gap-3 xl:sticky xl:top-8">
-			<TidePanel className="p-3.5 text-[13px] leading-relaxed">
+			<TidePanel className="p-3.5 text-caption-1 leading-relaxed">
 				<p className="mb-1 flex items-center gap-1.5 font-medium">
 					<Lock aria-hidden className="size-3.5 shrink-0 text-tide" />
 					<T k="notifications.railTitle" />

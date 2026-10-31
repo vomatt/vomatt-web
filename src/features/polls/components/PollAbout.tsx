@@ -25,7 +25,7 @@ export function PollAbout({ poll }: { poll: Poll }) {
 
 	return (
 		<section aria-labelledby={headingId} className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5">
-			<h2 id={headingId} className="text-[13px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
+			<h2 id={headingId} className="text-caption-1 font-semibold uppercase tracking-label text-muted-foreground">
 				{t('pollDetail.about')}
 			</h2>
 
@@ -33,17 +33,17 @@ export function PollAbout({ poll }: { poll: Poll }) {
 				endedEarly(poll) && poll.deadline ? (
 					// The date is in the viewer's time zone, so it waits for hydration
 					isHydrated && (
-						<p className="text-[14px]">
+						<p className="text-body-4">
 							{t('pollDetail.endedEarly', { date: formatPollDate(poll.deadline, currentLanguage) })}
 						</p>
 					)
 				) : (
-					<p className="text-[14px]">{t('pollDetail.resultsIn')}</p>
+					<p className="text-body-4">{t('pollDetail.resultsIn')}</p>
 				)
 			) : (
 				<>
 					{isHydrated && (
-						<div className="flex flex-col gap-2 text-[13px]">
+						<div className="flex flex-col gap-2 text-caption-1">
 							<p className="flex justify-between gap-3">
 								<span className="text-muted-foreground">
 									{t(status === 'scheduled' ? 'pollDetail.opens' : 'pollDetail.opened')}
@@ -80,7 +80,7 @@ export function PollAbout({ poll }: { poll: Poll }) {
 								<li key={tag.id}>
 									<Link
 										href={topicHref(tag.slug)}
-										className="relative inline-flex items-center rounded-full bg-field px-2.5 py-[5px] text-[12px] leading-[18px] font-medium text-foreground transition-colors outline-none before:absolute before:inset-x-0 before:-inset-y-2 before:content-[''] hover:bg-border-strong focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring md:before:hidden"
+										className="relative inline-flex items-center rounded-full bg-field px-2.5 py-[5px] text-caption-2 leading-normal font-medium text-foreground transition-colors outline-none before:absolute before:inset-x-0 before:-inset-y-2 before:content-[''] hover:bg-border-strong focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring md:before:hidden"
 									>
 										{tag.name}
 									</Link>

@@ -54,7 +54,7 @@ export default function FeatureList({ data }: { data: FeatureListData }) {
 	return (
 		<ModuleSection eyebrow={eyebrow} heading={heading} intro={intro}>
 			{layout === 'rules' && (
-				<TideRules className="space-y-4 p-5 text-[15px]">
+				<TideRules className="space-y-4 p-5 text-body-3">
 					{items.map((item) => (
 						<TideRule key={item._key} icon={iconFor(item.icon)}>
 							<span className="block font-medium">{item.title}</span>
@@ -70,13 +70,13 @@ export default function FeatureList({ data }: { data: FeatureListData }) {
 						<li key={item._key} className="flex gap-4">
 							<span
 								aria-hidden
-								className="grid size-8 shrink-0 place-items-center rounded-full border border-border bg-card text-[13px] tabular-nums text-foreground"
+								className="grid size-8 shrink-0 place-items-center rounded-full border border-border bg-card text-caption-1 tabular-nums text-foreground"
 							>
 								{i + 1}
 							</span>
 							<div className="flex min-w-0 flex-col gap-1 pt-1">
-								<h3 className="item-title leading-[1.4] text-foreground">{item.title}</h3>
-								{item.body && <p className="text-[15px] leading-[1.6] text-muted-foreground">{item.body}</p>}
+								<h3 className="text-title-4 leading-snug text-foreground">{item.title}</h3>
+								{item.body && <p className="text-body-3 leading-relaxed text-muted-foreground">{item.body}</p>}
 							</div>
 						</li>
 					))}
@@ -95,8 +95,8 @@ export default function FeatureList({ data }: { data: FeatureListData }) {
 								<span className="grid size-9 place-items-center rounded-full bg-field text-foreground">
 									<Icon aria-hidden className="size-4" />
 								</span>
-								<h3 className="item-title leading-[1.4] text-foreground">{item.title}</h3>
-								{item.body && <p className="text-[14px] leading-[1.55] text-muted-foreground">{item.body}</p>}
+								<h3 className="text-title-4 leading-snug text-foreground">{item.title}</h3>
+								{item.body && <p className="text-body-4 leading-normal text-muted-foreground">{item.body}</p>}
 							</li>
 						);
 					})}

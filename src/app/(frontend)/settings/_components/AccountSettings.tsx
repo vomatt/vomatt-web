@@ -56,7 +56,7 @@ const rowLinkClassName = cn(
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
 	return (
 		<section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-20 space-y-2.5">
-			<h2 id={`${id}-title`} className="text-[16px] font-medium tracking-[-0.01em]">
+			<h2 id={`${id}-title`} className="text-title-4">
 				{title}
 			</h2>
 			{children}
@@ -75,7 +75,7 @@ function RowText({ title, body, id }: { title: React.ReactNode; body?: React.Rea
 				{title}
 			</span>
 			{body && (
-				<span id={id && `${id}-body`} className="block text-[13px] leading-[1.45] text-muted-foreground">
+				<span id={id && `${id}-body`} className="block text-caption-1 leading-normal text-muted-foreground">
 					{body}
 				</span>
 			)}
@@ -140,7 +140,7 @@ export default function AccountSettings({
 					<button type="button" onClick={() => setInvitesOpen(true)} className={cn(rowLinkClassName, 'w-full text-left')}>
 						<RowText title={t('account.tabGroups')} body={t('settings.inviteListsBody')} />
 						{inviteListCount !== null && (
-							<span className="text-[14px] whitespace-nowrap text-muted-foreground">
+							<span className="text-body-4 whitespace-nowrap text-muted-foreground">
 								{countText(t, 'settings.inviteListCount', inviteListCount, currentLanguage)}
 							</span>
 						)}
@@ -169,7 +169,7 @@ export default function AccountSettings({
 					<NotificationSwitches initial={notificationPreferences} announce={setAnnouncement} />
 				) : (
 					<Card>
-						<p className={cn(rowClassName, 'text-[14px] text-muted-foreground')}>{t('settings.notificationsFailed')}</p>
+						<p className={cn(rowClassName, 'text-body-4 text-muted-foreground')}>{t('settings.notificationsFailed')}</p>
 					</Card>
 				)}
 			</Section>
@@ -182,7 +182,7 @@ export default function AccountSettings({
 					</div>
 					<Link href="/settings/language" className={rowLinkClassName}>
 						<RowText title={t('settings.language')} body={t('settings.languageBody')} />
-						<span lang={htmlLang(currentLanguage)} className="text-[14px] text-muted-foreground">
+						<span lang={htmlLang(currentLanguage)} className="text-body-4 text-muted-foreground">
 							{SUPPORTED_LANGUAGES[currentLanguage]}
 						</span>
 						<ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
@@ -194,7 +194,7 @@ export default function AccountSettings({
 				<Card>
 					<Link href={`${profileHref(profile.username)}?edit=1`} className={rowLinkClassName}>
 						<RowText title={t('account.privacyTitle')} body={t('settings.whatOthersSeeBody')} />
-						<span className="text-[14px] text-muted-foreground">
+						<span className="text-body-4 text-muted-foreground">
 							{t('settings.shownCount', { shown: shownCount, total: settings.length })}
 						</span>
 						<ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
@@ -226,7 +226,7 @@ export default function AccountSettings({
 			{/* Kept apart, at the end, and quiet until opened */}
 			<DeleteAccount username={profile.username} />
 
-			<LegalLinks className="flex gap-4.5 text-[13px] text-muted-foreground" />
+			<LegalLinks className="flex gap-4.5 text-caption-1 text-muted-foreground" />
 		</div>
 	);
 }
@@ -442,7 +442,7 @@ function DeleteAccount({ username }: { username: string }) {
 				<h2 id="delete-title" className="font-medium text-destructive">
 					{t('account.deleteTitle')}
 				</h2>
-				<span className="block text-[13px] leading-[1.45] text-muted-foreground">{t('account.deleteBody')}</span>
+				<span className="block text-caption-1 leading-normal text-muted-foreground">{t('account.deleteBody')}</span>
 			</span>
 			<Button variant="outline" size="md" className="border-destructive/45 text-destructive hover:text-destructive" onClick={() => setOpen(true)}>
 				{t('account.deleteCtaEllipsis')}
@@ -470,7 +470,7 @@ function DeleteAccount({ username }: { username: string }) {
 							autoComplete="off"
 						/>
 						{mismatch && (
-							<p id="delete-confirm-error" className="wrap-anywhere text-xs text-destructive">
+							<p id="delete-confirm-error" className="wrap-anywhere text-caption-3 text-destructive">
 								{t('account.deleteConfirmMismatch', { username })}
 							</p>
 						)}
@@ -505,7 +505,7 @@ export function SettingsNav() {
 	const [current, select] = useSectionInView(SETTINGS_SECTIONS);
 	return (
 		<nav aria-labelledby="settings-nav">
-			<p id="settings-nav" className="mb-2 text-[12px] font-medium text-muted-foreground">
+			<p id="settings-nav" className="mb-2 text-caption-2 font-medium text-muted-foreground">
 				{t('settings.onThisPage')}
 			</p>
 			<ul>
@@ -520,7 +520,7 @@ export function SettingsNav() {
 							}}
 							aria-current={current === id ? 'location' : undefined}
 							className={cn(
-								'block border-l-2 border-border px-3 py-1.5 text-[14px] text-muted-foreground transition-colors hover:text-foreground',
+								'block border-l-2 border-border px-3 py-1.5 text-body-4 text-muted-foreground transition-colors hover:text-foreground',
 								'outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring',
 								current === id && 'border-foreground font-medium text-foreground'
 							)}

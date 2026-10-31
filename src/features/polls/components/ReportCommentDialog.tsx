@@ -79,11 +79,11 @@ function ReportForm({ pollId, commentId, onDone }: { pollId: string; commentId?:
 		<>
 			<DialogHeader>
 				<DialogTitle>{t(`${copy}.reportTitle`)}</DialogTitle>
-				<DialogDescription className="text-[14px]">{t(`${copy}.reportBody`)}</DialogDescription>
+				<DialogDescription className="text-body-4">{t(`${copy}.reportBody`)}</DialogDescription>
 			</DialogHeader>
 			<form onSubmit={submit} className="grid gap-4">
 				<div className="grid gap-1">
-					<p id={reasonsId} className="text-[14px] font-medium">
+					<p id={reasonsId} className="text-body-4 font-medium">
 						{t('comments.reportReasonLabel')}
 					</p>
 					<RadioGroup
@@ -96,7 +96,7 @@ function ReportForm({ pollId, commentId, onDone }: { pollId: string; commentId?:
 							<Radio.Root
 								key={value}
 								value={value}
-								className="group flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-lg px-2 text-left text-[14px] outline-none hover:bg-surface-soft focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring md:min-h-10"
+								className="group flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-lg px-2 text-left text-body-4 outline-none hover:bg-surface-soft focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring md:min-h-10"
 							>
 								<span
 									aria-hidden
@@ -111,10 +111,10 @@ function ReportForm({ pollId, commentId, onDone }: { pollId: string; commentId?:
 				</div>
 				<div className="grid gap-2">
 					<div className="flex items-baseline justify-between gap-2">
-						<label htmlFor={noteId} className="text-[14px] font-medium">
+						<label htmlFor={noteId} className="text-body-4 font-medium">
 							{t('comments.reportNote')}
 						</label>
-						<span className="text-xs text-muted-foreground tabular-nums">
+						<span className="text-caption-3 text-muted-foreground tabular-nums">
 							{note.length} / {COMMENT_REPORT_NOTE_MAX}
 						</span>
 					</div>

@@ -122,7 +122,7 @@ export function PollFeedList({
 
 			{initialPage !== null && polls.length === 0 && !following && !bookmarked && (
 				<div className="flex flex-col items-center gap-6 py-20 text-center">
-					<h2 className="text-3xl">
+					<h2 className="text-title-1">
 						{t(tag ? 'homePage.topicEmpty' : 'homePage.feedListNoData')}
 					</h2>
 					{viewerId ? (

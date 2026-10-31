@@ -18,7 +18,7 @@ export function MoreFromAuthor({ username, polls }: { username: string; polls: P
 
 	return (
 		<section aria-labelledby={headingId} className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5">
-			<h2 id={headingId} className="text-[13px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
+			<h2 id={headingId} className="text-caption-1 font-semibold uppercase tracking-label text-muted-foreground">
 				{t('pollDetail.moreFrom', { username })}
 			</h2>
 			<ul className="-mx-2 -my-1.5">
@@ -34,10 +34,10 @@ export function MoreFromAuthor({ username, polls }: { username: string; polls: P
 								href={`/poll/${poll.id}`}
 								className="flex min-h-11 flex-col gap-0.5 rounded-xl px-2 py-1.5 transition-colors outline-none hover:bg-surface-soft focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
 							>
-								<span className="line-clamp-2 text-[15px] leading-[1.35] font-medium tracking-[-0.01em] text-foreground">
+								<span className="line-clamp-2 text-body-3 leading-snug font-medium tracking-title text-foreground">
 									{poll.title}
 								</span>
-								<span className="text-[13px] text-muted-foreground tabular-nums">
+								<span className="text-caption-1 text-muted-foreground tabular-nums">
 									{when ? `${when} · ${turnout}` : turnout}
 								</span>
 							</Link>

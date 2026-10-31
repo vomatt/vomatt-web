@@ -31,18 +31,27 @@ Cool canvas, navy ink actions, two signals: Volt (`highlight`) marks what is you
 - **Geist** (`font-sans`) for everything, with PingFang TC / Microsoft JhengHei / Noto Sans TC fallbacks for Traditional Chinese. Counts, timers and other changing numbers take `tabular-nums` so digits keep one width; there is no monospace face.
 - Every title is weight 500: confident, not shouting.
 - Wrapping is set once in `global.css`: `h1`–`h4` balance their lines and `p`, `li`, `dd`, `blockquote` keep a lone word off the last line (`text-wrap-style`, so `truncate` and `whitespace-nowrap` still win). A title that isn't a heading element takes `text-balance`.
-- **Display**: the `display-heading` utility sets weight 500, leading 1.25 and -0.03em tracking; the size goes beside it.
-  - Page titles (Explore, Notifications, Settings): the `page-title` utility, 28px at every width with leading 1.3
-  - CMS page titles: `display-heading text-[30px] md:text-[40px]`
-  - Auth titles: 30px, leading 1.2, -0.02em (every auth step; in the auth dialog the step's title is the dialog's own 21px title)
-  - Person names: `display-heading text-[26px] md:text-[30px]` on a profile; `text-2xl` elsewhere
-  - CMS body 17px, leading 1.6, section headings 24px; coming soon headline 48px, leading 1.1
-- **Poll title** (card and preview): the `poll-title` utility (22px, weight 500, leading 1.2, -0.02em, balanced lines); cards add `md:text-[25px]`.
-- **Item title** (list rows): the `item-title` utility (16px, weight 500, -0.01em); leading goes beside it. Rail card titles are 15px (`PollSideCard`).
-- **Body** `text-[14px]` (card descriptions `text-base`; ballot and result options 16px, weight 500); **meta** `text-[12px]` in rows, `text-[14px]` on a poll card (author line, footer, the ballot's Tide lines, the results caption), `text-[13px]` in the rail; **chip** `text-[11px]` uppercase semibold, `.06em` tracking (`chipClassName`), 10px on a poll card.
-- Sidebar and More rows 14px, their group labels and segments 12px. The policy line under log in is 12px (`text-xs` is 11px here).
-- **Tab labels** (`TabsList variant="line"`) 15px. **Dialog titles** (`DialogTitle`, `AlertDialogTitle`) 21px, weight 500, -0.02em.
-- Inputs are `text-[16px]` on phones so iOS doesn't zoom (`text-base` is 15px).
+- **The type scale** (`@theme` in `global.css`) is the only source of sizes. Tailwind's own steps (`text-sm`, `text-lg`…) are cleared, and ESLint rejects them and any arbitrary `text-[…]`, `leading-[…]` or `tracking-[…]`. If no step fits, change the design or add a step; don't reach around the scale.
+
+  | Class | Size | Carries | Used for |
+  | --- | --- | --- | --- |
+  | `text-display-1` | 48px | 500, leading 1.1, -0.03em | Coming-soon and login brand headlines, CMS hero from `md` |
+  | `text-display-2` | 36px | 500, leading 1.1, -0.03em | CMS hero on phones, CMS page titles from `md` |
+  | `text-title-1` | 28px | 500, leading 1.3, -0.03em | Page titles (Explore, Notifications, Settings), auth titles, CMS page titles on phones |
+  | `text-title-2` | 24px | 500, leading 1.3, -0.02em | Section headings, poll titles on cards from `md`, profile counts |
+  | `text-title-3` | 22px | 500, leading 1.2, -0.02em | Poll titles (add `text-balance` off heading elements), dialog titles, person names on a profile |
+  | `text-title-4` | 16px | 500, -0.01em | List-row and side-card titles, settings card titles; leading goes beside it |
+  | `text-body-1` | 17px | size only | CMS body and intros |
+  | `text-body-2` | 16px | size only | Inputs on phones (iOS zooms below 16px), ballot and result options (with `font-medium`) |
+  | `text-body-3` | 15px | size only | Card descriptions, inputs from `md`, tab labels, rail poll titles |
+  | `text-body-4` | 14px | size only | Body text, poll-card meta (author line, footer, Tide lines), sidebar rows |
+  | `text-caption-1` | 13px | size only | Rail meta, settings helper text, small labels |
+  | `text-caption-2` | 12px | size only | Meta in rows, sidebar group labels, the policy line under log in |
+  | `text-caption-3` | 11px | leading 1.33 | Chips (uppercase semibold, `tracking-label`, via `chipClassName`), comment meta |
+  | `text-caption-4` | 10px | size only | Chips on a poll card, unread count badges |
+
+- A step's weight, leading and tracking are defaults: a `font-*`, `leading-*` or `tracking-*` beside it wins. Leading uses Tailwind's named steps (`leading-tight`, `snug`, `normal`, `relaxed`); tracking adds `tracking-title` (-0.01em, small titles) and `tracking-label` (0.06em, uppercase labels) beside Tailwind's own steps.
+- `cn()` recognizes the scale by pattern (`lib/utils.ts`): new steps in an existing family need nothing, but a new family must be added there, or tailwind-merge reads it as a color and drops it.
 
 ## Shape and layout
 
@@ -79,7 +88,7 @@ Use these. Don't copy their classes into a new element.
 | Status of a poll | `StatusChip` with `derivePollStatus(poll)` (tint, an ink dot or a clock while closing, words). Pick `time`: `inline` where the chip stands alone, on cards and the creator's review ("Ends Fri 20:00"); `elsewhere` in a row, which puts `pollTiming(…).when` in its meta ("1,284 voted · ends Fri 20:00" beside "Open") |
 | Any date a poll surface shows | `useViewerClock()` (null until hydrated) + `pollTiming()` from `features/polls/timing`, or `formatPollDay` / `formatPollMoment` / `formatDuration` / `formatAge` from `features/polls/format`. Not `Date.now()` or `new Date()` in a component |
 | Other small pill (e.g. ballot outcome) | `chipClassName` from `features/polls/chip.ts` + a `bg-*` tint |
-| Empty or missing page (no polls, not found, 404, error) | `EmptyCard`: a centered card with a 56px icon disc on `field` (circle-minus unless given another), a 21px title, one 15px line, an optional action; `headingLevel={1}` on a page with no other title |
+| Empty or missing page (no polls, not found, 404, error) | `EmptyCard`: a centered card with a 56px icon disc on `field` (circle-minus unless given another), a `text-title-3` title, one 15px line, an optional action; `headingLevel={1}` on a page with no other title |
 | Empty list inside a panel or dialog | the `empty-state` utility (dashed `surface-soft` box) |
 | Unread marker | `UnreadDot` with an `aria-label`, right after the name of what is unread: a tab's label, a list row's title (which goes `font-semibold`, with `NewMark` in its meta), a notification's first line (the row is already a card, so no bold title and no "new"), the top-trailing corner of an icon. Never a leading gutter and never the row's far edge: titles keep one left edge and chips one column whether a row is read or not |
 | A rule or promise (Tide) | `TidePanel` for a surface, `TideRules` + `TideRule icon={…}` for a list of rules |
@@ -95,7 +104,7 @@ Use these. Don't copy their classes into a new element.
 | Progress (voting window) | `Progress variant="tide"` |
 | List row for a poll | `PollListItem` with `meta` and `aside` |
 | Polls to scan in a grid (Explore) | `PollTileGrid` of `PollTile`s: 1, 2 or 3 columns by the grid's own width (container queries); each tile links to the poll page and holds no ballot, so no counts while open |
-| A person's counts | `ProfileRecord`: `rounded-2xl` `card` cells, a 26px `tabular-nums` number over a 12px label; `Count` for a count inside a phrase |
+| A person's counts | `ProfileRecord`: `rounded-2xl` `card` cells, a `text-title-2 tabular-nums` number over a 12px label; `Count` for a count inside a phrase |
 | Active nav link | `isActivePath(pathname, href)` from `lib/routes.ts` |
 
 If a building block doesn't fit, change its variant or add one. Don't override it at the call site.

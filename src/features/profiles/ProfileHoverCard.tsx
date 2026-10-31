@@ -164,11 +164,11 @@ function ProfileCardBody({
 			<div className="flex items-start gap-3">
 				<UserAvatar username={username} avatarUrl={avatarUrl} className="size-12" />
 				<div className="min-w-0 flex-1">
-					<p className="truncate text-[17px] font-medium leading-tight tracking-[-0.02em]">
+					<p className="truncate text-title-4 leading-tight">
 						{name.primary}
 						{name.secondary && <span className="text-muted-foreground"> {name.secondary}</span>}
 					</p>
-					<p className="truncate text-[12px] text-muted-foreground">@{username}</p>
+					<p className="truncate text-caption-2 text-muted-foreground">@{username}</p>
 				</div>
 				<FollowButton follow={follow} username={username} avatarUrl={avatarUrl} size="xs" withConfirm={false} />
 			</div>
@@ -178,13 +178,13 @@ function ProfileCardBody({
 					<Skeleton className="h-3 w-2/3" />
 				</div>
 			)}
-			{state.status === 'failed' && <p className="text-[12px] text-muted-foreground">{t('profile.cardFailed')}</p>}
+			{state.status === 'failed' && <p className="text-caption-2 text-muted-foreground">{t('profile.cardFailed')}</p>}
 			{state.status === 'ready' && !profile && (
-				<p className="text-[12px] text-muted-foreground">{t('profile.notFoundTitle')}</p>
+				<p className="text-caption-2 text-muted-foreground">{t('profile.notFoundTitle')}</p>
 			)}
-			{profile?.bio && <p className="line-clamp-3 text-[13px] leading-normal">{profile.bio}</p>}
+			{profile?.bio && <p className="line-clamp-3 text-caption-1 leading-normal">{profile.bio}</p>}
 			{profile && (
-				<p className="flex flex-wrap gap-x-3 gap-y-1 text-[12px] text-muted-foreground">
+				<p className="flex flex-wrap gap-x-3 gap-y-1 text-caption-2 text-muted-foreground">
 					<span className="whitespace-nowrap">
 						<Count value={profile.totalPolls} label={countText(t, 'profile.askedCount', profile.totalPolls, currentLanguage)} />
 					</span>

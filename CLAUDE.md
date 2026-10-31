@@ -65,7 +65,7 @@ Locales: `en`, `zh` (Traditional Chinese; default `en`), strings in `src/locales
 - **Server Components** for data fetching; **Client Components** (`'use client'`) for interaction.
 - UI primitives are shadcn/ui (new-york style, zinc base) in `src/components/ui/`.
 - Layout uses a collapsible sidebar (`SidebarProvider` + `AppSidebar`) visible on all routes except `/login`. Mobile gets a `TabBar` instead.
-- Fonts: Geist (UI and headings, weight 400 with tight tracking for display; counts and times use `tabular-nums`), loaded with `next/font` in the root layout.
+- Fonts: Geist for everything (counts and times use `tabular-nums`), loaded with `next/font` in the root layout. Sizes come only from the type scale in `global.css` (`text-display-*`, `text-title-*`, `text-body-*`, `text-caption-*`; see `DESIGN.md`); ESLint rejects arbitrary and default Tailwind sizes.
 - Design tokens in `src/styles/global.css` use OKLCh color space with Tailwind CSS v4.
 - Next.js cache: `revalidatePath(path, 'page')` requires the second arg; use `updateTag(tag)` for single-tag revalidation.
 

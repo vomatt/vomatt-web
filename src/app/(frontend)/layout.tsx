@@ -112,11 +112,11 @@ export default async function RootLayout({
 								<div className="w-28 text-foreground">
 									<BrandLogo />
 								</div>
-								<h1 className="mt-4 text-[48px] font-medium leading-[1.1] tracking-[-0.03em]">
+								<h1 className="mt-4 text-display-1">
 									{comingSoon?.heading || 'Coming soon'}
 								</h1>
 								{comingSoon?.message && (
-									<div className="text-lg text-muted-foreground">
+									<div className="text-body-1 text-muted-foreground">
 										<CustomPortableText blocks={comingSoon.message} />
 									</div>
 								)}

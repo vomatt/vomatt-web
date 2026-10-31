@@ -22,11 +22,11 @@ export function ProfileRecord({ cells }: { cells: RecordCell[] }) {
 		<dl className="grid grid-cols-2 gap-y-4 rounded-2xl border border-border bg-card px-2 py-4 sm:auto-cols-fr sm:grid-flow-col sm:grid-cols-none sm:divide-x sm:divide-border">
 			{cells.map((cell) => (
 				<div key={cell.label} className="flex flex-col-reverse px-4">
-					<dt className="inline-flex items-center gap-1 text-[12px] text-muted-foreground">
+					<dt className="inline-flex items-center gap-1 text-caption-2 text-muted-foreground">
 						{cell.label}
 						{cell.private && <OnlyYouMarker className="size-3" />}
 					</dt>
-					<dd className="text-[26px] font-medium leading-tight tracking-[-0.02em] tabular-nums">
+					<dd className="text-title-2 leading-tight tabular-nums">
 						{cell.value === null ? '–' : `${cell.value.toLocaleString(toPayloadLocale(currentLanguage))}${cell.suffix ?? ''}`}
 					</dd>
 				</div>

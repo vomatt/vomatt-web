@@ -30,7 +30,7 @@ export function PublicPreview({ profile, className }: { profile: MyProfile; clas
 
 	return (
 		<section aria-labelledby="public-preview" className={cn('flex flex-col gap-3', className)}>
-			<h2 id="public-preview" className="flex items-center gap-1.5 text-[12px] font-medium text-muted-foreground">
+			<h2 id="public-preview" className="flex items-center gap-1.5 text-caption-2 font-medium text-muted-foreground">
 				<Globe aria-hidden className="size-3.5" />
 				{t('profile.everyoneSees')}
 			</h2>
@@ -38,25 +38,25 @@ export function PublicPreview({ profile, className }: { profile: MyProfile; clas
 				<div className="flex items-center gap-3">
 					<UserAvatar username={profile.username} avatarUrl={profile.avatarUrl} className="size-11" />
 					<div className="min-w-0">
-						<p className="truncate text-[17px] font-medium leading-tight tracking-[-0.02em]">
+						<p className="truncate text-title-4 leading-tight">
 							{name.primary}
 							{name.secondary && <span className="text-muted-foreground"> {name.secondary}</span>}
 						</p>
-						<p className="truncate text-[12px] text-muted-foreground">@{profile.username}</p>
+						<p className="truncate text-caption-2 text-muted-foreground">@{profile.username}</p>
 					</div>
 				</div>
-				{shows('bio') && <p className="line-clamp-3 wrap-anywhere text-[13px]">{profile.bio}</p>}
-				<p className="text-[12px] text-muted-foreground">
+				{shows('bio') && <p className="line-clamp-3 wrap-anywhere text-caption-1">{profile.bio}</p>}
+				<p className="text-caption-2 text-muted-foreground">
 					{t('profile.joined', { date: formatMonthYear(profile.joinedAt, currentLanguage) })}
 				</p>
-				<p className="text-[12px] text-muted-foreground">
+				<p className="text-caption-2 text-muted-foreground">
 					<Count value={profile.totalPolls} label={countText(t, 'profile.recordAskedCount', profile.totalPolls, currentLanguage)} />
 					{' · '}
 					<Count value={profile.totalVotes} label={countText(t, 'profile.recordVotedCount', profile.totalVotes, currentLanguage)} />
 				</p>
 				<Link
 					href={`${profileHref(profile.username)}?view=public`}
-					className="self-start rounded-sm text-[13px] font-medium underline underline-offset-3 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
+					className="self-start rounded-sm text-caption-1 font-medium underline underline-offset-3 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
 				>
 					{t('profile.openPublicPage')}
 				</Link>

@@ -106,7 +106,7 @@ export default function ProfileHeader({
 				/>
 			)}
 			<div className="min-w-0 flex-[1_1_20rem] max-sm:order-last max-sm:basis-full">
-				<h1 className="wrap-anywhere display-heading text-xl">
+				<h1 className="wrap-anywhere text-title-3">
 					{name.primary}
 					{primaryHidden && (
 						<OnlyYouMarker className="ml-2 size-4 align-baseline" />
@@ -121,12 +121,12 @@ export default function ProfileHeader({
 						</span>
 					)}
 				</h1>
-				<p className="wrap-anywhere text-[14px] text-muted-foreground">
+				<p className="wrap-anywhere text-body-4 text-muted-foreground">
 					@{profile.username}
 				</p>
 				{profile.bio && (
 					// Capped measure (~68 characters); Geist's wide 0 makes `ch` overshoot, so the cap is in rem
-					<p className="mt-2.5 max-w-[30rem] wrap-anywhere whitespace-pre-line text-[14px]">
+					<p className="mt-2.5 max-w-[30rem] wrap-anywhere whitespace-pre-line text-body-4">
 						{profile.bio}
 						{isHidden('bio') && (
 							<OnlyYouMarker className="ml-1.5 size-3.5 align-[-0.125em]" />
@@ -134,7 +134,7 @@ export default function ProfileHeader({
 					</p>
 				)}
 				{/* Items set apart by space and kept whole when they wrap */}
-				<div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-muted-foreground">
+				<div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-caption-2 text-muted-foreground">
 					{listCount('followers', profile.followersCount)}
 					{listCount('following', profile.followingCount)}
 					<span>

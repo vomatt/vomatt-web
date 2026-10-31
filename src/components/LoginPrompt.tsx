@@ -29,8 +29,8 @@ export function LoginPrompt({ className, redirectTo, sessionExpired, forPoll }: 
 			)}
 		>
 			<div className="flex min-w-0 flex-1 flex-col gap-1">
-				<h2 className="text-[18px] font-medium tracking-[-0.01em] text-foreground">{t('loginPrompt.title')}</h2>
-				<p className="text-[14px] text-muted-foreground">
+				<h2 className="text-title-4 text-foreground">{t('loginPrompt.title')}</h2>
+				<p className="text-body-4 text-muted-foreground">
 					{t('loginPrompt.subtitle')}
 					{forPoll && ` ${t('loginPrompt.pollNote')}`}
 				</p>

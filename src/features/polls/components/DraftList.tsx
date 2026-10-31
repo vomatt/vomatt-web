@@ -62,10 +62,10 @@ export function DraftList({
 							className="flex items-center gap-3.5 rounded-xl border border-dashed border-border-strong bg-surface-soft px-4 py-3.5"
 						>
 							<div className="flex min-w-0 flex-1 flex-col gap-0.5">
-								<p className={cn('item-title truncate leading-snug', !title && 'text-muted-foreground')}>
+								<p className={cn('text-title-4 truncate leading-snug', !title && 'text-muted-foreground')}>
 									{title || t('myPolls.untitledDraft')}
 								</p>
-								<p className="text-[12px] text-muted-foreground">
+								<p className="text-caption-2 text-muted-foreground">
 									{[
 										t('myPolls.draftSavedAt', { date: formatPollDay(draft.savedAt, currentLanguage, clock.now) }),
 										options > 0 && countText(t, 'myPolls.draftOptions', options, currentLanguage),

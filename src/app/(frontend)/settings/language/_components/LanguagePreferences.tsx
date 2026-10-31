@@ -29,14 +29,14 @@ export function LanguagePreferences() {
 				>
 					<ChevronLeft aria-hidden className="size-5.5" />
 				</Link>
-				<h1 className="page-title text-foreground">{t('settings.languageTitle')}</h1>
+				<h1 className="text-title-1 text-foreground">{t('settings.languageTitle')}</h1>
 			</StickyBar>
 			<section aria-labelledby={headingId} className="flex flex-col gap-3">
 				<div>
-					<h2 id={headingId} className="text-[16px] font-medium tracking-[-0.01em]">
+					<h2 id={headingId} className="text-title-4">
 						{t('settings.appLanguage')}
 					</h2>
-					<p className="mt-0.5 text-[14px] text-muted-foreground">{t('settings.appLanguageBody')}</p>
+					<p className="mt-0.5 text-body-4 text-muted-foreground">{t('settings.appLanguageBody')}</p>
 				</div>
 				<RadioGroup
 					aria-labelledby={headingId}
@@ -69,7 +69,7 @@ export function LanguagePreferences() {
 						</Radio.Root>
 					))}
 				</RadioGroup>
-				<p className="text-[13px] text-muted-foreground">{t('settings.appLanguageNote')}</p>
+				<p className="text-caption-1 text-muted-foreground">{t('settings.appLanguageNote')}</p>
 			</section>
 		</div>
 	);

@@ -84,7 +84,7 @@ export function AuthFlow({ onDone, onSignedIn, policyMessage, inDialog = false }
 					onPasskeySignIn={inDialog ? undefined : onDone}
 				/>
 				{policyMessage && (
-					<div className="text-[12px] text-muted-foreground">
+					<div className="text-caption-2 text-muted-foreground">
 						<CustomPortableText blocks={policyMessage} />
 					</div>
 				)}
@@ -98,12 +98,12 @@ export function AuthFlow({ onDone, onSignedIn, policyMessage, inDialog = false }
 				// Clear of the close button in the corner
 				<DialogHeader className="gap-1.5 pr-8">
 					<DialogTitle>{heading.title}</DialogTitle>
-					<DialogDescription className="text-[14px]">{heading.subtitle}</DialogDescription>
+					<DialogDescription className="text-body-4">{heading.subtitle}</DialogDescription>
 				</DialogHeader>
 			) : (
 				<div className="flex flex-col gap-2">
-					<h1 className="text-[30px] font-medium leading-[1.2] tracking-[-0.02em]">{heading.title}</h1>
-					<p className="text-base leading-relaxed text-muted-foreground">{heading.subtitle}</p>
+					<h1 className="text-title-1">{heading.title}</h1>
+					<p className="text-body-3 leading-relaxed text-muted-foreground">{heading.subtitle}</p>
 				</div>
 			)}
 			{body}
@@ -154,7 +154,7 @@ function EmailStep({
 						/>
 						{/* A line stays reserved for the error, so it appears without moving the button */}
 						<FieldMessage
-							className="-mt-1.5 text-sm"
+							className="-mt-1.5 text-caption-1"
 							errors={
 								fieldState.error?.message
 									? [{ id: 'authEmail-error', text: t(fieldState.error.message) }]

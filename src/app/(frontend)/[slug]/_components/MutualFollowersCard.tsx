@@ -33,7 +33,7 @@ export function MutualFollowersCard({
 
 	return (
 		<section aria-labelledby={headingId} className="flex flex-col gap-3">
-			<h2 id={headingId} className="text-[12px] font-medium text-muted-foreground">
+			<h2 id={headingId} className="text-caption-2 font-medium text-muted-foreground">
 				{t('profile.mutualFollowers')}
 			</h2>
 			<div className="flex flex-col gap-0.5 rounded-2xl border border-border bg-card p-2">
@@ -47,8 +47,8 @@ export function MutualFollowersCard({
 								>
 									<UserAvatar username={user.username} avatarUrl={user.avatarUrl} />
 									<span className="flex min-w-0 flex-col">
-										<span className="truncate text-[14px] font-medium">{user.displayName || user.username}</span>
-										<span className="truncate text-[12px] text-muted-foreground">@{user.username}</span>
+										<span className="truncate text-body-4 font-medium">{user.displayName || user.username}</span>
+										<span className="truncate text-caption-2 text-muted-foreground">@{user.username}</span>
 									</span>
 								</Link>
 							</ProfileHoverCard>
@@ -59,7 +59,7 @@ export function MutualFollowersCard({
 					type="button"
 					onClick={onOpenFollowers}
 					className={cn(
-						'flex min-h-11 items-center rounded-[10px] px-2 text-left text-[13px] font-medium underline underline-offset-3 md:min-h-9',
+						'flex min-h-11 items-center rounded-[10px] px-2 text-left text-caption-1 font-medium underline underline-offset-3 md:min-h-9',
 						focusRing
 					)}
 				>

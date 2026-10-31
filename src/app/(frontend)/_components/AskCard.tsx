@@ -17,10 +17,10 @@ export function AskCard() {
 			aria-labelledby={headingId}
 			className="flex flex-col gap-2.5 rounded-2xl border border-border bg-card p-[18px]"
 		>
-			<h2 id={headingId} className="text-[17px] font-medium leading-[1.3] tracking-[-0.01em] text-foreground">
+			<h2 id={headingId} className="text-title-4 leading-snug text-foreground">
 				{t('homePage.askTitle')}
 			</h2>
-			<p className="text-[13px] text-muted-foreground">{t('homePage.askBody')}</p>
+			<p className="text-caption-1 text-muted-foreground">{t('homePage.askBody')}</p>
 			<CreatePollTrigger>
 				<Button variant="outline" className="mt-1 w-full">
 					<Plus aria-hidden data-icon="inline-start" />

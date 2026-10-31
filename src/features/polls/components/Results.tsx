@@ -117,7 +117,7 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }:
 
 	if (!rows) {
 		return failed ? (
-			<p className="text-sm text-muted-foreground">{t('poll.resultsFailed')}</p>
+			<p className="text-caption-1 text-muted-foreground">{t('poll.resultsFailed')}</p>
 		) : (
 			<div className="space-y-2.5" aria-busy>
 				{poll.options.map((option) => (
@@ -159,7 +159,7 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }:
 						<li
 							key={row.id}
 							className={cn(
-								'relative overflow-hidden rounded-xl text-[16px]',
+								'relative overflow-hidden rounded-xl text-body-2',
 								row === myRow ? 'border-[1.5px] border-foreground' : 'border border-border'
 							)}
 						>
@@ -181,7 +181,7 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }:
 								{row === myRow && <YourVotePill label={t('poll.yourVoteShort')} />}
 								<span
 									className={cn(
-										'shrink-0 text-[14px] tabular-nums',
+										'shrink-0 text-body-4 tabular-nums',
 										!isWinner && 'text-muted-foreground'
 									)}
 								>
@@ -193,7 +193,7 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }:
 					);
 				})}
 			</ul>
-			<p className="text-[14px] leading-5 text-muted-foreground">
+			<p className="text-body-4 leading-5 text-muted-foreground">
 				{caption}
 				{onSelectOption && winners.length > 0 && <span className="block">{t('poll.votersHint')}</span>}
 			</p>

@@ -70,10 +70,10 @@ export function Seal({ variant, endTime, children, footer }: SealProps) {
 					<span className="mb-1">
 						<SealMark size="lg" />
 					</span>
-					<p className="text-[21px] font-medium leading-tight tracking-[-0.02em] text-foreground">
+					<p className="text-title-3 leading-tight text-foreground">
 						{t('poll.sealedTitle')}
 					</p>
-					<p className={cn('max-w-[420px] text-[14px] leading-5', waiting && 'invisible')}>{line}</p>
+					<p className={cn('max-w-[420px] text-body-4 leading-5', waiting && 'invisible')}>{line}</p>
 					<div className="mt-1 flex flex-wrap justify-center gap-1.5">{children}</div>
 				</div>
 				{footer}
@@ -86,8 +86,8 @@ export function Seal({ variant, endTime, children, footer }: SealProps) {
 			<div className="flex flex-wrap items-center gap-4 py-3.5 pr-3.5 pl-4">
 				<SealMark size="md" />
 				<div className="flex min-w-0 flex-[1_1_200px] flex-col gap-0.5">
-					<p className="text-[14px] font-medium leading-5 text-foreground">{t('poll.sealedTitle')}</p>
-					<p className={cn('text-[13px] leading-[18px]', waiting && 'invisible')}>{line}</p>
+					<p className="text-body-4 font-medium leading-5 text-foreground">{t('poll.sealedTitle')}</p>
+					<p className={cn('text-caption-1 leading-snug', waiting && 'invisible')}>{line}</p>
 				</div>
 				<div className="flex shrink-0 items-center gap-1.5">{children}</div>
 			</div>

@@ -101,7 +101,7 @@ export function SessionsPanel() {
 					<h3 id="sessions-title" className="font-medium">
 						{t('sessions.title')}
 					</h3>
-					<span className="block text-[13px] leading-[1.45] text-muted-foreground">{t('sessions.body')}</span>
+					<span className="block text-caption-1 leading-normal text-muted-foreground">{t('sessions.body')}</span>
 				</span>
 				{hasOthers && (
 					<Button variant="outline" size="md" onClick={() => setConfirming('others')}>
@@ -116,7 +116,7 @@ export function SessionsPanel() {
 			)}
 			{loadFailed && (
 				<div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-					<p className="flex-1 text-[13px] text-muted-foreground">{t('sessions.loadFailed')}</p>
+					<p className="flex-1 text-caption-1 text-muted-foreground">{t('sessions.loadFailed')}</p>
 					<Button
 						variant="outline"
 						size="xs"
@@ -129,7 +129,7 @@ export function SessionsPanel() {
 					</Button>
 				</div>
 			)}
-			{sessions?.length === 0 && <p className="text-[13px] text-muted-foreground">{t('sessions.empty')}</p>}
+			{sessions?.length === 0 && <p className="text-caption-1 text-muted-foreground">{t('sessions.empty')}</p>}
 			{!!sessions?.length && (
 				<ul className="flex flex-col gap-2.5">
 					{sessions.map((session) => (
@@ -138,15 +138,15 @@ export function SessionsPanel() {
 							className="flex items-center gap-2.5 rounded-xl border border-border bg-surface-soft px-2.5 py-2"
 						>
 							<span className="min-w-0 flex-1">
-								<span className="block truncate text-[14px] font-medium">
+								<span className="block truncate text-body-4 font-medium">
 									{nameOf(session)}
 									{session.current && (
-										<span className="ml-2 text-[12px] font-normal text-muted-foreground">
+										<span className="ml-2 text-caption-2 font-normal text-muted-foreground">
 											{t('sessions.thisDevice')}
 										</span>
 									)}
 								</span>
-								<span className="block text-[12px] text-muted-foreground">
+								<span className="block text-caption-2 text-muted-foreground">
 									{session.lastSeenAt
 										? t('sessions.lastActive', { time: formatFromNow(session.lastSeenAt, currentLanguage) })
 										: t('sessions.activityUnknown')}

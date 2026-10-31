@@ -136,11 +136,11 @@ export function AppSidebar({
 											)}
 										>
 											<item.icon className="size-5 shrink-0" />
-											<span className="text-[14px] font-medium capitalize">
+											<span className="text-body-4 font-medium capitalize">
 												{t(item.title)}
 											</span>
 											{badge > 0 && (
-												<span className="ml-auto min-w-5 rounded-full bg-alert px-1.5 text-center text-[10px] font-semibold leading-5 text-alert-foreground tabular-nums">
+												<span className="ml-auto min-w-5 rounded-full bg-alert px-1.5 text-center text-caption-4 font-semibold leading-5 text-alert-foreground tabular-nums">
 													{formatUnreadCount(badge)}
 												</span>
 											)}
@@ -174,7 +174,7 @@ export function AppSidebar({
 										) : (
 											<User className="size-5 shrink-0" />
 										)}
-										<span className="text-[14px] font-medium capitalize">
+										<span className="text-body-4 font-medium capitalize">
 											{t('navigation.profile')}
 										</span>
 									</SidebarMenuButton>
@@ -185,7 +185,7 @@ export function AppSidebar({
 				</SidebarGroup>
 
 				{/* The rules in one line, where every page can see them */}
-				<TidePanel className="mx-1 mt-5 p-3.5 text-[12px] leading-relaxed">
+				<TidePanel className="mx-1 mt-5 p-3.5 text-caption-2 leading-relaxed">
 					<p className="mb-1 flex items-center gap-1.5 font-medium">
 						<Lock aria-hidden className="size-3.5 shrink-0 text-tide" />
 						{t('navigation.howCountsTitle')}
@@ -200,7 +200,7 @@ export function AppSidebar({
 					<div className="rounded-xl border border-sidebar-border bg-card p-1">
 						<Link
 							href={loginLink}
-							className="flex items-center gap-2.5 w-full h-9 px-3 rounded-lg text-muted-foreground hover:text-sidebar-foreground transition-colors duration-150 text-[14px] outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
+							className="flex items-center gap-2.5 w-full h-9 px-3 rounded-lg text-muted-foreground hover:text-sidebar-foreground transition-colors duration-150 text-body-4 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
 						>
 							<User className="size-4 shrink-0" />
 							<span className="font-medium">{t('loginPrompt.ctaLabel')}</span>

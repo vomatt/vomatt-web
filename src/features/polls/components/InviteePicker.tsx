@@ -150,7 +150,7 @@ export function InviteePicker({
 		<div className="space-y-3">
 			{withGroups && groups.length > 0 && (
 				<div className="space-y-2">
-					<p className="text-[12px] text-muted-foreground">{t('invitees.groups')}</p>
+					<p className="text-caption-2 text-muted-foreground">{t('invitees.groups')}</p>
 					<div className="flex flex-wrap gap-2">
 						{groups.map((group) => {
 							const picked = value.groups.some((g) => g.id === group.id);
@@ -194,7 +194,7 @@ export function InviteePicker({
 					<button
 						type="button"
 						onClick={addEmail}
-						className="flex min-h-11 w-full items-center rounded-lg px-3 text-left text-[14px] hover:bg-muted"
+						className="flex min-h-11 w-full items-center rounded-lg px-3 text-left text-body-4 hover:bg-muted"
 					>
 						{t('invitees.inviteEmail', { email })}
 					</button>
@@ -211,12 +211,12 @@ export function InviteePicker({
 								<button
 									type="button"
 									onClick={() => addUser(user)}
-									className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-[14px] hover:bg-muted"
+									className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-body-4 hover:bg-muted"
 								>
 									<UserAvatar username={user.username} avatarUrl={user.avatarUrl} />
 									<span className="truncate">{user.username}</span>
 									{user.displayName && (
-										<span className="truncate text-[12px] text-muted-foreground">{user.displayName}</span>
+										<span className="truncate text-caption-2 text-muted-foreground">{user.displayName}</span>
 									)}
 								</button>
 							</li>
@@ -224,7 +224,7 @@ export function InviteePicker({
 					</ul>
 				)}
 				{isSearching && !isLoading && suggestions.length === 0 && (
-					<p className="px-3 py-2 text-[12px] text-muted-foreground">
+					<p className="px-3 py-2 text-caption-2 text-muted-foreground">
 						{t(results.failed ? 'invitees.searchFailed' : 'invitees.noUsers')}
 					</p>
 				)}
@@ -235,7 +235,7 @@ export function InviteePicker({
 					{chips.map((chip) => (
 						<li
 							key={chip.key}
-							className="inline-flex min-h-8 items-center gap-1 rounded-full bg-secondary pl-3 text-[12px]"
+							className="inline-flex min-h-8 items-center gap-1 rounded-full bg-secondary pl-3 text-caption-2"
 						>
 							{chip.user && (
 								<UserAvatar username={chip.user.username} avatarUrl={chip.user.avatarUrl} className="-ml-2 size-6" />

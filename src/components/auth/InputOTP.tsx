@@ -44,7 +44,7 @@ const InputOTPSlot = React.forwardRef<
 		<div
 			ref={ref}
 			className={cn(
-				'relative flex h-14 min-w-0 flex-1 items-center justify-center rounded-[10px] border bg-card text-[22px] tabular-nums transition-[color,background-color,border-color] md:w-12 md:flex-none',
+				'relative flex h-14 min-w-0 flex-1 items-center justify-center rounded-[10px] border bg-card text-title-3 font-normal tracking-normal tabular-nums transition-[color,background-color,border-color] md:w-12 md:flex-none',
 				invalid ? 'border-destructive' : 'border-input',
 				// Same focus outline as Input
 				isActive && 'z-10 outline-2 outline-solid outline-offset-1 outline-ring',
