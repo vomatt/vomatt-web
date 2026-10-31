@@ -566,6 +566,20 @@ describe('CommentThread', () => {
 		expect(within(screen.getByText('Theirs').closest('article')!).getByRole('textbox', { name: 'Write a reply…' })).toBeInTheDocument();
 	});
 
+	it('carries a reply draft to the next comment the viewer replies to, and drops it on cancel', async () => {
+		render(<Harness />);
+		await screen.findByText('Theirs');
+		const [first, second] = screen.getAllByRole('button', { name: 'Reply' });
+
+		fireEvent.click(first);
+		fireEvent.change(screen.getByRole('textbox', { name: 'Write a reply…' }), { target: { value: 'Half a thought' } });
+		fireEvent.click(second);
+		expect(screen.getByRole('textbox', { name: 'Write a reply…' })).toHaveValue('Half a thought');
+
+		fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+		fireEvent.click(first);
+		expect(screen.getByRole('textbox', { name: 'Write a reply…' })).toHaveValue('');
+	});
 
 	it('focuses a reply composer without jumping the page, and keeps the main composer as it was', async () => {
 		const scrollIntoView = jest.fn();
