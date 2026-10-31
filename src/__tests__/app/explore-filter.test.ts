@@ -1,4 +1,5 @@
-import { toExploreQuery, topicsFor } from '@/app/(frontend)/explore/_components/ExploreView';
+import { topicsFor } from '@/app/(frontend)/explore/_components/ExploreView';
+import { filtersFromParams, toExploreQuery, toExploreSearch } from '@/app/(frontend)/explore/filters';
 
 jest.mock('@/features/polls/service', () => ({ getPolls: jest.fn() }));
 
@@ -14,6 +15,11 @@ describe('toExploreQuery()', () => {
 	it('trims the search and skips one shorter than 2 characters', () => {
 		expect(toExploreQuery('  side project ', 'open', 'newest').q).toBe('side project');
 		expect(toExploreQuery(' a ', 'open', 'newest').q).toBeUndefined();
+	});
+
+	it('counts characters as the API does, so one emoji is too short', () => {
+		expect(toExploreQuery('😀', 'open', 'newest').q).toBeUndefined();
+		expect(toExploreQuery('😀😀', 'open', 'newest').q).toBe('😀😀');
 	});
 });
 
@@ -42,5 +48,44 @@ describe('topicsFor()', () => {
 describe('toExploreQuery() with a topic', () => {
 	it('sends the topic', () => {
 		expect(toExploreQuery('', 'ended', 'newest', 'food').tag).toBe('food');
+	});
+});
+
+describe('filtersFromParams()', () => {
+	it('reads the search, status, sort and topic from the address', () => {
+		expect(filtersFromParams({ q: 'lunch', status: 'ended', sort: 'top', tag: 'food' })).toEqual({
+			query: 'lunch',
+			status: 'ended',
+			sort: 'top',
+			tag: 'food',
+		});
+	});
+
+	it('falls back to open, newest, no search for missing or unknown values', () => {
+		expect(filtersFromParams({ status: 'archived', sort: 'random' })).toEqual({
+			query: '',
+			status: 'open',
+			sort: 'newest',
+			tag: undefined,
+		});
+	});
+
+	it('takes the first of a repeated parameter', () => {
+		expect(filtersFromParams({ q: ['one', 'two'] }).query).toBe('one');
+	});
+});
+
+describe('toExploreSearch()', () => {
+	it('writes only what differs from the default list', () => {
+		expect(toExploreSearch(toExploreQuery('', 'open', 'newest'))).toBe('');
+		expect(toExploreSearch(toExploreQuery('a', 'open', 'newest'))).toBe('');
+		expect(toExploreSearch(toExploreQuery('lunch', 'ended', 'top', 'food'))).toBe('?status=ended&tag=food&q=lunch');
+		expect(toExploreSearch(toExploreQuery('', 'open', 'closing'))).toBe('?sort=closing');
+	});
+
+	it('round-trips through filtersFromParams()', () => {
+		const search = toExploreSearch(toExploreQuery('side project', 'open', 'top', 'food'));
+		const { query, status, sort, tag } = filtersFromParams(Object.fromEntries(new URLSearchParams(search)));
+		expect(toExploreQuery(query, status, sort, tag)).toEqual(toExploreQuery('side project', 'open', 'top', 'food'));
 	});
 });

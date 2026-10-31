@@ -29,7 +29,10 @@ export function useSharePoll() {
 			() => true,
 			() => false
 		);
-		if (!copied) return;
+		if (!copied) {
+			toast.error(t('poll.linkCopyFailed'));
+			return;
+		}
 		void sharePoll(id, 'COPY_LINK');
 		toast(t('poll.linkCopied'));
 	};

@@ -7,30 +7,26 @@ import { LoadMore } from '@/components/LoadMore';
 import { StickyBar } from '@/components/StickyBar';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PollTileGridSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import { PollTile, PollTileGrid } from '@/features/polls/components/PollTile';
-import { EXPLORE_PAGE_SIZE, SEARCH_DEBOUNCE_MS, SEARCH_MIN_LENGTH } from '@/features/polls/constants';
+import { EXPLORE_PAGE_SIZE, isSearchable, SEARCH_DEBOUNCE_MS } from '@/features/polls/constants';
 import type { Poll, TagDto } from '@/features/polls/schema';
 import { getPolls, type PollListQuery } from '@/features/polls/service';
 import { useCursorList } from '@/hooks/useCursorList';
 import type { CursorPage } from '@/lib/api/cursor';
 import { cn } from '@/lib/utils';
 
-type Status = 'open' | 'ended';
-type Sort = 'newest' | 'closing' | 'top';
-
-/** The query sent to the API; a search under the minimum length is no search. */
-export function toExploreQuery(query: string, status: Status, sort: Sort, tag?: string): PollListQuery {
-	const q = query.trim();
-	return {
-		status,
-		// Ended Polls have a fixed order; the API rejects a sort for them
-		sort: status === 'open' ? sort : undefined,
-		q: q.length >= SEARCH_MIN_LENGTH ? q : undefined,
-		tag,
-	};
-}
+import {
+	DEFAULT_EXPLORE_FILTERS,
+	type ExploreFilters,
+	type ExploreSort,
+	type ExploreStatus,
+	sameQuery,
+	toExploreQuery,
+	toExploreSearch,
+} from '../filters';
 
 const TOPIC_LIMIT = 8;
 
@@ -64,26 +60,40 @@ function Pill({ active, onClick, children }: { active: boolean; onClick: () => v
 export function ExploreView({
 	initialPage,
 	topics,
+	initial = DEFAULT_EXPLORE_FILTERS,
 }: {
-	/** Open Polls, newest first; null when the API couldn't be reached. */
+	/** The Polls for `initial`; null when the API couldn't be reached. */
 	initialPage: Promise<CursorPage<Poll> | null>;
 	/** Every topic, most used first; empty when the API couldn't be reached. */
 	topics: TagDto[];
+	/** The filters in the address when the page loaded. */
+	initial?: ExploreFilters;
 }) {
 	const { t } = useLanguage();
 	const searchId = useId();
+	const searchHintId = useId();
 	const statusLabelId = useId();
 	const sortLabelId = useId();
-	const [query, setQuery] = useState('');
-	const [status, setStatus] = useState<Status>('open');
-	const [sort, setSort] = useState<Sort>('newest');
-	const [tag, setTag] = useState<string>();
+	const [query, setQuery] = useState(initial.query);
+	const [status, setStatus] = useState<ExploreStatus>(initial.status);
+	const [sort, setSort] = useState<ExploreSort>(initial.sort);
+	const [tag, setTag] = useState(initial.tag);
 
 	// Memoized on its fields, so keystrokes that don't change the query don't refetch
 	const { sort: apiSort, q, tag: apiTag } = toExploreQuery(query, status, sort, tag);
 	const apiQuery = useMemo(() => ({ status, sort: apiSort, q, tag: apiTag }), [status, apiSort, q, apiTag]);
-	// The query the server's first page answers
-	const [initialQuery] = useState(apiQuery);
+	// The query the listed results answer, first the server's page
+	const [listed, setListed] = useState<PollListQuery | null>(apiQuery);
+	const pending = !sameQuery(apiQuery, listed);
+	const trimmed = query.trim();
+	const tooShort = trimmed.length > 0 && !isSearchable(trimmed);
+
+	// In the address, so a reload, a shared link or Back returns to the same list
+	useEffect(() => {
+		const { pathname, search, hash } = window.location;
+		const next = toExploreSearch(apiQuery, search);
+		if (next !== search) window.history.replaceState(null, '', `${pathname}${next}${hash}`);
+	}, [apiQuery]);
 
 	// A topic the search found replaces the search: the grid then shows that topic's Polls
 	const pickTopic = (slug: string) => {
@@ -100,14 +110,27 @@ export function ExploreView({
 				<label htmlFor={searchId} className="sr-only">
 					{t('explore.searchLabel')}
 				</label>
-				<Input
-					id={searchId}
-					type="search"
-					value={query}
-					onChange={(e) => setQuery(e.target.value)}
-					placeholder={t('explore.searchPlaceholder')}
-					className="bg-card px-4"
-				/>
+				<div className="relative">
+					<Input
+						id={searchId}
+						type="search"
+						value={query}
+						onChange={(e) => setQuery(e.target.value)}
+						placeholder={t('explore.searchPlaceholder')}
+						aria-describedby={tooShort ? searchHintId : undefined}
+						className="bg-card px-4"
+					/>
+					{/* In the stuck bar, so it shows however far the results run; clear of the field's clear button */}
+					<div className="pointer-events-none absolute inset-y-0 right-10 flex items-center">
+						{tooShort ? (
+							<p id={searchHintId} className="text-caption-3 text-muted-foreground">
+								{t('explore.searchTooShort')}
+							</p>
+						) : (
+							pending && <Spinner className="text-muted-foreground" />
+						)}
+					</div>
+				</div>
 
 				<div className="flex flex-wrap items-center gap-x-4 gap-y-2">
 					<div className="flex items-center gap-4">
@@ -137,11 +160,8 @@ export function ExploreView({
 
 			{/* Filters and search render at once; only the results wait for the server */}
 			<Suspense fallback={<PollTileGridSkeleton />}>
-				<ExploreResults initialPage={initialPage} initialQuery={initialQuery} apiQuery={apiQuery} status={status} />
+				<ExploreResults initialPage={initialPage} listed={listed} onListed={setListed} apiQuery={apiQuery} status={status} />
 			</Suspense>
-			{query.trim().length > 0 && query.trim().length < SEARCH_MIN_LENGTH && (
-				<p className="text-center text-caption-3 text-muted-foreground">{t('explore.searchTooShort')}</p>
-			)}
 		</div>
 	);
 }
@@ -188,16 +208,18 @@ function TopicPills({
  */
 const ExploreResults = memo(function ExploreResults({
 	initialPage,
-	initialQuery,
+	listed,
+	onListed,
 	apiQuery,
 	status,
 }: {
 	initialPage: Promise<CursorPage<Poll> | null>;
-	/** The query `initialPage` answers, so it isn't fetched again. */
-	initialQuery: PollListQuery;
+	/** The query the listed results answer (at first `initialPage`'s), so it isn't fetched again; null asks for a fetch. */
+	listed: PollListQuery | null;
+	onListed: (query: PollListQuery | null) => void;
 	apiQuery: PollListQuery;
 	/** The status picked, so an empty result suggests the other one. */
-	status: Status;
+	status: ExploreStatus;
 }) {
 	const { t } = useLanguage();
 	const firstPage = use(initialPage);
@@ -213,26 +235,23 @@ const ExploreResults = memo(function ExploreResults({
 	// Typing waits for a pause. A filter changed before the first page arrived
 	// differs from `initialQuery`, so it's fetched on mount.
 	useEffect(() => {
-		if (apiQuery === initialQuery) return;
+		if (sameQuery(apiQuery, listed)) return;
 		let ignore = false;
 		const timer = setTimeout(async () => {
 			setIsSearching(true);
-			try {
-				const page = await getPolls(apiQuery, null, EXPLORE_PAGE_SIZE, { asViewer: true });
-				if (ignore) return;
-				reset(page);
-				setSearchFailed(false);
-			} catch {
-				if (!ignore) setSearchFailed(true);
-			} finally {
-				if (!ignore) setIsSearching(false);
-			}
+			const page = await getPolls(apiQuery, null, EXPLORE_PAGE_SIZE, { asViewer: true }).catch(() => null);
+			if (ignore) return;
+			if (page) reset(page);
+			setSearchFailed(!page);
+			setIsSearching(false);
+			onListed(apiQuery);
 		}, SEARCH_DEBOUNCE_MS);
 		return () => {
 			ignore = true;
 			clearTimeout(timer);
+			setIsSearching(false);
 		};
-	}, [apiQuery, initialQuery, reset]);
+	}, [apiQuery, listed, onListed, reset]);
 
 	return (
 		<>
@@ -243,7 +262,12 @@ const ExploreResults = memo(function ExploreResults({
 				className={cn('transition-opacity', isSearching && 'opacity-50')}
 			>
 				{searchFailed ? (
-					<p className="py-12 text-center text-caption-1 text-muted-foreground">{t('explore.loadFailed')}</p>
+					<p className="py-12 text-center text-caption-1 text-muted-foreground">
+						{t('explore.loadFailed')}{' '}
+						<button type="button" className="underline" onClick={() => onListed(null)}>
+							{t('common.tryAgain')}
+						</button>
+					</p>
 				) : list.items.length === 0 ? (
 					<EmptyCard
 						title={t('explore.noResults')}

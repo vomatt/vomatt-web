@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 
 import { dayGroup, NotificationList, NotificationSettingsLink } from '@/features/notifications/NotificationList';
 import { SEEN_MS } from '@/features/notifications/NotificationRows';
@@ -522,10 +522,38 @@ describe('NotificationList', () => {
 		expect(screen.getByText('Results are in', { exact: false })).toBeInTheDocument();
 	});
 
-	it('shows the empty state only when there is nothing at all', () => {
+	it('shows the empty state only when there is nothing at all, and keeps the tabs', () => {
 		renderList([]);
 		expect(screen.getByRole('heading', { level: 1, name: 'Notifications' })).toBeInTheDocument();
 		expect(screen.getByRole('heading', { level: 2, name: 'No notifications yet.' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Follows' })).toBeInTheDocument();
+	});
+
+	it('writes the tab into the address, and opens on the one it names', async () => {
+		const { getNotifications } = jest.requireMock('@/features/notifications/service');
+		getNotifications.mockResolvedValueOnce({ items: [], nextCursor: null });
+		renderList([result]);
+		fireEvent.click(screen.getByRole('button', { name: 'Follows' }));
+		await waitFor(() => expect(window.location.search).toBe('?tab=follow'));
+		cleanup();
+
+		render(<NotificationList initialPage={{ items: [], nextCursor: 'n1' }} initialCategory="LIKE" viewerUsername="mei" />);
+		expect(screen.getByRole('button', { name: 'Likes' })).toHaveAttribute('aria-pressed', 'true');
+		fireEvent.click(screen.getByRole('button', { name: /Load more/ }));
+		await waitFor(() => expect(getNotifications).toHaveBeenCalledWith('n1', 'LIKE'));
+		window.history.replaceState(null, '', '/');
+	});
+
+	it('keeps address parameters that are not the tab', async () => {
+		const { getNotifications } = jest.requireMock('@/features/notifications/service');
+		getNotifications.mockResolvedValue({ items: [], nextCursor: null });
+		window.history.replaceState(null, '', '/notifications?utm_source=mail');
+		renderList([result]);
+		fireEvent.click(screen.getByRole('button', { name: 'Follows' }));
+		await waitFor(() => expect(window.location.search).toBe('?utm_source=mail&tab=follow'));
+		fireEvent.click(screen.getByRole('button', { name: 'All' }));
+		await waitFor(() => expect(window.location.search).toBe('?utm_source=mail'));
+		window.history.replaceState(null, '', '/');
 	});
 
 	it('offers no read-all or unread filter', () => {

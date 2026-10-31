@@ -29,6 +29,8 @@ export const CommentSchema = z.object({
 	parentId: z.string().nullish(),
 	replyCount: z.number().int().optional(),
 	deleted: z.boolean().optional(),
+	/** The users the server resolved as @mentions, in order of first appearance; absent on older Comments. */
+	mentions: z.array(z.object({ userId: z.string(), username: z.string() })).optional(),
 });
 
 /**

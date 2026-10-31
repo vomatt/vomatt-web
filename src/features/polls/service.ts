@@ -15,7 +15,7 @@ import {
 } from '@/lib/api/cursor';
 
 import { FEED_TAG, pollTag } from './cache';
-import { SEARCH_MIN_LENGTH } from './constants';
+import { isSearchable } from './constants';
 import type { ActionResult } from './errors';
 import { personPath } from './invitees';
 import {
@@ -109,7 +109,7 @@ export async function getPolls(
 	else if (query.sort) params.set('sort', query.sort);
 	if (query.tag) params.set('tag', query.tag);
 	const q = query.q?.trim();
-	if (q && q.length >= SEARCH_MIN_LENGTH) params.set('q', q);
+	if (q && isSearchable(q)) params.set('q', q);
 	return fetchPollPage('/votes', params, { asViewer });
 }
 
@@ -213,13 +213,14 @@ export async function getPoll(id: string): Promise<Poll | null> {
 
 /**
  * The owner of an Invite-only Poll, for an Invitation link the viewer can't
- * open yet (signed out, or not the invited account). Null for any other Poll.
+ * open yet (signed out, or not the invited account). Null for any other Poll,
+ * and for a signed-in viewer who is neither its owner nor an Invitee.
  */
 export async function getInviteOnlyCreator(
 	pollId: string
 ): Promise<{ username: string; avatarUrl: string | null } | null> {
 	try {
-		return await publicFetch(`/votes/${encodeURIComponent(pollId)}/creator`);
+		return await apiClient(`/votes/${encodeURIComponent(pollId)}/creator`, { auth: 'optional' });
 	} catch (error) {
 		if (error instanceof ApiError && (error.statusCode === 404 || error.statusCode === 400)) {
 			return null;

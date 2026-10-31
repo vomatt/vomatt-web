@@ -12,6 +12,8 @@ jest.mock('next/link', () => {
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn() } }));
 jest.mock('@/features/blocks/service', () => ({ blockUser: jest.fn() }));
+jest.mock('@/lib/api/services/users', () => ({ searchUsers: jest.fn() }));
+jest.mock('@/features/follows/service', () => ({ getFollowing: jest.fn() }));
 
 const service = {
 	getComments: jest.fn(),
@@ -229,6 +231,16 @@ describe('CommentThread', () => {
 
 		const article = screen.getByText('Mine').closest('article')!;
 		await waitFor(() => expect(within(article).getByRole('button', { name: 'More' })).toHaveFocus());
+	});
+
+	it('puts the caret after the text when editing starts', async () => {
+		render(<Harness />);
+		await screen.findByText('Mine');
+
+		fireEvent.click(within(await openMenu('Mine')).getByRole('menuitem', { name: 'Edit' }));
+		const box = screen.getByRole<HTMLTextAreaElement>('textbox', { name: 'Edit' });
+		await waitFor(() => expect(box).toHaveFocus());
+		expect([box.selectionStart, box.selectionEnd]).toEqual(['Mine'.length, 'Mine'.length]);
 	});
 
 	it('loads replies on demand', async () => {
@@ -454,7 +466,7 @@ describe('CommentThread', () => {
 			ok: true,
 			data: { items: [{ ...mine, replyCount: 1 }], nextCursor: null },
 		});
-		service.getReplies.mockResolvedValue({ ok: true, data: { items: [{ ...reply, text: '@everyone read this' }], nextCursor: null } });
+		service.getReplies.mockResolvedValue({ ok: true, data: { items: [{ ...reply, text: '@everyone read this', mentions: [{ userId: 'u9', username: 'everyone' }] }], nextCursor: null } });
 		render(<Harness />);
 		fireEvent.click(await screen.findByRole('button', { name: 'View 1 reply' }));
 
@@ -462,16 +474,22 @@ describe('CommentThread', () => {
 		expect(screen.queryByRole('button', { name: 'everyone' })).not.toBeInTheDocument();
 	});
 
-	it('links every @handle in a comment to that profile', async () => {
+	it('links only the @handles the API resolved as mentions', async () => {
 		service.getComments.mockResolvedValue({
 			ok: true,
-			data: { items: [{ ...theirs, text: 'Ask @Klaus and (@mei_2), not a@b.com or 測試@alice' }], nextCursor: null },
+			data: { items: [{ ...theirs, text: 'Ask @Klaus and (@mei_2), not a@b.com or @ghost',
+						mentions: [
+							{ userId: 'u7', username: 'klaus' },
+							{ userId: 'u8', username: 'mei_2' },
+						],
+					}], nextCursor: null },
 		});
 		render(<Harness />);
 
 		expect(await screen.findByRole('link', { name: '@Klaus' })).toHaveAttribute('href', '/klaus');
 		expect(screen.getByRole('link', { name: '@mei_2' })).toHaveAttribute('href', '/mei_2');
-		expect(screen.queryByRole('link', { name: /@b|@alice/ })).not.toBeInTheDocument();
+		expect(screen.queryByRole('link', { name: /@b|@ghost/ })).not.toBeInTheDocument();
+		expect(screen.getByText(/@ghost/)).toBeInTheDocument();
 	});
 
 	it('shows the reply a copied link names once its comment and replies have loaded', async () => {
@@ -552,7 +570,7 @@ describe('CommentThread', () => {
 			);
 		}
 		render(<WithViewer />);
-		const box = await screen.findByRole('textbox', { name: 'Add a comment' });
+		const box = await screen.findByRole('combobox', { name: 'Add a comment' });
 		expect(box.closest('form')!.querySelector('img')).toHaveAttribute('src', '/avatars/bear.svg');
 	});
 
@@ -566,6 +584,46 @@ describe('CommentThread', () => {
 
 		expect(screen.getAllByRole('textbox', { name: 'Write a reply…' })).toHaveLength(1);
 		expect(within(screen.getByText('Theirs').closest('article')!).getByRole('textbox', { name: 'Write a reply…' })).toBeInTheDocument();
+	});
+
+	it('carries a reply draft to the next comment the viewer replies to, and drops it on cancel', async () => {
+		render(<Harness />);
+		await screen.findByText('Theirs');
+		const [first, second] = screen.getAllByRole('button', { name: 'Reply' });
+
+		fireEvent.click(first);
+		fireEvent.change(screen.getByRole('textbox', { name: 'Write a reply…' }), { target: { value: 'Half a thought' } });
+		fireEvent.click(second);
+		expect(screen.getByRole('textbox', { name: 'Write a reply…' })).toHaveValue('Half a thought');
+
+		fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+		fireEvent.click(first);
+		expect(screen.getByRole('textbox', { name: 'Write a reply…' })).toHaveValue('');
+	});
+
+	it('drops a reply draft whose comment left the list, instead of carrying it to another', async () => {
+		function Dropping() {
+			const thread = useComments('poll-1', { enabled: true, initialTotal: 2 });
+			const [dropped, setDropped] = useState(false);
+			const shown = dropped ? { ...thread, comments: thread.comments.filter((c) => c.id !== 'c1') } : thread;
+			return (
+				<>
+					<button type="button" onClick={() => setDropped(true)}>
+						Drop
+					</button>
+					<CommentThread thread={shown} pollId="poll-1" viewerId="me" requireAuth={(action) => action()} />
+				</>
+			);
+		}
+		render(<Dropping />);
+		await screen.findByText('Mine');
+
+		fireEvent.click(within(screen.getByText('Mine').closest('article')!).getByRole('button', { name: 'Reply' }));
+		fireEvent.change(screen.getByRole('textbox', { name: 'Write a reply…' }), { target: { value: 'For Mine' } });
+		fireEvent.click(screen.getByRole('button', { name: 'Drop' }));
+
+		fireEvent.click(screen.getByRole('button', { name: 'Reply' }));
+		expect(screen.getByRole('textbox', { name: 'Write a reply…' })).toHaveValue('');
 	});
 
 	it('focuses a reply composer without jumping the page, and keeps the main composer as it was', async () => {
@@ -761,5 +819,44 @@ describe('useComments', () => {
 		expect(result.current.replies.c1.items.map((c) => c.id)).toEqual(['r2']);
 		expect(result.current.comments[0].replyCount).toBe(1);
 		expect(result.current.total).toBe(3);
+	});
+
+	it('keeps a comment posted while the first page was loading', async () => {
+		let loadFirstPage!: (value: unknown) => void;
+		service.getComments.mockReturnValue(new Promise((resolve) => (loadFirstPage = resolve)));
+		let save!: (value: unknown) => void;
+		service.postComment.mockReturnValue(new Promise((resolve) => (save = resolve)));
+		const { result } = renderHook(() => useComments('poll-1', { enabled: true }));
+
+		let posted!: Promise<boolean>;
+		await act(async () => {
+			posted = result.current.add('Early', 'You');
+		});
+		// The page was read before the comment was saved, so it doesn't list it
+		await act(async () => loadFirstPage({ ok: true, data: { items: [theirs], nextCursor: null } }));
+		await act(async () => {
+			save({ ok: true, data: { ...mine, id: 'c9', text: 'Early' } });
+			await posted;
+		});
+
+		expect(result.current.comments.map((c) => c.text)).toEqual(['Early', 'Theirs']);
+	});
+
+	it('takes a posted comment from the page once a reload lists it', async () => {
+		service.getComments.mockResolvedValueOnce({ ok: true, data: { items: [theirs], nextCursor: null } });
+		service.postComment.mockResolvedValue({ ok: true, data: { ...mine, id: 'c9', text: 'Early' } });
+		const { result } = renderHook(() => useComments('poll-1', { enabled: true }));
+		await waitFor(() => expect(result.current.status).toBe('ready'));
+		await act(async () => {
+			await result.current.add('Early', 'You');
+		});
+
+		service.getComments.mockResolvedValueOnce({
+			ok: true,
+			data: { items: [theirs, { ...mine, id: 'c9', text: 'Early (edited)' }], nextCursor: null },
+		});
+		await act(async () => result.current.reload());
+
+		expect(result.current.comments.map((c) => c.text)).toEqual(['Theirs', 'Early (edited)']);
 	});
 });

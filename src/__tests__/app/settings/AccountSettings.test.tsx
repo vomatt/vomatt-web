@@ -64,6 +64,8 @@ const myProfile: MyProfile = {
 	joinedAt: '2026-08-01T10:00:00Z',
 	totalPolls: 3,
 	totalVotes: 12,
+	createdPollCount: 3,
+	votedPollCount: 12,
 	followersCount: 0,
 	followingCount: 0,
 	visibilitySettings: { points: true, firstName: false, lastName: true },
