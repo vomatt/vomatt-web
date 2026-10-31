@@ -42,6 +42,7 @@ export default function VerificationForm({
 	const inputRef = useRef<HTMLInputElement>(null);
 	// The input is disabled while a code is checked, so it loses focus; a wrong code brings it back
 	const refocusAfterCheck = useRef(false);
+	const checking = useRef(false);
 
 	useEffect(() => {
 		if (isLoading || !refocusAfterCheck.current) return;
@@ -58,17 +59,26 @@ export default function VerificationForm({
 	}, [cooldown]);
 
 	async function submit(value: string) {
-		if (value.length !== CODE_LENGTH || isLoading) return;
+		// A ref, not isLoading: Enter can land before the auto-submit re-renders, and the backend spends a code on its first check
+		if (value.length !== CODE_LENGTH || checking.current) return;
+		checking.current = true;
 		setError(null);
 		setIsLoading(true);
+		let signedIn = false;
 		try {
 			const res = await onSubmitCode(value);
 			if (res.status === 'ERROR') {
 				setError(res.error);
 				refocusAfterCheck.current = true;
+			} else {
+				signedIn = true;
 			}
 		} finally {
-			setIsLoading(false);
+			// Once signed in the form stays locked until the page moves on: the spent code would only come back expired
+			if (!signedIn) {
+				checking.current = false;
+				setIsLoading(false);
+			}
 		}
 	}
 
