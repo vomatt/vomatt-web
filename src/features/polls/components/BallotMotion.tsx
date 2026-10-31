@@ -14,14 +14,17 @@ import { chipClassName } from '../chip';
 // Critically damped: settles without overshoot
 const INK = { type: 'spring', stiffness: 520, damping: 46 } as const;
 
-/** The 22px radio circle: a 2px `input` ring at rest; once chosen, ink filled around an 8px Volt dot. */
+/**
+ * The 22px radio circle: a 2px `input` ring at rest; once chosen, ink filled around an 8px Volt dot.
+ * The ink is `highlight-foreground`, not `primary`: in dark `primary` is off-white and the dot would vanish into it.
+ */
 export function BallotMark({ state }: { state: 'rest' | 'selected' }) {
 	return (
 		<span
 			aria-hidden
 			className={cn(
 				'relative grid size-[22px] shrink-0 place-items-center rounded-full transition-[border-color,background-color] duration-150',
-				state === 'rest' ? 'border-2 border-input bg-card' : 'bg-primary'
+				state === 'rest' ? 'border-2 border-input bg-card' : 'bg-highlight-foreground'
 			)}
 		>
 			{state === 'selected' && (

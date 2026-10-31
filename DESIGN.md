@@ -92,7 +92,7 @@ Use these. Don't copy their classes into a new element.
 | Empty list inside a panel or dialog | the `empty-state` utility (dashed `surface-soft` box) |
 | Unread marker | `UnreadDot` with an `aria-label`, right after the name of what is unread: a tab's label, a list row's title (which goes `font-semibold`, with `NewMark` in its meta), a notification's first line (the row is already a card, so no bold title and no "new"), the top-trailing corner of an icon. Never a leading gutter and never the row's far edge: titles keep one left edge and chips one column whether a row is read or not |
 | A rule or promise (Tide) | `TidePanel` for a surface, `TideRules` + `TideRule icon={…}` for a list of rules |
-| A ballot option's mark | `BallotMark state`: `rest` (a 2px `input` ring) or `selected` (ink fill with an 8px Volt dot), 22px. The chosen row, cast or not, takes the Volt tint and an ink line |
+| A ballot option's mark | `BallotMark state`: `rest` (a 2px `input` ring) or `selected` (`highlight-foreground` ink fill with an 8px Volt dot, ink in both themes so the dot keeps its contrast), 22px. The chosen row, cast or not, takes the Volt tint and an ink line |
 | The viewer has voted (card header) | `VotedPill` (Volt, check) beside the status chip |
 | The viewer's option on results | `YourVotePill` ("your vote", lower-case, Volt with an ink line) |
 | The cast Ballot | `Seal` (in full once per cast, then a row) with `SealMark`: `sm` 32px on profile rows and notifications, `md` 40px dashed in the Seal row, `lg` 72px with a 58px dashed ring in the full Seal. "Sealed. Thank you.", when results open, and Withdraw vote / Update vote inside it. Updating and the withdraw confirm are modes of the Ballot (`SealedMode`), not extra flags |
