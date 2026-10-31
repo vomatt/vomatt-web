@@ -14,10 +14,8 @@ import {
 	ReactElement,
 	type ReactNode,
 	type RefObject,
-	useCallback,
 	useEffect,
 	useId,
-	useLayoutEffect,
 	useRef,
 	useState,
 } from 'react';
@@ -115,33 +113,11 @@ const STEP_FADE = {
 	exit: { opacity: 0, transition: EXIT },
 };
 
-/**
- * One step's content. While it is the current step it reports its height, so the dialog can grow
- * or shrink to it; while it leaves it is inert, since it is laid over the step that replaced it.
- */
-function StepLayer({
-	step,
-	onResize,
-	children,
-}: {
-	step: string;
-	onResize: (step: string, height: number) => void;
-	children: ReactNode;
-}) {
+/** One step's content; inert while it leaves, since it is laid over the step that replaced it. */
+function StepLayer({ children }: { children: ReactNode }) {
 	const isPresent = useIsPresent();
-	const ref = useRef<HTMLDivElement>(null);
-	useLayoutEffect(() => {
-		const element = ref.current;
-		if (!isPresent || !element) return;
-		// Unrounded: an offsetHeight short of the content would leave the scroller a sub-pixel overflow
-		const observer = new ResizeObserver(() =>
-			onResize(step, element.getBoundingClientRect().height)
-		);
-		observer.observe(element);
-		return () => observer.disconnect();
-	}, [isPresent, onResize, step]);
 	return (
-		<div ref={ref} inert={!isPresent} className="space-y-4 p-4 sm:px-5">
+		<div inert={!isPresent} className="space-y-4 p-4 sm:px-5">
 			{children}
 		</div>
 	);
@@ -262,25 +238,12 @@ export function PollCreator({
 		});
 	const isInviteOnly = audience === 'invite-only';
 	const titleRef = useRef<HTMLHeadingElement>(null);
+	const popupRef = useRef<HTMLDivElement>(null);
 	const reduceMotion = useReducedMotion();
-	// The scroller follows the current step's height: animated when the step changes, at once
-	// as the step itself grows (a section unfolding animates on its own)
-	const [stepHeight, setStepHeight] = useState<{
-		height: number;
-		animate: boolean;
-	}>();
-	const measuredStep = useRef<string>(undefined);
-	const onStepResize = useCallback((step: string, height: number) => {
-		setStepHeight({
-			height,
-			animate:
-				measuredStep.current !== undefined && measuredStep.current !== step,
-		});
-		measuredStep.current = step;
-	}, []);
 
-	// The write form unmounts on review; land on the step title so it is announced
+	// Each step starts at its top. The write form unmounts on review; land on the step title so it is announced
 	useEffect(() => {
+		if (popupRef.current) popupRef.current.scrollTop = 0;
 		if (review) titleRef.current?.focus();
 	}, [review]);
 	const level = visibilityLevel({ voterVisibility, audience });
@@ -438,15 +401,16 @@ export function PollCreator({
 				{!isEdit && triggerChildren && (
 					<DialogTrigger render={triggerChildren} />
 				)}
-				{/* Full screen on phones, a 640px dialog from sm up */}
 				<DialogContent
+					ref={popupRef}
 					showCloseButton={false}
 					finalFocus={finalFocus}
-					// Writing the question is always the first step
 					initialFocus={() => document.getElementById('title')}
-					className="flex h-dvh max-h-dvh max-w-none flex-col gap-0 rounded-none border-0 bg-background p-0 ring-0 sm:h-auto sm:max-h-[90dvh] sm:max-w-2xl sm:rounded-[20px] sm:ring-1"
+					// Scroll padding clears the sticky header and footer when a focused field scrolls into view.
+					// No overscroll: the rubber band would carry the sticky bars along with the content
+					className="flex h-dvh max-h-dvh max-w-none scroll-pt-28 scroll-pb-24 flex-col overscroll-none gap-0 rounded-none border-0 bg-background p-0 ring-0 sm:h-auto sm:max-h-[90dvh] sm:max-w-2xl sm:rounded-[20px] sm:ring-1"
 				>
-					<div className="flex flex-none items-start gap-3 p-4 sm:p-5">
+					<div className="sticky top-0 z-10 flex flex-none items-start gap-3 bg-background/80 p-4 backdrop-blur-md sm:p-5">
 						<div className="min-w-0 flex-1 space-y-1">
 							<DialogTitle
 								ref={titleRef}
@@ -481,7 +445,7 @@ export function PollCreator({
 
 					<form
 						noValidate
-						className="flex min-h-0 flex-1 flex-col"
+						className="flex flex-1 flex-col"
 						onKeyDown={(e) => {
 							if (e.key !== 'Enter' || !(e.metaKey || e.ctrlKey)) return;
 							e.preventDefault();
@@ -497,18 +461,10 @@ export function PollCreator({
 							}
 						}}
 					>
-						{/* relative: the leaving step is laid over the arriving one while both animate.
-						    flex-auto, not flex-1: the height it animates to must count.
-						    A stable gutter on both edges: the leaving step's scrollbar would narrow the arriving
-						    step, which then rewraps and snaps to a new height when the scrollbar goes */}
-						<m.div
-							className="relative min-h-0 flex-auto overflow-x-hidden overflow-y-auto"
-							initial={false}
-							animate={stepHeight && { height: stepHeight.height }}
-							transition={
-								stepHeight?.animate && !reduceMotion ? ENTER : { duration: 0 }
-							}
-						>
+						{/* The whole dialog scrolls, so the step passes under the sticky header and footer.
+						    relative: the leaving step is laid over the arriving one while both animate.
+						    clip, not hidden: hidden would make this a scroll container of its own */}
+						<div className="relative flex-1 overflow-x-clip">
 							<AnimatePresence
 								initial={false}
 								mode="popLayout"
@@ -522,10 +478,7 @@ export function PollCreator({
 									animate="center"
 									exit="exit"
 								>
-									<StepLayer
-										step={review ? 'review' : 'write'}
-										onResize={onStepResize}
-									>
+									<StepLayer>
 										{review ? (
 											<>
 												<div className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-5">
@@ -753,10 +706,7 @@ export function PollCreator({
 													aria-labelledby="poll-settings-title"
 													className="space-y-6 rounded-2xl border border-border bg-card p-5 sm:p-6"
 												>
-													<h3
-														id="poll-settings-title"
-														className="text-title-4"
-													>
+													<h3 id="poll-settings-title" className="text-title-4">
 														{t('pollCreator.settingsTitle')}
 													</h3>
 
@@ -939,9 +889,9 @@ export function PollCreator({
 									</StepLayer>
 								</m.div>
 							</AnimatePresence>
-						</m.div>
+						</div>
 
-						<div className="flex-none p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:p-5">
+						<div className="sticky bottom-0 z-10 flex-none bg-background/80 p-4 backdrop-blur-md pb-[calc(1rem+env(safe-area-inset-bottom))] sm:p-5">
 							{/* Rendered empty first, so a failed publish is announced every time, the same error included */}
 							<p
 								role="alert"
