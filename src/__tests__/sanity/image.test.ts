@@ -28,3 +28,14 @@ describe('buildShareImageUrl', () => {
 		expect(url).toContain('fm=webp');
 	});
 });
+
+describe('imageBuilder', () => {
+	it('is made without the deprecated default export, which warns on every page', () => {
+		const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+		jest.isolateModules(() => {
+			require('@/sanity/lib/image');
+		});
+		expect(warn).not.toHaveBeenCalled();
+		warn.mockRestore();
+	});
+});

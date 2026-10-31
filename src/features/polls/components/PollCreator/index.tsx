@@ -239,7 +239,8 @@ export function PollCreator({
 		setValue,
 		setError,
 		setFocus,
-		formState: { errors, isDirty, isSubmitting },
+		clearErrors,
+		formState: { errors, isDirty, isSubmitted, isSubmitting },
 	} = useForm({
 		resolver: zodResolver(pollFormSchema),
 		defaultValues: defaults,
@@ -328,7 +329,7 @@ export function PollCreator({
 		close();
 	};
 
-	/** A preset's end can pass while the dialog is open; show the field so the error has a place. */
+	/** A typed end can pass while the dialog is open; show the field so the error has a place. */
 	const revealEndError = () => {
 		if (getFieldState('endTime').invalid) setEndPreset(null);
 	};
@@ -340,6 +341,7 @@ export function PollCreator({
 	};
 
 	const showReview = (values: PollFormValues) => {
+		// eslint-disable-next-line react-hooks/purity -- only called from event handlers, never during render
 		const now = Date.now();
 		// localToIso, not formToInput: a corrupt draft time must not throw here
 		const startTime =
@@ -358,7 +360,8 @@ export function PollCreator({
 
 	const publish = handleSubmit(
 		async (values: PollFormValues) => {
-			const input = formToInput(values);
+			const preset = END_PRESETS.find(({ key }) => key === endPreset);
+			const input = formToInput(values, preset?.ms);
 			const result = isEdit
 				? await updatePoll(poll.id, input)
 				: await createPoll(input);
@@ -422,7 +425,13 @@ export function PollCreator({
 		// An empty option comes first: take the user there instead of adding another
 		const empty = options.findIndex((option) => !option.text.trim());
 		if (empty === -1) append({ text: '' });
-		else setFocus(`options.${empty}.text`);
+		// Say why, or the click looks like nothing when that option already had focus
+		else
+			setError(
+				`options.${empty}.text`,
+				{ message: 'pollCreator.errors.optionRequired' },
+				{ shouldFocus: true }
+			);
 	};
 
 	const canAddOption =
@@ -488,6 +497,8 @@ export function PollCreator({
 							e.currentTarget.requestSubmit();
 						}}
 						onSubmit={(e) => {
+							// A preset counts from now, not from when it was picked
+							reapplyPreset();
 							if (review) {
 								// Cmd+Return can land while a publish is still out
 								if (isSubmitting) e.preventDefault();
@@ -692,7 +703,13 @@ export function PollCreator({
 																					aria-describedby={optionDescription(
 																						index
 																					)}
-																					{...register(`options.${index}.text`)}
+																					{...register(`options.${index}.text`, {
+																						// Before review nothing re-validates as you type, so clear Add option's error here
+																						onChange: () => {
+																							if (!isSubmitted)
+																								clearErrors(`options.${index}.text`);
+																						},
+																					})}
 																					// Every row leaves room for the remove button, so adding a third option moves nothing
 																					className="pr-12"
 																					onKeyDown={(e) => {

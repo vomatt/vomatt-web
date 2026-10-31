@@ -73,7 +73,12 @@ export function useComments(
 			return;
 		}
 		hasLoaded.current = true;
-		setComments(result.data.items);
+		// A Comment the viewer posted while the page loaded isn't on it, which would drop it from the list;
+		// one the page has comes from the page
+		const listed = new Set(result.data.items.map((c) => c.id));
+		const isPostedOnly = (c: Comment) =>
+			!listed.has(c.id) && (c.id.startsWith('pending-') || pendingKeys.current.has(c.id));
+		setComments((prev) => [...prev.filter(isPostedOnly), ...result.data.items]);
 		setReplies(previewLists(result.data.items));
 		setNextCursor(result.data.nextCursor);
 		setStatus('ready');

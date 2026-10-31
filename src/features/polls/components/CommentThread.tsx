@@ -163,7 +163,15 @@ export function CommentThread({ thread, pollId, viewerId, viewer, requireAuth }:
 	const { t } = useLanguage();
 	// One inline Reply composer at a time; the main composer folds while it is open
 	const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(null);
+	// The draft follows the composer to whichever comment it moves to, and goes only on cancel or post
+	// Held outside state, so typing re-renders only the composer
+	const [replyDraft] = useState(newDraft);
 	const activeTarget = replyTarget && thread.comments.some((c) => c.id === replyTarget.rootId) ? replyTarget : null;
+	const changeReplyTarget = (target: ReplyTarget | null) => {
+		// A draft whose comment left the list was never moved, so it doesn't follow either
+		if (!target || !activeTarget) replyDraft.write('');
+		setReplyTarget(target);
+	};
 
 	return (
 		// tabIndex lets focus land here after a comment is deleted
@@ -232,7 +240,8 @@ export function CommentThread({ thread, pollId, viewerId, viewer, requireAuth }:
 											thread={thread}
 											requireAuth={requireAuth}
 											replyTarget={activeTarget?.rootId === comment.id ? activeTarget : null}
-											onReplyTargetChange={setReplyTarget}
+											replyDraft={replyDraft}
+											onReplyTargetChange={changeReplyTarget}
 										/>
 									</div>
 								</Unfold>
@@ -260,6 +269,18 @@ export function CommentThread({ thread, pollId, viewerId, viewer, requireAuth }:
 /** Who an inline Reply answers: the top-level Comment (`reply` null), or one of its Replies. */
 type ReplyTarget = { rootId: string; reply: Comment | null };
 
+type Draft = { read: () => string; write: (text: string) => void };
+
+function newDraft(): Draft {
+	let text = '';
+	return {
+		read: () => text,
+		write: (next) => {
+			text = next;
+		},
+	};
+}
+
 function Composer({
 	onPost,
 	requireAuth,
@@ -270,6 +291,7 @@ function Composer({
 	className,
 	replyTarget,
 	onCancel,
+	draft,
 }: {
 	onPost: (text: string) => Promise<boolean>;
 	requireAuth: (action: () => void) => void;
@@ -282,10 +304,16 @@ function Composer({
 	/** Set for an inline Reply composer; its reply (if any) is named above the field. */
 	replyTarget?: ReplyTarget;
 	onCancel?: () => void;
+	/** Text held outside the composer, so it outlives this one. */
+	draft?: Draft;
 }) {
 	const { t } = useLanguage();
 	const fieldId = useId();
-	const [text, setText] = useState('');
+	const [text, setTextState] = useState(() => draft?.read() ?? '');
+	const setText = (next: string) => {
+		draft?.write(next);
+		setTextState(next);
+	};
 	const [isPosting, setIsPosting] = useState(false);
 	const trimmed = text.trim();
 	const addressee = replyTarget?.reply?.author ?? null;
@@ -416,11 +444,13 @@ function CommentItem({
 	thread,
 	requireAuth,
 	replyTarget,
+	replyDraft,
 	onReplyTargetChange,
 }: CommentItemProps & {
 	viewer?: Viewer;
 	/** The open inline Reply composer, when it answers this Comment or one of its Replies. */
 	replyTarget: ReplyTarget | null;
+	replyDraft: Draft;
 	onReplyTargetChange: (target: ReplyTarget | null) => void;
 }) {
 	const { t } = useLanguage();
@@ -462,6 +492,7 @@ function CommentItem({
 				avatar={<ViewerAvatar viewer={viewer} className="size-6" />}
 				className="min-w-0 flex-1 gap-2.5 pt-1 pb-1.5"
 				replyTarget={replyTarget}
+				draft={replyDraft}
 				requireAuth={requireAuth}
 				onCancel={() => onReplyTargetChange(null)}
 				onPost={async (text) => {
@@ -612,6 +643,14 @@ function CommentBody({
 		moreRef.current?.focus();
 		returnFocus.current = false;
 	});
+	// autoFocus leaves the caret before the text, so what the author adds would land in front of it
+	const editRef = useRef<HTMLTextAreaElement>(null);
+	useEffect(() => {
+		const field = editRef.current;
+		if (!isEditing || !field) return;
+		field.focus();
+		field.setSelectionRange(field.value.length, field.value.length);
+	}, [isEditing]);
 	const isPending = comment.id.startsWith('pending-');
 	const isOwn = !!viewerId && comment.userId === viewerId;
 	const likes = comment.likeCount ?? 0;
@@ -713,7 +752,7 @@ function CommentBody({
 						maxLength={textMax(addressee)}
 						rows={3}
 						className="resize-none"
-						autoFocus
+						ref={editRef}
 					/>
 					<div className="flex items-center gap-1.5">
 						<span className="mr-auto text-caption-3 text-muted-foreground tabular-nums">

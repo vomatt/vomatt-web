@@ -46,6 +46,18 @@ describe('VerificationForm', () => {
 		expect(onSubmitCode).toHaveBeenCalledTimes(1);
 	});
 
+	it('does not verify a code again once it has signed in', async () => {
+		const { onSubmitCode } = renderForm();
+		fillOTP('123456');
+		await waitFor(() => expect(onSubmitCode).toHaveBeenCalledTimes(1));
+		// Enter after the auto-submit, while the page moves on: the code is spent, so a second check would fail
+		await act(async () => {
+			fireEvent.submit(screen.getByRole('button', { name: /common\.continue/ }).closest('form')!);
+		});
+		expect(onSubmitCode).toHaveBeenCalledTimes(1);
+		expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+	});
+
 	it('keeps a wrong code in place, focused and selected so typing replaces it', async () => {
 		renderForm({
 			onSubmitCode: jest.fn().mockResolvedValue({ status: 'ERROR', error: 'invalidCode' }),
@@ -76,12 +88,12 @@ describe('VerificationForm', () => {
 	});
 
 	it('locks the email change while a code is being checked', async () => {
-		let finish: (value: { status: 'OK' }) => void = () => {};
+		let finish: (value: { status: 'ERROR'; error: 'invalidCode' }) => void = () => {};
 		renderForm({ onSubmitCode: jest.fn(() => new Promise((resolve) => (finish = resolve))) });
 		fillOTP('123456');
 		const change = screen.getByRole('button', { name: 'verificationCode.useAnotherEmail' });
 		await waitFor(() => expect(change).toBeDisabled());
-		await act(async () => finish({ status: 'OK' }));
+		await act(async () => finish({ status: 'ERROR', error: 'invalidCode' }));
 		expect(change).toBeEnabled();
 	});
 

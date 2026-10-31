@@ -1,4 +1,5 @@
-import createImageUrlBuilder, {
+import {
+	createImageUrlBuilder,
 	type ImageFormat,
 	type SanityImageSource,
 } from '@sanity/image-url';
