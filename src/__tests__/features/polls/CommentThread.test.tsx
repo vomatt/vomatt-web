@@ -458,8 +458,20 @@ describe('CommentThread', () => {
 		render(<Harness />);
 		fireEvent.click(await screen.findByRole('button', { name: 'View 1 reply' }));
 
-		expect(await screen.findByText('@everyone read this')).toBeInTheDocument();
+		expect(await screen.findByRole('link', { name: '@everyone' })).toHaveAttribute('href', '/everyone');
 		expect(screen.queryByRole('button', { name: 'everyone' })).not.toBeInTheDocument();
+	});
+
+	it('links every @handle in a comment to that profile', async () => {
+		service.getComments.mockResolvedValue({
+			ok: true,
+			data: { items: [{ ...theirs, text: 'Ask @Klaus and (@mei_2), not a@b.com or 測試@alice' }], nextCursor: null },
+		});
+		render(<Harness />);
+
+		expect(await screen.findByRole('link', { name: '@Klaus' })).toHaveAttribute('href', '/klaus');
+		expect(screen.getByRole('link', { name: '@mei_2' })).toHaveAttribute('href', '/mei_2');
+		expect(screen.queryByRole('link', { name: /@b|@alice/ })).not.toBeInTheDocument();
 	});
 
 	it('shows the reply a copied link names once its comment and replies have loaded', async () => {

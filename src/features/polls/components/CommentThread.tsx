@@ -2,6 +2,7 @@
 
 import { Menu } from '@base-ui/react/menu';
 import { AnimatePresence, m, useReducedMotion } from 'motion/react';
+import Link from 'next/link';
 import { useEffect, useId, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -27,7 +28,7 @@ import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { BlockUserDialog } from '@/features/blocks/BlockUserDialog';
 import { ProfileAvatar, ProfileName } from '@/features/profiles/UserChip';
 import { useHydrated } from '@/hooks/useHydrated';
-import { commentHash } from '@/lib/routes';
+import { commentHash, profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
 import { chipClassName } from '../chip';
@@ -77,6 +78,26 @@ function Elbow({ continues }: { continues: boolean }) {
 function splitAddressee(text: string) {
 	const match = /^@([\w.-]+)\s+/.exec(text);
 	return match ? { addressee: match[1], text: text.slice(match[0].length) } : { addressee: null, text };
+}
+
+// The API's mention rule: a username not preceded by a letter or digit of any script, or `_`
+const MENTION = /(?<![\p{L}\p{N}_])@([a-z0-9_]{3,50})(?![a-z0-9_])/giu;
+
+/** Comment text with each `@handle` linked to that profile, as the API notifies them. */
+function MentionText({ text }: { text: string }) {
+	const parts: React.ReactNode[] = [];
+	let last = 0;
+	for (const match of text.matchAll(MENTION)) {
+		parts.push(text.slice(last, match.index));
+		parts.push(
+			<Link key={match.index} href={profileHref(match[1].toLowerCase())} className="font-medium hover:underline">
+				{match[0]}
+			</Link>
+		);
+		last = match.index + match[0].length;
+	}
+	parts.push(text.slice(last));
+	return parts;
 }
 
 /** Scrolls a comment into view and flashes it, for a copied link or an addressee chip. */
@@ -719,7 +740,9 @@ function CommentBody({
 							{addressee}
 						</button>
 					)}
-					<p className="text-sm leading-[1.55] break-words whitespace-pre-wrap text-foreground">{text}</p>
+					<p className="text-sm leading-[1.55] break-words whitespace-pre-wrap text-foreground">
+						<MentionText text={text} />
+					</p>
 				</>
 			)}
 
