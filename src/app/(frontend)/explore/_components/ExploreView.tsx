@@ -83,15 +83,16 @@ export function ExploreView({
 	const { sort: apiSort, q, tag: apiTag } = toExploreQuery(query, status, sort, tag);
 	const apiQuery = useMemo(() => ({ status, sort: apiSort, q, tag: apiTag }), [status, apiSort, q, apiTag]);
 	// The query the listed results answer, first the server's page
-	const [listed, setListed] = useState<PollListQuery>(apiQuery);
+	const [listed, setListed] = useState<PollListQuery | null>(apiQuery);
 	const pending = !sameQuery(apiQuery, listed);
 	const trimmed = query.trim();
 	const tooShort = trimmed.length > 0 && !isSearchable(trimmed);
 
 	// In the address, so a reload, a shared link or Back returns to the same list
 	useEffect(() => {
-		const search = toExploreSearch(apiQuery);
-		if (search !== window.location.search) window.history.replaceState(null, '', `${window.location.pathname}${search}`);
+		const { pathname, search, hash } = window.location;
+		const next = toExploreSearch(apiQuery, search);
+		if (next !== search) window.history.replaceState(null, '', `${pathname}${next}${hash}`);
 	}, [apiQuery]);
 
 	// A topic the search found replaces the search: the grid then shows that topic's Polls
@@ -213,18 +214,16 @@ const ExploreResults = memo(function ExploreResults({
 	status,
 }: {
 	initialPage: Promise<CursorPage<Poll> | null>;
-	/** The query the listed results answer (at first `initialPage`'s), so it isn't fetched again. */
-	listed: PollListQuery;
-	onListed: (query: PollListQuery) => void;
+	/** The query the listed results answer (at first `initialPage`'s), so it isn't fetched again; null asks for a fetch. */
+	listed: PollListQuery | null;
+	onListed: (query: PollListQuery | null) => void;
 	apiQuery: PollListQuery;
 	/** The status picked, so an empty result suggests the other one. */
 	status: ExploreStatus;
 }) {
 	const { t } = useLanguage();
 	const firstPage = use(initialPage);
-	const [fetching, setFetching] = useState(false);
-	// A fetch dropped because the filters went back to the listed ones no longer counts
-	const isSearching = fetching && !sameQuery(apiQuery, listed);
+	const [isSearching, setIsSearching] = useState(false);
 	const [searchFailed, setSearchFailed] = useState(firstPage === null);
 	const fetchPage = useCallback(
 		(cursor: string) => getPolls(apiQuery, cursor, EXPLORE_PAGE_SIZE, { asViewer: true }),
@@ -239,17 +238,18 @@ const ExploreResults = memo(function ExploreResults({
 		if (sameQuery(apiQuery, listed)) return;
 		let ignore = false;
 		const timer = setTimeout(async () => {
-			setFetching(true);
+			setIsSearching(true);
 			const page = await getPolls(apiQuery, null, EXPLORE_PAGE_SIZE, { asViewer: true }).catch(() => null);
 			if (ignore) return;
 			if (page) reset(page);
 			setSearchFailed(!page);
-			setFetching(false);
+			setIsSearching(false);
 			onListed(apiQuery);
 		}, SEARCH_DEBOUNCE_MS);
 		return () => {
 			ignore = true;
 			clearTimeout(timer);
+			setIsSearching(false);
 		};
 	}, [apiQuery, listed, onListed, reset]);
 
@@ -262,7 +262,12 @@ const ExploreResults = memo(function ExploreResults({
 				className={cn('transition-opacity', isSearching && 'opacity-50')}
 			>
 				{searchFailed ? (
-					<p className="py-12 text-center text-caption-1 text-muted-foreground">{t('explore.loadFailed')}</p>
+					<p className="py-12 text-center text-caption-1 text-muted-foreground">
+						{t('explore.loadFailed')}{' '}
+						<button type="button" className="underline" onClick={() => onListed(null)}>
+							{t('common.tryAgain')}
+						</button>
+					</p>
 				) : list.items.length === 0 ? (
 					<EmptyCard
 						title={t('explore.noResults')}

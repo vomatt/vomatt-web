@@ -36,9 +36,13 @@ export function filtersFromParams(params: Record<string, string | string[] | und
 	};
 }
 
-/** The address's search string for an API query: only what differs from the default list, or ''. */
-export function toExploreSearch({ status, sort, tag, q }: PollListQuery): string {
-	const params = new URLSearchParams();
+/**
+ * The address's search string for an API query: only what differs from the default list, or ''.
+ * Parameters in `current` that aren't filters (a campaign tag, say) are kept.
+ */
+export function toExploreSearch({ status, sort, tag, q }: PollListQuery, current = ''): string {
+	const params = new URLSearchParams(current);
+	for (const key of ['status', 'sort', 'tag', 'q']) params.delete(key);
 	if (status === 'ended') params.set('status', 'ended');
 	if (sort && sort !== 'newest') params.set('sort', sort);
 	if (tag) params.set('tag', tag);
@@ -48,6 +52,6 @@ export function toExploreSearch({ status, sort, tag, q }: PollListQuery): string
 }
 
 /** Whether two API queries ask for the same list. */
-export function sameQuery(a: PollListQuery, b: PollListQuery): boolean {
-	return a.status === b.status && a.sort === b.sort && a.q === b.q && a.tag === b.tag;
+export function sameQuery(a: PollListQuery, b: PollListQuery | null): boolean {
+	return !!b && a.status === b.status && a.sort === b.sort && a.q === b.q && a.tag === b.tag;
 }

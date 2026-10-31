@@ -296,6 +296,43 @@ describe('ExploreView', () => {
 		expect(window.location.search).toBe('');
 	});
 
+	it('retries a search that failed', async () => {
+		mockGetPolls.mockRejectedValueOnce(new Error('down')).mockResolvedValue({ items: [poll('p2', 'Dinner?')], nextCursor: null });
+		await renderView(<ExploreView topics={noTopics} initialPage={Promise.resolve({ items: [poll('p1', 'Lunch?')], nextCursor: null })} />);
+
+		fireEvent.click(screen.getByRole('button', { name: 'Ended' }));
+		await act(async () => jest.advanceTimersByTime(300));
+		expect(screen.getByText(/Couldn’t load polls/)).toBeInTheDocument();
+
+		fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+		await act(async () => jest.advanceTimersByTime(300));
+		expect(await screen.findByText('Dinner?')).toBeInTheDocument();
+		expect(mockGetPolls).toHaveBeenCalledTimes(2);
+	});
+
+	it('does not dim the list before a new query is sent, after one was dropped mid-load', async () => {
+		mockGetPolls.mockReturnValue(new Promise(() => {}));
+		await renderView(<ExploreView topics={noTopics} initialPage={Promise.resolve({ items: [poll('p1', 'Lunch?')], nextCursor: null })} />);
+
+		fireEvent.click(screen.getByRole('button', { name: 'Ended' }));
+		await act(async () => jest.advanceTimersByTime(300));
+		fireEvent.click(screen.getByRole('button', { name: 'Open' }));
+		fireEvent.click(screen.getByRole('button', { name: 'Most voted' }));
+
+		expect(screen.getByText('Lunch?').closest('[aria-busy]')).toHaveAttribute('aria-busy', 'false');
+	});
+
+	it('keeps address parameters that are not filters', async () => {
+		window.history.replaceState(null, '', '/explore?utm_source=mail#top');
+		mockGetPolls.mockResolvedValue({ items: [], nextCursor: null });
+		await renderView(<ExploreView topics={noTopics} initialPage={Promise.resolve({ items: [], nextCursor: null })} />);
+
+		fireEvent.click(screen.getByRole('button', { name: 'Ended' }));
+		await act(async () => jest.advanceTimersByTime(300));
+		expect(window.location.search).toBe('?utm_source=mail&status=ended');
+		expect(window.location.hash).toBe('#top');
+	});
+
 	it('leaves the list usable when the filters go back to the listed ones mid-load', async () => {
 		mockGetPolls.mockReturnValue(new Promise(() => {}));
 		await renderView(<ExploreView topics={noTopics} initialPage={Promise.resolve({ items: [poll('p1', 'Lunch?')], nextCursor: null })} />);
