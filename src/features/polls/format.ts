@@ -60,16 +60,6 @@ const WEEKDAY = perLanguage((locale) => new Intl.DateTimeFormat(locale, { weekda
 const MONTH_DAY = perLanguage((locale) => new Intl.DateTimeFormat(locale, { month: 'short', day: 'numeric' }));
 const unitFormat = (unit: 'minute' | 'hour' | 'day') =>
 	perLanguage((locale) => new Intl.NumberFormat(locale, { style: 'unit', unit, unitDisplay: 'narrow' }));
-// Taiwan time, fixed so the server render and the browser agree on the day
-const FULL_DAY = perLanguage(
-	(locale) => new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Taipei' })
-);
-
-/** "October 29, 2026" / "2026年10月29日", the day in Taiwan */
-export function formatDay(iso: string, language: LanguageCode) {
-	return FULL_DAY[language].format(new Date(iso));
-}
-
 const MINUTES = unitFormat('minute');
 const HOURS = unitFormat('hour');
 const DAYS = unitFormat('day');

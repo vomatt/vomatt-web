@@ -102,19 +102,6 @@ export function validateAndReturnJson(json: string) {
 
 // ***REACT SPECIFIC***
 
-export function buildRgbaCssString(color: any) {
-	if (!color) {
-		return false;
-	}
-
-	const r = color?.rgb?.r ?? 255;
-	const g = color?.rgb?.g ?? 255;
-	const b = color?.rgb?.b ?? 255;
-	const a = color?.rgb?.a ?? 1;
-
-	return `rgba(${r}, ${g}, ${b}, ${a})`;
-}
-
 export function slugify(str: string) {
 	if (str === null || str === undefined) return;
 

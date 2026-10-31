@@ -2,9 +2,12 @@ import clsx from 'clsx';
 import NextLink from 'next/link';
 import React from 'react';
 
+import { ABOUT_URL } from '@/lib/aboutSite';
+
 type CMSLinkType = {
 	link?: {
 		_type: string;
+		linkType?: string;
 		href?: string;
 		isNewTab: boolean;
 	};
@@ -32,7 +35,8 @@ const CMSLink: React.FC<CMSLinkType> = ({
 		return null;
 	}
 
-	const { href: route } = link;
+	// Internal links can only reference the Homepage or a Page, which live on the about site
+	const route = link.linkType === 'internal' ? `${ABOUT_URL}${link.href}` : link.href;
 	const isOpenNewTab = isNewTab ?? link.isNewTab;
 
 	return (

@@ -115,8 +115,8 @@ describe('AccountSettings', () => {
 	it('ends with the Terms and Privacy pages', () => {
 		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
 		const legal = screen.getByRole('navigation', { name: 'Legal' });
-		expect(within(legal).getByRole('link', { name: 'Terms' })).toHaveAttribute('href', '/terms-of-service');
-		expect(within(legal).getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', '/privacy-policy');
+		expect(within(legal).getByRole('link', { name: 'Terms' })).toHaveAttribute('href', 'https://about.vomatt.com/terms-of-service');
+		expect(within(legal).getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', 'https://about.vomatt.com/privacy-policy');
 	});
 
 	it('picks the theme from a radio group', () => {
