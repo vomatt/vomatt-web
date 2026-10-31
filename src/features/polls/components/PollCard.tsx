@@ -59,6 +59,12 @@ export function PollCard({
 	const clock = useViewerClock();
 	const router = useRouter();
 	const [poll, setPoll] = useState(initialPoll);
+	// A refreshed page (after a Comment on it) brings the new count; the card's other state stays its own
+	const [prevInitialPoll, setPrevInitialPoll] = useState(initialPoll);
+	if (initialPoll !== prevInitialPoll) {
+		setPrevInitialPoll(initialPoll);
+		setPoll((current) => ({ ...current, commentCount: initialPoll.commentCount }));
+	}
 	const [isDeleted, setIsDeleted] = useState(false);
 	const { isAuthed, requireAuth, authDialog } = useRequireAuth(!!viewerId);
 
