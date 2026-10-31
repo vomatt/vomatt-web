@@ -12,6 +12,8 @@ jest.mock('next/link', () => {
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn() } }));
 jest.mock('@/features/blocks/service', () => ({ blockUser: jest.fn() }));
+jest.mock('@/lib/api/services/users', () => ({ searchUsers: jest.fn() }));
+jest.mock('@/features/follows/service', () => ({ getFollowing: jest.fn() }));
 
 const service = {
 	getComments: jest.fn(),
@@ -568,7 +570,7 @@ describe('CommentThread', () => {
 			);
 		}
 		render(<WithViewer />);
-		const box = await screen.findByRole('textbox', { name: 'Add a comment' });
+		const box = await screen.findByRole('combobox', { name: 'Add a comment' });
 		expect(box.closest('form')!.querySelector('img')).toHaveAttribute('src', '/avatars/bear.svg');
 	});
 
