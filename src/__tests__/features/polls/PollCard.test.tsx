@@ -132,6 +132,12 @@ describe('PollCard state A · Open, no Ballot', () => {
 		expect(screen.getAllByRole('radio')).toHaveLength(3);
 	});
 
+	it('keeps the line breaks of the description', () => {
+		render(<PollCard poll={{ ...openPoll, description: 'First line\nSecond line' }} />);
+		const description = screen.getByText((_, el) => el?.tagName === 'P' && el.textContent === 'First line\nSecond line');
+		expect(description).toHaveClass('whitespace-pre-line');
+	});
+
 	it('names the creator by handle, with the poll\'s short age', () => {
 		render(<PollCard poll={openPoll} />);
 		expect(screen.getByRole('link', { name: /@mei\.lin/ })).toHaveAttribute('href', '/mei.lin');

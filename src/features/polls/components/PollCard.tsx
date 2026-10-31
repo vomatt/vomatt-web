@@ -156,7 +156,7 @@ export function PollCard({
 						</Link>
 					)}
 					{description && (
-						<p className="mt-2 max-w-[65ch] wrap-anywhere text-base text-muted-foreground leading-normal">
+						<p className="mt-2 max-w-[65ch] wrap-anywhere whitespace-pre-line text-base text-muted-foreground leading-normal">
 							{description}
 						</p>
 					)}
