@@ -29,6 +29,23 @@ const setup = () =>
 describe('useBallot outcomes', () => {
 	beforeEach(() => jest.clearAllMocks());
 
+	it('keeps savedOptionId on the server’s option until the cast lands', async () => {
+		let finish!: (value: unknown) => void;
+		mockCastBallot.mockReturnValue(new Promise((resolve) => (finish = resolve)));
+		const { result } = setup();
+		let cast!: Promise<unknown>;
+		act(() => {
+			cast = result.current.cast('opt-a');
+		});
+		expect(result.current.myOptionId).toBe('opt-a');
+		expect(result.current.savedOptionId).toBeNull();
+		await act(async () => {
+			finish({ ok: true });
+			await cast;
+		});
+		expect(result.current.savedOptionId).toBe('opt-a');
+	});
+
 	it('resolves saved when the API accepts the cast', async () => {
 		mockCastBallot.mockResolvedValue({ ok: true });
 		const { result } = setup();

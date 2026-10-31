@@ -200,6 +200,7 @@ export function PollCard({
 								ballot={ballot}
 								requireAuth={requireAuth}
 								titleId={titleId}
+								isOwner={isOwner}
 							/>
 						)}
 					</m.div>

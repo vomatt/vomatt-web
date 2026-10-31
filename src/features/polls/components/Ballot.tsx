@@ -4,7 +4,7 @@ import { m, useAnimate } from 'motion/react';
 import { useId, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
-import { Check, Eye, EyeOff, Lock } from '@/components/ui/SvgIcons';
+import { Eye, EyeOff, Lock } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useHydrated } from '@/hooks/useHydrated';
 import { cn } from '@/lib/utils';
@@ -23,6 +23,7 @@ type BallotProps = {
 	requireAuth: (action: () => void) => void;
 	/** The id of the card's title, which names the options. */
 	titleId: string;
+	isOwner: boolean;
 };
 
 /** What the viewer is doing with a cast Ballot. Without a Ballot the card shows the Vote row instead. */
@@ -36,21 +37,25 @@ type SealedMode =
 	| { kind: 'withdrawing' };
 
 /** Card states A (no Ballot), B (has Ballot) and C (Scheduled). Never shows counts. */
-export function Ballot({ poll, status, ballot, requireAuth, titleId }: BallotProps) {
+export function Ballot({ poll, status, ballot, requireAuth, titleId, isOwner }: BallotProps) {
 	const { t, currentLanguage } = useLanguage();
 	const isHydrated = useHydrated();
 	const [mode, setMode] = useState<SealedMode>({ kind: 'row' });
 	// Read out once a cast is saved, from a live region that is always mounted
 	const [announcement, setAnnouncement] = useState('');
-	const { myOptionId, selected, setSelected, anonymous, setAnonymous, isPending, pendingAction } = ballot;
+	const { myOptionId, savedOptionId, selected, setSelected, anonymous, setAnonymous, isPending, pendingAction } = ballot;
 	const isScheduled = status === 'scheduled';
 	// A first vote in flight already has a Ballot; its Vote button stays (busy) until it is in
 	const view = isScheduled ? 'scheduled' : !myOptionId || pendingAction === 'vote' ? 'vote' : mode.kind;
 	// One id per Ballot, not per Poll: the feed card and the Poll page each have a Ballot for the same Poll,
 	// and a shared layoutId flies the highlight from one to the other on navigation
 	const highlightId = useId();
-	// Nobody sees the voter list on a 'nobody' Poll, so there is nothing to hide from
-	const canHideName = !isScheduled && anonymous !== null && poll.voterVisibility !== 'nobody';
+	// Nobody else sees the voter list on a 'nobody' Poll, or on an 'owner' one its owner votes on: nothing to hide from
+	const canHideName =
+		!isScheduled &&
+		anonymous !== null &&
+		poll.voterVisibility !== 'nobody' &&
+		!(isOwner && poll.voterVisibility === 'owner');
 
 	const [optionsRef, animateOptions] = useAnimate<HTMLFieldSetElement>();
 	/** The options recoil when a request is rolled back. */
@@ -63,13 +68,6 @@ export function Ballot({ poll, status, ballot, requireAuth, titleId }: BallotPro
 		if (myOptionId && optionId !== myOptionId && mode.kind !== 'updating') {
 			setMode({ kind: 'updating', from: myOptionId });
 		}
-	};
-
-	const startUpdate = () => {
-		if (!myOptionId) return;
-		setMode({ kind: 'updating', from: myOptionId });
-		// The button goes away, so keyboard focus moves to the options to pick from
-		optionsRef.current?.querySelector<HTMLInputElement>('input:checked')?.focus();
 	};
 
 	const cancelUpdate = () => {
@@ -101,20 +99,15 @@ export function Ballot({ poll, status, ballot, requireAuth, titleId }: BallotPro
 	};
 
 	const sealActions = (
-		<>
-			<Button
-				size="md"
-				variant="ghost"
-				className="text-tide-foreground hover:text-tide-foreground"
-				disabled={isPending}
-				onClick={() => setMode({ kind: 'withdrawing' })}
-			>
-				{t('poll.withdrawVote')}
-			</Button>
-			<Button size="md" variant="outline" disabled={isPending} onClick={startUpdate}>
-				{t('poll.updateVote')}
-			</Button>
-		</>
+		<Button
+			size="md"
+			variant="ghost"
+			className="text-tide-foreground hover:text-tide-foreground"
+			disabled={isPending}
+			onClick={() => setMode({ kind: 'withdrawing' })}
+		>
+			{t('poll.withdrawVote')}
+		</Button>
 	);
 
 	let actions: React.ReactNode;
@@ -143,28 +136,15 @@ export function Ballot({ poll, status, ballot, requireAuth, titleId }: BallotPro
 			</div>
 		);
 	} else if (view === 'moment' || view === 'row') {
-		// Once cast, the choice applies at once, so it reads as where the name stands with one action
+		// Once cast, the choice applies at once, so it reads as where the name stands
 		const nameLine = canHideName && (
-			<div className="flex items-center gap-2.5 border-t border-tide-line py-1 pr-2 pl-4 text-caption-1 leading-snug">
-				{anonymous ? (
-					<EyeOff aria-hidden className="size-4 shrink-0 text-tide" />
-				) : (
-					<Eye aria-hidden className="size-4 shrink-0 text-tide" />
-				)}
-				<p role="status" className="min-w-0 flex-1">
-					{anonymous ? t('poll.nameHidden') : t('poll.nameListed')}
-				</p>
-				{/* aria-disabled, not disabled: a disabled button drops keyboard focus while the request runs */}
-				<Button
-					size="xs"
-					variant="ghost"
-					aria-disabled={isPending}
-					onClick={() => !isPending && setAnonymous(!anonymous)}
-					className="shrink-0 text-foreground underline underline-offset-3"
-				>
-					{anonymous ? t('poll.showMyName') : t('poll.hideMyName')}
-				</Button>
-			</div>
+			<NameLine
+				hidden={anonymous}
+				status={anonymous ? t('poll.nameHidden') : t('poll.nameListed')}
+				isPending={isPending}
+				onToggle={() => setAnonymous(!anonymous)}
+				className="border-t border-tide-line py-1 pr-2 pl-4"
+			/>
 		);
 		actions = (
 			<Seal variant={view} endTime={poll.endTime} footer={nameLine}>
@@ -231,6 +211,8 @@ export function Ballot({ poll, status, ballot, requireAuth, titleId }: BallotPro
 			>
 				{poll.options.map((option) => {
 					const isSelected = selected === option.id;
+					// The check waits for the cast to land, so it never shows on a vote that rolls back
+					const isCast = option.id === savedOptionId;
 					return (
 						<label
 							key={option.id}
@@ -251,44 +233,23 @@ export function Ballot({ poll, status, ballot, requireAuth, titleId }: BallotPro
 								onChange={() => choose(option.id)}
 								className="peer sr-only"
 							/>
-							<BallotMark state={isSelected ? 'selected' : 'rest'} />
+							<BallotMark state={isSelected ? (isCast ? 'voted' : 'selected') : 'rest'} />
 							<span className="relative min-w-0 flex-1 wrap-anywhere">{option.text}</span>
 						</label>
 					);
 				})}
 			</fieldset>
 
-			{/* Before a vote the choice only rides along with it, so a checkbox, not a switch that acts at once */}
+			{/* The same line the Seal keeps after the vote. Before it, the choice only rides along with the vote,
+			    so it says what the vote will do: who sees the name, or that it is counted unnamed */}
 			{canHideName && view === 'vote' && (
-				// Both lines, the label and who sees voters, are the touch target
-				<label className="flex min-h-11 cursor-pointer items-start gap-2.5 self-start py-0.5 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50">
-					<input
-						type="checkbox"
-						checked={anonymous}
-						disabled={isPending}
-						onChange={(event) => setAnonymous(event.target.checked)}
-						aria-labelledby={`anonymous-${poll.id}-label`}
-						aria-describedby={`anonymous-${poll.id}-help`}
-						className="peer sr-only"
-					/>
-					<span
-						aria-hidden
-						className={cn(
-							'grid size-5 shrink-0 place-items-center rounded-md transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-ring',
-							anonymous ? 'bg-primary text-highlight' : 'border-[1.5px] border-input bg-card'
-						)}
-					>
-						{anonymous && <Check aria-hidden className="size-3.5" strokeWidth={3} />}
-					</span>
-					<span className="flex min-w-0 flex-col gap-0.5">
-						<span id={`anonymous-${poll.id}-label`} className="text-body-4 font-medium leading-5 text-foreground">
-							{t('poll.anonymousToggle')}
-						</span>
-						<span id={`anonymous-${poll.id}-help`} className="text-caption-1 leading-snug text-muted-foreground">
-							{anonymous ? t('poll.anonymousHidden') : t(`poll.visibility.${visibilityLevel(poll)}`)}
-						</span>
-					</span>
-				</label>
+				<NameLine
+					hidden={anonymous}
+					status={anonymous ? t('poll.anonymousHidden') : t(`poll.visibility.${visibilityLevel(poll)}`)}
+					isPending={isPending}
+					onToggle={() => setAnonymous(!anonymous)}
+					className="-my-1 text-muted-foreground"
+				/>
 			)}
 
 			<div className="border-t border-border pt-4 md:pt-5">
@@ -305,6 +266,38 @@ export function Ballot({ poll, status, ballot, requireAuth, titleId }: BallotPro
 			<p role="status" aria-live="polite" className="sr-only">
 				{announcement}
 			</p>
+		</div>
+	);
+}
+
+type NameLineProps = {
+	hidden: boolean;
+	status: string;
+	isPending: boolean;
+	onToggle: () => void;
+	className?: string;
+};
+
+/** Where the viewer's name stands on the voter list, with the one action that flips it. */
+function NameLine({ hidden, status, isPending, onToggle, className }: NameLineProps) {
+	const { t } = useLanguage();
+	const Icon = hidden ? EyeOff : Eye;
+	return (
+		<div className={cn('flex items-center gap-2.5 text-caption-1 leading-snug', className)}>
+			<Icon aria-hidden className="size-4 shrink-0 text-tide" />
+			<p role="status" className="min-w-0 flex-1">
+				{status}
+			</p>
+			{/* aria-disabled, not disabled: a disabled button drops keyboard focus while the request runs */}
+			<Button
+				size="xs"
+				variant="ghost"
+				aria-disabled={isPending}
+				onClick={() => !isPending && onToggle()}
+				className="shrink-0 text-foreground"
+			>
+				{hidden ? t('poll.showMyName') : t('poll.hideMyName')}
+			</Button>
 		</div>
 	);
 }

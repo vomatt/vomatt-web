@@ -17,4 +17,12 @@ describe('BallotMark', () => {
 		);
 		expect(container.querySelector('svg')).toBeNull();
 	});
+
+	it('swaps the dot for a Volt check once the vote is in', () => {
+		const { container } = render(<BallotMark state="voted" />);
+		expect(container.firstChild).toHaveClass('bg-highlight-foreground');
+		expect(container.firstChild).toHaveAttribute('data-state', 'voted');
+		expect(container.querySelector('svg')).toHaveClass('text-highlight');
+		expect(container.querySelector('.bg-highlight')).toBeNull();
+	});
 });

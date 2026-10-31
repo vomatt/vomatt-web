@@ -98,6 +98,10 @@ describe('buttonVariants', () => {
 		expect(classes).toContain('border-border-strong');
 		expect(classes).not.toContain('border-transparent');
 	});
+
+	it('dims an aria-disabled button like a disabled one, so a button that keeps focus still looks unavailable', () => {
+		expect(buttonVariants().split(' ')).toContain('aria-disabled:opacity-50');
+	});
 });
 
 describe('Button sizes', () => {

@@ -31,12 +31,13 @@ describe('Seal', () => {
 	it.each(['moment', 'row'] as const)('as a %s, thanks the voter and says when the results open', (variant) => {
 		render(
 			<Seal variant={variant} endTime={iso(3 * HOUR)}>
-				<button type="button">Update vote</button>
+				<button type="button">Withdraw vote</button>
 			</Seal>
 		);
 		expect(screen.getByText('Sealed. Thank you.')).toBeInTheDocument();
 		expect(screen.getByText(/^Results are sealed until .+\. We’ll notify you when they’re in\.$/)).toBeInTheDocument();
-		expect(screen.getByRole('button', { name: 'Update vote' })).toBeInTheDocument();
+		expect(screen.getByText('Pick another option to change your vote.')).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Withdraw vote' })).toBeInTheDocument();
 	});
 
 	it('says the results open at the end for a Poll without an end time', () => {

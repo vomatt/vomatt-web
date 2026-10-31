@@ -426,6 +426,7 @@
 			"switchAccount": "切換帳號"
 		},
 		"vote": "投票",
+		"changeHint": "選擇其他選項即可更改你的投票。",
 		"updateVote": "更新投票",
 		"updatingHint": "將取代你投給「{option}」的票，結果在投票結束前仍保持密封。",
 		"withdrawVote": "撤回投票",
@@ -463,7 +464,6 @@
 		"voteFailed": "無法儲存你的投票，請再試一次。",
 		"withdrawFailed": "無法撤回你的投票，請再試一次。",
 		"tooManyVotes": "投票太頻繁了，請稍候一分鐘再試。",
-		"anonymousToggle": "在投票者名單中隱藏我的名字",
 		"anonymousHidden": "你的票會被計入，但不會列在投票者名單中。",
 		"nameListed": "你的名字會出現在投票者名單中",
 		"nameHidden": "你的名字已從投票者名單中隱藏",

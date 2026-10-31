@@ -48,7 +48,7 @@ type SealProps = {
 	variant: 'moment' | 'row';
 	/** When the results open; null for a Poll without an end. */
 	endTime: string | null;
-	/** Withdraw vote and Update vote. */
+	/** Withdraw vote. */
 	children: React.ReactNode;
 	/** A full-width strip along the bottom of the panel. */
 	footer?: React.ReactNode;
@@ -74,6 +74,7 @@ export function Seal({ variant, endTime, children, footer }: SealProps) {
 						{t('poll.sealedTitle')}
 					</p>
 					<p className={cn('max-w-[420px] text-body-4 leading-5', waiting && 'invisible')}>{line}</p>
+					<p className="max-w-[420px] text-body-4 leading-5">{t('poll.changeHint')}</p>
 					<div className="mt-1 flex flex-wrap justify-center gap-1.5">{children}</div>
 				</div>
 				{footer}
@@ -88,6 +89,7 @@ export function Seal({ variant, endTime, children, footer }: SealProps) {
 				<div className="flex min-w-0 flex-[1_1_200px] flex-col gap-0.5">
 					<p className="text-body-4 font-medium leading-5 text-foreground">{t('poll.sealedTitle')}</p>
 					<p className={cn('text-caption-1 leading-snug', waiting && 'invisible')}>{line}</p>
+					<p className="text-caption-1 leading-snug">{t('poll.changeHint')}</p>
 				</div>
 				<div className="flex shrink-0 items-center gap-1.5">{children}</div>
 			</div>

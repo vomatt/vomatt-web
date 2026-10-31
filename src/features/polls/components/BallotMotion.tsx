@@ -15,13 +15,15 @@ import { chipClassName } from '../chip';
 const INK = { type: 'spring', stiffness: 520, damping: 46 } as const;
 
 /**
- * The 22px radio circle: a 2px `input` ring at rest; once chosen, ink filled around an 8px Volt dot.
+ * The 22px radio circle: a 2px `input` ring at rest; once chosen, ink filled around an 8px Volt dot;
+ * once the vote is in, a Volt check in place of the dot.
  * The ink is `highlight-foreground`, not `primary`: in dark `primary` is off-white and the dot would vanish into it.
  */
-export function BallotMark({ state }: { state: 'rest' | 'selected' }) {
+export function BallotMark({ state }: { state: 'rest' | 'selected' | 'voted' }) {
 	return (
 		<span
 			aria-hidden
+			data-state={state}
 			className={cn(
 				'relative grid size-[22px] shrink-0 place-items-center rounded-full transition-[border-color,background-color] duration-150',
 				state === 'rest' ? 'border-2 border-input bg-card' : 'bg-highlight-foreground'
@@ -34,6 +36,11 @@ export function BallotMark({ state }: { state: 'rest' | 'selected' }) {
 					animate={{ scale: 1 }}
 					transition={INK}
 				/>
+			)}
+			{state === 'voted' && (
+				<m.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={INK}>
+					<Check aria-hidden size={12} strokeWidth={3.5} className="text-highlight" />
+				</m.span>
 			)}
 		</span>
 	);

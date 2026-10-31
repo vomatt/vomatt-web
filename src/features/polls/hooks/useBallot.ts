@@ -42,6 +42,8 @@ export function useBallot(poll: Poll, { isAuthed, anonymousByDefault, onPollEnde
 	const [draftAnonymous, setDraftAnonymous] = useState<boolean | null>(null);
 	const [turnout, setTurnout] = useState(getTurnout(poll));
 	const [pendingAction, setPendingAction] = useState<BallotAction | null>(null);
+	// The option the server had when the pending action started
+	const [optionBeforeAction, setOptionBeforeAction] = useState<string | null>(null);
 	// A guest's Poll says null for "no Ballot", which means nothing once they sign in here
 	const [loadedSignedIn] = useState(isAuthed);
 	const hasServerBallot = loadedSignedIn && poll.myOptionId !== undefined;
@@ -97,6 +99,7 @@ export function useBallot(poll: Poll, { isAuthed, anonymousByDefault, onPollEnde
 		): Promise<BallotOutcome> => {
 			hasActed.current = true;
 			setPendingAction(action);
+			setOptionBeforeAction(myOptionId);
 			setMyOptionId(next);
 			setSelected(next);
 			const previousAnonymous = anonymous;
@@ -201,6 +204,8 @@ export function useBallot(poll: Poll, { isAuthed, anonymousByDefault, onPollEnde
 				? anonymous
 				: (draftAnonymous ?? anonymousByDefault ?? false),
 		setAnonymous,
+		/** The option the server has; differs from myOptionId only while a change is in flight. */
+		savedOptionId: pendingAction ? optionBeforeAction : myOptionId,
 		turnout,
 		isPending: pendingAction !== null,
 		pendingAction,
