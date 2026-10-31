@@ -97,7 +97,7 @@ export function HomepageHeader({
 								className={buttonVariants({
 									variant: isActive ? 'default' : 'outline',
 									size: 'sm',
-									className: 'rounded-full px-3.5 text-[13px]',
+									className: 'rounded-full px-3.5 text-caption-1',
 								})}
 							>
 								{label}

@@ -91,7 +91,7 @@ const END_PRESETS = [
 ] as const;
 const VISIBILITY_ORDER: VoterVisibility[] = ['owner', 'signed-in', 'nobody'];
 /** The write step's field labels and legends. */
-const LABEL = 'text-[14px] leading-snug font-medium';
+const LABEL = 'text-body-4 leading-snug font-medium';
 
 /** Writing and review slide toward where the step goes: forward to the left, back to the right. */
 const STEP_VARIANTS = {
@@ -457,7 +457,7 @@ export function PollCreator({
 									? t('pollCreator.reviewTitle')
 									: t(isEdit ? 'pollCreator.editTitle' : 'pollCreator.title')}
 							</DialogTitle>
-							<DialogDescription className="text-[14px]">
+							<DialogDescription className="text-body-4">
 								{review
 									? t('pollCreator.reviewPreview')
 									: t(
@@ -535,11 +535,11 @@ export function PollCreator({
 														time="inline"
 													/>
 													<div className="space-y-2">
-														<p className="poll-title wrap-anywhere">
+														<p className="text-title-3 text-balance wrap-anywhere">
 															{toSingleLine(title)}
 														</p>
 														{description?.trim() && (
-															<p className="text-[14px] leading-relaxed text-muted-foreground wrap-anywhere">
+															<p className="text-body-4 leading-relaxed text-muted-foreground wrap-anywhere">
 																{description.trim()}
 															</p>
 														)}
@@ -548,7 +548,7 @@ export function PollCreator({
 														{options.map((option, index) => (
 															<li
 																key={fields[index]?.id ?? index}
-																className="flex min-h-12 items-center gap-3 rounded-xl border border-border px-4 py-2.5 text-base"
+																className="flex min-h-12 items-center gap-3 rounded-xl border border-border px-4 py-2.5 text-body-3"
 															>
 																<BallotMark state="rest" />
 																<span className="min-w-0 flex-1 wrap-anywhere">
@@ -585,7 +585,7 @@ export function PollCreator({
 															<Label htmlFor="title" className={LABEL}>
 																{t('pollCreator.questionLabel')}
 															</Label>
-															<p className="text-sm text-muted-foreground">
+															<p className="text-caption-1 text-muted-foreground">
 																<FieldMessage
 																	hint={t('pollCreator.questionNote')}
 																	hintId="title-hint"
@@ -598,7 +598,7 @@ export function PollCreator({
 														<Textarea
 															id="title"
 															placeholder={t('pollCreator.questionPlaceholder')}
-															className="min-h-20 resize-none text-[18px] leading-snug tracking-[-0.01em] md:text-[18px]"
+															className="min-h-20 resize-none text-body-1 leading-snug tracking-title md:text-body-1"
 															maxLength={POLL_TITLE_MAX}
 															aria-invalid={!!errors.title}
 															aria-describedby={
@@ -613,7 +613,7 @@ export function PollCreator({
 																focusField(e, 'options.0.text');
 															}}
 														/>
-														<p className="text-right font-mono text-[12px] text-muted-foreground tabular-nums">
+														<p className="text-right text-caption-2 text-muted-foreground tabular-nums">
 															{title.length}/{POLL_TITLE_MAX}
 														</p>
 													</div>
@@ -662,7 +662,7 @@ export function PollCreator({
 														<legend className={LABEL}>
 															{t('pollCreator.pollOptionsLabel')}
 														</legend>
-														<p className="mt-0.5 text-sm text-muted-foreground">
+														<p className="mt-0.5 text-caption-1 text-muted-foreground">
 															<FieldMessage
 																hint={t('pollCreator.optionsHint')}
 																hintId="options-hint"
@@ -755,7 +755,7 @@ export function PollCreator({
 												>
 													<h3
 														id="poll-settings-title"
-														className="text-lg font-medium"
+														className="text-title-4"
 													>
 														{t('pollCreator.settingsTitle')}
 													</h3>
@@ -811,7 +811,7 @@ export function PollCreator({
 																			/>
 																			<p
 																				id="startTime-hint"
-																				className="text-[12px] text-muted-foreground"
+																				className="text-caption-2 text-muted-foreground"
 																			>
 																				{t('pollCreator.opensHint')}
 																			</p>
@@ -833,7 +833,7 @@ export function PollCreator({
 																					onChange: () => setEndPreset(null),
 																				})}
 																			/>
-																			<p className="text-[12px]">
+																			<p className="text-caption-2">
 																				<FieldMessage
 																					errors={fieldErrors('endTime-error', [
 																						errors.endTime?.message,
@@ -894,13 +894,13 @@ export function PollCreator({
 																			}
 																		/>
 																	) : (
-																		<p className="text-[12px] text-muted-foreground">
+																		<p className="text-caption-2 text-muted-foreground">
 																			{t('pollCreator.inviteesManaged')}
 																		</p>
 																	)
 																}
 															/>
-															<p className="text-[12px] text-muted-foreground">
+															<p className="text-caption-2 text-muted-foreground">
 																<FieldMessage
 																	hint={t('pollCreator.inviteesHint')}
 																	hintId="invitees-hint"
@@ -945,7 +945,7 @@ export function PollCreator({
 							{/* Rendered empty first, so a failed publish is announced every time, the same error included */}
 							<p
 								role="alert"
-								className="text-sm text-destructive not-empty:mb-3"
+								className="text-caption-1 text-destructive not-empty:mb-3"
 							>
 								{review && errors.root?.message}
 							</p>
@@ -1064,7 +1064,7 @@ function PillGroup<T extends string>({
 	return (
 		<fieldset aria-describedby={`${noteId} ${hintId}`}>
 			<legend className={LABEL}>{legend}</legend>
-			<p id={noteId} className="mt-0.5 text-sm text-muted-foreground">
+			<p id={noteId} className="mt-0.5 text-caption-1 text-muted-foreground">
 				{note}
 			</p>
 			<div className="mt-3 flex flex-wrap gap-2">
@@ -1082,7 +1082,7 @@ function PillGroup<T extends string>({
 					</Button>
 				))}
 			</div>
-			<p id={hintId} className="mt-2 text-sm text-muted-foreground">
+			<p id={hintId} className="mt-2 text-caption-1 text-muted-foreground">
 				{hint}
 			</p>
 		</fieldset>

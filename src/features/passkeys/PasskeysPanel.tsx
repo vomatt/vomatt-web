@@ -75,7 +75,7 @@ export function PasskeysPanel() {
 					<h3 id="passkeys-title" className="font-medium">
 						{t('passkey.title')}
 					</h3>
-					<span className="block text-[13px] leading-[1.45] text-muted-foreground">{t('passkey.body')}</span>
+					<span className="block text-caption-1 leading-normal text-muted-foreground">{t('passkey.body')}</span>
 				</span>
 				{supportsPasskeys && <AddPasskeyButton onAdded={reload} />}
 			</div>
@@ -86,7 +86,7 @@ export function PasskeysPanel() {
 			)}
 			{loadFailed && (
 				<div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-					<p className="flex-1 text-[13px] text-muted-foreground">{t('passkey.loadFailed')}</p>
+					<p className="flex-1 text-caption-1 text-muted-foreground">{t('passkey.loadFailed')}</p>
 					<Button
 						variant="outline"
 						size="xs"
@@ -99,7 +99,7 @@ export function PasskeysPanel() {
 					</Button>
 				</div>
 			)}
-			{passkeys?.length === 0 && <p className="text-[13px] text-muted-foreground">{t('passkey.empty')}</p>}
+			{passkeys?.length === 0 && <p className="text-caption-1 text-muted-foreground">{t('passkey.empty')}</p>}
 			{!!passkeys?.length && (
 				<ul className="flex flex-col gap-2.5">
 					{passkeys.map((passkey) => (
@@ -108,8 +108,8 @@ export function PasskeysPanel() {
 							className="flex items-center gap-2.5 rounded-xl border border-border bg-surface-soft px-2.5 py-2"
 						>
 							<span className="min-w-0 flex-1">
-								<span className="block truncate text-[14px] font-medium">{nameOf(passkey)}</span>
-								<span className="block font-mono text-[12px] text-muted-foreground">
+								<span className="block truncate text-body-4 font-medium">{nameOf(passkey)}</span>
+								<span className="block text-caption-2 text-muted-foreground">
 									{t('passkey.created', { date: formatPollDate(passkey.createdAt, currentLanguage) })}
 									{' · '}
 									{passkey.lastUsedAt

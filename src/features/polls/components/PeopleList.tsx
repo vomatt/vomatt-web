@@ -36,7 +36,7 @@ export function PeopleList<P extends Person>({
 				const name = person.username ?? person.email ?? '';
 				const note = noteFor?.(person);
 				return (
-					<li key={key} className="flex min-h-11 items-center gap-3 text-[14px]">
+					<li key={key} className="flex min-h-11 items-center gap-3 text-body-4">
 						{person.username ? (
 							<UserChip
 								username={person.username}
@@ -50,7 +50,7 @@ export function PeopleList<P extends Person>({
 							</>
 						)}
 						{note ? (
-							<span className="text-[12px] text-muted-foreground">{note}</span>
+							<span className="text-caption-2 text-muted-foreground">{note}</span>
 						) : (
 							<Button
 								variant="ghost"

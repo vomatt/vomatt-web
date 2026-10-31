@@ -146,7 +146,7 @@ describe('VisitorProfileView', () => {
 		mockGetFollowers.mockResolvedValue({ ok: true, data: { items: [], nextCursor: null } });
 		render(<VisitorProfileView profile={visitor} polls={{ items: [], nextCursor: null }} viewerId="u1" />);
 
-		expect(screen.getByText('1,204')).toHaveClass('font-mono');
+		expect(screen.getByText('1,204')).toHaveClass('tabular-nums');
 		expect(screen.getByRole('button', { name: '86 following' })).toBeInTheDocument();
 		fireEvent.click(screen.getByRole('button', { name: '1,204 followers' }));
 		expect(await screen.findByRole('dialog', { name: 'Followers' })).toBeInTheDocument();

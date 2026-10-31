@@ -116,14 +116,14 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 	let actions: React.ReactNode;
 	if (view === 'scheduled') {
 		actions = (
-			<p className="flex min-h-11 items-center text-[14px] text-muted-foreground">
+			<p className="flex min-h-11 items-center text-body-4 text-muted-foreground">
 				{isHydrated && t('poll.opensHint', { distance: formatFromNow(poll.startTime, currentLanguage) })}
 			</p>
 		);
 	} else if (view === 'vote') {
 		actions = (
 			<div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
-				<p className="flex min-w-0 items-center gap-2.5 text-[14px] leading-5 text-tide-foreground">
+				<p className="flex min-w-0 items-center gap-2.5 text-body-4 leading-5 text-tide-foreground">
 					<Lock aria-hidden className="size-[18px] shrink-0 text-tide" />
 					{t('poll.revealHint')}
 				</p>
@@ -141,7 +141,7 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 	} else if (view === 'moment' || view === 'row') {
 		// Once cast, the choice applies at once, so it reads as where the name stands with one action
 		const nameLine = canHideName && (
-			<div className="flex items-center gap-2.5 border-t border-tide-line py-1 pr-2 pl-4 text-[13px] leading-[18px]">
+			<div className="flex items-center gap-2.5 border-t border-tide-line py-1 pr-2 pl-4 text-caption-1 leading-snug">
 				{anonymous ? (
 					<EyeOff aria-hidden className="size-4 shrink-0 text-tide" />
 				) : (
@@ -171,7 +171,7 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 		const previous = poll.options.find((option) => option.id === mode.from)?.text ?? '';
 		actions = (
 			<div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
-				<p className="flex min-w-0 items-center gap-2.5 text-[14px] leading-5 text-muted-foreground">
+				<p className="flex min-w-0 items-center gap-2.5 text-body-4 leading-5 text-muted-foreground">
 					<RefreshIcon className="size-[18px] shrink-0 text-input" />
 					{t('poll.updatingHint', { option: previous })}
 				</p>
@@ -199,10 +199,10 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 				className="flex flex-wrap items-center gap-4 rounded-xl border border-border bg-surface-soft py-3.5 pr-3.5 pl-5"
 			>
 				<div className="flex min-w-0 flex-[1_1_200px] flex-col gap-0.5">
-					<p id={`withdraw-${poll.id}`} className="text-[14px] font-medium leading-5 text-foreground">
+					<p id={`withdraw-${poll.id}`} className="text-body-4 font-medium leading-5 text-foreground">
 						{t('poll.withdrawTitle')}
 					</p>
-					<p className="text-[13px] leading-[18px] text-muted-foreground">{t('poll.withdrawBody')}</p>
+					<p className="text-caption-1 leading-snug text-muted-foreground">{t('poll.withdrawBody')}</p>
 				</div>
 				<div className="flex shrink-0 items-center gap-1.5">
 					{/* Withdraw vote went away under the pointer; the safe answer takes the focus */}
@@ -227,7 +227,7 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 						<label
 							key={option.id}
 							className={cn(
-								'relative flex min-h-14 cursor-pointer items-center gap-3.5 rounded-xl border border-border bg-card px-5 py-2.5 text-[16px] font-medium transition-colors',
+								'relative flex min-h-14 cursor-pointer items-center gap-3.5 rounded-xl border border-border bg-card px-5 py-2.5 text-body-2 font-medium transition-colors',
 								'has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring',
 								// Raised so the highlight slides over the other options, not under the ones after it
 								isSelected ? 'z-10 border-transparent' : 'hover:border-border-strong',
@@ -273,10 +273,10 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 						{anonymous && <Check aria-hidden className="size-3.5" strokeWidth={3} />}
 					</span>
 					<span className="flex min-w-0 flex-col gap-0.5">
-						<span id={`anonymous-${poll.id}-label`} className="text-[14px] font-medium leading-5 text-foreground">
+						<span id={`anonymous-${poll.id}-label`} className="text-body-4 font-medium leading-5 text-foreground">
 							{t('poll.anonymousToggle')}
 						</span>
-						<span id={`anonymous-${poll.id}-help`} className="text-[13px] leading-[18px] text-muted-foreground">
+						<span id={`anonymous-${poll.id}-help`} className="text-caption-1 leading-snug text-muted-foreground">
 							{anonymous ? t('poll.anonymousHidden') : t(`poll.visibility.${visibilityLevel(poll)}`)}
 						</span>
 					</span>

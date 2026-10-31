@@ -20,7 +20,7 @@ function TideRules({ className, ...props }: React.ComponentProps<'ul'>) {
 		<ul
 			data-slot="tide-rules"
 			className={cn(
-				'space-y-2.5 rounded-xl border border-tide-line bg-tide-tint p-4 text-[14px] leading-relaxed text-tide-foreground',
+				'space-y-2.5 rounded-xl border border-tide-line bg-tide-tint p-4 text-body-4 leading-relaxed text-tide-foreground',
 				className
 			)}
 			{...props}

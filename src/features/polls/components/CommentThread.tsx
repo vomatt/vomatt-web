@@ -49,7 +49,7 @@ function textMax(addressee: string | null) {
 
 // Like and Reply are 32px pills (36px on phones); the ::before extends the hit area to 44px
 const pillClassName =
-	"relative inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium text-muted-foreground transition-colors before:absolute before:inset-x-0 before:-inset-y-1 before:content-[''] hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring md:h-8";
+	"relative inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-caption-3 font-medium text-muted-foreground transition-colors before:absolute before:inset-x-0 before:-inset-y-1 before:content-[''] hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring md:h-8";
 
 /** The signed-in viewer, whose avatar sits beside the composers. */
 type Viewer = { username: string; avatarUrl: string | null };
@@ -154,9 +154,9 @@ export function CommentThread({ thread, pollId, viewerId, viewer, requireAuth }:
 			className="space-y-[18px] rounded-2xl border border-border bg-card p-5 outline-none"
 		>
 			<div className="flex items-baseline gap-2">
-				<h2 className="item-title">{t('comments.title')}</h2>
+				<h2 className="text-title-4">{t('comments.title')}</h2>
 				{thread.total !== undefined && (
-					<span className="font-mono text-[13px] text-muted-foreground tabular-nums">{thread.total}</span>
+					<span className="text-caption-1 text-muted-foreground tabular-nums">{thread.total}</span>
 				)}
 			</div>
 
@@ -182,7 +182,7 @@ export function CommentThread({ thread, pollId, viewerId, viewer, requireAuth }:
 			)}
 
 			{thread.status === 'error' && (
-				<p className="text-sm text-muted-foreground">
+				<p className="text-caption-1 text-muted-foreground">
 					{t('comments.loadFailed')}{' '}
 					<button type="button" className="underline" onClick={thread.reload}>
 						{t('comments.retry')}
@@ -191,7 +191,7 @@ export function CommentThread({ thread, pollId, viewerId, viewer, requireAuth }:
 			)}
 
 			{thread.status === 'ready' && thread.comments.length === 0 && (
-				<p className="text-sm text-muted-foreground">{t('comments.empty')}</p>
+				<p className="text-caption-1 text-muted-foreground">{t('comments.empty')}</p>
 			)}
 
 			{/* Mounts with the first page, so only comments added later unfold. The gap is padding inside
@@ -225,7 +225,7 @@ export function CommentThread({ thread, pollId, viewerId, viewer, requireAuth }:
 				<Button
 					size="sm"
 					variant="ghost"
-					className="w-full text-[13px] text-muted-foreground"
+					className="w-full text-caption-1 text-muted-foreground"
 					disabled={thread.isLoadingMore}
 					onClick={thread.loadMore}
 				>
@@ -321,7 +321,7 @@ function Composer({
 					{label}
 				</label>
 				{addressee && (
-					<div className="flex items-center gap-2 text-xs text-muted-foreground">
+					<div className="flex items-center gap-2 text-caption-3 text-muted-foreground">
 						<Reply aria-hidden className="size-[13px] shrink-0" />
 						<span className="shrink-0 font-medium">
 							{t('comments.replyingTo')} <span className="text-foreground">{addressee}</span>
@@ -357,7 +357,7 @@ function Composer({
 					{text.length > max - COUNTER_WITHIN && (
 						<span
 							className={cn(
-								'mr-auto font-mono text-xs tabular-nums',
+								'mr-auto text-caption-3 tabular-nums',
 								tooLong ? 'text-destructive' : 'text-muted-foreground'
 							)}
 						>
@@ -498,7 +498,7 @@ function CommentItem({
 				<button
 					type="button"
 					// 32px tall; the ::before extends the hit area to 44px
-					className="relative mt-0.5 inline-flex h-8 items-center px-0.5 text-[12px] font-medium text-muted-foreground before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-[''] hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring"
+					className="relative mt-0.5 inline-flex h-8 items-center px-0.5 text-caption-2 font-medium text-muted-foreground before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-[''] hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring"
 					onClick={() => thread.loadReplies(comment.id)}
 				>
 					{repliesAction}
@@ -597,7 +597,7 @@ function CommentBody({
 
 	if (comment.deleted || !comment.author) {
 		return (
-			<p className={cn('min-w-0 flex-1 text-sm leading-8 text-muted-foreground italic', className)}>
+			<p className={cn('min-w-0 flex-1 text-caption-1 leading-8 text-muted-foreground italic', className)}>
 				{t('comments.deleted')}
 			</p>
 		);
@@ -656,14 +656,14 @@ function CommentBody({
 
 	return (
 		<div className={cn('flex min-w-0 flex-1 flex-col gap-1', isPending && 'opacity-60', className)}>
-			<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+			<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-caption-3 text-muted-foreground">
 				{isPending ? (
-					<span className="text-[13px] font-medium text-foreground">{author}</span>
+					<span className="text-caption-1 font-medium text-foreground">{author}</span>
 				) : (
 					<ProfileName
 						username={author}
 						avatarUrl={comment.authorAvatarUrl}
-						className="text-[13px] font-medium text-foreground hover:underline"
+						className="text-caption-1 font-medium text-foreground hover:underline"
 					/>
 				)}
 				{isOwn && (
@@ -675,7 +675,7 @@ function CommentBody({
 					<span>{t('comments.editing')}</span>
 				) : (
 					<>
-						<time dateTime={comment.createdAt} className="font-mono">
+						<time dateTime={comment.createdAt}>
 							{isHydrated && formatFromNow(comment.createdAt, currentLanguage)}
 						</time>
 						{comment.edited && <span>{t('comments.edited')}</span>}
@@ -695,7 +695,7 @@ function CommentBody({
 						autoFocus
 					/>
 					<div className="flex items-center gap-1.5">
-						<span className="mr-auto font-mono text-xs text-muted-foreground tabular-nums">
+						<span className="mr-auto text-caption-3 text-muted-foreground tabular-nums">
 							{draft.length} / {textMax(addressee)}
 						</span>
 						<Button size="sm" variant="ghost" onClick={closeEdit}>
@@ -713,13 +713,13 @@ function CommentBody({
 							type="button"
 							aria-label={`${t('comments.replyingTo')} ${addressee}`}
 							onClick={() => answered && showComment(answered.id)}
-							className="inline-flex h-[22px] items-center gap-1.5 self-start rounded-full border border-border-strong pr-2 pl-1.5 text-xs font-medium text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring"
+							className="inline-flex h-[22px] items-center gap-1.5 self-start rounded-full border border-border-strong pr-2 pl-1.5 text-caption-3 font-medium text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring"
 						>
 							<Reply aria-hidden className="size-3" strokeWidth={2.2} />
 							{addressee}
 						</button>
 					)}
-					<p className="text-sm leading-[1.55] break-words whitespace-pre-wrap text-foreground">{text}</p>
+					<p className="text-caption-1 leading-normal break-words whitespace-pre-wrap text-foreground">{text}</p>
 				</>
 			)}
 
@@ -741,7 +741,7 @@ function CommentBody({
 						>
 							<Heart className={cn('size-[15px]', comment.likedByCurrentUser && 'fill-current')} strokeWidth={1.8} />
 						</m.span>
-						{likes > 0 && <span className="font-mono tabular-nums">{likes}</span>}
+						{likes > 0 && <span className="tabular-nums">{likes}</span>}
 					</button>
 
 					<button
@@ -822,7 +822,7 @@ function CommentBody({
 						<AlertDialogContent className="sm:max-w-[440px]" finalFocus={() => (isDeleting.current ? false : moreRef.current)}>
 							<AlertDialogHeader>
 								<AlertDialogTitle>{t('comments.deleteConfirm')}</AlertDialogTitle>
-								<AlertDialogDescription className="text-[14px]">
+								<AlertDialogDescription className="text-body-4">
 									{(comment.replyCount ?? 0) > 0
 										? t(comment.replyCount === 1 ? 'comments.deleteBodyReply' : 'comments.deleteBodyReplies', {
 												count: comment.replyCount ?? 0,
@@ -830,7 +830,7 @@ function CommentBody({
 										: t('comments.deleteBody')}
 								</AlertDialogDescription>
 							</AlertDialogHeader>
-							<blockquote className="line-clamp-3 rounded-xl border border-border bg-surface-soft px-3.5 py-2.5 text-[14px] leading-normal text-muted-foreground">
+							<blockquote className="line-clamp-3 rounded-xl border border-border bg-surface-soft px-3.5 py-2.5 text-body-4 leading-normal text-muted-foreground">
 								{text}
 							</blockquote>
 							<AlertDialogFooter>

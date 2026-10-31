@@ -8,7 +8,7 @@ export function LastUpdated({ updatedAt }: { updatedAt: string }) {
 	const { t, currentLanguage } = useLanguage();
 
 	return (
-		<p className="mb-8 text-[14px] text-muted-foreground">
+		<p className="mb-8 text-body-4 text-muted-foreground">
 			{t('page.lastUpdated')} <time dateTime={updatedAt}>{formatDay(updatedAt, currentLanguage)}</time>
 		</p>
 	);

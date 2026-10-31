@@ -106,12 +106,12 @@ export function ExploreView({
 					value={query}
 					onChange={(e) => setQuery(e.target.value)}
 					placeholder={t('explore.searchPlaceholder')}
-					className="bg-card px-4 md:text-base"
+					className="bg-card px-4"
 				/>
 
 				<div className="flex flex-wrap items-center gap-x-4 gap-y-2">
 					<div className="flex items-center gap-4">
-						<span id={statusLabelId} className="text-[13px] text-muted-foreground">
+						<span id={statusLabelId} className="text-caption-1 text-muted-foreground">
 							{t('explore.status')}
 						</span>
 						<div className="flex gap-2" role="group" aria-labelledby={statusLabelId}>
@@ -121,7 +121,7 @@ export function ExploreView({
 					</div>
 					{/* Hidden, not removed, for Ended Polls: the row keeps its height when it wraps */}
 					<div className={cn('flex items-center gap-4', status !== 'open' && 'invisible')}>
-						<span id={sortLabelId} className="text-[13px] text-muted-foreground">
+						<span id={sortLabelId} className="text-caption-1 text-muted-foreground">
 							{t('explore.sort')}
 						</span>
 						<div className="flex gap-2" role="group" aria-labelledby={sortLabelId}>
@@ -140,7 +140,7 @@ export function ExploreView({
 				<ExploreResults initialPage={initialPage} initialQuery={initialQuery} apiQuery={apiQuery} status={status} />
 			</Suspense>
 			{query.trim().length > 0 && query.trim().length < SEARCH_MIN_LENGTH && (
-				<p className="text-center text-xs text-muted-foreground">{t('explore.searchTooShort')}</p>
+				<p className="text-center text-caption-3 text-muted-foreground">{t('explore.searchTooShort')}</p>
 			)}
 		</div>
 	);
@@ -167,7 +167,7 @@ function TopicPills({
 
 	return (
 		<div className="flex items-center gap-4">
-			<span id={labelId} className="shrink-0 text-[13px] text-muted-foreground">
+			<span id={labelId} className="shrink-0 text-caption-1 text-muted-foreground">
 				{t('explore.topics')}
 			</span>
 			{/* Padded inside the scroller, so the end pills' focus rings aren't clipped */}
@@ -243,7 +243,7 @@ const ExploreResults = memo(function ExploreResults({
 				className={cn('transition-opacity', isSearching && 'opacity-50')}
 			>
 				{searchFailed ? (
-					<p className="py-12 text-center text-sm text-muted-foreground">{t('explore.loadFailed')}</p>
+					<p className="py-12 text-center text-caption-1 text-muted-foreground">{t('explore.loadFailed')}</p>
 				) : list.items.length === 0 ? (
 					<EmptyCard
 						title={t('explore.noResults')}

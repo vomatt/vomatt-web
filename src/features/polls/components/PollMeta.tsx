@@ -47,5 +47,5 @@ export function EndedMeta({ poll }: { poll: Poll }) {
 /** "1,284 voted" in mono, as every poll meta line sets the turnout. */
 export function Turnout({ poll }: { poll: Poll }) {
 	const voted = useVotedText();
-	return <span className="font-mono tabular-nums">{voted(poll)}</span>;
+	return <span className="tabular-nums">{voted(poll)}</span>;
 }

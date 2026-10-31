@@ -44,7 +44,7 @@ export function MutualFollowersLine({ profile, onOpen }: { profile: Mutuals; onO
 		</>
 	);
 
-	const className = 'flex items-center gap-1.5 text-left text-[12px] text-muted-foreground';
+	const className = 'flex items-center gap-1.5 text-left text-caption-2 text-muted-foreground';
 	if (!onOpen) return <p className={className}>{content}</p>;
 	return (
 		<button

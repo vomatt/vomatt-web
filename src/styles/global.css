@@ -205,25 +205,57 @@ html:has([data-slot='tabs-list'][data-sticky], [data-sticky-bar]) {
 	--positive: oklch(0.798 0.115 154);
 }
 
+/* The type scale (see DESIGN.md, Type): Tailwind's default sizes are cleared; display and title steps carry weight, leading and tracking */
+@theme {
+	--text-*: initial;
+
+	--text-display-1: 3rem;
+	--text-display-1--line-height: 1.1;
+	--text-display-1--font-weight: 500;
+	--text-display-1--letter-spacing: -0.03em;
+	--text-display-2: 2.25rem;
+	--text-display-2--line-height: 1.1;
+	--text-display-2--font-weight: 500;
+	--text-display-2--letter-spacing: -0.03em;
+
+	--text-title-1: 1.75rem;
+	--text-title-1--line-height: 1.3;
+	--text-title-1--font-weight: 500;
+	--text-title-1--letter-spacing: -0.03em;
+	--text-title-2: 1.5rem;
+	--text-title-2--line-height: 1.3;
+	--text-title-2--font-weight: 500;
+	--text-title-2--letter-spacing: -0.02em;
+	--text-title-3: 1.375rem;
+	--text-title-3--line-height: 1.2;
+	--text-title-3--font-weight: 500;
+	--text-title-3--letter-spacing: -0.02em;
+	--text-title-4: 1rem;
+	--text-title-4--font-weight: 500;
+	--text-title-4--letter-spacing: -0.01em;
+
+	--text-body-1: 1.0625rem;
+	--text-body-2: 1rem;
+	--text-body-3: 0.9375rem;
+	--text-body-4: 0.875rem;
+
+	--text-caption-1: 0.8125rem;
+	--text-caption-2: 0.75rem;
+	--text-caption-3: 0.6875rem;
+	--text-caption-3--line-height: calc(1 / 0.75);
+	--text-caption-4: 0.625rem;
+
+	/* Tracking for small titles and uppercase labels, beside Tailwind's own steps */
+	--tracking-title: -0.01em;
+	--tracking-label: 0.06em;
+}
+
 @theme inline {
 
 	--font-sans: var(--font-geist-sans), 'PingFang TC', 'Microsoft JhengHei', 'Noto Sans TC', system-ui, sans-serif;
-	--font-mono: var(--font-geist-mono), ui-monospace, Menlo, monospace;
-	--font-family-monospace: Menlo, Monaco, Consolas, Courier New, monospace;
 	--font-family-default: Helvetica, Arial, sans-serif;
 	--font-family-serif: ui-serif, New York Small, New York, Georgia, Times New Roman, Times, serif;
 	--font-chinese-traditional: PingFang TC, Microsoft JhengHei;
-
-	/* One px under Tailwind's default steps; phone inputs pin 16px so iOS doesn't zoom */
-	--text-xs: 0.6875rem;
-	--text-sm: 0.8125rem;
-	--text-base: 0.9375rem;
-	--text-lg: 1.0625rem;
-	--text-xl: 1.1875rem;
-	--text-2xl: 1.4375rem;
-	--text-3xl: 1.8125rem;
-	--text-5xl: 2.875rem;
-	--text-6xl: 3.5rem;
 
 	--color-sidebar-ring: var(--sidebar-ring);
 	--color-sidebar-border: var(--sidebar-border);
@@ -418,49 +450,10 @@ html:has([data-slot='tabs-list'][data-sticky], [data-sticky-bar]) {
 	line-height: 0;
 }
 
-/* The redesign's display type: Geist 500, tight tracking */
-@utility display-heading {
-	font-weight: 500;
-	line-height: 1.25;
-	letter-spacing: -0.03em;
-}
-
-/* The title of a page in the app (Explore, Notifications, Settings): one size at every width */
-@utility page-title {
-	font-size: 28px;
-	font-weight: 500;
-	line-height: 1.3;
-	letter-spacing: -0.03em;
-}
-
-/* A poll's title on its card and in the creator's review: 22px, balanced lines; cards add md:text-[25px] */
-@utility poll-title {
-	font-size: 22px;
-	font-weight: 500;
-	line-height: 1.2;
-	letter-spacing: -0.02em;
-	text-wrap-style: balance;
-}
-
-/* Titles in list rows and side cards: 16px at weight 500; leading goes beside it */
-@utility item-title {
-	font-size: 16px;
-	font-weight: 500;
-	letter-spacing: -0.01em;
-}
-
-/* Section headings in CMS content and page modules: 24px at weight 500 */
-@utility section-title {
-	font-size: 24px;
-	font-weight: 500;
-	line-height: 1.3;
-	letter-spacing: -0.02em;
-}
-
 /* Long-form CMS text (editor pages, the Editorial module); its size goes beside it */
 @utility cms-prose {
 	/* Through --tw-leading, so the text-* size beside it keeps this leading */
-	@apply leading-[1.6];
+	@apply leading-relaxed;
 
 	& a {
 		@apply underline underline-offset-2;
@@ -469,7 +462,7 @@ html:has([data-slot='tabs-list'][data-sticky], [data-sticky-bar]) {
 		@apply mt-4;
 	}
 	& h2 {
-		@apply mt-8 section-title;
+		@apply mt-8 text-title-2;
 	}
 	& li {
 		@apply mt-1;
@@ -483,7 +476,7 @@ html:has([data-slot='tabs-list'][data-sticky], [data-sticky-bar]) {
 }
 
 @utility empty-state {
-	@apply rounded-xl border border-dashed border-border-strong bg-surface-soft px-5 py-8 text-[14px] text-muted-foreground;
+	@apply rounded-xl border border-dashed border-border-strong bg-surface-soft px-5 py-8 text-body-4 text-muted-foreground;
 }
 
 /* Every avatar's circle: 32px unless a size goes beside it, with a 1px line so it sits on any surface */

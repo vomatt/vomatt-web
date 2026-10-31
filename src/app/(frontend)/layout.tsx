@@ -1,8 +1,7 @@
 import '@/styles/global.css';
 
 import type { SanityImageSource } from '@sanity/image-url';
-import clsx from 'clsx';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Geist } from 'next/font/google';
 import { headers } from 'next/headers';
 import { cache, ReactNode } from 'react';
 import { Toaster } from 'sonner';
@@ -29,7 +28,6 @@ import { siteSharingQuery } from '@/sanity/lib/queries';
 export const maxDuration = 60;
 
 const geistSans = Geist({ subsets: ['latin'], variable: '--font-geist-sans' });
-const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono' });
 
 // Shared by generateMetadata and the layout within one request
 const getSiteSettings = cache(() =>
@@ -104,7 +102,7 @@ export default async function RootLayout({
 
 	return (
 		// next-themes sets the theme class on <html> before React hydrates
-		<html lang={htmlLang(language)} className={clsx(geistSans.variable, geistMono.variable)} suppressHydrationWarning>
+		<html lang={htmlLang(language)} className={geistSans.variable} suppressHydrationWarning>
 			<body className="text-foreground font-sans antialiased">
 				{/* The .dark tokens follow the system setting */}
 				<ThemeProvider>
@@ -114,11 +112,11 @@ export default async function RootLayout({
 								<div className="w-28 text-foreground">
 									<BrandLogo />
 								</div>
-								<h1 className="mt-4 text-[48px] font-medium leading-[1.1] tracking-[-0.03em]">
+								<h1 className="mt-4 text-display-1">
 									{comingSoon?.heading || 'Coming soon'}
 								</h1>
 								{comingSoon?.message && (
-									<div className="text-lg text-muted-foreground">
+									<div className="text-body-1 text-muted-foreground">
 										<CustomPortableText blocks={comingSoon.message} />
 									</div>
 								)}

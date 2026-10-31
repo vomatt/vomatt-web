@@ -13,9 +13,9 @@ export default function PageGeneral({ data, children }: { data: any; children?: 
 		return (
 			<PageShell>
 				<article className="page-general">
-					<h1 className="mb-4 display-heading text-[30px] text-foreground md:text-[40px]">{title}</h1>
+					<h1 className="mb-4 text-title-1 text-foreground md:text-display-2">{title}</h1>
 					{showLastUpdated && _updatedAt && <LastUpdated updatedAt={_updatedAt} />}
-					<div className="cms-prose text-lg">
+					<div className="cms-prose text-body-1">
 						{content && <CustomPortableText blocks={content} />}
 					</div>
 					{children}

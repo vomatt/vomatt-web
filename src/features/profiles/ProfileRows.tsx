@@ -41,13 +41,13 @@ export function ProfileSection({
 }) {
 	const { currentLanguage } = useLanguage();
 	return (
-		<h3 className="mx-0.5 mt-2.5 mb-0.5 flex items-center gap-1.5 text-[12px] font-medium text-muted-foreground">
+		<h3 className="mx-0.5 mt-2.5 mb-0.5 flex items-center gap-1.5 text-caption-2 font-medium text-muted-foreground">
 			{icon}
 			{label}
 			{count !== undefined && (
 				<>
 					{' · '}
-					<span className="font-mono tabular-nums">{count.toLocaleString(toPayloadLocale(currentLanguage))}</span>
+					<span className="tabular-nums">{count.toLocaleString(toPayloadLocale(currentLanguage))}</span>
 				</>
 			)}
 			{note && ` · ${note}`}
@@ -64,7 +64,7 @@ function OpenMeta({ poll, status }: { poll: Poll; status: PollStatus }) {
 	if (status === 'scheduled') return <>{when ?? '\u00a0'}</>;
 	return (
 		<>
-			<span className="font-mono tabular-nums text-foreground">{voted(poll)}</span>
+			<span className="tabular-nums text-foreground">{voted(poll)}</span>
 			{when && ` · ${when}`}
 		</>
 	);
@@ -79,7 +79,7 @@ function RowTitle({ unread, children }: { unread?: boolean | null; children: Rea
 	const { t } = useLanguage();
 	return (
 		<span className="flex min-w-0 items-center gap-2">
-			<span className={cn('item-title line-clamp-2 min-w-0 leading-snug wrap-break-word', unread && 'font-semibold')}>{children}</span>
+			<span className={cn('text-title-4 line-clamp-2 min-w-0 leading-snug wrap-break-word', unread && 'font-semibold')}>{children}</span>
 			{unread && <UnreadDot label={t('notifications.unread')} className="shrink-0" />}
 		</span>
 	);
@@ -106,7 +106,7 @@ export function AskedRow({
 	const text = (
 		<span className="flex min-w-0 flex-1 flex-col gap-0.5">
 			<RowTitle unread={unread}>{poll.title}</RowTitle>
-			<span className="text-[12px] text-muted-foreground">
+			<span className="text-caption-2 text-muted-foreground">
 				{ended ? <EndedMeta poll={poll} /> : <OpenMeta poll={poll} status={status} />}
 				{unread && (
 					<>
@@ -168,15 +168,15 @@ export function VotedRow({ poll }: { poll: Poll }) {
 				>
 					<SealMark />
 					<span className="flex min-w-0 flex-1 flex-col gap-0.5">
-						<span className="item-title line-clamp-2 leading-snug wrap-break-word">{poll.title}</span>
-						<span className="text-[12px] text-tide-foreground">
+						<span className="text-title-4 line-clamp-2 leading-snug wrap-break-word">{poll.title}</span>
+						<span className="text-caption-2 text-tide-foreground">
 							{t('myPolls.youChose')} {choice}
 							{clock &&
 								poll.endTime &&
 								` · ${t('profile.resultsAt', { date: formatPollMoment(poll.endTime, clock.language, clock.now) })}`}
 						</span>
 					</span>
-					<span className="hidden font-mono text-[12px] tabular-nums text-tide-foreground sm:inline">{voted(poll)}</span>
+					<span className="hidden text-caption-2 tabular-nums text-tide-foreground sm:inline">{voted(poll)}</span>
 				</Link>
 			</li>
 		);
@@ -188,10 +188,10 @@ export function VotedRow({ poll }: { poll: Poll }) {
 			<Link href={`/poll/${poll.id}`} className={cn(profileRowClassName, linkFocus)}>
 				<span className="flex min-w-0 flex-1 flex-col gap-0.5">
 					<RowTitle unread={poll.unread}>{poll.title}</RowTitle>
-					<span className="text-[12px] text-muted-foreground">
+					<span className="text-caption-2 text-muted-foreground">
 						{t('myPolls.youChose')} <strong className="font-medium text-foreground">{ballotChoice(poll)}</strong>
 						{' · '}
-						{isCancelled(poll) ? t('notifications.cancelled') : <span className="font-mono tabular-nums">{voted(poll)}</span>}
+						{isCancelled(poll) ? t('notifications.cancelled') : <span className="tabular-nums">{voted(poll)}</span>}
 						{poll.unread && (
 							<>
 								{' · '}

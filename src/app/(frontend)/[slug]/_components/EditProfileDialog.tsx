@@ -47,8 +47,8 @@ const BIRTHDAY_MIN = '1900-01-01';
 const latestBirthday = () =>
 	new Date(Date.now() - 86_400_000).toLocaleDateString('en-CA', { timeZone: 'Asia/Taipei' });
 
-const labelClassName = 'text-sm font-medium text-foreground';
-const sublabelClassName = 'text-[12px] text-muted-foreground';
+const labelClassName = 'text-caption-1 font-medium text-foreground';
+const sublabelClassName = 'text-caption-2 text-muted-foreground';
 
 /**
  * Edit profile: each detail says who sees it, and the owner changes that right
@@ -205,7 +205,7 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 							<label htmlFor="username" className={labelClassName}>
 								{t('account.usernameLabel')}
 							</label>
-							<span className="text-[12px] text-muted-foreground">{t('profile.alwaysShown')}</span>
+							<span className="text-caption-2 text-muted-foreground">{t('profile.alwaysShown')}</span>
 						</div>
 						<Input
 							ref={usernameInput}
@@ -220,14 +220,13 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 							spellCheck={false}
 							maxLength={USERNAME_MAX_LENGTH}
 							leading="@"
-							className="font-mono"
 							aria-invalid={!!usernameError}
 							aria-describedby="username-hint"
 						/>
 						<p
 							id="username-hint"
 							className={cn(
-								'flex items-start gap-2 wrap-anywhere text-xs',
+								'flex items-start gap-2 wrap-anywhere text-caption-3',
 								usernameError ? 'text-destructive' : 'text-muted-foreground'
 							)}
 						>
@@ -320,7 +319,7 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 							aria-describedby={birthdayError ? 'birthday-error' : undefined}
 						/>
 						{birthdayError && (
-							<p id="birthday-error" className="text-xs text-destructive">
+							<p id="birthday-error" className="text-caption-3 text-destructive">
 								{t('profile.birthdayInvalid')}
 							</p>
 						)}
@@ -341,13 +340,13 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 							rows={3}
 							aria-describedby="bio-count"
 						/>
-						<p id="bio-count" className="text-right font-mono text-xs tabular-nums text-muted-foreground">
+						<p id="bio-count" className="text-right text-caption-3 tabular-nums text-muted-foreground">
 							{values.bio.length} / {BIO_MAX_LENGTH}
 						</p>
 					</div>
 				</form>
 				<DialogFooter className="items-center">
-					<p className="mr-auto hidden text-[12px] text-muted-foreground sm:block">{t('profile.visibilitySavesHint')}</p>
+					<p className="mr-auto hidden text-caption-2 text-muted-foreground sm:block">{t('profile.visibilitySavesHint')}</p>
 					<Button variant="outline" size="md" onClick={() => setOpen(false)} disabled={isPending}>
 						{t('common.cancel')}
 					</Button>
@@ -376,7 +375,7 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 }
 
 const pillClassName =
-	'inline-flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 text-[12px] font-medium';
+	'inline-flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 text-caption-2 font-medium';
 // The pill stays small beside its label, but its hit area reaches 44px
 const pillHitArea = "relative before:absolute before:-inset-y-2 before:inset-x-0 before:content-['']";
 

@@ -19,7 +19,7 @@ export function LogIn({ policyMessage }: { policyMessage?: PortableTextBlock[] |
 			{sessionExpired && (
 				// Plain text ahead of the title: it is there from the first paint, which a live region
 				// wouldn't announce, and reading order reaches it first
-				<p className="mb-6 rounded-[10px] border border-border bg-card px-3.5 py-3 text-[14px] text-foreground">
+				<p className="mb-6 rounded-[10px] border border-border bg-card px-3.5 py-3 text-body-4 text-foreground">
 					{t(
 						sessionExpired === 'security'
 							? 'login.sessionRevoked'

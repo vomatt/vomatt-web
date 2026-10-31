@@ -40,7 +40,7 @@ export function PollSideCard({ kind, polls }: PollSideCardProps) {
 		<section aria-labelledby={headingId} className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-[18px]">
 			<h2
 				id={headingId}
-				className="text-[13px] font-semibold uppercase tracking-[0.06em] text-muted-foreground"
+				className="text-caption-1 font-semibold uppercase tracking-label text-muted-foreground"
 			>
 				{t(heading)}
 			</h2>
@@ -72,7 +72,7 @@ export function PollSideCard({ kind, polls }: PollSideCardProps) {
 									<span className="flex min-w-0 items-start gap-2">
 										<span
 											className={cn(
-												'min-w-0 line-clamp-2 text-[15px] leading-[1.35] tracking-[-0.01em] text-foreground',
+												'min-w-0 line-clamp-2 text-body-3 leading-snug tracking-title text-foreground',
 												titleWeight(poll)
 											)}
 										>
@@ -82,8 +82,8 @@ export function PollSideCard({ kind, polls }: PollSideCardProps) {
 									</span>
 									<span
 										className={cn(
-											'mt-0.5 block text-[13px] text-muted-foreground',
-											kind === 'closingSoon' && 'font-mono tabular-nums'
+											'mt-0.5 block text-caption-1 text-muted-foreground',
+											kind === 'closingSoon' && 'tabular-nums'
 										)}
 									>
 										{meta.map((part, i) => (

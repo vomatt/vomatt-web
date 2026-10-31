@@ -33,8 +33,8 @@ export function EmptyCard({
 			<span aria-hidden className="mb-1.5 inline-flex size-14 items-center justify-center rounded-full bg-field text-muted-foreground [&_svg]:size-6">
 				{icon}
 			</span>
-			<Heading className="text-[21px] font-medium tracking-[-0.02em] text-foreground">{title}</Heading>
-			{body && <p className="max-w-[420px] text-[15px] text-muted-foreground">{body}</p>}
+			<Heading className="text-title-3 text-foreground">{title}</Heading>
+			{body && <p className="max-w-[420px] text-body-3 text-muted-foreground">{body}</p>}
 			{action && <div className="mt-3.5">{action}</div>}
 		</div>
 	);

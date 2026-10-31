@@ -30,7 +30,7 @@ export default async function SettingsPage() {
 				</aside>
 			}
 		>
-			<h1 className="mb-8 page-title text-foreground">
+			<h1 className="mb-8 text-title-1 text-foreground">
 				<T k="navigation.settings" />
 			</h1>
 			<AccountSettings

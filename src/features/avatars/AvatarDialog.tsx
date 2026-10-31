@@ -145,10 +145,10 @@ export function AvatarDialog({
 						className="size-16 md:size-28"
 					/>
 					<div className="min-w-0 flex-1" aria-live="polite">
-						<p className="font-medium md:text-lg">
+						<p className="font-medium md:text-body-1">
 							{t(`${avatarCopyKey(selected)}.name`)}
 						</p>
-						<p className="text-[12px] text-muted-foreground">
+						<p className="text-caption-2 text-muted-foreground">
 							{t(`${avatarCopyKey(selected)}.trait`)}
 						</p>
 					</div>
@@ -160,12 +160,12 @@ export function AvatarDialog({
 				<div ref={setGrid} className="-mx-4 space-y-5 overflow-y-auto overscroll-contain px-4 pb-1">
 					{/* No character first, as its own group, then the cast */}
 					<div className="space-y-2">
-						<p className="text-xs text-muted-foreground">{t('avatar.families.plain')}</p>
+						<p className="text-caption-3 text-muted-foreground">{t('avatar.families.plain')}</p>
 						<div className={TILE_GRID}>{renderTile(NO_BOT)}</div>
 					</div>
 					{(Object.keys(BOT_FAMILIES) as BotFamily[]).map((family) => (
 						<div key={family} className="space-y-2">
-							<p className="text-xs text-muted-foreground">
+							<p className="text-caption-3 text-muted-foreground">
 								{t(`avatar.families.${family}`)}
 							</p>
 							<div className={TILE_GRID}>{BOT_FAMILIES[family].map(renderTile)}</div>

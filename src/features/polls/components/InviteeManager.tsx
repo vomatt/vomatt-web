@@ -105,10 +105,10 @@ export function InviteeManager({ pollId, open, onOpenChange, onChanged }: Invite
 						</div>
 					)}
 					{loadFailed && (
-						<p className="py-2 text-[12px] text-muted-foreground">{t('invitees.loadFailed')}</p>
+						<p className="py-2 text-caption-2 text-muted-foreground">{t('invitees.loadFailed')}</p>
 					)}
 					{invitees?.length === 0 && (
-						<p className="py-2 text-[12px] text-muted-foreground">{t('invitees.empty')}</p>
+						<p className="py-2 text-caption-2 text-muted-foreground">{t('invitees.empty')}</p>
 					)}
 					{!!invitees?.length && (
 						<PeopleList

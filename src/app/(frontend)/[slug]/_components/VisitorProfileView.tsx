@@ -71,7 +71,7 @@ export function VisitorProfileView({
 				// What following does, for every visitor: signed out too, before they can follow
 				!preview && (
 					<aside className="flex flex-col gap-3 xl:sticky xl:top-8">
-						<TidePanel className="p-3.5 text-[13px] leading-relaxed">
+						<TidePanel className="p-3.5 text-caption-1 leading-relaxed">
 							<p className="mb-1 flex items-center gap-1.5 font-medium">
 								<Lock aria-hidden className="size-3.5 shrink-0 text-tide" />
 								{t('profile.followingNoteTitle')}
@@ -90,7 +90,7 @@ export function VisitorProfileView({
 		>
 			<div className="flex flex-col gap-6">
 				{preview && (
-					<TidePanel className="flex flex-wrap items-center justify-between gap-3 p-3.5 text-[13px]">
+					<TidePanel className="flex flex-wrap items-center justify-between gap-3 p-3.5 text-caption-1">
 						<p>{t('profile.previewNote')}</p>
 						<Link
 							href={profileHref(profile.username)}
@@ -162,7 +162,7 @@ function VisitorActions({ profile, follow }: { profile: UserProfile; follow: Fol
 							<Menu.Item
 								disabled={isUnblocking}
 								onClick={profile.isBlocked ? unblock : () => setBlockOpen(true)}
-								className="flex min-h-10 cursor-pointer select-none items-center gap-2.5 rounded-lg px-3 text-sm font-medium text-destructive outline-none data-highlighted:bg-foreground/5"
+								className="flex min-h-10 cursor-pointer select-none items-center gap-2.5 rounded-lg px-3 text-caption-1 font-medium text-destructive outline-none data-highlighted:bg-foreground/5"
 							>
 								<Ban aria-hidden className="size-4" />
 								{profile.isBlocked ? t('blocks.unblock') : t('blocks.blockEllipsis')}
@@ -206,9 +206,9 @@ function AskedList({
 	return (
 		<section className="flex flex-col gap-2">
 			<div className="flex flex-wrap items-center gap-x-4 border-b border-border">
-				<h2 className="relative inline-flex h-11 items-center gap-1.5 text-[15px] font-medium after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-foreground">
+				<h2 className="relative inline-flex h-11 items-center gap-1.5 text-body-3 font-medium after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-foreground">
 					{t('profile.tabAsked')}
-					<span className="font-mono tabular-nums text-muted-foreground">
+					<span className="tabular-nums text-muted-foreground">
 						{total.toLocaleString(toPayloadLocale(currentLanguage))}
 					</span>
 				</h2>

@@ -8,4 +8,4 @@ export const menuPopupClassName =
 
 // Phones keep the 44px target, as Button does; from md the item is 36px
 export const menuItemClassName =
-	'flex h-11 w-full cursor-pointer select-none items-center gap-2.5 rounded-lg px-2.5 text-[14px] outline-none data-highlighted:bg-foreground/5 md:h-9 [&_svg]:size-4 [&_svg]:shrink-0';
+	'flex h-11 w-full cursor-pointer select-none items-center gap-2.5 rounded-lg px-2.5 text-body-4 outline-none data-highlighted:bg-foreground/5 md:h-9 [&_svg]:size-4 [&_svg]:shrink-0';

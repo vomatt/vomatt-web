@@ -145,7 +145,7 @@ export function VotersDialog({ option, voters, onClose }: VotersDialogProps) {
 				</DialogHeader>
 				<div className="-mx-4 overflow-y-auto px-4">
 					{choicesHidden && (
-						<p className="pb-2 text-[12px] text-muted-foreground">{t('poll.votersChoicesHidden')}</p>
+						<p className="pb-2 text-caption-2 text-muted-foreground">{t('poll.votersChoicesHidden')}</p>
 					)}
 					{chose.length > 0 && (
 						<ul aria-label={t('poll.voters')} className="space-y-1">
@@ -154,7 +154,7 @@ export function VotersDialog({ option, voters, onClose }: VotersDialogProps) {
 									<UserChip
 										username={voter.username}
 										avatarUrl={voter.avatarUrl}
-										className="-mx-2 flex min-h-11 gap-3 rounded-lg px-2 text-[14px] hover:bg-muted"
+										className="-mx-2 flex min-h-11 gap-3 rounded-lg px-2 text-body-4 hover:bg-muted"
 									/>
 								</li>
 							))}
@@ -166,13 +166,13 @@ export function VotersDialog({ option, voters, onClose }: VotersDialogProps) {
 						</div>
 					)}
 					{truncated && (
-						<p className="py-2 text-[12px] text-muted-foreground">
+						<p className="py-2 text-caption-2 text-muted-foreground">
 							{t('poll.votersTruncated', { count: voters.voters.length })}
 						</p>
 					)}
-					{empty && <p className="py-2 text-[12px] text-muted-foreground">{t('poll.votersNone')}</p>}
+					{empty && <p className="py-2 text-caption-2 text-muted-foreground">{t('poll.votersNone')}</p>}
 					{failed && (
-						<p className="py-2 text-[12px] text-muted-foreground">
+						<p className="py-2 text-caption-2 text-muted-foreground">
 							{t(voters.status === 'hidden' ? 'poll.votersHidden' : 'poll.votersFailed')}
 						</p>
 					)}
