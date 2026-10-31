@@ -556,6 +556,7 @@ describe('CommentThread', () => {
 		expect(within(screen.getByText('Theirs').closest('article')!).getByRole('textbox', { name: 'Write a reply…' })).toBeInTheDocument();
 	});
 
+
 	it('focuses a reply composer without jumping the page, and keeps the main composer as it was', async () => {
 		const scrollIntoView = jest.fn();
 		const realScroll = Element.prototype.scrollIntoView;
@@ -749,5 +750,26 @@ describe('useComments', () => {
 		expect(result.current.replies.c1.items.map((c) => c.id)).toEqual(['r2']);
 		expect(result.current.comments[0].replyCount).toBe(1);
 		expect(result.current.total).toBe(3);
+	});
+
+	it('keeps a comment posted while the first page was loading', async () => {
+		let loadFirstPage!: (value: unknown) => void;
+		service.getComments.mockReturnValue(new Promise((resolve) => (loadFirstPage = resolve)));
+		let save!: (value: unknown) => void;
+		service.postComment.mockReturnValue(new Promise((resolve) => (save = resolve)));
+		const { result } = renderHook(() => useComments('poll-1', { enabled: true }));
+
+		let posted!: Promise<boolean>;
+		await act(async () => {
+			posted = result.current.add('Early', 'You');
+		});
+		// The page was read before the comment was saved, so it doesn't list it
+		await act(async () => loadFirstPage({ ok: true, data: { items: [theirs], nextCursor: null } }));
+		await act(async () => {
+			save({ ok: true, data: { ...mine, id: 'c9', text: 'Early' } });
+			await posted;
+		});
+
+		expect(result.current.comments.map((c) => c.text)).toEqual(['Early', 'Theirs']);
 	});
 });
