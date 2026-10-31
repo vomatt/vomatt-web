@@ -427,6 +427,44 @@ describe('PollCard state B · Open, has Ballot', () => {
 		expect(toast.success).not.toHaveBeenCalled();
 	});
 
+	it('keeps a vote cast here when the page refreshes, as the vote itself makes it do', async () => {
+		const { rerender } = render(<PollCard poll={openPoll} viewerId="user-voter" isPage />);
+		vote('Friday');
+		await screen.findByRole('button', { name: 'Withdraw vote' });
+
+		rerender(<PollCard poll={{ ...openPoll, commentCount: 1 }} viewerId="user-voter" isPage />);
+
+		expect(screen.getByLabelText('Friday')).toBeChecked();
+		expect(screen.getByRole('button', { name: 'Withdraw vote' })).toBeInTheDocument();
+		expect(screen.getByText('129 voted')).toBeInTheDocument();
+	});
+
+	it('keeps a vote cast here when the poll is then saved', async () => {
+		mockBookmarkPoll.mockResolvedValue({ ok: true });
+		render(<PollCard poll={openPoll} viewerId="user-voter" />);
+		vote('Friday');
+		await screen.findByRole('button', { name: 'Withdraw vote' });
+
+		fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+		await screen.findByRole('button', { name: 'Saved' });
+
+		expect(screen.getByLabelText('Friday')).toBeChecked();
+		expect(screen.getByText('129 voted')).toBeInTheDocument();
+	});
+
+	it('keeps a withdrawal made here when the page refreshes', async () => {
+		const voted = { ...openPoll, myOptionId: 'opt-sun' };
+		const { rerender } = render(<PollCard poll={voted} viewerId="user-voter" isPage />);
+		fireEvent.click(screen.getByRole('button', { name: 'Withdraw vote' }));
+		fireEvent.click(screen.getByRole('button', { name: 'Withdraw' }));
+		await screen.findByRole('button', { name: 'Vote' });
+
+		rerender(<PollCard poll={{ ...voted, commentCount: 1 }} viewerId="user-voter" isPage />);
+
+		expect(screen.getByLabelText('Sunday')).not.toBeChecked();
+		expect(screen.getByRole('button', { name: 'Vote' })).toBeInTheDocument();
+	});
+
 	it('folds the Seal to a row on a later visit', () => {
 		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerId="user-voter" />);
 
