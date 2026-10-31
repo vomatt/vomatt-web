@@ -40,6 +40,8 @@ const profile = {
 	joinedAt: '2026-01-01T00:00:00Z',
 	totalPolls: 0,
 	totalVotes: 0,
+	createdPollCount: 0,
+	votedPollCount: 0,
 	followersCount: 0,
 	followingCount: 0,
 	visibilitySettings: {},
