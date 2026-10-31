@@ -465,6 +465,7 @@
 		"reportDone": "Thanks. We’ll review it.",
 		"reportFailed": "Couldn’t send the report. Try again.",
 		"linkCopied": "Link copied",
+		"linkCopyFailed": "Couldn’t copy the link.",
 		"justEnded": "This poll just ended.",
 		"voteCast": "Vote cast.",
 		"voteWithdrawn": "Vote withdrawn.",

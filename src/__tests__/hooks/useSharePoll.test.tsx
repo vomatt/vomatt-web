@@ -1,9 +1,10 @@
 import { renderHook } from '@testing-library/react';
+import { toast } from 'sonner';
 
 import { useSharePoll } from '@/features/polls/hooks/useSharePoll';
 import { sharePoll } from '@/features/polls/service';
 
-jest.mock('sonner', () => ({ toast: jest.fn() }));
+jest.mock('sonner', () => ({ toast: Object.assign(jest.fn(), { error: jest.fn() }) }));
 jest.mock('@/contexts/LanguageContext', () => ({ useLanguage: () => ({ t: (key: string) => key }) }));
 jest.mock('@/features/polls/service', () => ({ sharePoll: jest.fn() }));
 
@@ -38,9 +39,10 @@ describe('useSharePoll()', () => {
 		expect(sharePoll).toHaveBeenCalledWith('poll-1', 'COPY_LINK');
 	});
 
-	it('does not count a link that could not be copied', async () => {
+	it('says so, and does not count it, when the link could not be copied', async () => {
 		Object.assign(navigator, { clipboard: { writeText: jest.fn().mockRejectedValue(new Error('denied')) } });
 		await renderHook(() => useSharePoll()).result.current(poll);
+		expect(toast.error).toHaveBeenCalledWith('poll.linkCopyFailed');
 		expect(sharePoll).not.toHaveBeenCalled();
 	});
 

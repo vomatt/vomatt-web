@@ -456,6 +456,7 @@
 		"reportDone": "謝謝，我們會審查。",
 		"reportFailed": "無法送出檢舉，請再試一次。",
 		"linkCopied": "已複製連結",
+		"linkCopyFailed": "無法複製連結。",
 		"justEnded": "這個投票剛剛結束了。",
 		"voteCast": "已完成投票。",
 		"voteWithdrawn": "已撤回投票。",
