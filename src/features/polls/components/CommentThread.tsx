@@ -34,6 +34,7 @@ import { cn } from '@/lib/utils';
 import { chipClassName } from '../chip';
 import { formatFromNow } from '../format';
 import type { CommentsState } from '../hooks/useComments';
+import { MENTION } from '../mention';
 import type { Comment } from '../schema';
 import { CreateCommentRequestSchema } from '../schema';
 import { pollUrl } from '../url';
@@ -80,9 +81,6 @@ function splitAddressee(text: string) {
 	const match = /^@([\w.-]+)\s+/.exec(text);
 	return match ? { addressee: match[1], text: text.slice(match[0].length) } : { addressee: null, text };
 }
-
-// The API's mention rule: a username not preceded by a letter or digit of any script, or `_`
-const MENTION = /(?<![\p{L}\p{N}_])@([a-z0-9_]{3,50})(?![a-z0-9_])/giu;
 
 /** Comment text with each `@handle` linked to that profile, as the API notifies them. */
 function MentionText({ text }: { text: string }) {

@@ -11,6 +11,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import type { Group } from '@/features/groups/schema';
 import { getGroups } from '@/features/groups/service';
+import { useDebouncedLookup } from '@/hooks/useDebouncedLookup';
 import { searchUsers } from '@/lib/api/services/users';
 import type { UserDto } from '@/schemas/user';
 
@@ -19,8 +20,7 @@ import type { InviteeSelection, PickedUser } from '../invitees';
 
 const MAX_SUGGESTIONS = 5;
 
-/** Search results, tagged with the term they answer so stale ones never show. */
-type Results = { term: string; users: UserDto[]; failed?: boolean };
+const findUsers = async (term: string): Promise<UserDto[]> => (await searchUsers(term)).items;
 
 type InviteePickerProps = {
 	value: InviteeSelection;
@@ -48,7 +48,6 @@ export function InviteePicker({
 }: InviteePickerProps) {
 	const { t } = useLanguage();
 	const [query, setQuery] = useState('');
-	const [results, setResults] = useState<Results>({ term: '', users: [] });
 	const [groups, setGroups] = useState<Group[]>([]);
 
 	const term = query.trim();
@@ -57,30 +56,14 @@ export function InviteePicker({
 	const isEmail = emailSchema.shape.email.safeParse(email).success;
 	const looksLikeEmail = term.includes('@');
 	const isSearching = !!term && !looksLikeEmail;
-	const isLoading = isSearching && results.term !== term;
+	const results = useDebouncedLookup(isSearching ? term : null, findUsers, SEARCH_DEBOUNCE_MS);
+	const isLoading = isSearching && results?.term !== term;
 	const suggestions =
-		isSearching && results.term === term
-			? results.users
+		isSearching && results?.term === term
+			? results.items
 					.filter((user) => !value.users.some((picked) => picked.id === user.id))
 					.slice(0, MAX_SUGGESTIONS)
 			: [];
-
-	useEffect(() => {
-		if (!isSearching) return;
-		let ignore = false;
-		const timer = setTimeout(async () => {
-			try {
-				const page = await searchUsers(term);
-				if (!ignore) setResults({ term, users: page.items });
-			} catch {
-				if (!ignore) setResults({ term, users: [], failed: true });
-			}
-		}, SEARCH_DEBOUNCE_MS);
-		return () => {
-			ignore = true;
-			clearTimeout(timer);
-		};
-	}, [isSearching, term]);
 
 	useEffect(() => {
 		if (!withGroups) return;
@@ -225,7 +208,7 @@ export function InviteePicker({
 				)}
 				{isSearching && !isLoading && suggestions.length === 0 && (
 					<p className="px-3 py-2 text-caption-2 text-muted-foreground">
-						{t(results.failed ? 'invitees.searchFailed' : 'invitees.noUsers')}
+						{t(results?.failed ? 'invitees.searchFailed' : 'invitees.noUsers')}
 					</p>
 				)}
 			</div>

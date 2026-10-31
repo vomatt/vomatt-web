@@ -575,6 +575,7 @@
 		"reply": "Reply",
 		"replyPlaceholder": "Write a reply…",
 		"mentionSuggestions": "People to mention",
+		"mentionSearchFailed": "Couldn’t look up people.",
 		"viewReply": "View 1 reply",
 		"viewReplies": "View {count} replies",
 		"moreReply": "View 1 more reply",

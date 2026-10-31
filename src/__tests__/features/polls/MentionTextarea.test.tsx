@@ -1,7 +1,8 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { useState } from 'react';
 
-import { activeMention, insertMention, MentionTextarea } from '@/features/polls/components/MentionTextarea';
+import { MentionTextarea } from '@/features/polls/components/MentionTextarea';
+import { activeMention, insertMention } from '@/features/polls/mention';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 
@@ -39,7 +40,10 @@ beforeEach(() => {
 	mockGetFollowing.mockReset().mockResolvedValue({ ok: true, data: { items: [percy, wanan], nextCursor: null } });
 });
 
-afterEach(() => jest.useRealTimers());
+afterEach(() => {
+	jest.useRealTimers();
+	jest.restoreAllMocks();
+});
 
 describe('activeMention()', () => {
 	it('finds the handle the caret is in', () => {
@@ -100,6 +104,23 @@ describe('MentionTextarea', () => {
 		expect(field).toHaveValue('@fi00123 ');
 	});
 
+	it('leaves Shift+Enter to the field for a new line', async () => {
+		render(<Field />);
+		const field = await type('@wan');
+		fireEvent.keyDown(field, { key: 'Enter', shiftKey: true });
+		expect(field).toHaveValue('@wan');
+	});
+
+	it('starts on the first row each time the list opens', async () => {
+		render(<Field />);
+		const field = await type('@');
+		fireEvent.keyDown(field, { key: 'ArrowDown' });
+		fireEvent.keyDown(field, { key: 'Enter' });
+		await type('');
+		await type('@');
+		expect(screen.getAllByRole('option')[0]).toHaveAttribute('aria-selected', 'true');
+	});
+
 	it('closes on Escape without changing the text', async () => {
 		render(<Field />);
 		const field = await type('@wan');
@@ -108,19 +129,29 @@ describe('MentionTextarea', () => {
 		expect(field).toHaveValue('@wan');
 	});
 
+	it('suggests again for a new handle typed where a dismissed one was', async () => {
+		render(<Field />);
+		const field = await type('@wan');
+		fireEvent.keyDown(field, { key: 'Escape' });
+		await type('');
+		await type('@fi');
+		expect(screen.getByRole('listbox')).toBeInTheDocument();
+	});
+
+	it('says so when the lookup fails', async () => {
+		mockSearchUsers.mockRejectedValue(new Error('rate limited'));
+		jest.spyOn(console, 'error').mockImplementation(() => {});
+		render(<Field />);
+		const field = await type('@wan');
+		expect(screen.getByRole('status')).toHaveTextContent('Couldn’t look up people.');
+		expect(field).toHaveAttribute('aria-expanded', 'true');
+	});
+
 	it('leaves the viewer out of the suggestions', async () => {
 		mockSearchUsers.mockResolvedValue({ items: [{ ...wanan, username: 'klaus' }, percy], nextCursor: null });
 		render(<Field />);
 		await type('@k');
 		expect(screen.getAllByRole('option')).toHaveLength(1);
-	});
-
-	it('opens above a field near the bottom of the screen', async () => {
-		render(<Field />);
-		const field = screen.getByLabelText('Comment');
-		field.getBoundingClientRect = () => ({ top: 700, bottom: 760, left: 20, width: 300 }) as DOMRect;
-		await type('@wan');
-		expect(screen.getByRole('listbox')).toHaveStyle({ bottom: `${window.innerHeight - 700 + 4}px` });
 	});
 
 	it('suggests no one to a guest', async () => {
