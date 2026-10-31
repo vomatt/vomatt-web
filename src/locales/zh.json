@@ -499,7 +499,7 @@
 		"votersHidden": "這個投票的投票者名單已隱藏，以保護匿名投票，或是依照投票的公開設定。",
 		"votersTruncated": "這裡只能列出前 {count} 位投票者。",
 		"votersNone": "沒有可顯示的投票者。",
-		"votersChoicesHidden": "此投票含有匿名票，因此不顯示選擇。以下為所有參與者。",
+		"votersChoicesHidden": "此投票含有匿名票，因此不顯示任何人的選擇。以下列出所有具名投票者。",
 		"votersFailed": "無法載入投票者。",
 		"deletePoll": "刪除投票",
 		"deletePollTitle": "要刪除這個投票嗎？",

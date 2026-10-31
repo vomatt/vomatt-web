@@ -138,15 +138,13 @@ export function VotersDialog({ option, voters, onClose }: VotersDialogProps) {
 		<Dialog open={!!option} onOpenChange={(open) => !open && onClose()}>
 			<DialogContent closeLabel={t('common.close')} className="max-h-[80dvh] grid-rows-[auto_minmax(0,1fr)]">
 				<DialogHeader className="pr-8">
-					<DialogTitle className="leading-snug">{shown?.text}</DialogTitle>
+					{/* Under the option and its count, a list of everyone would read as all of them choosing it */}
+					<DialogTitle className="leading-snug">{choicesHidden ? t('poll.voters') : shown?.text}</DialogTitle>
 					<DialogDescription>
-						{t('poll.voted', { count: shown?.votes ?? 0 })}
+						{choicesHidden ? t('poll.votersChoicesHidden') : t('poll.voted', { count: shown?.votes ?? 0 })}
 					</DialogDescription>
 				</DialogHeader>
 				<div className="-mx-4 overflow-y-auto px-4">
-					{choicesHidden && (
-						<p className="pb-2 text-caption-2 text-muted-foreground">{t('poll.votersChoicesHidden')}</p>
-					)}
 					{chose.length > 0 && (
 						<ul aria-label={t('poll.voters')} className="space-y-1">
 							{chose.map((voter) => (
