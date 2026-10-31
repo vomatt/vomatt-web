@@ -83,11 +83,14 @@ function splitAddressee(text: string) {
 // The API's mention rule: a username not preceded by a letter or digit of any script, or `_`
 const MENTION = /(?<![\p{L}\p{N}_])@([a-z0-9_]{3,50})(?![a-z0-9_])/giu;
 
-/** Comment text with each `@handle` linked to that profile, as the API notifies them. */
-function MentionText({ text }: { text: string }) {
+/** Comment text with each `@handle` the API resolved as a mention linked to that profile; other handles stay plain. */
+function MentionText({ text, mentions }: { text: string; mentions: Comment['mentions'] }) {
+	if (!mentions?.length) return text;
+	const handles = new Set(mentions.map((mention) => mention.username.toLowerCase()));
 	const parts: React.ReactNode[] = [];
 	let last = 0;
 	for (const match of text.matchAll(MENTION)) {
+		if (!handles.has(match[1].toLowerCase())) continue;
 		parts.push(text.slice(last, match.index));
 		parts.push(
 			<Link key={match.index} href={profileHref(match[1].toLowerCase())} className="font-medium hover:underline">
@@ -780,7 +783,7 @@ function CommentBody({
 						</button>
 					)}
 					<p className="text-caption-1 leading-normal break-words whitespace-pre-wrap text-foreground">
-						<MentionText text={text} />
+						<MentionText text={text} mentions={comment.mentions} />
 					</p>
 				</>
 			)}

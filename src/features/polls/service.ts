@@ -213,13 +213,14 @@ export async function getPoll(id: string): Promise<Poll | null> {
 
 /**
  * The owner of an Invite-only Poll, for an Invitation link the viewer can't
- * open yet (signed out, or not the invited account). Null for any other Poll.
+ * open yet (signed out, or not the invited account). Null for any other Poll,
+ * and for a signed-in viewer who is neither its owner nor an Invitee.
  */
 export async function getInviteOnlyCreator(
 	pollId: string
 ): Promise<{ username: string; avatarUrl: string | null } | null> {
 	try {
-		return await publicFetch(`/votes/${encodeURIComponent(pollId)}/creator`);
+		return await apiClient(`/votes/${encodeURIComponent(pollId)}/creator`, { auth: 'optional' });
 	} catch (error) {
 		if (error instanceof ApiError && (error.statusCode === 404 || error.statusCode === 400)) {
 			return null;

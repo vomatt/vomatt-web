@@ -765,19 +765,19 @@ describe('postComment()', () => {
 });
 
 describe('getInviteOnlyCreator()', () => {
-	it("returns the owner of an Invite-only Poll from the public endpoint", async () => {
-		mockPublicFetch.mockResolvedValue({ username: 'alice', avatarUrl: 'bot:boba' });
+	it("returns the owner of an Invite-only Poll as the viewer, signed in or not", async () => {
+		mockApiClient.mockResolvedValue({ username: 'alice', avatarUrl: 'bot:boba' });
 		expect(await getInviteOnlyCreator('poll-1')).toEqual({ username: 'alice', avatarUrl: 'bot:boba' });
-		expect(mockPublicFetch).toHaveBeenCalledWith('/votes/poll-1/creator');
+		expect(mockApiClient).toHaveBeenCalledWith('/votes/poll-1/creator', { auth: 'optional' });
 	});
 
-	it('returns null when it is no Invite-only Poll', async () => {
-		mockPublicFetch.mockRejectedValue(new ApiError('Not found', 404, { errorCode: 'vote.not_found' }));
+	it('returns null when it is no Invite-only Poll, or the signed-in viewer is not its owner or an Invitee', async () => {
+		mockApiClient.mockRejectedValue(new ApiError('Not found', 404, { errorCode: 'vote.not_found' }));
 		expect(await getInviteOnlyCreator('poll-1')).toBeNull();
 	});
 
 	it('returns null for an ID the API rejects, like getPoll does', async () => {
-		mockPublicFetch.mockRejectedValue(new ApiError('Bad request', 400, { errorCode: 'common.validation_failed' }));
+		mockApiClient.mockRejectedValue(new ApiError('Bad request', 400, { errorCode: 'common.validation_failed' }));
 		expect(await getInviteOnlyCreator('abc')).toBeNull();
 	});
 });

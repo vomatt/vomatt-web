@@ -45,6 +45,9 @@ export interface MyProfile {
 	joinedAt: string; // ISO date string
 	totalPolls: number;
 	totalVotes: number;
+	/** What My Polls lists: every Poll created / holding a Ballot, any Audience and status. */
+	createdPollCount: number;
+	votedPollCount: number;
 	followersCount: number;
 	followingCount: number;
 	visibilitySettings: Record<string, boolean>;
