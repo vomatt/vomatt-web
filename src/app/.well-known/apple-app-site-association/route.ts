@@ -1,8 +1,8 @@
+import { ABOUT_SITE_SLUGS } from '@/lib/aboutSite';
 import { APP_ROOT_SEGMENTS } from '@/lib/routes';
-import { getPageSlugs } from '@/sanity/lib/pageSlugs';
 
-// Root segments that are not usernames
-const EXCLUDED_ROOTS = [...APP_ROOT_SEGMENTS, 'sanity', 'api'];
+// Root segments that are not usernames; the about site's old paths redirect there
+const EXCLUDED_ROOTS = [...APP_ROOT_SEGMENTS, 'sanity', 'api', ...ABOUT_SITE_SLUGS];
 
 type Component = { '/': string; exclude?: true; comment?: string };
 
@@ -19,16 +19,10 @@ export async function GET() {
 		.filter(Boolean);
 	if (appIDs.length === 0) return new Response(null, { status: 404 });
 
-	// Sanity pages share the root with profiles; a Sanity slug wins over a username
-	const sanitySlugs = await getPageSlugs().catch((error) => {
-		console.error('AASA: could not load Sanity page slugs', error);
-		return [] as string[];
-	});
-
 	const components: Component[] = [
 		{ '/': '/poll/*', comment: 'Poll' },
 		{ '/': '/', exclude: true },
-		...[...EXCLUDED_ROOTS, ...sanitySlugs].map((root): Component => ({ '/': `/${root}`, exclude: true })),
+		...EXCLUDED_ROOTS.map((root): Component => ({ '/': `/${root}`, exclude: true })),
 		{ '/': '/*/*', exclude: true, comment: 'Profiles are a single segment' },
 		{ '/': '/*.*', exclude: true, comment: 'Files; usernames have no dots' },
 		{ '/': '/*', comment: 'Profile' },
