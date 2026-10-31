@@ -15,7 +15,7 @@ import {
 } from '@/lib/api/cursor';
 
 import { FEED_TAG, pollTag } from './cache';
-import { SEARCH_MIN_LENGTH } from './constants';
+import { isSearchable } from './constants';
 import type { ActionResult } from './errors';
 import { personPath } from './invitees';
 import {
@@ -109,7 +109,7 @@ export async function getPolls(
 	else if (query.sort) params.set('sort', query.sort);
 	if (query.tag) params.set('tag', query.tag);
 	const q = query.q?.trim();
-	if (q && q.length >= SEARCH_MIN_LENGTH) params.set('q', q);
+	if (q && isSearchable(q)) params.set('q', q);
 	return fetchPollPage('/votes', params, { asViewer });
 }
 
