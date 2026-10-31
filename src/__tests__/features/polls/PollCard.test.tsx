@@ -851,4 +851,10 @@ describe('PollCard signed-out visitor', () => {
 		expect(screen.queryByPlaceholderText('Why did you vote the way you did?')).not.toBeInTheDocument();
 	});
 
+	it('shows the comment count from a refreshed poll, as after posting on the poll page', () => {
+		const { rerender } = render(<PollCard poll={{ ...openPoll, commentCount: 0 }} isPage />);
+		rerender(<PollCard poll={{ ...openPoll, commentCount: 1 }} isPage />);
+		expect(screen.getByRole('link', { name: '1 comment' })).toBeInTheDocument();
+	});
+
 });

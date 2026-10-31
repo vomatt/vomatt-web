@@ -567,6 +567,13 @@ describe('deleteComment()', () => {
 			{ method: 'DELETE' }
 		);
 	});
+
+	it("expires the Poll's cached copy, so its comment count is fresh on the next view", async () => {
+		await deleteComment('vote-1', 'comment-1');
+		expect(revalidateTag).toHaveBeenCalledWith('poll:vote-1', { expire: 0 });
+		// The shared feed keeps its own revalidate, as for ballots
+		expect(revalidateTag).not.toHaveBeenCalledWith('polls-feed', expect.anything());
+	});
 });
 
 describe('sharePoll()', () => {
@@ -746,6 +753,14 @@ describe('postComment()', () => {
 			text: 'Agreed',
 			parentId: 'c1',
 		});
+	});
+
+	it("expires the Poll's cached copy, so its comment count is fresh on the next view", async () => {
+		mockApiClient.mockResolvedValue({ id: 'c2', author: 'mei', text: 'Hi', createdAt: '2026-10-04T10:00:00+08:00' });
+		await postComment('poll-1', 'Hi');
+		expect(revalidateTag).toHaveBeenCalledWith('poll:poll-1', { expire: 0 });
+		// The shared feed keeps its own revalidate, as for ballots
+		expect(revalidateTag).not.toHaveBeenCalledWith('polls-feed', expect.anything());
 	});
 });
 

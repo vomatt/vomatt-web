@@ -59,6 +59,12 @@ export function PollCard({
 	const clock = useViewerClock();
 	const router = useRouter();
 	const [poll, setPoll] = useState(initialPoll);
+	// A refreshed page (after a Comment on it) brings the new count; the card's other state stays its own
+	const [prevInitialPoll, setPrevInitialPoll] = useState(initialPoll);
+	if (initialPoll !== prevInitialPoll) {
+		setPrevInitialPoll(initialPoll);
+		setPoll((current) => ({ ...current, commentCount: initialPoll.commentCount }));
+	}
 	const [isDeleted, setIsDeleted] = useState(false);
 	const { isAuthed, requireAuth, authDialog } = useRequireAuth(!!viewerId);
 
@@ -120,7 +126,7 @@ export function PollCard({
 		<article className={cn('group bg-card border border-border rounded-2xl', !isPage && 'relative')}>
 			<div className="flex flex-col gap-4 p-5 md:gap-5 md:px-8 md:pt-7 md:pb-7">
 				<div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-					<div className="flex min-w-0 items-center gap-2.5 text-[14px] text-muted-foreground">
+					<div className="flex min-w-0 items-center gap-2.5 text-body-4 text-muted-foreground">
 						<UserChip
 							username={creatorUsername}
 							avatarUrl={poll.creatorAvatarUrl}
@@ -145,18 +151,18 @@ export function PollCard({
 				<div>
 					{/* On the poll page the title is plain, selectable text; in a list it leads to the page */}
 					{isPage ? (
-						<Heading className="poll-title wrap-anywhere text-foreground select-text md:text-[25px]">
+						<Heading className="text-title-3 text-balance wrap-anywhere text-foreground select-text md:text-title-2">
 							{title}
 						</Heading>
 					) : (
 						<Link href={`/poll/${id}`} className="after:absolute after:inset-0 after:rounded-2xl">
-							<Heading className="poll-title wrap-anywhere text-foreground hover:text-muted-foreground transition-colors md:text-[25px]">
+							<Heading className="text-title-3 text-balance wrap-anywhere text-foreground hover:text-muted-foreground transition-colors md:text-title-2">
 								{title}
 							</Heading>
 						</Link>
 					)}
 					{description && (
-						<p className="mt-2 max-w-[65ch] wrap-anywhere whitespace-pre-line text-base text-muted-foreground leading-normal">
+						<p className="mt-2 max-w-[65ch] wrap-anywhere whitespace-pre-line text-body-3 text-muted-foreground leading-normal">
 							{description}
 						</p>
 					)}

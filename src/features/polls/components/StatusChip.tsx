@@ -36,7 +36,7 @@ export function StatusChip({ status, poll, time, onCard = false }: StatusChipPro
 	const clock = useViewerClock();
 	// The word needs no clock, so an `elsewhere` chip renders on the server too
 	const label = time === 'elsewhere' ? statusWord(status, t) : clock && pollTiming(poll, status, clock).chip;
-	const size = onCard && 'text-[10px]';
+	const size = onCard && 'text-caption-4';
 
 	// Times depend on the browser's clock and time zone; hold the chip's
 	// height until then so the row doesn't grow after hydration

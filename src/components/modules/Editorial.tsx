@@ -21,7 +21,7 @@ export default function Editorial({ data }: { data: EditorialData }) {
 		<div className={cn('grid gap-6', hasMedia && 'md:grid-cols-2 md:items-center md:gap-8')}>
 			<ModuleSection {...heading} className="gap-4">
 				{body && (
-					<div className="cms-prose text-[17px]">
+					<div className="cms-prose text-body-1">
 						<CustomPortableText blocks={body} />
 					</div>
 				)}

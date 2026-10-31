@@ -40,7 +40,7 @@ export function SegmentedControl<T extends string>({
 				<Radio.Root
 					key={option.value}
 					value={option.value}
-					className="inline-flex h-11 cursor-pointer items-center rounded-full px-3 text-[13px] font-medium whitespace-nowrap text-muted-foreground transition-[color,background-color,box-shadow] outline-none select-none hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring data-checked:bg-card data-checked:text-foreground data-checked:shadow-xs md:h-[30px]"
+					className="inline-flex h-11 cursor-pointer items-center rounded-full px-3 text-caption-1 font-medium whitespace-nowrap text-muted-foreground transition-[color,background-color,box-shadow] outline-none select-none hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring data-checked:bg-card data-checked:text-foreground data-checked:shadow-xs md:h-[30px]"
 				>
 					{option.label}
 				</Radio.Root>

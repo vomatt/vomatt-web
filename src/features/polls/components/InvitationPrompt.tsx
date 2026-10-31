@@ -22,13 +22,13 @@ export function InvitationPrompt({ creator, pollId, switchAccount }: InvitationP
 	return (
 		<section className="flex w-full max-w-[640px] flex-col items-center gap-3 rounded-2xl border border-border bg-card px-8 py-10 text-center">
 			<UserAvatar username={creator.username} avatarUrl={creator.avatarUrl} className="size-14" />
-			<h1 className="text-[25px] leading-[1.2] font-medium tracking-[-0.02em] text-foreground">
+			<h1 className="text-title-2 text-foreground">
 				{t('poll.invitation.title', { username: creator.username })}
 			</h1>
-			<p className="max-w-[420px] text-base text-muted-foreground">
+			<p className="max-w-[420px] text-body-3 text-muted-foreground">
 				{t(switchAccount ? 'poll.invitation.wrongAccount' : 'poll.invitation.signIn')}
 			</p>
-			<span className="inline-flex items-center gap-1.5 rounded-full bg-field px-2.5 py-1 text-[12px] font-medium text-foreground">
+			<span className="inline-flex items-center gap-1.5 rounded-full bg-field px-2.5 py-1 text-caption-2 font-medium text-foreground">
 				<Lock aria-hidden className="size-3.5 text-tide" />
 				{t('poll.audience.invite-only')}
 			</span>

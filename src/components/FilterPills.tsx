@@ -37,7 +37,7 @@ export function FilterPills<T extends string>({
 					>
 						{option.label}
 						{option.count !== undefined && (
-							<span className={cn('font-mono tabular-nums', !active && 'text-muted-foreground')}>{option.count}</span>
+							<span className={cn('tabular-nums', !active && 'text-muted-foreground')}>{option.count}</span>
 						)}
 					</Button>
 				);

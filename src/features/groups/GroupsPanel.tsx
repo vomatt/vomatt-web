@@ -108,7 +108,7 @@ export function GroupsPanel() {
 		<section className="space-y-4">
 			<div>
 				<h2 className="font-medium">{t('groups.title')}</h2>
-				<p className="text-sm text-muted-foreground">{t('groups.intro')}</p>
+				<p className="text-caption-1 text-muted-foreground">{t('groups.intro')}</p>
 			</div>
 
 			<form onSubmit={create} noValidate className="space-y-1.5">
@@ -132,7 +132,7 @@ export function GroupsPanel() {
 					</Button>
 				</div>
 				{nameMissing && (
-					<p id="group-name-error" className="text-xs text-destructive">
+					<p id="group-name-error" className="text-caption-3 text-destructive">
 						{t('groups.nameRequired')}
 					</p>
 				)}
@@ -162,8 +162,8 @@ export function GroupsPanel() {
 								className="flex w-full items-center gap-3 rounded-xl border border-border bg-card px-4 py-4 text-left transition-colors hover:border-border-strong outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
 							>
 								<span className="min-w-0 flex-1">
-									<span className="item-title block truncate">{group.name}</span>
-									<span className="block text-[12px] tabular-nums text-muted-foreground">
+									<span className="text-title-4 block truncate">{group.name}</span>
+									<span className="block text-caption-2 tabular-nums text-muted-foreground">
 										{countText(t, 'groups.memberCount', group.memberCount, currentLanguage)}
 									</span>
 								</span>
@@ -345,7 +345,7 @@ function GroupDialog({
 						</Button>
 					</div>
 					{nameEmpty && (
-						<p id="group-rename-error" className="text-xs text-destructive">
+						<p id="group-rename-error" className="text-caption-3 text-destructive">
 							{t('groups.nameRequired')}
 						</p>
 					)}
@@ -364,7 +364,7 @@ function GroupDialog({
 						</div>
 					)}
 					{loadFailed && (
-						<div className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2 text-[12px] text-muted-foreground">
+						<div className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2 text-caption-2 text-muted-foreground">
 							<p>{t('groups.membersFailed')}</p>
 							<Button variant="outline" size="sm" loading={retrying} onClick={retryMembers}>
 								{t('common.tryAgain')}
@@ -372,7 +372,7 @@ function GroupDialog({
 						</div>
 					)}
 					{members?.length === 0 && (
-						<p className="py-2 text-[12px] text-muted-foreground">{t('groups.noMembers')}</p>
+						<p className="py-2 text-caption-2 text-muted-foreground">{t('groups.noMembers')}</p>
 					)}
 					{!!members?.length && (
 						<PeopleList
@@ -398,7 +398,7 @@ function GroupDialog({
 						describedBy={addEmpty ? 'add-members-error' : undefined}
 					/>
 					{addEmpty && (
-						<p id="add-members-error" className="text-xs text-destructive">
+						<p id="add-members-error" className="text-caption-3 text-destructive">
 							{t('groups.addRequired')}
 						</p>
 					)}
@@ -417,7 +417,7 @@ function GroupDialog({
 				<div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4">
 					{confirmingDelete ? (
 						<>
-							<span id="group-delete-question" className="text-[12px]">
+							<span id="group-delete-question" className="text-caption-2">
 								{t('groups.deleteConfirm')}
 							</span>
 							<div className="flex gap-1.5">

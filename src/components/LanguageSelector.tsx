@@ -25,8 +25,8 @@
 // 				className="flex items-center space-x-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 dark:bg-gray-800 dark:hover:bg-gray-700"
 // 				aria-label="Select language"
 // 			>
-// 				<span className="text-xl">🌐</span>
-// 				<span className="text-sm font-medium">
+// 				<span className="text-title-3">🌐</span>
+// 				<span className="text-caption-1 font-medium">
 // 					{SUPPORTED_LANGUAGES[currentLanguage]}
 // 				</span>
 // 				<svg
@@ -120,7 +120,7 @@
 // 				className="w-10 h-10 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-full transition-colors duration-200 dark:bg-gray-800 dark:hover:bg-gray-700"
 // 				aria-label="Select language"
 // 			>
-// 				<span className="text-xl">{getFlagEmoji(currentLanguage)}</span>
+// 				<span className="text-title-3">{getFlagEmoji(currentLanguage)}</span>
 // 			</button>
 
 // 			{isOpen && (
@@ -137,7 +137,7 @@
 // 								}`}
 // 							>
 // 								<div className="flex items-center space-x-3">
-// 									<span className="text-lg">
+// 									<span className="text-body-1">
 // 										{getFlagEmoji(code as LanguageCode)}
 // 									</span>
 // 									<span>{name}</span>

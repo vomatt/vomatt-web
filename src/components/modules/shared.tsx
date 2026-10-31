@@ -21,7 +21,7 @@ export type ActionsModuleData = SectionHeadingData & { actions?: ModuleAction[] 
 
 export function Eyebrow({ children }: { children?: string }) {
 	if (!children) return null;
-	return <p className="text-[13px] font-medium text-muted-foreground">{children}</p>;
+	return <p className="text-caption-1 font-medium text-muted-foreground">{children}</p>;
 }
 
 /** A module's section, named by its h2, with the eyebrow and intro above its content. */
@@ -40,11 +40,11 @@ export function ModuleSection({
 				<div className="flex flex-col gap-2">
 					<Eyebrow>{eyebrow}</Eyebrow>
 					{heading && (
-						<h2 id={headingId} className="section-title text-foreground">
+						<h2 id={headingId} className="text-title-2 text-foreground">
 							{heading}
 						</h2>
 					)}
-					{intro && <p className="text-[17px] leading-[1.6] text-muted-foreground">{intro}</p>}
+					{intro && <p className="text-body-1 leading-relaxed text-muted-foreground">{intro}</p>}
 				</div>
 			)}
 			{children}

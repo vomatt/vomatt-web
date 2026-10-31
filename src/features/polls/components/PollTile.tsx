@@ -50,7 +50,7 @@ export function PollTile({ poll }: { poll: Poll }) {
 				{!ended && poll.myOptionId && <VotedPill label={t('poll.votedPill')} />}
 			</div>
 
-			<h2 className="poll-title line-clamp-3 wrap-anywhere text-foreground">
+			<h2 className="text-title-3 text-balance line-clamp-3 wrap-anywhere text-foreground">
 				{/* Stretched over the tile: one tab stop, its focus ring around the whole tile */}
 				<Link
 					href={`/poll/${poll.id}`}
@@ -61,7 +61,7 @@ export function PollTile({ poll }: { poll: Poll }) {
 			</h2>
 
 			{!ended && poll.options.length > 0 && (
-				<ul className="space-y-1 text-[14px] text-muted-foreground">
+				<ul className="space-y-1 text-body-4 text-muted-foreground">
 					{poll.options.slice(0, PREVIEW_OPTIONS).map((option) => (
 						<li key={option.id} className="flex min-w-0 items-center gap-2">
 							<span aria-hidden className="size-2 shrink-0 rounded-full border border-input" />
@@ -73,7 +73,7 @@ export function PollTile({ poll }: { poll: Poll }) {
 			)}
 
 			{/* Pinned to the bottom, so the meta lines up across a row */}
-			<p className="mt-auto text-[13px] text-muted-foreground">
+			<p className="mt-auto text-caption-1 text-muted-foreground">
 				{/* A Scheduled Poll takes no Ballots yet, so it shows no turnout */}
 				{ended ? <EndedMeta poll={poll} /> : status !== 'scheduled' && <Turnout poll={poll} />}
 				{status !== 'scheduled' && topics.length > 0 && ' · '}

@@ -70,8 +70,8 @@ export function PollFooter({
 
 	return (
 		// Each item is 44px tall; 4px above and below set the text 16px in
-		<div className="flex items-center gap-5 border-t border-border px-5 py-1 text-[14px] text-muted-foreground md:px-8">
-			{meta && <span className="font-mono tabular-nums">{meta}</span>}
+		<div className="flex items-center gap-5 border-t border-border px-5 py-1 text-body-4 text-muted-foreground md:px-8">
+			{meta && <span className="tabular-nums">{meta}</span>}
 			<Link
 				href={isPage ? '#discussion' : `/poll/${pollId}#discussion`}
 				className={commentsClassName}

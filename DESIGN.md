@@ -28,25 +28,34 @@ Cool canvas, navy ink actions, two signals: Volt (`highlight`) marks what is you
 
 ## Type
 
-- **Geist** (`font-sans`) for everything, with PingFang TC / Microsoft JhengHei / Noto Sans TC fallbacks for Traditional Chinese. **Geist Mono** (`font-mono`, `tabular-nums`) for counts, times and handles.
+- **Geist** (`font-sans`) for everything, with PingFang TC / Microsoft JhengHei / Noto Sans TC fallbacks for Traditional Chinese. Counts, timers and other changing numbers take `tabular-nums` so digits keep one width; there is no monospace face.
 - Every title is weight 500: confident, not shouting.
 - Wrapping is set once in `global.css`: `h1`–`h4` balance their lines and `p`, `li`, `dd`, `blockquote` keep a lone word off the last line (`text-wrap-style`, so `truncate` and `whitespace-nowrap` still win). A title that isn't a heading element takes `text-balance`.
-- **Display**: the `display-heading` utility sets weight 500, leading 1.25 and -0.03em tracking; the size goes beside it.
-  - Page titles (Explore, Notifications, Settings): the `page-title` utility, 28px at every width with leading 1.3
-  - CMS page titles: `display-heading text-[30px] md:text-[40px]`
-  - Auth titles: 30px, leading 1.2, -0.02em (every auth step; in the auth dialog the step's title is the dialog's own 21px title)
-  - Person names: `display-heading text-[26px] md:text-[30px]` on a profile; `text-2xl` elsewhere
-  - CMS body 17px, leading 1.6, section headings 24px; coming soon headline 48px, leading 1.1
-- **Poll title** (card and preview): the `poll-title` utility (22px, weight 500, leading 1.2, -0.02em, balanced lines); cards add `md:text-[25px]`.
-- **Item title** (list rows): the `item-title` utility (16px, weight 500, -0.01em); leading goes beside it. Rail card titles are 15px (`PollSideCard`).
-- **Body** `text-[14px]` (card descriptions `text-base`; ballot and result options 16px, weight 500); **meta** `text-[12px]` in rows, `text-[14px]` on a poll card (author line, footer, the ballot's Tide lines, the results caption), `text-[13px]` in the rail; **chip** `text-[11px]` uppercase semibold, `.06em` tracking (`chipClassName`), 10px on a poll card.
-- Sidebar and More rows 14px, their group labels and segments 12px. The policy line under log in is 12px (`text-xs` is 11px here).
-- **Tab labels** (`TabsList variant="line"`) 15px. **Dialog titles** (`DialogTitle`, `AlertDialogTitle`) 21px, weight 500, -0.02em.
-- Inputs are `text-[16px]` on phones so iOS doesn't zoom (`text-base` is 15px).
+- **The type scale** (`@theme` in `global.css`) is the only source of sizes. Tailwind's own steps (`text-sm`, `text-lg`…) are cleared, and ESLint rejects them and any arbitrary `text-[…]`, `leading-[…]` or `tracking-[…]`. If no step fits, change the design or add a step; don't reach around the scale.
+
+  | Class | Size | Carries | Used for |
+  | --- | --- | --- | --- |
+  | `text-display-1` | 48px | 500, leading 1.1, -0.03em | Coming-soon and login brand headlines, CMS hero from `md` |
+  | `text-display-2` | 36px | 500, leading 1.1, -0.03em | CMS hero on phones, CMS page titles from `md` |
+  | `text-title-1` | 28px | 500, leading 1.3, -0.03em | Page titles (Explore, Notifications, Settings), auth titles, CMS page titles on phones |
+  | `text-title-2` | 24px | 500, leading 1.3, -0.02em | Section headings, poll titles on cards from `md`, profile counts |
+  | `text-title-3` | 22px | 500, leading 1.2, -0.02em | Poll titles (add `text-balance` off heading elements), dialog titles, person names on a profile |
+  | `text-title-4` | 16px | 500, -0.01em | List-row and side-card titles, settings card titles; leading goes beside it |
+  | `text-body-1` | 17px | size only | CMS body and intros |
+  | `text-body-2` | 16px | size only | Inputs on phones (iOS zooms below 16px), ballot and result options (with `font-medium`) |
+  | `text-body-3` | 15px | size only | Card descriptions, inputs from `md`, tab labels, rail poll titles |
+  | `text-body-4` | 14px | size only | Body text, poll-card meta (author line, footer, Tide lines), sidebar rows |
+  | `text-caption-1` | 13px | size only | Rail meta, settings helper text, small labels |
+  | `text-caption-2` | 12px | size only | Meta in rows, sidebar group labels, the policy line under log in |
+  | `text-caption-3` | 11px | leading 1.33 | Chips (uppercase semibold, `tracking-label`, via `chipClassName`), comment meta |
+  | `text-caption-4` | 10px | size only | Chips on a poll card, unread count badges |
+
+- A step's weight, leading and tracking are defaults: a `font-*`, `leading-*` or `tracking-*` beside it wins. Leading uses Tailwind's named steps (`leading-tight`, `snug`, `normal`, `relaxed`); tracking adds `tracking-title` (-0.01em, small titles) and `tracking-label` (0.06em, uppercase labels) beside Tailwind's own steps.
+- `cn()` recognizes the scale by pattern (`lib/utils.ts`): new steps in an existing family need nothing, but a new family must be added there, or tailwind-merge reads it as a color and drops it.
 
 ## Shape and layout
 
-- Borders stay quiet: 1px, `border` by default. Fields are white `card` with an `input` border (the border carries the 3:1 contrast at rest), 10px radius, 15px text from `md`; the six code slots are 48x56 from `md`, mono 22px, and a wrong code stays in them. Only the chosen ballot row and the viewer's own result row get an ink border.
+- Borders stay quiet: 1px, `border` by default. Fields are white `card` with an `input` border (the border carries the 3:1 contrast at rest), 10px radius, 15px text from `md`; the six code slots are 48x56 from `md`, 22px tabular figures, and a wrong code stays in them. Only the chosen ballot row and the viewer's own result row get an ink border.
 - Radius: `rounded-2xl` (16px) for cards and panels (`PollCard`, side cards, the About panel, settings panels); `rounded-xl` (12px) for ballot rows, list rows and the Tide surfaces inside a card; `--radius` (10px) for buttons, set once in `Button`, and for text fields; `rounded-full` for chips, pills and avatars.
 - Every page sits in `PageShell` (`components/layout/PageShell`), 32px from the top and 64px from the bottom: a main column up to 680px (`max-w-main`) and, from `xl`, a 300px rail (`w-rail`) 40px to its right, in a 1020px frame (`max-w-page`) centered in the content area. The rail column is kept when a page has no rail or it is still loading, so the main column starts at the same x on every page and in every skeleton; a page's skeleton renders inside the same `PageShell`. Below `xl` the rail follows the main column. Rails: Home and Following `HomeRail` ("Results are in", "Closing soon", "Got a question for everyone?" with Write one for signed-in viewers; "How vomatt counts" for guests); a poll's About this poll and More from @author; Profile's notes (and the owner's public preview); Notifications' aside (none when empty); Settings' sticky On this page list (from `xl` only, since the rail column starts there). Explore, Language preferences, CMS pages and not-found pages have none. Explore is `PageShell wide`: no rail column, so from `xl` its main column takes the whole 1020px frame and still starts at the same x.
 - The home feed column is `max-w-feed` (640px, `--container-feed`) inside the main column, its cards 16px apart (`gap-4`), 16px from the top. Explore lists its results as `PollTile`s in a `PollTileGrid` instead. Below `xl` the owner's profile flips between You and Everyone with a `SegmentedControl`. Guests get `LoginPrompt` at the top of the feed, at every width.
@@ -69,17 +78,17 @@ Use these. Don't copy their classes into a new element.
 | Filter pills over one list | `FilterPills` |
 | One choice of a few in a settings row (Settings' Theme) | `SegmentedControl`: a radiogroup in a pill track, the checked segment a `card` with a small shadow; `value` stays undefined until it is known, so nothing is checked. MoreMenu keeps its own Volt menu segments |
 | Follow a person | `FollowButton follow={useFollow(…)}`: one derived state, follow (ink, plus), followBack (ink, no icon), following (outline, Unfollow on hover), blocked, or none on your own entry. `size="sm"` (36px) in a profile header, `xs` (32px) on the hover card, in follower rows (meta "@jtan · follows you") and notification rows |
-| A person's follow counts | "128 followers · 42 following", mono numbers, shown to everyone and buttons that open the list when signed in |
+| A person's follow counts | "128 followers · 42 following", tabular numbers, shown to everyone and buttons that open the list when signed in |
 | People the viewer follows who follow this person | `MutualFollowersLine` ("Followed by @a and 2 others you follow", 12px with two stacked 16px avatars) under a visitor profile's details and on the hover card, opening the mutuals list; `MutualFollowersCard` ("Followers you know") in the visitor profile's rail |
 | A row's ••• menu | Base UI `Menu` with `Button variant="ghost" size="icon-xs"` as the trigger and `menuPopupClassName` / `menuItemClassName` from `components/ui/menu.ts` (ink 16px icons; a destructive item adds `text-destructive`) |
 | Back to the parent page | `BackLink` ("‹ Back": a quiet 14px link with a 44px hit area that takes no extra space, sticking under the phone Header as the page scrolls). Visitor profiles and Settings have none |
-| People a user blocked (Settings) | `UserRelationPanel`, a row inside a settings card: the title with a mono count, then soft tiles of a 28px avatar, the @handle and an `xs` action. Who you follow lives on your profile (the following count opens the list, each row with its `FollowButton`), not in Settings |
+| People a user blocked (Settings) | `UserRelationPanel`, a row inside a settings card: the title with a tabular count, then soft tiles of a 28px avatar, the @handle and an `xs` action. Who you follow lives on your profile (the following count opens the list, each row with its `FollowButton`), not in Settings |
 | A detail only the owner sees | `OnlyYouMarker` (the lock) beside it |
 | Rows on a profile | `AskedRow`, `VotedRow` and `ProfileSection` from `features/profiles/ProfileRows` |
 | Status of a poll | `StatusChip` with `derivePollStatus(poll)` (tint, an ink dot or a clock while closing, words). Pick `time`: `inline` where the chip stands alone, on cards and the creator's review ("Ends Fri 20:00"); `elsewhere` in a row, which puts `pollTiming(…).when` in its meta ("1,284 voted · ends Fri 20:00" beside "Open") |
 | Any date a poll surface shows | `useViewerClock()` (null until hydrated) + `pollTiming()` from `features/polls/timing`, or `formatPollDay` / `formatPollMoment` / `formatDuration` / `formatAge` from `features/polls/format`. Not `Date.now()` or `new Date()` in a component |
 | Other small pill (e.g. ballot outcome) | `chipClassName` from `features/polls/chip.ts` + a `bg-*` tint |
-| Empty or missing page (no polls, not found, 404, error) | `EmptyCard`: a centered card with a 56px icon disc on `field` (circle-minus unless given another), a 21px title, one 15px line, an optional action; `headingLevel={1}` on a page with no other title |
+| Empty or missing page (no polls, not found, 404, error) | `EmptyCard`: a centered card with a 56px icon disc on `field` (circle-minus unless given another), a `text-title-3` title, one 15px line, an optional action; `headingLevel={1}` on a page with no other title |
 | Empty list inside a panel or dialog | the `empty-state` utility (dashed `surface-soft` box) |
 | Unread marker | `UnreadDot` with an `aria-label`, right after the name of what is unread: a tab's label, a list row's title (which goes `font-semibold`, with `NewMark` in its meta), a notification's first line (the row is already a card, so no bold title and no "new"), the top-trailing corner of an icon. Never a leading gutter and never the row's far edge: titles keep one left edge and chips one column whether a row is read or not |
 | A rule or promise (Tide) | `TidePanel` for a surface, `TideRules` + `TideRule icon={…}` for a list of rules |
@@ -87,15 +96,15 @@ Use these. Don't copy their classes into a new element.
 | The viewer has voted (card header) | `VotedPill` (Volt, check) beside the status chip |
 | The viewer's option on results | `YourVotePill` ("your vote", lower-case, Volt with an ink line) |
 | The cast Ballot | `Seal` (in full once per cast, then a row) with `SealMark`: `sm` 32px on profile rows and notifications, `md` 40px dashed in the Seal row, `lg` 72px with a 58px dashed ring in the full Seal. "Sealed. Thank you.", when results open, and Withdraw vote / Update vote inside it. Updating and the withdraw confirm are modes of the Ballot (`SealedMode`), not extra flags |
-| A poll card's footer | `PollFooter` with `audience` and `isPage`: the turnout in muted mono, then a non-Public audience ("18 voted · invite only"); Comments leads to `#discussion` |
+| A poll card's footer | `PollFooter` with `audience` and `isPage`: the turnout in muted tabular figures, then a non-Public audience ("18 voted · invite only"); Comments leads to `#discussion` |
 | A poll's discussion | `CommentThread` in its own `rounded-2xl` card (`PollDiscussion` on the poll page); composers show the viewer's avatar, a reply composer sits under the reply it answers |
-| Side card of polls (home rail) | `PollSideCard` with a `kind`: `resultsIn` (unread titles 600, read 400, "**Yes** won · N voted · new" in sans) or `closingSoon` ("ends in 2h · 96 voted", mono) |
+| Side card of polls (home rail) | `PollSideCard` with a `kind`: `resultsIn` (unread titles 600, read 400, "**Yes** won · N voted · new") or `closingSoon` ("ends in 2h · 96 voted", tabular figures) |
 | Filter pills | `FilterPills`: 30px from `md`, 13px |
 | A notification | one row component per `kind` (`features/notifications/NotificationRows`); consecutive follows group into one row with See followers |
 | Progress (voting window) | `Progress variant="tide"` |
 | List row for a poll | `PollListItem` with `meta` and `aside` |
 | Polls to scan in a grid (Explore) | `PollTileGrid` of `PollTile`s: 1, 2 or 3 columns by the grid's own width (container queries); each tile links to the poll page and holds no ballot, so no counts while open |
-| A person's counts | `ProfileRecord`: `rounded-2xl` `card` cells, a 26px `font-mono` number over a 12px label; `Count` for a count inside a phrase |
+| A person's counts | `ProfileRecord`: `rounded-2xl` `card` cells, a `text-title-2 tabular-nums` number over a 12px label; `Count` for a count inside a phrase |
 | Active nav link | `isActivePath(pathname, href)` from `lib/routes.ts` |
 
 If a building block doesn't fit, change its variant or add one. Don't override it at the call site.

@@ -6,7 +6,7 @@ export function InitialAvatar({ name, className }: { name: string; className?: s
 		<div
 			aria-hidden
 			className={cn(
-				'avatar-frame grid place-items-center bg-muted text-xs font-semibold uppercase text-muted-foreground',
+				'avatar-frame grid place-items-center bg-muted text-caption-3 font-semibold uppercase text-muted-foreground',
 				className
 			)}
 		>

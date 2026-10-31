@@ -9,7 +9,7 @@ function Label({ className, ...props }: React.ComponentProps<'label'>) {
 		<label
 			data-slot="label"
 			className={cn(
-				'flex items-center gap-2 text-sm leading-snug select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50',
+				'flex items-center gap-2 text-caption-1 leading-snug select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50',
 				className
 			)}
 			{...props}
@@ -24,7 +24,7 @@ const FloatingLabel = React.forwardRef<
 	return (
 		<Label
 			className={cn(
-				'absolute left-4 top-2 text-muted-foreground text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-muted-foreground/50 peer-placeholder-shown:top-6 peer-focus:top-2 peer-focus:text-muted-foreground peer-focus:text-sm ',
+				'absolute left-4 top-2 text-muted-foreground text-caption-1 transition-all peer-placeholder-shown:text-body-3 peer-placeholder-shown:text-muted-foreground/50 peer-placeholder-shown:top-6 peer-focus:top-2 peer-focus:text-muted-foreground peer-focus:text-caption-1',
 				className || ''
 			)}
 			ref={ref}

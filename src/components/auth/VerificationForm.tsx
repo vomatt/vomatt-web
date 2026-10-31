@@ -145,7 +145,7 @@ export default function VerificationForm({
 			{/* Both ways out of a missing code sit together, quieter than Continue */}
 			<div className="flex flex-col items-start gap-2.5">
 				{cooldown > 0 ? (
-					<p className="font-mono text-[14px] text-muted-foreground tabular-nums">
+					<p className="text-body-4 text-muted-foreground tabular-nums">
 						{t('verificationCode.resendIn', { time: formatCountdown(cooldown) })}
 					</p>
 				) : (
@@ -158,7 +158,7 @@ export default function VerificationForm({
 					{t('verificationCode.useAnotherEmail')}
 				</Button>
 				{resent && (
-					<p className="text-sm text-positive" role="status">
+					<p className="text-caption-1 text-positive" role="status">
 						{t('verificationCode.codeSent')}
 					</p>
 				)}

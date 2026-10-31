@@ -89,7 +89,7 @@ describe('UserChip', () => {
 		render(<UserChip username="ana" />);
 		await userEvent.hover(screen.getByRole('link', { name: 'ana' }));
 
-		expect(await screen.findByText('1,204')).toHaveClass('font-mono');
+		expect(await screen.findByText('1,204')).toHaveClass('tabular-nums');
 		expect(screen.getByText('1,204').parentElement).toHaveTextContent('1,204 followers');
 		expect(screen.queryByRole('button')).not.toBeInTheDocument();
 	});

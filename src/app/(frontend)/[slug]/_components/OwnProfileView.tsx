@@ -81,7 +81,7 @@ export function OwnProfileView({
 			rail={
 				<aside className="flex flex-col gap-3 xl:sticky xl:top-8">
 					<PublicPreview profile={profile} className="max-xl:hidden" />
-					<TidePanel className="p-3.5 text-[13px] leading-relaxed">
+					<TidePanel className="p-3.5 text-caption-1 leading-relaxed">
 						<p className="mb-1 flex items-center gap-1.5 font-medium">
 							<Lock aria-hidden className="size-3.5 shrink-0 text-tide" />
 							{t(tab === 'voted' ? 'profile.votedNoteTitle' : 'profile.askedNoteTitle')}
@@ -143,16 +143,16 @@ export function OwnProfileView({
 						<TabsList variant="line" fit>
 							<TabsTrigger value="asked">
 								{t('profile.tabAsked')}
-								<span className="font-mono tabular-nums text-muted-foreground">{asked.length}</span>
+								<span className="tabular-nums text-muted-foreground">{asked.length}</span>
 								{askedUnread && <UnreadDot label={t('profile.askedUnread')} />}
 							</TabsTrigger>
 							<TabsTrigger value="voted">
 								{t('profile.tabVoted')}
-								<span className="font-mono tabular-nums text-muted-foreground">{voted.length}</span>
+								<span className="tabular-nums text-muted-foreground">{voted.length}</span>
 								<Lock aria-hidden className="size-3 text-muted-foreground" />
 								<span className="sr-only">({t('profile.onlyYou')})</span>
 								{votedUnread > 0 && (
-									<span className="min-w-4.5 rounded-full bg-alert px-1.5 text-center font-mono text-[10px] font-semibold leading-4.5 text-alert-foreground tabular-nums">
+									<span className="min-w-4.5 rounded-full bg-alert px-1.5 text-center text-caption-4 font-semibold leading-4.5 text-alert-foreground tabular-nums">
 										{formatUnreadCount(votedUnread)}
 										<span className="sr-only"> {t('notifications.unread')}</span>
 									</span>

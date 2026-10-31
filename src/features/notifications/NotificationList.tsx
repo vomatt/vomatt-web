@@ -39,7 +39,7 @@ export function dayGroup(iso: string, now = new Date()): DayGroup {
 /** The page's title. */
 export function NotificationsHeader() {
 	const { t } = useLanguage();
-	return <h1 className="page-title text-foreground">{t('notifications.title')}</h1>;
+	return <h1 className="text-title-1 text-foreground">{t('notifications.title')}</h1>;
 }
 
 /**
@@ -173,7 +173,7 @@ export function NotificationList({
 				{!isHydrated && rows(groupFollows(list.items))}
 				{groups.map(({ group, entries }) => (
 					<section key={group} aria-labelledby={`day-${group}`} className="flex flex-col gap-2">
-						<h2 id={`day-${group}`} className="mx-0.5 text-[12px] font-medium text-muted-foreground">
+						<h2 id={`day-${group}`} className="mx-0.5 text-caption-2 font-medium text-muted-foreground">
 							{t(`notifications.day.${group}`)}
 						</h2>
 						{rows(entries)}
@@ -194,8 +194,8 @@ export function NotificationSettingsLink({ preferences }: { preferences: Notific
 			className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3.5 transition-colors outline-none hover:border-border-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
 		>
 			<span className="flex min-w-0 flex-1 flex-col">
-				<span className="text-[14px] font-medium">{t('notifications.settingsTitle')}</span>
-				{preferences && <span className="text-[12px] text-muted-foreground">{preferencesSummary(preferences, t)}</span>}
+				<span className="text-body-4 font-medium">{t('notifications.settingsTitle')}</span>
+				{preferences && <span className="text-caption-2 text-muted-foreground">{preferencesSummary(preferences, t)}</span>}
 			</span>
 			<ChevronRight aria-hidden className="size-3.5 shrink-0 text-muted-foreground" />
 		</Link>

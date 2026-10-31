@@ -44,7 +44,7 @@ export function YourVotePill({ label }: { label: string }) {
 			animate={{ opacity: 1, scale: 1 }}
 			exit={{ opacity: 0, scale: 0.85, transition: { duration: 0.15 } }}
 			transition={INK}
-			className="relative shrink-0 select-none whitespace-nowrap rounded-full border border-highlight-foreground bg-highlight px-2 py-0.5 text-[11px] font-semibold leading-4 text-highlight-foreground"
+			className="relative shrink-0 select-none whitespace-nowrap rounded-full border border-highlight-foreground bg-highlight px-2 py-0.5 text-caption-3 font-semibold leading-4 text-highlight-foreground"
 		>
 			{label}
 		</m.span>
@@ -59,7 +59,7 @@ export function VotedPill({ label }: { label: string }) {
 			animate={{ opacity: 1, scale: 1 }}
 			exit={{ opacity: 0, scale: 0.85, transition: { duration: 0.15 } }}
 			transition={INK}
-			className={cn(chipClassName, 'bg-highlight text-[10px] text-highlight-foreground')}
+			className={cn(chipClassName, 'bg-highlight text-caption-4 text-highlight-foreground')}
 		>
 			<Check aria-hidden size={12} strokeWidth={3} />
 			{label}

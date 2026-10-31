@@ -195,7 +195,7 @@ export function UnfollowDialog({
 function BlockedBadge() {
 	const { t } = useLanguage();
 	return (
-		<span className="inline-flex h-11 items-center rounded-(--radius) border border-border bg-secondary px-3 text-sm font-medium text-muted-foreground md:h-9">
+		<span className="inline-flex h-11 items-center rounded-(--radius) border border-border bg-secondary px-3 text-caption-1 font-medium text-muted-foreground md:h-9">
 			{t('blocks.blockedBadge')}
 		</span>
 	);

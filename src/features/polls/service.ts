@@ -269,11 +269,13 @@ export async function getResults(pollId: string): Promise<ActionResult<PollResul
 
 /**
  * The Poll's cached copy (what guests see) is fresh on the next view.
- * `expire: 0` avoids updateTag's re-render of the current route in the action
- * response. Ballots leave the shared lists to their 30s revalidate (expiring
- * them on every vote would make the next guest wait for a full uncached list);
- * owner changes (`lists: true`) also expire them, so an edited, ended or deleted
- * poll doesn't linger in Explore, profiles and the guest feed.
+ * Revalidating also evicts the browser's back/forward cache, so going back to a
+ * list shows the new Turnout and comment count, and makes the action's response
+ * re-render the current route. Ballots and Comments leave the shared lists to
+ * their 30s revalidate (expiring them on every vote would make the next guest
+ * wait for a full uncached list); owner changes (`lists: true`) also expire them,
+ * so an edited, ended or deleted poll doesn't linger in Explore, profiles and
+ * the guest feed.
  */
 function invalidatePoll(id: string, { lists = false } = {}) {
 	revalidateTag(pollTag(id), { expire: 0 });
@@ -455,15 +457,15 @@ export async function postComment(
 	text: string,
 	parentId?: string
 ): Promise<ActionResult<Comment>> {
-	return attempt(async () =>
-		CommentSchema.parse(
-			await apiClient(`/votes/${pollId}/comments`, {
-				method: 'POST',
-				// JSON leaves out an undefined parentId
-				body: JSON.stringify({ text, parentId }),
-			})
-		)
-	);
+	return attempt(async () => {
+		const comment = await apiClient(`/votes/${pollId}/comments`, {
+			method: 'POST',
+			// JSON leaves out an undefined parentId
+			body: JSON.stringify({ text, parentId }),
+		});
+		invalidatePoll(pollId);
+		return CommentSchema.parse(comment);
+	});
 }
 
 export async function updateComment(
@@ -486,6 +488,7 @@ export async function deleteComment(voteId: string, commentId: string): Promise<
 		await apiClient(`/votes/${voteId}/comments/${commentId}`, {
 			method: 'DELETE',
 		});
+		invalidatePoll(voteId);
 	});
 }
 

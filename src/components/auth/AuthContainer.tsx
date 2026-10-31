@@ -20,12 +20,12 @@ export default function AuthContainer({
 			<section className="hidden md:flex flex-col justify-between gap-12 border-r border-border bg-card px-14 py-12">
 				<BrandLink className="w-28" />
 				<div className="max-w-md space-y-6">
-					<p className="text-[48px] font-medium leading-[1.1] tracking-[-0.03em]">
+					<p className="text-display-1">
 						{t('login.brandHeadline')}
 					</p>
-					<p className="text-lg leading-normal text-muted-foreground">{t('login.brandBody')}</p>
+					<p className="text-body-1 leading-normal text-muted-foreground">{t('login.brandBody')}</p>
 				</div>
-				<ul className="max-w-md divide-y divide-border border-t border-border text-[14px] text-muted-foreground">
+				<ul className="max-w-md divide-y divide-border border-t border-border text-body-4 text-muted-foreground">
 					{(['brandRuleSealed', 'brandRuleOneVote', 'brandRuleResults'] as const).map((key) => (
 						<li key={key} className="py-3">
 							{t(`login.${key}`)}
