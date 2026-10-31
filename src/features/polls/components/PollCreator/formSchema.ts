@@ -130,14 +130,22 @@ export function toSingleLine(text: string) {
 	return text.replace(/\s*\n\s*/g, ' ').trim();
 }
 
-export function formToInput(values: PollFormValues): PollInput {
+/**
+ * `duration` is the chosen end preset: the end is that long after the start, which is now when
+ * the poll opens on publish. The end field holds when the preset was picked, to the minute.
+ */
+export function formToInput(values: PollFormValues, duration?: number): PollInput {
 	const description = values.description.trim();
+	const start = values.startTime ? new Date(values.startTime) : new Date();
 	return {
 		title: toSingleLine(values.title),
 		description: description || undefined,
 		options: values.options.map(({ text }) => ({ text: text.trim() })),
-		startTime: (values.startTime ? new Date(values.startTime) : new Date()).toISOString(),
-		endTime: new Date(values.endTime).toISOString(),
+		startTime: start.toISOString(),
+		endTime: (duration
+			? new Date(start.getTime() + duration)
+			: new Date(values.endTime)
+		).toISOString(),
 		voterVisibility: values.voterVisibility,
 		audience: values.audience,
 		invitees:
