@@ -376,7 +376,26 @@ describe('PollCreator', () => {
 		expect(screen.getByRole('button', { name: '1 week' })).toHaveAttribute('aria-pressed', 'true');
 	});
 
-	it('shows the end time when a preset’s end has passed', async () => {
+	it('measures a preset from publishing, not from when it was picked', async () => {
+		jest.useFakeTimers({ advanceTimers: true });
+		try {
+			render(<PollCreator triggerChildren={TRIGGER} />);
+			await openDialog();
+			fillPoll();
+			fireEvent.click(pill('1 week'));
+			// Writing takes a while: past the minute, and seconds the time field can't hold
+			jest.setSystemTime(Date.now() + 90_500);
+			await toReview();
+			publish();
+			await waitFor(() => expect(mockCreatePoll).toHaveBeenCalled());
+		} finally {
+			jest.useRealTimers();
+		}
+		const { startTime, endTime } = mockCreatePoll.mock.calls[0][0];
+		expect(Date.parse(endTime) - Date.parse(startTime)).toBe(7 * 24 * 3600_000);
+	});
+
+	it('keeps a preset’s end ahead however long the form stays open', async () => {
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();
 		fillPoll();
@@ -384,14 +403,11 @@ describe('PollCreator', () => {
 		const realNow = Date.now();
 		const now = jest.spyOn(Date, 'now').mockReturnValue(realNow + 2 * 3600_000);
 		try {
-			review();
-			expect(await screen.findByText('The end must be after the poll opens.')).toBeInTheDocument();
-			await waitFor(() => expect(screen.getByLabelText(END)).toHaveFocus());
-			expect(pill('Custom')).toHaveAttribute('aria-pressed', 'true');
+			await toReview();
 		} finally {
 			now.mockRestore();
 		}
-		expect(mockCreatePoll).not.toHaveBeenCalled();
+		expect(screen.queryByText('The end must be after the poll opens.')).not.toBeInTheDocument();
 	});
 
 	it('focuses a draft’s missing end time', async () => {

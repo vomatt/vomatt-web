@@ -328,7 +328,7 @@ export function PollCreator({
 		close();
 	};
 
-	/** A preset's end can pass while the dialog is open; show the field so the error has a place. */
+	/** A typed end can pass while the dialog is open; show the field so the error has a place. */
 	const revealEndError = () => {
 		if (getFieldState('endTime').invalid) setEndPreset(null);
 	};
@@ -340,6 +340,7 @@ export function PollCreator({
 	};
 
 	const showReview = (values: PollFormValues) => {
+		// eslint-disable-next-line react-hooks/purity -- only called from event handlers, never during render
 		const now = Date.now();
 		// localToIso, not formToInput: a corrupt draft time must not throw here
 		const startTime =
@@ -358,7 +359,8 @@ export function PollCreator({
 
 	const publish = handleSubmit(
 		async (values: PollFormValues) => {
-			const input = formToInput(values);
+			const preset = END_PRESETS.find(({ key }) => key === endPreset);
+			const input = formToInput(values, preset?.ms);
 			const result = isEdit
 				? await updatePoll(poll.id, input)
 				: await createPoll(input);
@@ -488,6 +490,8 @@ export function PollCreator({
 							e.currentTarget.requestSubmit();
 						}}
 						onSubmit={(e) => {
+							// A preset counts from now, not from when it was picked
+							reapplyPreset();
 							if (review) {
 								// Cmd+Return can land while a publish is still out
 								if (isSubmitting) e.preventDefault();
