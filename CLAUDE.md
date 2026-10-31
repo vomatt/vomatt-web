@@ -28,18 +28,19 @@ npx jest src/__tests__/components/PollCard.test.tsx
 
 - `src/app/(frontend)/` — customer-facing UI. `layout.tsx` fetches the `settingsGeneral` Sanity singleton for site-wide metadata and applies language detection from cookies/headers.
 - `/sanity` redirects to vomatt-admin's Studio when `NEXT_PUBLIC_SANITY_STUDIO_URL` is set (`next.config.ts`).
+- About and the legal pages (`/about`, `/privacy-policy`, `/terms-of-service`, `/cookies-policy`) live on the about site (`vomatt-about`, about.vomatt.com). `next.config.ts` redirects them there permanently; link to them with `aboutHref(slug)` from `src/lib/aboutSite.ts`. Internal links in Sanity content can only reference about-site documents, so `CMSLink` sends them there. The root `[slug]` route is profiles only.
 - `src/app/api/` — thin API route handlers (user-related endpoints).
 
 ### Sanity CMS
 
-Schemas live in vomatt-admin `src/sanity/schemaTypes/` (singletons like `settingsGeneral`, `pSignUp`, `pHome`; documents like `pGeneral`); GROQ queries here depend on them, so check both when a schema changes. Read side here: `src/sanity/{env.ts,lib/client.ts,lib/live.ts,lib/image.ts,lib/queries.ts}` on `@sanity/client` + `groq` (not `next-sanity`, which pulls in the Studio). Content is not localized.
+Schemas live in vomatt-admin `src/sanity/schemaTypes/`. This app reads only `settingsGeneral`, `settingsIntegration` (shared with the about site) and `pSignUp`; the about site owns `pGeneral`, `pHome`, the global modules and the page builder. GROQ queries here depend on those schemas, so check both when a schema changes. Read side here: `src/sanity/{env.ts,lib/client.ts,lib/live.ts,lib/image.ts,lib/queries.ts}` on `@sanity/client` + `groq` (not `next-sanity`, which pulls in the Studio). Content is not localized.
 
 Fetch pattern (published content, cached per Sanity sync tag, expired on publish — no read token):
 ```ts
 import { sanityFetch } from '@/sanity/lib/live'
-import { pageGeneralQuery } from '@/sanity/lib/queries'
+import { pSignUpDataQuery } from '@/sanity/lib/queries'
 
-const { data } = await sanityFetch({ query: pageGeneralQuery, params: { slug } })
+const { data } = await sanityFetch({ query: pSignUpDataQuery })
 ```
 Render Portable Text with `@/components/CustomPortableText`; build image URLs with `@/sanity/lib/image`.
 
@@ -71,7 +72,7 @@ Locales: `en`, `zh` (Traditional Chinese; default `en`), strings in `src/locales
 
 ### ISR Revalidation
 
-`sanityFetch` (`src/sanity/lib/live.ts`) fetches each query twice: a lookup (tag `sanity:sync-tags`) that returns the query's Sanity sync tags, then the content tagged `sanity:<syncTag>`. On publish, vomatt-admin's Sanity Function (`functions/invalidate-tags`, a Sync Tag Invalidate function) POSTs `{ syncTags }` to `/api/revalidate` with `Bearer SANITY_REVALIDATE_SECRET`, which expires the lookups and only those sync tags with `{ expire: 0 }` (Route Handlers can't use `updateTag`; `'max'` would serve one stale render). So only queries whose content changed refetch. In production with the secret set, the Sanity CDN is skipped and the cache also refreshes hourly (a fetch in flight during a publish can re-cache old content); elsewhere (local dev, Previews: the function only calls production) queries use the CDN and refresh every 60s.
+`sanityFetch` (`src/sanity/lib/live.ts`) fetches each query twice: a lookup (tag `sanity:sync-tags`) that returns the query's Sanity sync tags, then the content tagged `sanity:<syncTag>`. On publish, vomatt-admin's Sanity Function (`functions/invalidate-tags`, a Sync Tag Invalidate function) POSTs `{ syncTags }` to `/api/revalidate` here and on the about site with `Bearer SANITY_REVALIDATE_SECRET`, which expires the lookups and only those sync tags with `{ expire: 0 }` (Route Handlers can't use `updateTag`; `'max'` would serve one stale render). So only queries whose content changed refetch. In production with the secret set, the Sanity CDN is skipped and the cache also refreshes hourly (a fetch in flight during a publish can re-cache old content); elsewhere (local dev, Previews: the function only calls production) queries use the CDN and refresh every 60s.
 
 ## Environment Variables
 
@@ -81,6 +82,7 @@ NEXT_PUBLIC_SANITY_DATASET     # Sanity dataset
 NEXT_PUBLIC_SANITY_STUDIO_URL  # Optional: vomatt-admin Studio URL; /sanity redirects there
 SESSION_SECRET   # Must equal the API's JWT_SECRET (HMAC-SHA)
 SITE_URL         # Frontend URL, no trailing slash; required (metadataBase)
+NEXT_PUBLIC_ABOUT_URL  # Optional: the about site's origin; defaults to https://about.vomatt.com
 API_URL          # vomatt-api origin, no path (e.g. http://localhost:8080)
 SANITY_REVALIDATE_SECRET  # Production only; same value as the invalidate-tags function's. Set in production: publish expires the cache, hourly fallback. Unset or not production: 60s refresh; unset also makes /api/revalidate reject all calls
 API_LOG          # Optional API request/response log: 0 silences it in dev, 1 enables it in a deployment

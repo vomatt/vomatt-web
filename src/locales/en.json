@@ -465,8 +465,10 @@
 		"reportDone": "Thanks. We’ll review it.",
 		"reportFailed": "Couldn’t send the report. Try again.",
 		"linkCopied": "Link copied",
+		"linkCopyFailed": "Couldn’t copy the link.",
 		"justEnded": "This poll just ended.",
 		"voteCast": "Vote cast.",
+		"voteWithdrawn": "Vote withdrawn.",
 		"voteFailed": "Couldn’t save your vote. Try again.",
 		"withdrawFailed": "Couldn’t withdraw your vote. Try again.",
 		"tooManyVotes": "You’re voting too fast. Wait a minute and try again.",
@@ -508,7 +510,7 @@
 		"votersHidden": "The voter list for this poll is hidden, to keep anonymous votes anonymous or because of its visibility setting.",
 		"votersTruncated": "Only the first {count} voters can be listed here.",
 		"votersNone": "No one to show.",
-		"votersChoicesHidden": "This poll has anonymous votes, so choices are hidden. Showing everyone who took part.",
+		"votersChoicesHidden": "This poll has anonymous votes, so no choices are shown. Listing everyone who voted by name.",
 		"votersFailed": "Couldn’t load who voted.",
 		"deletePoll": "Delete poll",
 		"deletePollTitle": "Delete this poll?",
@@ -646,16 +648,12 @@
 		"tabGroups": "Invite lists",
 		"deleteCtaEllipsis": "Delete account…"
 	},
-	"page": {
-		"lastUpdated": "Last updated"
-	},
 	"cookieConsent": {
 		"label": "Cookie consent",
 		"message": "We’d like to use analytics cookies to understand how vomatt is used. Sign-in and language cookies are always on.",
 		"policy": "Cookies Policy",
 		"accept": "Accept analytics",
-		"decline": "Decline",
-		"settings": "Cookie settings"
+		"decline": "Decline"
 	},
 	"invitees": {
 		"title": "Invitees",

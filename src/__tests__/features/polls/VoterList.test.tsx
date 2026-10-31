@@ -107,8 +107,12 @@ describe('VotersDialog', () => {
 		});
 		render(<Harness />);
 		fireEvent.click(screen.getByRole('button', { name: 'Tabs' }));
-		expect(await screen.findByText(/choices are hidden/)).toBeInTheDocument();
-		expect(within(screen.getByRole('list', { name: 'Who voted' })).getAllByRole('listitem')).toHaveLength(2);
+		const dialog = await screen.findByRole('dialog', { name: 'Who voted' });
+		// Not under the option and its count, which would read as these people having chosen it
+		expect(within(dialog).queryByText('Tabs')).not.toBeInTheDocument();
+		expect(within(dialog).queryByText('2 voted')).not.toBeInTheDocument();
+		expect(dialog).toHaveAccessibleDescription(/no choices are shown/);
+		expect(within(dialog).getByRole('list', { name: 'Who voted' }).children).toHaveLength(2);
 	});
 
 	it('explains when the list is hidden, without asking again', async () => {

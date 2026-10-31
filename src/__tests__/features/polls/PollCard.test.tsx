@@ -132,6 +132,12 @@ describe('PollCard state A · Open, no Ballot', () => {
 		expect(screen.getAllByRole('radio')).toHaveLength(3);
 	});
 
+	it('names the options by the question without repeating it', () => {
+		render(<PollCard poll={openPoll} isPage headingLevel="h1" />);
+		expect(screen.getByRole('group', { name: 'Which day should the meetup run?' })).toBeInTheDocument();
+		expect(screen.getAllByText('Which day should the meetup run?')).toHaveLength(1);
+	});
+
 	it('keeps the line breaks of the description', () => {
 		render(<PollCard poll={{ ...openPoll, description: 'First line\nSecond line' }} />);
 		const description = screen.getByText((_, el) => el?.tagName === 'P' && el.textContent === 'First line\nSecond line');
@@ -311,7 +317,7 @@ describe('PollCard state B · Open, has Ballot', () => {
 
 		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-fri');
 		expect(screen.getByText('128 voted')).toBeInTheDocument();
-		await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Sealed. Thank you.'));
+		await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Vote cast.'));
 	});
 
 	it('starts replacing the vote when another option is picked, and Cancel goes back', () => {
@@ -437,14 +443,39 @@ describe('PollCard state B · Open, has Ballot', () => {
 		render(<PollCard poll={openPoll} viewerId="user-voter" />);
 		vote('Friday');
 
-		await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Sealed. Thank you.'));
-		// The panel, besides the live region that reads it out
-		expect(screen.getByText('Sealed. Thank you.', { selector: ':not([role=status])' })).toBeInTheDocument();
+		await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Vote cast.'));
+		// Said once: the live region doesn't repeat the panel
+		expect(screen.getAllByText('Sealed. Thank you.')).toHaveLength(1);
 		expect(screen.getByText(/Results are sealed until/)).toBeInTheDocument();
 		// Right after voting, the vote can still be withdrawn or changed
 		expect(screen.getByRole('button', { name: 'Withdraw vote' })).toBeInTheDocument();
 		expect(screen.getByRole('button', { name: 'Update vote' })).toBeInTheDocument();
 		expect(toast.success).not.toHaveBeenCalled();
+	});
+
+	it('keeps a vote cast here when the page refreshes, as the vote itself makes it do', async () => {
+		const { rerender } = render(<PollCard poll={openPoll} viewerId="user-voter" isPage />);
+		vote('Friday');
+		await screen.findByRole('button', { name: 'Withdraw vote' });
+
+		rerender(<PollCard poll={{ ...openPoll, commentCount: 1 }} viewerId="user-voter" isPage />);
+
+		expect(screen.getByLabelText('Friday')).toBeChecked();
+		expect(screen.getByRole('button', { name: 'Withdraw vote' })).toBeInTheDocument();
+		expect(screen.getByText('129 voted')).toBeInTheDocument();
+	});
+
+	it('keeps a withdrawal made here when the page refreshes', async () => {
+		const voted = { ...openPoll, myOptionId: 'opt-sun' };
+		const { rerender } = render(<PollCard poll={voted} viewerId="user-voter" isPage />);
+		fireEvent.click(screen.getByRole('button', { name: 'Withdraw vote' }));
+		fireEvent.click(screen.getByRole('button', { name: 'Withdraw' }));
+		await screen.findByRole('button', { name: 'Vote' });
+
+		rerender(<PollCard poll={{ ...voted, commentCount: 1 }} viewerId="user-voter" isPage />);
+
+		expect(screen.getByLabelText('Sunday')).not.toBeChecked();
+		expect(screen.getByRole('button', { name: 'Vote' })).toBeInTheDocument();
 	});
 
 	it('folds the Seal to a row on a later visit', () => {
@@ -455,19 +486,19 @@ describe('PollCard state B · Open, has Ballot', () => {
 		expect(screen.getByRole('status')).toBeEmptyDOMElement();
 	});
 
-	it('takes the Seal away and announces nothing once a vote is withdrawn', async () => {
+	it('takes the Seal away and says so once a vote is withdrawn', async () => {
 		mockCastBallot.mockResolvedValue({ ok: true });
 		mockRetractBallot.mockResolvedValue({ ok: true });
 		render(<PollCard poll={openPoll} viewerId="user-voter" />);
 		vote('Friday');
-		await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Sealed. Thank you.'));
+		await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Vote cast.'));
 
 		fireEvent.click(screen.getByRole('button', { name: 'Withdraw vote' }));
 		fireEvent.click(screen.getByRole('button', { name: 'Withdraw' }));
 
 		await waitFor(() => expect(screen.getByText('Results are revealed when the poll ends')).toBeInTheDocument());
 		expect(screen.queryByText('Sealed. Thank you.')).not.toBeInTheDocument();
-		expect(screen.getByRole('status')).toBeEmptyDOMElement();
+		await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Vote withdrawn.'));
 	});
 
 	it('closes the Seal again when the cast fails', async () => {

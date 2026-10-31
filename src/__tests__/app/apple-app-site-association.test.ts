@@ -3,13 +3,6 @@
  */
 import { unstable_doesMiddlewareMatch } from 'next/experimental/testing/server';
 
-const sanityFetchMock = jest.fn();
-jest.mock('@/sanity/lib/live', () => ({
-	sanityFetch: (...args: unknown[]) => sanityFetchMock(...args),
-}));
-// groq is ESM only
-jest.mock('@/sanity/lib/queries', () => ({ pageGeneralSlugsQuery: 'slugs' }));
-
 import { GET } from '@/app/.well-known/apple-app-site-association/route';
 import { config } from '@/proxy';
 
@@ -36,8 +29,6 @@ const opensApp = async (path: string) => {
 const originalIds = process.env.IOS_APP_IDS;
 beforeEach(() => {
 	process.env.IOS_APP_IDS = 'TEAM1.com.vomatt.app';
-	sanityFetchMock.mockReset();
-	sanityFetchMock.mockResolvedValue({ data: [{ slug: 'about' }] });
 });
 afterAll(() => {
 	process.env.IOS_APP_IDS = originalIds;
@@ -81,18 +72,13 @@ describe('apple-app-site-association', () => {
 		'/sanity',
 		'/api',
 		'/about',
+		'/privacy-policy',
+		'/terms-of-service',
+		'/cookies-policy',
 		'/alice/followers',
 		'/favicon.ico',
 	])('keeps %s on the web', async (path) => {
 		expect(await opensApp(path)).toBe(false);
-	});
-
-	it('still serves the static rules when Sanity is unreachable', async () => {
-		jest.spyOn(console, 'error').mockImplementation(() => {});
-		sanityFetchMock.mockRejectedValue(new Error('network'));
-
-		expect(await opensApp('/alice')).toBe(true);
-		expect(await opensApp('/login')).toBe(false);
 	});
 
 	it('is not run through the proxy', () => {

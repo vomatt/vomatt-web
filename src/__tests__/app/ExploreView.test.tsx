@@ -35,6 +35,7 @@ const topic = (slug: string, name: string, usageCount: number): TagDto => ({ id:
 beforeEach(() => {
 	jest.useFakeTimers();
 	jest.clearAllMocks();
+	window.history.replaceState(null, '', '/explore');
 });
 afterEach(() => jest.useRealTimers());
 
@@ -221,5 +222,128 @@ describe('ExploreView', () => {
 		await act(async () => jest.advanceTimersByTime(300));
 
 		expect(screen.getByText('Try another topic, or tap it again to see every poll.')).toBeInTheDocument();
+	});
+
+	it('says a one-character search is too short in the search box, however long the list', async () => {
+		const page = Array.from({ length: EXPLORE_PAGE_SIZE }, (_, i) => poll(`p${i}`, `Poll ${i}`));
+		await renderView(<ExploreView topics={noTopics} initialPage={Promise.resolve({ items: page, nextCursor: 'c1' })} />);
+		const box = screen.getByRole('searchbox');
+
+		fireEvent.change(box, { target: { value: 'l' } });
+		await act(async () => jest.advanceTimersByTime(300));
+
+		expect(box).toHaveAccessibleDescription('Type at least 2 characters to search.');
+		expect(screen.getByText('Poll 0')).toBeInTheDocument();
+		expect(mockGetPolls).not.toHaveBeenCalled();
+	});
+
+	it('treats a single emoji as too short instead of sending it', async () => {
+		await renderView(<ExploreView topics={noTopics} initialPage={Promise.resolve({ items: [poll('p1', 'Lunch?')], nextCursor: null })} />);
+		const box = screen.getByRole('searchbox');
+
+		fireEvent.change(box, { target: { value: '😀' } });
+		await act(async () => jest.advanceTimersByTime(300));
+
+		expect(mockGetPolls).not.toHaveBeenCalled();
+		expect(box).toHaveAccessibleDescription('Type at least 2 characters to search.');
+		expect(screen.queryByText('Couldn’t load polls.')).not.toBeInTheDocument();
+	});
+
+	it('shows a loading status from the moment a filter changes until its results land', async () => {
+		let resolve!: (page: { items: Poll[]; nextCursor: null }) => void;
+		mockGetPolls.mockReturnValue(new Promise((r) => (resolve = r)));
+		await renderView(<ExploreView topics={noTopics} initialPage={Promise.resolve({ items: [poll('p1', 'Lunch?')], nextCursor: null })} />);
+		expect(screen.queryByRole('status', { name: 'Loading' })).not.toBeInTheDocument();
+
+		fireEvent.click(screen.getByRole('button', { name: 'Ended' }));
+		expect(screen.getByRole('status', { name: 'Loading' })).toBeInTheDocument();
+
+		await act(async () => jest.advanceTimersByTime(300));
+		await act(async () => resolve({ items: [poll('p2', 'Dinner?')], nextCursor: null }));
+		expect(screen.getByText('Dinner?')).toBeInTheDocument();
+		expect(screen.queryByRole('status', { name: 'Loading' })).not.toBeInTheDocument();
+	});
+
+	it('opens with the search and filters from the address, without refetching', async () => {
+		await renderView(
+			<ExploreView
+				topics={[topic('food', 'Food', 3)]}
+				initial={{ query: 'lunch', status: 'ended', sort: 'newest', tag: 'food' }}
+				initialPage={Promise.resolve({ items: [poll('p1', 'Lunch?')], nextCursor: null })}
+			/>
+		);
+		await act(async () => jest.advanceTimersByTime(1000));
+
+		expect(screen.getByRole('searchbox')).toHaveValue('lunch');
+		expect(screen.getByRole('button', { name: 'Ended' })).toHaveAttribute('aria-pressed', 'true');
+		expect(screen.getByRole('button', { name: 'Food' })).toHaveAttribute('aria-pressed', 'true');
+		expect(mockGetPolls).not.toHaveBeenCalled();
+	});
+
+	it('keeps the search and filters in the address', async () => {
+		mockGetPolls.mockResolvedValue({ items: [], nextCursor: null });
+		await renderView(<ExploreView topics={noTopics} initialPage={Promise.resolve({ items: [], nextCursor: null })} />);
+
+		fireEvent.click(screen.getByRole('button', { name: 'Ended' }));
+		fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'lun' } });
+		await act(async () => jest.advanceTimersByTime(300));
+		expect(window.location.pathname).toBe('/explore');
+		expect(window.location.search).toBe('?status=ended&q=lun');
+
+		fireEvent.click(screen.getByRole('button', { name: 'Open' }));
+		fireEvent.change(screen.getByRole('searchbox'), { target: { value: '' } });
+		await act(async () => jest.advanceTimersByTime(300));
+		expect(window.location.search).toBe('');
+	});
+
+	it('retries a search that failed', async () => {
+		mockGetPolls.mockRejectedValueOnce(new Error('down')).mockResolvedValue({ items: [poll('p2', 'Dinner?')], nextCursor: null });
+		await renderView(<ExploreView topics={noTopics} initialPage={Promise.resolve({ items: [poll('p1', 'Lunch?')], nextCursor: null })} />);
+
+		fireEvent.click(screen.getByRole('button', { name: 'Ended' }));
+		await act(async () => jest.advanceTimersByTime(300));
+		expect(screen.getByText(/Couldn’t load polls/)).toBeInTheDocument();
+
+		fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+		await act(async () => jest.advanceTimersByTime(300));
+		expect(await screen.findByText('Dinner?')).toBeInTheDocument();
+		expect(mockGetPolls).toHaveBeenCalledTimes(2);
+	});
+
+	it('does not dim the list before a new query is sent, after one was dropped mid-load', async () => {
+		mockGetPolls.mockReturnValue(new Promise(() => {}));
+		await renderView(<ExploreView topics={noTopics} initialPage={Promise.resolve({ items: [poll('p1', 'Lunch?')], nextCursor: null })} />);
+
+		fireEvent.click(screen.getByRole('button', { name: 'Ended' }));
+		await act(async () => jest.advanceTimersByTime(300));
+		fireEvent.click(screen.getByRole('button', { name: 'Open' }));
+		fireEvent.click(screen.getByRole('button', { name: 'Most voted' }));
+
+		expect(screen.getByText('Lunch?').closest('[aria-busy]')).toHaveAttribute('aria-busy', 'false');
+	});
+
+	it('keeps address parameters that are not filters', async () => {
+		window.history.replaceState(null, '', '/explore?utm_source=mail#top');
+		mockGetPolls.mockResolvedValue({ items: [], nextCursor: null });
+		await renderView(<ExploreView topics={noTopics} initialPage={Promise.resolve({ items: [], nextCursor: null })} />);
+
+		fireEvent.click(screen.getByRole('button', { name: 'Ended' }));
+		await act(async () => jest.advanceTimersByTime(300));
+		expect(window.location.search).toBe('?utm_source=mail&status=ended');
+		expect(window.location.hash).toBe('#top');
+	});
+
+	it('leaves the list usable when the filters go back to the listed ones mid-load', async () => {
+		mockGetPolls.mockReturnValue(new Promise(() => {}));
+		await renderView(<ExploreView topics={noTopics} initialPage={Promise.resolve({ items: [poll('p1', 'Lunch?')], nextCursor: null })} />);
+
+		fireEvent.click(screen.getByRole('button', { name: 'Ended' }));
+		await act(async () => jest.advanceTimersByTime(300));
+		fireEvent.click(screen.getByRole('button', { name: 'Open' }));
+		await act(async () => jest.advanceTimersByTime(300));
+
+		expect(screen.getByText('Lunch?').closest('[aria-busy]')).toHaveAttribute('aria-busy', 'false');
+		expect(screen.queryByRole('status', { name: 'Loading' })).not.toBeInTheDocument();
+		expect(mockGetPolls).toHaveBeenCalledTimes(1);
 	});
 });

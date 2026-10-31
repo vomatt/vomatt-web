@@ -11,7 +11,12 @@ import {
 	NotificationSettingsLink,
 	NotificationsHeader,
 } from '@/features/notifications/NotificationList';
-import type { Notification, NotificationPreferences } from '@/features/notifications/schema';
+import {
+	type Notification,
+	NOTIFICATION_CATEGORIES,
+	type NotificationCategory,
+	type NotificationPreferences,
+} from '@/features/notifications/schema';
 import { getNotificationPreferences, getNotifications } from '@/features/notifications/service';
 import { PollRowListSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import type { CursorPage } from '@/lib/api/cursor';
@@ -22,19 +27,21 @@ export async function generateMetadata(): Promise<Metadata> {
 	return { title: messages.notifications.title };
 }
 
-export default async function NotificationsPage() {
+export default async function NotificationsPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
 	const profile = await getMyProfile();
 	if (!profile) return redirectToLogin('/notifications');
 
+	const { tab } = await searchParams;
+	const category = NOTIFICATION_CATEGORIES.find((value) => value.toLowerCase() === tab);
 	// Started together; the list and the rail each stream in when theirs resolves
-	const firstPage = getNotifications().catch(() => null);
+	const firstPage = getNotifications(null, category).catch(() => null);
 	const preferences = getNotificationPreferences().catch(() => null);
 
 	return (
 		<PageShell
 			rail={
 				<Suspense fallback={null}>
-					<NotificationsRail firstPage={firstPage} preferences={preferences} />
+					<NotificationsRail firstPage={firstPage} category={category} preferences={preferences} />
 				</Suspense>
 			}
 		>
@@ -47,7 +54,7 @@ export default async function NotificationsPage() {
 						</>
 					}
 				>
-					<Notifications firstPage={firstPage} viewerUsername={profile.username} />
+					<Notifications firstPage={firstPage} category={category} viewerUsername={profile.username} />
 				</Suspense>
 			</div>
 		</PageShell>
@@ -56,20 +63,30 @@ export default async function NotificationsPage() {
 
 type FirstPage = Promise<CursorPage<Notification> | null>;
 
-async function Notifications({ firstPage, viewerUsername }: { firstPage: FirstPage; viewerUsername: string }) {
-	return <NotificationList initialPage={await firstPage} viewerUsername={viewerUsername} />;
+async function Notifications({
+	firstPage,
+	category,
+	viewerUsername,
+}: {
+	firstPage: FirstPage;
+	category?: NotificationCategory;
+	viewerUsername: string;
+}) {
+	return <NotificationList initialPage={await firstPage} initialCategory={category} viewerUsername={viewerUsername} />;
 }
 
 async function NotificationsRail({
 	firstPage,
+	category,
 	preferences,
 }: {
 	firstPage: FirstPage;
+	category?: NotificationCategory;
 	preferences: Promise<NotificationPreferences | null>;
 }) {
 	const [page, prefs] = await Promise.all([firstPage, preferences]);
-	// How rows are read means nothing until there is a row
-	if (page?.items.length === 0) return null;
+	// How rows are read means nothing until there is a row; one empty tab says nothing about the rest
+	if (!category && page?.items.length === 0) return null;
 	return (
 		<aside className="flex w-full flex-col gap-3 xl:sticky xl:top-8">
 			<TidePanel className="p-3.5 text-caption-1 leading-relaxed">
