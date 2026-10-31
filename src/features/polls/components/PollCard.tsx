@@ -3,7 +3,7 @@
 import { AnimatePresence, m } from 'motion/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useCallback, useState } from 'react';
+import { useCallback, useId, useState } from 'react';
 import { toast } from 'sonner';
 
 import { AuthDialog } from '@/components/auth/AuthDialog';
@@ -67,6 +67,7 @@ export function PollCard({
 	}
 	const [isDeleted, setIsDeleted] = useState(false);
 	const { isAuthed, requireAuth, authDialog } = useRequireAuth(!!viewerId);
+	const titleId = useId();
 
 	const refetch = useCallback(async () => {
 		const fresh = await getPoll(poll.id).catch(() => null);
@@ -151,18 +152,24 @@ export function PollCard({
 				<div>
 					{/* On the poll page the title is plain, selectable text; in a list it leads to the page */}
 					{isPage ? (
-						<Heading className="text-title-3 text-balance wrap-anywhere text-foreground select-text md:text-title-2">
+						<Heading
+							id={titleId}
+							className="text-title-3 text-balance wrap-anywhere text-foreground select-text md:text-title-2"
+						>
 							{title}
 						</Heading>
 					) : (
 						<Link href={`/poll/${id}`} className="after:absolute after:inset-0 after:rounded-2xl">
-							<Heading className="text-title-3 text-balance wrap-anywhere text-foreground hover:text-muted-foreground transition-colors md:text-title-2">
+							<Heading
+								id={titleId}
+								className="text-title-3 text-balance wrap-anywhere text-foreground hover:text-muted-foreground transition-colors md:text-title-2"
+							>
 								{title}
 							</Heading>
 						</Link>
 					)}
 					{description && (
-						<p className="mt-2 max-w-[65ch] wrap-anywhere text-body-3 text-muted-foreground leading-normal">
+						<p className="mt-2 max-w-[65ch] wrap-anywhere whitespace-pre-line text-body-3 text-muted-foreground leading-normal">
 							{description}
 						</p>
 					)}
@@ -192,6 +199,7 @@ export function PollCard({
 								status={status}
 								ballot={ballot}
 								requireAuth={requireAuth}
+								titleId={titleId}
 							/>
 						)}
 					</m.div>

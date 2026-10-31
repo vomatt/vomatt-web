@@ -21,6 +21,8 @@ type BallotProps = {
 	status: Exclude<PollStatus, 'ended'>;
 	ballot: BallotState;
 	requireAuth: (action: () => void) => void;
+	/** The id of the card's title, which names the options. */
+	titleId: string;
 };
 
 /** What the viewer is doing with a cast Ballot. Without a Ballot the card shows the Vote row instead. */
@@ -34,7 +36,7 @@ type SealedMode =
 	| { kind: 'withdrawing' };
 
 /** Card states A (no Ballot), B (has Ballot) and C (Scheduled). Never shows counts. */
-export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
+export function Ballot({ poll, status, ballot, requireAuth, titleId }: BallotProps) {
 	const { t, currentLanguage } = useLanguage();
 	const isHydrated = useHydrated();
 	const [mode, setMode] = useState<SealedMode>({ kind: 'row' });
@@ -83,7 +85,7 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 			const outcome = await ballot.cast(selected);
 			if (outcome === 'saved') {
 				setMode({ kind: 'moment' });
-				setAnnouncement(t('poll.sealedTitle'));
+				setAnnouncement(t('poll.voteCast'));
 			} else if (outcome === 'failed') {
 				shake();
 			}
@@ -93,7 +95,9 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 	const withdraw = async () => {
 		setMode({ kind: 'row' });
 		setAnnouncement('');
-		if ((await ballot.retract()) === 'failed') shake();
+		const outcome = await ballot.retract();
+		if (outcome === 'saved') setAnnouncement(t('poll.voteWithdrawn'));
+		else if (outcome === 'failed') shake();
 	};
 
 	const sealActions = (
@@ -219,8 +223,12 @@ export function Ballot({ poll, status, ballot, requireAuth }: BallotProps) {
 
 	return (
 		<div className="flex flex-col gap-4 md:gap-5">
-			<fieldset ref={optionsRef} disabled={isScheduled || isPending} className="isolate space-y-2.5">
-				<legend className="sr-only">{poll.title}</legend>
+			<fieldset
+				ref={optionsRef}
+				disabled={isScheduled || isPending}
+				aria-labelledby={titleId}
+				className="isolate space-y-2.5"
+			>
 				{poll.options.map((option) => {
 					const isSelected = selected === option.id;
 					return (
