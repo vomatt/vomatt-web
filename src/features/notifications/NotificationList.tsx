@@ -49,23 +49,29 @@ export function NotificationsHeader() {
  */
 export function NotificationList({
 	initialPage,
+	initialCategory = 'all',
 	viewerUsername,
 }: {
 	/** Null when the feed couldn't be loaded. */
 	initialPage: CursorPage<Notification> | null;
+	/** The tab the server page was loaded for (`?tab=`). */
+	initialCategory?: NotificationCategory | 'all';
 	viewerUsername: string;
 }) {
 	const { t } = useLanguage();
 	const { count: unreadCount } = useUnreadCount();
-	// The server page is the unfiltered feed; a tab's reset brings its own fetcher so cursors stay with one category
-	const fetchPage = useCallback((cursor: string) => getNotifications(cursor), []);
+	// A tab's reset brings its own fetcher so cursors stay with one category
+	const fetchPage = useCallback(
+		(cursor: string) => getNotifications(cursor, initialCategory === 'all' ? undefined : initialCategory),
+		[initialCategory]
+	);
 	const list = useCursorList(initialPage, fetchPage);
-	const [category, setCategory] = useState<NotificationCategory | 'all'>('all');
-	// A fresh server page replaces the filtered list, so the tab goes back to All
+	const [category, setCategory] = useState(initialCategory);
+	// A fresh server page replaces the list, so the tab goes back to the page's
 	const [seed, setSeed] = useState(initialPage);
 	if (initialPage !== seed) {
 		setSeed(initialPage);
-		setCategory('all');
+		setCategory(initialCategory);
 	}
 	const [isSwitching, setIsSwitching] = useState(false);
 	// Days follow the reader's clock, so the grouping waits for hydration
@@ -106,6 +112,7 @@ export function NotificationList({
 			const nextCategory = next === 'all' ? undefined : next;
 			list.reset(await getNotifications(null, nextCategory), (cursor) => getNotifications(cursor, nextCategory));
 			setCategory(next);
+			window.history.replaceState(null, '', nextCategory ? `?tab=${nextCategory.toLowerCase()}` : window.location.pathname);
 		} catch {
 			toast.error(t('notifications.categoryFailed'));
 		} finally {
@@ -122,14 +129,7 @@ export function NotificationList({
 		);
 	}
 	// Unknown kinds are left out, so an empty page can still have more, or unread ones, after it
-	if (list.items.length === 0 && !list.hasMore && unreadCount === 0 && category === 'all') {
-		return (
-			<>
-				<NotificationsHeader />
-				<EmptyCard title={t('notifications.empty')} body={t('notifications.emptyHint')} />
-			</>
-		);
-	}
+	const isEmpty = list.items.length === 0 && !list.hasMore && unreadCount === 0 && category === 'all';
 
 	const groups = (['today', 'yesterday', 'earlier'] as const)
 		.map((group) => ({
@@ -165,10 +165,10 @@ export function NotificationList({
 					]}
 				/>
 
-				{list.items.length === 0 && (
-					<p className="empty-state">
-						{t('notifications.categoryEmpty')}
-					</p>
+				{isEmpty ? (
+					<EmptyCard title={t('notifications.empty')} body={t('notifications.emptyHint')} />
+				) : (
+					list.items.length === 0 && <p className="empty-state">{t('notifications.categoryEmpty')}</p>
 				)}
 				{!isHydrated && rows(groupFollows(list.items))}
 				{groups.map(({ group, entries }) => (

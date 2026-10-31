@@ -11,7 +11,12 @@ import {
 	NotificationSettingsLink,
 	NotificationsHeader,
 } from '@/features/notifications/NotificationList';
-import type { Notification, NotificationPreferences } from '@/features/notifications/schema';
+import {
+	type Notification,
+	NOTIFICATION_CATEGORIES,
+	type NotificationCategory,
+	type NotificationPreferences,
+} from '@/features/notifications/schema';
 import { getNotificationPreferences, getNotifications } from '@/features/notifications/service';
 import { PollRowListSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import type { CursorPage } from '@/lib/api/cursor';
@@ -22,12 +27,14 @@ export async function generateMetadata(): Promise<Metadata> {
 	return { title: messages.notifications.title };
 }
 
-export default async function NotificationsPage() {
+export default async function NotificationsPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
 	const profile = await getMyProfile();
 	if (!profile) return redirectToLogin('/notifications');
 
+	const { tab } = await searchParams;
+	const category = NOTIFICATION_CATEGORIES.find((value) => value.toLowerCase() === tab);
 	// Started together; the list and the rail each stream in when theirs resolves
-	const firstPage = getNotifications().catch(() => null);
+	const firstPage = getNotifications(null, category).catch(() => null);
 	const preferences = getNotificationPreferences().catch(() => null);
 
 	return (
@@ -47,7 +54,7 @@ export default async function NotificationsPage() {
 						</>
 					}
 				>
-					<Notifications firstPage={firstPage} viewerUsername={profile.username} />
+					<Notifications firstPage={firstPage} category={category} viewerUsername={profile.username} />
 				</Suspense>
 			</div>
 		</PageShell>
@@ -56,8 +63,16 @@ export default async function NotificationsPage() {
 
 type FirstPage = Promise<CursorPage<Notification> | null>;
 
-async function Notifications({ firstPage, viewerUsername }: { firstPage: FirstPage; viewerUsername: string }) {
-	return <NotificationList initialPage={await firstPage} viewerUsername={viewerUsername} />;
+async function Notifications({
+	firstPage,
+	category,
+	viewerUsername,
+}: {
+	firstPage: FirstPage;
+	category?: NotificationCategory;
+	viewerUsername: string;
+}) {
+	return <NotificationList initialPage={await firstPage} initialCategory={category} viewerUsername={viewerUsername} />;
 }
 
 async function NotificationsRail({
