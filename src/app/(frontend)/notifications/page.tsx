@@ -41,7 +41,7 @@ export default async function NotificationsPage({ searchParams }: { searchParams
 		<PageShell
 			rail={
 				<Suspense fallback={null}>
-					<NotificationsRail firstPage={firstPage} preferences={preferences} />
+					<NotificationsRail firstPage={firstPage} category={category} preferences={preferences} />
 				</Suspense>
 			}
 		>
@@ -77,14 +77,16 @@ async function Notifications({
 
 async function NotificationsRail({
 	firstPage,
+	category,
 	preferences,
 }: {
 	firstPage: FirstPage;
+	category?: NotificationCategory;
 	preferences: Promise<NotificationPreferences | null>;
 }) {
 	const [page, prefs] = await Promise.all([firstPage, preferences]);
-	// How rows are read means nothing until there is a row
-	if (page?.items.length === 0) return null;
+	// How rows are read means nothing until there is a row; one empty tab says nothing about the rest
+	if (!category && page?.items.length === 0) return null;
 	return (
 		<aside className="flex w-full flex-col gap-3 xl:sticky xl:top-8">
 			<TidePanel className="p-3.5 text-caption-1 leading-relaxed">
