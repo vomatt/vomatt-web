@@ -3,10 +3,11 @@ import '@/styles/global.css';
 import type { SanityImageSource } from '@sanity/image-url';
 import { Geist } from 'next/font/google';
 import { headers } from 'next/headers';
-import { cache, ReactNode } from 'react';
+import { cache, ReactNode, Suspense } from 'react';
 import { Toaster } from 'sonner';
 
 import BrandLogo from '@/components/BrandLogo';
+import { BrandPulse } from '@/components/BrandPulse';
 import CustomPortableText from '@/components/CustomPortableText';
 import { Layout } from '@/components/layout';
 import { CookieConsent } from '@/components/layout/CookieConsent';
@@ -131,7 +132,9 @@ export default async function RootLayout({
 							{requestHeaders.has(SESSION_UNCONFIRMED_HEADER) ? (
 								<SessionRetry />
 							) : (
-								<>
+								// A Suspense in a layout falls back on the first load only; navigations keep the
+								// current page. The cookie banner waits with the app, so it can't cover the splash.
+								<Suspense fallback={<BrandPulse />}>
 									<TooltipProvider>
 										<Layout>{children}</Layout>
 									</TooltipProvider>
@@ -145,7 +148,7 @@ export default async function RootLayout({
 										mobileOffset={{ bottom: 'calc(var(--tabbar-space) + 16px)' }}
 									/>
 									<CookieConsent integrations={settings?.integrations} />
-								</>
+								</Suspense>
 							)}
 						</LanguageProvider>
 					)}

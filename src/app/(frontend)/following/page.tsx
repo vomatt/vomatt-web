@@ -11,7 +11,7 @@ import { HomeRail } from '../_components/HomeRail';
 import { PollFeedList } from '../_components/PollFeedList';
 
 export default async function FollowingPage() {
-	// Check auth before streaming the shell, so signed-out users get a real 307
+	// The proxy sends signed-out users to login with a 307; this backs it up
 	const user = await getUserSession();
 	if (!user) redirect('/login');
 

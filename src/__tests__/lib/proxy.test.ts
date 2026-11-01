@@ -59,6 +59,17 @@ describe('proxy auth', () => {
 		);
 	});
 
+	// The first-load splash streams the page, so a redirect in the page can't send a 307
+	it.each(['/settings', '/settings/devices', '/following', '/following/saved'])(
+		'redirects signed-out users from %s to login before the page streams',
+		async (path) => {
+			const res = await proxy(requestFor(path));
+			expect(res.headers.get('location')).toBe(
+				`http://localhost:3000/login?redirect=${encodeURIComponent(path)}`
+			);
+		}
+	);
+
 	it('lets signed-out users view public pages', async () => {
 		const res = await proxy(requestFor('/explore'));
 		expect(res.headers.get('location')).toBeNull();
