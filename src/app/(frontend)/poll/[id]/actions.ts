@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 
 import { clearAuthTokens, getTokens } from '@/lib/api/auth';
 import { publicFetch } from '@/lib/api/client';
-import { clientIpHeaders } from '@/lib/api/client-ip';
+import { clientHeaders } from '@/lib/api/client-ip';
 
 /**
  * Signs out as `signout()` does, then goes to login with this Poll as the redirect, for an
@@ -16,7 +16,7 @@ export async function switchAccount(pollId: string) {
 	if (refreshToken) {
 		await publicFetch('/auth/logout', {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/json', ...clientIpHeaders(await headers()) },
+			headers: { 'Content-Type': 'application/json', ...clientHeaders(await headers()) },
 			body: JSON.stringify({ refreshToken }),
 			cache: 'no-store',
 		}).catch((error) => {

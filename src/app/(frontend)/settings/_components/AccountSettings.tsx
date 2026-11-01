@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { LegalLinks } from '@/components/layout/LegalLinks';
+import { rowClassName, RowText, SettingsCard } from '@/components/SettingsCard';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -32,13 +33,13 @@ import type { NotificationPreferences } from '@/features/notifications/schema';
 import { updateNotificationPreferences } from '@/features/notifications/service';
 import { useUnreadCount } from '@/features/notifications/UnreadCountProvider';
 import { PasskeysPanel } from '@/features/passkeys/PasskeysPanel';
-import { SessionsPanel } from '@/features/sessions/SessionsPanel';
+import { getSessions } from '@/features/sessions/service';
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
 import { useHydrated } from '@/hooks/useHydrated';
 import { htmlLang, SUPPORTED_LANGUAGES } from '@/i18n-config';
 import { apiErrorText } from '@/lib/api/error-text';
 import { signout } from '@/lib/api/services/auth';
-import { deleteMyAccount, editProfile, exportMyData } from '@/lib/api/services/users';
+import { deleteMyAccount, editProfile } from '@/lib/api/services/users';
 import { countText } from '@/lib/count';
 import { profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
@@ -47,7 +48,6 @@ import type { MyProfile } from '@/types/user';
 /** The page's sections, in order; the On this page list links to each. */
 export const SETTINGS_SECTIONS = ['voting', 'notifications', 'appearance', 'privacy', 'account'] as const;
 
-const rowClassName = 'flex min-h-15 items-center gap-4 px-4.5 py-3';
 const rowLinkClassName = cn(
 	rowClassName,
 	'transition-colors hover:bg-surface-soft outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring'
@@ -61,25 +61,6 @@ function Section({ id, title, children }: { id: string; title: string; children:
 			</h2>
 			{children}
 		</section>
-	);
-}
-
-function Card({ children, className }: { children: React.ReactNode; className?: string }) {
-	return <div className={cn('divide-y divide-border rounded-2xl border border-border bg-card', className)}>{children}</div>;
-}
-
-function RowText({ title, body, id }: { title: React.ReactNode; body?: React.ReactNode; id?: string }) {
-	return (
-		<span className="min-w-0 flex-1">
-			<span id={id && `${id}-label`} className="block font-medium">
-				{title}
-			</span>
-			{body && (
-				<span id={id && `${id}-body`} className="block text-caption-1 leading-normal text-muted-foreground">
-					{body}
-				</span>
-			)}
-		</span>
 	);
 }
 
@@ -100,6 +81,7 @@ export default function AccountSettings({
 	// The last value the server confirmed; quick toggles can answer out of order
 	const savedAnonymousDefault = useRef(profile.anonymousBallotByDefault);
 	const [invitesOpen, setInvitesOpen] = useState(false);
+	const deviceCount = useDeviceCount();
 	// Read out by screen readers after each save; the switch itself shows the change
 	const [announcement, setAnnouncement] = useState('');
 	const visibility = profile.visibilitySettings ?? {};
@@ -126,7 +108,7 @@ export default function AccountSettings({
 			</p>
 
 			<Section id="voting" title={t('settings.voting')}>
-				<Card>
+				<SettingsCard>
 					<label htmlFor="anonymous-default" className={cn(rowClassName, 'cursor-pointer')}>
 						<RowText id="anonymous-default" title={t('account.anonymousDefault')} body={t('account.anonymousDefaultBody')} />
 						<Switch
@@ -146,7 +128,7 @@ export default function AccountSettings({
 						)}
 						<ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
 					</button>
-				</Card>
+				</SettingsCard>
 				<Dialog
 					open={invitesOpen}
 					onOpenChange={(open) => {
@@ -168,14 +150,14 @@ export default function AccountSettings({
 				{notificationPreferences ? (
 					<NotificationSwitches initial={notificationPreferences} announce={setAnnouncement} />
 				) : (
-					<Card>
+					<SettingsCard>
 						<p className={cn(rowClassName, 'text-body-4 text-muted-foreground')}>{t('settings.notificationsFailed')}</p>
-					</Card>
+					</SettingsCard>
 				)}
 			</Section>
 
 			<Section id="appearance" title={t('settings.appearanceAndLanguage')}>
-				<Card>
+				<SettingsCard>
 					<div className={cn(rowClassName, 'flex-wrap')}>
 						<RowText title={t('settings.theme')} body={t('settings.themeBody')} />
 						<ThemeChoice />
@@ -187,11 +169,11 @@ export default function AccountSettings({
 						</span>
 						<ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
 					</Link>
-				</Card>
+				</SettingsCard>
 			</Section>
 
 			<Section id="privacy" title={t('settings.privacy')}>
-				<Card>
+				<SettingsCard>
 					<Link href={`${profileHref(profile.username)}?edit=1`} className={rowLinkClassName}>
 						<RowText title={t('account.privacyTitle')} body={t('settings.whatOthersSeeBody')} />
 						<span className="text-body-4 text-muted-foreground">
@@ -202,11 +184,11 @@ export default function AccountSettings({
 					<div className={cn(rowClassName, 'flex-col items-stretch')}>
 						<BlockedUsersPanel />
 					</div>
-				</Card>
+				</SettingsCard>
 			</Section>
 
 			<Section id="account" title={t('settings.account')}>
-				<Card>
+				<SettingsCard>
 					<div className={cn(rowClassName, 'flex-wrap')}>
 						<RowText title={t('account.signOutTitle')} body={<span className="wrap-anywhere">{profile.email ?? profile.phoneNumber}</span>} />
 						<Button variant="outline" size="md" onClick={() => signout()}>
@@ -216,11 +198,16 @@ export default function AccountSettings({
 					<div className={cn(rowClassName, 'flex-col items-stretch')}>
 						<PasskeysPanel />
 					</div>
-					<div className={cn(rowClassName, 'flex-col items-stretch')}>
-						<SessionsPanel />
-					</div>
-					<ExportData />
-				</Card>
+					<Link href="/settings/devices" className={rowLinkClassName}>
+						<RowText title={t('sessions.title')} body={t('sessions.body')} />
+						{deviceCount !== null && (
+							<span className="text-body-4 whitespace-nowrap text-muted-foreground">
+								{countText(t, 'settings.deviceCount', deviceCount, currentLanguage)}
+							</span>
+						)}
+						<ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+					</Link>
+				</SettingsCard>
 			</Section>
 
 			{/* Kept apart, at the end, and quiet until opened */}
@@ -229,6 +216,25 @@ export default function AccountSettings({
 			<LegalLinks className="flex gap-4.5 text-caption-1 text-muted-foreground" />
 		</div>
 	);
+}
+
+/**
+ * How many devices the user is signed in on; null until loaded or when they couldn't be. Fetched on
+ * each visit rather than with the page, so it neither holds the page up nor comes back stale with
+ * the browser's Back from Signed-in devices.
+ */
+function useDeviceCount() {
+	const [count, setCount] = useState<number | null>(null);
+	useEffect(() => {
+		let ignore = false;
+		getSessions().then((result) => {
+			if (!ignore && result.ok) setCount(result.data.length);
+		});
+		return () => {
+			ignore = true;
+		};
+	}, []);
+	return count;
 }
 
 /** Which kinds the feed and the unread count include; each switch changes at once and goes back if the save fails. */
@@ -270,7 +276,7 @@ function NotificationSwitches({
 	};
 
 	return (
-		<Card>
+		<SettingsCard>
 			{NOTIFICATION_SWITCHES.map(({ key, title, body }) => {
 				const id = `notify-${key}`;
 				return (
@@ -287,7 +293,7 @@ function NotificationSwitches({
 					</label>
 				);
 			})}
-		</Card>
+		</SettingsCard>
 	);
 }
 
@@ -367,42 +373,6 @@ export function useSectionInView(ids: readonly string[]) {
 		});
 	};
 	return [current, select] as const;
-}
-
-function ExportData() {
-	const { t } = useLanguage();
-	const [isExporting, setIsExporting] = useState(false);
-
-	const download = async () => {
-		setIsExporting(true);
-		let result: Awaited<ReturnType<typeof exportMyData>>;
-		try {
-			result = await exportMyData();
-		} finally {
-			setIsExporting(false);
-		}
-		if (!result.ok) {
-			toast.error(apiErrorText(t, result, 'account.exportFailed'), { duration: Infinity });
-			return;
-		}
-		const url = URL.createObjectURL(new Blob([result.data], { type: 'application/json' }));
-		const link = document.createElement('a');
-		link.href = url;
-		link.download = 'vomatt-data.json';
-		document.body.appendChild(link);
-		link.click();
-		link.remove();
-		setTimeout(() => URL.revokeObjectURL(url), 1000);
-	};
-
-	return (
-		<div className={cn(rowClassName, 'flex-wrap')}>
-			<RowText title={t('account.exportTitle')} body={t('account.exportBody')} />
-			<Button variant="outline" size="md" loading={isExporting} onClick={download}>
-				{t('account.exportCta')}
-			</Button>
-		</div>
-	);
 }
 
 /** Deletion refusals with their own copy; anything else goes through apiErrorText. */

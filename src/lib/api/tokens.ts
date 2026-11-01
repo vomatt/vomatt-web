@@ -60,15 +60,15 @@ export type RefreshResult =
 // back after its grace window, so don't send the same token twice at once.
 const inFlightRefreshes = new Map<string, Promise<RefreshResult>>();
 
-/** `clientIp`: the user's IP headers (`clientIpHeaders`); a shared refresh uses the first caller's. */
+/** `clientHeaders`: the user's IP and User-Agent (`clientHeaders()`); a shared refresh uses the first caller's. */
 export function requestTokenRefresh(
 	refreshToken: string,
-	clientIp: Record<string, string> = {}
+	clientHeaders: Record<string, string> = {}
 ): Promise<RefreshResult> {
 	const pending = inFlightRefreshes.get(refreshToken);
 	if (pending) return pending;
 
-	const request = fetchRefreshedTokens(refreshToken, clientIp).finally(() => {
+	const request = fetchRefreshedTokens(refreshToken, clientHeaders).finally(() => {
 		inFlightRefreshes.delete(refreshToken);
 	});
 	inFlightRefreshes.set(refreshToken, request);
@@ -88,14 +88,14 @@ export function readAuthTokens(body: unknown): AuthTokens | null {
 
 async function fetchRefreshedTokens(
 	refreshToken: string,
-	clientIp: Record<string, string>
+	clientHeaders: Record<string, string>
 ): Promise<RefreshResult> {
 	try {
 		const response = await backendFetch(
 			`${process.env.API_URL}${API_BASE_PATH}/auth/refresh`,
 			{
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json', ...clientIp },
+				headers: { 'Content-Type': 'application/json', ...clientHeaders },
 				body: JSON.stringify({ refreshToken }),
 				cache: 'no-store',
 			}

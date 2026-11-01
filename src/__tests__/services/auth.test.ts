@@ -100,6 +100,15 @@ describe('verifyOtp()', () => {
 		expect(res).toEqual({ status: 'SUCCESS', isNewUser: false });
 	});
 
+	it("passes the browser's User-Agent, which the API keeps as the session's device", async () => {
+		mockRequestHeaders = new Headers({ 'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1' });
+		mockPublicFetch.mockResolvedValueOnce({ token: 'a1', refreshToken: 'r1', user: {} });
+
+		await verifyOtp('a@example.com', '123456');
+
+		expect(mockPublicFetch.mock.calls[0][1]?.headers).toMatchObject({ 'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1' });
+	});
+
 	it('reports an account created by this sign-in', async () => {
 		mockPublicFetch.mockResolvedValueOnce({ token: 'a1', refreshToken: 'r1', isNewUser: true, user: {} });
 		expect(await verifyOtp('new@example.com', '123456')).toEqual({ status: 'SUCCESS', isNewUser: true });

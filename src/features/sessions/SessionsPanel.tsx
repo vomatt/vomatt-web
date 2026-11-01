@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
+import { rowClassName, RowText, SettingsCard } from '@/components/SettingsCard';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -28,8 +29,8 @@ import { getSessions, revokeOtherSessions, revokeSession } from './service';
 type Confirming = SignedInSession | 'others';
 
 /**
- * Settings: the devices the user is signed in on, each removable after a
- * confirmation, and Sign out other devices. A row inside the Account card.
+ * Settings › Signed-in devices: this device, then the others, each removable
+ * after a confirmation, with Sign out other devices.
  */
 export function SessionsPanel() {
 	const { t, currentLanguage } = useLanguage();
@@ -92,23 +93,39 @@ export function SessionsPanel() {
 			? t('sessions.adminConsole')
 			: (deviceName(session.userAgent) ?? t('sessions.unknownDevice'));
 
-	const hasOthers = sessions?.some((session) => !session.current) ?? false;
+	const current = sessions?.find((session) => session.current);
+	const others = sessions?.filter((session) => !session.current) ?? [];
+
+	const row = (session: SignedInSession) => (
+		<li key={session.sessionId} className={rowClassName}>
+			<RowText
+				title={nameOf(session)}
+				body={
+					<>
+						{session.lastSeenAt
+							? t('sessions.lastActive', { time: formatFromNow(session.lastSeenAt, currentLanguage) })
+							: t('sessions.activityUnknown')}
+						{session.createdAt &&
+							` · ${t('sessions.signedInOn', { date: formatPollDate(session.createdAt, currentLanguage) })}`}
+					</>
+				}
+			/>
+			{!session.current && (
+				<Button
+					variant="outline"
+					size="xs"
+					aria-label={t('sessions.signOutLabel', { name: nameOf(session) })}
+					onClick={() => setConfirming(session)}
+				>
+					{t('sessions.signOut')}
+				</Button>
+			)}
+		</li>
+	);
 
 	return (
-		<section aria-labelledby="sessions-title" className="space-y-2.5">
-			<div className="flex flex-wrap items-center gap-4">
-				<span className="min-w-0 flex-1">
-					<h3 id="sessions-title" className="font-medium">
-						{t('sessions.title')}
-					</h3>
-					<span className="block text-caption-1 leading-normal text-muted-foreground">{t('sessions.body')}</span>
-				</span>
-				{hasOthers && (
-					<Button variant="outline" size="md" onClick={() => setConfirming('others')}>
-						{t('sessions.signOutOthers')}
-					</Button>
-				)}
-			</div>
+		<div className="flex flex-col gap-8">
+			<p className="text-body-4 text-muted-foreground">{t('sessions.body')}</p>
 			{sessions === null && !loadFailed && (
 				<div className="flex justify-center py-2">
 					<Spinner />
@@ -116,10 +133,10 @@ export function SessionsPanel() {
 			)}
 			{loadFailed && (
 				<div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-					<p className="flex-1 text-caption-1 text-muted-foreground">{t('sessions.loadFailed')}</p>
+					<p className="flex-1 text-body-4 text-muted-foreground">{t('sessions.loadFailed')}</p>
 					<Button
 						variant="outline"
-						size="xs"
+						size="md"
 						onClick={() => {
 							setLoadFailed(false);
 							setLoadCount((n) => n + 1);
@@ -129,44 +146,32 @@ export function SessionsPanel() {
 					</Button>
 				</div>
 			)}
-			{sessions?.length === 0 && <p className="text-caption-1 text-muted-foreground">{t('sessions.empty')}</p>}
-			{!!sessions?.length && (
-				<ul className="flex flex-col gap-2.5">
-					{sessions.map((session) => (
-						<li
-							key={session.sessionId}
-							className="flex items-center gap-2.5 rounded-xl border border-border bg-surface-soft px-2.5 py-2"
-						>
-							<span className="min-w-0 flex-1">
-								<span className="block truncate text-body-4 font-medium">
-									{nameOf(session)}
-									{session.current && (
-										<span className="ml-2 text-caption-2 font-normal text-muted-foreground">
-											{t('sessions.thisDevice')}
-										</span>
-									)}
-								</span>
-								<span className="block text-caption-2 text-muted-foreground">
-									{session.lastSeenAt
-										? t('sessions.lastActive', { time: formatFromNow(session.lastSeenAt, currentLanguage) })
-										: t('sessions.activityUnknown')}
-									{session.createdAt &&
-										` · ${t('sessions.signedInOn', { date: formatPollDate(session.createdAt, currentLanguage) })}`}
-								</span>
-							</span>
-							{!session.current && (
-								<Button
-									variant="outline"
-									size="xs"
-									aria-label={t('sessions.signOutLabel', { name: nameOf(session) })}
-									onClick={() => setConfirming(session)}
-								>
-									{t('sessions.signOut')}
-								</Button>
-							)}
-						</li>
-					))}
-				</ul>
+			{current && (
+				<section aria-labelledby="this-device-title" className="flex flex-col gap-3">
+					<h2 id="this-device-title" className="text-title-4">
+						{t('sessions.thisDevice')}
+					</h2>
+					<SettingsCard as="ul">{row(current)}</SettingsCard>
+				</section>
+			)}
+			{sessions && (
+				<section aria-labelledby="other-devices-title" className="flex flex-col gap-3">
+					<div className="flex min-h-10 flex-wrap items-center gap-x-4 gap-y-2">
+						<h2 id="other-devices-title" className="flex-1 text-title-4">
+							{t('sessions.otherDevices')}
+						</h2>
+						{others.length > 0 && (
+							<Button variant="outline" size="md" onClick={() => setConfirming('others')}>
+								{t('sessions.signOutOthers')}
+							</Button>
+						)}
+					</div>
+					{others.length > 0 ? (
+						<SettingsCard as="ul">{others.map(row)}</SettingsCard>
+					) : (
+						<p className="empty-state">{t('sessions.empty')}</p>
+					)}
+				</section>
 			)}
 			<AlertDialog open={confirming !== null} onOpenChange={(open) => !open && setConfirming(null)}>
 				<AlertDialogContent>
@@ -188,6 +193,6 @@ export function SessionsPanel() {
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
-		</section>
+		</div>
 	);
 }

@@ -10,7 +10,7 @@ import {
 	SESSION_UNCONFIRMED,
 	SESSION_UNCONFIRMED_HEADER,
 } from '@/data/constants';
-import { clientIpHeaders } from '@/lib/api/client-ip';
+import { clientHeaders } from '@/lib/api/client-ip';
 import {
 	AUTH_COOKIE_BASE,
 	buildAuthCookies,
@@ -101,7 +101,7 @@ async function resolveSession(request: NextRequest): Promise<SessionResult> {
 	const mismatch = request.cookies.get(KEY_MISMATCH)?.value;
 	if (mismatch && mismatch === (await tokenFingerprint(refreshToken))) return { status: 'none' };
 
-	const result = await requestTokenRefresh(refreshToken, clientIpHeaders(request.headers));
+	const result = await requestTokenRefresh(refreshToken, clientHeaders(request.headers));
 	if (result.status === 'ok') {
 		// A token the API just issued that still fails here can't be fixed by refreshing
 		if (await verifyAccessToken(result.tokens.accessToken)) {

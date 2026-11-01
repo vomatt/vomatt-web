@@ -7,7 +7,7 @@ import { type ActionResult, attempt } from '@/lib/api/action';
 import { clearAuthTokens, getTokens, setAuthTokens } from '@/lib/api/auth';
 import { type AuthErrorKey, toAuthErrorKey } from '@/lib/api/auth-errors';
 import { apiClient, ApiError, publicFetch } from '@/lib/api/client';
-import { clientIpHeaders } from '@/lib/api/client-ip';
+import { clientHeaders } from '@/lib/api/client-ip';
 import { readAuthTokens } from '@/lib/api/tokens';
 import type { Passkey } from '@/types/user';
 
@@ -23,8 +23,8 @@ function toFailure(error: unknown): AuthFailure {
 async function postJson(endpoint: string, body: unknown) {
 	return publicFetch(endpoint, {
 		method: 'POST',
-		// The OTP rate limits and lockouts are per user IP
-		headers: { 'Content-Type': 'application/json', ...clientIpHeaders(await headers()) },
+		// The OTP rate limits and lockouts are per user IP; a sign-in's device is its User-Agent
+		headers: { 'Content-Type': 'application/json', ...clientHeaders(await headers()) },
 		body: JSON.stringify(body),
 		cache: 'no-store',
 	});

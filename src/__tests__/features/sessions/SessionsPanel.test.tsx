@@ -41,18 +41,18 @@ beforeEach(() => {
 	mockRevokeOthers.mockResolvedValue({ ok: true, data: undefined });
 });
 
-const items = () => within(screen.getByRole('list')).getAllByRole('listitem');
+const items = () => screen.queryAllByRole('listitem');
+const others = () => screen.getByRole('region', { name: 'Other devices' });
 
 describe('SessionsPanel', () => {
 	it('lists devices, marks this one and shows an unknown device for an older sign-in', async () => {
 		render(<SessionsPanel />);
 
-		await waitFor(() => expect(items()).toHaveLength(2));
-		expect(items()[0]).toHaveTextContent('Chrome · Mac');
-		expect(items()[0]).toHaveTextContent('This device');
-		expect(within(items()[0]).queryByRole('button')).not.toBeInTheDocument();
-		expect(items()[1]).toHaveTextContent('Unknown device');
-		expect(items()[1]).toHaveTextContent('activity unknown');
+		const current = await screen.findByRole('region', { name: 'This device' });
+		expect(current).toHaveTextContent('Chrome · Mac');
+		expect(within(current).queryByRole('button')).not.toBeInTheDocument();
+		expect(others()).toHaveTextContent('Unknown device');
+		expect(others()).toHaveTextContent('activity unknown');
 	});
 
 	it('offers Try again when the list could not load', async () => {
@@ -89,6 +89,7 @@ describe('SessionsPanel', () => {
 		await waitFor(() => expect(mockRevokeOthers).toHaveBeenCalled());
 		await waitFor(() => expect(items()).toHaveLength(1));
 		expect(screen.queryByRole('button', { name: 'Sign out other devices' })).not.toBeInTheDocument();
+		expect(others()).toHaveTextContent('No other devices are signed in.');
 	});
 
 	it('shows an error and keeps the device when signing out fails', async () => {

@@ -29,16 +29,12 @@ jest.mock('@/features/passkeys/service', () => ({
 	getPasskeys: jest.fn().mockResolvedValue({ ok: true, data: [] }),
 	deletePasskey: jest.fn(),
 }));
-jest.mock('@/features/sessions/service', () => ({
-	getSessions: jest.fn().mockResolvedValue({ ok: true, data: [] }),
-	revokeSession: jest.fn(),
-	revokeOtherSessions: jest.fn(),
-}));
 jest.mock('@/lib/api/services/users', () => ({
 	deleteMyAccount: jest.fn(),
 	editProfile: jest.fn(),
-	exportMyData: jest.fn(),
 }));
+const mockGetSessions = jest.fn();
+jest.mock('@/features/sessions/service', () => ({ getSessions: () => mockGetSessions() }));
 const mockUpdatePreferences = jest.fn();
 jest.mock('@/features/notifications/service', () => ({
 	updateNotificationPreferences: (...args: unknown[]) => mockUpdatePreferences(...args),
@@ -74,6 +70,10 @@ const myProfile: MyProfile = {
 };
 
 describe('AccountSettings', () => {
+	beforeEach(() => {
+		mockGetSessions.mockReset().mockResolvedValue({ ok: true, data: [{}, {}] });
+	});
+
 	it('counts what others see and sends the owner to Edit profile to change it', () => {
 		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
 
@@ -148,10 +148,24 @@ describe('AccountSettings', () => {
 		expect(screen.queryByRole('heading', { name: 'Following' })).not.toBeInTheDocument();
 	});
 
-	it('keeps the Download your data row', () => {
+	it('opens Signed-in devices on its own page, with how many there are', async () => {
 		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
-		expect(screen.getByText('Download your data')).toBeInTheDocument();
-		expect(screen.getByRole('button', { name: 'Download' })).toBeInTheDocument();
+		const link = screen.getByRole('link', { name: /Signed-in devices/ });
+		expect(link).toHaveAttribute('href', '/settings/devices');
+		await waitFor(() => expect(link).toHaveTextContent('2 devices'));
+		expect(screen.queryByText('Download your data')).not.toBeInTheDocument();
+	});
+
+	it('counts one device in the singular, and leaves the count out when the devices could not load', async () => {
+		mockGetSessions.mockResolvedValueOnce({ ok: true, data: [{}] });
+		const { unmount } = render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+		await waitFor(() => expect(screen.getByRole('link', { name: /Signed-in devices/ })).toHaveTextContent('1 device'));
+		unmount();
+
+		mockGetSessions.mockResolvedValueOnce({ ok: false, message: 'x' });
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+		await waitFor(() => expect(mockGetSessions).toHaveBeenCalledTimes(2));
+		expect(screen.getByRole('link', { name: /Signed-in devices/ })).not.toHaveTextContent(/\d device/);
 	});
 
 	describe('the Passkeys row', () => {
@@ -199,23 +213,6 @@ describe('AccountSettings', () => {
 		await waitFor(() =>
 			expect(screen.getByRole('status')).toHaveTextContent('New votes are anonymous by default.')
 		);
-	});
-
-	it('downloads the exported data, or shows why it failed', async () => {
-		const { exportMyData } = jest.requireMock('@/lib/api/services/users');
-		URL.createObjectURL = jest.fn(() => 'blob:x');
-		URL.revokeObjectURL = jest.fn();
-		const click = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
-		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
-
-		exportMyData.mockResolvedValueOnce({ ok: true, data: '{}' });
-		fireEvent.click(screen.getByRole('button', { name: 'Download' }));
-		await waitFor(() => expect(click).toHaveBeenCalled());
-
-		exportMyData.mockResolvedValueOnce({ ok: false, status: 429, errorCode: 'common.rate_limited', message: 'x' });
-		fireEvent.click(screen.getByRole('button', { name: 'Download' }));
-		await waitFor(() => expect(toast.error).toHaveBeenCalled());
-		click.mockRestore();
 	});
 
 	it('shows the delete button as busy while the account is deleted', async () => {

@@ -252,6 +252,12 @@ describe('proxy auth', () => {
 		}
 	});
 
+	it("passes the browser's User-Agent to the refresh, which the API keeps as the session's device", async () => {
+		fetchMock.mockResolvedValue(refreshResponse(await signToken()));
+		await proxy(requestFor('/', { refreshToken: 'r1' }, { 'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1' }));
+		expect(fetchMock.mock.calls[0][1].headers).toMatchObject({ 'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1' });
+	});
+
 	it('stops rotating once a freshly issued token fails verification (secret mismatch)', async () => {
 		jest.spyOn(console, 'error').mockImplementation(() => {});
 		const foreign = await new SignJWT({ sub: 'user-1' })
