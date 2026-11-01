@@ -298,7 +298,7 @@ describe('PollCard state B · Open, has Ballot', () => {
 		expect(screen.getByLabelText('Saturday').closest('label')).not.toHaveClass('z-10');
 	});
 
-	it('checks the cast option, and only dots an option picked but not yet cast', () => {
+	it('checks the cast option, and marks an option picked but not yet cast as selected', () => {
 		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerId="user-voter" />);
 		const mark = (option: string) =>
 			screen.getByLabelText(option).closest('label')!.querySelector('[data-state]')!.getAttribute('data-state');
