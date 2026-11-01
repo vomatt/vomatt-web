@@ -182,14 +182,21 @@ export function VotedRow({ poll }: { poll: Poll }) {
 		);
 	}
 
-	const outcome = isCancelled(poll) ? null : ballotOutcome(poll, poll.myOptionId!);
+	// An Anonymous Ballot is sealed after the Poll Ends: it took part, but its option is gone
+	const outcome = isCancelled(poll) || !poll.myOptionId ? null : ballotOutcome(poll, poll.myOptionId);
 	return (
 		<li>
 			<Link href={`/poll/${poll.id}`} className={cn(profileRowClassName, linkFocus)}>
 				<span className="flex min-w-0 flex-1 flex-col gap-0.5">
 					<RowTitle unread={poll.unread}>{poll.title}</RowTitle>
 					<span className="text-caption-2 text-muted-foreground">
-						{t('myPolls.youChose')} <strong className="font-medium text-foreground">{ballotChoice(poll)}</strong>
+						{poll.myOptionId ? (
+							<>
+								{t('myPolls.youChose')} <strong className="font-medium text-foreground">{ballotChoice(poll)}</strong>
+							</>
+						) : (
+							t('myPolls.votedAnonymously')
+						)}
 						{' · '}
 						{isCancelled(poll) ? t('notifications.cancelled') : <span className="tabular-nums">{voted(poll)}</span>}
 						{poll.unread && (

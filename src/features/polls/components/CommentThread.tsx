@@ -655,6 +655,7 @@ function CommentBody({
 	});
 	// autoFocus leaves the caret before the text, so what the author adds would land in front of it
 	const editRef = useRef<HTMLTextAreaElement>(null);
+	const isSaving = useRef(false);
 	useEffect(() => {
 		const field = editRef.current;
 		if (!isEditing || !field) return;
@@ -687,13 +688,18 @@ function CommentBody({
 	};
 
 	const saveEdit = async () => {
+		// Cmd+Enter can fire again while the first save is out
+		if (isSaving.current) return;
 		const body = draft.trim();
 		if (!body || body === text.trim()) {
 			closeEdit();
 			return;
 		}
 		const next = addressee ? `@${addressee} ${body}` : body;
-		if (await thread.edit(comment.id, next)) closeEdit();
+		isSaving.current = true;
+		const saved = await thread.edit(comment.id, next);
+		isSaving.current = false;
+		if (saved) closeEdit();
 		else toast.error(t('comments.editFailed'));
 	};
 
@@ -758,6 +764,12 @@ function CommentBody({
 					<Textarea
 						value={draft}
 						onChange={(event) => setDraft(event.target.value)}
+						onKeyDown={(event) => {
+							if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+								event.preventDefault();
+								saveEdit();
+							}
+						}}
 						aria-label={t('comments.edit')}
 						maxLength={textMax(addressee)}
 						rows={3}
@@ -823,7 +835,7 @@ function CommentBody({
 						className={cn(pillClassName, replying && 'text-foreground')}
 					>
 						<Reply aria-hidden className="size-[15px]" strokeWidth={1.8} />
-						{replying ? t('comments.replying') : t('comments.reply')}
+						{t('comments.reply')}
 					</button>
 
 					{!replying && (

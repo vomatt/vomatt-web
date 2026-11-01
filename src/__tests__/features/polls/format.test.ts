@@ -33,6 +33,10 @@ describe('formatFromNow', () => {
 		expect(formatFromNow(secondsFromNow(-60), 'en')).toBe('1 minute ago');
 	});
 
+	it('rounds a past moment down, like the short ages beside it', () => {
+		expect(formatFromNow(secondsFromNow(-1.6 * 86_400), 'en')).toBe('1 day ago');
+	});
+
 	it('keeps seconds for a moment under a minute away, so "Ends in…" still reads right', () => {
 		expect(formatFromNow(secondsFromNow(30), 'en')).toBe('in 30 seconds');
 	});

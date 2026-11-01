@@ -3,7 +3,7 @@
 import { AnimatePresence, m } from 'motion/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useCallback, useId, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 
 import { AuthDialog } from '@/components/auth/AuthDialog';
@@ -35,6 +35,8 @@ interface PollCardProps {
 	viewerId?: string;
 	/** The viewer's `anonymousBallotByDefault`, which a first vote starts from. */
 	anonymousByDefault?: boolean;
+	/** On the poll page, the Discussion's count, so the two always agree. */
+	commentCount?: number;
 	/**
 	 * Set on the poll page: the title is plain text and Comments leads to the discussion below.
 	 * Feed cards link both to the page instead.
@@ -51,6 +53,7 @@ export function PollCard({
 	poll: initialPoll,
 	viewerId,
 	anonymousByDefault,
+	commentCount,
 	isPage = false,
 	deletedHref,
 	headingLevel: Heading = 'h2',
@@ -67,7 +70,6 @@ export function PollCard({
 	}
 	const [isDeleted, setIsDeleted] = useState(false);
 	const { isAuthed, requireAuth, authDialog } = useRequireAuth(!!viewerId);
-	const titleId = useId();
 
 	const refetch = useCallback(async () => {
 		const fresh = await getPoll(poll.id).catch(() => null);
@@ -153,7 +155,6 @@ export function PollCard({
 					{/* On the poll page the title is plain, selectable text; in a list it leads to the page */}
 					{isPage ? (
 						<Heading
-							id={titleId}
 							className="text-title-3 text-balance wrap-anywhere text-foreground select-text md:text-title-2"
 						>
 							{title}
@@ -161,8 +162,7 @@ export function PollCard({
 					) : (
 						<Link href={`/poll/${id}`} className="after:absolute after:inset-0 after:rounded-2xl">
 							<Heading
-								id={titleId}
-								className="text-title-3 text-balance wrap-anywhere text-foreground hover:text-muted-foreground transition-colors md:text-title-2"
+									className="text-title-3 text-balance wrap-anywhere text-foreground hover:text-muted-foreground transition-colors md:text-title-2"
 							>
 								{title}
 							</Heading>
@@ -199,7 +199,6 @@ export function PollCard({
 								status={status}
 								ballot={ballot}
 								requireAuth={requireAuth}
-								titleId={titleId}
 								isOwner={isOwner}
 							/>
 						)}
@@ -216,7 +215,7 @@ export function PollCard({
 					title={title}
 					turnout={ballot.turnout}
 					audience={poll.audience}
-					commentCount={poll.commentCount}
+					commentCount={commentCount ?? poll.commentCount}
 					isPage={isPage}
 					bookmarked={!!poll.bookmarked}
 					onToggleBookmark={toggleBookmark}
