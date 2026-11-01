@@ -9,20 +9,14 @@ describe('BallotMark', () => {
 		expect(container.querySelector('.bg-highlight')).toBeNull();
 	});
 
-	it('fills with ink around a Volt dot once chosen', () => {
-		const { container } = render(<BallotMark state="selected" />);
-		expect(container.firstChild).toHaveClass('bg-highlight-foreground');
-		expect(container.querySelector('.bg-highlight')).toHaveClass(
-			'rounded-full'
-		);
-		expect(container.querySelector('svg')).toBeNull();
-	});
-
-	it('swaps the dot for a Volt check once the vote is in', () => {
-		const { container } = render(<BallotMark state="voted" />);
-		expect(container.firstChild).toHaveClass('bg-highlight-foreground');
-		expect(container.firstChild).toHaveAttribute('data-state', 'voted');
-		expect(container.querySelector('svg')).toHaveClass('text-highlight');
-		expect(container.querySelector('.bg-highlight')).toBeNull();
-	});
+	it.each(['selected', 'voted'] as const)(
+		'fills with ink around a Volt check when %s',
+		(state) => {
+			const { container } = render(<BallotMark state={state} />);
+			expect(container.firstChild).toHaveClass('bg-highlight-foreground');
+			expect(container.firstChild).toHaveAttribute('data-state', state);
+			expect(container.querySelector('svg')).toHaveClass('text-highlight');
+			expect(container.querySelector('.bg-highlight')).toBeNull();
+		}
+	);
 });
