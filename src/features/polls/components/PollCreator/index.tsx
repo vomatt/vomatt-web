@@ -397,10 +397,6 @@ export function PollCreator({
 			);
 	};
 
-	const canAddOption =
-		fields.length < POLL_OPTIONS_LIMIT &&
-		options.every((option) => option.text.trim());
-
 	// A typed opening time stays in view even after a preset is picked, since presets count from it
 	const showTimeFields = endPreset === null || !!startTime;
 
@@ -677,8 +673,9 @@ export function PollCreator({
 																								e,
 																								`options.${index + 1}.text`
 																							);
-																						else if (canAddOption)
-																							append({ text: '' });
+																						// Like Add option: an empty option gets the focus and says why
+																						else if (fields.length < POLL_OPTIONS_LIMIT)
+																							addOption();
 																					}}
 																				/>
 																				{fields.length > POLL_OPTIONS_MIN && (

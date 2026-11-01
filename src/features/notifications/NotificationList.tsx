@@ -108,11 +108,13 @@ export function NotificationList({
 		// A Load more in flight would append the old tab's page after the reset
 		if (next === category || isSwitching || list.isLoading) return;
 		setIsSwitching(true);
+		// Taken before the fetch: a notification opened meanwhile has left this page, and the tab isn't the poll's
+		const url = new URL(window.location.href);
 		try {
 			const nextCategory = next === 'all' ? undefined : next;
 			list.reset(await getNotifications(null, nextCategory), (cursor) => getNotifications(cursor, nextCategory));
 			setCategory(next);
-			const url = new URL(window.location.href);
+			if (window.location.pathname !== url.pathname) return;
 			if (nextCategory) url.searchParams.set('tab', nextCategory.toLowerCase());
 			else url.searchParams.delete('tab');
 			window.history.replaceState(null, '', url);

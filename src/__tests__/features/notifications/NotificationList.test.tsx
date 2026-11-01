@@ -236,12 +236,15 @@ describe('NotificationList rows', () => {
 		const row = rowOf('Saturday market');
 		expect(row).toHaveTextContent('@rosa made the case under Saturday market');
 		expect(row).toHaveTextContent('“The riverside has parking, the high street has foot traffic.” · 9h');
-		expect(within(row).getByRole('link', { name: 'Reply' })).toHaveAttribute('href', '/poll/p3#comment-c1');
+		expect(within(row).getByRole('link', { name: 'Reply' })).toHaveAttribute('href', '/poll/p3#reply-c1');
 	});
 
-	it('links a reply under the comment it answers', () => {
+	it('words a reply as one and links it under the comment it answers', () => {
 		renderList([{ ...comment, comment: { ...comment.comment, id: 'r7', parentId: 'c1' } }]);
-		expect(within(rowOf('Saturday market')).getByRole('link', { name: 'Reply' })).toHaveAttribute('href', '/poll/p3#comment-c1/r7');
+		const row = rowOf('Saturday market');
+		expect(row).toHaveTextContent('@rosa replied in Saturday market');
+		expect(within(row).getByRole('link', { name: 'Saturday market' })).toHaveAttribute('href', '/poll/p3#comment-c1/r7');
+		expect(within(row).getByRole('link', { name: 'Reply' })).toHaveAttribute('href', '/poll/p3#reply-c1/r7');
 	});
 
 	it('offers View on an invitation the viewer already voted in, or one not open yet', () => {
@@ -267,14 +270,14 @@ describe('NotificationList rows', () => {
 		renderList([{ ...comment, id: 'mention_c1', kind: 'MENTION', read: false }]);
 		const row = rowOf('Saturday market');
 		expect(row).toHaveTextContent('@rosa mentioned you in Saturday market');
-		expect(within(row).getByRole('link', { name: 'Reply' })).toHaveAttribute('href', '/poll/p3#comment-c1');
+		expect(within(row).getByRole('link', { name: 'Reply' })).toHaveAttribute('href', '/poll/p3#reply-c1');
 	});
 
 	it('words a like and links to the liked comment', () => {
 		renderList([{ ...comment, id: 'like_c1', kind: 'LIKE', read: false }]);
 		const row = rowOf('Saturday market');
 		expect(row).toHaveTextContent('@rosa liked your comment in Saturday market');
-		expect(within(row).getByRole('link', { name: 'Reply' })).toHaveAttribute('href', '/poll/p3#comment-c1');
+		expect(within(row).getByRole('link', { name: 'Reply' })).toHaveAttribute('href', '/poll/p3#reply-c1');
 	});
 
 	it('words a cancelled poll without an action', () => {
@@ -541,6 +544,20 @@ describe('NotificationList', () => {
 		expect(screen.getByRole('button', { name: 'Likes' })).toHaveAttribute('aria-pressed', 'true');
 		fireEvent.click(screen.getByRole('button', { name: /Load more/ }));
 		await waitFor(() => expect(getNotifications).toHaveBeenCalledWith('n1', 'LIKE'));
+		window.history.replaceState(null, '', '/');
+	});
+
+	it('leaves the address alone when a notification was opened while the tab loaded', async () => {
+		const { getNotifications } = jest.requireMock('@/features/notifications/service');
+		let respond!: (page: unknown) => void;
+		getNotifications.mockReturnValueOnce(new Promise((resolve) => (respond = resolve)));
+		window.history.replaceState(null, '', '/notifications');
+		renderList([result]);
+		fireEvent.click(screen.getByRole('button', { name: 'Follows' }));
+		window.history.pushState(null, '', '/poll/p3');
+		respond({ items: [], nextCursor: null });
+		await waitFor(() => expect(screen.getByRole('button', { name: 'Follows' })).toHaveAttribute('aria-pressed', 'true'));
+		expect(window.location.pathname + window.location.search).toBe('/poll/p3');
 		window.history.replaceState(null, '', '/');
 	});
 

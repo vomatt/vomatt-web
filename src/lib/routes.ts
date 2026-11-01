@@ -81,6 +81,10 @@ export function loginHref({
 export const commentHash = (comment: { id: string; parentId?: string | null }) =>
 	`#comment-${comment.parentId ? `${comment.parentId}/${comment.id}` : comment.id}`;
 
+/** Like commentHash, and the poll page also opens a reply composer under the comment. */
+export const replyHash = (comment: { id: string; parentId?: string | null }) =>
+	commentHash(comment).replace('#comment-', '#reply-');
+
 /** Root segments that are app routes, not usernames; matches the folders in app/(frontend). */
 export const APP_ROOT_SEGMENTS = [
 	'account',

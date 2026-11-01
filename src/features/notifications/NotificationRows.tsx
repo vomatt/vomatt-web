@@ -19,7 +19,7 @@ import { ProfileAvatar } from '@/features/profiles/UserChip';
 import { countText } from '@/lib/count';
 import { toPayloadLocale } from '@/lib/locale';
 import { rich, richList } from '@/lib/rich';
-import { commentHash, profileHref } from '@/lib/routes';
+import { commentHash, profileHref, replyHash } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
 import type { Notification, PollSummary } from './schema';
@@ -449,7 +449,8 @@ function CommentRow({ entry, onOpen, onSeen }: RowProps<Extract<Entry, { kind: '
 			onSeen={onSeen}
 			unread={!entry.read}
 			icon={<ProfileAvatar username={actor.username} avatarUrl={actor.avatarUrl} className="size-9" />}
-			line={rich(t(COMMENT_ROW_LINE[entry.kind]), {
+			// The API doesn't say whose comment a reply answers: on the viewer's poll it may be someone else's
+			line={rich(t(entry.kind === 'COMMENT' && comment.parentId ? 'notifications.replied' : COMMENT_ROW_LINE[entry.kind]), {
 				name: strong(`@${actor.username}`),
 				title: (
 					<RowLink href={href} onOpen={onOpen} className="font-medium">
@@ -459,7 +460,11 @@ function CommentRow({ entry, onOpen, onSeen }: RowProps<Extract<Entry, { kind: '
 			})}
 			meta={[t('notifications.excerpt', { text: comment.excerpt }), useAge(entry.createdAt)]}
 			action={
-				<Link href={href} onClick={onOpen} className={buttonVariants({ size: 'xs', variant: 'outline' })}>
+				<Link
+					href={`${pollHref(poll.id)}${replyHash(comment)}`}
+					onClick={onOpen}
+					className={buttonVariants({ size: 'xs', variant: 'outline' })}
+				>
 					{t('comments.reply')}
 				</Link>
 			}
