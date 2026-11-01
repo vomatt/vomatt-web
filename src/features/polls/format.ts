@@ -48,6 +48,8 @@ export function formatFromNow(iso: string, language: LanguageCode) {
 	return formatDistanceToNowStrict(new Date(iso), {
 		addSuffix: true,
 		locale: DATE_FNS_LOCALES[language],
+		// An age floors, like formatAge: 1.6 days is "1 day ago" on both
+		roundingMethod: age > 0 ? 'floor' : 'round',
 	});
 }
 

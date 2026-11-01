@@ -18,9 +18,12 @@ export function splitVoted(polls: Poll[], now = Date.now()) {
 	return { sealed, decided };
 }
 
-/** The owner's Polls they voted in but didn't ask, from My Polls (which mixes both). */
+/**
+ * The owner's Polls they voted in but didn't ask, from My Polls (which mixes both, and Invitations).
+ * A sealed Anonymous Ballot has no option left, only its flag.
+ */
 export const votedPolls = (polls: Poll[], viewerId: string) =>
-	polls.filter((poll) => poll.creatorId !== viewerId && !!poll.myOptionId);
+	polls.filter((poll) => poll.creatorId !== viewerId && (!!poll.myOptionId || poll.myBallotAnonymous != null));
 
 /** The owner's own Polls, most recently opened first. */
 export const askedPolls = (polls: Poll[], viewerId: string) =>

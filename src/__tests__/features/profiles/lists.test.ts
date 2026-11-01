@@ -69,6 +69,11 @@ describe('votedPolls() and askedPolls()', () => {
 		expect(votedPolls([mine, theirsVoted, invited], 'me').map((p) => p.id)).toEqual(['voted']);
 	});
 
+	it('keeps an Ended poll whose Anonymous Ballot was sealed, which has no option left', () => {
+		const sealed = { ...poll('sealed', { state: 'ended' }), myOptionId: null, myBallotAnonymous: true };
+		expect(votedPolls([sealed, invited], 'me').map((p) => p.id)).toEqual(['sealed']);
+	});
+
 	it('keeps the owner\'s polls, most recently opened first', () => {
 		const older = poll('older', { creatorId: 'me', startTime: '2026-09-01T00:00:00Z' });
 		expect(askedPolls([older, theirsVoted, mine], 'me').map((p) => p.id)).toEqual(['mine', 'older']);

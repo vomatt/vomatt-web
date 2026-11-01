@@ -51,6 +51,8 @@ export function useBallot(poll: Poll, { isAuthed, anonymousByDefault, onPollEnde
 	const [isBallotKnown, setIsBallotKnown] = useState(hasServerBallot);
 	// Whether the viewer has voted or withdrawn here
 	const hasActed = useRef(false);
+	// Whether the last saved cast replaced a Ballot, which right after sign-in myOptionId doesn't know yet
+	const replacedBallot = useRef(false);
 
 	// A refetched Poll carries fresh counts, and a fresh myOptionId once the API sends it. Only what
 	// changed is taken: a copy made to save the Poll still holds the counts and Ballot it loaded with
@@ -130,6 +132,7 @@ export function useBallot(poll: Poll, { isAuthed, anonymousByDefault, onPollEnde
 				setPendingAction(null);
 			}
 			if (result.ok) {
+				replacedBallot.current = !!previous && !!next;
 				setAnonymousFlag(result.data?.myBallotAnonymous ?? null);
 				if (result.data && derivePollStatus(result.data) === 'ended') onPollEnded(result.data);
 				return 'saved';
@@ -210,6 +213,8 @@ export function useBallot(poll: Poll, { isAuthed, anonymousByDefault, onPollEnde
 		isPending: pendingAction !== null,
 		pendingAction,
 		cast,
+		/** After a saved cast: whether it replaced the viewer's earlier Ballot. */
+		replacedBallot: () => replacedBallot.current,
 		retract,
 	};
 }

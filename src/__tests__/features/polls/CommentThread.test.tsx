@@ -233,6 +233,19 @@ describe('CommentThread', () => {
 		await waitFor(() => expect(within(article).getByRole('button', { name: 'More' })).toHaveFocus());
 	});
 
+	it('saves an edit with Cmd+Enter, like posting', async () => {
+		service.updateComment.mockResolvedValue({ ok: true, data: { ...mine, text: 'Mine, more' } });
+		render(<Harness />);
+		await screen.findByText('Mine');
+
+		fireEvent.click(within(await openMenu('Mine')).getByRole('menuitem', { name: 'Edit' }));
+		const box = screen.getByRole('textbox', { name: 'Edit' });
+		fireEvent.change(box, { target: { value: 'Mine, more' } });
+		fireEvent.keyDown(box, { key: 'Enter', metaKey: true });
+
+		await waitFor(() => expect(service.updateComment).toHaveBeenCalledWith('poll-1', 'c1', 'Mine, more'));
+	});
+
 	it('puts the caret after the text when editing starts', async () => {
 		render(<Harness />);
 		await screen.findByText('Mine');

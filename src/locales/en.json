@@ -108,6 +108,7 @@
 		"draftNoEnd": "no end date yet",
 		"untitledDraft": "Untitled poll",
 		"youChose": "You chose",
+		"votedAnonymously": "You voted anonymously",
 		"outcome": {
 			"won": "Your pick won",
 			"tied": "Tied for first",
@@ -428,6 +429,7 @@
 		"askCta": "Write one"
 	},
 	"poll": {
+		"options": "Options",
 		"invitation": {
 			"title": "{username} invited you to a poll",
 			"signIn": "Log in with the email address the invitation was sent to.",
@@ -469,6 +471,7 @@
 		"linkCopyFailed": "Couldn’t copy the link.",
 		"justEnded": "This poll just ended.",
 		"voteCast": "Vote cast.",
+		"voteUpdated": "Vote updated.",
 		"voteWithdrawn": "Vote withdrawn.",
 		"voteFailed": "Couldn’t save your vote. Try again.",
 		"withdrawFailed": "Couldn’t withdraw your vote. Try again.",
@@ -580,7 +583,6 @@
 		"moreReply": "View 1 more reply",
 		"moreReplies": "View {count} more replies",
 		"deleted": "This comment was deleted.",
-		"replying": "Replying",
 		"replyingTo": "Replying to",
 		"cancelReply": "Cancel reply",
 		"editing": "Editing",

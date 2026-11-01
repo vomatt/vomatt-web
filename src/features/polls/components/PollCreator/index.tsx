@@ -415,9 +415,11 @@ export function PollCreator({
 					showCloseButton={false}
 					finalFocus={finalFocus}
 					initialFocus={() => document.getElementById('title')}
-					// Scroll padding clears the sticky header and footer when a focused field scrolls into view.
+					// Scroll padding clears the sticky header and footer when a focused field scrolls into view,
+					// and from sm up keeps Add option, under the last option, clear of the footer too (a phone's
+					// keyboard leaves no room for both).
 					// No overscroll: the rubber band would carry the sticky bars along with the content
-					className="flex h-dvh max-h-dvh max-w-none scroll-pt-28 scroll-pb-24 flex-col overscroll-none gap-0 rounded-none border-0 bg-background p-0 ring-0 sm:h-auto sm:max-h-[90dvh] sm:max-w-2xl sm:rounded-[20px] sm:ring-1"
+					className="flex h-dvh max-h-dvh max-w-none scroll-pt-28 scroll-pb-24 sm:scroll-pb-40 flex-col overscroll-none gap-0 rounded-none border-0 bg-background p-0 ring-0 sm:h-auto sm:max-h-[90dvh] sm:max-w-2xl sm:rounded-[20px] sm:ring-1"
 				>
 					<div className="sticky top-0 z-10 flex flex-none items-start gap-3 bg-background/80 p-4 backdrop-blur-md sm:p-5">
 						<div className="min-w-0 flex-1 space-y-1">

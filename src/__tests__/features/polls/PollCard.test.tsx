@@ -139,9 +139,10 @@ describe('PollCard state A · Open, no Ballot', () => {
 		expect(screen.getAllByRole('radio')).toHaveLength(3);
 	});
 
-	it('names the options by the question without repeating it', () => {
+	it('gives the question once, as the heading, and the options a short name of their own', () => {
 		render(<PollCard poll={openPoll} isPage headingLevel="h1" />);
-		expect(screen.getByRole('group', { name: 'Which day should the meetup run?' })).toBeInTheDocument();
+		expect(screen.getByRole('heading', { name: 'Which day should the meetup run?' })).toBeInTheDocument();
+		expect(screen.getByRole('group', { name: 'Options' })).toBeInTheDocument();
 		expect(screen.getAllByText('Which day should the meetup run?')).toHaveLength(1);
 	});
 
@@ -332,7 +333,30 @@ describe('PollCard state B · Open, has Ballot', () => {
 
 		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-fri');
 		expect(screen.getByText('128 voted')).toBeInTheDocument();
-		await waitFor(() => expect(announcement()).toHaveTextContent('Vote cast.'));
+		await waitFor(() => expect(announcement()).toHaveTextContent('Vote updated.'));
+	});
+
+	it("gives each card's radios a form of their own, so two copies on the page (as while it streams in) never uncheck each other", () => {
+		const voted = { ...openPoll, myOptionId: 'opt-sun' };
+		render(
+			<>
+				<PollCard poll={voted} viewerId="user-voter" />
+				<PollCard poll={voted} viewerId="user-voter" />
+			</>
+		);
+		// Radios group by name within one form, so each card's must have a form of its own
+		const forms = screen.getAllByRole<HTMLInputElement>('radio').map((radio) => radio.form);
+		expect(forms.every(Boolean)).toBe(true);
+		expect(new Set(forms).size).toBe(2);
+	});
+
+	it('announces an update when the vote replaced one cast elsewhere, before the card knew of it', async () => {
+		mockGetMyBallot.mockResolvedValue('opt-sun');
+		render(<PollCard poll={{ ...openPoll, myOptionId: undefined }} viewerId="user-voter" />);
+		fireEvent.click(screen.getByLabelText(/Friday/));
+		fireEvent.click(screen.getByRole('button', { name: 'Vote' }));
+
+		await waitFor(() => expect(announcement()).toHaveTextContent('Vote updated.'));
 	});
 
 	it('starts replacing the vote when another option is picked, and Cancel goes back', () => {

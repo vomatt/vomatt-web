@@ -14,7 +14,6 @@ import { MarkNotificationRead } from '@/features/notifications/MarkNotificationR
 import { InvitationPrompt } from '@/features/polls/components/InvitationPrompt';
 import { MoreFromAuthor } from '@/features/polls/components/MoreFromAuthor';
 import { PollAbout } from '@/features/polls/components/PollAbout';
-import { PollCard } from '@/features/polls/components/PollCard';
 import { PollCardSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import type { Poll } from '@/features/polls/schema';
 import { getInviteOnlyCreator, getPoll, getUserPolls } from '@/features/polls/service';
@@ -128,15 +127,9 @@ async function PollDetail({ id }: { id: string }) {
 	return (
 		<div className="flex flex-col gap-6">
 			{hasNotification && <MarkNotificationRead pollId={poll.id} />}
-			<PollCard
-				poll={poll}
-				viewerId={user?.sub}
-				anonymousByDefault={profile?.anonymousBallotByDefault}
-				deletedHref="/my-polls"
-				headingLevel="h1"
-				isPage
-			/>
 			<PollDiscussion
+				poll={poll}
+				anonymousByDefault={profile?.anonymousBallotByDefault}
 				pollId={poll.id}
 				commentCount={poll.commentCount}
 				viewerId={user?.sub}

@@ -21,8 +21,6 @@ type BallotProps = {
 	status: Exclude<PollStatus, 'ended'>;
 	ballot: BallotState;
 	requireAuth: (action: () => void) => void;
-	/** The id of the card's title, which names the options. */
-	titleId: string;
 	isOwner: boolean;
 };
 
@@ -37,7 +35,7 @@ type SealedMode =
 	| { kind: 'withdrawing' };
 
 /** Card states A (no Ballot), B (has Ballot) and C (Scheduled). Never shows counts. */
-export function Ballot({ poll, status, ballot, requireAuth, titleId, isOwner }: BallotProps) {
+export function Ballot({ poll, status, ballot, requireAuth, isOwner }: BallotProps) {
 	const { t, currentLanguage } = useLanguage();
 	const isHydrated = useHydrated();
 	const [mode, setMode] = useState<SealedMode>({ kind: 'row' });
@@ -83,7 +81,7 @@ export function Ballot({ poll, status, ballot, requireAuth, titleId, isOwner }: 
 			const outcome = await ballot.cast(selected);
 			if (outcome === 'saved') {
 				setMode({ kind: 'moment' });
-				setAnnouncement(t('poll.voteCast'));
+				setAnnouncement(t(ballot.replacedBallot() ? 'poll.voteUpdated' : 'poll.voteCast'));
 			} else if (outcome === 'failed') {
 				shake();
 			}
@@ -203,42 +201,47 @@ export function Ballot({ poll, status, ballot, requireAuth, titleId, isOwner }: 
 
 	return (
 		<div className="flex flex-col gap-4 md:gap-5">
-			<fieldset
-				ref={optionsRef}
-				disabled={isScheduled || isPending}
-				aria-labelledby={titleId}
-				className="isolate space-y-2.5"
-			>
-				{poll.options.map((option) => {
-					const isSelected = selected === option.id;
-					// The check waits for the cast to land, so it never shows on a vote that rolls back
-					const isCast = option.id === savedOptionId;
-					return (
-						<label
-							key={option.id}
-							className={cn(
-								'relative flex min-h-14 cursor-pointer items-center gap-3.5 rounded-xl border border-border bg-card px-5 py-2.5 text-body-2 font-medium transition-colors',
-								'has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring',
-								// Raised so the highlight slides over the other options, not under the ones after it
-								isSelected ? 'z-10 border-transparent' : 'hover:border-border-strong',
-								isScheduled && 'cursor-not-allowed text-muted-foreground'
-							)}
-						>
-							{isSelected && <SelectionHighlight layoutId={highlightId} inTransit={isPending} />}
-							<input
-								type="radio"
-								name={`ballot-${poll.id}`}
-								value={option.id}
-								checked={isSelected}
-								onChange={() => choose(option.id)}
-								className="peer sr-only"
-							/>
-							<BallotMark state={isSelected ? (isCast ? 'voted' : 'selected') : 'rest'} />
-							<span className="relative min-w-0 flex-1 wrap-anywhere">{option.text}</span>
-						</label>
-					);
-				})}
-			</fieldset>
+			{/* A form of its own keeps these radios out of any other copy's group: while the page streams in,
+			    a second copy of the card can be in the document, and checking one would uncheck the other */}
+			<form onSubmit={(event) => event.preventDefault()}>
+				<fieldset
+					ref={optionsRef}
+					disabled={isScheduled || isPending}
+					// A short name: the question is the heading right above, so naming the group by it reads it twice
+					aria-label={t('poll.options')}
+					className="isolate space-y-2.5"
+				>
+					{poll.options.map((option) => {
+						const isSelected = selected === option.id;
+						// The check waits for the cast to land, so it never shows on a vote that rolls back
+						const isCast = option.id === savedOptionId;
+						return (
+							<label
+								key={option.id}
+								className={cn(
+									'relative flex min-h-14 cursor-pointer items-center gap-3.5 rounded-xl border border-border bg-card px-5 py-2.5 text-body-2 font-medium transition-colors',
+									'has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring',
+									// Raised so the highlight slides over the other options, not under the ones after it
+									isSelected ? 'z-10 border-transparent' : 'hover:border-border-strong',
+									isScheduled && 'cursor-not-allowed text-muted-foreground'
+								)}
+							>
+								{isSelected && <SelectionHighlight layoutId={highlightId} inTransit={isPending} />}
+								<input
+									type="radio"
+									name={`ballot-${poll.id}`}
+									value={option.id}
+									checked={isSelected}
+									onChange={() => choose(option.id)}
+									className="peer sr-only"
+								/>
+								<BallotMark state={isSelected ? (isCast ? 'voted' : 'selected') : 'rest'} />
+								<span className="relative min-w-0 flex-1 wrap-anywhere">{option.text}</span>
+							</label>
+						);
+					})}
+				</fieldset>
+			</form>
 
 			{/* The same line the Seal keeps after the vote. Before it, the choice only rides along with the vote,
 			    so it says what the vote will do: who sees the name, or that it is counted unnamed */}
