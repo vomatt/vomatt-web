@@ -123,20 +123,24 @@ type CommentThreadProps = {
 	viewerId?: string;
 	viewer?: Viewer;
 	requireAuth: (action: () => void) => void;
+	/** A composer to open, from useCommentLink. */
+	replyTo?: ReplyTarget | null;
 };
 
 /**
  * A copied link names a comment that loads after the page does; this shows it once it has, loading
- * Replies past the previews until it finds the one named. Call it where the thread lives, not in
- * CommentThread, which unmounts when the discussion folds.
+ * Replies past the previews until it finds the one named. A `#reply-` link (a notification's Reply)
+ * also asks for the composer under it, which it returns for CommentThread to open. Call it where the
+ * thread lives, not in CommentThread, which unmounts when the discussion folds.
  */
 export function useCommentLink(thread: CommentsState) {
-	const link = useRef<{ rootId: string; replyId?: string } | null>(null);
+	const link = useRef<{ rootId: string; replyId?: string; compose: boolean } | null>(null);
 	const scrollTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+	const [replyTo, setReplyTo] = useState<ReplyTarget | null>(null);
 	useEffect(() => () => clearTimeout(scrollTimer.current), []);
 	useEffect(() => {
-		const match = /^#comment-([^/]+)(?:\/(.+))?$/.exec(window.location.hash);
-		if (match) link.current = { rootId: match[1], replyId: match[2] };
+		const match = /^#(comment|reply)-([^/]+)(?:\/(.+))?$/.exec(window.location.hash);
+		if (match) link.current = { rootId: match[2], replyId: match[3], compose: match[1] === 'reply' };
 	}, []);
 	useEffect(() => {
 		const target = link.current;
@@ -156,17 +160,27 @@ export function useCommentLink(thread: CommentsState) {
 			}
 		}
 		link.current = null;
+		if (target.compose && thread.comments.some((c) => c.id === target.rootId)) {
+			const reply = thread.replies[target.rootId]?.items.find((r) => r.id === id) ?? null;
+			setReplyTo({ rootId: target.rootId, reply });
+		}
 		// Replies the link loaded are still unfolding; scroll once they have their height
 		if (id === target.rootId) showComment(id);
 		else scrollTimer.current = setTimeout(() => showComment(id), ENTER.duration * 1000);
-	});
+	}, [thread]);
+	return replyTo;
 }
 
 /** Discussion under a Poll. Results stay sealed while it is open, so this is where people argue their case. */
-export function CommentThread({ thread, pollId, viewerId, viewer, requireAuth }: CommentThreadProps) {
+export function CommentThread({ thread, pollId, viewerId, viewer, requireAuth, replyTo = null }: CommentThreadProps) {
 	const { t } = useLanguage();
 	// One inline Reply composer at a time; the main composer folds while it is open
-	const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(null);
+	const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(replyTo);
+	const [linkedReply, setLinkedReply] = useState(replyTo);
+	if (replyTo !== linkedReply) {
+		setLinkedReply(replyTo);
+		if (replyTo) setReplyTarget(replyTo);
+	}
 	// The draft follows the composer to whichever comment it moves to, and goes only on cancel or post
 	// Held outside state, so typing re-renders only the composer
 	const [replyDraft] = useState(newDraft);

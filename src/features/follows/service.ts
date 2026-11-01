@@ -1,8 +1,11 @@
 'use server';
 
+import { revalidateTag } from 'next/cache';
+
 import type { ActionResult } from '@/lib/api/action';
 import { attempt } from '@/lib/api/action';
 import { apiClient } from '@/lib/api/client';
+import { PROFILES_TAG } from '@/lib/api/constants';
 import { type CursorPage, cursorPageSchema, pageParams } from '@/lib/api/cursor';
 
 import { type FollowUserDto, FollowUserDtoSchema } from './schema';
@@ -15,6 +18,8 @@ const followPath = (userId: string) => `/users/me/follows/${encodeURIComponent(u
 export async function followUser(userId: string): Promise<ActionResult> {
 	return attempt(async () => {
 		await apiClient(followPath(userId), { method: 'POST' });
+		// Both profiles' counts changed. Expire without re-rendering: the button already shows the change
+		revalidateTag(PROFILES_TAG, { expire: 0 });
 	});
 }
 
@@ -22,6 +27,7 @@ export async function followUser(userId: string): Promise<ActionResult> {
 export async function unfollowUser(userId: string): Promise<ActionResult> {
 	return attempt(async () => {
 		await apiClient(followPath(userId), { method: 'DELETE' });
+		revalidateTag(PROFILES_TAG, { expire: 0 });
 	});
 }
 

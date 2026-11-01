@@ -21,7 +21,7 @@ type PollDiscussionProps = {
 export function PollDiscussion({ pollId, commentCount, viewerId, viewer, poll, anonymousByDefault }: PollDiscussionProps) {
 	const { requireAuth, authDialog } = useRequireAuth(!!viewerId);
 	const thread = useComments(pollId, { enabled: true, initialTotal: commentCount });
-	useCommentLink(thread);
+	const replyTo = useCommentLink(thread);
 
 	return (
 		<>
@@ -36,7 +36,7 @@ export function PollDiscussion({ pollId, commentCount, viewerId, viewer, poll, a
 					isPage
 				/>
 			)}
-			<CommentThread thread={thread} pollId={pollId} viewerId={viewerId} viewer={viewer} requireAuth={requireAuth} />
+			<CommentThread thread={thread} pollId={pollId} viewerId={viewerId} viewer={viewer} requireAuth={requireAuth} replyTo={replyTo} />
 			{authDialog.open && <AuthDialog {...authDialog} />}
 		</>
 	);

@@ -230,6 +230,16 @@ describe('PollCreator', () => {
 		expect(await screen.findByLabelText('Option 3')).toBeInTheDocument();
 	});
 
+	it('takes Return in the last option to an empty one and says why, like Add option', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		fireEvent.change(screen.getByLabelText('Option 2'), { target: { value: 'B' } });
+		fireEvent.keyDown(screen.getByLabelText('Option 2'), { key: 'Enter' });
+		expect(await screen.findByText('Fill in every option.')).toBeInTheDocument();
+		expect(screen.getByLabelText('Option 1')).toHaveFocus();
+		expect(screen.queryByLabelText('Option 3')).not.toBeInTheDocument();
+	});
+
 	it('moves focus to the first problem when review fails', async () => {
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();

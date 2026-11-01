@@ -1,5 +1,7 @@
 jest.unmock('@/features/follows/service');
 
+import { revalidateTag } from 'next/cache';
+
 import {
 	followUser,
 	getFollowers,
@@ -36,6 +38,14 @@ it('follows and unfollows by user ID', async () => {
 	expect(mockApiClient).toHaveBeenCalledWith('/users/me/follows/u1', { method: 'POST' });
 	expect(await unfollowUser('u1')).toEqual({ ok: true, data: undefined });
 	expect(mockApiClient).toHaveBeenCalledWith('/users/me/follows/u1', { method: 'DELETE' });
+});
+
+it('expires cached profiles after a follow or unfollow, so both follow counts are fresh', async () => {
+	mockApiClient.mockResolvedValue(undefined);
+	await followUser('u1');
+	await unfollowUser('u1');
+	expect(revalidateTag).toHaveBeenCalledTimes(2);
+	expect(revalidateTag).toHaveBeenCalledWith('profiles', { expire: 0 });
 });
 
 it('returns the errorCode of a refused follow', async () => {

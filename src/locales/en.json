@@ -280,6 +280,7 @@
 		"followedYouGroup_one": "{name} and {count} other followed you",
 		"seeFollowers": "See followers",
 		"commented": "{name} made the case under {title}",
+		"replied": "{name} replied in {title}",
 		"mentioned": "{name} mentioned you in {title}",
 		"liked": "{name} liked your comment in {title}",
 		"categoryLabel": "Category",

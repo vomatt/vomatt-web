@@ -271,6 +271,7 @@
 		"followedYouGroup_one": "{name} 和其他 {count} 人追蹤了你",
 		"seeFollowers": "查看追蹤者",
 		"commented": "{name} 在 {title} 下發表了看法",
+		"replied": "{name} 在 {title} 回覆了留言",
 		"mentioned": "{name} 在 {title} 提到了你",
 		"liked": "{name} 喜歡你在 {title} 的留言",
 		"categoryLabel": "分類",

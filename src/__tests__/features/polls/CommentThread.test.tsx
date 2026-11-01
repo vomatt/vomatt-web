@@ -63,13 +63,15 @@ const reply = {
 function Harness() {
 	const thread = useComments('poll-1', { enabled: true, initialTotal: 2 });
 	const [open, setOpen] = useState(true);
-	useCommentLink(thread);
+	const replyTo = useCommentLink(thread);
 	return (
 		<>
 			<button type="button" onClick={() => setOpen((value) => !value)}>
 				Fold
 			</button>
-			{open && <CommentThread thread={thread} pollId="poll-1" viewerId="me" requireAuth={(action) => action()} />}
+			{open && (
+				<CommentThread thread={thread} pollId="poll-1" viewerId="me" requireAuth={(action) => action()} replyTo={replyTo} />
+			)}
 		</>
 	);
 }
@@ -356,6 +358,27 @@ describe('CommentThread', () => {
 				Element.prototype.animate = realAnimate;
 			}
 		});
+	});
+
+	it('opens a reply to the reply a #reply- link names, as a notification Reply does', async () => {
+		service.getComments.mockResolvedValue({
+			ok: true,
+			data: { items: [{ ...mine, replyCount: 1 }], nextCursor: null },
+		});
+		service.getReplies.mockResolvedValue({ ok: true, data: { items: [reply], nextCursor: null } });
+		const { scrollIntoView: realScroll, animate: realAnimate } = Element.prototype;
+		Element.prototype.scrollIntoView = jest.fn();
+		Element.prototype.animate = jest.fn();
+		window.location.hash = '#reply-c1/r1';
+		try {
+			render(<Harness />);
+			expect(await screen.findByRole('textbox', { name: 'Write a reply…' })).toBeInTheDocument();
+			expect(screen.getByText('Replying to')).toBeInTheDocument();
+		} finally {
+			window.location.hash = '';
+			Element.prototype.scrollIntoView = realScroll;
+			Element.prototype.animate = realAnimate;
+		}
 	});
 
 	it('replies to a reply under the same top-level comment, addressed to its author', async () => {
