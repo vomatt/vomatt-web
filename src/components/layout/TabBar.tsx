@@ -103,7 +103,7 @@ export function TabBar({ className, userSession, loginLink = '/login', username,
 		<nav
 			data-tabbar
 			className={cn(
-				'[--tabbar-height:64px] fixed bottom-0 w-full flex justify-between items-center h-[calc(var(--tabbar-height)+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] bg-card border-t border-border md:hidden',
+				'[--tabbar-height:64px] fixed bottom-0 z-tabbar w-full flex justify-between items-center h-[calc(var(--tabbar-height)+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] bg-card border-t border-border md:hidden',
 				className
 			)}
 		>
