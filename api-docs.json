@@ -1253,6 +1253,43 @@
         },
         "type" : "object"
       },
+      "ApiResponseListSessionResponse" : {
+        "description" : "Envelope of every API response, success or error",
+        "properties" : {
+          "data" : {
+            "description" : "Response payload; null on errors (a few business errors carry structured data) and on operations without a result",
+            "items" : {
+              "$ref" : "#/components/schemas/SessionResponse"
+            },
+            "nullable" : true,
+            "type" : "array"
+          },
+          "error" : {
+            "description" : "Legacy duplicate of `message` on errors; null on success. Use `message` instead",
+            "example" : "Poll not found",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "errorCode" : {
+            "description" : "Stable machine-readable error code (lowercase, dot-separated); branch on this, not on `message`. Null on success",
+            "example" : "vote.not_found",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "message" : {
+            "description" : "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",
+            "example" : "Operation completed",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "success" : {
+            "description" : "true on success, false on error",
+            "example" : true,
+            "type" : "boolean"
+          }
+        },
+        "type" : "object"
+      },
       "ApiResponseListTagDto" : {
         "description" : "Envelope of every API response, success or error",
         "properties" : {
@@ -2399,6 +2436,13 @@
             "example" : false,
             "type" : "boolean"
           },
+          "mentions" : {
+            "description" : "Users the text @mentions, in order of first appearance: the handles the server resolved when the Comment was written (at most the first `comment_max_mentions` distinct handles, default 10), less any user renamed since. Link exactly these `@username` handles (case-insensitive); others, unknown or over the cap, are plain text. [] on a deleted placeholder",
+            "items" : {
+              "$ref" : "#/components/schemas/MentionDto"
+            },
+            "type" : "array"
+          },
           "parentId" : {
             "description" : "ID of the top-level Comment this Reply belongs to. Null for a top-level Comment",
             "example" : "0199c3a2-7b1e-7c4d-9a10-3f5e8d2b6a41",
@@ -3288,6 +3332,22 @@
         },
         "type" : "object"
       },
+      "MentionDto" : {
+        "description" : "A user a Comment @mentions: link `@username` in the text to this user; other handles are plain text",
+        "properties" : {
+          "userId" : {
+            "description" : "ID of the mentioned user",
+            "example" : "0199b8e4-1c2d-7f60-8a3b-6d4e2f1a9b05",
+            "type" : "string"
+          },
+          "username" : {
+            "description" : "The handle as written in the text, without `@` (the user's current username)",
+            "example" : "alice",
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
       "MyProfileResponse" : {
         "description" : "The caller's own profile; every field is returned regardless of visibility settings",
         "properties" : {
@@ -3319,6 +3379,12 @@
             "format" : "date",
             "nullable" : true,
             "type" : "string"
+          },
+          "createdPollCount" : {
+            "description" : "Number of Polls the caller created, as My Polls lists them: every Audience (Public, Unlisted, Invite-only) and status (Scheduled, Open, Ended, Cancelled); Deleted Polls excluded",
+            "example" : 6,
+            "format" : "int32",
+            "type" : "integer"
           },
           "displayName" : {
             "description" : "Display name; null if not set",
@@ -3428,6 +3494,12 @@
               "email" : false
             },
             "type" : "object"
+          },
+          "votedPollCount" : {
+            "description" : "Number of Polls the caller holds a Ballot in, as My Polls lists them: every Audience, the caller's own Polls and Anonymous Ballots included; Deleted Polls and Polls of users who blocked the caller excluded. Polls the caller is only invited to count in neither this nor createdPollCount",
+            "example" : 21,
+            "format" : "int32",
+            "type" : "integer"
           }
         },
         "type" : "object"
@@ -3496,7 +3568,7 @@
             "type" : "string"
           },
           "kind" : {
-            "description" : "RESULT: a Poll you own, hold a Ballot in or are invited to has Ended. CANCELLED: an Invite-only Poll you are invited to was Cancelled before it opened. INVITATION: you are invited to a Scheduled or Open Invite-only Poll (replaced by RESULT once it Ends). FOLLOWED: someone followed you. COMMENT: someone commented on your Poll or replied to your Comment. MENTION: someone @mentioned you in a Comment or Reply that is not already your COMMENT. CLOSING_SOON: a Poll you are invited to, or a Public Poll of someone you follow, ends within 24 hours and you hold no Ballot in it. LIKE: someone liked your Comment or Reply",
+            "description" : "RESULT: a Poll you own, hold a Ballot in, are invited to or bookmarked has Ended with at least one Ballot. CANCELLED: an Invite-only Poll you are invited to was Cancelled before it opened. INVITATION: you are invited to a Scheduled or Open Invite-only Poll (replaced by RESULT once it Ends). FOLLOWED: someone followed you. COMMENT: someone commented on your Poll or replied to your Comment. MENTION: someone @mentioned you in a Comment or Reply that is not already your COMMENT. CLOSING_SOON: a Poll you are invited to, or a Public Poll of someone you follow, ends within 24 hours and you hold no Ballot in it. LIKE: someone liked your Comment or Reply",
             "enum" : [ "RESULT", "CANCELLED", "INVITATION", "FOLLOWED", "COMMENT", "MENTION", "CLOSING_SOON", "LIKE" ],
             "example" : "COMMENT",
             "type" : "string"
@@ -4376,6 +4448,44 @@
         },
         "type" : "object"
       },
+      "SessionResponse" : {
+        "description" : "A device the user is signed in on",
+        "nullable" : true,
+        "properties" : {
+          "adminScope" : {
+            "description" : "Whether this is an admin console sign-in",
+            "type" : "boolean"
+          },
+          "createdAt" : {
+            "description" : "Sign-in time; null for a session signed in before it was recorded",
+            "format" : "date-time",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "current" : {
+            "description" : "Whether this is the session of the access token making the request",
+            "type" : "boolean"
+          },
+          "lastSeenAt" : {
+            "description" : "Latest sign-in or token refresh, so accurate to about 15 minutes; null like userAgent",
+            "format" : "date-time",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "sessionId" : {
+            "description" : "Names the sign-in; pass it to DELETE /api/users/me/sessions/{sessionId}. Not a credential",
+            "example" : "0192f3c4-5d6e-7f80-9a1b-2c3d4e5f6a7b",
+            "type" : "string"
+          },
+          "userAgent" : {
+            "description" : "Raw User-Agent of the latest sign-in or refresh, up to 512 characters; null for a session signed in before devices were recorded that has not refreshed since (show as an unknown device)",
+            "example" : "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36",
+            "nullable" : true,
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
       "ShareVoteRequest" : {
         "description" : "Where the caller shared the Poll's link",
         "properties" : {
@@ -4685,7 +4795,7 @@
             "description" : "New avatar, one of the bot cast as `bot:<kind>`, or `bot:none` for no character; any other value is rejected. null or omitted keeps the current value",
             "example" : "bot:boba",
             "nullable" : true,
-            "pattern" : "^bot:(boba|bao|oolong|su|egg|ice|youtiao|tofu|sausage|chip|tower|lumen|mazu|tudi|yuelao|qiye|baye|shi|long|denglong|ding|jiaobei|xiang|banyan|gray|nordic|reptile|mantis|anu|tallwhite|moth|blob|cyclops|probe|saucer|trio|bear|magpie|pangolin|shihu|macaque|deer|pheasant|firefly|crab|flyfish|turtle|dog|none)$",
+            "pattern" : "^bot:(boba|bao|oolong|su|egg|ice|youtiao|tofu|sausage|chip|tower|lumen|mazu|tudi|yuelao|qiye|baye|shi|long|denglong|ding|jiaobei|xiang|banyan|gray|nordic|reptile|mantis|anu|tallwhite|moth|blob|cyclops|probe|saucer|trio|bear|magpie|pangolin|shihu|macaque|deer|pheasant|firefly|crab|flyfish|turtle|dog|fold|munchkin|chinchilla|mainecoon|siamese|orange|tuxedo|calico|sphynx|ragdoll|british|bengal|shiba|corgi|golden|husky|pug|dachshund|poodle|frenchie|beagle|collie|dalmatian|labrador|none)$",
             "type" : "string"
           },
           "bio" : {
@@ -10302,7 +10412,7 @@
     },
     "/api/auth/logout" : {
       "post" : {
-        "description" : "**Auth**: public (identified by the refresh token in the body)\n**Precondition**: none; an unknown or already-revoked token is not an error\n**Behavior**: revokes the given refresh token. A token that was already refreshed signs out the sign-in it belongs to: the refresh token that replaced it can no longer be refreshed. Other devices' refresh tokens stay valid\n**Side effects**: the refresh token can no longer be refreshed. The access token is stateless and stays valid until it expires (default 15 minutes), so the client must discard it\n**Errors**:\n- 400 `common.validation_failed`: `refreshToken` is blank",
+        "description" : "**Auth**: public (identified by the refresh token in the body)\n**Precondition**: none; an unknown or already-revoked token is not an error\n**Behavior**: revokes the given refresh token. A token that was already refreshed signs out the sign-in it belongs to: the refresh token that replaced it can no longer be refreshed. Other devices' refresh tokens stay valid\n**Side effects**: the refresh token can no longer be refreshed, and the sign-in's access tokens get 401 `auth.session_revoked` from the next request on. A logout with an already refreshed token cuts the access tokens of the refresh token that replaced it\n**Errors**:\n- 400 `common.validation_failed`: `refreshToken` is blank",
         "operationId" : "logout",
         "requestBody" : {
           "content" : {
@@ -12806,7 +12916,7 @@
     },
     "/api/notifications" : {
       "get" : {
-        "description" : "**Auth**: required\n**Precondition**: none\n**Behavior**: the caller's notifications, newest `createdAt` first, cursor-paged. They are not stored but derived from Polls, Invitations, follows and Comments when read, so an item disappears when what it is about goes away (a Comment deleted, a follow undone, a Poll Deleted). Kinds:\n- RESULT: a Poll the caller owns, holds a Ballot in, is an Invitee of or bookmarked has Ended (end time passed, Closed, or every Invitee voted); one item per Poll whatever the reasons. A Participant who made a Retraction and is neither an Invitee nor bookmarked it gets none\n- CANCELLED: an Invite-only Poll the caller is an Invitee of was Cancelled before it opened (only Polls Cancelled before 2026-10-14; a Scheduled Poll is now Deleted, which notifies nobody)\n- INVITATION: the caller is an Invitee of a Scheduled or Open Invite-only Poll; listed until the Poll Ends, when its RESULT takes over. Being removed and invited again is a new, unread INVITATION\n- FOLLOWED: someone followed the caller (one item per follower; group them in the UI)\n- COMMENT: someone else commented on or replied under the caller's Poll, or replied to the caller's Comment, on a Poll the caller can see; not a Reply in a thread started by a user the caller blocked (the Comment lists hide that thread)\n- MENTION: someone else @mentioned the caller (`@<username>`) in a Comment or Reply on a Poll the caller can see, unless that Comment is the caller's COMMENT (one Comment, one notification) and COMMENT is switched on; same thread-starter block rule as COMMENT\n- CLOSING_SOON: an Open Poll ends within 24 hours and the caller holds no Ballot in it, if the caller is its Invitee, or it is a Public Poll of a user the caller follows. Gone once the caller casts a Ballot or the Poll Ends. Off by default\n- LIKE: someone else liked the caller's Comment or Reply, on a Poll the caller can see and not in a thread started by a user the caller blocked (as COMMENT). Gone if the like is taken back; liking again is a new, unread LIKE\nEach kind falls in one `category`: CONVERSATION (COMMENT, MENTION), LIKE (LIKE), POLL_END (RESULT, CANCELLED, CLOSING_SOON), INVITATION (INVITATION), FOLLOW (FOLLOWED). With `category`, only that category is listed; pass the same `category` with every page.\nKinds switched off in the caller's preferences are left out (FOLLOWED cannot be switched off). Nothing from a suspended user, a user the caller blocked or a user who blocked the caller is listed, nor anything about a Poll whose owner blocked the caller. `poll` never carries per-option counts, its outcome (`winningOptionIds`, `winningOptionLabels`, `tie`) stays null until the Poll has Ended, and `actor` is never a voter, so Sealed results and Anonymous Ballots stay hidden. Each item carries what a row needs: the caller's Selection (`poll.myOptionId`), the caller's follows with the actor both ways (`actor.isFollowing`, `actor.followsYou`), and for a Reply the Comment it is under (`comment.parentId`). An item can appear or vanish behind a cursor (a follow, a block); de-duplicate by `id`.\n**Side effects**: none\n**Errors**:\n- 400 `common.cursor_invalid`: `cursor` came from another list\n- 400 `common.type_mismatch`: `category` is not one of the categories",
+        "description" : "**Auth**: required\n**Precondition**: none\n**Behavior**: the caller's notifications, newest `createdAt` first, cursor-paged. They are not stored but derived from Polls, Invitations, follows and Comments when read, so an item disappears when what it is about goes away (a Comment deleted, a follow undone, a Poll Deleted). Kinds:\n- RESULT: a Poll the caller owns, holds a Ballot in, is an Invitee of or bookmarked has Ended (end time passed, Closed, or every Invitee voted); one item per Poll whatever the reasons. A Poll that Ended with no Ballots (Turnout 0) gives none. A Participant who made a Retraction and is neither an Invitee nor bookmarked it gets none\n- CANCELLED: an Invite-only Poll the caller is an Invitee of was Cancelled before it opened (only Polls Cancelled before 2026-10-14; a Scheduled Poll is now Deleted, which notifies nobody)\n- INVITATION: the caller is an Invitee of a Scheduled or Open Invite-only Poll; listed until the Poll Ends, when its RESULT takes over. Being removed and invited again is a new, unread INVITATION\n- FOLLOWED: someone followed the caller (one item per follower; group them in the UI)\n- COMMENT: someone else commented on or replied under the caller's Poll, or replied to the caller's Comment, on a Poll the caller can see; not a Reply in a thread started by a user the caller blocked (the Comment lists hide that thread)\n- MENTION: someone else @mentioned the caller (`@<username>`) in a Comment or Reply on a Poll the caller can see, unless that Comment is the caller's COMMENT (one Comment, one notification) and COMMENT is switched on; same thread-starter block rule as COMMENT\n- CLOSING_SOON: an Open Poll ends within 24 hours and the caller holds no Ballot in it, if the caller is its Invitee, or it is a Public Poll of a user the caller follows. Gone once the caller casts a Ballot or the Poll Ends. Off by default\n- LIKE: someone else liked the caller's Comment or Reply, on a Poll the caller can see and not in a thread started by a user the caller blocked (as COMMENT). Gone if the like is taken back; liking again is a new, unread LIKE\nEach kind falls in one `category`: CONVERSATION (COMMENT, MENTION), LIKE (LIKE), POLL_END (RESULT, CANCELLED, CLOSING_SOON), INVITATION (INVITATION), FOLLOW (FOLLOWED). With `category`, only that category is listed; pass the same `category` with every page.\nKinds switched off in the caller's preferences are left out (FOLLOWED cannot be switched off). Nothing from a suspended user, a user the caller blocked or a user who blocked the caller is listed, nor anything about a Poll whose owner blocked the caller. `poll` never carries per-option counts, its outcome (`winningOptionIds`, `winningOptionLabels`, `tie`) stays null until the Poll has Ended, and `actor` is never a voter, so Sealed results and Anonymous Ballots stay hidden. Each item carries what a row needs: the caller's Selection (`poll.myOptionId`), the caller's follows with the actor both ways (`actor.isFollowing`, `actor.followsYou`), and for a Reply the Comment it is under (`comment.parentId`). An item can appear or vanish behind a cursor (a follow, a block); de-duplicate by `id`.\n**Side effects**: none\n**Errors**:\n- 400 `common.cursor_invalid`: `cursor` came from another list\n- 400 `common.type_mismatch`: `category` is not one of the categories",
         "operationId" : "list",
         "parameters" : [ {
           "description" : "Only this category's notifications; omit for all",
@@ -15062,6 +15172,278 @@
           }
         },
         "summary" : "Delete one of my passkeys",
+        "tags" : [ "User" ]
+      }
+    },
+    "/api/users/me/sessions" : {
+      "delete" : {
+        "description" : "**Auth**: required\n**Precondition**: none\n**Behavior**: ends every session of the caller except the calling one, at once, like `DELETE /api/users/me/sessions/{sessionId}` on each. Succeeds when there is nothing else to sign out\n**Side effects**: the sign-out is written to the audit log\n**Errors**:\n- 400 `common.bad_request`: `scope` is not `others`\n- 400 `common.missing_param`: `scope` is missing",
+        "operationId" : "revokeMyOtherSessions",
+        "parameters" : [ {
+          "description" : "Which sessions to sign out; only `others` is supported",
+          "in" : "query",
+          "name" : "scope",
+          "required" : true,
+          "schema" : {
+            "enum" : [ "others" ],
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "data" : {
+                    "id" : null,
+                    "message" : null,
+                    "status" : null,
+                    "success" : true
+                  },
+                  "error" : null,
+                  "errorCode" : null,
+                  "message" : null,
+                  "success" : true
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResponseSimpleResultResponse"
+                }
+              }
+            },
+            "description" : "Success"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Authenticated but not allowed (errorCode `common.forbidden`)"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          }
+        },
+        "summary" : "Sign out all my other devices",
+        "tags" : [ "User" ]
+      },
+      "get" : {
+        "description" : "**Auth**: required\n**Precondition**: none\n**Behavior**: every session that can still refresh (signed in within the refresh lifetime, 30 days by default, and not signed out), most recently active first; sessions with no `lastSeenAt` come last. `current` marks the session of the calling access token. `userAgent` is raw: parse it on the client for display. `userAgent`, `createdAt` and `lastSeenAt` are null for sessions signed in before devices were recorded; `userAgent` and `lastSeenAt` fill in on their next refresh. Admin console sign-ins are listed too, with `adminScope` true\n**Side effects**: none\n**Errors**: none beyond 401",
+        "operationId" : "listMySessions",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "data" : [ {
+                    "adminScope" : false,
+                    "createdAt" : "2026-10-20T08:12:00Z",
+                    "current" : true,
+                    "lastSeenAt" : "2026-10-29T03:40:00Z",
+                    "sessionId" : "0192f3c4-5d6e-7f80-9a1b-2c3d4e5f6a7b",
+                    "userAgent" : "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36"
+                  }, {
+                    "adminScope" : false,
+                    "createdAt" : null,
+                    "current" : false,
+                    "lastSeenAt" : null,
+                    "sessionId" : "9f2c4b7e1a3d5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4",
+                    "userAgent" : null
+                  } ],
+                  "error" : null,
+                  "errorCode" : null,
+                  "message" : null,
+                  "success" : true
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResponseListSessionResponse"
+                }
+              }
+            },
+            "description" : "Success"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Authenticated but not allowed (errorCode `common.forbidden`)"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          }
+        },
+        "summary" : "List my signed-in devices",
+        "tags" : [ "User" ]
+      }
+    },
+    "/api/users/me/sessions/{sessionId}" : {
+      "delete" : {
+        "description" : "**Auth**: required\n**Precondition**: the session belongs to the caller and can still refresh\n**Behavior**: ends the session at once: its refresh token stops working, and its access tokens get 401 `auth.session_revoked` from the next request on instead of when they expire. Signing out the calling session is allowed and works like logout\n**Side effects**: the sign-out is written to the audit log\n**Errors**:\n- 404 `auth.session_not_found`: no live session with this ID, or it belongs to another user",
+        "operationId" : "revokeMySession",
+        "parameters" : [ {
+          "description" : "Id of the session to sign out, from `GET /api/users/me/sessions`",
+          "example" : "0192f3c4-5d6e-7f80-9a1b-2c3d4e5f6a7b",
+          "in" : "path",
+          "name" : "sessionId",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "data" : {
+                    "id" : null,
+                    "message" : null,
+                    "status" : null,
+                    "success" : true
+                  },
+                  "error" : null,
+                  "errorCode" : null,
+                  "message" : null,
+                  "success" : true
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResponseSimpleResultResponse"
+                }
+              }
+            },
+            "description" : "Success"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Authenticated but not allowed (errorCode `common.forbidden`)"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "data" : null,
+                  "error" : "Signed-in device not found",
+                  "errorCode" : "auth.session_not_found",
+                  "message" : "Signed-in device not found",
+                  "success" : false
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "No live session with this ID belongs to the caller (errorCode `auth.session_not_found`)"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          }
+        },
+        "summary" : "Sign out one of my devices",
         "tags" : [ "User" ]
       }
     },
@@ -17528,7 +17910,7 @@
         "tags" : [ "Vote Comment" ]
       },
       "post" : {
-        "description" : "**Auth**: required\n**Precondition**: the Poll exists (any Poll state is accepted). When `parentId` is sent it must be a non-deleted Comment or Reply of the same Poll\n**Behavior**: without `parentId` creates a top-level Comment. With `parentId` creates a Reply; Replies are one level deep, so replying to a Reply attaches the new Reply to that Reply's top-level Comment (the response `parentId` is the top-level Comment, not the id you sent). Mentions: `@<username>` in the text (a username, 3-50 characters of `[a-z0-9_]`, matched case-insensitively, not preceded by a letter or digit of any script or `_`, so `a@b.com` and `測試@alice` are no mentions) names that user; a handle with no account is plain text. At most 10 distinct users per Comment (admin-tunable), the first handles in the text; later ones are plain text, not an error. Responds 201\n**Side effects**: the top-level Comment's `replyCount` grows by 1 in later list reads. Each mentioned user other than the author gets a MENTION notification while they can see the Poll, unless the Comment already gives them a COMMENT (it is on their Poll or replies to their Comment)\n**Errors**:\n- 400 `comment.parent.invalid`: `parentId` does not exist, is deleted, or belongs to another Poll\n- 404 `comment.not_found`: `parentId` is hidden from the caller as in the lists (written by a user the caller blocked, or a Reply in a thread such a user started)\n- 404 `vote.not_found`: Poll does not exist or is Deleted, or its owner blocked the caller\n- 404 `user.not_found`: the signed-in user no longer exists\n",
+        "description" : "**Auth**: required\n**Precondition**: the Poll exists (any Poll state is accepted). When `parentId` is sent it must be a non-deleted Comment or Reply of the same Poll\n**Behavior**: without `parentId` creates a top-level Comment. With `parentId` creates a Reply; Replies are one level deep, so replying to a Reply attaches the new Reply to that Reply's top-level Comment (the response `parentId` is the top-level Comment, not the id you sent). Mentions: `@<username>` in the text (a username, 3-50 characters of `[a-z0-9_]`, matched case-insensitively, not preceded by a letter or digit of any script or `_`, so `a@b.com` and `測試@alice` are no mentions) names that user; a handle with no account is plain text. At most 10 distinct users per Comment (admin-tunable), the first handles in the text; later ones are plain text, not an error. The response's `mentions` lists the resolved users; link only those handles. Responds 201\n**Side effects**: the top-level Comment's `replyCount` grows by 1 in later list reads. Each mentioned user other than the author gets a MENTION notification while they can see the Poll, unless the Comment already gives them a COMMENT (it is on their Poll or replies to their Comment)\n**Errors**:\n- 400 `comment.parent.invalid`: `parentId` does not exist, is deleted, or belongs to another Poll\n- 404 `comment.not_found`: `parentId` is hidden from the caller as in the lists (written by a user the caller blocked, or a Reply in a thread such a user started)\n- 404 `vote.not_found`: Poll does not exist or is Deleted, or its owner blocked the caller\n- 404 `user.not_found`: the signed-in user no longer exists\n",
         "operationId" : "createComment",
         "parameters" : [ {
           "description" : "Poll ID",
@@ -18384,7 +18766,7 @@
     },
     "/api/votes/{voteId}/creator" : {
       "get" : {
-        "description" : "**Auth**: public (login is ignored)\n**Precondition**: the Poll is INVITE_ONLY and not Deleted\n**Behavior**: returns only the owner's `username` and `avatarUrl`, so an Invitation link can show \"<username> invited you\" to a caller who cannot open the Poll yet (signed out, or signed in but not yet an Invitee). Reveals nothing else about the Poll. Answers regardless of blocks, also to a user the owner blocked.\n**Side effects**: none\n**Errors**:\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is PUBLIC / UNLISTED\n",
+        "description" : "**Auth**: public (optional login changes the answer: a signed-in caller must be the owner or an Invitee; an invalid or expired token is treated as signed out)\n**Precondition**: the Poll is INVITE_ONLY and not Deleted\n**Behavior**: returns only the owner's `username` and `avatarUrl`, so an Invitation link can show \"<username> invited you\" and prompt a signed-out caller to sign in. Reveals nothing else about the Poll. A signed-out caller, the owner and Invitees (an email Invitee once signed in with that address) get the owner; any other signed-in caller gets 404, as `GET /api/votes/{voteId}` does. Answers regardless of blocks, also to an Invitee the owner blocked.\n**Side effects**: none\n**Errors**:\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is PUBLIC / UNLISTED, or the caller is signed in and neither its owner nor an Invitee\n",
         "operationId" : "getInviteOnlyCreator",
         "parameters" : [ {
           "description" : "Poll ID",
@@ -18401,8 +18783,8 @@
             "content" : {
               "application/json" : {
                 "examples" : {
-                  "Invite-only Poll owner" : {
-                    "description" : "Invite-only Poll owner",
+                  "Invite-only Poll owner (signed out or Invitee)" : {
+                    "description" : "Invite-only Poll owner (signed out or Invitee)",
                     "value" : {
                       "data" : {
                         "avatarUrl" : "bot:boba",
