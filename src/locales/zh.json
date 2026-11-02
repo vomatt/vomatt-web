@@ -445,6 +445,8 @@
 		"sealedTitle": "已密封，謝謝你。",
 		"opensHint": "投票將於{distance}開始",
 		"voted": "{count} 人已投票",
+		"voteCount": "{count} 票",
+		"voteSupport": "{votes}，{percent}%",
 		"votedPill": "已投票",
 		"comments": "{count} 則留言",
 		"comment": "1 則留言",

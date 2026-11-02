@@ -13,7 +13,7 @@ A visitor signs in or signs up with one email-code flow: enter an email, enter t
 ## How to get to it (user POV)
 
 - Open `/login` directly, or choose `Sign in` at the bottom of the desktop sidebar.
-- Open a protected page (`/notifications`, `/account`, `/my-polls`, which then redirects to the profile) while signed out: redirected to `/login?redirect=<path>`.
+- Open a protected page (`/notifications`, `/account`, which then redirects to the profile) while signed out: redirected to `/login?redirect=<path>`.
 - Choose `Vote` or `Post` on a poll while signed out: a `Log in or sign up` dialog opens with the same flow.
 
 ## Driving it with vv
@@ -36,4 +36,4 @@ Preconditions:
 - The profile step only appears for a new email; an existing one goes straight to the landing page.
 - 3 wrong codes lock the email for 5 minutes from this IP; switch to a new email instead of waiting.
 - A resend is blocked for 180 s (`Resend code in m:ss`); request the first code only once per email.
-- `/my-polls` and `/notifications` also redirect on the server to `/login` without `?redirect`; the proxy redirect normally wins, so a missing param is a regression worth reporting.
+- `/account` and `/notifications` also redirect on the server to `/login` without `?redirect`; the proxy redirect normally wins, so a missing param is a regression worth reporting.

@@ -580,7 +580,7 @@ describe('PollCard state B · Open, has Ballot', () => {
 		render(<PollCard poll={openPoll} viewerId="user-voter" />);
 		vote('Friday');
 
-		await waitFor(() => expect(screen.getByText('48%')).toBeInTheDocument());
+		await waitFor(() => expect(screen.getByText('62 votes, 48%')).toBeInTheDocument());
 		expect(toast).toHaveBeenCalledWith('This poll just ended.');
 		expect(mockGetPoll).toHaveBeenCalledWith('poll-1');
 		expect(screen.queryByRole('radio')).not.toBeInTheDocument();
@@ -675,7 +675,7 @@ describe('PollCard owner of an Open Poll', () => {
 		fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'End now' }));
 
 		await waitFor(() => expect(mockClosePoll).toHaveBeenCalledWith('poll-1'));
-		await waitFor(() => expect(screen.getByText('48%')).toBeInTheDocument());
+		await waitFor(() => expect(screen.getByText('62 votes, 48%')).toBeInTheDocument());
 	});
 
 	it('offers Invitees and End now on an Invite-only Poll', () => {
@@ -722,20 +722,19 @@ describe('PollCard Audience', () => {
 		fireEvent.click(screen.getByRole('radio', { name: 'Sunday' }));
 		fireEvent.click(screen.getByRole('button', { name: 'Vote' }));
 
-		await waitFor(() => expect(screen.getByText('48%')).toBeInTheDocument());
+		await waitFor(() => expect(screen.getByText('62 votes, 48%')).toBeInTheDocument());
 		// The Ballot's response already is the Ended Poll
 		expect(mockGetPoll).not.toHaveBeenCalled();
 	});
 });
 
 describe('PollCard state D · Ended', () => {
-	it('shows Support per option, the winner and the viewer’s choice, without raw counts', () => {
+	it('shows each option’s vote count and Support, the winner and the viewer’s choice', () => {
 		render(<PollCard poll={{ ...endedPoll, myOptionId: 'opt-sat' }} viewerId="user-voter" />);
-		expect(screen.getByText('29%')).toBeInTheDocument();
-		expect(screen.getByText('22%')).toBeInTheDocument();
-		expect(screen.getByText('48%')).toBeInTheDocument();
+		expect(screen.getByText('38 votes, 29%')).toBeInTheDocument();
+		expect(screen.getByText('29 votes, 22%')).toBeInTheDocument();
+		expect(screen.getByText('62 votes, 48%')).toBeInTheDocument();
 		expect(screen.getByText('your vote')).toBeInTheDocument();
-		expect(screen.queryByText('62')).not.toBeInTheDocument();
 		expect(within(screen.getByText('Sunday').closest('li')!).getByRole('img', { name: 'Elected' })).toBeInTheDocument();
 		expect(screen.getAllByRole('img', { name: 'Elected' })).toHaveLength(1);
 		expect(screen.getByText('“Saturday” was your vote.')).toBeInTheDocument();
@@ -756,6 +755,7 @@ describe('PollCard state D · Ended', () => {
 		};
 		render(<PollCard poll={single} />);
 		expect(screen.getByText('“Friday” won. 1 person decided this.')).toBeInTheDocument();
+		expect(screen.getByText('1 vote, 100%')).toBeInTheDocument();
 	});
 
 	it('names every tied option', () => {
@@ -817,7 +817,7 @@ describe('PollCard state D · Ended', () => {
 		const { participantCount, ...sealedEnded } = { ...endedPoll, options: openPoll.options };
 		render(<PollCard poll={sealedEnded} />);
 
-		await waitFor(() => expect(screen.getByText('100%')).toBeInTheDocument());
+		await waitFor(() => expect(screen.getByText('2 votes, 100%')).toBeInTheDocument());
 		expect(mockGetResults).toHaveBeenCalledWith('poll-1');
 	});
 

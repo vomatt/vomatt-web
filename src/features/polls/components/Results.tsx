@@ -153,6 +153,7 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }:
 			<ul className="space-y-2.5">
 				{rows.map((row, index) => {
 					const percent = support(row.votes);
+					const votes = countText(t, 'poll.voteCount', row.votes, currentLanguage);
 					const isWinner = winners.includes(row);
 					const delay = index * STAGGER;
 					return (
@@ -181,11 +182,16 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }:
 								{row === myRow && <YourVotePill label={t('poll.yourVoteShort')} />}
 								<span
 									className={cn(
-										'shrink-0 text-body-4 tabular-nums',
+										'shrink-0 text-right text-body-4 tabular-nums',
 										!isWinner && 'text-muted-foreground'
 									)}
 								>
-									<span className="sr-only">{percent}%</span>
+									<span className="sr-only">{t('poll.voteSupport', { votes, percent })}</span>
+									{/* On phones the count takes its own line, so a long one doesn't squeeze the option */}
+									<span aria-hidden className="text-muted-foreground max-sm:block">
+										{votes}
+										<span className="max-sm:hidden"> · </span>
+									</span>
 									<CountUp value={percent} delay={delay} />
 								</span>
 							</RowContent>

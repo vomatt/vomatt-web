@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 
 // Disallow is a prefix match: `/account` alone would also hide a profile like /accountant
-const PRIVATE_ROOTS = ['account', 'settings', 'notifications', 'my-polls', 'following', 'login'];
+const PRIVATE_ROOTS = ['account', 'settings', 'notifications', 'following', 'login'];
 
 export default function robots(): MetadataRoute.Robots {
 	return {

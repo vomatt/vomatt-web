@@ -907,7 +907,8 @@ export function PollCreator({
 							</AnimatePresence>
 						</div>
 
-						<div className="sticky bottom-0 z-10 flex-none bg-background/80 p-4 backdrop-blur-md pb-[calc(1rem+env(safe-area-inset-bottom))] sm:p-5">
+						{/* Clicks pass through the translucent bar to the fields under it; only the button row takes them */}
+						<div className="pointer-events-none sticky bottom-0 z-10 flex-none bg-background/80 p-4 backdrop-blur-md pb-[calc(1rem+env(safe-area-inset-bottom))] sm:p-5">
 							{/* Rendered empty first, so a failed publish is announced every time, the same error included */}
 							<p
 								role="alert"
@@ -915,7 +916,7 @@ export function PollCreator({
 							>
 								{review && errors.root?.message}
 							</p>
-							<div className="flex flex-wrap justify-end gap-2">
+							<div className="pointer-events-auto flex flex-wrap justify-end gap-2 sm:ml-auto sm:w-fit">
 								{!review && !isEdit && (
 									<Button
 										type="button"

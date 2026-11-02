@@ -12,7 +12,7 @@ process.env.SESSION_SECRET = 'model-check-secret-0123456789abcdef';
 
 // ── Bounds ───────────────────────────────────────────────────────────────────
 // One browser request per path, issued in this order. REFRESH_CHECK_DEEP=1 adds a fourth (~3 min).
-const PATHS = ['/', '/my-polls', '/login', ...(process.env.REFRESH_CHECK_DEEP ? ['/'] : [])];
+const PATHS = ['/', '/account', '/login', ...(process.env.REFRESH_CHECK_DEEP ? ['/'] : [])];
 const INSTANCES = 2; // server instances, each with its own in-flight refresh map
 const MAX_AGES = 1; // times the clock jumps (access tokens age, grace windows close)
 const MAX_FAULTS = 1; // refresh calls the backend may refuse with 429 before processing

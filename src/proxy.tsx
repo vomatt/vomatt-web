@@ -64,7 +64,7 @@ function getLocale(request: NextRequest): string | undefined {
 	return locale || i18n.defaultLocale;
 }
 
-const protectedPaths = ['/account', '/my-polls', '/notifications', '/settings', '/following'];
+const protectedPaths = ['/account', '/notifications', '/settings', '/following'];
 const authPaths = ['/login'];
 
 type SessionResult =

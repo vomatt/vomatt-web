@@ -1,19 +1,23 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 
 import { PollDiscussion } from '@/app/(frontend)/poll/[id]/PollDiscussion';
+import type { Poll } from '@/features/polls/schema';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
-jest.mock('next/navigation', () => ({ useRouter: () => ({ replace: jest.fn(), refresh: jest.fn() }) }));
+const mockReplace = jest.fn();
+jest.mock('next/navigation', () => ({ useRouter: () => ({ replace: mockReplace, refresh: jest.fn() }) }));
 jest.mock('sonner', () => ({ toast: Object.assign(jest.fn(), { error: jest.fn(), success: jest.fn() }) }));
 
 const mockPostComment = jest.fn();
 const mockGetComments = jest.fn();
+const mockDeletePoll = jest.fn();
 jest.mock('@/features/blocks/service', () => ({ blockUser: jest.fn() }));
 jest.mock('@/lib/api/services/users', () => ({ searchUsers: jest.fn() }));
 jest.mock('@/features/follows/service', () => ({ getFollowing: jest.fn() }));
 jest.mock('@/features/polls/service', () => ({
 	postComment: (...args: any[]) => mockPostComment(...args),
 	getComments: (...args: any[]) => mockGetComments(...args),
+	deletePoll: (...args: any[]) => mockDeletePoll(...args),
 }));
 
 jest.mock('@/components/auth/AuthDialog', () => ({
@@ -75,5 +79,33 @@ describe('PollDiscussion', () => {
 
 		expect(mockPostComment).not.toHaveBeenCalled();
 		expect(box).toHaveValue('Draft');
+	});
+	it('sends the owner to their profile after deleting the poll', async () => {
+		mockGetComments.mockResolvedValue({ ok: true, data: { items: [], nextCursor: null } });
+		mockDeletePoll.mockResolvedValue({ ok: true });
+		const hour = 60 * 60 * 1000;
+		const poll: Poll = {
+			id: 'poll-1',
+			title: 'Which day?',
+			active: true,
+			votingActive: false,
+			creatorId: 'user-1',
+			creatorUsername: 'mei.lin',
+			createdAt: new Date(Date.now() - hour).toISOString(),
+			startTime: new Date(Date.now() + 48 * hour).toISOString(),
+			endTime: new Date(Date.now() + 72 * hour).toISOString(),
+			participantCount: 0,
+			myOptionId: null,
+			voterVisibility: 'owner',
+			options: [
+				{ id: 'opt-fri', text: 'Friday' },
+				{ id: 'opt-sat', text: 'Saturday' },
+			],
+		};
+		render(<PollDiscussion pollId="poll-1" poll={poll} viewerId="user-1" viewer={{ username: 'mei_lin', avatarUrl: null }} />);
+		fireEvent.click(screen.getByRole('button', { name: 'Delete poll' }));
+		fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Delete poll' }));
+
+		await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/mei_lin'));
 	});
 });

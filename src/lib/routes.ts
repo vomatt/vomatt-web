@@ -91,7 +91,6 @@ export const APP_ROOT_SEGMENTS = [
 	'explore',
 	'following',
 	'login',
-	'my-polls',
 	'notifications',
 	'poll',
 	'settings',

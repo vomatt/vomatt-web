@@ -6,6 +6,7 @@ import { PollCard } from '@/features/polls/components/PollCard';
 import { useComments } from '@/features/polls/hooks/useComments';
 import { useRequireAuth } from '@/features/polls/hooks/useRequireAuth';
 import type { Poll } from '@/features/polls/schema';
+import { profileHref } from '@/lib/routes';
 
 type PollDiscussionProps = {
 	pollId: string;
@@ -31,7 +32,8 @@ export function PollDiscussion({ pollId, commentCount, viewerId, viewer, poll, a
 					viewerId={viewerId}
 					anonymousByDefault={anonymousByDefault}
 					commentCount={thread.total}
-					deletedHref="/my-polls"
+					// Only the owner can delete, and they are the viewer
+					deletedHref={viewer && profileHref(viewer.username)}
 					headingLevel="h1"
 					isPage
 				/>

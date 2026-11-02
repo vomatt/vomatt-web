@@ -37,7 +37,7 @@ The scheduler explores every order of these events, with states deduplicated:
 
 ## Bounds and assumptions
 
-- Requests `/`, `/my-polls` (protected, so it redirects), and `/login` (an auth page, so it redirects signed-in users) in that order. With `REFRESH_CHECK_DEEP=1` a fourth request, `/`, is added. Two instances, at most one clock jump, and at most one 429.
+- Requests `/`, `/account` (protected, so it redirects), and `/login` (an auth page, so it redirects signed-in users) in that order. With `REFRESH_CHECK_DEEP=1` a fourth request, `/`, is added. Two instances, at most one clock jump, and at most one 429.
 - **Assumption:** the clock only jumps when nothing is in flight. Every request and response completes within the 60 s grace window, and access tokens last far longer (15 min) than the grace window, so a token issued in one epoch is never already expiring in that same epoch.
 - **Assumption:** every response reaches the browser, and a 429 or 5xx means the backend did not consume the token.
 - **Not covered:**
@@ -59,7 +59,7 @@ It also runs in `npm test`. A pass prints `refresh-rotation: ok: <N> states, <M>
 
 ## Reading a failure
 
-A violation prints the property and a numbered counterexample in this repo's terms, such as `browser sends request 2 (/my-polls, instance 1) with A0/R0` or `backend refreshes R0 for request 3 … → auth.suspicious_login`. To decide what failed:
+A violation prints the property and a numbered counterexample in this repo's terms, such as `browser sends request 2 (/account, instance 1) with A0/R0` or `backend refreshes R0 for request 3 … → auth.suspicious_login`. To decide what failed:
 
 - **`P1` / `P2` / `P3: …` is a real finding** about the code as written. Replay the steps against `resolveSession`, `applyAuthCookies` and `requestTokenRefresh` to confirm it. Report it with that story. Do not weaken the property, the bounds or the backend model to make it pass, and do not change product code unless the user asks.
 - **`model error: …`** means the harness no longer matches the code. One case is `… is stuck on an await the model does not control`: the proxy gained an await that the scheduler doesn't control (a new `fetch`, `cookies()`, or timer). Another is `mocked call outside a proxy run`. Fix the model so the new await is one of its steps, then rerun.
