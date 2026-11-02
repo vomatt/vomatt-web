@@ -81,6 +81,8 @@ import {
 } from './formSchema';
 
 const HOUR = 3600_000;
+// An option's counter shows once its text is this close to the limit
+const OPTION_COUNTER_WITHIN = 20;
 const END_PRESETS = [
 	{ key: '1h', label: 'pollCreator.preset1h', ms: HOUR },
 	{ key: '24h', label: 'pollCreator.preset24h', ms: 24 * HOUR },
@@ -699,6 +701,11 @@ export function PollCreator({
 																					</Button>
 																				)}
 																			</div>
+																			{(options?.[index]?.text.length ?? 0) > POLL_OPTION_MAX - OPTION_COUNTER_WITHIN && (
+																				<p className="mt-1 text-right text-caption-2 text-muted-foreground tabular-nums">
+																					{options[index].text.length}/{POLL_OPTION_MAX}
+																				</p>
+																			)}
 																		</div>
 																	</Unfold>
 																))}
@@ -991,10 +998,14 @@ export function PollCreator({
 								{t('pollCreator.keepDraftBody')}
 							</AlertDialogDescription>
 						</AlertDialogHeader>
+						{/* Phones have no Esc, so the way back to the form is a button */}
 						<AlertDialogFooter>
-							<AlertDialogCancel onClick={handleDiscard}>
-								{t('pollCreator.discardEdit')}
+							<AlertDialogCancel variant="ghost">
+								{t('pollCreator.keepEditing')}
 							</AlertDialogCancel>
+							<AlertDialogAction variant="outline" onClick={handleDiscard}>
+								{t('pollCreator.discardEdit')}
+							</AlertDialogAction>
 							<AlertDialogAction onClick={handleSaveDraft}>
 								{t('pollCreator.keepDraft')}
 							</AlertDialogAction>
