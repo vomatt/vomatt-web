@@ -162,7 +162,7 @@ function VisitorActions({ profile, follow }: { profile: UserProfile; follow: Fol
 							<Menu.Item
 								disabled={isUnblocking}
 								onClick={profile.isBlocked ? unblock : () => setBlockOpen(true)}
-								className="flex min-h-10 cursor-pointer select-none items-center gap-2.5 rounded-lg px-3 text-caption-1 font-medium text-destructive outline-none data-highlighted:bg-foreground/5"
+								className="flex min-h-11 md:min-h-10 cursor-pointer select-none items-center gap-2.5 rounded-lg px-3 text-caption-1 font-medium text-destructive outline-none data-highlighted:bg-foreground/5"
 							>
 								<Ban aria-hidden className="size-4" />
 								{profile.isBlocked ? t('blocks.unblock') : t('blocks.blockEllipsis')}

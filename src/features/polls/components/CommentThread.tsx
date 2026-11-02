@@ -49,9 +49,14 @@ function textMax(addressee: string | null) {
 	return COMMENT_MAX - (addressee ? `@${addressee} `.length : 0);
 }
 
-// Like and Reply are 32px pills (36px on phones); the ::before extends the hit area to 44px
+// Like and Reply are 32px pills (36px on phones); the ::before extends the hit area to 44px, and
+// on phones they are at least 44px wide
 const pillClassName =
-	"relative inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-caption-3 font-medium text-muted-foreground transition-colors before:absolute before:inset-x-0 before:-inset-y-1 before:content-[''] hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring md:h-8";
+	"relative inline-flex h-9 min-w-11 shrink-0 items-center justify-center gap-1.5 rounded-full px-2.5 md:min-w-0 text-caption-3 font-medium text-muted-foreground transition-colors before:absolute before:inset-x-0 before:-inset-y-1 before:content-[''] hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring md:h-8";
+
+// View, Hide or retry the Replies: 32px tall; the ::before extends the hit area to 44px
+const repliesActionClassName =
+	"relative mt-0.5 inline-flex h-8 items-center px-0.5 text-caption-2 font-medium text-muted-foreground before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-[''] hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring";
 
 /** The signed-in viewer, whose avatar sits beside the composers. */
 type Viewer = { username: string; avatarUrl: string | null };
@@ -479,24 +484,40 @@ function CommentItem({
 	const { t } = useLanguage();
 	const replyList = thread.replies[comment.id];
 	const replyCount = comment.replyCount ?? 0;
+	// The previews the Comment came with; Hide replies folds back to them
+	const [previewCount] = useState(() => replyList?.items.length ?? 0);
+	const [isHidden, setIsHidden] = useState(false);
 	// Replying to a Reply addresses its author; the API files it under this Comment
 	const openComposer = (reply: Comment | null) =>
 		requireAuth(() => onReplyTargetChange({ rootId: comment.id, reply }));
 
+	const loaded = replyList?.items ?? [];
+	const replies = isHidden ? loaded.slice(0, previewCount) : loaded;
+	const viewLabel = (count: number, more: boolean) =>
+		t(more ? (count === 1 ? 'comments.moreReply' : 'comments.moreReplies') : count === 1 ? 'comments.viewReply' : 'comments.viewReplies', { count });
+
 	// One button walks the Replies: view them, retry a failed page, or load the ones after those shown
-	let repliesAction: string | null = null;
-	if (!replyList) {
+	let repliesAction: { label: string; onClick: () => void; expands?: boolean } | null = null;
+	if (isHidden) {
+		repliesAction = {
+			label: viewLabel(Math.max(1, replyCount - replies.length), replies.length > 0),
+			onClick: () => setIsHidden(false),
+			expands: true,
+		};
+	} else if (!replyList) {
 		if (replyCount > 0) {
-			repliesAction = t(replyCount === 1 ? 'comments.viewReply' : 'comments.viewReplies', { count: replyCount });
+			repliesAction = { label: viewLabel(replyCount, false), onClick: () => thread.loadReplies(comment.id), expands: true };
 		}
 	} else if (replyList.status === 'error') {
-		repliesAction = t('comments.retry');
+		repliesAction = { label: t('comments.retry'), onClick: () => thread.loadReplies(comment.id) };
 	} else if (replyList.status === 'ready' && replyList.nextCursor) {
-		const more = Math.max(1, replyCount - replyList.items.length);
-		repliesAction = t(more === 1 ? 'comments.moreReply' : 'comments.moreReplies', { count: more });
+		repliesAction = {
+			label: viewLabel(Math.max(1, replyCount - loaded.length), true),
+			onClick: () => thread.loadReplies(comment.id),
+			expands: true,
+		};
 	}
-
-	const replies = replyList?.items ?? [];
+	const canHide = !isHidden && replyList?.status === 'ready' && loaded.length > previewCount;
 
 	/** The reply a reply's leading `@name` answers: the closest earlier one by that author. */
 	const findAddressee = (from: number, author: string) => {
@@ -521,6 +542,7 @@ function CommentItem({
 				onCancel={() => onReplyTargetChange(null)}
 				onPost={async (text) => {
 					// Show the thread the Reply lands in
+					setIsHidden(false);
 					if (!replyList && replyCount > 0) await thread.loadReplies(comment.id);
 					const ok = await thread.add(text, t('comments.you'), comment.id);
 					if (ok) onReplyTargetChange(null);
@@ -566,19 +588,28 @@ function CommentItem({
 	if (replyList?.status === 'loading') {
 		rows.push({ key: 'loading', node: <Skeleton className="mt-1 h-10 flex-1 rounded-lg" /> });
 	}
-	if (repliesAction) {
+	if (repliesAction || canHide) {
 		rows.push({
 			key: 'replies-action',
 			className: 'items-center',
 			node: (
-				<button
-					type="button"
-					// 32px tall; the ::before extends the hit area to 44px
-					className="relative mt-0.5 inline-flex h-8 items-center px-0.5 text-caption-2 font-medium text-muted-foreground before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-[''] hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring"
-					onClick={() => thread.loadReplies(comment.id)}
-				>
-					{repliesAction}
-				</button>
+				<div className="flex items-center gap-4">
+					{repliesAction && (
+						<button
+							type="button"
+							aria-expanded={repliesAction.expands ? false : undefined}
+							className={repliesActionClassName}
+							onClick={repliesAction.onClick}
+						>
+							{repliesAction.label}
+						</button>
+					)}
+					{canHide && (
+						<button type="button" aria-expanded className={repliesActionClassName} onClick={() => setIsHidden(true)}>
+							{t('comments.hideReplies')}
+						</button>
+					)}
+				</div>
 			),
 		});
 	}
@@ -857,7 +888,7 @@ function CommentBody({
 							<Menu.Trigger
 								ref={moreRef}
 								aria-label={t('comments.more')}
-								className={cn(pillClassName, 'w-9 justify-center px-0 data-popup-open:bg-field data-popup-open:text-foreground md:w-8')}
+								className={cn(pillClassName, 'w-11 px-0 data-popup-open:bg-field data-popup-open:text-foreground md:w-8')}
 							>
 								<Ellipsis className="size-4" fill="currentColor" />
 							</Menu.Trigger>
