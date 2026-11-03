@@ -20,9 +20,11 @@ never calls the API directly, so its CORS list doesn't need the web origin.
 
 ## Deployment blockers
 
-- [x] **Delete `pnpm-lock.yaml` and `pnpm-workspace.yaml`** (or regenerate them). The pnpm lockfile
-      still lists Payload and has no Sanity packages; Vercel prefers it over `package-lock.json`, so
-      the install fails or installs the wrong dependencies.
+- [x] **Regenerate `pnpm-lock.yaml`.** The old one still listed Payload and had no Sanity packages; the
+      current one comes from the Sanity-era dependencies. Keep it as the only lockfile: Vercel picks the
+      package manager from the lockfile, so a `package-lock.json` next to it makes the install ambiguous.
+- [ ] Set `ENABLE_EXPERIMENTAL_COREPACK=1` in Vercel (all environments) so builds use the pnpm version
+      pinned in `package.json` (`packageManager`), not one Vercel guesses from the lockfile.
 - [ ] The deployed API must run current vomatt-api `main` (api-integration-notes E1).
 - [ ] Set `NEXT_PUBLIC_SANITY_STUDIO_URL` to the vomatt-admin Studio so `/sanity` redirects there (Studio CORS is set up in vomatt-admin).
 
@@ -41,7 +43,7 @@ never calls the API directly, so its CORS list doesn't need the web origin.
 
 ## Known and accepted
 
-- `npm run lint` reports 12 errors from the React Compiler rules in files this release didn't
+- `pnpm lint` reports 12 errors from the React Compiler rules in files this release didn't
   touch (LanguageContext, DraftList, PollCreator, hooks/*). They predate the release work.
 - `src/lib/session.ts` is unused.
 - Follow and followers use vomatt-api (#74, #75); the dev-only `/api/v1/users/*` mocks are removed.

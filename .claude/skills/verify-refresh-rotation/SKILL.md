@@ -51,11 +51,11 @@ The scheduler explores every order of these events, with states deduplicated:
 ## Run it
 
 ```bash
-npx jest src/__tests__/verification/refresh-rotation.test.ts                        # default bound, ~10 s
-REFRESH_CHECK_DEEP=1 npx jest src/__tests__/verification/refresh-rotation.test.ts   # 4 requests, ~3 min
+pnpm exec jest src/__tests__/verification/refresh-rotation.test.ts                        # default bound, ~10 s
+REFRESH_CHECK_DEEP=1 pnpm exec jest src/__tests__/verification/refresh-rotation.test.ts   # 4 requests, ~3 min
 ```
 
-It also runs in `npm test`. A pass prints `refresh-rotation: ok: <N> states, <M> end states`. At the default bound that is 2,851 states and 70 end states with the two-step backend; it was 1,959 when the backend was one step and states that differed only in an undelivered response's cookies were wrongly merged. A sharp drop in the count means the model stopped exploring something. Treat it as a modeling error, not a pass.
+It also runs in `pnpm test`. A pass prints `refresh-rotation: ok: <N> states, <M> end states`. At the default bound that is 2,851 states and 70 end states with the two-step backend; it was 1,959 when the backend was one step and states that differed only in an undelivered response's cookies were wrongly merged. A sharp drop in the count means the model stopped exploring something. Treat it as a modeling error, not a pass.
 
 ## Reading a failure
 

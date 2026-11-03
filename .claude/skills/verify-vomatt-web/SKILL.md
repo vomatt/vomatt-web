@@ -11,7 +11,7 @@ Everything goes through one helper, `.claude/skills/verify-vomatt-web/scripts/vv
 - **Web:** `next dev` on `localhost:$VERIFY_WEB_PORT` (default `3102`), run from an APFS clone of the working tree at `/tmp/vomatt-verify/$RUN_ID/web`. Next 16 allows only one `next dev` per project directory, and the developer's own server (usually `:3002`) holds this repo's lock — never kill it.
 - **Browser:** gstack's `browse` CLI with its own daemon (`BROWSE_STATE_FILE=/tmp/vomatt-verify/$RUN_ID/browse.json`), so it never shares tabs or cookies with other browse sessions. `vv b <args>` passes through to it.
 
-Requires Docker running, `../vomatt-api` checked out, `npm install` done in this repo (a pnpm-installed `node_modules` works too: `vv up` then runs `npm ci` in the clone, under a minute), and `~/.claude/skills/gstack/browse/dist/browse`. Sanity content comes from the real project in `.env.local` (read-only, published content).
+Requires Docker running, `../vomatt-api` checked out, `pnpm install` done in this repo (`vv up` runs its own `pnpm install` in the clone from the same store, a few seconds), and `~/.claude/skills/gstack/browse/dist/browse`. Sanity content comes from the real project in `.env.local` (read-only, published content).
 
 ## Launch
 
