@@ -254,12 +254,12 @@ describe('getPolls()', () => {
 });
 
 describe('getUserPolls()', () => {
-	it('reads the user\'s opened polls from the shared cache', async () => {
-		mockPublicFetch.mockResolvedValue(page([oldPoll], 'n'));
+	it('reads the user\'s opened polls as the viewer, so the owner\'s blocks apply', async () => {
+		mockApiClient.mockResolvedValue(page([oldPoll], 'n'));
 		const result = await getUserPolls('mei lin');
 		expect(result.items).toHaveLength(1);
-		expect(mockPublicFetch.mock.calls[0][0]).toBe('/users/mei%20lin/votes?limit=20');
-		expect(mockApiClient).not.toHaveBeenCalled();
+		expect(mockApiClient).toHaveBeenCalledWith('/users/mei%20lin/votes?limit=20', expect.objectContaining({ auth: 'optional' }));
+		expect(mockPublicFetch).not.toHaveBeenCalled();
 	});
 });
 
