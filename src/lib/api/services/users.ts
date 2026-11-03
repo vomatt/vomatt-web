@@ -4,7 +4,7 @@ import { revalidateTag, updateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
-import { type ActionFailure, attempt } from '@/lib/api/action';
+import { type ActionFailure, type ActionResult, attempt } from '@/lib/api/action';
 import { clearAuthTokens } from '@/lib/api/auth';
 import { apiClient, ApiError } from '@/lib/api/client';
 import { PROFILES_TAG } from '@/lib/api/constants';
@@ -88,6 +88,11 @@ export async function updateVisibility(visibility: Record<string, boolean>) {
   // Expire public profiles without re-rendering this page; the switch already shows the change
   revalidateTag(PROFILES_TAG, { expire: 0 });
   return settings;
+}
+
+/** Everything the API stores about the signed-in user, as one document; one export per UTC day (429 after). */
+export async function exportMyData(): Promise<ActionResult<unknown>> {
+  return attempt(() => apiClient<unknown>('/users/me/export'));
 }
 
 /**

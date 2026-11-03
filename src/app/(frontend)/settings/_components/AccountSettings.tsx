@@ -39,7 +39,7 @@ import { useHydrated } from '@/hooks/useHydrated';
 import { htmlLang, SUPPORTED_LANGUAGES } from '@/i18n-config';
 import { apiErrorText } from '@/lib/api/error-text';
 import { signout } from '@/lib/api/services/auth';
-import { deleteMyAccount, editProfile } from '@/lib/api/services/users';
+import { deleteMyAccount, editProfile, exportMyData } from '@/lib/api/services/users';
 import { countText } from '@/lib/count';
 import { profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
@@ -207,6 +207,7 @@ export default function AccountSettings({
 						)}
 						<ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
 					</Link>
+					<DownloadData />
 				</SettingsCard>
 			</Section>
 
@@ -373,6 +374,36 @@ export function useSectionInView(ids: readonly string[]) {
 		});
 	};
 	return [current, select] as const;
+}
+
+function DownloadData() {
+	const { t } = useLanguage();
+	const [isPreparing, setIsPreparing] = useState(false);
+
+	const download = async () => {
+		setIsPreparing(true);
+		const result = await exportMyData();
+		setIsPreparing(false);
+		if (!result.ok) {
+			toast.error(result.status === 429 ? t('account.downloadOncePerDay') : apiErrorText(t, result, 'account.downloadFailed'));
+			return;
+		}
+		const url = URL.createObjectURL(new Blob([JSON.stringify(result.data, null, 2)], { type: 'application/json' }));
+		const link = document.createElement('a');
+		link.href = url;
+		link.download = `vomatt-data-${new Date().toISOString().slice(0, 10)}.json`;
+		link.click();
+		URL.revokeObjectURL(url);
+	};
+
+	return (
+		<div className={cn(rowClassName, 'flex-wrap')}>
+			<RowText title={t('account.downloadTitle')} body={t('account.downloadBody')} />
+			<Button variant="outline" size="md" onClick={download} disabled={isPreparing} aria-busy={isPreparing}>
+				{t('account.downloadCta')}
+			</Button>
+		</div>
+	);
 }
 
 /** Deletion refusals with their own copy; anything else goes through apiErrorText. */

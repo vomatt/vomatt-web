@@ -32,6 +32,7 @@ jest.mock('@/features/passkeys/service', () => ({
 jest.mock('@/lib/api/services/users', () => ({
 	deleteMyAccount: jest.fn(),
 	editProfile: jest.fn(),
+	exportMyData: jest.fn(),
 }));
 const mockGetSessions = jest.fn();
 jest.mock('@/features/sessions/service', () => ({ getSessions: () => mockGetSessions() }));
@@ -153,7 +154,6 @@ describe('AccountSettings', () => {
 		const link = screen.getByRole('link', { name: /Signed-in devices/ });
 		expect(link).toHaveAttribute('href', '/settings/devices');
 		await waitFor(() => expect(link).toHaveTextContent('2 devices'));
-		expect(screen.queryByText('Download your data')).not.toBeInTheDocument();
 	});
 
 	it('counts one device in the singular, and leaves the count out when the devices could not load', async () => {
@@ -212,6 +212,33 @@ describe('AccountSettings', () => {
 		await waitFor(() => expect(toggle).toBeChecked());
 		await waitFor(() =>
 			expect(screen.getByRole('status')).toHaveTextContent('New votes are anonymous by default.')
+		);
+	});
+
+	it('downloads the account’s data as a JSON file', async () => {
+		const { exportMyData } = jest.requireMock('@/lib/api/services/users');
+		exportMyData.mockResolvedValue({ ok: true, data: { profile: { username: 'mei' } } });
+		const createObjectURL = jest.fn(() => 'blob:export');
+		Object.assign(URL, { createObjectURL, revokeObjectURL: jest.fn() });
+		const click = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+
+		fireEvent.click(screen.getByRole('button', { name: 'Download' }));
+
+		await waitFor(() => expect(click).toHaveBeenCalled());
+		expect(click.mock.instances[0]).toHaveAttribute('download', expect.stringMatching(/^vomatt-data-\d{4}-\d{2}-\d{2}\.json$/));
+		click.mockRestore();
+	});
+
+	it('says data can be downloaded once a day when the API refuses a second export', async () => {
+		const { exportMyData } = jest.requireMock('@/lib/api/services/users');
+		exportMyData.mockResolvedValue({ ok: false, status: 429, errorCode: 'common.rate_limited', message: 'rate limited' });
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+
+		fireEvent.click(screen.getByRole('button', { name: 'Download' }));
+
+		await waitFor(() =>
+			expect(toast.error).toHaveBeenCalledWith('You’ve already downloaded your data today. Try again tomorrow.')
 		);
 	});
 
