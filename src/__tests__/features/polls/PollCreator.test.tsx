@@ -98,6 +98,17 @@ describe('PollCreator', () => {
 		expect(screen.getByText('39/200')).toBeInTheDocument();
 	});
 
+	it('counts an option against the 100 limit once it nears it', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		const option = screen.getByLabelText('Option 1');
+		expect(option).toHaveAttribute('maxLength', '100');
+		fireEvent.change(option, { target: { value: 'Saturday' } });
+		expect(screen.queryByText('8/100')).not.toBeInTheDocument();
+		fireEvent.change(option, { target: { value: 'x'.repeat(85) } });
+		expect(screen.getByText('85/100')).toBeInTheDocument();
+	});
+
 	it('keeps context folded away until asked for', async () => {
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();
@@ -667,6 +678,18 @@ describe('PollCreator', () => {
 		expect(await screen.findByText('Keep this poll as a draft?')).toBeInTheDocument();
 		fireEvent.click(screen.getByRole('button', { name: 'Keep draft' }));
 		expect(listDrafts()[0].values.title).toBe('Half-written');
+	});
+
+	it('goes back to the form from the draft question, with the work kept and nothing saved', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		fireEvent.change(screen.getByLabelText(QUESTION), { target: { value: 'Half-written' } });
+		fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+
+		fireEvent.click(await screen.findByRole('button', { name: 'Keep editing' }));
+		await waitFor(() => expect(screen.queryByText('Keep this poll as a draft?')).not.toBeInTheDocument());
+		expect(screen.getByLabelText(QUESTION)).toHaveValue('Half-written');
+		expect(listDrafts()).toHaveLength(0);
 	});
 
 	it('resumes a draft saved before Audience existed and deletes it once published', async () => {
