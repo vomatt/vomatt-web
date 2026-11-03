@@ -28,6 +28,7 @@ import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { BlockUserDialog } from '@/features/blocks/BlockUserDialog';
 import { ProfileAvatar, ProfileName } from '@/features/profiles/UserChip';
 import { useHydrated } from '@/hooks/useHydrated';
+import { apiErrorText } from '@/lib/api/error-text';
 import { commentHash, profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
@@ -221,9 +222,9 @@ export function CommentThread({ thread, pollId, viewerId, viewer, requireAuth, r
 				className="gap-3"
 				requireAuth={requireAuth}
 				onPost={async (text) => {
-					const ok = await thread.add(text, t('comments.you'));
-					if (!ok) toast.error(t('comments.postFailed'));
-					return ok;
+					const result = await thread.add(text, t('comments.you'));
+					if (!result.ok) toast.error(apiErrorText(t, result, 'comments.postFailed'));
+					return result.ok;
 				}}
 			/>
 
@@ -565,10 +566,10 @@ function CommentItem({
 					// Show the thread the Reply lands in
 					setIsHidden(false);
 					if (!replyList && replyCount > 0) await thread.loadReplies(comment.id);
-					const ok = await thread.add(text, t('comments.you'), comment.id);
-					if (ok) onReplyTargetChange(null);
-					else toast.error(t('comments.postFailed'));
-					return ok;
+					const result = await thread.add(text, t('comments.you'), comment.id);
+					if (result.ok) onReplyTargetChange(null);
+					else toast.error(apiErrorText(t, result, 'comments.postFailed'));
+					return result.ok;
 				}}
 			/>
 		),
@@ -768,10 +769,10 @@ function CommentBody({
 		}
 		const next = addressee ? `@${addressee} ${body}` : body;
 		isSaving.current = true;
-		const saved = await thread.edit(comment.id, next);
+		const result = await thread.edit(comment.id, next);
 		isSaving.current = false;
-		if (saved) closeEdit();
-		else toast.error(t('comments.editFailed'));
+		if (result.ok) closeEdit();
+		else toast.error(apiErrorText(t, result, 'comments.editFailed'));
 	};
 
 	const closeEdit = () => {
@@ -783,12 +784,12 @@ function CommentBody({
 		const threadEl = moreRef.current?.closest<HTMLElement>('[data-comment-thread]');
 		isDeleting.current = true;
 		setConfirmingDelete(false);
-		const ok = await thread.remove(comment);
+		const result = await thread.remove(comment);
 		isDeleting.current = false;
-		if (ok) threadEl?.focus();
+		if (result.ok) threadEl?.focus();
 		else {
 			moreRef.current?.focus();
-			toast.error(t('comments.deleteFailed'));
+			toast.error(apiErrorText(t, result, 'comments.deleteFailed'));
 		}
 	};
 
