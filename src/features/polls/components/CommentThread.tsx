@@ -487,6 +487,27 @@ function CommentItem({
 	// The previews the Comment came with; Hide replies folds back to them
 	const [previewCount] = useState(() => replyList?.items.length ?? 0);
 	const [isHidden, setIsHidden] = useState(false);
+	// View and Hide replace each other, and the row leaves while a page loads; a focused one that goes
+	// hands focus to the row's first button once it is back, unless focus has moved on meanwhile
+	const repliesRowRef = useRef<HTMLDivElement>(null);
+	const pressedRef = useRef<HTMLButtonElement | null>(null);
+	const pressRepliesAction = (event: React.MouseEvent<HTMLButtonElement>, action: () => void) => {
+		pressedRef.current = event.currentTarget === document.activeElement ? event.currentTarget : null;
+		action();
+	};
+	useEffect(() => {
+		const pressed = pressedRef.current;
+		if (!pressed || pressed.isConnected) return;
+		const focused = document.activeElement;
+		if (focused && focused !== document.body) {
+			pressedRef.current = null;
+			return;
+		}
+		const next = repliesRowRef.current?.querySelector('button');
+		if (!next) return;
+		pressedRef.current = null;
+		next.focus();
+	});
 	// Replying to a Reply addresses its author; the API files it under this Comment
 	const openComposer = (reply: Comment | null) =>
 		requireAuth(() => onReplyTargetChange({ rootId: comment.id, reply }));
@@ -593,19 +614,24 @@ function CommentItem({
 			key: 'replies-action',
 			className: 'items-center',
 			node: (
-				<div className="flex items-center gap-4">
+				<div ref={repliesRowRef} className="flex items-center gap-4">
 					{repliesAction && (
 						<button
 							type="button"
 							aria-expanded={repliesAction.expands ? false : undefined}
 							className={repliesActionClassName}
-							onClick={repliesAction.onClick}
+							onClick={(event) => pressRepliesAction(event, repliesAction.onClick)}
 						>
 							{repliesAction.label}
 						</button>
 					)}
 					{canHide && (
-						<button type="button" aria-expanded className={repliesActionClassName} onClick={() => setIsHidden(true)}>
+						<button
+							type="button"
+							aria-expanded
+							className={repliesActionClassName}
+							onClick={(event) => pressRepliesAction(event, () => setIsHidden(true))}
+						>
 							{t('comments.hideReplies')}
 						</button>
 					)}

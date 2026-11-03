@@ -323,6 +323,19 @@ describe('CommentThread', () => {
 			expect(service.getReplies).toHaveBeenCalledTimes(1);
 		});
 
+		it('keeps keyboard focus on the replies buttons as View and Hide swap', async () => {
+			service.getReplies.mockResolvedValue({ ok: true, data: { items: [third], nextCursor: null } });
+			render(<Harness />);
+
+			const more = await screen.findByRole('button', { name: 'View 1 more reply' });
+			more.focus();
+			fireEvent.click(more);
+			await waitFor(() => expect(screen.getByRole('button', { name: 'Hide replies' })).toHaveFocus());
+
+			fireEvent.click(screen.getByRole('button', { name: 'Hide replies' }));
+			await waitFor(() => expect(screen.getByRole('button', { name: 'View 1 more reply' })).toHaveFocus());
+		});
+
 		it('posts a reply under the previews, then puts it after the older replies loaded later', async () => {
 			const posted = { ...reply, id: 'r9', userId: 'me', author: 'klaus', text: 'Newest', createdAt: '2026-10-06T00:00:00Z' };
 			service.postComment.mockResolvedValue({ ok: true, data: posted });
