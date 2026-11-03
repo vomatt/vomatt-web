@@ -180,7 +180,8 @@ function RowShell({
 		<li
 			ref={ref}
 			className={cn(
-				'relative isolate flex items-center gap-3.5 rounded-xl border px-4 py-3.5 transition-colors',
+				// The action sits beside the text from sm, under it on phones so a long line keeps the width
+				'relative isolate grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3.5 gap-y-2.5 rounded-xl border px-4 py-3.5 transition-colors sm:grid-cols-[auto_minmax(0,1fr)_auto]',
 				unread
 					? tide
 						? 'border-tide-line bg-tide-tint'
@@ -202,8 +203,10 @@ function RowShell({
 				/>
 			)}
 			<span className={cn(raised, 'shrink-0')}>{icon}</span>
-			<span className="flex min-w-0 flex-1 flex-col gap-0.5 wrap-anywhere">
-				<span className={cn('text-body-3 leading-snug', muted && 'text-muted-foreground')}>
+			{/* break-words, not wrap-anywhere: a handle or word moves to the next line whole */}
+			<span className="flex min-w-0 flex-col gap-0.5 break-words">
+				{/* Three lines at most; the padding keeps its links' focus outlines clear of the clip */}
+				<span className={cn('-mx-1 -mt-1 line-clamp-3 px-1 pt-1 text-body-3 leading-snug', muted && 'text-muted-foreground')}>
 					{line}
 					{/* The word joiner keeps the dot on the line of the last word instead of wrapping alone to the left edge */}
 					{unread && (
@@ -222,7 +225,7 @@ function RowShell({
 					))}
 				</span>
 			</span>
-			{action && <span className={cn(raised, 'flex shrink-0 items-center')}>{action}</span>}
+			{action && <span className={cn(raised, 'col-start-2 flex items-center sm:col-start-3 sm:row-start-1')}>{action}</span>}
 		</li>
 	);
 }
