@@ -301,6 +301,41 @@ describe('CommentThread', () => {
 			expect(screen.queryByRole('button', { name: /more repl/ })).not.toBeInTheDocument();
 		});
 
+		it('hides the replies past the previews, and shows them again without refetching', async () => {
+			service.getReplies.mockResolvedValue({ ok: true, data: { items: [third], nextCursor: null } });
+			render(<Harness />);
+
+			const more = await screen.findByRole('button', { name: 'View 1 more reply' });
+			expect(more).toHaveAttribute('aria-expanded', 'false');
+			fireEvent.click(more);
+			await screen.findByText('Third reply');
+
+			const hide = screen.getByRole('button', { name: 'Hide replies' });
+			expect(hide).toHaveAttribute('aria-expanded', 'true');
+			fireEvent.click(hide);
+			await waitFor(() => expect(screen.queryByText('Third reply')).not.toBeInTheDocument());
+			expect(screen.getByText('Second reply')).toBeInTheDocument();
+
+			const again = screen.getByRole('button', { name: 'View 1 more reply' });
+			expect(again).toHaveAttribute('aria-expanded', 'false');
+			fireEvent.click(again);
+			expect(await screen.findByText('Third reply')).toBeInTheDocument();
+			expect(service.getReplies).toHaveBeenCalledTimes(1);
+		});
+
+		it('keeps keyboard focus on the replies buttons as View and Hide swap', async () => {
+			service.getReplies.mockResolvedValue({ ok: true, data: { items: [third], nextCursor: null } });
+			render(<Harness />);
+
+			const more = await screen.findByRole('button', { name: 'View 1 more reply' });
+			more.focus();
+			fireEvent.click(more);
+			await waitFor(() => expect(screen.getByRole('button', { name: 'Hide replies' })).toHaveFocus());
+
+			fireEvent.click(screen.getByRole('button', { name: 'Hide replies' }));
+			await waitFor(() => expect(screen.getByRole('button', { name: 'View 1 more reply' })).toHaveFocus());
+		});
+
 		it('posts a reply under the previews, then puts it after the older replies loaded later', async () => {
 			const posted = { ...reply, id: 'r9', userId: 'me', author: 'klaus', text: 'Newest', createdAt: '2026-10-06T00:00:00Z' };
 			service.postComment.mockResolvedValue({ ok: true, data: posted });

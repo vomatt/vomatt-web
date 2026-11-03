@@ -586,6 +586,7 @@
 		"viewReplies": "View {count} replies",
 		"moreReply": "View 1 more reply",
 		"moreReplies": "View {count} more replies",
+		"hideReplies": "Hide replies",
 		"deleted": "This comment was deleted.",
 		"replyingTo": "Replying to",
 		"cancelReply": "Cancel reply",
