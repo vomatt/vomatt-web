@@ -423,7 +423,7 @@ function Composer({
 					}}
 					placeholder={placeholder}
 					ref={fieldRef}
-					className="relative min-h-[60px] resize-none"
+					className="relative max-h-48 min-h-[60px] resize-none"
 				/>
 				<div className="flex items-center justify-end gap-1.5">
 					{text.length > max - COUNTER_WITHIN && (
@@ -787,7 +787,7 @@ function CommentBody({
 						aria-label={t('comments.edit')}
 						maxLength={textMax(addressee)}
 						rows={3}
-						className="resize-none"
+						className="max-h-48 resize-none"
 						ref={editRef}
 					/>
 					<div className="flex items-center gap-1.5">

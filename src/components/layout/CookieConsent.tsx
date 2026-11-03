@@ -47,7 +47,7 @@ export function CookieConsent({ integrations }: { integrations?: Integrations | 
 	return (
 		<section
 			aria-label={t('cookieConsent.label')}
-			className="fixed inset-x-3 bottom-[calc(64px+env(safe-area-inset-bottom)+0.75rem)] z-50 rounded-lg border border-border bg-card p-4 shadow-lg md:inset-x-auto md:right-4 md:bottom-4 md:max-w-sm"
+			className="fixed inset-x-3 bottom-[calc(64px+env(safe-area-inset-bottom)+0.75rem)] z-50 rounded-lg border border-border bg-card p-4 shadow-lg md:inset-x-auto md:right-[max(--spacing(4),env(safe-area-inset-right))] md:bottom-[max(--spacing(4),env(safe-area-inset-bottom))] md:max-w-sm"
 		>
 			<p className="text-caption-1">
 				{t('cookieConsent.message')}{' '}

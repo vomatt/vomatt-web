@@ -1,6 +1,7 @@
 import '@/styles/global.css';
 
 import type { SanityImageSource } from '@sanity/image-url';
+import type { Viewport } from 'next';
 import { Geist } from 'next/font/google';
 import { headers } from 'next/headers';
 import { cache, ReactNode, Suspense } from 'react';
@@ -27,6 +28,9 @@ import { siteSharingQuery } from '@/sanity/lib/queries';
 // (Vercel's old default) on a cold start. A limit below that kills the action
 // after the API has already used the sign-in code or sent a new one.
 export const maxDuration = 60;
+
+// Without cover, iOS reports env(safe-area-inset-*) as 0 and the TabBar sits on the home indicator
+export const viewport: Viewport = { viewportFit: 'cover' };
 
 const geistSans = Geist({ subsets: ['latin'], variable: '--font-geist-sans' });
 
