@@ -22,15 +22,6 @@ const config: Config = {
 	],
 };
 
-// @sanity/image-url and groq ship ESM only, so let next/jest transform it
-const jestConfig = async () => {
-	const resolved = await createJestConfig(config)();
-	return {
-		...resolved,
-		transformIgnorePatterns: (resolved.transformIgnorePatterns ?? []).map(
-			(pattern) => pattern.replace('(?!(geist|', '(?!(@sanity/image-url|groq|geist|')
-		),
-	};
-};
-
-export default jestConfig;
+// ESM-only packages (@sanity/image-url, groq) are transformed because next.config.ts lists them
+// in transpilePackages, which next/jest reads
+export default createJestConfig(config);

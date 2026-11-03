@@ -5,19 +5,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-npm run dev           # Start dev server (Turbopack, port 3002)
-npm run build         # Production build
-npm run lint          # ESLint (next/core-web-vitals + simple-import-sort)
-npm run test          # Jest (jsdom)
-npm run test:watch    # Jest watch mode
-npm run test:coverage # Jest with coverage
-npx tsc --noEmit      # Type-check without emitting
-npm run generate:openapi  # Regenerate OpenAPI schema
+pnpm dev              # Start dev server (Turbopack, port 3002)
+pnpm build            # Production build
+pnpm lint             # ESLint (next/core-web-vitals + simple-import-sort)
+pnpm test             # Jest (jsdom)
+pnpm test:watch       # Jest watch mode
+pnpm test:coverage    # Jest with coverage
+pnpm exec tsc --noEmit  # Type-check without emitting
+pnpm generate:openapi # Regenerate OpenAPI schema
 ```
 
 Tests live in `src/__tests__/` and match `**/*.test.{ts,tsx}`. Run a single file:
 ```bash
-npx jest src/__tests__/components/PollCard.test.tsx
+pnpm exec jest src/__tests__/components/PollCard.test.tsx
 ```
 
 ## Architecture
