@@ -83,7 +83,8 @@ export default function ProfileHeader({
 				key={list}
 				type="button"
 				onClick={() => onOpenList(list)}
-				className={detailLink}
+				// The 18px line keeps its look; the hit area grows to 46px tall, meeting its neighbor's in the gap
+				className={cn(detailLink, "relative before:absolute before:-inset-x-2 before:-inset-y-3.5 before:content-['']")}
 			>
 				{label}
 			</button>
