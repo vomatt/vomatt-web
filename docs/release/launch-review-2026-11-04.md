@@ -6,9 +6,9 @@ A second pre-launch pass over vomatt-web and vomatt-about: flows and logic, risk
 
 ### vomatt-web (branch `claude/vomatt-web-review-launch-5c4044`)
 
-- **An API hiccup no longer crashes every page.** A 5xx, 429 or network failure on `/users/me` threw from the root layout, so signed-in users got the unstyled crash page. The layout now shows the existing SessionRetry screen. "Try again" on the error pages calls `retry` (refetches) instead of `reset` (re-renders the same failure). The root crash page is styled, shows English and Chinese, and logs the error.
+- **An API hiccup no longer crashes every page.** A 5xx, 429 or network failure on `/users/me` threw from the root layout, so signed-in users got the unstyled crash page. The layout now shows the existing SessionRetry screen in place of the whole page (nav included) until the API answers. Signed-out visitors don't hit this path. Covered by tests; not yet seen in the running app. "Try again" on the error pages calls `retry` (refetches) instead of `reset` (re-renders the same failure). The root crash page is styled, shows English and Chinese, and logs the error.
 - **Comments survive a dropped request.** Every comment call goes through `settle()`. A failed post keeps the typed text and re-enables Post; a failed first load shows retry instead of a skeleton forever. Failures show the API's own message ("the comment you replied to was deleted", rate limits). Deleting an already-deleted comment just removes it.
-- **Missing polls.** A guest opening a deleted or mistyped link saw "Log in to open this poll", then "Poll not found" after logging in. Now they see "Poll not found" (tab title "Not found"). Invite-only polls still show the invitation. The status is still 200 because the root layout streams before the page renders.
+- **Missing polls.** A guest opening a deleted or mistyped link saw "Log in to open this poll", then "Poll not found" after logging in. Now they see "Poll not found" (tab title "Not found"). This was a judgment call; revert c6d313f if the login prompt was intended. Invite-only polls still show the invitation. The status is still 200 because the root layout streams before the page renders.
 - **Blocks on profile poll lists.** The list didn't send the viewer's token, so a blocked viewer saw the owner's polls and got a 404 opening them.
 - **Unlisted and invite-only polls are `noindex`.**
 - **Phones:**
@@ -17,7 +17,7 @@ A second pre-launch pass over vomatt-web and vomatt-about: flows and logic, risk
   - Explore's sticky filter bar went from 224px to 120px tall.
   - Notification rows went from 329px to about 148px tall, and handles no longer break.
   - Follower and following counts, and the toast close button, have 44px targets.
-  - Guests now find Terms, Privacy and Cookies under the home login prompt. The sidebar is unchanged, since that removal (0382fc2) looked deliberate.
+  - Guests now find Terms, Privacy and Cookies under the home login prompt. The sidebar is unchanged, since that removal (0382fc2) looked deliberate. Revert 567ddda if guests shouldn't see them on home either.
 - **Accessibility.** Policy links were announced as "Go to https://about.vomatt.com/…" instead of their text (WCAG 2.5.3).
 - **Docs.** [docs/legal/launch-pages-draft.md](../legal/launch-pages-draft.md) drafts the missing pages (Community Guidelines, Reporting and appeals, Your data) and exact edits to Privacy, Cookies and the sign-up message, in English and 繁體中文.
 
@@ -28,7 +28,7 @@ Checks: 1325 tests pass, lint has 0 errors, `next build` succeeds, and `tsc` sho
 - **A real homepage at `/`** replaces the redirect to `/about`. It tells one poll's story in three scroll-driven steps (ask, vote sealed, result), then why sealed matters, features, use cases, a privacy promise and a closing call to action.
   - It uses CSS and `react-intersection-observer` only, with no new dependencies: 3.9KB of gzipped JS.
   - With reduced motion or JS turned off, it shows each step's final state.
-  - Nothing scrolls sideways at 320 to 1440.
+  - Nothing scrolls sideways: I measured 375; the builder measured 320, 768 and 1440 and the reduced-motion and no-JS states.
 - **CMS links** are named by their visible text.
 - **Footer links** have 44px targets.
 - **`robots.txt` and `sitemap.xml`** now exist.
@@ -37,7 +37,7 @@ Checks: 1325 tests pass, lint has 0 errors, `next build` succeeds, and `tsc` sho
 
 ### Decisions
 
-1. **Download your data.** The published Privacy Policy (§6) and Terms (§9) say people can download their data in Account settings. The API serves it (`GET /api/users/me/export`, once a day), but f6a913f removed the button. It is rebuilt and tested on branch `claude/restore-data-export` (12c9075). Either merge it, or change the policy text as in `launch-pages-draft.md` §4.1 and §4.6. PDPA and GDPR give people a right to a copy either way; email works if the button stays out.
+1. **Download your data.** The published Privacy Policy (§6) and Terms (§9) say people can download their data in Account settings. The API serves it (`GET /api/users/me/export`, once a day), but f6a913f removed the button. It is rebuilt and tested on branch `claude/data-export-button`, stacked on the launch branch (ignore the stale `claude/restore-data-export`). Launch blocker until decided. Either merge it, or change the policy text as in `launch-pages-draft.md` §4.1 and §4.6. PDPA and GDPR give people a right to a copy either way; email works if the button stays out.
 2. **Legal pages.** Review the drafts with a lawyer, fill the `[OWNER]` slots and publish them in Studio:
    - Community Guidelines, Reporting and appeals, Your data.
    - Privacy and Cookies edits: name the email provider, Redis host and regions; add the `theme` storage key; correct the anonymous-ballot timing (a daily job, not instant).
@@ -45,7 +45,7 @@ Checks: 1325 tests pass, lint has 0 errors, `next build` succeeds, and `tsc` sho
    - Decide whether the Chinese versions get their own pages.
 
    Then add the new pages to the about site's footer (`SiteChrome.tsx`).
-3. **Homepage copy.** Check the claims against the product before launch, for example "everyone who voted gets a notification". The page is code, not Sanity, so editors can't change it in Studio.
+3. **Homepage copy.** Check the claims against the product before launch, for example "everyone who voted gets a notification". The page is code, not Sanity, so editors can't change it in Studio, and the `pHome` document in Sanity is no longer read.
 4. **Resources page.** The empty 2023 `resources` page will appear in the about site's new sitemap if it is still published. Unpublish it.
 
 ### Production settings (from the API code; production env not visible)
@@ -77,6 +77,9 @@ About site:
 - The Privacy page is 8000px tall on a phone, with no table of contents.
 
 ## Checked and fine
+
+From the audit agents' code reading, spot-checked where noted in the decision log.
+
 
 - Auth cookies are httpOnly, Secure in production, SameSite=Lax.
 - Server Actions keep Next's Origin check.
