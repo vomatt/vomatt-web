@@ -53,6 +53,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 		description,
 		openGraph: { title: poll.title, description, type: 'article' },
 		twitter: { card: 'summary_large_image', title: poll.title, description },
+		// Unlisted and invite-only polls are meant only for people with the link
+		...(poll.audience && poll.audience !== 'public' && { robots: { index: false } }),
 	};
 }
 
