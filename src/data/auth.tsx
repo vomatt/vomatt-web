@@ -35,24 +35,34 @@ export const getUserSession = cache(async (): Promise<Session | null> => {
 	return null;
 });
 
-/** The signed-in user's profile; `gone` when the token is live but its account was deleted elsewhere. */
-const loadMyProfile = cache(async (): Promise<{ profile: MyProfile | null; gone?: true; revoked?: true }> => {
-	const session = await getUserSession();
-	if (!session) return { profile: null };
+/**
+ * The signed-in user's profile; `gone` when the token is live but its account was deleted elsewhere.
+ * `error` when the API couldn't answer (down, rate limited): the visitor may well be signed in.
+ */
+export const loadMyProfile = cache(
+	async (): Promise<{ profile: MyProfile | null; gone?: true; revoked?: true; error?: unknown }> => {
+		const session = await getUserSession();
+		if (!session) return { profile: null };
 
-	try {
-		return { profile: await fetchMyProfile() };
-	} catch (error) {
-		if (error instanceof AuthError) {
-			return error.errorCode === 'auth.session_revoked' ? { profile: null, revoked: true } : { profile: null };
+		try {
+			return { profile: await fetchMyProfile() };
+		} catch (error) {
+			if (error instanceof AuthError) {
+				return error.errorCode === 'auth.session_revoked' ? { profile: null, revoked: true } : { profile: null };
+			}
+			// Signed out, not a broken page
+			if (error instanceof ApiError && error.data?.errorCode === 'user.not_found') return { profile: null, gone: true };
+			return { profile: null, error };
 		}
-		// Signed out, not a broken page
-		if (error instanceof ApiError && error.data?.errorCode === 'user.not_found') return { profile: null, gone: true };
-		throw error;
 	}
-});
+);
 
-export const getMyProfile = async (): Promise<MyProfile | null> => (await loadMyProfile()).profile;
+/** Throws when the API couldn't answer: treating that as signed out would send a signed-in user to log in. */
+export const getMyProfile = async (): Promise<MyProfile | null> => {
+	const { profile, error } = await loadMyProfile();
+	if (error) throw error;
+	return profile;
+};
 
 /**
  * The login link for this visitor. A token the API refused (revoked, or its account deleted) still verifies
