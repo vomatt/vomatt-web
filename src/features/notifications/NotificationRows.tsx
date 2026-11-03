@@ -202,7 +202,7 @@ function RowShell({
 				/>
 			)}
 			<span className={cn(raised, 'shrink-0')}>{icon}</span>
-			<span className="flex min-w-0 flex-1 flex-col gap-0.5">
+			<span className="flex min-w-0 flex-1 flex-col gap-0.5 wrap-anywhere">
 				<span className={cn('text-body-3 leading-snug', muted && 'text-muted-foreground')}>
 					{line}
 					{/* The word joiner keeps the dot on the line of the last word instead of wrapping alone to the left edge */}

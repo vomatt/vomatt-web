@@ -143,11 +143,11 @@ export function ExploreView({
 						</div>
 					</div>
 					{/* Hidden, not removed, for Ended Polls: the row keeps its height when it wraps */}
-					<div className={cn('flex items-center gap-4', status !== 'open' && 'invisible')}>
+					<div className={cn('flex min-w-0 items-center gap-4', status !== 'open' && 'invisible')}>
 						<span id={sortLabelId} className="text-caption-1 text-muted-foreground">
 							{t('explore.sort')}
 						</span>
-						<div className="flex gap-2" role="group" aria-labelledby={sortLabelId}>
+						<div className="flex flex-wrap gap-2" role="group" aria-labelledby={sortLabelId}>
 							<Pill active={sort === 'newest'} onClick={() => setSort('newest')}>{t('explore.sortNewest')}</Pill>
 							<Pill active={sort === 'closing'} onClick={() => setSort('closing')}>{t('explore.sortEnding')}</Pill>
 							<Pill active={sort === 'top'} onClick={() => setSort('top')}>{t('explore.sortTop')}</Pill>
