@@ -224,6 +224,13 @@ describe('PollCard state A · Open, no Ballot', () => {
 		fireEvent.click(screen.getByLabelText('Friday'));
 		expect(screen.getByRole('button', { name: 'Vote' })).toBeEnabled();
 	});
+
+	it('holds Vote above the TabBar on phones once an option is picked, and not before', () => {
+		render(<PollCard poll={openPoll} viewerId="user-voter" />);
+		expect(screen.getByRole('button', { name: 'Vote' }).closest('.follow-tabbar')).toBeNull();
+		fireEvent.click(screen.getByLabelText('Friday'));
+		expect(screen.getByRole('button', { name: 'Vote' }).closest('.follow-tabbar')).not.toBeNull();
+	});
 });
 
 describe('PollCard state B · Open, has Ballot', () => {
@@ -364,6 +371,7 @@ describe('PollCard state B · Open, has Ballot', () => {
 		fireEvent.click(screen.getByLabelText(/Friday/));
 		expect(screen.getByText('Replaces your vote for Sunday. Still sealed until the poll ends.')).toBeInTheDocument();
 		expect(screen.getByRole('button', { name: 'Update vote' })).toBeEnabled();
+		expect(screen.getByRole('button', { name: 'Update vote' }).closest('.follow-tabbar')).not.toBeNull();
 
 		fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
 		expect(screen.getByLabelText(/Sunday/)).toBeChecked();
