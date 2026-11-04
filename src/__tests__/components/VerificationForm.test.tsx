@@ -117,4 +117,21 @@ describe('VerificationForm', () => {
 			jest.useRealTimers();
 		}
 	});
+
+	it('counts down again when a resend is still on cooldown, without calling the code wrong', async () => {
+		jest.useFakeTimers();
+		try {
+			renderForm({ resendIn: 1, onResend: jest.fn().mockResolvedValue({ status: 'COOLDOWN', seconds: 42 }) });
+			act(() => {
+				jest.advanceTimersByTime(1000);
+			});
+			fireEvent.click(screen.getByText('verificationCode.resendVerificationCode'));
+
+			expect(await screen.findByText('verificationCode.resendIn')).toBeInTheDocument();
+			expect(screen.queryByText('verificationCode.codeSent')).not.toBeInTheDocument();
+			expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+		} finally {
+			jest.useRealTimers();
+		}
+	});
 });
