@@ -4,9 +4,9 @@ import { usePathname, useRouter } from 'next/navigation';
 import { startTransition, useEffect, useState, useSyncExternalStore } from 'react';
 
 import BrandLogo from '@/components/BrandLogo';
+import { PULSING_WORDMARK } from '@/components/BrandPulse';
 import { EmptyCard } from '@/components/EmptyCard';
 import { Button } from '@/components/ui/Button';
-import { Skeleton } from '@/components/ui/Skeleton';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { SESSION_PROBE_HEADER, SESSION_UNCONFIRMED } from '@/data/constants';
 
@@ -66,7 +66,7 @@ export function SessionRetry() {
 	}, [tries, gaveUp, router]);
 
 	return (
-		<div className="flex min-h-svh flex-col items-center justify-center gap-5 px-4">
+		<div className="flex min-h-svh flex-col items-center justify-center px-4">
 			{gaveUp ? (
 				<EmptyCard
 					className="w-full max-w-feed"
@@ -76,10 +76,8 @@ export function SessionRetry() {
 					action={<Button onClick={() => setTries(0)}>{t('common.tryAgain')}</Button>}
 				/>
 			) : (
-				<>
-					<BrandLogo className="w-28 text-foreground" />
-					<Skeleton className="h-1 w-16 rounded-full" />
-				</>
+				// No 300ms delay like the splash: this screen stays at least 1.5s, so it can't flash
+				<BrandLogo className={`${PULSING_WORDMARK} text-foreground`} />
 			)}
 			<p role="status" className="sr-only">
 				{hydrated && !gaveUp ? t('common.signingIn') : null}

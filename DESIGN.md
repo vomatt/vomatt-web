@@ -111,7 +111,7 @@ If a building block doesn't fit, change its variant or add one. Don't override i
 
 ## Motion
 
-Motion is feedback, not decoration: ballot selection (`BallotMotion`), results counting up, the auth error sliding in, skeleton shimmer, and the wordmark pulse (`BrandPulse`) on the first load of the app only (navigations keep the current page, then the page's skeleton; in-page loads keep `Spinner`): opacity .25 to 1 and back over 1.2s, 110ms apart letter by letter, ink only, shown after 300ms, a static word at 60% under reduced motion. `MotionProvider` sets `reducedMotion="user"`; CSS animations need their own `prefers-reduced-motion` fallback. No other pulsing, no confetti, no backdrop blur over scrolling content (a modal's scrim, which stops the page, may blur it, and so may the poll creator's header and footer).
+Motion is feedback, not decoration: ballot selection (`BallotMotion`), results counting up, the auth error sliding in, skeleton shimmer, and the wordmark pulse (`BrandPulse`, and `SessionRetry` while the API wakes up) on the first load of the app only (navigations keep the current page, then the page's skeleton; in-page loads keep `Spinner`): opacity .25 to 1 and back over 1.2s, 110ms apart letter by letter, ink only, shown after 300ms (`SessionRetry` shows it at once, since it stays at least 1.5s), a static word at 60% under reduced motion. `MotionProvider` sets `reducedMotion="user"`; CSS animations need their own `prefers-reduced-motion` fallback. No other pulsing, no confetti, no backdrop blur over scrolling content (a modal's scrim, which stops the page, may blur it, and so may the poll creator's header and footer).
 
 ## Don'ts
 
