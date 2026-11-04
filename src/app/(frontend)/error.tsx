@@ -9,10 +9,10 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function Error({
 	error,
-	reset,
+	retry,
 }: {
-	error: Error & { digest?: string };
-	reset: () => void;
+	error: unknown;
+	retry: () => void;
 }) {
 	const { t } = useLanguage();
 
@@ -28,7 +28,8 @@ export default function Error({
 				headingLevel={1}
 				title={t('common.error')}
 				body={t('common.errorBody')}
-				action={<Button onClick={reset}>{t('common.tryAgain')}</Button>}
+				// retry refetches the page; reset would only re-render the same failure
+				action={<Button onClick={() => retry()}>{t('common.tryAgain')}</Button>}
 			/>
 		</PageShell>
 	);

@@ -1,13 +1,11 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import { cache, Suspense } from 'react';
 
 import { BackLink } from '@/components/BackLink';
-import { EmptyCard } from '@/components/EmptyCard';
 import { PageShell } from '@/components/layout/PageShell';
 import { LoginPrompt } from '@/components/LoginPrompt';
 import { T } from '@/components/T';
-import { buttonVariants } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { getMyProfile, getUserSession } from '@/data/auth';
 import { MarkNotificationRead } from '@/features/notifications/MarkNotificationRead';
@@ -26,18 +24,25 @@ import { PollDiscussion } from './PollDiscussion';
 
 type Lookup =
 	| { poll: Poll }
-	| { poll: null; reason: 'not-found' | 'session-rejected' };
+	| { poll: null; reason: 'session-rejected' }
+	| { poll: null; reason: 'invite-only'; creator: { username: string; avatarUrl: string | null } };
 
 // Metadata and the page share one lookup per request
 const lookupPoll = cache(async (id: string): Promise<Lookup> => {
+	let poll: Poll | null;
 	try {
-		const poll = await getPoll(id);
-		return poll ? { poll } : { poll: null, reason: 'not-found' };
+		poll = await getPoll(id);
 	} catch (error) {
 		// Polls are public; a 401 means the API refused this viewer's token
 		if (error instanceof AuthError) return { poll: null, reason: 'session-rejected' };
 		throw error;
 	}
+	if (poll) return { poll };
+	// A 404 may be an Invite-only Poll this viewer can't open yet (e.g. from an
+	// invitation email); the creator lookup 404s for every other Poll
+	const creator = await getInviteOnlyCreator(id);
+	if (!creator) notFound();
+	return { poll: null, reason: 'invite-only', creator };
 });
 
 type Props = { params: Promise<{ id: string }> };
@@ -53,6 +58,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 		description,
 		openGraph: { title: poll.title, description, type: 'article' },
 		twitter: { card: 'summary_large_image', title: poll.title, description },
+		// Unlisted and invite-only polls are meant only for people with the link
+		...(poll.audience && poll.audience !== 'public' && { robots: { index: false } }),
 	};
 }
 
@@ -82,36 +89,14 @@ async function PollDetail({ id }: { id: string }) {
 	const [lookup, user, profile] = await Promise.all([lookupPoll(id), getUserSession(), getMyProfile()]);
 
 	if (!lookup.poll) {
-		// A 404 may be an Invite-only Poll this viewer can't open yet (e.g. from an invitation email)
-		const creator = lookup.reason === 'not-found' ? await getInviteOnlyCreator(id) : null;
-		if (creator) {
-			return (
-				<InvitationPrompt
-					creator={creator}
-					pollId={id}
-					switchAccount={user ? switchAccount.bind(null, id) : undefined}
-				/>
-			);
-		}
-		return lookup.reason !== 'not-found' || !user ? (
-			<LoginPrompt
-				className="mx-auto w-full max-w-[520px]"
-				redirectTo={`/poll/${id}`}
-				forPoll
-				sessionExpired={lookup.reason === 'session-rejected'}
+		return lookup.reason === 'invite-only' ? (
+			<InvitationPrompt
+				creator={lookup.creator}
+				pollId={id}
+				switchAccount={user ? switchAccount.bind(null, id) : undefined}
 			/>
 		) : (
-			<EmptyCard
-				className="w-full max-w-[640px]"
-				headingLevel={1}
-				title={<T k="pollDetail.notFound" />}
-				body={<T k="pollDetail.notFoundBody" />}
-				action={
-					<Link href="/explore" className={buttonVariants({ variant: 'outline' })}>
-						<T k="pollDetail.notFoundExplore" />
-					</Link>
-				}
-			/>
+			<LoginPrompt className="mx-auto w-full max-w-[520px]" redirectTo={`/poll/${id}`} forPoll sessionExpired />
 		);
 	}
 

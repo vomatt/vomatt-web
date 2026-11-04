@@ -21,4 +21,19 @@ describe('CMSLink', () => {
 	it('leaves an absolute external link as it is', () => {
 		expect(hrefOf({ linkType: 'external', href: 'https://example.com' })).toBe('https://example.com');
 	});
+
+	it('is named by the text it shows', () => {
+		render(<CMSLink link={{ _type: 'link', isNewTab: false, linkType: 'internal', href: '/terms-of-service' }}>Terms</CMSLink>);
+		expect(screen.getByRole('link')).toHaveAccessibleName('Terms');
+	});
+
+	it('is named by its title when it has one', () => {
+		render(<CMSLink link={{ _type: 'link', isNewTab: false, linkType: 'external', href: '/explore' }} title="Explore polls" />);
+		expect(screen.getByRole('link')).toHaveAccessibleName('Explore polls');
+	});
+
+	it('names a link with nothing to read by where it goes', () => {
+		render(<CMSLink link={{ _type: 'link', isNewTab: false, linkType: 'external', href: 'https://example.com' }} />);
+		expect(screen.getByRole('link')).toHaveAccessibleName('Go to https://example.com');
+	});
 });

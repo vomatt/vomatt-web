@@ -39,6 +39,18 @@ describe('HomepageHeader', () => {
 		expect(screen.queryByRole('link', { name: 'Following' })).not.toBeInTheDocument();
 	});
 
+	it('links guests to the legal pages under the login prompt, and not signed-in viewers', () => {
+		const { unmount } = render(<HomepageHeader tags={tags} />);
+		const legal = within(screen.getByRole('navigation', { name: 'Legal' }));
+		expect(legal.getByRole('link', { name: 'Terms' })).toHaveAttribute('href', 'https://about.vomatt.com/terms-of-service');
+		expect(legal.getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', 'https://about.vomatt.com/privacy-policy');
+		expect(legal.getByRole('link', { name: 'Cookies' })).toHaveAttribute('href', 'https://about.vomatt.com/cookies-policy');
+		unmount();
+
+		render(<HomepageHeader tags={tags} signedIn />);
+		expect(screen.queryByRole('navigation', { name: 'Legal' })).not.toBeInTheDocument();
+	});
+
 	it('adds a Saved topic for signed-in viewers, marked on its own page', () => {
 		render(<HomepageHeader tags={tags} signedIn saved />);
 		expect(screen.getByRole('link', { name: 'Saved' })).toHaveAttribute('href', '/following/saved');

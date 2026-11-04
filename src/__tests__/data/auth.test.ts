@@ -3,7 +3,7 @@
  */
 import { redirect } from 'next/navigation';
 
-import { getLoginHref, getMyProfile, redirectToLogin } from '@/data/auth';
+import { getLoginHref, getMyProfile, loadMyProfile, redirectToLogin } from '@/data/auth';
 import { ApiError, AuthError } from '@/lib/api/client';
 import { getMyProfile as fetchMyProfile } from '@/lib/api/services/users';
 
@@ -33,6 +33,15 @@ it('treats a session whose account is gone as signed out', async () => {
 it('still surfaces other failures', async () => {
 	mockFetch.mockRejectedValue(new ApiError('Boom', 500, { errorCode: null }));
 	await expect(getMyProfile()).rejects.toThrow('Boom');
+});
+
+it.each([
+	['a server error', new ApiError('Boom', 500, { errorCode: null })],
+	['rate limiting', new ApiError('Too many requests', 429, { errorCode: null }, 30)],
+	['a network failure', new TypeError('fetch failed')],
+])('reports %s as unavailable instead of throwing', async (_, error) => {
+	mockFetch.mockRejectedValue(error);
+	await expect(loadMyProfile()).resolves.toEqual({ profile: null, error });
 });
 
 it('sends a visitor with no session to sign in', async () => {

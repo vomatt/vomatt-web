@@ -51,6 +51,16 @@ describe('SessionRetry', () => {
 		expect(refresh).toHaveBeenCalledTimes(1);
 	});
 
+	it('keeps trying while a refresh leaves it in place, then gives up', async () => {
+		probeAnswers(204, 204, 204);
+		render(<SessionRetry />);
+
+		await waitSeconds(60);
+
+		expect(refresh).toHaveBeenCalledTimes(3);
+		expect(screen.getByRole('heading', { level: 1, name: 'Something went wrong' })).toBeInTheDocument();
+	});
+
 	it('after the last try, says so and offers another round', async () => {
 		probeAnswers(503, 503, 503, 204);
 		render(<SessionRetry />);

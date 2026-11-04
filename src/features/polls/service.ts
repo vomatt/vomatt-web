@@ -164,7 +164,9 @@ export async function getUserPolls(
 ): Promise<CursorPage<Poll>> {
 	return fetchPollPage(
 		`/users/${encodeURIComponent(username)}/votes`,
-		pageParams(cursor, limit)
+		pageParams(cursor, limit),
+		// The API sends an empty list to a viewer the user blocked
+		{ asViewer: true }
 	);
 }
 

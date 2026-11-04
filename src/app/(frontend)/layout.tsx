@@ -150,6 +150,8 @@ export default async function RootLayout({
 										// Above the TabBar on phones
 										offset={{ bottom: 'calc(var(--tabbar-space) + 24px)' }}
 										mobileOffset={{ bottom: 'calc(var(--tabbar-space) + 16px)' }}
+										// The 20px close button keeps its look; its hit area grows to 44px (13px past its 1px border)
+										toastOptions={{ classNames: { closeButton: "before:absolute before:-inset-[13px] before:content-['']" } }}
 									/>
 									<CookieConsent integrations={settings?.integrations} />
 								</Suspense>
