@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-import { getUserSession } from '@/data/auth';
+import { getTokenSession } from '@/data/auth';
 import { getUserProfile } from '@/lib/api/services/users';
 
 // The body depends on who asks (signed in, it carries their relation), so no cache may
@@ -14,7 +14,7 @@ const headers = { 'Cache-Control': 'private, no-store' };
  */
 export async function GET(_request: Request, { params }: { params: Promise<{ username: string }> }) {
 	const { username } = await params;
-	const session = await getUserSession();
+	const session = await getTokenSession();
 	const profile = await getUserProfile(username);
 	if (!profile) return NextResponse.json(null, { status: 404, headers });
 	if (profile.id === session?.sub) return NextResponse.json({ ...profile, isFollowing: null, isBlocked: null }, { headers });

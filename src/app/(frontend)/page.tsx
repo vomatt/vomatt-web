@@ -15,7 +15,7 @@ export default async function Page({ searchParams }: Props) {
 	const { tag: tagParam } = await searchParams;
 	// Repeated ?tag= arrives as an array; the feed filters by one topic
 	const tag = Array.isArray(tagParam) ? tagParam[0] : tagParam;
-	// Read from the cookie, so the rail paints with the shell instead of after the feed
+	// The layout waits on the same profile check, so the rail still paints with the shell instead of after the feed
 	const user = await getUserSession();
 
 	return (
