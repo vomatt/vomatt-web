@@ -30,6 +30,12 @@ describe('SessionRetry', () => {
 		expect(screen.getByRole('status')).toHaveTextContent('Signing you in');
 	});
 
+	it('pulses the wordmark with no loading bar under it', () => {
+		const { container } = render(<SessionRetry />);
+		expect(container.querySelector('svg.animate-wordmark-pulse')).not.toBeNull();
+		expect(container.querySelector('[data-slot="skeleton"]')).toBeNull();
+	});
+
 	it('renders the page once the proxy settles the session', async () => {
 		probeAnswers(503, 503, 204);
 		render(<SessionRetry />);
