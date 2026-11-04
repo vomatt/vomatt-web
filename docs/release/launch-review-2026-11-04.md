@@ -37,7 +37,7 @@ Checks: 1325 tests pass, lint has 0 errors, `next build` succeeds, and `tsc` sho
 
 ### Decisions
 
-1. **Download your data.** The published Privacy Policy (§6) and Terms (§9) say people can download their data in Account settings. The API serves it (`GET /api/users/me/export`, once a day), but f6a913f removed the button. It is rebuilt and tested on branch `claude/data-export-button`, stacked on the launch branch (ignore the stale `claude/restore-data-export`). Launch blocker until decided. Either merge it, or change the policy text as in `launch-pages-draft.md` §4.1 and §4.6. PDPA and GDPR give people a right to a copy either way; email works if the button stays out.
+1. **Download your data.** Decided 2026-11-04: change the policy text, not the app. Privacy Policy §6 and Terms §9 are published saying to email hello@vomatt.com for a copy; the button PR (#114) is closed. If the button ships later, use the variants in `launch-pages-draft.md` §4.1 and §4.6.
 2. **Legal pages.** Review the drafts with a lawyer, fill the `[OWNER]` slots and publish them in Studio:
    - Community Guidelines, Reporting and appeals, Your data.
    - Privacy and Cookies edits: name the email provider, Redis host and regions; add the `theme` storage key; correct the anonymous-ballot timing (a daily job, not instant).
