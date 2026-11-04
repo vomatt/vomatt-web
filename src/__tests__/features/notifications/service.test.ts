@@ -1,10 +1,9 @@
-import { MARK_READ_MAX } from '@/features/notifications/constants';
 import {
 	getNotificationPreferences,
 	getNotifications,
 	getUnreadCount,
+	markAllNotificationsRead,
 	markNotificationRead,
-	markNotificationsRead,
 	updateNotificationPreferences,
 } from '@/features/notifications/service';
 import { apiClient, ApiError, AuthError } from '@/lib/api/client';
@@ -156,33 +155,16 @@ describe('getNotifications()', () => {
 	});
 });
 
-describe('markNotificationsRead()', () => {
-	it('posts each id to its read endpoint', async () => {
+describe('markAllNotificationsRead()', () => {
+	it('posts to read-all', async () => {
 		mockApiClient.mockResolvedValue({ success: true });
-		await markNotificationsRead(['comment_1', 'follow_2']);
-		expect(mockApiClient).toHaveBeenCalledTimes(2);
-		expect(mockApiClient).toHaveBeenCalledWith('/notifications/comment_1/read', { method: 'POST' });
-		expect(mockApiClient).toHaveBeenCalledWith('/notifications/follow_2/read', { method: 'POST' });
-	});
-	it('returns the ids whose request failed', async () => {
-		jest.spyOn(console, 'error').mockImplementation(() => {});
-		mockApiClient.mockResolvedValueOnce({ success: true }).mockRejectedValueOnce(new ApiError('down', 503, {}));
-		expect(await markNotificationsRead(['comment_1', 'follow_2'])).toEqual({ ok: true, data: ['follow_2'] });
+		expect(await markAllNotificationsRead()).toEqual({ ok: true, data: undefined });
+		expect(mockApiClient).toHaveBeenCalledWith('/notifications/read-all', { method: 'POST' });
 	});
 
-	it('reads at most MARK_READ_MAX ids, a few requests at a time, and returns the rest', async () => {
-		let open = 0;
-		let mostOpen = 0;
-		mockApiClient.mockImplementation(async () => {
-			mostOpen = Math.max(mostOpen, ++open);
-			await Promise.resolve();
-			open--;
-			return { success: true };
-		});
-		const ids = Array.from({ length: MARK_READ_MAX + 2 }, (_, i) => `follow_${i}`);
-		expect(await markNotificationsRead(ids)).toEqual({ ok: true, data: ids.slice(MARK_READ_MAX) });
-		expect(mockApiClient).toHaveBeenCalledTimes(MARK_READ_MAX);
-		expect(mostOpen).toBeLessThanOrEqual(5);
+	it('returns the failure instead of throwing', async () => {
+		mockApiClient.mockRejectedValue(new ApiError('down', 503, {}));
+		expect(await markAllNotificationsRead()).toMatchObject({ ok: false, status: 503 });
 	});
 });
 

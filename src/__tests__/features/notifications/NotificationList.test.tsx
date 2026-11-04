@@ -1,9 +1,7 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 
 import { dayGroup, NotificationList, NotificationSettingsLink } from '@/features/notifications/NotificationList';
-import { SEEN_MS } from '@/features/notifications/NotificationRows';
 import type { Notification } from '@/features/notifications/schema';
-import { READ_BATCH_MS, READ_MAX_WAIT_MS } from '@/features/notifications/useMarkRead';
 
 jest.mock('next/link', () => {
 	return function MockLink({ children, href, onClick, ...rest }: React.ComponentProps<'a'> & { onClick?: () => void }) {
@@ -16,10 +14,10 @@ jest.mock('next/link', () => {
 });
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 jest.mock('@/features/polls/service', () => ({}));
-const mockMarkRead = jest.fn();
+const mockMarkAllRead = jest.fn();
 jest.mock('@/features/notifications/service', () => ({
 	getNotifications: jest.fn(),
-	markNotificationsRead: (...a: unknown[]) => mockMarkRead(...a),
+	markAllNotificationsRead: (...a: unknown[]) => mockMarkAllRead(...a),
 }));
 jest.mock('@/features/follows/service', () => ({ followUser: jest.fn().mockResolvedValue({ ok: true, data: undefined }) }));
 jest.mock('@/features/follows/FollowListDialog', () => ({
@@ -38,32 +36,6 @@ let mockUnreadCount = 0;
 jest.mock('@/features/notifications/UnreadCountProvider', () => ({
 	useUnreadCount: () => ({ count: mockUnreadCount, isLoaded: true, refresh: mockRefresh }),
 }));
-
-// Rows report seen only when a test scrolls them into view
-let observed: { callback: IntersectionObserverCallback; elements: Element[] }[] = [];
-global.IntersectionObserver = class {
-	entry: (typeof observed)[number];
-	constructor(callback: IntersectionObserverCallback) {
-		this.entry = { callback, elements: [] };
-		observed.push(this.entry);
-	}
-	observe(element: Element) {
-		this.entry.elements.push(element);
-	}
-	disconnect() {
-		observed = observed.filter((entry) => entry !== this.entry);
-	}
-} as unknown as typeof IntersectionObserver;
-/** Reports the row at each ratio in turn, in one observer callback as a browser batches them. */
-const scrollIntoView = (row: Element, ...ratios: number[]) =>
-	act(() => {
-		const entries = (ratios.length ? ratios : [1]).map((intersectionRatio) => ({ target: row, isIntersecting: intersectionRatio > 0, intersectionRatio }));
-		for (const { callback } of observed.filter(({ elements }) => elements.includes(row))) {
-			callback(entries as unknown as IntersectionObserverEntry[], {} as IntersectionObserver);
-		}
-	});
-/** Every id sent to be read, across requests. */
-const readIds = () => mockMarkRead.mock.calls.flatMap(([ids]) => ids).sort();
 
 const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
@@ -160,10 +132,9 @@ const rowOf = (text: string) => screen.getByText(text, { exact: false }).closest
 
 beforeEach(() => {
 	jest.clearAllMocks();
-	observed = [];
 	jest.useFakeTimers({ now: NOW, advanceTimers: true });
 	mockUnreadCount = 0;
-	mockMarkRead.mockResolvedValue({ ok: true, data: [] });
+	mockMarkAllRead.mockResolvedValue({ ok: true, data: undefined });
 });
 afterEach(() => jest.useRealTimers());
 
@@ -296,7 +267,7 @@ describe('NotificationList rows', () => {
 });
 
 describe('NotificationList follows', () => {
-	it('folds consecutive follows into one row that opens the followers list', async () => {
+	it('folds consecutive follows into one row that opens the followers list', () => {
 		renderList([follow('bkim', 10), follow('jtan', 20), follow('tpark', 30), result, follow('rosa', 300)]);
 
 		const group = rowOf('@bkim');
@@ -307,8 +278,6 @@ describe('NotificationList follows', () => {
 
 		fireEvent.click(within(group).getByRole('button', { name: 'See followers' }));
 		expect(screen.getByRole('dialog')).toHaveTextContent('followers of mei');
-		await waitFor(() => expect(mockRefresh).toHaveBeenCalled());
-		expect(readIds()).toEqual(['follow_bkim', 'follow_jtan', 'follow_tpark']);
 		expect(within(group).queryByText('Unread')).not.toBeInTheDocument();
 	});
 
@@ -319,21 +288,36 @@ describe('NotificationList follows', () => {
 });
 
 describe('NotificationList read state', () => {
-	it('marks an item read by its notification id when it is opened', async () => {
+	it('reads every notification once when the page opens, then recounts the badge', async () => {
 		renderList([invitation, result]);
-		expect(within(rowOf('Which stall')).getByText('Unread')).toBeInTheDocument();
+		await waitFor(() => expect(mockRefresh).toHaveBeenCalledTimes(1));
+		expect(mockMarkAllRead).toHaveBeenCalledTimes(1);
+	});
+
+	it('keeps the dots for this visit, until a row is opened', async () => {
+		renderList([invitation, result]);
+		await waitFor(() => expect(mockRefresh).toHaveBeenCalled());
+		expect(within(rowOf('Keep the library')).getByText('Unread')).toBeInTheDocument();
 
 		fireEvent.click(screen.getByText(invitation.poll.title));
 		expect(within(rowOf('Which stall')).queryByText('Unread')).not.toBeInTheDocument();
-		expect(mockMarkRead).toHaveBeenCalledWith(['invitation_p2']);
-		await waitFor(() => expect(mockRefresh).toHaveBeenCalled());
-
-		// Opening it again sends nothing more
-		fireEvent.click(screen.getByText(invitation.poll.title));
-		expect(mockMarkRead).toHaveBeenCalledTimes(1);
+		expect(within(rowOf('Keep the library')).getByText('Unread')).toBeInTheDocument();
+		expect(mockMarkAllRead).toHaveBeenCalledTimes(1);
 	});
 
-	it('opens the row\'s target from anywhere on the row', async () => {
+	it('leaves the badge alone when reading fails', async () => {
+		mockMarkAllRead.mockResolvedValue({ ok: false, message: 'down' });
+		renderList([invitation]);
+		await waitFor(() => expect(mockMarkAllRead).toHaveBeenCalled());
+		expect(mockRefresh).not.toHaveBeenCalled();
+	});
+
+	it('reads nothing when the feed could not be loaded', () => {
+		render(<NotificationList initialPage={null} viewerUsername="mei" />);
+		expect(mockMarkAllRead).not.toHaveBeenCalled();
+	});
+
+	it('opens the row\'s target from anywhere on the row', () => {
 		renderList([invitation]);
 		const row = rowOf('Which stall');
 		const cover = row.querySelector('a[aria-hidden="true"]')!;
@@ -341,7 +325,6 @@ describe('NotificationList read state', () => {
 		expect(cover).toHaveAttribute('tabindex', '-1');
 
 		fireEvent.click(cover);
-		expect(mockMarkRead).toHaveBeenCalledWith(['invitation_p2']);
 		expect(within(row).queryByText('Unread')).not.toBeInTheDocument();
 	});
 
@@ -351,135 +334,11 @@ describe('NotificationList read state', () => {
 		expect(screen.getByRole('dialog')).toHaveTextContent('followers of mei');
 	});
 
-	it('reads rows seen on screen in one batch, keeping their dots for this visit', async () => {
-		renderList([invitation, follow('bkim', 10), follow('jtan', 20), comment]);
-		const invite = rowOf('Which stall');
-		scrollIntoView(invite);
-		scrollIntoView(rowOf('@bkim'));
-		// A read row has nothing to watch
-		expect(observed.some(({ elements }) => elements.includes(rowOf('Saturday market')))).toBe(false);
-
-		await act(() => jest.advanceTimersByTimeAsync(SEEN_MS + READ_BATCH_MS));
-		await waitFor(() => expect(mockRefresh).toHaveBeenCalledTimes(1));
-		expect(mockMarkRead).toHaveBeenCalledTimes(1);
-		expect(readIds()).toEqual(['follow_bkim', 'follow_jtan', 'invitation_p2']);
-		expect(within(invite).getByText('Unread')).toBeInTheDocument();
-
-		// Opening it later clears the dot without asking again
-		fireEvent.click(within(invite).getByRole('link', { name: 'Vote' }));
-		expect(within(invite).queryByText('Unread')).not.toBeInTheDocument();
-		expect(mockMarkRead).toHaveBeenCalledTimes(1);
-	});
-
-	it('leaves a row unread when it scrolls away within a second', async () => {
-		renderList([invitation]);
-		const row = rowOf('Which stall');
-		scrollIntoView(row);
-		scrollIntoView(row, 0);
-		await act(() => jest.advanceTimersByTimeAsync(SEEN_MS + READ_BATCH_MS));
-		expect(mockMarkRead).not.toHaveBeenCalled();
-	});
-
-	it('leaves a row unread while less than half of it is on screen', async () => {
-		renderList([invitation]);
-		scrollIntoView(rowOf('Which stall'), 0.2);
-		await act(() => jest.advanceTimersByTimeAsync(SEEN_MS + READ_BATCH_MS));
-		expect(mockMarkRead).not.toHaveBeenCalled();
-	});
-
-	it('goes by the latest of several reports that arrive together', async () => {
-		renderList([invitation]);
-		scrollIntoView(rowOf('Which stall'), 1, 0);
-		await act(() => jest.advanceTimersByTimeAsync(SEEN_MS + READ_BATCH_MS));
-		expect(mockMarkRead).not.toHaveBeenCalled();
-	});
-
-	it('sends a batch after the longest wait while rows keep being seen', async () => {
-		const comments = [1, 2, 3, 4].map((n) => ({ ...comment, id: `comment_c${n}`, read: false, poll: { ...comment.poll, id: `p${n}`, title: `Poll ${n}` } }));
-		renderList(comments);
-		// A row every 1.5s keeps restarting the 2s batch wait
-		for (const n of [1, 2, 3, 4]) {
-			if (n > 1) await act(() => jest.advanceTimersByTimeAsync(1500));
-			scrollIntoView(rowOf(`Poll ${n}`));
-		}
-		// The first row was seen at 1s, so its longest wait ends at 6s
-		await act(() => jest.advanceTimersByTimeAsync(SEEN_MS + READ_MAX_WAIT_MS - 4500 - 100));
-		expect(mockMarkRead).not.toHaveBeenCalled();
-		await act(() => jest.advanceTimersByTimeAsync(200));
-		expect(mockMarkRead).toHaveBeenCalledTimes(1);
-		expect(readIds()).toEqual(['comment_c1', 'comment_c2', 'comment_c3', 'comment_c4']);
-	});
-
-	it('sends what was seen when the tab is hidden', async () => {
-		renderList([invitation]);
-		scrollIntoView(rowOf('Which stall'));
-		await act(() => jest.advanceTimersByTimeAsync(SEEN_MS));
-		Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
-		act(() => {
-			document.dispatchEvent(new Event('visibilitychange'));
-		});
-		Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true });
-		expect(mockMarkRead).toHaveBeenCalledWith(['invitation_p2']);
-	});
-
-	it('sends ids the server left unread again with the next batch', async () => {
-		mockMarkRead.mockResolvedValueOnce({ ok: true, data: ['follow_bkim'] }).mockRejectedValueOnce(new Error('offline'));
-		jest.spyOn(console, 'error').mockImplementation(() => {});
-		renderList([follow('bkim', 10), invitation, follow('jtan', 20)]);
-		scrollIntoView(rowOf('@bkim'));
-		await act(() => jest.advanceTimersByTimeAsync(SEEN_MS + READ_BATCH_MS));
-		expect(mockMarkRead).toHaveBeenLastCalledWith(['follow_bkim']);
-
-		// A rejected request goes back in the queue too
-		scrollIntoView(rowOf('Which stall'));
-		await act(() => jest.advanceTimersByTimeAsync(SEEN_MS + READ_BATCH_MS));
-		expect(mockMarkRead).toHaveBeenLastCalledWith(['follow_bkim', 'invitation_p2']);
-
-		scrollIntoView(rowOf('@jtan'));
-		await act(() => jest.advanceTimersByTimeAsync(SEEN_MS + READ_BATCH_MS));
-		expect(mockMarkRead).toHaveBeenLastCalledWith(['follow_bkim', 'invitation_p2', 'follow_jtan']);
-	});
-
-	it('waits for the tab to be visible before a row counts as seen', async () => {
-		renderList([invitation]);
-		const row = rowOf('Which stall');
-		scrollIntoView(row);
-		await act(() => jest.advanceTimersByTimeAsync(SEEN_MS / 2));
-		const setVisibility = (state: string) =>
-			act(() => {
-				Object.defineProperty(document, 'visibilityState', { value: state, configurable: true });
-				document.dispatchEvent(new Event('visibilitychange'));
-			});
-		setVisibility('hidden');
-		await act(() => jest.advanceTimersByTimeAsync(SEEN_MS + READ_MAX_WAIT_MS));
-		expect(mockMarkRead).not.toHaveBeenCalled();
-
-		setVisibility('visible');
-		await act(() => jest.advanceTimersByTimeAsync(SEEN_MS + READ_BATCH_MS));
-		expect(mockMarkRead).toHaveBeenCalledWith(['invitation_p2']);
-	});
-
-	it('keeps a result unread until it is opened', async () => {
-		renderList([result]);
-		scrollIntoView(rowOf('Keep the library'));
-		await act(() => jest.advanceTimersByTimeAsync(SEEN_MS + READ_BATCH_MS));
-		expect(mockMarkRead).not.toHaveBeenCalled();
-	});
-
-	it('sends what was seen when leaving the page before the batch', async () => {
-		const { unmount } = renderList([invitation]);
-		scrollIntoView(rowOf('Which stall'));
-		await act(() => jest.advanceTimersByTimeAsync(SEEN_MS));
-		expect(mockMarkRead).not.toHaveBeenCalled();
-		unmount();
-		expect(mockMarkRead).toHaveBeenCalledWith(['invitation_p2']);
-	});
-
-	it('marks a follower read when the viewer follows back', async () => {
+	it('clears a follower\'s dot when the viewer follows back', async () => {
 		renderList([follow('jtan', 10)]);
 		fireEvent.click(screen.getByRole('button', { name: 'Follow back' }));
-		expect(mockMarkRead).toHaveBeenCalledWith(['follow_jtan']);
 		expect(await screen.findByRole('button', { name: /Following/ })).toBeInTheDocument();
+		expect(within(rowOf('@jtan')).queryByText('Unread')).not.toBeInTheDocument();
 	});
 });
 
