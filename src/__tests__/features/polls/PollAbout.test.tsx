@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 
 import { PollAbout } from '@/features/polls/components/PollAbout';
 import type { Poll } from '@/features/polls/schema';
@@ -61,6 +61,19 @@ describe('PollAbout', () => {
 		expect(screen.getByText('Results')).toBeInTheDocument();
 		// Opened 48h ago, ends in 24h
 		expect(screen.getByRole('progressbar', { name: 'Voting window' })).toHaveAttribute('aria-valuenow', '67');
+	});
+
+	it('turns to the Ended line when the end passes while it is on screen', () => {
+		jest.useFakeTimers();
+		render(<PollAbout poll={{ ...poll, endTime: iso(2 * 60_000) }} />);
+		expect(screen.getByText(/^Ballots are sealed/)).toBeInTheDocument();
+
+		act(() => {
+			jest.advanceTimersByTime(2 * 60_000);
+		});
+		expect(screen.getByText('Voting has closed. Results are in.')).toBeInTheDocument();
+		expect(screen.queryByText(/^Ballots are sealed/)).not.toBeInTheDocument();
+		jest.useRealTimers();
 	});
 
 	it('links its topics by name, without a #', () => {
