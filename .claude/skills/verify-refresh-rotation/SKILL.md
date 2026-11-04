@@ -94,13 +94,13 @@ If a change to the covered code is deliberate (for example, new cookie handling 
 | Backend model | `../vomatt-api/src/main/java/com/vomatt/common/security/RefreshTokenService.java` (rotate, 60 s grace, reuse detection, revoked sessions); `JwtAuthFilter.java` (`auth.session_revoked`); `../vomatt-api/docs/frontend/auth-flow.md` §6–7 |
 | Constants | `src/data/constants.ts`: `ACCESS_TOKEN_REFRESH_LEEWAY`, `ACCESS_TOKEN_EXPIRY` |
 
-**Sync commit:** vomatt-web `af56991c28892de53d48d33aac865994bed42cc1`; vomatt-api `f3cee16` (atomic rotation, vomatt/vomatt-api#76: the model describes that backend, not the GETDEL one before it).
+**Sync commit:** vomatt-web `5495dedcdeb9182a4b3b64a7513176d93f2c974a` (the session check before `/login` redirects); vomatt-api `a40be76` (atomic rotation from vomatt/vomatt-api#76, revoked sessions refused at rotation and answered `auth.session_revoked` by `JwtAuthFilter`).
 
 To see whether the covered code changed since the sync commit:
 
 ```bash
-git diff --stat af56991c28892de53d48d33aac865994bed42cc1 -- src/proxy.tsx src/lib/api/tokens.ts src/lib/api/backend-fetch.ts src/data/constants.ts
-git -C ../vomatt-api diff --stat f3cee16 -- src/main/java/com/vomatt/common/security/RefreshTokenService.java docs/frontend/auth-flow.md
+git diff --stat 5495dedcdeb9182a4b3b64a7513176d93f2c974a -- src/proxy.tsx src/lib/api/tokens.ts src/lib/api/backend-fetch.ts src/data/constants.ts
+git -C ../vomatt-api diff --stat a40be76 -- src/main/java/com/vomatt/common/security/RefreshTokenService.java src/main/java/com/vomatt/common/security/JwtAuthFilter.java docs/frontend/auth-flow.md
 ```
 
 Any output means: re-read those diffs against the model before trusting a pass.
