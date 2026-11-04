@@ -8,6 +8,8 @@ import { updateProfile } from '@/lib/api/services/users';
 type AuthStep = 'email' | 'code' | 'profile';
 
 export type AuthResult = { status: 'OK' } | { status: 'ERROR'; error: AuthErrorKey };
+/** `COOLDOWN`: no code was sent, as one went out recently; a resend is allowed in `seconds`. */
+export type ResendResult = AuthResult | { status: 'COOLDOWN'; seconds: number };
 
 const OK: AuthResult = { status: 'OK' };
 const SERVER_ERROR: AuthResult = { status: 'ERROR', error: 'serverError' };
@@ -19,11 +21,15 @@ const SERVER_ERROR: AuthResult = { status: 'ERROR', error: 'serverError' };
 export function useAuthFlow() {
 	const [step, setStep] = useState<AuthStep>('email');
 	const [email, setEmail] = useState('');
+	/** Seconds until a resend, when the code step opened during the cooldown of an earlier code. */
+	const [resendIn, setResendIn] = useState<number>();
 
 	const submitEmail = useCallback(async (value: string): Promise<AuthResult> => {
 		try {
 			const res = await requestOtp(value);
 			if (res.status === 'ERROR') return res;
+			// A code sent within the cooldown (after a reload, or a quick sign-out) is usually still valid: both last 180 s
+			setResendIn(res.status === 'COOLDOWN' ? res.seconds : undefined);
 			setEmail(value.trim());
 			setStep('code');
 			return OK;
@@ -32,10 +38,10 @@ export function useAuthFlow() {
 		}
 	}, []);
 
-	const resendCode = useCallback(async (): Promise<AuthResult> => {
+	const resendCode = useCallback(async (): Promise<ResendResult> => {
 		try {
 			const res = await requestOtp(email);
-			return res.status === 'ERROR' ? res : OK;
+			return res.status === 'SUCCESS' ? OK : res;
 		} catch {
 			return SERVER_ERROR;
 		}
@@ -76,6 +82,7 @@ export function useAuthFlow() {
 	return {
 		step,
 		email,
+		resendIn,
 		submitEmail,
 		resendCode,
 		submitCode,

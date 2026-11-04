@@ -64,6 +64,7 @@ export function AuthFlow({ onDone, onSignedIn, policyMessage, inDialog = false }
 					return res;
 				}}
 				onResend={flow.resendCode}
+				resendIn={flow.resendIn}
 				onEditEmail={flow.editEmail}
 			/>
 		);
