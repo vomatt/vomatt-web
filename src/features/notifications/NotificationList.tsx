@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import { EmptyCard } from '@/components/EmptyCard';
@@ -21,9 +21,8 @@ import {
 	type NotificationCategory,
 	type NotificationPreferences,
 } from './schema';
-import { getNotifications } from './service';
+import { getNotifications, markAllNotificationsRead } from './service';
 import { useUnreadCount } from './UnreadCountProvider';
-import { useMarkRead } from './useMarkRead';
 
 export type DayGroup = 'today' | 'yesterday' | 'earlier';
 
@@ -43,9 +42,9 @@ export function NotificationsHeader() {
 }
 
 /**
- * The feed, newest first, grouped by day, with each run of follows as one row. A row on screen
- * for a moment is read, but keeps its dot until the next visit so the list doesn't change under
- * the reader. Results rows stay until opened, so a sealed promise is never lost in the list.
+ * The feed, newest first, grouped by day, with each run of follows as one row. Opening the page
+ * reads every notification. The rows it opened with keep their dots until opened, so the list shows
+ * what is new without changing under the reader; pages fetched after that (Load more, another tab) come back read.
  */
 export function NotificationList({
 	initialPage,
@@ -59,7 +58,7 @@ export function NotificationList({
 	viewerUsername: string;
 }) {
 	const { t } = useLanguage();
-	const { count: unreadCount } = useUnreadCount();
+	const { count: unreadCount, refresh } = useUnreadCount();
 	// A tab's reset brings its own fetcher so cursors stay with one category
 	const fetchPage = useCallback(
 		(cursor: string) => getNotifications(cursor, initialCategory === 'all' ? undefined : initialCategory),
@@ -77,32 +76,23 @@ export function NotificationList({
 	// Days follow the reader's clock, so the grouping waits for hydration
 	const isHydrated = useHydrated();
 
-	// Read this visit by being seen: their dots stay until the next one
-	const [seenIds, setSeenIds] = useState<ReadonlySet<string>>(new Set());
+	// Read whenever a feed is shown, including one a refresh recovers; a failed request leaves the badge as it was
+	const hasFeed = initialPage !== null;
+	useEffect(() => {
+		if (!hasFeed) return;
+		markAllNotificationsRead().then(
+			(result) => result.ok && refresh(),
+			(error) => console.error('Marking notifications read failed:', error)
+		);
+	}, [hasFeed, refresh]);
 
-	const setRead = (ids: Set<string>) =>
-		list.setItems((items) => items.map((item) => (ids.has(item.id) ? { ...item, read: true } : item)));
-	const markRead = useMarkRead();
-
-	const unreadIds = (entry: Entry) =>
-		entryItems(entry)
-			.filter((item) => !item.read)
-			.map((item) => item.id);
-
-	// The dot clears at once; a failed request leaves it unread on the server, so the next visit shows it again
+	// Already read on the server: opening a row only clears its dot
 	const open = (entry: Entry) => {
-		const ids = unreadIds(entry);
-		if (ids.length === 0) return;
-		setRead(new Set(ids));
-		markRead.read(ids);
+		const items = entryItems(entry);
+		if (items.every((item) => item.read)) return;
+		const ids = new Set(items.map((item) => item.id));
+		list.setItems((items) => items.map((item) => (ids.has(item.id) ? { ...item, read: true } : item)));
 	};
-
-	const seen = (entry: Entry) => {
-		const ids = unreadIds(entry);
-		setSeenIds((current) => new Set([...current, ...ids]));
-		markRead.queue(ids);
-	};
-	const watchesSeen = (entry: Entry) => entry.kind !== 'RESULT' && unreadIds(entry).some((id) => !seenIds.has(id));
 
 	const changeCategory = async (next: NotificationCategory | 'all') => {
 		// A Load more in flight would append the old tab's page after the reset
@@ -149,7 +139,6 @@ export function NotificationList({
 					key={entry.id}
 					entry={entry}
 					onOpen={() => open(entry)}
-					onSeen={watchesSeen(entry) ? () => seen(entry) : undefined}
 					viewerUsername={viewerUsername}
 				/>
 			))}

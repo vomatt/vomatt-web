@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 
 import { getUnreadCount } from './service';
 
@@ -43,9 +43,16 @@ export function UnreadCountProvider({
 	const [sessionEnded, setSessionEnded] = useState(false);
 	const isActive = signedIn && !sessionEnded;
 
+	// Only the latest request sets the count, so an older one can't bring back a count read since
+	const latestRequest = useRef(0);
 	const refresh = useCallback(() => {
+		const request = ++latestRequest.current;
 		getUnreadCount().then(
-			(next) => (next === null ? setSessionEnded(true) : setCount(next)),
+			(next) => {
+				if (request !== latestRequest.current) return;
+				if (next === null) setSessionEnded(true);
+				else setCount(next);
+			},
 			// A failed check keeps the last count rather than flashing it away
 			() => {}
 		);

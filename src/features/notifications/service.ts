@@ -7,7 +7,6 @@ import { type ActionResult, attempt } from '@/lib/api/action';
 import { apiClient, ApiError, AuthError } from '@/lib/api/client';
 import { type CursorPage, cursorPageSchema, pageParams } from '@/lib/api/cursor';
 
-import { MARK_READ_MAX } from './constants';
 import {
 	type Notification,
 	type NotificationCategory,
@@ -72,23 +71,10 @@ export async function markNotificationRead(id: string): Promise<boolean> {
 	}
 }
 
-/** How many requests one `markNotificationsRead` call has open at once. */
-const MARK_READ_CONCURRENCY = 5;
-
-/**
- * Marks several notifications read in one round trip from the browser; see `markNotificationRead`.
- * Its data is the ids left unread: those whose request failed, and any past `MARK_READ_MAX`.
- */
-export async function markNotificationsRead(ids: string[]): Promise<ActionResult<string[]>> {
+/** Marks read every notification created up to now, of every kind; the unread count becomes 0. Idempotent. */
+export async function markAllNotificationsRead(): Promise<ActionResult> {
 	return attempt(async () => {
-		const unread = ids.slice(MARK_READ_MAX);
-		const taken = ids.slice(0, MARK_READ_MAX);
-		for (let i = 0; i < taken.length; i += MARK_READ_CONCURRENCY) {
-			const chunk = taken.slice(i, i + MARK_READ_CONCURRENCY);
-			const results = await Promise.all(chunk.map((id) => markNotificationRead(id)));
-			unread.push(...chunk.filter((_, j) => !results[j]));
-		}
-		return unread;
+		await apiClient('/notifications/read-all', { method: 'POST' });
 	});
 }
 
