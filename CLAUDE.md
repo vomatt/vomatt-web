@@ -13,6 +13,7 @@ pnpm test:watch       # Jest watch mode
 pnpm test:coverage    # Jest with coverage
 pnpm exec tsc --noEmit  # Type-check without emitting
 pnpm generate:openapi # Regenerate OpenAPI schema
+pnpm generate:icons   # Regenerate favicon and app icons from src/lib/brand/mark.ts
 ```
 
 Tests live in `src/__tests__/` and match `**/*.test.{ts,tsx}`. Run a single file:

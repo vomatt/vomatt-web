@@ -1,12 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-	<style>
-		.bg { fill: #23221d; }
-		.v { fill: #f5f5f0; }
-		@media (prefers-color-scheme: dark) {
-			.bg { fill: #f5f5f0; }
-			.v { fill: #23221d; }
-		}
-	</style>
-	<rect class="bg" width="32" height="32" rx="7" />
-	<path class="v" transform="translate(7.1426 2.3941) scale(0.72296)" d="M8.77657 31.2131L0 6.42623H5.65798L12.207 26.6667H12.3852L18.8897 6.42623H24.5031L15.7711 31.2131Z" />
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-17.78 -17.78 155.56 155.56"><style>.m{fill:#f0f2f6}.t{fill:#14213a}@media (prefers-color-scheme: dark){.m{fill:#14213a}.t{fill:#f0f2f6}}</style><rect class="t" x="-17.78" y="-17.78" width="155.56" height="155.56" rx="34.22"/><path class="m" fill-rule="evenodd" d="M11.5 36.04 A7 7 0 0 1 15 29.98 L56.5 6.02 A7 7 0 0 1 63.5 6.02 L105 29.98 A7 7 0 0 1 108.5 36.04 L108.5 83.96 A7 7 0 0 1 105 90.02 L63.5 113.98 A7 7 0 0 1 56.5 113.98 L15 90.02 A7 7 0 0 1 11.5 83.96 Z M69.76 19.37 A3 3 0 0 1 72.76 19.37 L78.88 22.9 A3 3 0 0 1 78.88 28.1 L50.24 44.63 A3 3 0 0 1 47.24 44.63 L41.12 41.1 A3 3 0 0 1 41.12 35.9 Z"/></svg>
