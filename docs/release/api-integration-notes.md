@@ -100,4 +100,4 @@ The web side of the "Vomatt v2 Design" canvas: Follow everywhere a person is, th
 | Q2 | Terms / Privacy / Contact links at the foot of Settings: which pages? `docs/legal/legal-pages-draft.md` has drafts but no routes. Left out. |
 | Q3 | The design's collapsed sidebar (icons only, Alert dot, Tide lock) isn't built: the web sidebar doesn't collapse today. Build it? |
 
-B1 (follow counts), B2 (followsYou, isFollowing on list items), B3 (notification feed), B4 (read-all), B7 (mutual followers) and B8 (notification preferences, per kind; no push or email channel exists) are in vomatt-api's feat/design-api branch, 2026-10-26. This app no longer calls B4: Mark all read was removed 2026-10-29.
+B1 (follow counts), B2 (followsYou, isFollowing on list items), B3 (notification feed), B4 (read-all), B7 (mutual followers) and B8 (notification preferences, per kind; no push or email channel exists) are in vomatt-api's feat/design-api branch, 2026-10-26. Mark all read was removed 2026-10-29; since 2026-11-05 the notifications page calls B4 on open, after `GET /api/notifications/unread-ids` (vomatt-api #114) to keep what was new marked for the visit.

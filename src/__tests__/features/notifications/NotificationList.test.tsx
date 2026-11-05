@@ -338,6 +338,22 @@ describe('NotificationList read state', () => {
 		expect(mockReadAll).not.toHaveBeenCalled();
 	});
 
+	it('reads nothing when nothing is unread', async () => {
+		render(<NotificationList initialPage={{ items: [], nextCursor: null }} unreadIds={[]} viewerUsername="mei" />);
+		await act(() => jest.advanceTimersByTimeAsync(0));
+		expect(mockReadAll).not.toHaveBeenCalled();
+	});
+
+	it('logs a failed read-all', async () => {
+		mockReadAll.mockResolvedValueOnce({ ok: false, error: 'boom' });
+		const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+		render(<NotificationList initialPage={{ items: [], nextCursor: null }} unreadIds={['invitation_p2']} viewerUsername="mei" />);
+		await act(() => jest.advanceTimersByTimeAsync(0));
+		expect(mockReadAll).toHaveBeenCalledTimes(1);
+		expect(error).toHaveBeenCalledWith('Marking notifications read failed:', expect.anything());
+		error.mockRestore();
+	});
+
 	it('marks a group of follows unread when any follow in it was', () => {
 		renderList([follow('bkim', 10, { read: true }), follow('jtan', 20, { read: true })], ['follow_jtan']);
 		expect(within(rowOf('@bkim')).getByText('Unread')).toBeInTheDocument();

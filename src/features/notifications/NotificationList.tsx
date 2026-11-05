@@ -86,10 +86,13 @@ export function NotificationList({
 	// In an effect rather than the server render, which a Link prefetch also runs
 	const hasReadAll = useRef(false);
 	useEffect(() => {
-		if (initialPage === null || hasReadAll.current) return;
+		if (initialPage === null || unreadIds?.length === 0 || hasReadAll.current) return;
 		hasReadAll.current = true;
-		readAllNotifications().then(refresh, (error) => console.error('Marking notifications read failed:', error));
-	}, [initialPage, refresh]);
+		readAllNotifications().then((result) => {
+			if (result.ok) refresh();
+			else console.error('Marking notifications read failed:', result);
+		});
+	}, [initialPage, unreadIds, refresh]);
 
 	const changeCategory = async (next: NotificationCategory | 'all') => {
 		// A Load more in flight would append the old tab's page after the reset
