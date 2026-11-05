@@ -595,6 +595,60 @@ describe('PollCard state B · Open, has Ballot', () => {
 	});
 });
 
+describe('PollCard · the end passes while it is on screen', () => {
+	const MINUTE = 60_000;
+	afterEach(() => jest.useRealTimers());
+
+	it('moves to the Results on its own, with the counts and final Turnout from the API', async () => {
+		jest.useFakeTimers();
+		const closing: Poll = { ...openPoll, endTime: iso(2 * MINUTE), participantCount: 1 };
+		// Others voted after the page loaded: the refetched copy has the final Turnout, /results the counts
+		mockGetPoll.mockResolvedValue({ ...closing, participantCount: 3 });
+		mockGetResults.mockResolvedValue({
+			ok: true,
+			data: {
+				id: 'poll-1',
+				totalParticipants: 3,
+				options: [
+					{ id: 'opt-fri', text: 'Friday', voteCount: 2 },
+					{ id: 'opt-sat', text: 'Saturday', voteCount: 1 },
+					{ id: 'opt-sun', text: 'Sunday', voteCount: 0 },
+				],
+			},
+		});
+		render(<PollCard poll={closing} viewerId="user-voter" />);
+		expect(screen.getByRole('button', { name: 'Vote' })).toBeInTheDocument();
+		expect(screen.getByText('Ends in 2m')).toBeInTheDocument();
+
+		await act(async () => {
+			jest.advanceTimersByTime(MINUTE);
+		});
+		// Still open: no counts before the end
+		expect(screen.getByRole('button', { name: 'Vote' })).toBeInTheDocument();
+		expect(mockGetResults).not.toHaveBeenCalled();
+
+		await act(async () => {
+			jest.advanceTimersByTime(MINUTE);
+		});
+		await waitFor(() => expect(screen.getByText('2 votes, 67%')).toBeInTheDocument());
+		expect(screen.queryByRole('button', { name: 'Vote' })).not.toBeInTheDocument();
+		expect(screen.queryByText('Ends in 2m')).not.toBeInTheDocument();
+		expect(screen.getByText('3 voted')).toBeInTheDocument();
+	});
+
+	it('leaves a Scheduled copy as it is when its start passes: only the API says it is Open', async () => {
+		jest.useFakeTimers();
+		const scheduled: Poll = { ...openPoll, votingActive: false, startTime: iso(MINUTE) };
+		render(<PollCard poll={scheduled} viewerId="user-voter" />);
+
+		await act(async () => {
+			jest.advanceTimersByTime(2 * MINUTE);
+		});
+		expect(screen.getByText(/Voting opens in/)).toBeInTheDocument();
+		expect(mockGetResults).not.toHaveBeenCalled();
+	});
+});
+
 describe('PollCard state C · Scheduled', () => {
 	const scheduled: Poll = {
 		...openPoll,

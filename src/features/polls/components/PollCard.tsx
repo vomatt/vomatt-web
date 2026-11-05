@@ -15,11 +15,11 @@ import { cn } from '@/lib/utils';
 
 import { formatAge } from '../format';
 import { useBallot } from '../hooks/useBallot';
+import { usePollStatus } from '../hooks/usePollStatus';
 import { useRequireAuth } from '../hooks/useRequireAuth';
 import { useViewerClock } from '../hooks/useViewerClock';
 import type { Poll } from '../schema';
 import { bookmarkPoll, getPoll, unbookmarkPoll } from '../service';
-import { derivePollStatus } from '../status';
 import { Ballot } from './Ballot';
 import { VotedPill } from './BallotMotion';
 import { getOwnerActions, OwnerActions } from './OwnerActions';
@@ -96,7 +96,8 @@ export function PollCard({
 		[refetch]
 	);
 	const ballot = useBallot(poll, { isAuthed, anonymousByDefault, onPollEnded: handlePollEnded });
-	const status = derivePollStatus(poll);
+	// Ended by the clock, this copy still has the Open Poll's Turnout; Results fetch the counts
+	const status = usePollStatus(poll, refetch);
 	const { id, title, description, creatorId, creatorUsername, createdAt } = poll;
 	const isOwner = !!viewerId && viewerId === creatorId;
 	const canSeeVoters =

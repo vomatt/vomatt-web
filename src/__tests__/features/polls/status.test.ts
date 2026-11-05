@@ -4,6 +4,7 @@ import {
 	getTurnout,
 	isCancelled,
 	isInvitee,
+	nextStatusChange,
 	timelineProgress,
 	visibilityLevel,
 } from '@/features/polls/status';
@@ -60,6 +61,30 @@ describe('derivePollStatus()', () => {
 
 	it('accepts a Date', () => {
 		expect(derivePollStatus(base, new Date(NOW))).toBe('open');
+	});
+});
+
+describe('nextStatusChange()', () => {
+	const at = (h: number) => NOW + h * 3600_000;
+
+	it('is when an Open Poll starts closing, a day before its end', () => {
+		expect(nextStatusChange(base, NOW)).toBe(at(48));
+	});
+
+	it('is the end for a closing Poll', () => {
+		expect(nextStatusChange({ ...base, endTime: hours(5) }, NOW)).toBe(at(5));
+	});
+
+	it('is the end for a Scheduled copy: until a refetch it can only say when voting ends', () => {
+		expect(
+			nextStatusChange({ ...base, votingActive: false, startTime: hours(1), endTime: hours(72) }, NOW)
+		).toBe(at(72));
+	});
+
+	it('never comes for an Ended Poll or one without an end', () => {
+		expect(nextStatusChange({ ...base, endTime: hours(-1) }, NOW)).toBeNull();
+		expect(nextStatusChange({ ...base, active: false }, NOW)).toBeNull();
+		expect(nextStatusChange({ ...base, endTime: null }, NOW)).toBeNull();
 	});
 });
 
