@@ -1,4 +1,5 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { StrictMode } from 'react';
 
 import { dayGroup, NotificationList, NotificationSettingsLink } from '@/features/notifications/NotificationList';
 import type { Notification } from '@/features/notifications/schema';
@@ -288,13 +289,24 @@ describe('NotificationList follows', () => {
 
 describe('NotificationList read state', () => {
 	it('reads everything once on opening, then recounts the badge', async () => {
-		const { rerender } = renderList([invitation, result]);
-		await waitFor(() => expect(mockRefresh).toHaveBeenCalledTimes(1));
+		let respond!: (result: unknown) => void;
+		mockReadAll.mockReturnValueOnce(new Promise((resolve) => (respond = resolve)));
+		const { rerender } = render(
+			<StrictMode>
+				<NotificationList initialPage={{ items: [invitation, result], nextCursor: null }} unreadIds={null} viewerUsername="mei" />
+			</StrictMode>
+		);
 		expect(mockReadAll).toHaveBeenCalledTimes(1);
-		expect(mockReadAll.mock.invocationCallOrder[0]).toBeLessThan(mockRefresh.mock.invocationCallOrder[0]);
+		expect(mockRefresh).not.toHaveBeenCalled();
+		await act(async () => respond({ ok: true, data: undefined }));
+		expect(mockRefresh).toHaveBeenCalledTimes(1);
 
 		// A fresh server page doesn't read again
-		rerender(<NotificationList initialPage={{ items: [invitation], nextCursor: null }} unreadIds={[]} viewerUsername="mei" />);
+		rerender(
+			<StrictMode>
+				<NotificationList initialPage={{ items: [invitation], nextCursor: null }} unreadIds={[]} viewerUsername="mei" />
+			</StrictMode>
+		);
 		await act(() => jest.advanceTimersByTimeAsync(0));
 		expect(mockReadAll).toHaveBeenCalledTimes(1);
 	});
