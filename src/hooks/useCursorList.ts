@@ -58,5 +58,5 @@ export function useCursorList<T extends { id: string }>(
 		[fetchPage]
 	);
 
-	return { items, setItems, hasMore: !!nextCursor, isLoading, loadFailed, loadMore, reset };
+	return { items, hasMore: !!nextCursor, isLoading, loadFailed, loadMore, reset };
 }
