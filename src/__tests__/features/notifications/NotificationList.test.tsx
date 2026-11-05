@@ -126,8 +126,8 @@ const cancelled: Notification = {
 	poll: { id: 'p5', title: 'Night bus on Sundays?', startTime: iso(-10 * HOUR), endTime: iso(-10 * HOUR), status: 'ENDED', turnout: 0 },
 };
 
-const renderList = (items: Notification[]) =>
-	render(<NotificationList initialPage={{ items, nextCursor: null }} viewerUsername="mei" />);
+const renderList = (items: Notification[], unreadIds: string[] | null = null) =>
+	render(<NotificationList initialPage={{ items, nextCursor: null }} unreadIds={unreadIds} viewerUsername="mei" />);
 const rowOf = (text: string) => screen.getByText(text, { exact: false }).closest('li')!;
 
 beforeEach(() => {
@@ -305,6 +305,23 @@ describe('NotificationList read state', () => {
 		expect(mockMarkAllRead).toHaveBeenCalledTimes(1);
 	});
 
+	it('keeps the dot on what was unread when the page opened, on pages fetched after read-all', async () => {
+		const { getNotifications } = jest.requireMock('@/features/notifications/service');
+		getNotifications.mockResolvedValueOnce({ items: [{ ...comment, read: true }], nextCursor: null });
+		renderList([{ ...invitation, read: true }], [invitation.id, comment.id]);
+		expect(within(rowOf('Which stall')).getByText('Unread')).toBeInTheDocument();
+
+		fireEvent.click(screen.getByRole('button', { name: 'Conversation' }));
+		await waitFor(() => expect(getNotifications).toHaveBeenCalledWith(null, 'CONVERSATION'));
+		await waitFor(() => expect(within(rowOf(comment.comment.excerpt)).getByText('Unread')).toBeInTheDocument());
+	});
+
+	it('clears a dot from before read-all once its row is opened', async () => {
+		renderList([{ ...invitation, read: true }], [invitation.id]);
+		fireEvent.click(screen.getByText(invitation.poll.title));
+		expect(within(rowOf('Which stall')).queryByText('Unread')).not.toBeInTheDocument();
+	});
+
 	it('leaves the badge alone when reading fails', async () => {
 		mockMarkAllRead.mockResolvedValue({ ok: false, message: 'down' });
 		renderList([invitation]);
@@ -313,7 +330,7 @@ describe('NotificationList read state', () => {
 	});
 
 	it('reads nothing when the feed could not be loaded', () => {
-		render(<NotificationList initialPage={null} viewerUsername="mei" />);
+		render(<NotificationList initialPage={null} unreadIds={null} viewerUsername="mei" />);
 		expect(mockMarkAllRead).not.toHaveBeenCalled();
 	});
 
@@ -399,7 +416,7 @@ describe('NotificationList', () => {
 		await waitFor(() => expect(window.location.search).toBe('?tab=follow'));
 		cleanup();
 
-		render(<NotificationList initialPage={{ items: [], nextCursor: 'n1' }} initialCategory="LIKE" viewerUsername="mei" />);
+		render(<NotificationList initialPage={{ items: [], nextCursor: 'n1' }} initialCategory="LIKE" unreadIds={null} viewerUsername="mei" />);
 		expect(screen.getByRole('button', { name: 'Likes' })).toHaveAttribute('aria-pressed', 'true');
 		fireEvent.click(screen.getByRole('button', { name: /Load more/ }));
 		await waitFor(() => expect(getNotifications).toHaveBeenCalledWith('n1', 'LIKE'));
@@ -439,7 +456,7 @@ describe('NotificationList', () => {
 	});
 
 	it('says when the feed could not be loaded', () => {
-		render(<NotificationList initialPage={null} viewerUsername="mei" />);
+		render(<NotificationList initialPage={null} unreadIds={null} viewerUsername="mei" />);
 		expect(screen.getByText('Couldn’t load notifications.')).toBeInTheDocument();
 	});
 });

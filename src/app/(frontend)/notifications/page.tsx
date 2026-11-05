@@ -17,7 +17,11 @@ import {
 	type NotificationCategory,
 	type NotificationPreferences,
 } from '@/features/notifications/schema';
-import { getNotificationPreferences, getNotifications } from '@/features/notifications/service';
+import {
+	getNotificationPreferences,
+	getNotifications,
+	getUnreadNotificationIds,
+} from '@/features/notifications/service';
 import { PollRowListSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import type { CursorPage } from '@/lib/api/cursor';
 import { getServerMessages } from '@/lib/getServerLocale';
@@ -36,6 +40,7 @@ export default async function NotificationsPage({ searchParams }: { searchParams
 	// Started together; the list and the rail each stream in when theirs resolves
 	const firstPage = getNotifications(null, category).catch(() => null);
 	const preferences = getNotificationPreferences().catch(() => null);
+	const unreadIds = getUnreadNotificationIds().catch(() => null);
 
 	return (
 		<PageShell
@@ -54,7 +59,12 @@ export default async function NotificationsPage({ searchParams }: { searchParams
 						</>
 					}
 				>
-					<Notifications firstPage={firstPage} category={category} viewerUsername={profile.username} />
+					<Notifications
+						firstPage={firstPage}
+						unreadIds={unreadIds}
+						category={category}
+						viewerUsername={profile.username}
+					/>
 				</Suspense>
 			</div>
 		</PageShell>
@@ -65,14 +75,17 @@ type FirstPage = Promise<CursorPage<Notification> | null>;
 
 async function Notifications({
 	firstPage,
+	unreadIds,
 	category,
 	viewerUsername,
 }: {
 	firstPage: FirstPage;
+	unreadIds: Promise<string[] | null>;
 	category?: NotificationCategory;
 	viewerUsername: string;
 }) {
-	return <NotificationList initialPage={await firstPage} initialCategory={category} viewerUsername={viewerUsername} />;
+	const [page, ids] = await Promise.all([firstPage, unreadIds]);
+	return <NotificationList initialPage={page} initialCategory={category} unreadIds={ids} viewerUsername={viewerUsername} />;
 }
 
 async function NotificationsRail({

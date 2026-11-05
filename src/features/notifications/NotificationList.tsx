@@ -43,18 +43,21 @@ export function NotificationsHeader() {
 
 /**
  * The feed, newest first, grouped by day, with each run of follows as one row. Opening the page
- * reads every notification. The rows it opened with keep their dots until opened, so the list shows
- * what is new without changing under the reader; pages fetched after that (Load more, another tab) come back read.
+ * reads every notification. What was unread then keeps its dot until opened, including on pages fetched
+ * after that (Load more, another tab), so the list shows what is new without changing under the reader.
  */
 export function NotificationList({
 	initialPage,
 	initialCategory = 'all',
+	unreadIds,
 	viewerUsername,
 }: {
 	/** Null when the feed couldn't be loaded. */
 	initialPage: CursorPage<Notification> | null;
 	/** The tab the server page was loaded for (`?tab=`). */
 	initialCategory?: NotificationCategory | 'all';
+	/** The feed's unread ids from before this visit read them all; null when they couldn't be loaded. */
+	unreadIds: string[] | null;
 	viewerUsername: string;
 }) {
 	const { t } = useLanguage();
@@ -86,11 +89,16 @@ export function NotificationList({
 		);
 	}, [hasFeed, refresh]);
 
+	// Kept from the first render: pages fetched after read-all come back read, and a refreshed server page lists none
+	const [wasUnread, setWasUnread] = useState<ReadonlySet<string>>(() => new Set(unreadIds));
+	const items = list.items.map((item) => (item.read && wasUnread.has(item.id) ? { ...item, read: false } : item));
+
 	// Already read on the server: opening a row only clears its dot
 	const open = (entry: Entry) => {
-		const items = entryItems(entry);
-		if (items.every((item) => item.read)) return;
-		const ids = new Set(items.map((item) => item.id));
+		const opened = entryItems(entry);
+		if (opened.every((item) => item.read)) return;
+		const ids = new Set(opened.map((item) => item.id));
+		setWasUnread((current) => new Set([...current].filter((id) => !ids.has(id))));
 		list.setItems((items) => items.map((item) => (ids.has(item.id) ? { ...item, read: true } : item)));
 	};
 
@@ -129,7 +137,7 @@ export function NotificationList({
 	const groups = (['today', 'yesterday', 'earlier'] as const)
 		.map((group) => ({
 			group,
-			entries: groupFollows(list.items.filter((item) => isHydrated && dayGroup(item.createdAt) === group)),
+			entries: groupFollows(items.filter((item) => isHydrated && dayGroup(item.createdAt) === group)),
 		}))
 		.filter((group) => group.entries.length > 0);
 	const rows = (entries: Entry[]) => (
@@ -164,7 +172,7 @@ export function NotificationList({
 				) : (
 					list.items.length === 0 && <p className="empty-state">{t('notifications.categoryEmpty')}</p>
 				)}
-				{!isHydrated && rows(groupFollows(list.items))}
+				{!isHydrated && rows(groupFollows(items))}
 				{groups.map(({ group, entries }) => (
 					<section key={group} aria-labelledby={`day-${group}`} className="flex flex-col gap-2">
 						<h2 id={`day-${group}`} className="mx-0.5 text-caption-2 font-medium text-muted-foreground">
