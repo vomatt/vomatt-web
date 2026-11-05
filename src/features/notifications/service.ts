@@ -53,6 +53,20 @@ export async function getNotifications(
 	return { items, nextCursor: page.nextCursor };
 }
 
+const UnreadIdsSchema = z.object({ ids: z.array(z.string()) });
+
+/** Ids of the feed's unread items, newest first, at most 100. Read them before `readAllNotifications` to keep showing what was new. */
+export async function getUnreadNotificationIds(): Promise<string[]> {
+	return UnreadIdsSchema.parse(await apiClient('/notifications/unread-ids')).ids;
+}
+
+/** Marks read every notification up to now, of every kind; later ones arrive unread. Idempotent. */
+export async function readAllNotifications(): Promise<ActionResult<void>> {
+	return attempt(async () => {
+		await apiClient('/notifications/read-all', { method: 'POST' });
+	});
+}
+
 /** The notification is gone (Comment deleted, follow undone), or the deprecated Poll id names a Deleted Poll. */
 const NOTHING_TO_READ = ['notification.not_found', 'vote.not_found'];
 
