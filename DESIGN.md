@@ -53,6 +53,15 @@ Cool canvas, navy ink actions, two signals: Volt (`highlight`) marks what is you
 - A step's weight, leading and tracking are defaults: a `font-*`, `leading-*` or `tracking-*` beside it wins. Leading uses Tailwind's named steps (`leading-tight`, `snug`, `normal`, `relaxed`); tracking adds `tracking-title` (-0.01em, small titles) and `tracking-label` (0.06em, uppercase labels) beside Tailwind's own steps.
 - `cn()` recognizes the scale by pattern (`lib/utils.ts`): new steps in an existing family need nothing, but a new family must be added there, or tailwind-merge reads it as a color and drops it.
 
+## Mark
+
+The wordmark (`BrandLogo`) is the brand in the UI: sidebar, sign-in, coming soon. The mark is the ballot box, and for now it lives only where a word cannot: the browser tab and the iOS home screen.
+
+- **Drawing**: a cube seen at 30°, flattened to a regular hexagon (97 × 112 on a 120 grid, corners r 7) with the ballot slot cut into its lid. The slot is a hole, never a stroke: 40 × 14 on the lid's centre, rising 30° to the right, ends r 3, 7 from the top-right edge (the corner radius). Board 16 of the Vomatt Logo Exploration canvas is the drawing; `src/lib/brand/mark.ts` is the path.
+- **Icons**: `pnpm generate:icons` writes `src/app/icon0.svg` (the mark at 72% on a rounded ink tile, tile and mark swapping to paper on ink under `prefers-color-scheme: dark`), `favicon.ico` (the light version at 16, 32 and 48, for browsers without SVG favicons) and `apple-icon.png` (the mark at 58% on an ink tile; iOS rounds the corners). The tile is what keeps the icon readable on a dark tab bar. Edit the mark in `mark.ts`, never the files.
+- **Lockup**, when the mark does sit beside the wordmark: to its left, both in `foreground`, mark height the wordmark's 32 plus 0.8 at each point (a 2.5% overshoot, what the o already does), gap ¼ of the wordmark height.
+- **Colour**: one fill; the ground shows through the slot. The resting mark never carries Volt.
+
 ## Shape and layout
 
 - Borders stay quiet: 1px, `border` by default. Fields are white `card` with an `input` border (the border carries the 3:1 contrast at rest), 10px radius, 15px text from `md`; the six code slots are 48x56 from `md`, 22px tabular figures, and a wrong code stays in them. Only the chosen ballot row and the viewer's own result row get an ink border.
