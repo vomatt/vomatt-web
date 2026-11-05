@@ -19,11 +19,15 @@ const metadataFor = (audience?: string) => {
 };
 
 describe('poll page metadata', () => {
-	it('lets search engines index a public poll', async () => {
-		expect((await metadataFor('public')).robots).toBeUndefined();
+	it.each(['public', undefined])('lets search engines index a poll with audience %s', async (audience) => {
+		expect((await metadataFor(audience)).robots).toBeUndefined();
 	});
 
 	it.each(['unlisted', 'invite-only'])('keeps a %s poll out of search results', async (audience) => {
 		expect((await metadataFor(audience)).robots).toEqual({ index: false });
+	});
+
+	it('names the poll URL as canonical', async () => {
+		expect((await metadataFor('public')).alternates).toEqual({ canonical: '/poll/p1' });
 	});
 });

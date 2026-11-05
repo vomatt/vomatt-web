@@ -1,5 +1,6 @@
 import { ImageResponse } from 'next/og';
 
+import { DEFAULT_SITE_NAME } from '@/data/constants';
 import { getPoll } from '@/features/polls/service';
 
 export const alt = 'A poll on vomatt';
@@ -40,7 +41,7 @@ export default async function Image({ params }: Props) {
 	// Unfurlers send no cookies: a Poll this viewer can't open gets the brand card
 	const poll = await getPoll(id).catch(() => null);
 
-	const title = poll?.title ?? 'vomatt';
+	const title = poll?.title ?? DEFAULT_SITE_NAME;
 	const context = poll?.description?.trim() ?? '';
 	const options = poll?.options.slice(0, MAX_OPTIONS).map((option) => option.text) ?? [];
 	const more = (poll?.options.length ?? 0) - options.length;

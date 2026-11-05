@@ -4,7 +4,7 @@ import type { SanityImageSource } from '@sanity/image-url';
 import type { Viewport } from 'next';
 import { Geist } from 'next/font/google';
 import { headers } from 'next/headers';
-import { cache, ReactNode, Suspense } from 'react';
+import { ReactNode, Suspense } from 'react';
 import { Toaster } from 'sonner';
 
 import BrandLogo from '@/components/BrandLogo';
@@ -16,13 +16,12 @@ import { SessionRetry } from '@/components/SessionRetry';
 import { ThemeProvider } from '@/components/ui/ThemeProvider';
 import { TooltipProvider } from '@/components/ui/Tooltip';
 import { LanguageProvider } from '@/contexts/LanguageContext';
-import { SESSION_UNCONFIRMED_HEADER } from '@/data/constants';
+import { DEFAULT_SITE_NAME, SESSION_UNCONFIRMED_HEADER } from '@/data/constants';
 import { htmlLang } from '@/i18n-config';
 import { isComingSoon } from '@/lib/comingSoon';
-import { getServerLocale, getServerMessages } from '@/lib/getServerLocale';
+import { getServerMessages } from '@/lib/getServerLocale';
+import { getSiteSettings } from '@/lib/siteSettings';
 import { buildShareImageUrl, imageBuilder } from '@/sanity/lib/image';
-import { sanityFetch } from '@/sanity/lib/live';
-import { siteSharingQuery } from '@/sanity/lib/queries';
 
 // Server Actions run under the page's limit, and vomatt-api can take over 10s
 // (Vercel's old default) on a cold start. A limit below that kills the action
@@ -34,20 +33,10 @@ export const viewport: Viewport = { viewportFit: 'cover' };
 
 const geistSans = Geist({ subsets: ['latin'], variable: '--font-geist-sans' });
 
-// Shared by generateMetadata and the layout within one request
-const getSiteSettings = cache(() =>
-	sanityFetch({ query: siteSharingQuery })
-		.then(({ data }) => data)
-		.catch((error) => {
-			console.error('Failed to load site settings from Sanity', error);
-			return null;
-		})
-);
-
 export async function generateMetadata() {
-	const [{ language }, data] = await Promise.all([getServerLocale(), getSiteSettings()]);
-	const { siteTitle = '', favicon, faviconLight, shareGraphic, shareVideo } =
-		data || {};
+	const [{ language, messages }, data] = await Promise.all([getServerMessages(), getSiteSettings()]);
+	const { favicon, faviconLight, shareGraphic, shareVideo } = data || {};
+	const siteTitle = data?.siteTitle || DEFAULT_SITE_NAME;
 
 	const faviconUrl = (icon: SanityImageSource) =>
 		imageBuilder.image(icon).width(256).height(256).url();
@@ -65,6 +54,7 @@ export async function generateMetadata() {
 			template: `%s | ${siteTitle}`,
 			default: siteTitle,
 		},
+		description: messages.meta.siteDescription,
 		creator: siteTitle,
 		publisher: siteTitle,
 		applicationName: siteTitle,
@@ -80,6 +70,7 @@ export async function generateMetadata() {
 			locale: language === 'zh' ? 'zh_TW' : 'en_US',
 			type: 'website',
 		},
+		twitter: { card: shareGraphicUrl ? 'summary_large_image' : 'summary' },
 		// Keep search engines from indexing the placeholder
 		robots: isComingSoon(data) ? { index: false, follow: false } : undefined,
 		icons: siteFaviconUrl
