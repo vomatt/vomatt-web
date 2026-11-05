@@ -116,7 +116,10 @@
 			"lost": "未獲多數"
 		},
 		"draftOptions": "{count} 個選項",
-		"draftMore": "「{title}」的更多動作"
+		"draftMore": "「{title}」的更多動作",
+		"deleteDraftTitle": "要刪除這份草稿嗎？",
+		"deleteDraftBody": "草稿只存在這個裝置上，刪除後無法復原。",
+		"draftDeleted": "草稿已刪除"
 	},
 	"explore": {
 		"title": "探索",
@@ -209,6 +212,7 @@
 		"recordVotedCount": "參與 {count} 則",
 		"tabAsked": "發起",
 		"tabVoted": "參與",
+		"tabSaved": "收藏",
 		"askedUnread": "你的投票有新結果",
 		"filterLabel": "顯示",
 		"filterAll": "全部",
@@ -220,6 +224,8 @@
 		"onlyYouSeeThese": "只有你看得到",
 		"noDrafts": "沒有草稿。可在建立投票時儲存草稿。",
 		"noVotesYet": "你參與的投票與你的選擇會顯示在這裡，只有你看得到。",
+		"noSavedYet": "你收藏的投票會顯示在這裡，結束時也會通知你。只有你看得到。",
+		"savedEmptyCta": "探索投票",
 		"showMore": "顯示更多",
 		"everyoneSees": "其他人看到的",
 		"openPublicPage": "查看公開頁面",
@@ -227,6 +233,8 @@
 		"askedNoteBody": "你發起的公開投票所有人都看得到。草稿、••• 選單與未讀標記只有你看得到。",
 		"votedNoteTitle": "你的選票只屬於你",
 		"votedNoteBody": "你的個人頁不會列出你參與的投票或你的選擇。鎖頭標示只有你看得到的內容。",
+		"savedNoteTitle": "收藏只有你知道",
+		"savedNoteBody": "收藏投票不會通知任何人。在投票卡片上收藏，就能在這裡找到，結束時也會通知你。",
 		"previewNote": "這是其他人看到的你的個人頁。",
 		"previewBack": "回到你的個人頁",
 		"moreFor": "@{username} 的更多動作",
@@ -401,9 +409,6 @@
 		"followingEmpty": "你追蹤的人還沒有投票。",
 		"followingEmptyHint": "你追蹤的人所發起的進行中投票會顯示在這裡。到對方的個人檔案即可追蹤。",
 		"followingEmptyCta": "探索投票",
-		"bookmarks": "收藏",
-		"bookmarksEmpty": "還沒有收藏的投票。",
-		"bookmarksEmptyHint": "收藏投票就能在這裡找到，結束時也會通知你。",
 		"followTopic": "追蹤主題",
 		"followingTopic": "已追蹤主題",
 		"followTopicFailed": "無法追蹤主題，請再試一次。",

@@ -30,4 +30,17 @@ describe('BrandPulse', () => {
 		jest.advanceTimersByTime(300);
 		expect(announced(screen.getByRole('status'))).not.toBeNull();
 	});
+
+	// React client-renders a boundary that gets an update before it hydrates. It warns once per
+	// module, so a fresh React sees this render first.
+	it('renders on the client without a script warning', () => {
+		const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+		jest.isolateModules(() => {
+			const { render: freshRender } = require('@testing-library/react/pure');
+			const { BrandPulse: FreshBrandPulse } = require('@/components/BrandPulse');
+			freshRender(<FreshBrandPulse />).unmount();
+		});
+		expect(error).not.toHaveBeenCalled();
+		error.mockRestore();
+	});
 });

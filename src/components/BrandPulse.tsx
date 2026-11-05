@@ -3,10 +3,12 @@ import { LoadingLabel } from '@/components/ui/LoadingLabel';
 
 // A pending Suspense fallback is never hydrated, so the label is inserted by a script the
 // browser runs while parsing it. An inserted node is announced; unhiding one may not be.
-const ANNOUNCE_AFTER_300MS = `(() => {
-	const status = document.currentScript.parentElement;
+// It goes in as inner HTML because React warns when the client creates a script element,
+// which it does if it client-renders the boundary before hydrating it.
+const ANNOUNCE_AFTER_300MS = `<script>(() => {
+	const status = document.currentScript.closest('[role=status]');
 	setTimeout(() => status.append(status.querySelector('[hidden]').firstElementChild.cloneNode(true)), 300);
-})();`;
+})();</script>`;
 
 /** The pulsing wordmark's look, shared with SessionRetry so the two screens match when one replaces the other. */
 export const PULSING_WORDMARK = 'animate-wordmark-pulse block w-40';
@@ -22,7 +24,7 @@ export function BrandPulse() {
 			<span hidden>
 				<LoadingLabel />
 			</span>
-			<script dangerouslySetInnerHTML={{ __html: ANNOUNCE_AFTER_300MS }} />
+			<span hidden dangerouslySetInnerHTML={{ __html: ANNOUNCE_AFTER_300MS }} />
 		</div>
 	);
 }

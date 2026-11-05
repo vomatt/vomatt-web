@@ -12,7 +12,11 @@ const mockRefresh = jest.fn();
 jest.mock('next/navigation', () => ({ useRouter: () => ({ replace: jest.fn(), refresh: mockRefresh }) }));
 jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn() } }));
 jest.mock('@/lib/api/services/users', () => ({ editProfile: jest.fn(), updateVisibility: jest.fn() }));
-jest.mock('@/features/polls/service', () => ({ getUserPolls: jest.fn() }));
+const mockGetBookmarked = jest.fn();
+jest.mock('@/features/polls/service', () => ({
+	getUserPolls: jest.fn(),
+	getBookmarkedPolls: (...a: unknown[]) => mockGetBookmarked(...a),
+}));
 const mockUnblock = jest.fn();
 jest.mock('@/features/blocks/service', () => ({ blockUser: jest.fn(), unblockUser: (...a: unknown[]) => mockUnblock(...a) }));
 const mockFollow = jest.fn();
@@ -310,6 +314,7 @@ describe('VisitorProfileView', () => {
 });
 
 describe('OwnProfileView', () => {
+	beforeEach(() => mockGetBookmarked.mockReset().mockResolvedValue({ items: [], nextCursor: null }));
 	const voted = poll('v', { creatorId: 'u9', creatorUsername: 'jt', myOptionId: 'a', unread: true });
 	const sealed = poll('s', { creatorId: 'u9', votingActive: true, endTime: '2099-01-01T00:00:00Z', myOptionId: 'b', options: [{ id: 'a', text: 'Yes' }, { id: 'b', text: 'No' }] });
 	const mine = poll('m', { participantCount: 40 });
@@ -459,6 +464,60 @@ describe('OwnProfileView', () => {
 		expect(cell('people reached')).toHaveTextContent('–');
 		fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
 		expect(mockRefresh).toHaveBeenCalled();
+	});
+
+	it('loads saved polls only once the Saved tab opens, as plain links only the owner sees', async () => {
+		mockGetBookmarked.mockResolvedValue({ items: [poll('k', { creatorId: 'u9', creatorUsername: 'jt' })], nextCursor: null });
+		render(<OwnProfileView profile={me} polls={[]} />);
+		expect(mockGetBookmarked).not.toHaveBeenCalled();
+
+		const tab = screen.getByRole('tab', { name: /Saved/ });
+		expect(tab).toHaveTextContent('Only you can see this');
+		fireEvent.click(tab);
+		const row = await screen.findByRole('link', { name: /Poll k/ });
+		expect(row).toHaveAttribute('href', '/poll/k');
+		expect(screen.queryByRole('button', { name: 'More actions for Poll k' })).not.toBeInTheDocument();
+		expect(screen.getByText('Your saved polls are yours')).toBeInTheDocument();
+	});
+
+	it('keeps loaded saved polls when the owner looks at another tab and comes back', async () => {
+		mockGetBookmarked
+			.mockResolvedValueOnce({ items: [poll('k1', { creatorId: 'u9' })], nextCursor: 'c1' })
+			.mockResolvedValueOnce({ items: [poll('k2', { creatorId: 'u9' })], nextCursor: null });
+		render(<OwnProfileView profile={me} polls={[]} initialTab="saved" />);
+		fireEvent.click(await screen.findByRole('button', { name: 'Show more' }));
+		await screen.findByRole('link', { name: /Poll k2/ });
+
+		fireEvent.click(screen.getByRole('tab', { name: /Voted/ }));
+		fireEvent.click(screen.getByRole('tab', { name: /Saved/ }));
+		expect(screen.getByRole('link', { name: /Poll k2/ })).toBeInTheDocument();
+		expect(mockGetBookmarked).toHaveBeenCalledTimes(2);
+	});
+
+	it('loads the next page of saved polls on Show more', async () => {
+		mockGetBookmarked
+			.mockResolvedValueOnce({ items: [poll('k1', { creatorId: 'u9' })], nextCursor: 'c1' })
+			.mockResolvedValueOnce({ items: [poll('k2', { creatorId: 'u9' })], nextCursor: null });
+		render(<OwnProfileView profile={me} polls={[]} initialTab="saved" />);
+
+		fireEvent.click(await screen.findByRole('button', { name: 'Show more' }));
+		expect(await screen.findByRole('link', { name: /Poll k2/ })).toBeInTheDocument();
+		expect(mockGetBookmarked).toHaveBeenLastCalledWith('c1');
+		expect(screen.queryByRole('button', { name: 'Show more' })).not.toBeInTheDocument();
+	});
+
+	it('says how to fill an empty Saved tab, with a way to Explore', async () => {
+		render(<OwnProfileView profile={me} polls={[]} initialTab="saved" />);
+		expect(await screen.findByText(/Polls you save show up here/)).toBeInTheDocument();
+		expect(screen.getByRole('link', { name: 'Explore polls' })).toHaveAttribute('href', '/explore');
+	});
+
+	it("says the saved polls couldn't load, and retries just them", async () => {
+		mockGetBookmarked.mockRejectedValueOnce(new Error('down'));
+		render(<OwnProfileView profile={me} polls={[]} initialTab="saved" />);
+		fireEvent.click(await screen.findByRole('button', { name: 'Try again' }));
+		expect(await screen.findByText(/Polls you save show up here/)).toBeInTheDocument();
+		expect(mockGetBookmarked).toHaveBeenCalledTimes(2);
 	});
 
 	it('links to the public view of the page', () => {
