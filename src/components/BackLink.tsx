@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 
 import { StickyBar } from '@/components/StickyBar';
 import { ChevronLeft } from '@/components/ui/SvgIcons';
+import { cn } from '@/lib/utils';
 
 /** The Navigation API; TypeScript's DOM types don't include it yet. */
 type NavigationApi = { canGoBack: boolean };
@@ -17,7 +18,15 @@ type NavigationApi = { canGoBack: boolean };
  * where they came from (notifications, a profile). A page opened directly (a shared link,
  * a new tab) has no such entry and follows `href` instead.
  */
-export function BackLink({ href, children }: { href: string; children: React.ReactNode }) {
+export function BackLink({
+	href,
+	className,
+	children,
+}: {
+	href: string;
+	className?: string;
+	children: React.ReactNode;
+}) {
 	const router = useRouter();
 
 	function goBack(event: React.MouseEvent<HTMLAnchorElement>) {
@@ -30,7 +39,7 @@ export function BackLink({ href, children }: { href: string; children: React.Rea
 
 	return (
 		// Stays under the phone Header as the page scrolls; the bar's 44px backs the hit area
-		<StickyBar data-sticky-bar className="-my-3">
+		<StickyBar data-sticky-bar className={cn('-my-3', className)}>
 			<Link
 				href={href}
 				onClick={goBack}
