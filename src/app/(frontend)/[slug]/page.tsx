@@ -2,10 +2,15 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { cache, Suspense } from 'react';
 
+import { JsonLd } from '@/components/JsonLd';
 import { getMyProfile } from '@/data/auth';
 import { isOwnUsername, usernameFromSlug } from '@/features/account/username';
 import { getUserPolls } from '@/features/polls/service';
 import { getUserProfile } from '@/lib/api/services/users';
+import { getServerMessages } from '@/lib/getServerLocale';
+import { interpolate } from '@/lib/interpolate';
+import { profileHref } from '@/lib/routes';
+import { profileJsonLd, profileName } from '@/lib/structuredData';
 
 import { OwnProfile, ProfileSkeleton, PublicProfile } from './_components/Profile';
 
@@ -20,8 +25,17 @@ type Props = {
 export async function generateMetadata(props: Props): Promise<Metadata> {
 	const params = await props.params;
 	const username = usernameFromSlug(params.slug);
-	const profile = username ? await loadProfile(username).catch(() => null) : null;
-	return { title: profile ? profile.displayName || `@${profile.username}` : undefined };
+	const [profile, { messages }] = await Promise.all([
+		username ? loadProfile(username).catch(() => null) : null,
+		getServerMessages(),
+	]);
+	if (!profile) return {};
+	const name = profileName(profile);
+	return {
+		title: name,
+		description: profile.bio || interpolate(messages.meta.profileDescription, { name }),
+		alternates: { canonical: profileHref(profile.username) },
+	};
 }
 
 export default async function PageSlugRoute(props: Props) {
@@ -49,8 +63,11 @@ export default async function PageSlugRoute(props: Props) {
 	if (!profile) notFound();
 
 	return (
-		<Suspense fallback={<ProfileSkeleton rail={!isOwnUsername(me, username)} />}>
-			<PublicProfile profile={profile} polls={polls} viewerId={me?.id ?? null} preview={isOwnUsername(me, username)} />
-		</Suspense>
+		<>
+			<JsonLd data={profileJsonLd(profile)} />
+			<Suspense fallback={<ProfileSkeleton rail={!isOwnUsername(me, username)} />}>
+				<PublicProfile profile={profile} polls={polls} viewerId={me?.id ?? null} preview={isOwnUsername(me, username)} />
+			</Suspense>
+		</>
 	);
 }

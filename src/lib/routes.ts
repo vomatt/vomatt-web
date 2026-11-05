@@ -44,8 +44,13 @@ export const resolveHref = ({
 /** Pages that render without the app chrome (sidebar, phone header, TabBar). */
 export const isChromeless = (pathname: string) => pathname === '/login';
 
+/** An absolute URL on this site, for metadata that crawlers read off-site. */
+export const siteUrl = (path = '') => `${process.env.SITE_URL}${path}`;
+
 /** A user's profile; it shares the root with Sanity pages. */
 export const profileHref = (username: string) => `/${encodeURIComponent(username)}`;
+
+export const pollHref = (id: string) => `/poll/${encodeURIComponent(id)}`;
 
 /** The home feed filtered to one topic. */
 export const topicHref = (slug: string) => `/?tag=${encodeURIComponent(slug)}`;

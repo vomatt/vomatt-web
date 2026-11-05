@@ -17,6 +17,7 @@ import { toPayloadLocale } from '@/lib/locale';
 
 import { useSharePoll } from '../hooks/useSharePoll';
 import type { Audience } from '../schema';
+import { isPublic } from '../status';
 
 type PollFooterProps = {
 	pollId: string;
@@ -63,7 +64,7 @@ export function PollFooter({
 			t('poll.voted', {
 				count: turnout.toLocaleString(toPayloadLocale(currentLanguage)),
 			}),
-		audience && audience !== 'public' && t(`poll.audienceMeta.${audience}`),
+		!isPublic({ audience }) && t(`poll.audienceMeta.${audience}`),
 	]
 		.filter(Boolean)
 		.join(' · ');

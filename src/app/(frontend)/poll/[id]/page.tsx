@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { cache, Suspense } from 'react';
 
 import { BackLink } from '@/components/BackLink';
+import { JsonLd } from '@/components/JsonLd';
 import { PageShell } from '@/components/layout/PageShell';
 import { LoginPrompt } from '@/components/LoginPrompt';
 import { T } from '@/components/T';
@@ -16,8 +17,10 @@ import { PollCardSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import type { Poll } from '@/features/polls/schema';
 import { getInviteOnlyCreator, getPoll, getUserPolls } from '@/features/polls/service';
 import { shareDescription } from '@/features/polls/sharePreview';
-import { derivePollStatus, isCancelled, isInvitee } from '@/features/polls/status';
+import { derivePollStatus, isCancelled, isInvitee, isPublic } from '@/features/polls/status';
 import { AuthError } from '@/lib/api/client';
+import { pollHref } from '@/lib/routes';
+import { pollJsonLd } from '@/lib/structuredData';
 
 import { switchAccount } from './actions';
 import { PollDiscussion } from './PollDiscussion';
@@ -58,8 +61,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 		description,
 		openGraph: { title: poll.title, description, type: 'article' },
 		twitter: { card: 'summary_large_image', title: poll.title, description },
+		alternates: { canonical: pollHref(poll.id) },
 		// Unlisted and invite-only polls are meant only for people with the link
-		...(poll.audience && poll.audience !== 'public' && { robots: { index: false } }),
+		...(!isPublic(poll) && { robots: { index: false } }),
 	};
 }
 
@@ -111,6 +115,7 @@ async function PollDetail({ id }: { id: string }) {
 
 	return (
 		<div className="flex flex-col gap-6">
+			<JsonLd data={pollJsonLd(poll)} />
 			{hasNotification && <MarkNotificationRead pollId={poll.id} />}
 			<PollDiscussion
 				poll={poll}

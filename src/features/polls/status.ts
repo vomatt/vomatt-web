@@ -62,6 +62,11 @@ export function isInvitee(poll: Pick<Poll, 'audience' | 'creatorId'>, viewerId: 
 	return poll.audience === 'invite-only' && poll.creatorId !== viewerId;
 }
 
+/** Listed and indexable; Polls from before Audiences have none and are public. */
+export function isPublic(poll: Pick<Poll, 'audience'>) {
+	return !poll.audience || poll.audience === 'public';
+}
+
 /** Ended before its Deadline: Closed by the owner, or every Invitee voted. */
 export function endedEarly(poll: Pick<Poll, 'endTime' | 'deadline'>) {
 	return !!poll.endTime && !!poll.deadline && Date.parse(poll.endTime) < Date.parse(poll.deadline);
