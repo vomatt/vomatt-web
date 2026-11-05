@@ -364,11 +364,19 @@ describe('OwnProfileView', () => {
 		expect(cell('picks that won')).toHaveTextContent('Only you can see this');
 	});
 
-	it('shows the counts of created and voted polls from the API in the record', () => {
-		render(<OwnProfileView profile={{ ...me, createdPollCount: 6, votedPollCount: 21 }} polls={[mine, voted, sealed]} />);
+	it('shows the count of created polls from the API in the record', () => {
+		render(<OwnProfileView profile={{ ...me, createdPollCount: 6 }} polls={[mine, voted, sealed]} />);
 
 		expect(cell('polls asked')).toHaveTextContent('6');
-		expect(cell('polls voted in')).toHaveTextContent('21');
+	});
+
+	it('counts polls voted in as the Voted tab does, leaving out a vote on the owner\'s own poll', () => {
+		// votedPollCount includes Ballots on the owner's own Polls; the Voted tab doesn't list those
+		const mineVotedIn = { ...mine, myOptionId: 'a' };
+		render(<OwnProfileView profile={{ ...me, votedPollCount: 3 }} polls={[mineVotedIn, voted, sealed]} />);
+
+		expect(cell('polls voted in')).toHaveTextContent('2');
+		expect(screen.getByRole('tab', { name: /Voted/ })).toHaveTextContent('Voted2');
 	});
 
 	it('lists asked polls with the owner menu, and voted ones with the pick and outcome', () => {
@@ -447,6 +455,7 @@ describe('OwnProfileView', () => {
 	it("says the polls couldn't load, and retries", () => {
 		render(<OwnProfileView profile={me} polls={null} />);
 		expect(cell('polls asked')).toHaveTextContent('1');
+		expect(cell('polls voted in')).toHaveTextContent('–');
 		expect(cell('people reached')).toHaveTextContent('–');
 		fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
 		expect(mockRefresh).toHaveBeenCalled();
