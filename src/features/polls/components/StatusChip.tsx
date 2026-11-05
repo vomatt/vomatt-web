@@ -26,7 +26,7 @@ type StatusChipProps = {
 	 * caller shows `pollTiming(...).when` in its meta line.
 	 */
 	time: 'inline' | 'elsewhere';
-	/** On a poll card the chip is 10px, and a poll still taking votes gets the pink tint without a mark. */
+	/** On a poll card a poll still taking votes gets the pink tint without a mark. */
 	onCard?: boolean;
 };
 
@@ -36,20 +36,19 @@ export function StatusChip({ status, poll, time, onCard = false }: StatusChipPro
 	const clock = useViewerClock();
 	// The word needs no clock, so an `elsewhere` chip renders on the server too
 	const label = time === 'elsewhere' ? statusWord(status, t) : clock && pollTiming(poll, status, clock).chip;
-	const size = onCard && 'text-caption-4';
 
 	// Times depend on the browser's clock and time zone; hold the chip's
 	// height until then so the row doesn't grow after hydration
 	if (!label) {
-		return <span aria-hidden className={cn(chipClassName, size, 'invisible')}>&nbsp;</span>;
+		return <span aria-hidden className={cn(chipClassName, 'invisible')}>&nbsp;</span>;
 	}
 
 	if (onCard && (status === 'open' || status === 'closing')) {
-		return <span className={cn(chipClassName, size, 'bg-status-open-ends')}>{label}</span>;
+		return <span className={cn(chipClassName, 'bg-status-open-ends')}>{label}</span>;
 	}
 
 	return (
-		<span className={cn(chipClassName, size, STATUS_TINT[status])}>
+		<span className={cn(chipClassName, STATUS_TINT[status])}>
 			{status === 'closing' ? (
 				<Clock aria-hidden size={10} strokeWidth={3} />
 			) : (

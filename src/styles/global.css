@@ -275,9 +275,8 @@ html:has([data-slot='tabs-list'][data-sticky], [data-sticky-bar]) {
 	--text-caption-3--line-height: calc(1 / 0.75);
 	--text-caption-4: 0.625rem;
 
-	/* Tracking for small titles and uppercase labels, beside Tailwind's own steps */
+	/* Tracking for small titles, beside Tailwind's own steps */
 	--tracking-title: -0.01em;
-	--tracking-label: 0.06em;
 }
 
 @theme inline {

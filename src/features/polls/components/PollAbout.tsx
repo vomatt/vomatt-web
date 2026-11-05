@@ -26,7 +26,7 @@ export function PollAbout({ poll }: { poll: Poll }) {
 
 	return (
 		<section aria-labelledby={headingId} className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5">
-			<h2 id={headingId} className="text-caption-1 font-semibold uppercase tracking-label text-muted-foreground">
+			<h2 id={headingId} className="text-caption-1 font-medium text-muted-foreground">
 				{t('pollDetail.about')}
 			</h2>
 

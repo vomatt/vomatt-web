@@ -40,7 +40,7 @@ export function PollSideCard({ kind, polls }: PollSideCardProps) {
 		<section aria-labelledby={headingId} className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-[18px]">
 			<h2
 				id={headingId}
-				className="text-caption-1 font-semibold uppercase tracking-label text-muted-foreground"
+				className="text-caption-1 font-medium text-muted-foreground"
 			>
 				{t(heading)}
 			</h2>
