@@ -1984,6 +1984,38 @@
         },
         "type" : "object"
       },
+      "ApiResponseUnreadIdsResponse" : {
+        "description" : "Envelope of every API response, success or error",
+        "properties" : {
+          "data" : {
+            "$ref" : "#/components/schemas/UnreadIdsResponse"
+          },
+          "error" : {
+            "description" : "Legacy duplicate of `message` on errors; null on success. Use `message` instead",
+            "example" : "Poll not found",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "errorCode" : {
+            "description" : "Stable machine-readable error code (lowercase, dot-separated); branch on this, not on `message`. Null on success",
+            "example" : "vote.not_found",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "message" : {
+            "description" : "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",
+            "example" : "Operation completed",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "success" : {
+            "description" : "true on success, false on error",
+            "example" : true,
+            "type" : "boolean"
+          }
+        },
+        "type" : "object"
+      },
       "ApiResponseUserDataExportResponse" : {
         "description" : "Envelope of every API response, success or error",
         "properties" : {
@@ -4655,6 +4687,21 @@
             "example" : 3,
             "format" : "int64",
             "type" : "integer"
+          }
+        },
+        "type" : "object"
+      },
+      "UnreadIdsResponse" : {
+        "description" : "Ids of unread notifications in the feed",
+        "nullable" : true,
+        "properties" : {
+          "ids" : {
+            "description" : "Ids (`NotificationResponse.id`) of unread notifications, newest first",
+            "items" : {
+              "example" : "comment_0199f2a5-1c2d-7e3f-8a4b-5c6d7e8f9a0b",
+              "type" : "string"
+            },
+            "type" : "array"
           }
         },
         "type" : "object"
@@ -13299,6 +13346,90 @@
           }
         },
         "summary" : "Unread notification count",
+        "tags" : [ "Notification" ]
+      }
+    },
+    "/api/notifications/unread-ids" : {
+      "get" : {
+        "description" : "**Auth**: required\n**Precondition**: none\n**Behavior**: returns the `id`s of the notifications `GET /api/notifications` lists with `read` false, newest first: every kind the caller's preferences leave on, or with `category` only that category's. At most 100, the newest ones. Call it before `POST /api/notifications/read-all` to keep highlighting what was unread while the feed is paged afterwards (every item then comes back with `read` true).\n**Side effects**: none\n**Errors**:\n- 400 `common.type_mismatch`: `category` is not one of the categories",
+        "operationId" : "unreadIds",
+        "parameters" : [ {
+          "description" : "Only this category's notifications; omit for all",
+          "example" : "CONVERSATION",
+          "in" : "query",
+          "name" : "category",
+          "required" : false,
+          "schema" : {
+            "enum" : [ "CONVERSATION", "LIKE", "POLL_END", "INVITATION", "FOLLOW" ],
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "data" : {
+                    "ids" : [ "comment_0199f2a5-1c2d-7e3f-8a4b-5c6d7e8f9a0b", "result_0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05" ]
+                  },
+                  "error" : null,
+                  "errorCode" : null,
+                  "message" : null,
+                  "success" : true
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResponseUnreadIdsResponse"
+                }
+              }
+            },
+            "description" : "Success"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Authenticated but not allowed (errorCode `common.forbidden`)"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          }
+        },
+        "summary" : "Unread notification ids",
         "tags" : [ "Notification" ]
       }
     },

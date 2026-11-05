@@ -28,6 +28,14 @@ export async function getUnreadCount(category?: NotificationCategory): Promise<n
 	}
 }
 
+const UnreadIdsSchema = z.object({ ids: z.array(z.string()) });
+
+/** Ids of the feed's unread notifications (newest first, at most 100; one category's with `category`). Fetch before read-all to know what was unread. */
+export async function getUnreadNotificationIds(category?: NotificationCategory): Promise<string[]> {
+	const query = category ? `?${new URLSearchParams({ category })}` : '';
+	return UnreadIdsSchema.parse(await apiClient(`/notifications/unread-ids${query}`)).ids;
+}
+
 const KINDS = new Set<string>(NotificationSchema.options.map((option) => option.shape.kind.value));
 const RawPage = cursorPageSchema(z.object({ kind: z.string() }).passthrough());
 
