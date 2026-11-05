@@ -2,8 +2,9 @@ import { render, screen } from '@testing-library/react';
 
 import { TabBar } from '@/components/layout/TabBar';
 
+let mockPathname = '/';
 jest.mock('next/navigation', () => ({
-	usePathname: () => '/',
+	usePathname: () => mockPathname,
 }));
 
 jest.mock('@/contexts/LanguageContext', () => require('../helpers/mockLanguage'));
@@ -18,6 +19,10 @@ jest.mock('@/features/polls/components/CreatePollTrigger', () => ({
 }));
 
 const profileTab = () => screen.getByRole('link', { name: 'Profile' });
+
+beforeEach(() => {
+	mockPathname = '/';
+});
 
 describe('TabBar', () => {
 	it("shows the signed-in person's avatar on the profile tab", () => {
@@ -36,5 +41,18 @@ describe('TabBar', () => {
 		render(<TabBar userSession={{}} username="mei" />);
 		expect(screen.getByRole('link', { name: 'Notifications' })).toHaveAttribute('href', '/notifications');
 		expect(screen.queryByRole('link', { name: 'My Polls' })).not.toBeInTheDocument();
+	});
+
+	it.each(['/settings', '/settings/language'])('keeps the profile tab active on %s', (pathname) => {
+		mockPathname = pathname;
+		render(<TabBar userSession={{}} username="mei" />);
+		expect(profileTab()).toHaveAttribute('aria-current', 'true');
+		expect(screen.getByRole('link', { name: 'Home' })).not.toHaveAttribute('aria-current');
+	});
+
+	it('marks the profile tab as the page on the profile itself', () => {
+		mockPathname = '/mei';
+		render(<TabBar userSession={{}} username="mei" />);
+		expect(profileTab()).toHaveAttribute('aria-current', 'page');
 	});
 });

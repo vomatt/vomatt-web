@@ -8,6 +8,9 @@ const ANNOUNCE_AFTER_300MS = `(() => {
 	setTimeout(() => status.append(status.querySelector('[hidden]').firstElementChild.cloneNode(true)), 300);
 })();`;
 
+/** The pulsing wordmark's look, shared with SessionRetry so the two screens match when one replaces the other. */
+export const PULSING_WORDMARK = 'animate-wordmark-pulse block w-40';
+
 /**
  * The first-load splash: the wordmark with opacity running along its letters. Wordmark and
  * label both appear after 300ms, so quick loads are neither shown nor announced.
@@ -15,7 +18,7 @@ const ANNOUNCE_AFTER_300MS = `(() => {
 export function BrandPulse() {
 	return (
 		<div role="status" className="flex min-h-svh items-center justify-center">
-			<BrandLogo className="animate-wordmark-pulse block w-28 animate-in fade-in delay-300 duration-200 ease-out fill-mode-both" />
+			<BrandLogo className={`${PULSING_WORDMARK} animate-in fade-in delay-300 duration-200 ease-out fill-mode-both`} />
 			<span hidden>
 				<LoadingLabel />
 			</span>

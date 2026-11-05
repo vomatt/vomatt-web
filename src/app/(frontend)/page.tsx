@@ -1,9 +1,16 @@
+import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
+import { JsonLd } from '@/components/JsonLd';
 import { PageShell } from '@/components/layout/PageShell';
 import { getMyProfile, getUserSession } from '@/data/auth';
+import { DEFAULT_SITE_NAME } from '@/data/constants';
 import { PollListSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import { getFeed, getFollowedTags, getPopularTags } from '@/features/polls/service';
+import { getServerMessages } from '@/lib/getServerLocale';
+import { topicHref } from '@/lib/routes';
+import { getSiteSettings } from '@/lib/siteSettings';
+import { websiteJsonLd } from '@/lib/structuredData';
 
 import { HomepageHeader } from './_components/HomepageHeader';
 import { HomeRail } from './_components/HomeRail';
@@ -11,25 +18,39 @@ import { PollFeedList } from './_components/PollFeedList';
 
 type Props = { searchParams: Promise<{ tag?: string | string[] }> };
 
+// Repeated ?tag= arrives as an array; the feed filters by one topic
+const firstTag = (tag: string | string[] | undefined) => (Array.isArray(tag) ? tag[0] : tag);
+
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+	const tag = firstTag((await searchParams).tag);
+	return { alternates: { canonical: tag ? topicHref(tag) : '/' } };
+}
+
 export default async function Page({ searchParams }: Props) {
-	const { tag: tagParam } = await searchParams;
-	// Repeated ?tag= arrives as an array; the feed filters by one topic
-	const tag = Array.isArray(tagParam) ? tagParam[0] : tagParam;
-	// Read from the cookie, so the rail paints with the shell instead of after the feed
-	const user = await getUserSession();
+	const tag = firstTag((await searchParams).tag);
+	// The layout waits on the same profile check, so the rail still paints with the shell instead of after the feed
+	const [user, settings, { messages }] = await Promise.all([getUserSession(), getSiteSettings(), getServerMessages()]);
 
 	return (
-		<PageShell className="pt-0" rail={<HomeRail signedIn={!!user} />}>
-			<Suspense
-				fallback={
-					<div className="w-full max-w-feed py-4">
-						<PollListSkeleton />
-					</div>
-				}
-			>
-				<Feed tag={tag} viewerId={user?.sub} />
-			</Suspense>
-		</PageShell>
+		<>
+			<JsonLd
+				data={websiteJsonLd({
+					name: settings?.siteTitle || DEFAULT_SITE_NAME,
+					description: messages.meta.siteDescription,
+				})}
+			/>
+			<PageShell className="pt-0" rail={<HomeRail signedIn={!!user} />}>
+				<Suspense
+					fallback={
+						<div className="w-full max-w-feed py-4">
+							<PollListSkeleton />
+						</div>
+					}
+				>
+					<Feed tag={tag} viewerId={user?.sub} />
+				</Suspense>
+			</PageShell>
+		</>
 	);
 }
 

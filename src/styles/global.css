@@ -162,9 +162,10 @@
 	}
 }
 
-/* Keep focused and linked-to targets clear of the phone header */
+/* Keep focused and linked-to targets clear of the phone header and TabBar */
 html {
 	scroll-padding-top: var(--header-offset);
+	scroll-padding-bottom: var(--tabbar-space);
 }
 /* A sticky tab list or back bar (44px) and its 1.5rem fade sit under it too */
 html:has([data-slot='tabs-list'][data-sticky], [data-sticky-bar]) {
@@ -349,6 +350,7 @@ html:has([data-slot='tabs-list'][data-sticky], [data-sticky-bar]) {
 	/* The phone Header's slide and the sticky bars that follow it: unhurried, settling softly */
 	--ease-header: cubic-bezier(0.32, 0.72, 0, 1);
 	--z-index-header: 48;
+	--z-index-tabbar: 48;
 	--z-index-overlay: 49;
 	--z-index-dialog: 50;
 	--z-index-popover: 50;
@@ -449,6 +451,44 @@ html:has([data-slot='tabs-list'][data-sticky], [data-sticky-bar]) {
 	@container scroll-state(stuck: top) {
 		& > [data-sticky-fade] {
 			opacity: 1;
+		}
+	}
+}
+
+/* A card's confirm row on phones (the Ballot's Vote or Update vote once an option is picked): held above the TabBar
+   while the card's options are on screen, so the pick never leaves its confirmation off-screen. Card-colored, and
+   20px past its sides to the card's edges like follow-header; the padding reaches into the card's own bottom padding
+   (the margin gives it back, so nothing moves), and once stuck it fades into the options scrolling under it */
+@utility follow-tabbar {
+	@media (width < 48rem) {
+		position: sticky;
+		bottom: var(--tabbar-space);
+		z-index: 20;
+		padding-bottom: 0.75rem;
+		margin-bottom: -0.75rem;
+		background-color: var(--card);
+		box-shadow:
+			-1.25rem 0 var(--card),
+			1.25rem 0 var(--card);
+		container-type: scroll-state;
+		& > [data-sticky-fade] {
+			position: absolute;
+			inset-inline: 0;
+			bottom: 100%;
+			height: 1.5rem;
+			background: linear-gradient(transparent, var(--card));
+			pointer-events: none;
+			opacity: 0;
+		}
+		@media (prefers-reduced-motion: no-preference) {
+			& > [data-sticky-fade] {
+				transition: opacity 150ms;
+			}
+		}
+		@container scroll-state(stuck: bottom) {
+			& > [data-sticky-fade] {
+				opacity: 1;
+			}
 		}
 	}
 }

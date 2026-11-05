@@ -127,7 +127,8 @@ export function OwnProfileView({
 					cells={[
 						// The counts of the tabs' lists, not the public totals, which leave out Scheduled, Unlisted and Invite-only polls
 						{ label: t('profile.recordAsked'), value: profile.createdPollCount },
-						{ label: t('profile.recordVoted'), value: profile.votedPollCount },
+						// Not votedPollCount: it counts Ballots on the owner's own polls, which the Voted tab leaves out
+						{ label: t('profile.recordVoted'), value: polls ? voted.length : null },
 						{
 							label: t('profile.recordReached'),
 							value: polls ? asked.reduce((sum, poll) => sum + (getTurnout(poll) ?? 0), 0) : null,

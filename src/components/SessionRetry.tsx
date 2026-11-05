@@ -1,12 +1,12 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { startTransition, useEffect, useState, useSyncExternalStore } from 'react';
 
 import BrandLogo from '@/components/BrandLogo';
+import { PULSING_WORDMARK } from '@/components/BrandPulse';
 import { EmptyCard } from '@/components/EmptyCard';
 import { Button } from '@/components/ui/Button';
-import { Skeleton } from '@/components/ui/Skeleton';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { SESSION_PROBE_HEADER, SESSION_UNCONFIRMED } from '@/data/constants';
 
@@ -30,7 +30,8 @@ async function sessionSettled() {
 
 /**
  * Rendered in place of a page while the proxy couldn't reach the API to refresh
- * the session, so a signed-in person never sees the page signed out. It probes
+ * the session, or the layout couldn't load the profile, so a signed-in person
+ * never sees the page signed out. It probes
  * the proxy until the session settles, then refreshes to render the page.
  * After the last try it says so and offers another round.
  */
@@ -48,9 +49,15 @@ export function SessionRetry() {
 		const timer = setTimeout(async () => {
 			const settled = await sessionSettled();
 			if (cancelled) return;
-			// Once settled this unmounts as the page renders, so no further tries are scheduled
-			if (settled) router.refresh();
-			else setTries((n) => n + 1);
+			// Once settled the refresh renders the page and this unmounts. It stays when the
+			// layout still can't load the profile, so the refresh counts as a try. One transition
+			// commits both together, so the give-up card can't flash before the page arrives.
+			if (settled) {
+				startTransition(() => {
+					router.refresh();
+					setTries((n) => n + 1);
+				});
+			} else setTries((n) => n + 1);
 		}, RETRY_DELAYS[tries]);
 		return () => {
 			cancelled = true;
@@ -59,7 +66,7 @@ export function SessionRetry() {
 	}, [tries, gaveUp, router]);
 
 	return (
-		<div className="flex min-h-svh flex-col items-center justify-center gap-5 px-4">
+		<div className="flex min-h-svh flex-col items-center justify-center px-4">
 			{gaveUp ? (
 				<EmptyCard
 					className="w-full max-w-feed"
@@ -69,10 +76,8 @@ export function SessionRetry() {
 					action={<Button onClick={() => setTries(0)}>{t('common.tryAgain')}</Button>}
 				/>
 			) : (
-				<>
-					<BrandLogo className="w-28 text-foreground" />
-					<Skeleton className="h-1 w-16 rounded-full" />
-				</>
+				// No 300ms delay like the splash: this screen stays at least 1.5s, so it can't flash
+				<BrandLogo className={`${PULSING_WORDMARK} text-foreground`} />
 			)}
 			<p role="status" className="sr-only">
 				{hydrated && !gaveUp ? t('common.signingIn') : null}

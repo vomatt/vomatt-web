@@ -28,6 +28,14 @@ export async function getUnreadCount(category?: NotificationCategory): Promise<n
 	}
 }
 
+const UnreadIdsSchema = z.object({ ids: z.array(z.string()) });
+
+/** Ids of the feed's unread notifications (newest first, at most 100; one category's with `category`). Fetch before read-all to know what was unread. */
+export async function getUnreadNotificationIds(category?: NotificationCategory): Promise<string[]> {
+	const query = category ? `?${new URLSearchParams({ category })}` : '';
+	return UnreadIdsSchema.parse(await apiClient(`/notifications/unread-ids${query}`)).ids;
+}
+
 const KINDS = new Set<string>(NotificationSchema.options.map((option) => option.shape.kind.value));
 const RawPage = cursorPageSchema(z.object({ kind: z.string() }).passthrough());
 
@@ -52,20 +60,6 @@ export async function getNotifications(
 	return { items, nextCursor: page.nextCursor };
 }
 
-const UnreadIdsSchema = z.object({ ids: z.array(z.string()) });
-
-/** Ids of the feed's unread items, newest first, at most 100. Read them before `readAllNotifications` to keep showing what was new. */
-export async function getUnreadNotificationIds(): Promise<string[]> {
-	return UnreadIdsSchema.parse(await apiClient('/notifications/unread-ids')).ids;
-}
-
-/** Marks read every notification up to now, of every kind; later ones arrive unread. Idempotent. */
-export async function readAllNotifications(): Promise<ActionResult<void>> {
-	return attempt(async () => {
-		await apiClient('/notifications/read-all', { method: 'POST' });
-	});
-}
-
 /** The notification is gone (Comment deleted, follow undone), or the deprecated Poll id names a Deleted Poll. */
 const NOTHING_TO_READ = ['notification.not_found', 'vote.not_found'];
 
@@ -83,6 +77,13 @@ export async function markNotificationRead(id: string): Promise<boolean> {
 		console.error('Marking notification read failed:', error);
 		return false;
 	}
+}
+
+/** Marks read every notification created up to now, of every kind; the unread count becomes 0. Idempotent. */
+export async function markAllNotificationsRead(): Promise<ActionResult> {
+	return attempt(async () => {
+		await apiClient('/notifications/read-all', { method: 'POST' });
+	});
 }
 
 export async function getNotificationPreferences(): Promise<NotificationPreferences> {

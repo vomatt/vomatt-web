@@ -2,7 +2,7 @@
  * Generates openapi.json from Zod schemas.
  *
  * Usage:
- *   npx tsx scripts/generate-openapi.ts
+ *   pnpm generate:openapi
  *
  * This overwrites openapi.json at the project root.
  */

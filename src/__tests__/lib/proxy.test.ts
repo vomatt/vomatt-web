@@ -26,6 +26,11 @@ function refreshResponse(accessToken: string, refreshToken = 'r2', status = 200)
 	);
 }
 
+/** vomatt-api's answer to GET /users/me for a session it still accepts. */
+function meResponse() {
+	return new Response(JSON.stringify({ success: true, data: { id: 'user-1' } }), { status: 200 });
+}
+
 /** The cookies Server Components will see for this request. */
 function forwardedCookies(res: Response) {
 	return res.headers.get('x-middleware-request-cookie') ?? '';
@@ -229,6 +234,7 @@ describe('proxy auth', () => {
 	});
 
 	it('sends a signed-in user on /login to the redirect target', async () => {
+		fetchMock.mockResolvedValue(meResponse());
 		const res = await proxy(
 			requestFor('/login?redirect=%2Fpoll%2Fp1', { accessToken: await signToken() })
 		);
@@ -298,7 +304,39 @@ describe('proxy auth', () => {
 	});
 
 	it('redirects a signed-in user away from login', async () => {
+		fetchMock.mockResolvedValue(meResponse());
 		const res = await proxy(requestFor('/login', { accessToken: await signToken() }));
 		expect(res.headers.get('location')).toBe('http://localhost:3000/');
+	});
+
+	it('opens login for a session signed out from another device, and clears its cookies', async () => {
+		fetchMock.mockResolvedValue(
+			new Response(JSON.stringify({ success: false, errorCode: 'auth.session_revoked' }), { status: 401 })
+		);
+
+		const res = await proxy(requestFor('/login', { accessToken: await signToken(), refreshToken: 'r1' }));
+
+		expect(res.headers.get('location')).toBeNull();
+		expect(res.cookies.get('accessToken')?.value).toBe('');
+		expect(res.cookies.get('refreshToken')?.value).toBe('');
+		expect(forwardedCookies(res)).not.toContain('accessToken=');
+	});
+
+	it.each([
+		['the API cannot answer', () => Promise.reject(new TypeError('fetch failed'))],
+		['the token is refused for another reason', () =>
+			Promise.resolve(new Response(JSON.stringify({ errorCode: 'auth.token.expired' }), { status: 401 }))],
+	])('keeps the session and leaves login when %s', async (_, reply) => {
+		fetchMock.mockImplementation(reply);
+		const res = await proxy(requestFor('/login', { accessToken: await signToken(), refreshToken: 'r1' }));
+		expect(res.headers.get('location')).toBe('http://localhost:3000/');
+		expect(res.cookies.get('refreshToken')).toBeUndefined();
+	});
+
+	it('asks the API about a session only when a page load of login would send it away', async () => {
+		const accessToken = await signToken();
+		await proxy(requestFor('/', { accessToken, refreshToken: 'r1' }));
+		await proxy(new NextRequest('http://localhost:3000/login', { method: 'POST', headers: { cookie: `accessToken=${accessToken}` } }));
+		expect(fetchMock).not.toHaveBeenCalled();
 	});
 });

@@ -85,6 +85,24 @@ describe('UnreadCountProvider', () => {
 		expect(mockGetUnreadCount).toHaveBeenCalledTimes(3);
 		jest.useRealTimers();
 	});
+
+	it('keeps the newest count when an older check answers last', async () => {
+		let answerFirst!: (count: number) => void;
+		mockGetUnreadCount.mockReturnValueOnce(new Promise((resolve) => (answerFirst = resolve))).mockResolvedValueOnce(0);
+		function Refresh() {
+			return <button onClick={useUnreadCount().refresh}>Refresh</button>;
+		}
+		render(
+			<UnreadCountProvider signedIn>
+				<Count />
+				<Refresh />
+			</UnreadCountProvider>
+		);
+		fireEvent.click(screen.getByRole('button', { name: 'Refresh' }));
+		await waitFor(() => expect(mockGetUnreadCount).toHaveBeenCalledTimes(2));
+		await act(async () => answerFirst(5));
+		expect(screen.getByTestId('count')).toHaveTextContent('0');
+	});
 });
 
 describe('UnreadCountProvider when the session ends', () => {

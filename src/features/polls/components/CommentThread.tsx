@@ -28,6 +28,7 @@ import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { BlockUserDialog } from '@/features/blocks/BlockUserDialog';
 import { ProfileAvatar, ProfileName } from '@/features/profiles/UserChip';
 import { useHydrated } from '@/hooks/useHydrated';
+import { apiErrorText } from '@/lib/api/error-text';
 import { commentHash, profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
@@ -49,9 +50,14 @@ function textMax(addressee: string | null) {
 	return COMMENT_MAX - (addressee ? `@${addressee} `.length : 0);
 }
 
-// Like and Reply are 32px pills (36px on phones); the ::before extends the hit area to 44px
+// Like and Reply are 32px pills (36px on phones); the ::before extends the hit area to 44px, and
+// on phones they are at least 44px wide
 const pillClassName =
-	"relative inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-caption-3 font-medium text-muted-foreground transition-colors before:absolute before:inset-x-0 before:-inset-y-1 before:content-[''] hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring md:h-8";
+	"relative inline-flex h-9 min-w-11 shrink-0 items-center justify-center gap-1.5 rounded-full px-2.5 md:min-w-0 text-caption-3 font-medium text-muted-foreground transition-colors before:absolute before:inset-x-0 before:-inset-y-1 before:content-[''] hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring md:h-8";
+
+// View, Hide or retry the Replies: 32px tall; the ::before extends the hit area to 44px
+const repliesActionClassName =
+	"relative mt-0.5 inline-flex h-8 items-center px-0.5 text-caption-2 font-medium text-muted-foreground before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-[''] hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring";
 
 /** The signed-in viewer, whose avatar sits beside the composers. */
 type Viewer = { username: string; avatarUrl: string | null };
@@ -216,9 +222,9 @@ export function CommentThread({ thread, pollId, viewerId, viewer, requireAuth, r
 				className="gap-3"
 				requireAuth={requireAuth}
 				onPost={async (text) => {
-					const ok = await thread.add(text, t('comments.you'));
-					if (!ok) toast.error(t('comments.postFailed'));
-					return ok;
+					const result = await thread.add(text, t('comments.you'));
+					if (!result.ok) toast.error(apiErrorText(t, result, 'comments.postFailed'));
+					return result.ok;
 				}}
 			/>
 
@@ -423,7 +429,7 @@ function Composer({
 					}}
 					placeholder={placeholder}
 					ref={fieldRef}
-					className="relative min-h-[60px] resize-none"
+					className="relative max-h-48 min-h-[60px] resize-none"
 				/>
 				<div className="flex items-center justify-end gap-1.5">
 					{text.length > max - COUNTER_WITHIN && (
@@ -479,24 +485,61 @@ function CommentItem({
 	const { t } = useLanguage();
 	const replyList = thread.replies[comment.id];
 	const replyCount = comment.replyCount ?? 0;
+	// The previews the Comment came with; Hide replies folds back to them
+	const [previewCount] = useState(() => replyList?.items.length ?? 0);
+	const [isHidden, setIsHidden] = useState(false);
+	// View and Hide replace each other, and the row leaves while a page loads; a focused one that goes
+	// hands focus to the row's first button once it is back, unless focus has moved on meanwhile
+	const repliesRowRef = useRef<HTMLDivElement>(null);
+	const pressedRef = useRef<HTMLButtonElement | null>(null);
+	const pressRepliesAction = (event: React.MouseEvent<HTMLButtonElement>, action: () => void) => {
+		pressedRef.current = event.currentTarget === document.activeElement ? event.currentTarget : null;
+		action();
+	};
+	useEffect(() => {
+		const pressed = pressedRef.current;
+		if (!pressed || pressed.isConnected) return;
+		const focused = document.activeElement;
+		if (focused && focused !== document.body) {
+			pressedRef.current = null;
+			return;
+		}
+		const next = repliesRowRef.current?.querySelector('button');
+		if (!next) return;
+		pressedRef.current = null;
+		next.focus();
+	});
 	// Replying to a Reply addresses its author; the API files it under this Comment
 	const openComposer = (reply: Comment | null) =>
 		requireAuth(() => onReplyTargetChange({ rootId: comment.id, reply }));
 
+	const loaded = replyList?.items ?? [];
+	const replies = isHidden ? loaded.slice(0, previewCount) : loaded;
+	const viewLabel = (count: number, more: boolean) =>
+		t(more ? (count === 1 ? 'comments.moreReply' : 'comments.moreReplies') : count === 1 ? 'comments.viewReply' : 'comments.viewReplies', { count });
+
 	// One button walks the Replies: view them, retry a failed page, or load the ones after those shown
-	let repliesAction: string | null = null;
-	if (!replyList) {
+	let repliesAction: { label: string; onClick: () => void; expands?: boolean } | null = null;
+	if (isHidden) {
+		repliesAction = {
+			label: viewLabel(Math.max(1, replyCount - replies.length), replies.length > 0),
+			onClick: () => setIsHidden(false),
+			expands: true,
+		};
+	} else if (!replyList) {
 		if (replyCount > 0) {
-			repliesAction = t(replyCount === 1 ? 'comments.viewReply' : 'comments.viewReplies', { count: replyCount });
+			repliesAction = { label: viewLabel(replyCount, false), onClick: () => thread.loadReplies(comment.id), expands: true };
 		}
 	} else if (replyList.status === 'error') {
-		repliesAction = t('comments.retry');
+		repliesAction = { label: t('comments.retry'), onClick: () => thread.loadReplies(comment.id) };
 	} else if (replyList.status === 'ready' && replyList.nextCursor) {
-		const more = Math.max(1, replyCount - replyList.items.length);
-		repliesAction = t(more === 1 ? 'comments.moreReply' : 'comments.moreReplies', { count: more });
+		repliesAction = {
+			label: viewLabel(Math.max(1, replyCount - loaded.length), true),
+			onClick: () => thread.loadReplies(comment.id),
+			expands: true,
+		};
 	}
-
-	const replies = replyList?.items ?? [];
+	const canHide = !isHidden && replyList?.status === 'ready' && loaded.length > previewCount;
 
 	/** The reply a reply's leading `@name` answers: the closest earlier one by that author. */
 	const findAddressee = (from: number, author: string) => {
@@ -521,11 +564,12 @@ function CommentItem({
 				onCancel={() => onReplyTargetChange(null)}
 				onPost={async (text) => {
 					// Show the thread the Reply lands in
+					setIsHidden(false);
 					if (!replyList && replyCount > 0) await thread.loadReplies(comment.id);
-					const ok = await thread.add(text, t('comments.you'), comment.id);
-					if (ok) onReplyTargetChange(null);
-					else toast.error(t('comments.postFailed'));
-					return ok;
+					const result = await thread.add(text, t('comments.you'), comment.id);
+					if (result.ok) onReplyTargetChange(null);
+					else toast.error(apiErrorText(t, result, 'comments.postFailed'));
+					return result.ok;
 				}}
 			/>
 		),
@@ -566,19 +610,33 @@ function CommentItem({
 	if (replyList?.status === 'loading') {
 		rows.push({ key: 'loading', node: <Skeleton className="mt-1 h-10 flex-1 rounded-lg" /> });
 	}
-	if (repliesAction) {
+	if (repliesAction || canHide) {
 		rows.push({
 			key: 'replies-action',
 			className: 'items-center',
 			node: (
-				<button
-					type="button"
-					// 32px tall; the ::before extends the hit area to 44px
-					className="relative mt-0.5 inline-flex h-8 items-center px-0.5 text-caption-2 font-medium text-muted-foreground before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-[''] hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring"
-					onClick={() => thread.loadReplies(comment.id)}
-				>
-					{repliesAction}
-				</button>
+				<div ref={repliesRowRef} className="flex items-center gap-4">
+					{repliesAction && (
+						<button
+							type="button"
+							aria-expanded={repliesAction.expands ? false : undefined}
+							className={repliesActionClassName}
+							onClick={(event) => pressRepliesAction(event, repliesAction.onClick)}
+						>
+							{repliesAction.label}
+						</button>
+					)}
+					{canHide && (
+						<button
+							type="button"
+							aria-expanded
+							className={repliesActionClassName}
+							onClick={(event) => pressRepliesAction(event, () => setIsHidden(true))}
+						>
+							{t('comments.hideReplies')}
+						</button>
+					)}
+				</div>
 			),
 		});
 	}
@@ -711,10 +769,10 @@ function CommentBody({
 		}
 		const next = addressee ? `@${addressee} ${body}` : body;
 		isSaving.current = true;
-		const saved = await thread.edit(comment.id, next);
+		const result = await thread.edit(comment.id, next);
 		isSaving.current = false;
-		if (saved) closeEdit();
-		else toast.error(t('comments.editFailed'));
+		if (result.ok) closeEdit();
+		else toast.error(apiErrorText(t, result, 'comments.editFailed'));
 	};
 
 	const closeEdit = () => {
@@ -726,12 +784,12 @@ function CommentBody({
 		const threadEl = moreRef.current?.closest<HTMLElement>('[data-comment-thread]');
 		isDeleting.current = true;
 		setConfirmingDelete(false);
-		const ok = await thread.remove(comment);
+		const result = await thread.remove(comment);
 		isDeleting.current = false;
-		if (ok) threadEl?.focus();
+		if (result.ok) threadEl?.focus();
 		else {
 			moreRef.current?.focus();
-			toast.error(t('comments.deleteFailed'));
+			toast.error(apiErrorText(t, result, 'comments.deleteFailed'));
 		}
 	};
 
@@ -787,7 +845,7 @@ function CommentBody({
 						aria-label={t('comments.edit')}
 						maxLength={textMax(addressee)}
 						rows={3}
-						className="resize-none"
+						className="max-h-48 resize-none"
 						ref={editRef}
 					/>
 					<div className="flex items-center gap-1.5">
@@ -857,7 +915,7 @@ function CommentBody({
 							<Menu.Trigger
 								ref={moreRef}
 								aria-label={t('comments.more')}
-								className={cn(pillClassName, 'w-9 justify-center px-0 data-popup-open:bg-field data-popup-open:text-foreground md:w-8')}
+								className={cn(pillClassName, 'w-11 px-0 data-popup-open:bg-field data-popup-open:text-foreground md:w-8')}
 							>
 								<Ellipsis className="size-4" fill="currentColor" />
 							</Menu.Trigger>

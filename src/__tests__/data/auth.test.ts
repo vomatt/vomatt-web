@@ -3,7 +3,7 @@
  */
 import { redirect } from 'next/navigation';
 
-import { getLoginHref, getMyProfile, redirectToLogin } from '@/data/auth';
+import { getLoginHref, getMyProfile, getUserSession, loadMyProfile, redirectToLogin } from '@/data/auth';
 import { ApiError, AuthError } from '@/lib/api/client';
 import { getMyProfile as fetchMyProfile } from '@/lib/api/services/users';
 
@@ -35,6 +35,15 @@ it('still surfaces other failures', async () => {
 	await expect(getMyProfile()).rejects.toThrow('Boom');
 });
 
+it.each([
+	['a server error', new ApiError('Boom', 500, { errorCode: null })],
+	['rate limiting', new ApiError('Too many requests', 429, { errorCode: null }, 30)],
+	['a network failure', new TypeError('fetch failed')],
+])('reports %s as unavailable instead of throwing', async (_, error) => {
+	mockFetch.mockRejectedValue(error);
+	await expect(loadMyProfile()).resolves.toEqual({ profile: null, error });
+});
+
 it('sends a visitor with no session to sign in', async () => {
 	accessToken = undefined;
 	await redirectToLogin('/settings');
@@ -56,4 +65,25 @@ it('tells a session whose account was deleted that it is gone', async () => {
 it('gives a signed-in user a plain login link', async () => {
 	mockFetch.mockResolvedValue({ id: 'u1', username: 'mei' });
 	await expect(getLoginHref()).resolves.toBe('/login');
+});
+
+it('counts no session for a token the API signed out from another device', async () => {
+	mockFetch.mockRejectedValue(new AuthError('Signed out', 401, 'auth.session_revoked'));
+	await expect(getUserSession()).resolves.toBeNull();
+});
+
+it('keeps the session the API accepts', async () => {
+	mockFetch.mockResolvedValue({ id: 'u1', username: 'mei' });
+	await expect(getUserSession()).resolves.toMatchObject({ sub: 'u1' });
+});
+
+it('keeps the session while the API cannot answer, so a signed-in user is not shown signed out', async () => {
+	mockFetch.mockRejectedValue(new ApiError('Boom', 500, { errorCode: null }));
+	await expect(getUserSession()).resolves.toMatchObject({ sub: 'u1' });
+});
+
+it('sends a session signed out from another device to login saying so', async () => {
+	mockFetch.mockRejectedValue(new AuthError('Signed out', 401, 'auth.session_revoked'));
+	await redirectToLogin('/following');
+	expect(redirect).toHaveBeenCalledWith('/login?redirect=%2Ffollowing&session_expired=revoked');
 });

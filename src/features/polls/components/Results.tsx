@@ -176,10 +176,11 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }:
 								onClick={onSelectOption && row.votes > 0 ? () => onSelectOption(row) : undefined}
 							>
 								{isWinner && <ElectedStamp label={t('poll.elected')} />}
-								<span className={cn('min-w-0 flex-1 wrap-anywhere', isWinner && 'font-medium')}>
-									{row.text}
+								{/* Words never split: where the option and the pill don't fit side by side, the pill wraps under */}
+								<span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
+									<span className={cn('break-words', isWinner && 'font-medium')}>{row.text}</span>
+									{row === myRow && <YourVotePill label={t('poll.yourVoteShort')} />}
 								</span>
-								{row === myRow && <YourVotePill label={t('poll.yourVoteShort')} />}
 								<span
 									className={cn(
 										'shrink-0 text-right text-body-4 tabular-nums',

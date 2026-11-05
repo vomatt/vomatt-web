@@ -8,7 +8,7 @@ export type PollStatus = 'scheduled' | 'open' | 'closing' | 'ended';
 
 const CLOSING_WINDOW_MS = 24 * 60 * 60 * 1000;
 
-type StatusFields = Pick<Poll, 'active' | 'votingActive' | 'startTime' | 'endTime'>;
+export type StatusFields = Pick<Poll, 'active' | 'votingActive' | 'startTime' | 'endTime'>;
 
 /** Ended wins over Scheduled, so an old cancelled Scheduled Poll reads as Ended. */
 export function derivePollStatus(poll: StatusFields, now: Date | number = Date.now()): PollStatus {
@@ -20,6 +20,18 @@ export function derivePollStatus(poll: StatusFields, now: Date | number = Date.n
 	if (!poll.votingActive) return 'ended';
 	if (end !== null && end - time < CLOSING_WINDOW_MS) return 'closing';
 	return 'open';
+}
+
+/**
+ * When the clock next changes the Poll's status: the start of its last day, then its end. Null once
+ * Ended or without an end. A Scheduled copy says `votingActive: false`, which would read as Ended
+ * once the start passes, so only its end counts; it shows as Open once fetched again.
+ */
+export function nextStatusChange(poll: StatusFields, now: number): number | null {
+	if (!poll.endTime || derivePollStatus(poll, now) === 'ended') return null;
+	const end = Date.parse(poll.endTime);
+	const closing = end - CLOSING_WINDOW_MS;
+	return poll.votingActive && closing > now ? closing : end;
 }
 
 /**
@@ -48,6 +60,11 @@ export type VisibilityLevel = ReturnType<typeof visibilityLevel>;
  */
 export function isInvitee(poll: Pick<Poll, 'audience' | 'creatorId'>, viewerId: string) {
 	return poll.audience === 'invite-only' && poll.creatorId !== viewerId;
+}
+
+/** Listed and indexable; Polls from before Audiences have none and are public. */
+export function isPublic(poll: Pick<Poll, 'audience'>) {
+	return !poll.audience || poll.audience === 'public';
 }
 
 /** Ended before its Deadline: Closed by the owner, or every Invitee voted. */

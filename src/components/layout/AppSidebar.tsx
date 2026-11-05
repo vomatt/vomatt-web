@@ -82,7 +82,7 @@ export function AppSidebar({
 	const accountCurrent = pathname === accountHref ? 'page' : undefined;
 
 	return (
-		<Sidebar className="border-sidebar-border">
+		<Sidebar className="border-sidebar-border bg-sidebar ps-[env(safe-area-inset-left)]">
 			{/* Header */}
 			<SidebarHeader className="px-5 pt-5 pb-5">
 				<BrandLink className="w-24 text-sidebar-foreground hover:text-sidebar-foreground/70 transition-colors" />
@@ -195,7 +195,7 @@ export function AppSidebar({
 			</SidebarContent>
 
 			{/* Footer */}
-			<SidebarFooter className="px-3 py-3 gap-2">
+			<SidebarFooter className="px-3 pt-3 pb-[max(--spacing(3),env(safe-area-inset-bottom))] gap-2">
 				{!userSession && (
 					<div className="rounded-xl border border-sidebar-border bg-card p-1">
 						<Link

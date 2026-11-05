@@ -115,6 +115,29 @@ async function fetchRefreshedTokens(
 	}
 }
 
+/**
+ * True when vomatt-api says this access token's sign-in was ended (`auth.session_revoked`: signed out from
+ * another device, suspended, reuse detected). The token verifies here until it expires, so only the API knows.
+ * Any other answer, or none, is not a revocation.
+ */
+export async function isSessionRevoked(
+	accessToken: string,
+	clientHeaders: Record<string, string> = {}
+): Promise<boolean> {
+	try {
+		const response = await backendFetch(`${process.env.API_URL}${API_BASE_PATH}/users/me`, {
+			headers: { Authorization: `Bearer ${accessToken}`, ...clientHeaders },
+			cache: 'no-store',
+		});
+		if (response.status !== 401) return false;
+		const body = await response.json().catch(() => null);
+		return body?.errorCode === 'auth.session_revoked';
+	} catch (error) {
+		console.error('Session check failed:', error);
+		return false;
+	}
+}
+
 // Tokens come straight from the backend, so reading `exp` needs no verification.
 function readExpiry(token: string): number | undefined {
 	try {

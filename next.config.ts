@@ -7,6 +7,8 @@ const studioUrl = process.env.NEXT_PUBLIC_SANITY_STUDIO_URL?.replace(/\/+$/, '')
 
 const nextConfig: NextConfig = {
 	reactStrictMode: true,
+	// ESM-only; listed so next/jest transforms them in tests
+	transpilePackages: ['@sanity/image-url', 'groq'],
 	experimental: {
 		agentUpgrade: 'security',
 	},

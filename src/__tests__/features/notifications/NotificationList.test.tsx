@@ -1,5 +1,4 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { StrictMode } from 'react';
 
 import { dayGroup, NotificationList, NotificationSettingsLink } from '@/features/notifications/NotificationList';
 import type { Notification } from '@/features/notifications/schema';
@@ -15,10 +14,10 @@ jest.mock('next/link', () => {
 });
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 jest.mock('@/features/polls/service', () => ({}));
-const mockReadAll = jest.fn();
+const mockMarkAllRead = jest.fn();
 jest.mock('@/features/notifications/service', () => ({
 	getNotifications: jest.fn(),
-	readAllNotifications: (...a: unknown[]) => mockReadAll(...a),
+	markAllNotificationsRead: (...a: unknown[]) => mockMarkAllRead(...a),
 }));
 jest.mock('@/features/follows/service', () => ({ followUser: jest.fn().mockResolvedValue({ ok: true, data: undefined }) }));
 jest.mock('@/features/follows/FollowListDialog', () => ({
@@ -135,7 +134,7 @@ beforeEach(() => {
 	jest.clearAllMocks();
 	jest.useFakeTimers({ now: NOW, advanceTimers: true });
 	mockUnreadCount = 0;
-	mockReadAll.mockResolvedValue({ ok: true, data: undefined });
+	mockMarkAllRead.mockResolvedValue({ ok: true, data: undefined });
 });
 afterEach(() => jest.useRealTimers());
 
@@ -279,6 +278,7 @@ describe('NotificationList follows', () => {
 
 		fireEvent.click(within(group).getByRole('button', { name: 'See followers' }));
 		expect(screen.getByRole('dialog')).toHaveTextContent('followers of mei');
+		expect(within(group).queryByText('Unread')).not.toBeInTheDocument();
 	});
 
 	it('says "1 other" for a pair', () => {
@@ -288,82 +288,61 @@ describe('NotificationList follows', () => {
 });
 
 describe('NotificationList read state', () => {
-	it('reads everything once on opening, then recounts the badge', async () => {
-		let respond!: (result: unknown) => void;
-		mockReadAll.mockReturnValueOnce(new Promise((resolve) => (respond = resolve)));
-		const { rerender } = render(
-			<StrictMode>
-				<NotificationList initialPage={{ items: [invitation, result], nextCursor: null }} unreadIds={null} viewerUsername="mei" />
-			</StrictMode>
-		);
-		expect(mockReadAll).toHaveBeenCalledTimes(1);
-		expect(mockRefresh).not.toHaveBeenCalled();
-		await act(async () => respond({ ok: true, data: undefined }));
-		expect(mockRefresh).toHaveBeenCalledTimes(1);
-
-		// A fresh server page doesn't read again
-		rerender(
-			<StrictMode>
-				<NotificationList initialPage={{ items: [invitation], nextCursor: null }} unreadIds={[]} viewerUsername="mei" />
-			</StrictMode>
-		);
-		await act(() => jest.advanceTimersByTimeAsync(0));
-		expect(mockReadAll).toHaveBeenCalledTimes(1);
+	it('reads every notification once when the page opens, then recounts the badge', async () => {
+		renderList([invitation, result]);
+		await waitFor(() => expect(mockRefresh).toHaveBeenCalledTimes(1));
+		expect(mockMarkAllRead).toHaveBeenCalledTimes(1);
 	});
 
-	it('keeps the dot on what was unread before this visit read it, across tabs', async () => {
+	it('keeps the dots for this visit, until a row is opened', async () => {
+		renderList([invitation, result]);
+		await waitFor(() => expect(mockRefresh).toHaveBeenCalled());
+		expect(within(rowOf('Keep the library')).getByText('Unread')).toBeInTheDocument();
+
+		fireEvent.click(screen.getByText(invitation.poll.title));
+		expect(within(rowOf('Which stall')).queryByText('Unread')).not.toBeInTheDocument();
+		expect(within(rowOf('Keep the library')).getByText('Unread')).toBeInTheDocument();
+		expect(mockMarkAllRead).toHaveBeenCalledTimes(1);
+	});
+
+	it('keeps the dot on what was unread when the page opened, on pages fetched after read-all', async () => {
 		const { getNotifications } = jest.requireMock('@/features/notifications/service');
-		const like = { ...comment, id: 'like_c1', kind: 'LIKE', read: true, poll: { ...comment.poll, title: 'Liked poll' } };
-		getNotifications.mockResolvedValueOnce({ items: [like, { ...comment, id: 'like_c2', kind: 'LIKE', read: true }], nextCursor: null });
-		renderList([{ ...invitation, read: true }, comment], ['invitation_p2', 'like_c1']);
+		getNotifications.mockResolvedValueOnce({ items: [{ ...comment, read: true }], nextCursor: null });
+		renderList([{ ...invitation, read: true }], [invitation.id, comment.id]);
 		expect(within(rowOf('Which stall')).getByText('Unread')).toBeInTheDocument();
-		expect(within(rowOf('Saturday market')).queryByText('Unread')).not.toBeInTheDocument();
 
-		fireEvent.click(screen.getByRole('button', { name: 'Likes' }));
-		expect(await screen.findByText('Liked poll', { exact: false })).toBeInTheDocument();
-		expect(within(rowOf('Liked poll')).getByText('Unread')).toBeInTheDocument();
-		expect(within(rowOf('Saturday market')).queryByText('Unread')).not.toBeInTheDocument();
+		fireEvent.click(screen.getByRole('button', { name: 'Conversation' }));
+		await waitFor(() => expect(getNotifications).toHaveBeenCalledWith(null, 'CONVERSATION'));
+		await waitFor(() => expect(within(rowOf(comment.comment.excerpt)).getByText('Unread')).toBeInTheDocument());
 	});
 
-	it('still reads everything when the unread ids could not be loaded, with dots from the page itself', async () => {
-		renderList([invitation, comment], null);
-		await waitFor(() => expect(mockReadAll).toHaveBeenCalledTimes(1));
-		expect(within(rowOf('Which stall')).getByText('Unread')).toBeInTheDocument();
-		expect(within(rowOf('Saturday market')).queryByText('Unread')).not.toBeInTheDocument();
+	it('clears a dot from before read-all once its row is opened', async () => {
+		renderList([{ ...invitation, read: true }], [invitation.id]);
+		fireEvent.click(screen.getByText(invitation.poll.title));
+		expect(within(rowOf('Which stall')).queryByText('Unread')).not.toBeInTheDocument();
 	});
 
-	it('reads nothing when the feed could not be loaded', async () => {
-		render(<NotificationList initialPage={null} unreadIds={['invitation_p2']} viewerUsername="mei" />);
-		await act(() => jest.advanceTimersByTimeAsync(0));
-		expect(mockReadAll).not.toHaveBeenCalled();
+	it('leaves the badge alone when reading fails', async () => {
+		mockMarkAllRead.mockResolvedValue({ ok: false, message: 'down' });
+		renderList([invitation]);
+		await waitFor(() => expect(mockMarkAllRead).toHaveBeenCalled());
+		expect(mockRefresh).not.toHaveBeenCalled();
 	});
 
-	it('reads nothing when nothing is unread', async () => {
-		render(<NotificationList initialPage={{ items: [], nextCursor: null }} unreadIds={[]} viewerUsername="mei" />);
-		await act(() => jest.advanceTimersByTimeAsync(0));
-		expect(mockReadAll).not.toHaveBeenCalled();
-	});
-
-	it('logs a failed read-all', async () => {
-		mockReadAll.mockResolvedValueOnce({ ok: false, error: 'boom' });
-		const error = jest.spyOn(console, 'error').mockImplementation(() => {});
-		render(<NotificationList initialPage={{ items: [], nextCursor: null }} unreadIds={['invitation_p2']} viewerUsername="mei" />);
-		await act(() => jest.advanceTimersByTimeAsync(0));
-		expect(mockReadAll).toHaveBeenCalledTimes(1);
-		expect(error).toHaveBeenCalledWith('Marking notifications read failed:', expect.anything());
-		error.mockRestore();
-	});
-
-	it('marks a group of follows unread when any follow in it was', () => {
-		renderList([follow('bkim', 10, { read: true }), follow('jtan', 20, { read: true })], ['follow_jtan']);
-		expect(within(rowOf('@bkim')).getByText('Unread')).toBeInTheDocument();
+	it('reads nothing when the feed could not be loaded', () => {
+		render(<NotificationList initialPage={null} unreadIds={null} viewerUsername="mei" />);
+		expect(mockMarkAllRead).not.toHaveBeenCalled();
 	});
 
 	it('opens the row\'s target from anywhere on the row', () => {
 		renderList([invitation]);
-		const cover = rowOf('Which stall').querySelector('a[aria-hidden="true"]')!;
+		const row = rowOf('Which stall');
+		const cover = row.querySelector('a[aria-hidden="true"]')!;
 		expect(cover).toHaveAttribute('href', '/poll/p2');
 		expect(cover).toHaveAttribute('tabindex', '-1');
+
+		fireEvent.click(cover);
+		expect(within(row).queryByText('Unread')).not.toBeInTheDocument();
 	});
 
 	it('opens the followers list from anywhere on a group of follows', () => {
@@ -372,10 +351,11 @@ describe('NotificationList read state', () => {
 		expect(screen.getByRole('dialog')).toHaveTextContent('followers of mei');
 	});
 
-	it('follows back from the row', async () => {
+	it('clears a follower\'s dot when the viewer follows back', async () => {
 		renderList([follow('jtan', 10)]);
 		fireEvent.click(screen.getByRole('button', { name: 'Follow back' }));
 		expect(await screen.findByRole('button', { name: /Following/ })).toBeInTheDocument();
+		expect(within(rowOf('@jtan')).queryByText('Unread')).not.toBeInTheDocument();
 	});
 });
 

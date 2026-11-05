@@ -44,7 +44,8 @@ const CMSLink: React.FC<CMSLinkType> = ({
 			href={route}
 			target={route?.match('^mailto:') || isOpenNewTab ? '_blank' : ''}
 			rel={isOpenNewTab ? 'noopener noreferrer' : ''}
-			aria-label={ariaLabel || `${title || `Go to ${route}`}`}
+			// The visible text names the link (WCAG 2.5.3); the destination only names one with nothing to read
+			aria-label={ariaLabel || (title || children ? undefined : `Go to ${route}`)}
 			className={clsx(className, {
 				btn: isButton,
 			})}

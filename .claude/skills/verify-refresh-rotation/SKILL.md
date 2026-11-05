@@ -25,6 +25,7 @@ Three checks, each stated in the code's words:
   - `read` (`World.backendRead`): a spent token within its grace window returns the same pair; after the window it revokes the session; a missing token is a plain 401. A live token goes on to `commit`.
   - `commit` (`World.backendCommit`): the atomic consume. The first caller rotates; a caller that lost the race gets the pair the winner wrote to grace in the same step.
   - The backend may also refuse once with 429 before doing anything.
+  - `check` (`World.backendCheck`): the proxy's `GET /users/me` before a page load of `/login` sends a signed-in visitor away (`isSessionRevoked`). It answers 200 while the session stands and 401 `auth.session_revoked` once it is revoked, as `JwtAuthFilter` does. It may instead be the one 429.
 - `verifyAccessToken` is the await before the session decision. The access token's age is modeled per epoch: fresh, then expiring (within `ACCESS_TOKEN_REFRESH_LEEWAY`), then expired. The second `verifyAccessToken` call, the one after a refresh, resolves immediately. Between that call and the response, the request touches no shared state.
 
 The scheduler explores every order of these events, with states deduplicated:
@@ -37,7 +38,7 @@ The scheduler explores every order of these events, with states deduplicated:
 
 ## Bounds and assumptions
 
-- Requests `/`, `/account` (protected, so it redirects), and `/login` (an auth page, so it redirects signed-in users) in that order. With `REFRESH_CHECK_DEEP=1` a fourth request, `/`, is added. Two instances, at most one clock jump, and at most one 429.
+- Requests `/`, `/account` (protected, so it redirects), and `/login` (an auth page, so it asks the API about an unrefreshed session, then redirects signed-in users) in that order, all GETs. With `REFRESH_CHECK_DEEP=1` a fourth request, `/`, is added. Two instances, at most one clock jump, and at most one 429 (to a refresh or a session check).
 - **Assumption:** the clock only jumps when nothing is in flight. Every request and response completes within the 60 s grace window, and access tokens last far longer (15 min) than the grace window, so a token issued in one epoch is never already expiring in that same epoch.
 - **Assumption:** every response reaches the browser, and a 429 or 5xx means the backend did not consume the token.
 - **Not covered:**
@@ -46,16 +47,17 @@ The scheduler explores every order of these events, with states deduplicated:
   - Server Actions and route handlers, which must never refresh (by convention, not checked here).
   - JWT cryptography.
   - The real Redis behavior of `RefreshTokenService` (its atomic consume is a Lua script; vomatt-api's `RedisServiceImplTest` checks it against Redis 7), and Redis errors, which the backend answers with 503.
-  - More than one browser, or sessions on several devices.
+  - More than one browser, or sessions on several devices. With one session, `check` answers `auth.session_revoked` only after a P2 violation, so clearing the cookies of a session signed out from another device is argued, not checked: the API revokes a sign-in by its `sid`, and every refresh token of that sign-in is refused too.
+  - Server Action POSTs to `/login`, which never run the session check.
 
 ## Run it
 
 ```bash
-npx jest src/__tests__/verification/refresh-rotation.test.ts                        # default bound, ~10 s
-REFRESH_CHECK_DEEP=1 npx jest src/__tests__/verification/refresh-rotation.test.ts   # 4 requests, ~3 min
+pnpm exec jest src/__tests__/verification/refresh-rotation.test.ts                        # default bound, ~10 s
+REFRESH_CHECK_DEEP=1 pnpm exec jest src/__tests__/verification/refresh-rotation.test.ts   # 4 requests, ~3 min
 ```
 
-It also runs in `npm test`. A pass prints `refresh-rotation: ok: <N> states, <M> end states`. At the default bound that is 2,851 states and 70 end states with the two-step backend; it was 1,959 when the backend was one step and states that differed only in an undelivered response's cookies were wrongly merged. A sharp drop in the count means the model stopped exploring something. Treat it as a modeling error, not a pass.
+It also runs in `pnpm test`. A pass prints `refresh-rotation: ok: <N> states, <M> end states`. At the default bound that is 3,297 states and 82 end states (38,499 and 250 with `REFRESH_CHECK_DEEP=1`) since the session check; it was 2,851 and 70 before it, and 1,959 when the backend was one step and states that differed only in an undelivered response's cookies were wrongly merged. A sharp drop in the count means the model stopped exploring something. Treat it as a modeling error, not a pass.
 
 ## Reading a failure
 
@@ -78,6 +80,7 @@ If a change to the covered code is deliberate (for example, new cookie handling 
 3. Show the check can still fail. Make a scratch break in the real code, run it, see the violation, and revert with `git checkout -- <file>` (only when the file had no other uncommitted edits). Breaks proven at the sync commit:
    - Delete `if (pending) return pending;` in `requestTokenRefresh` → P1.
    - In `proxy()`, return `NextResponse.redirect(...)` without `applyAuthCookies` → P3: the browser keeps `R0` while `R1` is live.
+   - In `isSessionRevoked`, answer `!response.ok` (any failed check counts as revoked) → P3: a rate-limited check on `/login` deletes the live session's cookies.
    - Model the old backend (the production logout bug): in `World.backendRead`, delete a live token at `read` (`this.refresh.delete(token)` before `return undefined`) and let `backendCommit` accept a missing record → P3: a refresh that arrives mid-rotation gets 401, and its response deletes the cookies after the winner's response set `R1`.
 4. Move the sync commit below forward only after confirming that the model describes the code at the new commit.
 
@@ -86,18 +89,18 @@ If a change to the covered code is deliberate (for example, new cookie handling 
 | Check | Code it describes |
 | --- | --- |
 | Await points, session decision | `src/proxy.tsx`: `resolveSession`, `proxy` (cookie writes to the request, `applyAuthCookies`, the redirect branches) |
-| Dedup, refresh call, result mapping | `src/lib/api/tokens.ts`: `requestTokenRefresh`, `fetchRefreshedTokens`, `readAuthTokens`, `buildAuthCookies`, `isExpiringSoon` |
+| Dedup, refresh call, result mapping, session check | `src/lib/api/tokens.ts`: `requestTokenRefresh`, `fetchRefreshedTokens`, `readAuthTokens`, `buildAuthCookies`, `isExpiringSoon`, `isSessionRevoked` |
 | Mocked boundary | `src/lib/api/backend-fetch.ts`: `backendFetch` (signature only) |
-| Backend model | `../vomatt-api/src/main/java/com/vomatt/common/security/RefreshTokenService.java` (rotate, 60 s grace, reuse detection); `../vomatt-api/docs/frontend/auth-flow.md` §6 |
+| Backend model | `../vomatt-api/src/main/java/com/vomatt/common/security/RefreshTokenService.java` (rotate, 60 s grace, reuse detection, revoked sessions); `JwtAuthFilter.java` (`auth.session_revoked`); `../vomatt-api/docs/frontend/auth-flow.md` §6–7 |
 | Constants | `src/data/constants.ts`: `ACCESS_TOKEN_REFRESH_LEEWAY`, `ACCESS_TOKEN_EXPIRY` |
 
-**Sync commit:** vomatt-web `af56991c28892de53d48d33aac865994bed42cc1`; vomatt-api `f3cee16` (atomic rotation, vomatt/vomatt-api#76: the model describes that backend, not the GETDEL one before it).
+**Sync commit:** vomatt-web `5495dedcdeb9182a4b3b64a7513176d93f2c974a` (the session check before `/login` redirects); vomatt-api `a40be76` (atomic rotation from vomatt/vomatt-api#76, revoked sessions refused at rotation and answered `auth.session_revoked` by `JwtAuthFilter`).
 
 To see whether the covered code changed since the sync commit:
 
 ```bash
-git diff --stat af56991c28892de53d48d33aac865994bed42cc1 -- src/proxy.tsx src/lib/api/tokens.ts src/lib/api/backend-fetch.ts src/data/constants.ts
-git -C ../vomatt-api diff --stat f3cee16 -- src/main/java/com/vomatt/common/security/RefreshTokenService.java docs/frontend/auth-flow.md
+git diff --stat 5495dedcdeb9182a4b3b64a7513176d93f2c974a -- src/proxy.tsx src/lib/api/tokens.ts src/lib/api/backend-fetch.ts src/data/constants.ts
+git -C ../vomatt-api diff --stat a40be76 -- src/main/java/com/vomatt/common/security/RefreshTokenService.java src/main/java/com/vomatt/common/security/JwtAuthFilter.java docs/frontend/auth-flow.md
 ```
 
 Any output means: re-read those diffs against the model before trusting a pass.

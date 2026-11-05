@@ -15,6 +15,7 @@ import {
 	AUTH_COOKIE_BASE,
 	buildAuthCookies,
 	isExpiringSoon,
+	isSessionRevoked,
 	requestTokenRefresh,
 	tokenFingerprint,
 	verifyAccessToken,
@@ -124,7 +125,17 @@ export async function proxy(request: NextRequest) {
 	const isProtectedPath = isUnder(protectedPaths);
 	const isAuthPath = isUnder(authPaths);
 
-	const session = await resolveSession(request);
+	const resolved = await resolveSession(request);
+	// A token signed out from another device still verifies, so a page load of login asks the API before sending
+	// the visitor away, and clears a session it says is over. Not on a Server Action: the sign-in action sets the
+	// new session's cookies on the same response.
+	const session: SessionResult =
+		resolved.status === 'valid' &&
+		isAuthPath &&
+		request.method === 'GET' &&
+		(await isSessionRevoked(request.cookies.get(ACCESS_TOKEN)!.value, clientHeaders(request.headers)))
+			? { status: 'dead' }
+			: resolved;
 	const hasValidSession = session.status === 'valid' || session.status === 'refreshed';
 
 	// Server Components and Server Actions read cookies from the request, so

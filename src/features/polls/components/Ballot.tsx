@@ -45,6 +45,8 @@ export function Ballot({ poll, status, ballot, requireAuth, isOwner }: BallotPro
 	const isScheduled = status === 'scheduled';
 	// A first vote in flight already has a Ballot; its Vote button stays (busy) until it is in
 	const view = isScheduled ? 'scheduled' : !myOptionId || pendingAction === 'vote' ? 'vote' : mode.kind;
+	// A pick waits on Vote or Update vote; on phones that row stays on screen until it is pressed
+	const awaitsConfirm = (view === 'vote' && !!selected) || view === 'updating';
 	// One id per Ballot, not per Poll: the feed card and the Poll page each have a Ballot for the same Poll,
 	// and a shared layoutId flies the highlight from one to the other on navigation
 	const highlightId = useId();
@@ -255,7 +257,7 @@ export function Ballot({ poll, status, ballot, requireAuth, isOwner }: BallotPro
 				/>
 			)}
 
-			<div className="border-t border-border pt-4 md:pt-5">
+			<div className={cn('border-t border-border pt-4 md:pt-5', awaitsConfirm && 'follow-tabbar')}>
 				{/* Each mode fades in as it takes over; the first render, from the server, stays still */}
 				<m.div
 					key={view}
@@ -265,6 +267,7 @@ export function Ballot({ poll, status, ballot, requireAuth, isOwner }: BallotPro
 				>
 					{actions}
 				</m.div>
+				{awaitsConfirm && <span data-sticky-fade aria-hidden />}
 			</div>
 			<p role="status" aria-live="polite" className="sr-only">
 				{announcement}

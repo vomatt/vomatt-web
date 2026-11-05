@@ -28,16 +28,13 @@ sync_clone() {
 	mkdir -p "$CLONE"
 	rsync -a --delete --exclude node_modules --exclude .next --exclude .git \
 		--exclude .claude/worktrees "$WEB_REPO/" "$CLONE/"
-	if [ ! -d "$CLONE/node_modules" ] || ! cmp -s "$WEB_REPO/package-lock.json" "$ROOT/package-lock.json"; then
+	if [ ! -d "$CLONE/node_modules" ] || ! cmp -s "$WEB_REPO/pnpm-lock.yaml" "$ROOT/pnpm-lock.yaml"; then
+		# Hard-links packages from pnpm's store, so it takes seconds and no extra disk
+		echo "vv: installing dependencies in the clone…"
 		rm -rf "$CLONE/node_modules"
-		cp -cR "$WEB_REPO/node_modules" "$CLONE/node_modules"   # APFS clone: instant, no extra disk
-		# A pnpm-installed node_modules lacks packages npm hoists (Next needs @types/node), so the clone gets its own npm install
-		if [ -f "$CLONE/node_modules/.modules.yaml" ]; then
-			echo "vv: node_modules was installed by pnpm; running npm ci in the clone…"
-			rm -rf "$CLONE/node_modules"
-			(cd "$CLONE" && npm ci --no-audit --no-fund >"$ROOT/npm-ci.log" 2>&1) || die "npm ci failed; see $ROOT/npm-ci.log"
-		fi
-		cp "$WEB_REPO/package-lock.json" "$ROOT/package-lock.json"
+		(cd "$CLONE" && pnpm install --frozen-lockfile --prefer-offline >"$ROOT/pnpm-install.log" 2>&1) \
+			|| die "pnpm install failed; see $ROOT/pnpm-install.log"
+		cp "$WEB_REPO/pnpm-lock.yaml" "$ROOT/pnpm-lock.yaml"
 	fi
 	git -C "$WEB_REPO" rev-parse HEAD > "$ROOT/web.rev"
 }

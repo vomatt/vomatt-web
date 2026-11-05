@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import type { ActionResult } from '@/lib/api/action';
 import { mergeById } from '@/lib/api/cursor';
+import { settle } from '@/lib/api/settle';
 
 import type { Comment, ThreadComment } from '../schema';
 import {
@@ -86,13 +88,13 @@ export function useComments(
 
 	const reload = useCallback(async () => {
 		setStatus('loading');
-		applyFirstPage(await getComments(pollId));
+		applyFirstPage(await settle(getComments(pollId)));
 	}, [applyFirstPage, pollId]);
 
 	useEffect(() => {
 		if (!enabled || hasLoaded.current) return;
 		let ignore = false;
-		getComments(pollId).then((result) => {
+		settle(getComments(pollId)).then((result) => {
 			if (!ignore) applyFirstPage(result);
 		});
 		return () => {
@@ -103,7 +105,7 @@ export function useComments(
 	const loadMore = useCallback(async () => {
 		if (!nextCursor || isLoadingMore) return;
 		setIsLoadingMore(true);
-		const result = await getComments(pollId, nextCursor);
+		const result = await settle(getComments(pollId, nextCursor));
 		setIsLoadingMore(false);
 		if (!result.ok) return;
 		setComments((prev) => mergeById(prev, result.data.items));
@@ -125,7 +127,7 @@ export function useComments(
 			const setList = (change: (list: ReplyList) => ReplyList) =>
 				setReplies((prev) => ({ ...prev, [rootId]: change(prev[rootId] ?? NO_REPLIES) }));
 			setList((list) => ({ ...list, status: 'loading' }));
-			const result = await getReplies(pollId, rootId, current?.nextCursor);
+			const result = await settle(getReplies(pollId, rootId, current?.nextCursor));
 			setList((list) =>
 				result.ok
 					? {
@@ -184,29 +186,29 @@ export function useComments(
 			if (rootId) shiftReplyCount(rootId, 1);
 			setTotal((count) => shiftCount(count, 1));
 
-			const result = await postComment(pollId, text, rootId);
+			const result = await settle(postComment(pollId, text, rootId));
 			if (result.ok) pendingKeys.current.set(result.data.id, tempId);
 			setList((list) =>
 				result.ok
 					? list.map((c) => (c.id === tempId ? result.data : c))
 					: list.filter((c) => c.id !== tempId)
 			);
-			if (result.ok) return true;
+			if (result.ok) return result;
 
 			if (rootId) shiftReplyCount(rootId, -1);
 			setTotal((count) => shiftCount(count, -1));
-			return false;
+			return result;
 		},
 		[pollId, shiftReplyCount]
 	);
 
 	const edit = useCallback(
 		async (commentId: string, text: string) => {
-			const result = await updateComment(pollId, commentId, text);
-			if (!result.ok) return false;
+			const result = await settle(updateComment(pollId, commentId, text));
+			if (!result.ok) return result;
 			// The response counts no Replies
 			updateOne(commentId, (c) => ({ ...result.data, replyCount: c.replyCount }));
-			return true;
+			return result;
 		},
 		[pollId, updateOne]
 	);
@@ -216,9 +218,10 @@ export function useComments(
 	 * leaves the list. A placeholder whose last Reply goes leaves too.
 	 */
 	const remove = useCallback(
-		async (comment: Comment) => {
-			const result = await deleteComment(pollId, comment.id);
-			if (!result.ok) return false;
+		async (comment: Comment): Promise<ActionResult> => {
+			const result = await settle(deleteComment(pollId, comment.id));
+			// Already deleted, e.g. in another tab: it leaves the list all the same
+			if (!result.ok && result.errorCode !== 'comment.not_found') return result;
 			setTotal((count) => shiftCount(count, -1));
 
 			const rootId = comment.parentId;
@@ -228,7 +231,7 @@ export function useComments(
 						? prev.map((c) => (c.id === comment.id ? toPlaceholder(c) : c))
 						: prev.filter((c) => c.id !== comment.id)
 				);
-				return true;
+				return { ok: true, data: undefined };
 			}
 			setReplies((prev) => {
 				const list = prev[rootId];
@@ -237,7 +240,7 @@ export function useComments(
 			shiftReplyCount(rootId, -1);
 			// A placeholder with no Replies left isn't listed by the API either
 			setComments((prev) => prev.filter((c) => !(c.id === rootId && c.deleted && !c.replyCount)));
-			return true;
+			return { ok: true, data: undefined };
 		},
 		[pollId, shiftReplyCount]
 	);
@@ -281,7 +284,7 @@ export function useComments(
 					likeCount: Math.max(0, (c.likeCount ?? 0) + (isLiked ? 1 : -1)),
 				}));
 			apply(liked);
-			const result = await (liked ? likeComment : unlikeComment)(pollId, comment.id);
+			const result = await settle((liked ? likeComment : unlikeComment)(pollId, comment.id));
 			if (!result.ok) apply(!liked);
 		},
 		[pollId, updateOne]

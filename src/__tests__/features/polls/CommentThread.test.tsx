@@ -301,6 +301,41 @@ describe('CommentThread', () => {
 			expect(screen.queryByRole('button', { name: /more repl/ })).not.toBeInTheDocument();
 		});
 
+		it('hides the replies past the previews, and shows them again without refetching', async () => {
+			service.getReplies.mockResolvedValue({ ok: true, data: { items: [third], nextCursor: null } });
+			render(<Harness />);
+
+			const more = await screen.findByRole('button', { name: 'View 1 more reply' });
+			expect(more).toHaveAttribute('aria-expanded', 'false');
+			fireEvent.click(more);
+			await screen.findByText('Third reply');
+
+			const hide = screen.getByRole('button', { name: 'Hide replies' });
+			expect(hide).toHaveAttribute('aria-expanded', 'true');
+			fireEvent.click(hide);
+			await waitFor(() => expect(screen.queryByText('Third reply')).not.toBeInTheDocument());
+			expect(screen.getByText('Second reply')).toBeInTheDocument();
+
+			const again = screen.getByRole('button', { name: 'View 1 more reply' });
+			expect(again).toHaveAttribute('aria-expanded', 'false');
+			fireEvent.click(again);
+			expect(await screen.findByText('Third reply')).toBeInTheDocument();
+			expect(service.getReplies).toHaveBeenCalledTimes(1);
+		});
+
+		it('keeps keyboard focus on the replies buttons as View and Hide swap', async () => {
+			service.getReplies.mockResolvedValue({ ok: true, data: { items: [third], nextCursor: null } });
+			render(<Harness />);
+
+			const more = await screen.findByRole('button', { name: 'View 1 more reply' });
+			more.focus();
+			fireEvent.click(more);
+			await waitFor(() => expect(screen.getByRole('button', { name: 'Hide replies' })).toHaveFocus());
+
+			fireEvent.click(screen.getByRole('button', { name: 'Hide replies' }));
+			await waitFor(() => expect(screen.getByRole('button', { name: 'View 1 more reply' })).toHaveFocus());
+		});
+
 		it('posts a reply under the previews, then puts it after the older replies loaded later', async () => {
 			const posted = { ...reply, id: 'r9', userId: 'me', author: 'klaus', text: 'Newest', createdAt: '2026-10-06T00:00:00Z' };
 			service.postComment.mockResolvedValue({ ok: true, data: posted });
@@ -712,6 +747,64 @@ describe('CommentThread', () => {
 		expect(screen.getByRole('button', { name: 'View 2 replies' })).toBeInTheDocument();
 		expect(screen.queryByRole('button', { name: 'Like' })).not.toBeInTheDocument();
 	});
+
+	describe('when a request fails', () => {
+		it('keeps the text of a comment whose request was dropped, and lets the viewer post it again', async () => {
+			const { toast } = jest.requireMock('sonner');
+			service.postComment.mockRejectedValue(new TypeError('Failed to fetch'));
+			render(<Harness />);
+			await screen.findByText('Mine');
+
+			const box = screen.getByRole('textbox', { name: 'Add a comment' });
+			fireEvent.change(box, { target: { value: 'Not lost' } });
+			fireEvent.submit(box.closest('form')!);
+
+			await waitFor(() => expect(box).toHaveValue('Not lost'));
+			expect(screen.getByRole('button', { name: 'Post' })).toBeEnabled();
+			await waitFor(() => expect(screen.queryByText('Not lost', { selector: 'p' })).not.toBeInTheDocument());
+			expect(screen.getByText('2', { selector: '.text-caption-1' })).toBeInTheDocument();
+			expect(toast.error).toHaveBeenCalledWith('Couldn’t post your comment. Try again.');
+		});
+
+		it('offers a retry when the first page was dropped, instead of loading forever', async () => {
+			service.getComments.mockRejectedValue(new TypeError('Failed to fetch'));
+			render(<Harness />);
+			expect(await screen.findByText(/Couldn’t load comments\./)).toBeInTheDocument();
+			expect(document.querySelector('[aria-busy]')).not.toBeInTheDocument();
+		});
+
+		it('says why a reply failed when the API names the reason', async () => {
+			const { toast } = jest.requireMock('sonner');
+			service.postComment.mockResolvedValue({
+				ok: false,
+				status: 400,
+				errorCode: 'comment.parent.invalid',
+				message: 'invalid parent',
+			});
+			render(<Harness />);
+			fireEvent.click((await screen.findAllByRole('button', { name: 'Reply' }))[0]);
+			const box = screen.getByRole('textbox', { name: 'Write a reply…' });
+			fireEvent.change(box, { target: { value: 'Too late' } });
+			fireEvent.submit(box.closest('form')!);
+
+			await waitFor(() =>
+				expect(toast.error).toHaveBeenCalledWith('The comment being replied to does not exist in this poll')
+			);
+		});
+
+		it('removes a comment that was already deleted elsewhere, rather than failing', async () => {
+			const { toast } = jest.requireMock('sonner');
+			service.deleteComment.mockResolvedValue({ ok: false, status: 404, errorCode: 'comment.not_found', message: 'gone' });
+			render(<Harness />);
+			await screen.findByText('Mine');
+
+			fireEvent.click(within(await openMenu('Mine')).getByRole('menuitem', { name: 'Delete' }));
+			fireEvent.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Delete' }));
+
+			await waitFor(() => expect(screen.queryByText('Mine')).not.toBeInTheDocument());
+			expect(toast.error).not.toHaveBeenCalled();
+		});
+	});
 });
 
 describe('useComments', () => {
@@ -864,7 +957,7 @@ describe('useComments', () => {
 		service.postComment.mockReturnValue(new Promise((resolve) => (save = resolve)));
 		const { result } = renderHook(() => useComments('poll-1', { enabled: true }));
 
-		let posted!: Promise<boolean>;
+		let posted!: Promise<unknown>;
 		await act(async () => {
 			posted = result.current.add('Early', 'You');
 		});

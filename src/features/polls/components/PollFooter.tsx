@@ -17,6 +17,7 @@ import { toPayloadLocale } from '@/lib/locale';
 
 import { useSharePoll } from '../hooks/useSharePoll';
 import type { Audience } from '../schema';
+import { isPublic } from '../status';
 
 type PollFooterProps = {
 	pollId: string;
@@ -63,14 +64,15 @@ export function PollFooter({
 			t('poll.voted', {
 				count: turnout.toLocaleString(toPayloadLocale(currentLanguage)),
 			}),
-		audience && audience !== 'public' && t(`poll.audienceMeta.${audience}`),
+		!isPublic({ audience }) && t(`poll.audienceMeta.${audience}`),
 	]
 		.filter(Boolean)
 		.join(' · ');
 
 	return (
-		// Each item is 44px tall; 4px above and below set the text 16px in
-		<div className="flex items-center gap-5 border-t border-border px-5 py-1 text-body-4 text-muted-foreground md:px-8">
+		// Each item is 44px tall; 4px above and below set the text 16px in. Too narrow for one row
+		// (320px, or a non-Public audience), the actions wrap to a second row on the right
+		<div className="flex flex-wrap items-center gap-x-4 border-t border-border px-5 py-1 text-body-4 text-muted-foreground md:px-8">
 			{meta && <span className="tabular-nums">{meta}</span>}
 			<Link
 				href={isPage ? '#discussion' : `/poll/${pollId}#discussion`}

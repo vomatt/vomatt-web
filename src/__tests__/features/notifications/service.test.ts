@@ -3,8 +3,8 @@ import {
 	getNotifications,
 	getUnreadCount,
 	getUnreadNotificationIds,
+	markAllNotificationsRead,
 	markNotificationRead,
-	readAllNotifications,
 	updateNotificationPreferences,
 } from '@/features/notifications/service';
 import { apiClient, ApiError, AuthError } from '@/lib/api/client';
@@ -47,6 +47,16 @@ describe('getUnreadCount() when signed out', () => {
 	it('returns null instead of throwing', async () => {
 		mockApiClient.mockRejectedValue(new AuthError('expired'));
 		expect(await getUnreadCount()).toBeNull();
+	});
+});
+
+describe('getUnreadNotificationIds()', () => {
+	it('reads the ids, for a category when given', async () => {
+		mockApiClient.mockResolvedValue({ ids: ['comment_1', 'result_2'] });
+		expect(await getUnreadNotificationIds()).toEqual(['comment_1', 'result_2']);
+		expect(mockApiClient).toHaveBeenCalledWith('/notifications/unread-ids');
+		await getUnreadNotificationIds('LIKE');
+		expect(mockApiClient).toHaveBeenLastCalledWith('/notifications/unread-ids?category=LIKE');
 	});
 });
 
@@ -156,24 +166,16 @@ describe('getNotifications()', () => {
 	});
 });
 
-describe('getUnreadNotificationIds()', () => {
-	it('reads the unread ids of the whole feed', async () => {
-		mockApiClient.mockResolvedValue({ ids: ['comment_1', 'result_2'] });
-		expect(await getUnreadNotificationIds()).toEqual(['comment_1', 'result_2']);
-		expect(mockApiClient).toHaveBeenCalledWith('/notifications/unread-ids');
-	});
-});
-
-describe('readAllNotifications()', () => {
-	it('posts read-all', async () => {
+describe('markAllNotificationsRead()', () => {
+	it('posts to read-all', async () => {
 		mockApiClient.mockResolvedValue({ success: true });
-		expect(await readAllNotifications()).toEqual({ ok: true, data: undefined });
+		expect(await markAllNotificationsRead()).toEqual({ ok: true, data: undefined });
 		expect(mockApiClient).toHaveBeenCalledWith('/notifications/read-all', { method: 'POST' });
 	});
 
-	it('returns a failure instead of throwing', async () => {
-		mockApiClient.mockRejectedValue(new ApiError('down', 503, { errorCode: 'common.service_unavailable' }));
-		expect(await readAllNotifications()).toMatchObject({ ok: false, errorCode: 'common.service_unavailable' });
+	it('returns the failure instead of throwing', async () => {
+		mockApiClient.mockRejectedValue(new ApiError('down', 503, {}));
+		expect(await markAllNotificationsRead()).toMatchObject({ ok: false, status: 503 });
 	});
 });
 

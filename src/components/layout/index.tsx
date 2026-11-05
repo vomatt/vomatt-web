@@ -6,9 +6,9 @@ import { Header } from '@/components/layout/Header';
 import { Main } from '@/components/layout/Main';
 import { TabBar } from '@/components/layout/TabBar';
 import { MotionProvider } from '@/components/MotionProvider';
-import { ReloadWhenSessionUnconfirmed } from '@/components/SessionRetry';
+import { ReloadWhenSessionUnconfirmed, SessionRetry } from '@/components/SessionRetry';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/Sidebar';
-import { getLoginHref, getMyProfile, getUserSession } from '@/data/auth';
+import { getLoginHref, getUserSession, loadMyProfile } from '@/data/auth';
 import { UnreadCountProvider } from '@/features/notifications/UnreadCountProvider';
 
 interface LayoutProps {
@@ -16,13 +16,16 @@ interface LayoutProps {
 }
 
 export async function Layout({ children }: LayoutProps) {
-	const [userSession, profile, loginLink] = await Promise.all([
+	const [session, { profile, error }, loginLink] = await Promise.all([
 		getUserSession(),
-		getMyProfile(),
+		loadMyProfile(),
 		getLoginHref(),
 	]);
-	// A token whose account the API refused has no profile: show the signed-out nav
-	const session = profile ? userSession : null;
+	// The API didn't answer, so whether they're signed in is unknown: wait for it rather than show them signed out
+	if (error) {
+		console.error('Could not load the signed-in profile', error);
+		return <SessionRetry />;
+	}
 
 	return (
 		<SidebarProvider>

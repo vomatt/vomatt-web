@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import { EmptyCard } from '@/components/EmptyCard';
@@ -21,7 +21,7 @@ import {
 	type NotificationCategory,
 	type NotificationPreferences,
 } from './schema';
-import { getNotifications, readAllNotifications } from './service';
+import { getNotifications, markAllNotificationsRead } from './service';
 import { useUnreadCount } from './UnreadCountProvider';
 
 export type DayGroup = 'today' | 'yesterday' | 'earlier';
@@ -43,8 +43,8 @@ export function NotificationsHeader() {
 
 /**
  * The feed, newest first, grouped by day, with each run of follows as one row. Opening the page
- * marks every notification read; what was unread then keeps its dot for the rest of the visit,
- * across tabs and pages.
+ * reads every notification. What was unread then keeps its dot until opened, including on pages fetched
+ * after that (Load more, another tab), so the list shows what is new without changing under the reader.
  */
 export function NotificationList({
 	initialPage,
@@ -79,20 +79,28 @@ export function NotificationList({
 	// Days follow the reader's clock, so the grouping waits for hydration
 	const isHydrated = useHydrated();
 
-	// Kept from the first render: a refreshed server page comes after read-all and lists none
-	const [wasUnread] = useState<ReadonlySet<string>>(() => new Set(unreadIds));
-	const isUnread = (entry: Entry) => entryItems(entry).some((item) => !item.read || wasUnread.has(item.id));
-
-	// In an effect rather than the server render, which a Link prefetch also runs
-	const hasReadAll = useRef(false);
+	// Read whenever a feed is shown, including one a refresh recovers; a failed request leaves the badge as it was
+	const hasFeed = initialPage !== null;
 	useEffect(() => {
-		if (initialPage === null || unreadIds?.length === 0 || hasReadAll.current) return;
-		hasReadAll.current = true;
-		readAllNotifications().then((result) => {
-			if (result.ok) refresh();
-			else console.error('Marking notifications read failed:', result);
-		});
-	}, [initialPage, unreadIds, refresh]);
+		if (!hasFeed) return;
+		markAllNotificationsRead().then(
+			(result) => result.ok && refresh(),
+			(error) => console.error('Marking notifications read failed:', error)
+		);
+	}, [hasFeed, refresh]);
+
+	// Kept from the first render: pages fetched after read-all come back read, and a refreshed server page lists none
+	const [wasUnread, setWasUnread] = useState<ReadonlySet<string>>(() => new Set(unreadIds));
+	const items = list.items.map((item) => (item.read && wasUnread.has(item.id) ? { ...item, read: false } : item));
+
+	// Already read on the server: opening a row only clears its dot
+	const open = (entry: Entry) => {
+		const opened = entryItems(entry);
+		if (opened.every((item) => item.read)) return;
+		const ids = new Set(opened.map((item) => item.id));
+		setWasUnread((current) => new Set([...current].filter((id) => !ids.has(id))));
+		list.setItems((items) => items.map((item) => (ids.has(item.id) ? { ...item, read: true } : item)));
+	};
 
 	const changeCategory = async (next: NotificationCategory | 'all') => {
 		// A Load more in flight would append the old tab's page after the reset
@@ -129,7 +137,7 @@ export function NotificationList({
 	const groups = (['today', 'yesterday', 'earlier'] as const)
 		.map((group) => ({
 			group,
-			entries: groupFollows(list.items.filter((item) => isHydrated && dayGroup(item.createdAt) === group)),
+			entries: groupFollows(items.filter((item) => isHydrated && dayGroup(item.createdAt) === group)),
 		}))
 		.filter((group) => group.entries.length > 0);
 	const rows = (entries: Entry[]) => (
@@ -138,7 +146,7 @@ export function NotificationList({
 				<NotificationRow
 					key={entry.id}
 					entry={entry}
-					unread={isUnread(entry)}
+					onOpen={() => open(entry)}
 					viewerUsername={viewerUsername}
 				/>
 			))}
@@ -164,7 +172,7 @@ export function NotificationList({
 				) : (
 					list.items.length === 0 && <p className="empty-state">{t('notifications.categoryEmpty')}</p>
 				)}
-				{!isHydrated && rows(groupFollows(list.items))}
+				{!isHydrated && rows(groupFollows(items))}
 				{groups.map(({ group, entries }) => (
 					<section key={group} aria-labelledby={`day-${group}`} className="flex flex-col gap-2">
 						<h2 id={`day-${group}`} className="mx-0.5 text-caption-2 font-medium text-muted-foreground">

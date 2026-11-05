@@ -1,11 +1,24 @@
+import type { Metadata } from 'next';
+
 import { PageShell } from '@/components/layout/PageShell';
 import { EXPLORE_PAGE_SIZE } from '@/features/polls/constants';
 import { getPolls, getTags } from '@/features/polls/service';
+import { getServerMessages } from '@/lib/getServerLocale';
 
 import { ExploreView } from './_components/ExploreView';
 import { filtersFromParams, toExploreQuery } from './filters';
 
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
+
+// Filtered and searched lists all point to the one Explore page
+export async function generateMetadata(): Promise<Metadata> {
+	const { messages } = await getServerMessages();
+	return {
+		title: messages.explore.title,
+		description: messages.meta.exploreDescription,
+		alternates: { canonical: '/explore' },
+	};
+}
 
 export default async function ExplorePage({ searchParams }: Props) {
 	const initial = filtersFromParams(await searchParams);

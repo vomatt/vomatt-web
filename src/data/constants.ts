@@ -19,3 +19,6 @@ export const ACCESS_TOKEN_EXPIRY = 15 * 60; // 15 minutes, the backend default
 export const REFRESH_TOKEN_EXPIRY = 30 * 24 * 60 * 60; // 30 days, the backend default
 /** Refresh this long before the access token expires, so a request never carries a token that dies mid-flight. */
 export const ACCESS_TOKEN_REFRESH_LEEWAY = 60; // seconds
+
+/** The site's name when Sanity has none or can't be reached. */
+export const DEFAULT_SITE_NAME = 'vomatt';

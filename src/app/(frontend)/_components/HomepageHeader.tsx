@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
+import { LegalLinks } from '@/components/layout/LegalLinks';
 import { LoginPrompt } from '@/components/LoginPrompt';
 import { StickyBar } from '@/components/StickyBar';
 import { Button, buttonVariants } from '@/components/ui/Button';
@@ -85,7 +86,13 @@ export function HomepageHeader({
 		<>
 			{/* The feed has no visible title; the page still needs one for headings navigation */}
 			<h1 className="sr-only">{heading}</h1>
-			{!signedIn && <LoginPrompt className="my-2" />}
+			{!signedIn && (
+				<>
+					<LoginPrompt className="mt-2" />
+					{/* Guests' one way to the legal pages short of starting to log in, at every width; the links' padding makes them 44px tall */}
+					<LegalLinks className="mb-2 flex flex-wrap gap-x-5 px-1 text-caption-2 text-muted-foreground [&>a]:py-3.5" />
+				</>
+			)}
 			<StickyBar as="nav" aria-label={t('homePage.topics')} className="-mx-1">
 				<ul className="flex gap-2 overflow-x-auto px-1 py-2 scrollbar-none">
 					{items.map(({ label, href, isActive }) => (

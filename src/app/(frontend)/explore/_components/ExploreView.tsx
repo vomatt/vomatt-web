@@ -132,9 +132,10 @@ export function ExploreView({
 					</div>
 				</div>
 
-				<div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-					<div className="flex items-center gap-4">
-						<span id={statusLabelId} className="text-caption-1 text-muted-foreground">
+				{/* One row that scrolls sideways where it doesn't fit, so the stuck bar stays two rows tall on a phone */}
+				<div className="-m-1 flex items-center gap-x-4 overflow-x-auto p-1 scrollbar-none">
+					<div className="flex shrink-0 items-center gap-4">
+						<span id={statusLabelId} className="shrink-0 whitespace-nowrap text-caption-1 text-muted-foreground">
 							{t('explore.status')}
 						</span>
 						<div className="flex gap-2" role="group" aria-labelledby={statusLabelId}>
@@ -142,9 +143,9 @@ export function ExploreView({
 							<Pill active={status === 'ended'} onClick={() => setStatus('ended')}>{t('explore.filterEnded')}</Pill>
 						</div>
 					</div>
-					{/* Hidden, not removed, for Ended Polls: the row keeps its height when it wraps */}
-					<div className={cn('flex items-center gap-4', status !== 'open' && 'invisible')}>
-						<span id={sortLabelId} className="text-caption-1 text-muted-foreground">
+					{/* Hidden, not removed, for Ended Polls: the row keeps its width */}
+					<div className={cn('flex shrink-0 items-center gap-4', status !== 'open' && 'invisible')}>
+						<span id={sortLabelId} className="shrink-0 whitespace-nowrap text-caption-1 text-muted-foreground">
 							{t('explore.sort')}
 						</span>
 						<div className="flex gap-2" role="group" aria-labelledby={sortLabelId}>

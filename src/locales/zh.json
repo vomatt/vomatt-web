@@ -265,7 +265,7 @@
 		"view": "查看",
 		"cancelledBy": "{title} 已被 {name} 取消",
 		"railTitle": "打開此頁即全部標為已讀",
-		"railBody": "新通知會保留圓點直到你離開，捲動時不會錯過任何一則。",
+		"railBody": "打開此頁時看到的通知會保留圓點，直到你打開它，讓你仍看得出哪些是新的。",
 		"followedYou": "{name} 追蹤了你",
 		"followedYouGroup": "{name} 和其他 {count} 人追蹤了你",
 		"followedYouGroup_one": "{name} 和其他 {count} 人追蹤了你",
@@ -575,6 +575,7 @@
 		"viewReplies": "查看 {count} 則回覆",
 		"moreReply": "查看另外 1 則回覆",
 		"moreReplies": "查看另外 {count} 則回覆",
+		"hideReplies": "隱藏回覆",
 		"deleted": "此留言已刪除。",
 		"replyingTo": "回覆",
 		"cancelReply": "取消回覆",
@@ -1301,5 +1302,10 @@
 		"signedOut": "已登出該裝置",
 		"othersSignedOut": "已登出其他裝置",
 		"signOutFailed": "無法登出，請再試一次。"
+	},
+	"meta": {
+		"siteDescription": "提出問題、參與他人的投票，看看大家真正的想法。投票結束前票數保持密封，沒有人會跟風投票。",
+		"exploreDescription": "依主題瀏覽公開投票，參與進行中的投票，並查看已結束投票的結果。",
+		"profileDescription": "看看 {name} 發起的投票。"
 	}
 }

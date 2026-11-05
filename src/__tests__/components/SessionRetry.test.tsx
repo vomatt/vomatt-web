@@ -30,6 +30,12 @@ describe('SessionRetry', () => {
 		expect(screen.getByRole('status')).toHaveTextContent('Signing you in');
 	});
 
+	it('pulses the wordmark with no loading bar under it', () => {
+		const { container } = render(<SessionRetry />);
+		expect(container.querySelector('svg.animate-wordmark-pulse')).not.toBeNull();
+		expect(container.querySelector('[data-slot="skeleton"]')).toBeNull();
+	});
+
 	it('renders the page once the proxy settles the session', async () => {
 		probeAnswers(503, 503, 204);
 		render(<SessionRetry />);
@@ -49,6 +55,16 @@ describe('SessionRetry', () => {
 		await waitSeconds(10);
 
 		expect(refresh).toHaveBeenCalledTimes(1);
+	});
+
+	it('keeps trying while a refresh leaves it in place, then gives up', async () => {
+		probeAnswers(204, 204, 204);
+		render(<SessionRetry />);
+
+		await waitSeconds(60);
+
+		expect(refresh).toHaveBeenCalledTimes(3);
+		expect(screen.getByRole('heading', { level: 1, name: 'Something went wrong' })).toBeInTheDocument();
 	});
 
 	it('after the last try, says so and offers another round', async () => {
