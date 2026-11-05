@@ -211,7 +211,7 @@
 		"new": "new",
 		"recordAsked": "polls asked",
 		"recordVoted": "polls voted in",
-		"recordReached": "people reached",
+		"recordVotesReceived": "votes received",
 		"recordPicksWon": "picks that won",
 		"recordAskedCount": "{count} polls asked",
 		"recordAskedCount_one": "{count} poll asked",
