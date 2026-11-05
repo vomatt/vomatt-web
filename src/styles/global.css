@@ -69,38 +69,40 @@
 :root {
 	/* vomatt brand: cool canvas, navy ink actions, Volt (highlight) for the create action and "yours", Tide for the promise */
 	--background: oklch(0.964 0.003 265);
-	--foreground: oklch(0.272 0.058 262.5);
+	--foreground: oklch(0.25 0.05 262.5);
 	--card: oklch(1 0 265);
-	--card-foreground: oklch(0.272 0.058 262.5);
+	--card-foreground: var(--foreground);
 	--popover: oklch(1 0 265);
-	--popover-foreground: oklch(0.272 0.058 262.5);
-	--primary: oklch(0.272 0.058 262.5);
-	--primary-hover: oklch(0.36 0.06 262.5);
+	--popover-foreground: var(--foreground);
+	--primary: var(--foreground);
+	--primary-hover: oklch(0.33 0.05 262.5);
 	--primary-foreground: oklch(0.985 0.002 265);
-	--secondary: oklch(0.935 0.005 265);
-	--secondary-foreground: oklch(0.272 0.058 262.5);
-	--muted: oklch(0.955 0.004 265);
-	--muted-foreground: oklch(0.503 0.034 266);
-	--accent: oklch(0.955 0.004 265);
-	--accent-foreground: oklch(0.272 0.058 262.5);
+	/* One step below muted, so a chip or a disabled button keeps an edge on a muted panel */
+	--secondary: oklch(0.93 0.005 265);
+	--secondary-foreground: var(--foreground);
+	--muted: oklch(0.945 0.004 265);
+	--muted-foreground: oklch(0.48 0.03 266);
+	--accent: var(--muted);
+	--accent-foreground: var(--foreground);
 	--destructive: oklch(0.501 0.178 28.7);
 	/* Alert: a count or marker asking to be looked at (unread). White on red, never a button or a status */
 	--alert: oklch(0.55 0.20 27);
 	--alert-foreground: oklch(0.985 0.002 265);
-	--border: oklch(0.919 0.007 268);
-	--border-strong: oklch(0.844 0.012 265);
-	--input: oklch(0.652 0.019 264);
+	--border: oklch(0.915 0.006 265);
+	--border-strong: oklch(0.84 0.012 265);
+	--input: oklch(0.62 0.018 264);
 	/* Focus only: a blue no other state uses, so a focused control never reads as chosen (ink) or yours (Volt); at least 4.2:1 on every surface */
 	--ring: oklch(0.55 0.17 255);
-	--surface-soft: oklch(0.982 0.002 248);
+	/* One step off the card, for hovers and soft boxes on it */
+	--surface-soft: oklch(0.98 0.003 265);
 	/* Scrim behind dialogs, sheets and drawers */
 	--overlay: oklch(0.2 0.02 262 / 0.35);
 	/* Heavier scrim, for dialogs that take over the page */
 	--overlay-strong: oklch(0.2 0.02 262 / 0.6);
-	--field: oklch(0.954 0.005 258);
+	--field: var(--muted);
 	--highlight: oklch(0.952 0.154 117.6);
-	/* Ink on Volt in both themes: a literal, since var(--foreground) turns light in .dark */
-	--highlight-foreground: oklch(0.272 0.058 262.5);
+	/* Ink on Volt: a literal, since var(--foreground) turns light in .dark, which sets its own */
+	--highlight-foreground: oklch(0.25 0.05 262.5);
 	/* Tide, the promise: the seal, the rules, the voting window. Never links or buttons */
 	--tide: oklch(0.588 0.097 184);
 	--tide-tint: oklch(0.963 0.018 184);
@@ -112,12 +114,13 @@
 	--create-hover: var(--primary-hover);
 	--create-foreground: var(--primary-foreground);
 	--create-icon: var(--highlight);
-	--status-scheduled: oklch(0.914 0.017 304.8);
-	--status-open: oklch(0.932 0.036 141.4);
-	--status-closing: oklch(0.910 0.036 52.7);
-	--status-ended: oklch(0.904 0.040 86.1);
+	/* One lightness and chroma, so the chips read as one family */
+	--status-scheduled: oklch(0.925 0.03 304.8);
+	--status-open: oklch(0.925 0.03 141.4);
+	--status-closing: oklch(0.925 0.03 52.7);
+	--status-ended: oklch(0.925 0.03 86.1);
 	/* A poll card's chip while it can still be voted on, and the stamp on a winning result */
-	--status-open-ends: oklch(0.925 0.027 354.5);
+	--status-open-ends: oklch(0.925 0.03 354.5);
 	--elected: oklch(0.605 0.235 27.3);
 	/* Avatar circles; the drawings are pictures, so they keep these in dark mode */
 	--avatar-sand: oklch(0.904 0.040 86.1);
@@ -129,7 +132,7 @@
 	/* Buttons; cards are rounded-2xl (16px), rows and fields rounded-xl (12px) */
 	--radius: 0.625rem;
 	/* The sidebar is one step deeper than the canvas; everything else aliases the base */
-	--sidebar: oklch(0.95 0.004 265);
+	--sidebar: var(--muted);
 	--sidebar-foreground: var(--foreground);
 	--sidebar-primary: var(--primary);
 	--sidebar-primary-foreground: var(--primary-foreground);
@@ -174,48 +177,51 @@ html:has([data-slot='tabs-list'][data-sticky], [data-sticky-bar]) {
 
 .dark {
 	/* Night keeps Daylight's cool neutral (one step of chroma, never a navy canvas): cards lift by
-	   surface, lines stay quiet, text is off-white and Volt is one step softer */
+	   surface, lines stay quiet, text is near white. The button is a true white and Volt sits two steps
+	   below it, so the two never read as one light; ink on Volt is the canvas */
 	--background: oklch(0.165 0.012 265);
-	--foreground: oklch(0.93 0.008 265);
+	--foreground: oklch(0.96 0.006 265);
 	--card: oklch(0.205 0.012 265);
-	--card-foreground: oklch(0.93 0.008 265);
+	--card-foreground: oklch(0.96 0.006 265);
 	--popover: oklch(0.205 0.012 265);
-	--popover-foreground: oklch(0.93 0.008 265);
-	--primary: oklch(0.93 0.008 265);
-	--primary-hover: oklch(0.84 0.012 265);
+	--popover-foreground: oklch(0.96 0.006 265);
+	--primary: oklch(0.97 0.004 265);
+	--primary-hover: oklch(0.89 0.008 265);
 	--primary-foreground: oklch(0.165 0.012 265);
-	--secondary: oklch(0.27 0.014 265);
-	--secondary-foreground: oklch(0.93 0.008 265);
+	--secondary: oklch(0.265 0.012 265);
+	--secondary-foreground: oklch(0.96 0.006 265);
 	--muted: oklch(0.245 0.012 265);
-	--muted-foreground: oklch(0.70 0.022 265);
+	--muted-foreground: oklch(0.72 0.02 265);
 	--accent: oklch(0.245 0.012 265);
-	--accent-foreground: oklch(0.93 0.008 265);
+	--accent-foreground: oklch(0.96 0.006 265);
 	--destructive: oklch(0.771 0.104 25);
 	--alert: oklch(0.55 0.19 27);
 	--alert-foreground: oklch(0.985 0.002 265);
 	--border: oklch(0.265 0.014 265);
 	--border-strong: oklch(0.34 0.016 265);
-	--input: oklch(0.56 0.02 265);
+	--input: oklch(0.58 0.02 265);
 	--ring: oklch(0.72 0.14 252);
 	--surface-soft: oklch(0.185 0.012 265);
 	--overlay: oklch(0.1 0.01 265 / 0.6);
 	--overlay-strong: oklch(0.1 0.01 265 / 0.8);
-	--field: oklch(0.244 0.012 270.9);
-	--highlight: oklch(0.90 0.15 118);
-	--highlight-tint: oklch(0.26 0.04 120);
-	--tide: oklch(0.76 0.09 185);
+	--field: oklch(0.245 0.012 265);
+	--highlight: oklch(0.86 0.165 118);
+	--highlight-foreground: oklch(0.165 0.012 265);
+	--highlight-tint: oklch(0.255 0.04 120);
+	--tide: oklch(0.74 0.09 185);
 	--tide-tint: oklch(0.235 0.025 190);
-	--tide-line: oklch(0.42 0.05 185);
-	--tide-foreground: oklch(0.84 0.08 185);
+	--tide-line: oklch(0.40 0.05 185);
+	/* White words in the Seal; the teal stays on its ring and line */
+	--tide-foreground: var(--foreground);
 	--create: var(--highlight);
 	--create-hover: color-mix(in oklch, var(--highlight) 85%, transparent);
 	--create-foreground: var(--highlight-foreground);
 	--create-icon: var(--highlight-foreground);
-	--status-scheduled: oklch(0.30 0.04 304.8);
-	--status-open: oklch(0.30 0.05 145.4);
-	--status-closing: oklch(0.322 0.037 50.7);
-	--status-ended: oklch(0.30 0.05 86.1);
-	--status-open-ends: oklch(0.30 0.05 354.5);
+	--status-scheduled: oklch(0.30 0.045 304.8);
+	--status-open: oklch(0.30 0.045 145.4);
+	--status-closing: oklch(0.30 0.045 50.7);
+	--status-ended: oklch(0.30 0.045 86.1);
+	--status-open-ends: oklch(0.30 0.045 354.5);
 	--elected: oklch(0.66 0.2 27);
 	--sidebar: oklch(0.145 0.012 265);
 	--sidebar-foreground: var(--foreground);

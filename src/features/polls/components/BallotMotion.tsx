@@ -25,7 +25,8 @@ export function BallotMark({ state }: { state: 'rest' | 'selected' | 'voted' }) 
 			data-state={state}
 			className={cn(
 				'relative grid size-[22px] shrink-0 place-items-center rounded-full transition-[border-color,background-color] duration-150',
-				state === 'rest' ? 'border-2 border-input bg-card' : 'bg-highlight-foreground'
+				// In dark the ink is the canvas, so a Volt edge keeps the disc's shape on a card or the tint
+				state === 'rest' ? 'border-2 border-input bg-card' : 'bg-highlight-foreground dark:border-2 dark:border-highlight'
 			)}
 		>
 			{state !== 'rest' && (
