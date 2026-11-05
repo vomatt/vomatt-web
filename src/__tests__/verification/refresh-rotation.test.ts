@@ -15,13 +15,14 @@ process.env.SESSION_SECRET = 'model-check-secret-0123456789abcdef';
 const PATHS = ['/', '/account', '/login', ...(process.env.REFRESH_CHECK_DEEP ? ['/'] : [])];
 const INSTANCES = 2; // server instances, each with its own in-flight refresh map
 const MAX_AGES = 1; // times the clock jumps (access tokens age, grace windows close)
-const MAX_FAULTS = 1; // refresh calls the backend may refuse with 429 before processing
+const MAX_FAULTS = 1; // refresh calls or session checks the backend may refuse with 429 before processing
 
 // ── World: browser cookie jar + vomatt-api RefreshTokenService ───────────────
 // A refresh is two backend steps: `read` (grace, token, reuse checks) and, for a live token, `commit` (the
 // atomic consume). Other requests' steps can run between them, as the user lookup separates them for real.
 type Pending =
 	| { kind: 'verify'; req: number; resolve: (v: unknown) => void }
+	| { kind: 'check'; req: number; resolve: (v: unknown) => void }
 	| { kind: 'backend'; req: number; inst: number; token: string; stage: 'read' | 'commit'; resolve: (v: unknown) => void };
 
 type Req = {
@@ -85,6 +86,13 @@ class World {
 		return pairReply(pair);
 	}
 
+	/** GET /users/me, the proxy's session check before login sends a visitor away (vomatt-api JwtAuthFilter). */
+	backendCheck() {
+		return this.revoked
+			? { status: 401, body: { success: false, errorCode: 'auth.session_revoked' } }
+			: { status: 200, body: { success: true, data: { id: 'user-1' } } };
+	}
+
 	/** verifyAccessToken's answer: fresh in its epoch, expiring the next, then expired. */
 	payloadFor(token: string) {
 		const issued = this.access.get(token);
@@ -106,8 +114,11 @@ const ctx = () => {
 };
 
 jest.mock('@/lib/api/backend-fetch', () => ({
-	backendFetch: (_url: string, init: RequestInit) => {
+	backendFetch: (url: string, init: RequestInit) => {
 		const { world, req } = ctx();
+		if (url.endsWith('/users/me')) {
+			return new Promise((resolve) => world.pending.push({ kind: 'check', req, resolve }));
+		}
 		const token = JSON.parse(String(init.body)).refreshToken as string;
 		const inst = world.reqs[req].inst;
 		if (world.pending.some((p) => p.kind === 'backend' && p.inst === inst && p.token === token)) {
@@ -162,6 +173,10 @@ function choices(w: World): string[] {
 	}
 	for (const p of w.pending) {
 		if (p.kind === 'verify') out.push(`verify:${p.req}`);
+		else if (p.kind === 'check') {
+			out.push(`check:${p.req}`);
+			if (w.faults < MAX_FAULTS) out.push(`check:${p.req}:429`);
+		}
 		else if (p.stage === 'commit') out.push(`backend:${p.req}:commit`);
 		else {
 			out.push(`backend:${p.req}:read`);
@@ -200,7 +215,7 @@ async function apply(w: World, choice: string) {
 			r.response = res;
 			r.phase = 'settled';
 		});
-	} else if (kind === 'verify' || kind === 'backend') {
+	} else if (kind === 'verify' || kind === 'check' || kind === 'backend') {
 		const id = Number(a);
 		const i = w.pending.findIndex((p) => p.kind === kind && p.req === id);
 		const p = w.pending[i];
@@ -208,6 +223,12 @@ async function apply(w: World, choice: string) {
 			w.pending.splice(i, 1);
 			w.story.push(`${label(w, id)} finishes verifying its access token`);
 			p.resolve(w.payloadFor(w.reqs[id].cookies.accessToken ?? ''));
+		} else if (p.kind === 'check') {
+			w.pending.splice(i, 1);
+			if (b === '429') w.faults++;
+			const reply = b === '429' ? { status: 429, body: { success: false } } : w.backendCheck();
+			w.story.push(`backend answers ${label(w, id)}'s session check → ${reply.status}`);
+			p.resolve(fakeResponse(reply));
 		} else if (b === '429') {
 			w.pending.splice(i, 1);
 			w.faults++;

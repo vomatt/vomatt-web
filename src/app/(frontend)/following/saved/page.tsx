@@ -1,8 +1,7 @@
-import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
 
 import { PageShell } from '@/components/layout/PageShell';
-import { getMyProfile, getUserSession } from '@/data/auth';
+import { getMyProfile, getUserSession, redirectToLogin } from '@/data/auth';
 import { PollListSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import { getBookmarkedPolls, getPopularTags } from '@/features/polls/service';
 
@@ -14,7 +13,7 @@ import { PollFeedList } from '../../_components/PollFeedList';
 export default async function SavedPage() {
 	// Check auth before streaming the shell, so signed-out users get a real 307
 	const user = await getUserSession();
-	if (!user) redirect('/login?redirect=/following/saved');
+	if (!user) return redirectToLogin('/following/saved');
 
 	return (
 		<PageShell className="pt-0" rail={<HomeRail signedIn />}>

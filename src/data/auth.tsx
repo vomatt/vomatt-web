@@ -23,8 +23,13 @@ export interface Session {
 // Component to Server Component which minimizes risk of passing it to a Client
 // Component.
 // Token refresh on expiry is handled in middleware (proxy.tsx) before this runs,
-// so by the time getUserSession is called the access token cookie is always fresh.
-export const getUserSession = cache(async (): Promise<Session | null> => {
+// so by the time these are called the access token cookie is always fresh.
+
+/**
+ * The access token's claims. A token signed out from another device still verifies until it expires, so this
+ * doesn't say the visitor is signed in: anything that shows signed-in state uses getUserSession.
+ */
+export const getTokenSession = cache(async (): Promise<Session | null> => {
 	const accessTokenCookie = (await cookies()).get(ACCESS_TOKEN);
 	if (accessTokenCookie?.value) {
 		const payload = await decodeToken(accessTokenCookie.value);
@@ -41,7 +46,7 @@ export const getUserSession = cache(async (): Promise<Session | null> => {
  */
 export const loadMyProfile = cache(
 	async (): Promise<{ profile: MyProfile | null; gone?: true; revoked?: true; error?: unknown }> => {
-		const session = await getUserSession();
+		const session = await getTokenSession();
 		if (!session) return { profile: null };
 
 		try {
@@ -57,6 +62,15 @@ export const loadMyProfile = cache(
 	}
 );
 
+/**
+ * The signed-in user: a token the API refused (signed out from another device, account deleted) is no session.
+ * While the API can't answer, the token stands; the layout waits on SessionRetry.
+ */
+export const getUserSession = cache(async (): Promise<Session | null> => {
+	const [session, { profile, error }] = await Promise.all([getTokenSession(), loadMyProfile()]);
+	return profile || error ? session : null;
+});
+
 /** Throws when the API couldn't answer: treating that as signed out would send a signed-in user to log in. */
 export const getMyProfile = async (): Promise<MyProfile | null> => {
 	const { profile, error } = await loadMyProfile();
@@ -65,11 +79,11 @@ export const getMyProfile = async (): Promise<MyProfile | null> => {
 };
 
 /**
- * The login link for this visitor. A token the API refused (revoked, or its account deleted) still verifies
- * in the proxy, which would send a plain /login straight back; `session_expired` lets it through.
+ * The login link for this visitor. A token the API refused still verifies in the proxy, which asks the API only
+ * about revocation before sending a plain /login back; `session_expired` lets any refused token through.
  */
 export async function getLoginHref(redirect?: string): Promise<string> {
-	const [session, { profile, gone, revoked }] = await Promise.all([getUserSession(), loadMyProfile()]);
+	const [session, { profile, gone, revoked }] = await Promise.all([getTokenSession(), loadMyProfile()]);
 	return loginHref({
 		redirect,
 		sessionExpired: gone ? 'deleted' : revoked ? 'revoked' : session && !profile ? '1' : undefined,

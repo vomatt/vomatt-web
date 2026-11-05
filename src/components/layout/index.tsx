@@ -16,7 +16,7 @@ interface LayoutProps {
 }
 
 export async function Layout({ children }: LayoutProps) {
-	const [userSession, { profile, error }, loginLink] = await Promise.all([
+	const [session, { profile, error }, loginLink] = await Promise.all([
 		getUserSession(),
 		loadMyProfile(),
 		getLoginHref(),
@@ -26,8 +26,6 @@ export async function Layout({ children }: LayoutProps) {
 		console.error('Could not load the signed-in profile', error);
 		return <SessionRetry />;
 	}
-	// A token whose account the API refused has no profile: show the signed-out nav
-	const session = profile ? userSession : null;
 
 	return (
 		<SidebarProvider>

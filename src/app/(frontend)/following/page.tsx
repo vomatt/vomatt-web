@@ -1,8 +1,7 @@
-import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
 
 import { PageShell } from '@/components/layout/PageShell';
-import { getMyProfile, getUserSession } from '@/data/auth';
+import { getMyProfile, getUserSession, redirectToLogin } from '@/data/auth';
 import { PollListSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import { getFollowingFeed, getPopularTags } from '@/features/polls/service';
 
@@ -13,7 +12,7 @@ import { PollFeedList } from '../_components/PollFeedList';
 export default async function FollowingPage() {
 	// The proxy sends signed-out users to login with a 307; this backs it up
 	const user = await getUserSession();
-	if (!user) redirect('/login');
+	if (!user) return redirectToLogin('/following');
 
 	return (
 		<PageShell className="pt-0" rail={<HomeRail signedIn />}>
