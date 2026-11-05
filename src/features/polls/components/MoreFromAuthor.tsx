@@ -18,7 +18,7 @@ export function MoreFromAuthor({ username, polls }: { username: string; polls: P
 
 	return (
 		<section aria-labelledby={headingId} className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5">
-			<h2 id={headingId} className="text-caption-1 font-semibold uppercase tracking-label text-muted-foreground">
+			<h2 id={headingId} className="text-caption-1 font-medium text-muted-foreground">
 				{t('pollDetail.moreFrom', { username })}
 			</h2>
 			<ul className="-mx-2 -my-1.5">

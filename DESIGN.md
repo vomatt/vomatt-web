@@ -45,12 +45,12 @@ Cool canvas, navy ink actions, two signals: Volt (`highlight`) marks what is you
   | `text-body-2` | 16px | size only | Inputs on phones (iOS zooms below 16px), ballot and result options (with `font-medium`) |
   | `text-body-3` | 15px | size only | Card descriptions, inputs from `md`, tab labels, rail poll titles |
   | `text-body-4` | 14px | size only | Body text, poll-card meta (author line, footer, Tide lines), sidebar rows |
-  | `text-caption-1` | 13px | size only | Rail meta, settings helper text, small labels |
-  | `text-caption-2` | 12px | size only | Meta in rows, sidebar group labels, the policy line under log in |
-  | `text-caption-3` | 11px | leading 1.33 | Chips (uppercase semibold, `tracking-label`, via `chipClassName`), comment meta |
-  | `text-caption-4` | 10px | size only | Chips on a poll card, unread count badges |
+  | `text-caption-1` | 13px | size only | Rail meta, rail card headings (medium, muted), settings helper text, small labels |
+  | `text-caption-2` | 12px | size only | Meta in rows, section labels (day groups; medium, muted), sidebar group labels, the policy line under log in |
+  | `text-caption-3` | 11px | leading 1.33 | Chips (sentence case, medium, via `chipClassName`; on poll cards too), comment meta |
+  | `text-caption-4` | 10px | size only | Unread count badges |
 
-- A step's weight, leading and tracking are defaults: a `font-*`, `leading-*` or `tracking-*` beside it wins. Leading uses Tailwind's named steps (`leading-tight`, `snug`, `normal`, `relaxed`); tracking adds `tracking-title` (-0.01em, small titles) and `tracking-label` (0.06em, uppercase labels) beside Tailwind's own steps.
+- A step's weight, leading and tracking are defaults: a `font-*`, `leading-*` or `tracking-*` beside it wins. Leading uses Tailwind's named steps (`leading-tight`, `snug`, `normal`, `relaxed`); tracking adds `tracking-title` (-0.01em, small titles) beside Tailwind's own steps.
 - `cn()` recognizes the scale by pattern (`lib/utils.ts`): new steps in an existing family need nothing, but a new family must be added there, or tailwind-merge reads it as a color and drops it.
 
 ## Mark

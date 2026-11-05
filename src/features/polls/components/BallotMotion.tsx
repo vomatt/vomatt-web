@@ -61,9 +61,9 @@ export function VotedPill({ label }: { label: string }) {
 			animate={{ opacity: 1, scale: 1 }}
 			exit={{ opacity: 0, scale: 0.85, transition: { duration: 0.15 } }}
 			transition={INK}
-			className={cn(chipClassName, 'bg-highlight text-caption-4 text-highlight-foreground')}
+			className={cn(chipClassName, 'bg-highlight text-highlight-foreground')}
 		>
-			<Check aria-hidden size={12} strokeWidth={3} />
+			<Check aria-hidden size={10} strokeWidth={3} />
 			{label}
 		</m.span>
 	);
