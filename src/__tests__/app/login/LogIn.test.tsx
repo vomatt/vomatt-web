@@ -1,10 +1,15 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import { LogIn } from '@/app/(frontend)/login/_component/LogIn';
-import { getPasskeyLoginOptions, verifyPasskeyLogin } from '@/lib/api/services/auth';
+import { getPasskeyLoginOptions, requestOtp, verifyPasskeyLogin } from '@/lib/api/services/auth';
 
 let mockSearch = '';
 const mockReplace = jest.fn();
+
+// input-otp, in the code step, calls this; jsdom lacks it
+if (!document.elementFromPoint) {
+	document.elementFromPoint = () => null;
+}
 
 jest.mock('next/navigation', () => ({
 	useRouter: () => ({ replace: mockReplace }),
@@ -60,6 +65,22 @@ describe('LogIn', () => {
 			/>
 		);
 		expect(screen.getByText('By continuing you agree to the terms.')).toBeInTheDocument();
+	});
+});
+
+describe('LogIn with a code already sent', () => {
+	it('opens the code step for that email, with the time left before a resend', async () => {
+		mockSearch = '';
+		(requestOtp as jest.Mock).mockResolvedValueOnce({ status: 'COOLDOWN', seconds: 177 });
+		render(<LogIn />);
+
+		fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'ada@example.com' } });
+		fireEvent.click(screen.getByRole('button', { name: 'Continue with email' }));
+
+		expect(await screen.findByRole('heading', { level: 1, name: 'Check your email' })).toBeInTheDocument();
+		expect(screen.getByText('ada@example.com')).toBeInTheDocument();
+		expect(screen.getByLabelText('6-digit verification code')).toBeInTheDocument();
+		expect(screen.getByText('Resend code in 2:57')).toBeInTheDocument();
 	});
 });
 

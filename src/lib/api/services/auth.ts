@@ -30,16 +30,27 @@ async function postJson(endpoint: string, body: unknown) {
 	});
 }
 
+/** Seconds left on a resend cooldown, which the API states only in its (localized) message. */
+function cooldownSeconds(error: unknown) {
+	if (!(error instanceof ApiError) || error.data?.errorCode !== 'auth.otp.resend_cooldown') return undefined;
+	const seconds = Number(/\d+/.exec(error.message)?.[0]);
+	return seconds > 0 ? seconds : undefined;
+}
+
 /**
  * Emails a one-time code. The same code signs in an existing account or
  * creates a new one; the API says which only once the code is verified.
+ * `COOLDOWN` means a code went to this email recently and no new one was sent.
  */
-export async function requestOtp(email: string): Promise<{ status: 'SUCCESS' } | AuthFailure> {
+export async function requestOtp(
+	email: string
+): Promise<{ status: 'SUCCESS' } | { status: 'COOLDOWN'; seconds: number } | AuthFailure> {
 	try {
 		await postJson('/auth/send-otp', { email: email.trim().toLowerCase() });
 		return { status: 'SUCCESS' };
 	} catch (error) {
-		return toFailure(error);
+		const seconds = cooldownSeconds(error);
+		return seconds ? { status: 'COOLDOWN', seconds } : toFailure(error);
 	}
 }
 

@@ -9,7 +9,7 @@ import type { AuthErrorKey } from '@/lib/api/auth-errors';
 
 import { AuthError } from './AuthError';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from './InputOTP';
-import type { AuthResult } from './useAuthFlow';
+import type { AuthResult, ResendResult } from './useAuthFlow';
 
 /** Matches the backend's default OTP resend cooldown. */
 export const RESEND_COOLDOWN_SECONDS = 180;
@@ -17,8 +17,10 @@ const CODE_LENGTH = 6;
 
 interface VerificationFormProps {
 	onSubmitCode: (code: string) => Promise<AuthResult>;
-	onResend: () => Promise<AuthResult>;
+	onResend: () => Promise<ResendResult>;
 	onEditEmail: () => void;
+	/** Seconds until a resend is allowed; a fresh code's full cooldown by default. */
+	resendIn?: number;
 }
 
 function formatCountdown(seconds: number) {
@@ -31,6 +33,7 @@ export default function VerificationForm({
 	onSubmitCode,
 	onResend,
 	onEditEmail,
+	resendIn = RESEND_COOLDOWN_SECONDS,
 }: VerificationFormProps) {
 	const { t } = useLanguage();
 	const [code, setCode] = useState('');
@@ -38,7 +41,7 @@ export default function VerificationForm({
 	const [isLoading, setIsLoading] = useState(false);
 	const [isResending, setIsResending] = useState(false);
 	const [resent, setResent] = useState(false);
-	const [cooldown, setCooldown] = useState(RESEND_COOLDOWN_SECONDS);
+	const [cooldown, setCooldown] = useState(resendIn);
 	const inputRef = useRef<HTMLInputElement>(null);
 	// The input is disabled while a code is checked, so it loses focus; a wrong code brings it back
 	const refocusAfterCheck = useRef(false);
@@ -88,6 +91,10 @@ export default function VerificationForm({
 		setIsResending(true);
 		try {
 			const res = await onResend();
+			if (res.status === 'COOLDOWN') {
+				setCooldown(res.seconds);
+				return;
+			}
 			if (res.status === 'ERROR') {
 				setError(res.error);
 				return;

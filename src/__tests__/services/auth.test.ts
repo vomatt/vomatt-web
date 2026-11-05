@@ -66,7 +66,14 @@ describe('requestOtp()', () => {
 		expect(res).toEqual({ status: 'SUCCESS' });
 	});
 
-	it('maps the resend cooldown error', async () => {
+	it('returns the seconds left on the resend cooldown, which the API states only in its message', async () => {
+		mockPublicFetch.mockRejectedValueOnce(
+			new ApiError('請等 177 秒後再重新發送', 400, { errorCode: 'auth.otp.resend_cooldown' })
+		);
+		expect(await requestOtp('a@example.com')).toEqual({ status: 'COOLDOWN', seconds: 177 });
+	});
+
+	it('maps a resend cooldown without seconds to its error', async () => {
 		mockPublicFetch.mockRejectedValueOnce(
 			new ApiError('wait', 400, { errorCode: 'auth.otp.resend_cooldown' })
 		);
