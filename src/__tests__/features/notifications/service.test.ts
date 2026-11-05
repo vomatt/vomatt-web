@@ -2,6 +2,7 @@ import {
 	getNotificationPreferences,
 	getNotifications,
 	getUnreadCount,
+	getUnreadNotificationIds,
 	markAllNotificationsRead,
 	markNotificationRead,
 	updateNotificationPreferences,
@@ -46,6 +47,16 @@ describe('getUnreadCount() when signed out', () => {
 	it('returns null instead of throwing', async () => {
 		mockApiClient.mockRejectedValue(new AuthError('expired'));
 		expect(await getUnreadCount()).toBeNull();
+	});
+});
+
+describe('getUnreadNotificationIds()', () => {
+	it('reads the ids, for a category when given', async () => {
+		mockApiClient.mockResolvedValue({ ids: ['comment_1', 'result_2'] });
+		expect(await getUnreadNotificationIds()).toEqual(['comment_1', 'result_2']);
+		expect(mockApiClient).toHaveBeenCalledWith('/notifications/unread-ids');
+		await getUnreadNotificationIds('LIKE');
+		expect(mockApiClient).toHaveBeenLastCalledWith('/notifications/unread-ids?category=LIKE');
 	});
 });
 
