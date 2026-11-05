@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { EmptyCard } from '@/components/EmptyCard';
@@ -21,9 +21,8 @@ import {
 	type NotificationCategory,
 	type NotificationPreferences,
 } from './schema';
-import { getNotifications } from './service';
+import { getNotifications, readAllNotifications } from './service';
 import { useUnreadCount } from './UnreadCountProvider';
-import { useMarkRead } from './useMarkRead';
 
 export type DayGroup = 'today' | 'yesterday' | 'earlier';
 
@@ -43,23 +42,26 @@ export function NotificationsHeader() {
 }
 
 /**
- * The feed, newest first, grouped by day, with each run of follows as one row. A row on screen
- * for a moment is read, but keeps its dot until the next visit so the list doesn't change under
- * the reader. Results rows stay until opened, so a sealed promise is never lost in the list.
+ * The feed, newest first, grouped by day, with each run of follows as one row. Opening the page
+ * marks every notification read; what was unread then keeps its dot for the rest of the visit,
+ * across tabs and pages.
  */
 export function NotificationList({
 	initialPage,
 	initialCategory = 'all',
+	unreadIds,
 	viewerUsername,
 }: {
 	/** Null when the feed couldn't be loaded. */
 	initialPage: CursorPage<Notification> | null;
 	/** The tab the server page was loaded for (`?tab=`). */
 	initialCategory?: NotificationCategory | 'all';
+	/** The feed's unread ids from before this visit read them all; null when they couldn't be loaded. */
+	unreadIds: string[] | null;
 	viewerUsername: string;
 }) {
 	const { t } = useLanguage();
-	const { count: unreadCount } = useUnreadCount();
+	const { count: unreadCount, refresh } = useUnreadCount();
 	// A tab's reset brings its own fetcher so cursors stay with one category
 	const fetchPage = useCallback(
 		(cursor: string) => getNotifications(cursor, initialCategory === 'all' ? undefined : initialCategory),
@@ -77,32 +79,17 @@ export function NotificationList({
 	// Days follow the reader's clock, so the grouping waits for hydration
 	const isHydrated = useHydrated();
 
-	// Read this visit by being seen: their dots stay until the next one
-	const [seenIds, setSeenIds] = useState<ReadonlySet<string>>(new Set());
+	// Kept from the first render: a refreshed server page comes after read-all and lists none
+	const [wasUnread] = useState<ReadonlySet<string>>(() => new Set(unreadIds));
+	const isUnread = (entry: Entry) => entryItems(entry).some((item) => !item.read || wasUnread.has(item.id));
 
-	const setRead = (ids: Set<string>) =>
-		list.setItems((items) => items.map((item) => (ids.has(item.id) ? { ...item, read: true } : item)));
-	const markRead = useMarkRead();
-
-	const unreadIds = (entry: Entry) =>
-		entryItems(entry)
-			.filter((item) => !item.read)
-			.map((item) => item.id);
-
-	// The dot clears at once; a failed request leaves it unread on the server, so the next visit shows it again
-	const open = (entry: Entry) => {
-		const ids = unreadIds(entry);
-		if (ids.length === 0) return;
-		setRead(new Set(ids));
-		markRead.read(ids);
-	};
-
-	const seen = (entry: Entry) => {
-		const ids = unreadIds(entry);
-		setSeenIds((current) => new Set([...current, ...ids]));
-		markRead.queue(ids);
-	};
-	const watchesSeen = (entry: Entry) => entry.kind !== 'RESULT' && unreadIds(entry).some((id) => !seenIds.has(id));
+	// In an effect rather than the server render, which a Link prefetch also runs
+	const hasReadAll = useRef(false);
+	useEffect(() => {
+		if (initialPage === null || hasReadAll.current) return;
+		hasReadAll.current = true;
+		readAllNotifications().then(refresh, (error) => console.error('Marking notifications read failed:', error));
+	}, [initialPage, refresh]);
 
 	const changeCategory = async (next: NotificationCategory | 'all') => {
 		// A Load more in flight would append the old tab's page after the reset
@@ -148,8 +135,7 @@ export function NotificationList({
 				<NotificationRow
 					key={entry.id}
 					entry={entry}
-					onOpen={() => open(entry)}
-					onSeen={watchesSeen(entry) ? () => seen(entry) : undefined}
+					unread={isUnread(entry)}
 					viewerUsername={viewerUsername}
 				/>
 			))}
