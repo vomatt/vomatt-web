@@ -705,6 +705,13 @@
 		"save": "儲存頭像",
 		"savedToast": "頭像已更新",
 		"choose": "選擇{name}",
+		"upload": {
+			"button": "上傳照片",
+			"name": "你的照片",
+			"trait": "會裁成正方形",
+			"unsupported": "請使用 JPEG、PNG、GIF 或 BMP 圖片。",
+			"tooLarge": "照片超過 2 MB，請選較小的檔案。"
+		},
 		"none": {
 			"name": "帳號圖示",
 			"trait": "只有你，不用角色"
@@ -966,7 +973,11 @@
 			"type_mismatch": "參數格式錯誤：{0}",
 			"invalid_status": "無效的狀態：{0}",
 			"invalid_sort": "無效的排序：{0}",
-			"cursor_invalid": "分頁 cursor 無效"
+			"cursor_invalid": "分頁 cursor 無效",
+			"file_required": "請選擇要上傳的檔案",
+			"file_read_failed": "檔案讀取失敗",
+			"file_too_large": "檔案大小超過上限（2 MB），請壓縮後重新上傳",
+			"storage_unavailable": "圖片儲存服務暫時無法使用，請稍後再試"
 		},
 		"auth": {
 			"token": {
@@ -1042,6 +1053,9 @@
 			},
 			"follow": {
 				"blocked": "不能追蹤已封鎖的使用者，請先解除封鎖"
+			},
+			"avatar": {
+				"unsupported_image": "不支援的圖片：請上傳 4000 萬像素以內的 JPEG、PNG、GIF 或 BMP"
 			}
 		},
 		"vote": {

@@ -1,4 +1,4 @@
-import { chooseAvatar } from '@/features/avatars/service';
+import { chooseAvatar, uploadAvatar } from '@/features/avatars/service';
 
 const mockUpdateTag = jest.fn();
 jest.mock('next/cache', () => ({ updateTag: (...a: unknown[]) => mockUpdateTag(...a) }));
@@ -41,5 +41,27 @@ describe('chooseAvatar()', () => {
 	it("returns the API's message instead of throwing", async () => {
 		mockApiClient.mockRejectedValueOnce(new Error('Nope'));
 		expect(await chooseAvatar('boba')).toEqual({ ok: false, message: 'Nope' });
+	});
+});
+
+describe('uploadAvatar()', () => {
+	it('sends the file as multipart to PUT /users/me/avatar and refreshes profiles', async () => {
+		const formData = new FormData();
+		formData.set('file', new File(['x'], 'me.png', { type: 'image/png' }));
+		expect(await uploadAvatar(formData)).toEqual({ ok: true, data: undefined });
+		const [path, options] = mockApiClient.mock.calls[0];
+		expect(path).toBe('/users/me/avatar');
+		expect(options.method).toBe('PUT');
+		expect(options.isFormData).toBe(true);
+		expect((options.body as FormData).get('file')).toBeInstanceOf(File);
+		expect(mockUpdateTag).toHaveBeenCalledWith('profiles');
+	});
+
+	it('refuses a missing or empty file without a request', async () => {
+		const empty = new FormData();
+		empty.set('file', new File([], 'empty.png'));
+		expect((await uploadAvatar(new FormData())).ok).toBe(false);
+		expect((await uploadAvatar(empty)).ok).toBe(false);
+		expect(mockApiClient).not.toHaveBeenCalled();
 	});
 });

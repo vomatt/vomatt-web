@@ -8,8 +8,10 @@ jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguag
 const mockToastError = jest.fn();
 jest.mock('sonner', () => ({ toast: { error: (...a: unknown[]) => mockToastError(...a), success: jest.fn() } }));
 const mockChooseAvatar = jest.fn();
+const mockUploadAvatar = jest.fn();
 jest.mock('@/features/avatars/service', () => ({
 	chooseAvatar: (...a: unknown[]) => mockChooseAvatar(...a),
+	uploadAvatar: (...a: unknown[]) => mockUploadAvatar(...a),
 }));
 // Records where each tile tooltip may be placed; jsdom has no layout to show it
 const mockTooltipBoundaries: unknown[] = [];
@@ -28,6 +30,7 @@ beforeEach(() => {
 	jest.clearAllMocks();
 	mockTooltipBoundaries.length = 0;
 	mockChooseAvatar.mockResolvedValue({ ok: true, data: undefined });
+	mockUploadAvatar.mockResolvedValue({ ok: true, data: undefined });
 });
 
 const openDialog = (avatarUrl: string | null) => {
@@ -115,5 +118,42 @@ describe('AvatarDialog', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Surprise me' }));
 		expect(screen.getByRole('button', { name: 'Choose Boba' })).toHaveAttribute('aria-pressed', 'false');
 		expect(screen.getByRole('button', { name: 'Save avatar' })).toBeEnabled();
+	});
+
+	describe('upload', () => {
+		const pick = (file: File) => fireEvent.change(screen.getByTestId('avatar-file'), { target: { files: [file] } });
+
+		it('uploads a chosen photo', async () => {
+			openDialog(null);
+			pick(new File(['x'], 'me.png', { type: 'image/png' }));
+			await waitFor(() => expect(mockUploadAvatar).toHaveBeenCalled());
+			expect((mockUploadAvatar.mock.calls[0][0] as FormData).get('file')).toBeInstanceOf(File);
+		});
+
+		it('rejects a wrong type or an oversized photo without a request', async () => {
+			openDialog(null);
+			pick(new File(['x'], 'me.webp', { type: 'image/webp' }));
+			await waitFor(() => expect(mockToastError).toHaveBeenCalledWith(en.avatar.upload.unsupported, expect.anything()));
+			pick(new File([new Uint8Array(2 * 1024 * 1024 + 1)], 'big.png', { type: 'image/png' }));
+			await waitFor(() => expect(mockToastError).toHaveBeenCalledWith(en.avatar.upload.tooLarge, expect.anything()));
+			expect(mockUploadAvatar).not.toHaveBeenCalled();
+		});
+
+		it("shows the API's error for a failed upload", async () => {
+			mockUploadAvatar.mockResolvedValue({ ok: false, errorCode: 'user.avatar.unsupported_image', message: 'x' });
+			openDialog(null);
+			pick(new File(['x'], 'me.png', { type: 'image/png' }));
+			await waitFor(() =>
+				expect(mockToastError).toHaveBeenCalledWith(en.apiError.user.avatar.unsupported_image, expect.anything())
+			);
+		});
+
+		it('saves a bot over an uploaded photo', async () => {
+			const bot = defaultBotFor('mei');
+			openDialog('/api/avatars/abc.jpg');
+			fireEvent.click(screen.getByRole('button', { name: `Choose ${en.avatar.bots[bot].name}` }));
+			fireEvent.click(screen.getByRole('button', { name: 'Save avatar' }));
+			await waitFor(() => expect(mockChooseAvatar).toHaveBeenCalledWith(bot));
+		});
 	});
 });

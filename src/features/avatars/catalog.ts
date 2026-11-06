@@ -95,3 +95,14 @@ export function resolveAvatar(username: string, avatarUrl: string | null | undef
 	if (avatarUrl?.startsWith(BOT_PREFIX)) return parseBotAvatar(avatarUrl) ?? NO_BOT;
 	return defaultBotFor(username);
 }
+
+const UPLOADED_AVATAR = /^\/api\/avatars\/[\w-]+\.jpg$/;
+
+/** The path of an uploaded avatar (`/api/avatars/<id>.jpg`, served through this host's rewrite); null for a bot or anything else. */
+export function uploadedAvatarSrc(avatarUrl: string | null | undefined): string | null {
+	return avatarUrl && UPLOADED_AVATAR.test(avatarUrl) ? avatarUrl : null;
+}
+
+/** Limits the API enforces on an uploaded avatar; checked here first to save the round trip. */
+export const AVATAR_UPLOAD_MAX_BYTES = 2 * 1024 * 1024;
+export const AVATAR_UPLOAD_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp'];

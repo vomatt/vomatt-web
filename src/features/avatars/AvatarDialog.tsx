@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/Button';
@@ -19,15 +19,18 @@ import { apiErrorText } from '@/lib/api/error-text';
 import { cn } from '@/lib/utils';
 
 import {
+	AVATAR_UPLOAD_MAX_BYTES,
+	AVATAR_UPLOAD_TYPES,
 	type AvatarChoice,
 	avatarCopyKey,
 	BOT_KINDS,
 	type BotKind,
 	NO_BOT,
 	resolveAvatar,
+	uploadedAvatarSrc,
 } from './catalog';
-import { chooseAvatar } from './service';
-import { ChosenAvatar } from './UserAvatar';
+import { chooseAvatar, uploadAvatar } from './service';
+import { ChosenAvatar, UploadedAvatar } from './UserAvatar';
 
 
 /**
@@ -45,9 +48,13 @@ export function AvatarDialog({
 	const { t } = useLanguage();
 	const [open, setOpen] = useState(false);
 	// What everyone sees now; saving refreshes the page, which passes the new avatarUrl
-	const saved = resolveAvatar(username, avatarUrl);
-	const [selected, setSelected] = useState<AvatarChoice>(saved);
+	const savedUpload = uploadedAvatarSrc(avatarUrl);
+	// null while the uploaded photo is what's kept
+	const saved: AvatarChoice | null = savedUpload ? null : resolveAvatar(username, avatarUrl);
+	const [selected, setSelected] = useState<AvatarChoice | null>(saved);
 	const [isSaving, setIsSaving] = useState(false);
+	const [isUploading, setIsUploading] = useState(false);
+	const fileInput = useRef<HTMLInputElement>(null);
 	// Tile tooltips stay inside the scrolling grid, so they flip or shift rather than cover the header
 	const [grid, setGrid] = useState<HTMLDivElement | null>(null);
 	const unchanged = selected === saved;
@@ -58,6 +65,33 @@ export function AvatarDialog({
 		setOpen(next);
 	};
 
+	const upload = async (file: File) => {
+		if (!AVATAR_UPLOAD_TYPES.includes(file.type)) {
+			toast.error(t('avatar.upload.unsupported'), { duration: Infinity });
+			return;
+		}
+		if (file.size > AVATAR_UPLOAD_MAX_BYTES) {
+			toast.error(t('avatar.upload.tooLarge'), { duration: Infinity });
+			return;
+		}
+		setIsUploading(true);
+		try {
+			const formData = new FormData();
+			formData.set('file', file);
+			const result = await uploadAvatar(formData);
+			if (!result.ok) {
+				toast.error(apiErrorText(t, result, 'account.saveFailed'), { duration: Infinity });
+				return;
+			}
+			setOpen(false);
+			toast.success(t('avatar.savedToast'));
+		} catch {
+			toast.error(t('account.saveFailed'), { duration: Infinity });
+		} finally {
+			setIsUploading(false);
+		}
+	};
+
 	const surprise = () => {
 		const others = BOT_KINDS.filter((kind) => kind !== selected);
 		setSelected(others[Math.floor(Math.random() * others.length)]);
@@ -65,7 +99,7 @@ export function AvatarDialog({
 
 	const save = async () => {
 		// Enabled even when unchanged, so it never drops focus; nothing to save just closes
-		if (unchanged) {
+		if (unchanged || selected === null) {
 			setOpen(false);
 			return;
 		}
@@ -119,10 +153,14 @@ export function AvatarDialog({
 				aria-label={t('avatar.change')}
 				className="group relative shrink-0 rounded-full outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:outline-solid"
 			>
-				<ChosenAvatar
-					kind={saved}
-					className={cn('transition-opacity group-hover:opacity-80', className)}
-				/>
+				{savedUpload ? (
+					<UploadedAvatar src={savedUpload} className={cn('transition-opacity group-hover:opacity-80', className)} />
+				) : (
+					<ChosenAvatar
+						kind={saved ?? NO_BOT}
+						className={cn('transition-opacity group-hover:opacity-80', className)}
+					/>
+				)}
 				<span className="absolute -right-0.5 -bottom-0.5 flex size-6 items-center justify-center rounded-full border border-border bg-card text-foreground">
 					<Pencil size={12} aria-hidden />
 				</span>
@@ -137,19 +175,41 @@ export function AvatarDialog({
 				</DialogHeader>
 
 				<div className="flex flex-wrap items-center gap-4">
-					<ChosenAvatar
-						kind={selected}
-						className="size-16 md:size-28"
-					/>
+					{selected === null && savedUpload ? (
+						<UploadedAvatar src={savedUpload} className="size-16 md:size-28" />
+					) : (
+						<ChosenAvatar kind={selected ?? NO_BOT} className="size-16 md:size-28" />
+					)}
 					<div className="min-w-0 flex-1" aria-live="polite">
 						<p className="font-medium md:text-body-1">
-							{t(`${avatarCopyKey(selected)}.name`)}
+							{selected === null ? t('avatar.upload.name') : t(`${avatarCopyKey(selected)}.name`)}
 						</p>
 						<p className="text-caption-2 text-muted-foreground">
-							{t(`${avatarCopyKey(selected)}.trait`)}
+							{selected === null ? t('avatar.upload.trait') : t(`${avatarCopyKey(selected)}.trait`)}
 						</p>
 					</div>
 					<div className="flex w-full gap-2 *:flex-1 md:w-auto md:*:flex-none">
+						<input
+							ref={fileInput}
+							type="file"
+							accept={AVATAR_UPLOAD_TYPES.join(',')}
+							hidden
+							data-testid="avatar-file"
+							onChange={(event) => {
+								const file = event.target.files?.[0];
+								// Cleared so choosing the same file again still fires
+								event.target.value = '';
+								if (file) void upload(file);
+							}}
+						/>
+						<Button
+							variant="outline"
+							size="sm"
+							loading={isUploading}
+							onClick={() => fileInput.current?.click()}
+						>
+							{t('avatar.upload.button')}
+						</Button>
 						<Button variant="outline" size="sm" onClick={surprise}>
 							{t('avatar.surprise')}
 						</Button>
