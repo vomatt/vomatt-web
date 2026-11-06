@@ -69,7 +69,7 @@ export function AuthFlow({ onDone, onSignedIn, policyMessage, inDialog = false }
 			/>
 		);
 	} else if (flow.step === 'profile') {
-		heading = { title: t('onboarding.title'), subtitle: t('onboarding.subtitle') };
+		heading = { title: t('onboarding.title'), subtitle: t('onboarding.subtitle', { username: flow.username ?? '' }) };
 		body = <ProfileStep onSave={flow.submitProfile} onDone={onDone} />;
 	} else {
 		heading = {

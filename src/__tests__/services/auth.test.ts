@@ -117,8 +117,8 @@ describe('verifyOtp()', () => {
 	});
 
 	it('reports an account created by this sign-in', async () => {
-		mockPublicFetch.mockResolvedValueOnce({ token: 'a1', refreshToken: 'r1', isNewUser: true, user: {} });
-		expect(await verifyOtp('new@example.com', '123456')).toEqual({ status: 'SUCCESS', isNewUser: true });
+		mockPublicFetch.mockResolvedValueOnce({ token: 'a1', refreshToken: 'r1', isNewUser: true, user: { username: 'newbie_0042' } });
+		expect(await verifyOtp('new@example.com', '123456')).toEqual({ status: 'SUCCESS', isNewUser: true, username: 'newbie_0042' });
 	});
 
 	it('maps a wrong code without storing tokens', async () => {

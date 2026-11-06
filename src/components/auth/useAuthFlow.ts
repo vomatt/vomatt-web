@@ -23,6 +23,8 @@ export function useAuthFlow() {
 	const [email, setEmail] = useState('');
 	/** Seconds until a resend, when the code step opened during the cooldown of an earlier code. */
 	const [resendIn, setResendIn] = useState<number>();
+	/** A new account's username, which everyone else sees it by until it sets a display name. */
+	const [username, setUsername] = useState<string>();
 
 	const submitEmail = useCallback(async (value: string): Promise<AuthResult> => {
 		try {
@@ -54,6 +56,7 @@ export function useAuthFlow() {
 				const res = await verifyOtp(email, code);
 				if (res.status === 'ERROR') return res;
 				if (res.isNewUser) {
+					setUsername(res.username);
 					setStep('profile');
 					return OK;
 				}
@@ -83,6 +86,7 @@ export function useAuthFlow() {
 		step,
 		email,
 		resendIn,
+		username,
 		submitEmail,
 		resendCode,
 		submitCode,

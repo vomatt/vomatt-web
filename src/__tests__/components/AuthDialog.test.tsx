@@ -8,7 +8,9 @@ if (!document.elementFromPoint) {
 }
 
 jest.mock('@/contexts/LanguageContext', () => ({
-	useLanguage: () => ({ t: (key: string) => key }),
+	useLanguage: () => ({
+		t: (key: string, values?: { username?: string }) => (values?.username ? `${key} @${values.username}` : key),
+	}),
 	useOptionalTranslate: () => (key: string) => key,
 }));
 
@@ -161,6 +163,17 @@ describe('AuthDialog', () => {
 
 		await waitFor(() => expect(baseProps.onAuthSuccess).toHaveBeenCalled());
 		expect(mockUpdateProfile).toHaveBeenCalledWith({ firstName: 'New', lastName: 'Bie' });
+	});
+
+	it('tells a new user the username everyone else sees them by', async () => {
+		mockRequestOtp.mockResolvedValue({ status: 'SUCCESS' });
+		mockVerifyOtp.mockResolvedValue({ status: 'SUCCESS', isNewUser: true, username: 'newbie_0042' });
+		render(<AuthDialog {...baseProps} />);
+
+		await submitEmail('newbie@test.com');
+		fillOTP('123456');
+
+		expect(await screen.findByText('onboarding.subtitle @newbie_0042')).toBeInTheDocument();
 	});
 
 	it('needs a first name to finish, but not a last name', async () => {
