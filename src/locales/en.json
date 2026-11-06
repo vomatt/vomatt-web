@@ -573,6 +573,7 @@
 		"placeholder": "Why did you vote the way you did?",
 		"addComment": "Add a comment",
 		"post": "Post",
+		"posting": "Posting…",
 		"you": "You",
 		"empty": "No comments yet. Make the case for your choice.",
 		"loadFailed": "Couldn’t load comments.",
