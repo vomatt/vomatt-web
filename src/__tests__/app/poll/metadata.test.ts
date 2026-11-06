@@ -13,9 +13,11 @@ jest.mock('@/app/(frontend)/poll/[id]/actions', () => ({ switchAccount: jest.fn(
 jest.mock('@/app/(frontend)/poll/[id]/PollDiscussion', () => ({ PollDiscussion: () => null }));
 jest.mock('@/features/polls/sharePreview', () => ({ shareDescription: () => 'description' }));
 
+const POLL_ID = '01a195a4-2a06-7137-a746-2c2ebb8136cc';
+
 const metadataFor = (audience?: string) => {
-	mockGetPoll.mockResolvedValue({ id: 'p1', title: 'Market night?', audience });
-	return generateMetadata({ params: Promise.resolve({ id: 'p1' }) });
+	mockGetPoll.mockResolvedValue({ id: POLL_ID, title: 'Market night?', audience });
+	return generateMetadata({ params: Promise.resolve({ id: POLL_ID }) });
 };
 
 describe('poll page metadata', () => {
@@ -28,6 +30,6 @@ describe('poll page metadata', () => {
 	});
 
 	it('names the poll URL as canonical', async () => {
-		expect((await metadataFor('public')).alternates).toEqual({ canonical: '/poll/p1' });
+		expect((await metadataFor('public')).alternates).toEqual({ canonical: `/poll/${POLL_ID}` });
 	});
 });
