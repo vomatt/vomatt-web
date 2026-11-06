@@ -25,6 +25,7 @@ const { AuthError } = jest.requireMock('@/lib/api/client');
 
 // Metadata and the page share one lookup, so its outcome decides both.
 // Each test uses its own id: the lookup is cached per id
+const pollId = (n: number) => `01a195a4-2a06-7137-a746-2c2ebb8136c${n}`;
 const lookup = (id: string) => generateMetadata({ params: Promise.resolve({ id }) });
 
 beforeEach(() => {
@@ -36,18 +37,25 @@ describe('poll page for a poll that does not open', () => {
 	it('shows not-found, not a login prompt, when the poll is missing and is not invite-only', async () => {
 		mockGetPoll.mockResolvedValue(null);
 		mockGetInviteOnlyCreator.mockResolvedValue(null);
-		await expect(lookup('gone')).rejects.toBe(NOT_FOUND);
+		await expect(lookup(pollId(1))).rejects.toBe(NOT_FOUND);
 	});
 
 	it('keeps the invitation for an invite-only poll the viewer cannot open yet', async () => {
 		mockGetPoll.mockResolvedValue(null);
 		mockGetInviteOnlyCreator.mockResolvedValue({ username: 'alice', avatarUrl: null });
-		await expect(lookup('invited')).resolves.toBeTruthy();
+		await expect(lookup(pollId(2))).resolves.toBeTruthy();
 	});
 
 	it('keeps the login prompt when the API rejected the session', async () => {
 		mockGetPoll.mockRejectedValue(new AuthError());
-		await expect(lookup('expired')).resolves.toBeTruthy();
+		await expect(lookup(pollId(3))).resolves.toBeTruthy();
 		expect(mockGetInviteOnlyCreator).not.toHaveBeenCalled();
+	});
+
+	it('shows not-found for a link whose id is not a poll id, whatever the API answers', async () => {
+		// Signed out, the API refuses a malformed id with 401 instead of 404
+		mockGetPoll.mockRejectedValue(new Error('unauthorized'));
+		await expect(lookup('does-not-exist')).rejects.toBe(NOT_FOUND);
+		await expect(lookup(pollId(4).slice(0, -1))).rejects.toBe(NOT_FOUND);
 	});
 });
