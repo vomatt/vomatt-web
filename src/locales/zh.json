@@ -206,7 +206,7 @@
 		"new": "新",
 		"recordAsked": "發起的投票",
 		"recordVoted": "參與的投票",
-		"recordReached": "觸及人數",
+		"recordVotesReceived": "收到的票數",
 		"recordPicksWon": "勝出的選擇",
 		"recordAskedCount": "發起 {count} 則投票",
 		"recordVotedCount": "參與 {count} 則",

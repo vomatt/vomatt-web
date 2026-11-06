@@ -20,8 +20,7 @@ import { DraftList } from '@/features/polls/components/DraftList';
 import { PollRowListSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import type { Poll } from '@/features/polls/schema';
 import { getBookmarkedPolls } from '@/features/polls/service';
-import { getTurnout } from '@/features/polls/status';
-import { askedPolls, picksWonRate, splitAsked, splitVoted, votedPolls } from '@/features/profiles/lists';
+import { askedPolls, picksWonRate, splitAsked, splitVoted, votedPolls, votesReceived } from '@/features/profiles/lists';
 import { AskedRow, ProfileSection, VotedRow } from '@/features/profiles/ProfileRows';
 import { useCursorList } from '@/hooks/useCursorList';
 import type { CursorPage } from '@/lib/api/cursor';
@@ -141,8 +140,8 @@ export function OwnProfileView({
 						// Not votedPollCount: it counts Ballots on the owner's own polls, which the Voted tab leaves out
 						{ label: t('profile.recordVoted'), value: polls ? voted.length : null },
 						{
-							label: t('profile.recordReached'),
-							value: polls ? asked.reduce((sum, poll) => sum + (getTurnout(poll) ?? 0), 0) : null,
+							label: t('profile.recordVotesReceived'),
+							value: polls ? votesReceived(asked) : null,
 							private: true,
 						},
 						{ label: t('profile.recordPicksWon'), value: picksWonRate(voted), suffix: '%', private: true },

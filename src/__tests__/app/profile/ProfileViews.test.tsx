@@ -117,7 +117,7 @@ describe('VisitorProfileView', () => {
 		expect(screen.queryByText('Taipei')).not.toBeInTheDocument();
 		expect(cell('polls asked')).toHaveTextContent('31');
 		expect(cell('polls voted in')).toHaveTextContent('204');
-		expect(screen.queryByText('people reached')).not.toBeInTheDocument();
+		expect(screen.queryByText('votes received')).not.toBeInTheDocument();
 		expect(screen.queryByRole('tab')).not.toBeInTheDocument();
 		expect(screen.getByRole('heading', { level: 2, name: 'Asked 31' })).toBeInTheDocument();
 		expect(screen.getByText('No polls yet.')).toBeInTheDocument();
@@ -361,12 +361,20 @@ describe('OwnProfileView', () => {
 		expect(toast.error).toHaveBeenCalled();
 	});
 
-	it('adds the private record: people reached and picks that won', () => {
+	it('adds the private record: votes received and picks that won', () => {
 		render(<OwnProfileView profile={me} polls={[mine, voted]} />);
 
-		expect(cell('people reached')).toHaveTextContent('40');
+		expect(cell('votes received')).toHaveTextContent('40');
 		expect(cell('picks that won')).toHaveTextContent('100%');
 		expect(cell('picks that won')).toHaveTextContent('Only you can see this');
+	});
+
+	it("counts votes received from other people, leaving out the owner's own ballots", () => {
+		const mineVotedIn = poll('o', { participantCount: 4, myOptionId: 'a' });
+		const mineAnonymous = poll('p', { participantCount: 2, myBallotAnonymous: true });
+		render(<OwnProfileView profile={me} polls={[mine, mineVotedIn, mineAnonymous, voted]} />);
+
+		expect(cell('votes received')).toHaveTextContent('44');
 	});
 
 	it('shows the count of created polls from the API in the record', () => {
@@ -461,7 +469,7 @@ describe('OwnProfileView', () => {
 		render(<OwnProfileView profile={me} polls={null} />);
 		expect(cell('polls asked')).toHaveTextContent('1');
 		expect(cell('polls voted in')).toHaveTextContent('–');
-		expect(cell('people reached')).toHaveTextContent('–');
+		expect(cell('votes received')).toHaveTextContent('–');
 		fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
 		expect(mockRefresh).toHaveBeenCalled();
 	});

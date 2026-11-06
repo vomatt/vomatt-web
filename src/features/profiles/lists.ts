@@ -1,6 +1,6 @@
 import { ballotOutcome } from '@/features/account/insights';
 import type { Poll } from '@/features/polls/schema';
-import { derivePollStatus, getWinners, isCancelled } from '@/features/polls/status';
+import { derivePollStatus, getTurnout, getWinners, isCancelled } from '@/features/polls/status';
 
 /** Asked: Scheduled and Open polls first (what happens next), then Ended ones. */
 export function splitAsked(polls: Poll[], now = Date.now()) {
@@ -18,12 +18,16 @@ export function splitVoted(polls: Poll[], now = Date.now()) {
 	return { sealed, decided };
 }
 
-/**
- * The owner's Polls they voted in but didn't ask, from My Polls (which mixes both, and Invitations).
- * A sealed Anonymous Ballot has no option left, only its flag.
- */
+/** Whether the viewer holds a Ballot in the Poll. A sealed Anonymous Ballot has no option left, only its flag. */
+const holdsBallot = (poll: Poll) => !!poll.myOptionId || poll.myBallotAnonymous != null;
+
+/** The owner's Polls they voted in but didn't ask, from My Polls (which mixes both, and Invitations). */
 export const votedPolls = (polls: Poll[], viewerId: string) =>
-	polls.filter((poll) => poll.creatorId !== viewerId && (!!poll.myOptionId || poll.myBallotAnonymous != null));
+	polls.filter((poll) => poll.creatorId !== viewerId && holdsBallot(poll));
+
+/** Ballots other people cast in the owner's asked Polls. Not distinct people: the API has no such count. */
+export const votesReceived = (asked: Poll[]) =>
+	asked.reduce((sum, poll) => sum + Math.max(0, (getTurnout(poll) ?? 0) - (holdsBallot(poll) ? 1 : 0)), 0);
 
 /** The owner's own Polls, most recently opened first. */
 export const askedPolls = (polls: Poll[], viewerId: string) =>
