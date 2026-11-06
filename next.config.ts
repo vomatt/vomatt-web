@@ -11,6 +11,8 @@ const nextConfig: NextConfig = {
 	transpilePackages: ['@sanity/image-url', 'groq'],
 	experimental: {
 		agentUpgrade: 'security',
+		// Avatar uploads go through a Server Action; the API takes up to 2 MB
+		serverActions: { bodySizeLimit: '3mb' },
 	},
 	sassOptions: {
 		includePaths: [path.join(__dirname, 'styles')],
@@ -41,6 +43,11 @@ const nextConfig: NextConfig = {
 					]
 				: []),
 		];
+	},
+	async rewrites() {
+		// Uploaded avatars are paths on the API origin; the browser asks this host, which forwards them
+		const apiUrl = process.env.API_URL?.replace(/\/+$/, '');
+		return apiUrl ? [{ source: '/api/avatars/:file', destination: `${apiUrl}/api/avatars/:file` }] : [];
 	},
 	async headers() {
 		return [

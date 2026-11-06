@@ -718,6 +718,13 @@
 		"save": "Save avatar",
 		"savedToast": "Avatar updated",
 		"choose": "Choose {name}",
+		"upload": {
+			"button": "Upload photo",
+			"name": "Your photo",
+			"trait": "Cropped to a square",
+			"unsupported": "Use a JPEG, PNG, GIF or BMP image.",
+			"tooLarge": "That photo is over 2 MB. Pick a smaller one."
+		},
 		"none": {
 			"name": "Account icon",
 			"trait": "Just you, no character"
@@ -979,7 +986,11 @@
 			"type_mismatch": "Invalid parameter format: {0}",
 			"invalid_status": "Invalid status: {0}",
 			"invalid_sort": "Invalid sort: {0}",
-			"cursor_invalid": "Invalid pagination cursor"
+			"cursor_invalid": "Invalid pagination cursor",
+			"file_required": "Please select a file to upload",
+			"file_read_failed": "Failed to read file",
+			"file_too_large": "File size exceeds the limit (2 MB). Please compress and re-upload",
+			"storage_unavailable": "Image storage is temporarily unavailable, please try again later"
 		},
 		"auth": {
 			"token": {
@@ -1055,6 +1066,9 @@
 			},
 			"follow": {
 				"blocked": "You can’t follow a user you blocked; unblock them first"
+			},
+			"avatar": {
+				"unsupported_image": "Unsupported image: upload a JPEG, PNG, GIF or BMP of at most 40 megapixels"
 			}
 		},
 		"vote": {

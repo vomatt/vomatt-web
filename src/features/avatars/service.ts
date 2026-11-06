@@ -20,3 +20,18 @@ export async function chooseAvatar(kind: string): Promise<ActionResult> {
 		updateTag(PROFILES_TAG);
 	});
 }
+
+/**
+ * Uploads a photo as the signed-in user's avatar (`file` in the form data). The API
+ * crops it square and stores it; its limits come back as errorCodes (`apiError.*`).
+ */
+export async function uploadAvatar(formData: FormData): Promise<ActionResult> {
+	return attempt(async () => {
+		const file = formData.get('file');
+		if (!(file instanceof File) || file.size === 0) throw new Error('No file');
+		const body = new FormData();
+		body.set('file', file);
+		await apiClient('/users/me/avatar', { method: 'PUT', body, isFormData: true });
+		updateTag(PROFILES_TAG);
+	});
+}
