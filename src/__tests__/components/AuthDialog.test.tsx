@@ -8,7 +8,9 @@ if (!document.elementFromPoint) {
 }
 
 jest.mock('@/contexts/LanguageContext', () => ({
-	useLanguage: () => ({ t: (key: string) => key }),
+	useLanguage: () => ({
+		t: (key: string, values?: { username?: string }) => (values?.username ? `${key} @${values.username}` : key),
+	}),
 	useOptionalTranslate: () => (key: string) => key,
 }));
 
@@ -23,6 +25,7 @@ jest.mock('@/lib/api/services/auth', () => ({
 
 jest.mock('@/lib/api/services/users', () => ({
 	updateProfile: (...args: unknown[]) => mockUpdateProfile(...args),
+	getMyProfile: () => Promise.resolve({ username: 'user_0001', firstName: 'Ann' }),
 }));
 
 // @portabletext/react ships ESM only, which Jest doesn't load
@@ -161,6 +164,28 @@ describe('AuthDialog', () => {
 
 		await waitFor(() => expect(baseProps.onAuthSuccess).toHaveBeenCalled());
 		expect(mockUpdateProfile).toHaveBeenCalledWith({ firstName: 'New', lastName: 'Bie' });
+	});
+
+	it('tells a new user the username everyone else sees them by', async () => {
+		mockRequestOtp.mockResolvedValue({ status: 'SUCCESS' });
+		mockVerifyOtp.mockResolvedValue({ status: 'SUCCESS', isNewUser: true, username: 'newbie_0042' });
+		render(<AuthDialog {...baseProps} />);
+
+		await submitEmail('newbie@test.com');
+		fillOTP('123456');
+
+		expect(await screen.findByText('onboarding.subtitle @newbie_0042')).toBeInTheDocument();
+	});
+
+	it('leaves the username out of the name step when the sign-in response has none', async () => {
+		mockRequestOtp.mockResolvedValue({ status: 'SUCCESS' });
+		mockVerifyOtp.mockResolvedValue({ status: 'SUCCESS', isNewUser: true });
+		render(<AuthDialog {...baseProps} />);
+
+		await submitEmail('newbie@test.com');
+		fillOTP('123456');
+
+		expect(await screen.findByText('onboarding.subtitleNoUsername')).toBeInTheDocument();
 	});
 
 	it('needs a first name to finish, but not a last name', async () => {

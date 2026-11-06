@@ -61,7 +61,7 @@ export async function requestOtp(
 export async function verifyOtp(
 	email: string,
 	code: string
-): Promise<{ status: 'SUCCESS'; isNewUser: boolean } | AuthFailure> {
+): Promise<{ status: 'SUCCESS'; isNewUser: boolean; username?: string } | AuthFailure> {
 	try {
 		const data = await postJson('/auth/verify-otp', {
 			email: email.trim().toLowerCase(),
@@ -70,7 +70,8 @@ export async function verifyOtp(
 		const tokens = readAuthTokens(data);
 		if (!tokens) return { status: 'ERROR', error: 'serverError' };
 		await setAuthTokens(tokens);
-		return { status: 'SUCCESS', isNewUser: data?.isNewUser === true };
+		const username = typeof data?.user?.username === 'string' ? data.user.username : undefined;
+		return { status: 'SUCCESS', isNewUser: data?.isNewUser === true, username };
 	} catch (error) {
 		return toFailure(error);
 	}

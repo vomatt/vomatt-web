@@ -24,7 +24,10 @@ jest.mock('@/lib/api/services/auth', () => ({
 	getPasskeyLoginOptions: jest.fn(),
 	verifyPasskeyLogin: jest.fn(),
 }));
-jest.mock('@/lib/api/services/users', () => ({ updateProfile: jest.fn() }));
+jest.mock('@/lib/api/services/users', () => ({
+	updateProfile: jest.fn(),
+	getMyProfile: () => Promise.resolve({ username: 'user_0001', firstName: 'Ann' }),
+}));
 
 // @portabletext/react ships ESM only, which Jest doesn't load
 jest.mock('@/components/CustomPortableText', () => ({
