@@ -699,18 +699,10 @@
 		"change": "更換頭像",
 		"body": "加入時我們幫你挑了一個，隨時可以換。",
 		"surprise": "隨機換一個",
+		"remove": "移除頭像",
 		"save": "儲存頭像",
 		"savedToast": "頭像已更新",
 		"choose": "選擇{name}",
-		"families": {
-			"plain": "不選角色",
-			"bites": "台灣小吃",
-			"guardians": "廟宇守護",
-			"visitors": "外星訪客",
-			"animals": "島上動物",
-			"cats": "貓咪",
-			"dogs": "狗狗"
-		},
 		"none": {
 			"name": "帳號圖示",
 			"trait": "只有你，不用角色"
@@ -732,10 +724,6 @@
 				"name": "鳳梨酥",
 				"trait": "咬了一口"
 			},
-			"egg": {
-				"name": "茶葉蛋",
-				"trait": "從早上滷到現在"
-			},
 			"ice": {
 				"name": "芒果冰",
 				"trait": "永康街，芒果加滿"
@@ -743,14 +731,6 @@
 			"youtiao": {
 				"name": "油條",
 				"trait": "泡進豆漿"
-			},
-			"tofu": {
-				"name": "臭豆腐",
-				"trait": "先聞到，再愛上"
-			},
-			"sausage": {
-				"name": "香腸",
-				"trait": "夜市炭烤"
 			},
 			"chip": {
 				"name": "晶片",
@@ -784,10 +764,6 @@
 				"name": "八爺",
 				"trait": "黑無常，走得兇"
 			},
-			"shi": {
-				"name": "石獅",
-				"trait": "腳踩繡球"
-			},
 			"long": {
 				"name": "龍",
 				"trait": "盤在廟頂"
@@ -796,10 +772,6 @@
 				"name": "燈籠",
 				"trait": "紅色的，掛在廟門"
 			},
-			"ding": {
-				"name": "香爐",
-				"trait": "銅鑄的那座"
-			},
 			"jiaobei": {
 				"name": "筊杯",
 				"trait": "問神明是或否"
@@ -807,10 +779,6 @@
 			"xiang": {
 				"name": "香",
 				"trait": "三炷香敬祖先"
-			},
-			"banyan": {
-				"name": "榕樹",
-				"trait": "廟口那棵老樹"
 			},
 			"gray": {
 				"name": "小灰人",
@@ -840,21 +808,9 @@
 				"name": "天蛾人",
 				"trait": "橋塌之前有人看過"
 			},
-			"blob": {
-				"name": "軟泥怪",
-				"trait": "沒有固定立場"
-			},
 			"cyclops": {
 				"name": "獨眼怪",
 				"trait": "一隻眼，一張票"
-			},
-			"probe": {
-				"name": "探測器",
-				"trait": "從 1977 年聽到現在"
-			},
-			"saucer": {
-				"name": "飛碟",
-				"trait": "只是路過"
 			},
 			"trio": {
 				"name": "三眼怪",
@@ -888,21 +844,9 @@
 				"name": "帝雉",
 				"trait": "阿里山的帝王"
 			},
-			"firefly": {
-				"name": "螢火蟲",
-				"trait": "四月的山上夜晚"
-			},
-			"crab": {
-				"name": "陸蟹",
-				"trait": "在墾丁過馬路"
-			},
 			"flyfish": {
 				"name": "飛魚",
 				"trait": "每年春天回蘭嶼"
-			},
-			"turtle": {
-				"name": "海龜",
-				"trait": "小琉球常客"
 			},
 			"dog": {
 				"name": "台灣土狗",

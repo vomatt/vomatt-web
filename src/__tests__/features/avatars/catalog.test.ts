@@ -14,10 +14,15 @@ import en from '@/locales/en.json';
 import zh from '@/locales/zh.json';
 
 describe('the cast', () => {
-	it('has 72 characters, twelve per family, none twice', () => {
-		expect(BOT_KINDS).toHaveLength(72);
-		expect(new Set(BOT_KINDS).size).toBe(72);
-		Object.values(BOT_FAMILIES).forEach((kinds) => expect(kinds).toHaveLength(12));
+	it('has 60 characters, none twice', () => {
+		expect(BOT_KINDS).toHaveLength(60);
+		expect(new Set(BOT_KINDS).size).toBe(60);
+	});
+
+	// The picker shows six across on phones and ten on desktop
+	it('fills every row of the picker', () => {
+		expect(BOT_KINDS.length % 6).toBe(0);
+		expect(BOT_KINDS.length % 10).toBe(0);
 	});
 
 	it('gives every character a drawing, a tint and copy in both languages', () => {
@@ -35,18 +40,11 @@ describe('the cast', () => {
 		);
 	});
 
-	it('names every family in both languages', () => {
-		Object.keys(BOT_FAMILIES).forEach((family) => {
-			expect(en.avatar.families[family as keyof typeof en.avatar.families]).toBeTruthy();
-			expect(zh.avatar.families[family as keyof typeof zh.avatar.families]).toBeTruthy();
-		});
-	});
-
 	it('has copy in both languages for no character', () => {
 		expect(en.avatar.none.name).toBeTruthy();
 		expect(zh.avatar.none.trait).toBeTruthy();
-		expect(en.avatar.families.plain).toBeTruthy();
-		expect(zh.avatar.families.plain).toBeTruthy();
+		expect(en.avatar.remove).toBeTruthy();
+		expect(zh.avatar.remove).toBeTruthy();
 	});
 });
 
@@ -66,6 +64,20 @@ describe('defaultBotFor()', () => {
 		expect(defaultBotFor('Mei_Lin')).toBe(defaultBotFor('mei_lin'));
 	});
 
+	it.each([
+		['user0', 'moth'],
+		['user1', 'dachshund'],
+		['user2', 'cyclops'],
+		['user3', 'frenchie'],
+	])('keeps the character %s had before the cast shrank (%s)', (username, kind) => {
+		expect(defaultBotFor(username)).toBe(kind);
+	});
+
+	it('gives a username whose character retired one from the cast', () => {
+		expect(BOT_KINDS).toContain(defaultBotFor('user12'));
+		expect(BOT_KINDS).toContain(defaultBotFor('user26'));
+	});
+
 	it('spreads usernames across the cast', () => {
 		const picked = new Set(Array.from({ length: 200 }, (_, i) => defaultBotFor(`user${i}`)));
 		expect(picked.size).toBeGreaterThan(30);
@@ -81,7 +93,11 @@ describe('resolveAvatar()', () => {
 		expect(resolveAvatar('mei', 'bot:none')).toBe('none');
 	});
 
-	it.each([null, undefined, 'bot:unicorn', 'https://lh3.example.com/p.jpg', 'http://old.example.com/p.jpg'])(
+	it.each(['bot:egg', 'bot:unicorn'])('uses the account icon when the chosen bot is no longer in the cast (%p)', (value) =>
+		expect(resolveAvatar('mei', value)).toBe('none')
+	);
+
+	it.each([null, undefined, 'https://lh3.example.com/p.jpg', 'http://old.example.com/p.jpg'])(
 		'falls back to the username bot for %p',
 		(value) => expect(resolveAvatar('mei', value)).toBe(defaultBotFor('mei'))
 	);
