@@ -30,8 +30,12 @@ type Lookup =
 	| { poll: null; reason: 'session-rejected' }
 	| { poll: null; reason: 'invite-only'; creator: { username: string; avatarUrl: string | null } };
 
+// The API only serves UUID poll ids; signed out, it answers any other id with 401
+const POLL_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 // Metadata and the page share one lookup per request
 const lookupPoll = cache(async (id: string): Promise<Lookup> => {
+	if (!POLL_ID.test(id)) notFound();
 	let poll: Poll | null;
 	try {
 		poll = await getPoll(id);
