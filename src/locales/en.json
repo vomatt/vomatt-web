@@ -564,6 +564,7 @@
 	"onboarding": {
 		"title": "What's your name?",
 		"subtitle": "Only you see your name. Everyone else sees you as @{username}. You can change both in Edit profile.",
+		"subtitleNoUsername": "You can change these, and who sees them, in Edit profile.",
 		"saveFailed": "Your name wasn’t saved. Add it in Edit profile.",
 		"finish": "Finish"
 	},

@@ -5,6 +5,7 @@ import { useAuthFlow } from '@/components/auth/useAuthFlow';
 const mockRequestOtp = jest.fn();
 const mockVerifyOtp = jest.fn();
 const mockUpdateProfile = jest.fn();
+const mockGetMyProfile = jest.fn();
 
 jest.mock('@/lib/api/services/auth', () => ({
 	requestOtp: (...args: unknown[]) => mockRequestOtp(...args),
@@ -13,10 +14,12 @@ jest.mock('@/lib/api/services/auth', () => ({
 
 jest.mock('@/lib/api/services/users', () => ({
 	updateProfile: (...args: unknown[]) => mockUpdateProfile(...args),
+	getMyProfile: (...args: unknown[]) => mockGetMyProfile(...args),
 }));
 
 beforeEach(() => {
 	jest.clearAllMocks();
+	mockGetMyProfile.mockResolvedValue({ username: 'user_0001', firstName: 'Ann' });
 });
 
 async function atCodeStep() {
@@ -66,6 +69,34 @@ describe('useAuthFlow', () => {
 
 		// The server actions normalise the email
 		expect(mockVerifyOtp).toHaveBeenCalledWith('User@Test.com', '123456');
+		expect(res).toEqual({ status: 'OK', done: true });
+	});
+
+	it('asks an existing user who never gave a first name for it again', async () => {
+		const { result } = await atCodeStep();
+		mockVerifyOtp.mockResolvedValue({ status: 'SUCCESS', isNewUser: false });
+		mockGetMyProfile.mockResolvedValue({ username: 'henry_0007', firstName: null });
+
+		let res: unknown;
+		await act(async () => {
+			res = await result.current.submitCode('123456');
+		});
+
+		expect(res).toEqual({ status: 'OK' });
+		expect(result.current.step).toBe('profile');
+		expect(result.current.username).toBe('henry_0007');
+	});
+
+	it('still signs in an existing user when their profile fails to load', async () => {
+		const { result } = await atCodeStep();
+		mockVerifyOtp.mockResolvedValue({ status: 'SUCCESS', isNewUser: false });
+		mockGetMyProfile.mockRejectedValue(new Error('down'));
+
+		let res: unknown;
+		await act(async () => {
+			res = await result.current.submitCode('123456');
+		});
+
 		expect(res).toEqual({ status: 'OK', done: true });
 	});
 

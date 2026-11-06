@@ -2,9 +2,9 @@ import { useCallback, useState } from 'react';
 
 import type { AuthErrorKey } from '@/lib/api/auth-errors';
 import { requestOtp, verifyOtp } from '@/lib/api/services/auth';
-import { updateProfile } from '@/lib/api/services/users';
+import { getMyProfile, updateProfile } from '@/lib/api/services/users';
 
-/** email → code → (new accounts only) profile. */
+/** email → code → profile (new accounts, and ones that never gave a first name). */
 type AuthStep = 'email' | 'code' | 'profile';
 
 export type AuthResult = { status: 'OK' } | { status: 'ERROR'; error: AuthErrorKey };
@@ -57,6 +57,13 @@ export function useAuthFlow() {
 				if (res.status === 'ERROR') return res;
 				if (res.isNewUser) {
 					setUsername(res.username);
+					setStep('profile');
+					return OK;
+				}
+				// Someone who left at the name step is asked again; a failed check doesn't hold up sign-in
+				const me = await getMyProfile().catch(() => null);
+				if (me && !me.firstName?.trim()) {
+					setUsername(me.username);
 					setStep('profile');
 					return OK;
 				}

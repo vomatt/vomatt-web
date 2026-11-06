@@ -25,6 +25,7 @@ jest.mock('@/lib/api/services/auth', () => ({
 
 jest.mock('@/lib/api/services/users', () => ({
 	updateProfile: (...args: unknown[]) => mockUpdateProfile(...args),
+	getMyProfile: () => Promise.resolve({ username: 'user_0001', firstName: 'Ann' }),
 }));
 
 // @portabletext/react ships ESM only, which Jest doesn't load
@@ -174,6 +175,17 @@ describe('AuthDialog', () => {
 		fillOTP('123456');
 
 		expect(await screen.findByText('onboarding.subtitle @newbie_0042')).toBeInTheDocument();
+	});
+
+	it('leaves the username out of the name step when the sign-in response has none', async () => {
+		mockRequestOtp.mockResolvedValue({ status: 'SUCCESS' });
+		mockVerifyOtp.mockResolvedValue({ status: 'SUCCESS', isNewUser: true });
+		render(<AuthDialog {...baseProps} />);
+
+		await submitEmail('newbie@test.com');
+		fillOTP('123456');
+
+		expect(await screen.findByText('onboarding.subtitleNoUsername')).toBeInTheDocument();
 	});
 
 	it('needs a first name to finish, but not a last name', async () => {
