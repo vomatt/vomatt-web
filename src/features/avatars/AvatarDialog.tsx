@@ -66,7 +66,8 @@ export function AvatarDialog({
 	};
 
 	const upload = async (file: File) => {
-		if (!AVATAR_UPLOAD_TYPES.includes(file.type)) {
+		if (isSaving || isUploading) return;
+		if (file.size === 0 || !AVATAR_UPLOAD_TYPES.includes(file.type)) {
 			toast.error(t('avatar.upload.unsupported'), { duration: Infinity });
 			return;
 		}
@@ -99,6 +100,7 @@ export function AvatarDialog({
 
 	const save = async () => {
 		// Enabled even when unchanged, so it never drops focus; nothing to save just closes
+		if (isUploading) return;
 		if (unchanged || selected === null) {
 			setOpen(false);
 			return;
@@ -206,6 +208,7 @@ export function AvatarDialog({
 							variant="outline"
 							size="sm"
 							loading={isUploading}
+								disabled={isSaving}
 							onClick={() => fileInput.current?.click()}
 						>
 							{t('avatar.upload.button')}
@@ -233,7 +236,7 @@ export function AvatarDialog({
 				</div>
 
 				<DialogFooter showCloseButton closeLabel={t('common.close')}>
-					<Button onClick={save} loading={isSaving}>
+					<Button onClick={save} loading={isSaving} disabled={isUploading}>
 						{t('avatar.save')}
 					</Button>
 				</DialogFooter>
