@@ -561,6 +561,7 @@
 		"placeholder": "你為什麼這樣投？說說你的理由",
 		"addComment": "新增留言",
 		"post": "發佈",
+		"posting": "發佈中…",
 		"you": "你",
 		"empty": "還沒有留言，來說說你的選擇吧。",
 		"loadFailed": "無法載入留言。",

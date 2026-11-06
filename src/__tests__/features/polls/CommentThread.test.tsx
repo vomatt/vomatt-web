@@ -622,8 +622,8 @@ describe('CommentThread', () => {
 		fireEvent.change(box, { target: { value: 'Newest' } });
 		fireEvent.submit(box.closest('form')!);
 
-		const newest = await screen.findByText('Newest');
-		const older = screen.getByText('A reply');
+		const older = await screen.findByText('A reply');
+		const newest = screen.getByText('Newest');
 		expect(older.compareDocumentPosition(newest) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 	});
 
@@ -734,6 +734,169 @@ describe('CommentThread', () => {
 		expect(screen.getByText('Saved soon')).toBe(pending);
 	});
 
+	describe('while a comment is being posted', () => {
+		it('shows it under the viewer’s own name and avatar, so nothing changes once it is saved', async () => {
+			service.postComment.mockReturnValue(new Promise(() => {}));
+			function SignedIn() {
+				const thread = useComments('poll-1', { enabled: true });
+				return (
+					<CommentThread
+						thread={thread}
+						pollId="poll-1"
+						viewerId="me"
+						viewer={{ username: 'klaus', avatarUrl: 'bot:owl' }}
+						requireAuth={(action) => action()}
+					/>
+				);
+			}
+			render(<SignedIn />);
+			await screen.findByText('Mine');
+
+			// Signed in, the composer suggests people to mention
+			const box = screen.getByRole('combobox', { name: 'Add a comment' });
+			fireEvent.change(box, { target: { value: 'Still me' } });
+			fireEvent.submit(box.closest('form')!);
+			const posted = (await screen.findByText('Still me')).closest('article')!;
+
+			expect(within(posted).getByText('klaus')).toBeInTheDocument();
+			expect(within(posted).getByText('You')).toBeInTheDocument();
+		});
+
+		it('says so on the comment, and offers its actions once it is saved', async () => {
+			let save!: (value: unknown) => void;
+			service.postComment.mockReturnValue(new Promise((resolve) => (save = resolve)));
+			render(<Harness />);
+			await screen.findByText('Mine');
+
+			const box = screen.getByRole('textbox', { name: 'Add a comment' });
+			fireEvent.change(box, { target: { value: 'On its way' } });
+			fireEvent.submit(box.closest('form')!);
+			const posted = (await screen.findByText('On its way')).closest('article')!;
+
+			expect(within(posted).getByText('Posting…')).toBeInTheDocument();
+			expect(within(posted).getByRole('button', { name: 'Like' }).closest('[inert]')).not.toBeNull();
+
+			await act(async () => save({ ok: true, data: { ...mine, id: 'c9', text: 'On its way' } }));
+
+			expect(within(posted).queryByText('Posting…')).not.toBeInTheDocument();
+			expect(within(posted).getByRole('button', { name: 'Like' }).closest('[inert]')).toBeNull();
+		});
+
+		it('folds the reply composer at once, and brings it back with the text if the reply fails', async () => {
+			let save!: (value: unknown) => void;
+			service.postComment.mockReturnValue(new Promise((resolve) => (save = resolve)));
+			render(<Harness />);
+
+			fireEvent.click((await screen.findAllByRole('button', { name: 'Reply' }))[0]);
+			fireEvent.change(screen.getByRole('textbox', { name: 'Write a reply…' }), { target: { value: 'Try me' } });
+			fireEvent.submit(screen.getByRole('textbox', { name: 'Write a reply…' }).closest('form')!);
+
+			await waitFor(() => expect(screen.queryByRole('textbox', { name: 'Write a reply…' })).not.toBeInTheDocument());
+			expect(screen.getByText('Try me')).toBeInTheDocument();
+
+			await act(async () => save({ ok: false, status: 500, message: 'down' }));
+
+			expect(await screen.findByRole('textbox', { name: 'Write a reply…' })).toHaveValue('Try me');
+		});
+
+		it('hands focus to the Reply button of the comment answered, so the keyboard keeps its place', async () => {
+			service.postComment.mockReturnValue(new Promise(() => {}));
+			render(<Harness />);
+
+			fireEvent.click((await screen.findAllByRole('button', { name: 'Reply' }))[0]);
+			const box = screen.getByRole('textbox', { name: 'Write a reply…' });
+			fireEvent.change(box, { target: { value: 'Keep my place' } });
+			fireEvent.submit(box.closest('form')!);
+
+			const answered = screen.getByText('Mine').closest('article')!;
+			await waitFor(() => expect(within(answered).getAllByRole('button', { name: 'Reply' })[0]).toHaveFocus());
+		});
+
+		it('leaves another reply the viewer started alone when an earlier one fails', async () => {
+			const { toast } = jest.requireMock('sonner');
+			let save!: (value: unknown) => void;
+			service.postComment.mockReturnValue(new Promise((resolve) => (save = resolve)));
+			render(<Harness />);
+
+			fireEvent.click((await screen.findAllByRole('button', { name: 'Reply' }))[0]);
+			fireEvent.change(screen.getByRole('textbox', { name: 'Write a reply…' }), { target: { value: 'First' } });
+			fireEvent.submit(screen.getByRole('textbox', { name: 'Write a reply…' }).closest('form')!);
+			await waitFor(() => expect(screen.queryByRole('textbox', { name: 'Write a reply…' })).not.toBeInTheDocument());
+
+			const other = screen.getByText('Theirs').closest('article')!;
+			fireEvent.click(within(other).getByRole('button', { name: 'Reply' }));
+			fireEvent.change(screen.getByRole('textbox', { name: 'Write a reply…' }), { target: { value: 'Second' } });
+
+			await act(async () => save({ ok: false, status: 500, message: 'down' }));
+
+			const boxes = screen.getAllByRole('textbox', { name: 'Write a reply…' });
+			expect(boxes).toHaveLength(1);
+			expect(other).toContainElement(boxes[0]);
+			expect(boxes[0]).toHaveValue('Second');
+			expect(toast.error).toHaveBeenCalledWith('Couldn’t post your comment. Try again.');
+		});
+
+		it('brings a failed reply to a reply back without its mention, which the composer names apart', async () => {
+			service.getComments.mockResolvedValue({
+				ok: true,
+				data: { items: [{ ...mine, replyCount: 1 }], nextCursor: null },
+			});
+			service.getReplies.mockResolvedValue({ ok: true, data: { items: [reply], nextCursor: null } });
+			service.postComment.mockResolvedValue({ ok: false, status: 500, message: 'down' });
+			render(<Harness />);
+			fireEvent.click(await screen.findByRole('button', { name: 'View 1 reply' }));
+			await screen.findByText('A reply');
+
+			fireEvent.click(screen.getAllByRole('button', { name: 'Reply' })[1]);
+			const box = screen.getByRole('textbox', { name: 'Write a reply…' });
+			fireEvent.change(box, { target: { value: 'agreed' } });
+			fireEvent.submit(box.closest('form')!);
+
+			await waitFor(() => expect(service.postComment).toHaveBeenCalledWith('poll-1', '@mei agreed', 'c1'));
+			expect(await screen.findByRole('textbox', { name: 'Write a reply…' })).toHaveValue('agreed');
+			expect(screen.getByText('Replying to')).toBeInTheDocument();
+		});
+
+		it('shows a reply at once, while the replies before it load', async () => {
+			service.getComments.mockResolvedValue({
+				ok: true,
+				data: { items: [{ ...mine, replyCount: 1 }], nextCursor: null },
+			});
+			service.getReplies.mockReturnValue(new Promise(() => {}));
+			service.postComment.mockReturnValue(new Promise(() => {}));
+			render(<Harness />);
+
+			fireEvent.click((await screen.findAllByRole('button', { name: 'Reply' }))[0]);
+			const box = screen.getByRole('textbox', { name: 'Write a reply…' });
+			fireEvent.change(box, { target: { value: 'No waiting' } });
+			fireEvent.submit(box.closest('form')!);
+
+			expect(await screen.findByText('No waiting')).toBeInTheDocument();
+		});
+
+		it('lists a reply once when the replies loading alongside it already include it', async () => {
+			service.getComments.mockResolvedValue({
+				ok: true,
+				data: { items: [{ ...mine, replyCount: 1 }], nextCursor: null },
+			});
+			const saved = { ...reply, id: 'r9', userId: 'me', author: 'klaus', text: 'Once', createdAt: '2026-10-06T00:00:00Z' };
+			let save!: (value: unknown) => void;
+			service.postComment.mockReturnValue(new Promise((resolve) => (save = resolve)));
+			service.getReplies.mockResolvedValue({ ok: true, data: { items: [reply, saved], nextCursor: null } });
+			render(<Harness />);
+
+			fireEvent.click((await screen.findAllByRole('button', { name: 'Reply' }))[0]);
+			const box = screen.getByRole('textbox', { name: 'Write a reply…' });
+			fireEvent.change(box, { target: { value: 'Once' } });
+			fireEvent.submit(box.closest('form')!);
+			await screen.findByText('A reply');
+
+			await act(async () => save({ ok: true, data: saved }));
+
+			expect(screen.getAllByText('Once')).toHaveLength(1);
+		});
+	});
+
 	it('shows a placeholder for a deleted comment that has replies', async () => {
 		service.getComments.mockResolvedValue({
 			ok: true,
@@ -819,7 +982,7 @@ describe('useComments', () => {
 		await waitFor(() => expect(result.current.status).toBe('ready'));
 
 		await act(async () => {
-			await result.current.add('Lost', 'You');
+			await result.current.add('Lost', { author: 'You' });
 		});
 		expect(result.current.comments.map((c) => c.text)).toEqual(['Mine', 'Theirs']);
 		expect(result.current.total).toBeUndefined();
@@ -942,7 +1105,7 @@ describe('useComments', () => {
 		await waitFor(() => expect(result.current.status).toBe('ready'));
 
 		await act(async () => {
-			await result.current.add('A reply', 'You', 'c1');
+			await result.current.add('A reply', { author: 'You' }, 'c1');
 		});
 		expect(service.postComment).toHaveBeenCalledWith('poll-1', 'A reply', 'c1');
 		expect(result.current.replies.c1.items.map((c) => c.id)).toEqual(['r2']);
@@ -959,7 +1122,7 @@ describe('useComments', () => {
 
 		let posted!: Promise<unknown>;
 		await act(async () => {
-			posted = result.current.add('Early', 'You');
+			posted = result.current.add('Early', { author: 'You' });
 		});
 		// The page was read before the comment was saved, so it doesn't list it
 		await act(async () => loadFirstPage({ ok: true, data: { items: [theirs], nextCursor: null } }));
@@ -977,7 +1140,7 @@ describe('useComments', () => {
 		const { result } = renderHook(() => useComments('poll-1', { enabled: true }));
 		await waitFor(() => expect(result.current.status).toBe('ready'));
 		await act(async () => {
-			await result.current.add('Early', 'You');
+			await result.current.add('Early', { author: 'You' });
 		});
 
 		service.getComments.mockResolvedValueOnce({

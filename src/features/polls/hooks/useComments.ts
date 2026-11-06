@@ -27,6 +27,9 @@ export type ReplyList = {
 	status: 'loading' | 'ready' | 'error';
 };
 
+/** Who a pending Comment is shown as until the saved one replaces it. */
+export type PendingAuthor = Pick<Comment, 'author' | 'authorAvatarUrl' | 'userId'>;
+
 const NO_REPLIES: ReplyList = { items: [], nextCursor: null, status: 'ready' };
 
 /** The Replies a page of Comments previews, as Reply lists that continue from their cursor. */
@@ -163,11 +166,11 @@ export function useComments(
 	 * With `rootId` it is a Reply under that top-level Comment.
 	 */
 	const add = useCallback(
-		async (text: string, author: string, rootId?: string) => {
+		async (text: string, author: PendingAuthor, rootId?: string) => {
 			const tempId = `pending-${Date.now()}`;
 			const pending: Comment = {
 				id: tempId,
-				author,
+				...author,
 				text,
 				createdAt: new Date().toISOString(),
 				parentId: rootId ?? null,
@@ -190,7 +193,8 @@ export function useComments(
 			if (result.ok) pendingKeys.current.set(result.data.id, tempId);
 			setList((list) =>
 				result.ok
-					? list.map((c) => (c.id === tempId ? result.data : c))
+					? // Replies that loaded meanwhile may already list the saved one
+						list.filter((c) => c.id !== result.data.id).map((c) => (c.id === tempId ? result.data : c))
 					: list.filter((c) => c.id !== tempId)
 			);
 			if (result.ok) return result;
