@@ -21,17 +21,14 @@ import { cn } from '@/lib/utils';
 import {
 	type AvatarChoice,
 	avatarCopyKey,
-	BOT_FAMILIES,
 	BOT_KINDS,
-	type BotFamily,
+	type BotKind,
 	NO_BOT,
 	resolveAvatar,
 } from './catalog';
 import { chooseAvatar } from './service';
 import { ChosenAvatar } from './UserAvatar';
 
-const TILE_GRID =
-	'grid grid-cols-[repeat(auto-fill,minmax(44px,1fr))] gap-1.5 md:grid-cols-[repeat(auto-fill,minmax(72px,1fr))] md:gap-2';
 
 /**
  * The owner's avatar, opening the cast to choose from. Size comes from `className`, as on `UserAvatar`.
@@ -89,7 +86,7 @@ export function AvatarDialog({
 		}
 	};
 
-	const renderTile = (kind: AvatarChoice) => (
+	const renderTile = (kind: BotKind) => (
 		<button
 			key={kind}
 			type="button"
@@ -139,7 +136,7 @@ export function AvatarDialog({
 					<DialogDescription>{t('avatar.body')}</DialogDescription>
 				</DialogHeader>
 
-				<div className="flex items-center gap-4">
+				<div className="flex flex-wrap items-center gap-4">
 					<ChosenAvatar
 						kind={selected}
 						className="size-16 md:size-28"
@@ -152,25 +149,27 @@ export function AvatarDialog({
 							{t(`${avatarCopyKey(selected)}.trait`)}
 						</p>
 					</div>
-					<Button variant="outline" size="sm" onClick={surprise}>
-						{t('avatar.surprise')}
-					</Button>
+					<div className="flex w-full gap-2 *:flex-1 md:w-auto md:*:flex-none">
+						<Button variant="outline" size="sm" onClick={surprise}>
+							{t('avatar.surprise')}
+						</Button>
+						<Button
+							variant="outline"
+							size="sm"
+							// Keeps focus once used; pointer-events-none drops the hover on the disabled look
+							disabled={selected === NO_BOT}
+							focusableWhenDisabled
+							onClick={() => setSelected(NO_BOT)}
+							className="aria-disabled:pointer-events-none"
+						>
+							{t('avatar.remove')}
+						</Button>
+					</div>
 				</div>
 
-				<div ref={setGrid} className="-mx-4 space-y-5 overflow-y-auto overscroll-contain px-4 pb-1">
-					{/* No character first, as its own group, then the cast */}
-					<div className="space-y-2">
-						<p className="text-caption-3 text-muted-foreground">{t('avatar.families.plain')}</p>
-						<div className={TILE_GRID}>{renderTile(NO_BOT)}</div>
-					</div>
-					{(Object.keys(BOT_FAMILIES) as BotFamily[]).map((family) => (
-						<div key={family} className="space-y-2">
-							<p className="text-caption-3 text-muted-foreground">
-								{t(`avatar.families.${family}`)}
-							</p>
-							<div className={TILE_GRID}>{BOT_FAMILIES[family].map(renderTile)}</div>
-						</div>
-					))}
+				<div ref={setGrid} className="-mx-4 overflow-y-auto overscroll-contain px-4 pb-1">
+					{/* Six and ten across, so the cast of 60 fills every row */}
+					<div className="grid grid-cols-6 gap-1.5 md:grid-cols-10 md:gap-2">{BOT_KINDS.map(renderTile)}</div>
 				</div>
 
 				<DialogFooter showCloseButton closeLabel={t('common.close')}>

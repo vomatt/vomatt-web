@@ -58,18 +58,21 @@ describe('AvatarDialog', () => {
 		expect(mockChooseAvatar).toHaveBeenCalledWith('bear');
 	});
 
-	it('saves no character', async () => {
+	it('removes the avatar, saving the account icon', async () => {
 		openDialog('bot:boba');
-		choose('Account icon');
+		fireEvent.click(screen.getByRole('button', { name: 'Remove avatar' }));
+		expect(screen.getByText('Account icon')).toBeInTheDocument();
 		expect(screen.getByText('Just you, no character')).toBeInTheDocument();
 		fireEvent.click(screen.getByRole('button', { name: 'Save avatar' }));
 		await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
 		expect(mockChooseAvatar).toHaveBeenCalledWith('none');
 	});
 
-	it('shows the account icon as already saved', () => {
+	it('shows the account icon as already saved, with nothing left to remove', () => {
 		openDialog('bot:none');
-		expect(screen.getByRole('button', { name: 'Choose Account icon' })).toHaveAttribute('aria-pressed', 'true');
+		expect(screen.getByText('Just you, no character')).toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: /^Choose /, pressed: true })).not.toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Remove avatar' })).toHaveAttribute('aria-disabled', 'true');
 	});
 
 	it('starts again from the saved bot after closing without saving', async () => {

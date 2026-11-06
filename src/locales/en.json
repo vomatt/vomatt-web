@@ -714,18 +714,10 @@
 		"change": "Change avatar",
 		"body": "We picked one for you when you joined. Swap it any time.",
 		"surprise": "Surprise me",
+		"remove": "Remove avatar",
 		"save": "Save avatar",
 		"savedToast": "Avatar updated",
 		"choose": "Choose {name}",
-		"families": {
-			"plain": "No character",
-			"bites": "Taiwan bites",
-			"guardians": "Temple guardians",
-			"visitors": "Visitors",
-			"animals": "Island animals",
-			"cats": "Cats",
-			"dogs": "Dogs"
-		},
 		"none": {
 			"name": "Account icon",
 			"trait": "Just you, no character"
@@ -747,10 +739,6 @@
 				"name": "Su",
 				"trait": "Pineapple cake, one bite in"
 			},
-			"egg": {
-				"name": "Tea Egg",
-				"trait": "Simmering since morning"
-			},
 			"ice": {
 				"name": "Shaved Ice",
 				"trait": "Mango on top, Yongkang St"
@@ -758,14 +746,6 @@
 			"youtiao": {
 				"name": "Youtiao",
 				"trait": "Dunked in soy milk"
-			},
-			"tofu": {
-				"name": "Stinky Tofu",
-				"trait": "Smell first, then love"
-			},
-			"sausage": {
-				"name": "Sausage",
-				"trait": "Night-market grill"
 			},
 			"chip": {
 				"name": "Chip",
@@ -799,10 +779,6 @@
 				"name": "Baye",
 				"trait": "Black Wuchang, walks fierce"
 			},
-			"shi": {
-				"name": "Stone Lion",
-				"trait": "Paw on the ball"
-			},
 			"long": {
 				"name": "Long",
 				"trait": "Rides the temple roof"
@@ -811,10 +787,6 @@
 				"name": "Lantern",
 				"trait": "Red, by the gate"
 			},
-			"ding": {
-				"name": "Ding",
-				"trait": "The bronze burner"
-			},
 			"jiaobei": {
 				"name": "Jiaobei",
 				"trait": "Asks the gods yes or no"
@@ -822,10 +794,6 @@
 			"xiang": {
 				"name": "Xiang",
 				"trait": "Three sticks for the ancestors"
-			},
-			"banyan": {
-				"name": "Banyan",
-				"trait": "The old tree by the temple"
 			},
 			"gray": {
 				"name": "Gray",
@@ -855,21 +823,9 @@
 				"name": "Mothman",
 				"trait": "Seen before the bridge"
 			},
-			"blob": {
-				"name": "Blob",
-				"trait": "No fixed opinion"
-			},
 			"cyclops": {
 				"name": "Cyclops",
 				"trait": "One eye, one vote"
-			},
-			"probe": {
-				"name": "Probe",
-				"trait": "Listening since 1977"
-			},
-			"saucer": {
-				"name": "Saucer",
-				"trait": "Just visiting"
 			},
 			"trio": {
 				"name": "Trio",
@@ -903,21 +859,9 @@
 				"name": "Mikado",
 				"trait": "Emperor pheasant, Alishan"
 			},
-			"firefly": {
-				"name": "Firefly",
-				"trait": "April nights in the hills"
-			},
-			"crab": {
-				"name": "Land Crab",
-				"trait": "Crosses the road in Kenting"
-			},
 			"flyfish": {
 				"name": "Flying Fish",
 				"trait": "Lanyu, every spring"
-			},
-			"turtle": {
-				"name": "Sea Turtle",
-				"trait": "Regular at Xiaoliuqiu"
 			},
 			"dog": {
 				"name": "Tugou",
