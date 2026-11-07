@@ -2,9 +2,9 @@ import { Suspense } from 'react';
 
 import { PageShell } from '@/components/layout/PageShell';
 import { getMyProfile, getUserSession, redirectToLogin } from '@/data/auth';
-import { PollListSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import { getFollowingFeed, getPopularTags } from '@/features/polls/service';
 
+import { FeedSkeleton } from '../_components/FeedSkeleton';
 import { HomepageHeader } from '../_components/HomepageHeader';
 import { HomeRail } from '../_components/HomeRail';
 import { PollFeedList } from '../_components/PollFeedList';
@@ -17,11 +17,7 @@ export default async function FollowingPage() {
 	return (
 		<PageShell className="pt-0" rail={<HomeRail signedIn />}>
 			<Suspense
-				fallback={
-					<div className="w-full max-w-feed py-4">
-						<PollListSkeleton />
-					</div>
-				}
+				fallback={<FeedSkeleton />}
 			>
 				<Feed viewerId={user.sub} />
 			</Suspense>

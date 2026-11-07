@@ -1,5 +1,5 @@
 'use client';
-import NextLink from 'next/link';
+import NextLink, { useLinkStatus } from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import { buttonVariants } from '@/components/ui/Button';
@@ -37,17 +37,7 @@ export function TabBar({ className, userSession, loginLink = '/login' }: TabBarP
 				aria-current={isActive ? 'page' : undefined}
 				className={cellClassName}
 			>
-				<span
-					className={cn(
-						'flex size-12 items-center justify-center',
-						isActive
-							? // Forced colors drop the shadow bar; the border takes its place
-								'text-foreground shadow-[inset_0_-2px_0_var(--foreground)] forced-colors:border-b-2'
-							: 'text-muted-foreground'
-					)}
-				>
-					{icon}
-				</span>
+				<TabIcon icon={icon} isActive={isActive} />
 				<span className="sr-only">{title}</span>
 			</NextLink>
 		);
@@ -79,5 +69,24 @@ export function TabBar({ className, userSession, loginLink = '/login' }: TabBarP
 			)}
 			{renderLink(explore)}
 		</nav>
+	);
+}
+
+/** A tab's icon, marked active from the tap on, so a route still rendering on the server doesn't look ignored. */
+function TabIcon({ icon, isActive }: { icon: React.ReactNode; isActive: boolean }) {
+	const { pending } = useLinkStatus();
+	return (
+		<span
+			data-pending={pending || undefined}
+			className={cn(
+				'flex size-12 items-center justify-center',
+				isActive || pending
+					? // Forced colors drop the shadow bar; the border takes its place
+						'text-foreground shadow-[inset_0_-2px_0_var(--foreground)] forced-colors:border-b-2'
+					: 'text-muted-foreground'
+			)}
+		>
+			{icon}
+		</span>
 	);
 }

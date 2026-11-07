@@ -9,6 +9,7 @@ import { FilterPills } from '@/components/FilterPills';
 import { LoadMore } from '@/components/LoadMore';
 import { ChevronRight } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { PollRowListSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import { useCursorList } from '@/hooks/useCursorList';
 import { useHydrated } from '@/hooks/useHydrated';
 import type { CursorPage } from '@/lib/api/cursor';
@@ -39,6 +40,16 @@ export function dayGroup(iso: string, now = new Date()): DayGroup {
 export function NotificationsHeader() {
 	const { t } = useLanguage();
 	return <h1 className="text-title-1 text-foreground">{t('notifications.title')}</h1>;
+}
+
+/** The title over placeholder rows, while the list loads. */
+export function NotificationsSkeleton() {
+	return (
+		<>
+			<NotificationsHeader />
+			<PollRowListSkeleton chip={false} />
+		</>
+	);
 }
 
 /**

@@ -3,6 +3,11 @@ import { act, render, screen } from '@testing-library/react';
 import { Header } from '@/components/layout/Header';
 
 let mockPathname = '/';
+let mockPending = false;
+jest.mock('next/link', () => {
+	const actual = jest.requireActual('next/link');
+	return { __esModule: true, ...actual, useLinkStatus: () => ({ pending: mockPending }) };
+});
 jest.mock('next/navigation', () => ({
 	usePathname: () => mockPathname,
 }));
@@ -40,6 +45,7 @@ describe('Header', () => {
 		mockPathname = '/';
 		mockIsMobile = true;
 		mockUnreadCount = 0;
+		mockPending = false;
 		window.scrollY = 0;
 		Object.defineProperty(document.documentElement, 'scrollHeight', { value: 5000, configurable: true });
 	});
@@ -155,5 +161,11 @@ describe('Header', () => {
 		mockPathname = '/mei';
 		render(<Header {...mei} />);
 		expect(profileLink()).toHaveAttribute('aria-current', 'page');
+	});
+
+	it('marks a tapped profile link while its page is still loading', () => {
+		mockPending = true;
+		render(<Header signedIn loginLink="/login" username="mei" />);
+		expect(screen.getByRole('link', { name: 'Profile' }).querySelector('[data-pending]')).not.toBeNull();
 	});
 });

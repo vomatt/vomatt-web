@@ -1,5 +1,5 @@
 'use client';
-import NextLink from 'next/link';
+import NextLink, { useLinkStatus } from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -28,7 +28,11 @@ type HeaderProps = {
 };
 
 // The current page's icon sits on a muted circle, as the TabBar underlines its current tab
-const iconLinkClassName = cn(buttonVariants({ variant: 'ghost', size: 'icon' }), 'rounded-full [&[aria-current]]:bg-muted');
+// A tapped link takes that look at once, before its page arrives
+const iconLinkClassName = cn(
+	buttonVariants({ variant: 'ghost', size: 'icon' }),
+	'rounded-full [&[aria-current]]:bg-muted [&:has([data-pending])]:bg-muted'
+);
 
 /** The phone header: the logo, Notifications and the profile, sliding away while reading down and back on the way up. Desktop has the sidebar. */
 export function Header({ signedIn, loginLink, username, avatarUrl }: HeaderProps) {
@@ -89,6 +93,7 @@ export function Header({ signedIn, loginLink, username, avatarUrl }: HeaderProps
 						</span>
 						{/* Text, not aria-label, so the unread count inside the icon is read out too */}
 						<span className="sr-only">{t('common.notifications')}</span>
+						<PendingMark />
 					</NextLink>
 					<NextLink
 						href={profileLink}
@@ -97,6 +102,7 @@ export function Header({ signedIn, loginLink, username, avatarUrl }: HeaderProps
 					>
 						{username ? <UserAvatar username={username} avatarUrl={avatarUrl} className="size-7" /> : <CircleUser className="size-6" />}
 						<span className="sr-only">{t('navigation.profile')}</span>
+						<PendingMark />
 					</NextLink>
 				</div>
 			) : (
@@ -106,4 +112,10 @@ export function Header({ signedIn, loginLink, username, avatarUrl }: HeaderProps
 			)}
 		</header>
 	);
+}
+
+/** Marks its link while the page it opens is still on its way. */
+function PendingMark() {
+	const { pending } = useLinkStatus();
+	return pending ? <span data-pending hidden /> : null;
 }
