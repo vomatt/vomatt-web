@@ -1,8 +1,8 @@
 # Vomatt — web
 
 Public voting platform. This repo is the Next.js 16 front end. App data (polls, ballots, comments,
-accounts) comes from [vomatt-api](../vomatt-api); site content (settings, pages, the coming-soon
-switch) comes from Sanity. Editors use the Sanity Studio in [vomatt-admin](../vomatt-admin).
+accounts) comes from [vomatt-api](../vomatt-api); site content (settings, the sign-up
+terms) comes from Sanity. Editors use the Sanity Studio in [vomatt-admin](../vomatt-admin).
 
 ```
 Browser ──► vomatt-web (Vercel) ──► vomatt-api   (server-side only, Bearer token from httpOnly cookies)
@@ -27,16 +27,13 @@ pnpm dev
 - Site: http://localhost:3002 (the dev server uses Turbopack on port 3002)
 - Studio: run [vomatt-admin](../vomatt-admin) (http://localhost:3003/sanity)
 
-Local development always shows the full site; the coming-soon page only applies in production.
-
 ### Sanity
 
 1. Use the existing project, or create one at [sanity.io/manage](https://www.sanity.io/manage).
 2. Put its project ID and dataset in `NEXT_PUBLIC_SANITY_PROJECT_ID` / `NEXT_PUBLIC_SANITY_DATASET`.
 3. **Dataset visibility must be Public** (manage → Datasets). The site reads published content
    without a token.
-4. In the vomatt-admin Studio, publish **Settings → General** (site title, share image, favicon,
-   coming soon). Studio CORS origins are set up in vomatt-admin.
+4. In the vomatt-admin Studio, publish **Settings → General** (site title, share image, favicon). Studio CORS origins are set up in vomatt-admin.
 
 ### vomatt-api
 
@@ -60,11 +57,9 @@ Sign-in codes are emailed; with email disabled locally, read the code from Redis
 | `SANITY_REVALIDATE_SECRET` | No | 48 random chars | **Production only.** Lets vomatt-admin's Sanity Function expire just the changed Sanity content on publish (`POST /api/revalidate`); while set, Sanity content refreshes only hourly as a fallback. Same value as the function's `SANITY_REVALIDATE_SECRET` (`npx sanity functions env add invalidate-tags SANITY_REVALIDATE_SECRET <value>` in vomatt-admin). Outside Production (local dev, Previews, which the function never calls) edits show up within about a minute, set or not. |
 | `NEXT_PUBLIC_SANITY_API_VERSION` | No | `2025-08-08` | Sanity API version; defaults to `2025-08-08`. |
 | `NEXT_PUBLIC_ABOUT_URL` | No | `https://about.vomatt.com` | The about site's origin, no trailing slash. `/about` and the legal pages redirect there, and the app's legal links point there. Defaults to `https://about.vomatt.com`. |
-| `NEXT_PUBLIC_SANITY_STUDIO_URL` | No | `https://admin.vomatt.com/sanity` | vomatt-admin's Studio URL, including its `/sanity` base path (not just the origin). When set, `/sanity` redirects there. |
 
 Not needed (leave unset): `DATABASE_URL`, `PAYLOAD_SECRET` (Payload was removed);
-`SANITY_API_READ_TOKEN`
-(read in code but nothing depends on it yet); `SANITY_STUDIO_PREVIEW_ORIGIN` (the Presentation
+`SANITY_API_READ_TOKEN` (the site reads only published content, without a token); `SANITY_STUDIO_PREVIEW_ORIGIN` (the Presentation
 tool was removed);
 `NEXT_PUBLIC_API_URL` (the followers/following sheet calls this site's own `/api` routes when it is
 unset).
@@ -87,18 +82,11 @@ The browser never calls the API directly, so its `CORS_ALLOWED_ORIGINS` doesn't 
    - Mark `SESSION_SECRET` and `CLIENT_IP_SECRET` as **Sensitive**.
    - Variables are read at build time too, so **redeploy** after changing them.
 4. **Domain:** add it under Project → Domains.
-5. **Deploy**, then in the vomatt-admin Studio check that
-   **Settings → General → Coming soon** is set the way you want (it is on until you turn it off).
+5. **Deploy.** The production site is public as soon as it deploys.
 
 ### Going live
 
-The production site shows only the coming-soon page until it is turned off in Sanity:
-**Settings → General → Coming soon → Show coming soon page** → off → **Publish**.
-Changes appear right after publishing (within a minute if `SANITY_REVALIDATE_SECRET` is unset). Turn it back on the same
-way. If Sanity can't be reached, the coming-soon page stays up. While it is on, search engines are
-told not to index the site.
-
-Before switching it off, run through [docs/release/release-checklist.md](docs/release/release-checklist.md).
+Before the first production deploy, run through [docs/release/release-checklist.md](docs/release/release-checklist.md).
 
 ## Scripts
 

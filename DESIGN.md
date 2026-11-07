@@ -36,7 +36,7 @@ Cool canvas, navy ink actions, two signals: Volt (`highlight`) marks what is you
 
   | Class | Size | Carries | Used for |
   | --- | --- | --- | --- |
-  | `text-display-1` | 48px | 500, leading 1.1, -0.03em | Coming-soon and login brand headlines, CMS hero from `md` |
+  | `text-display-1` | 48px | 500, leading 1.1, -0.03em | Login brand headlines, CMS hero from `md` |
   | `text-display-2` | 36px | 500, leading 1.1, -0.03em | CMS hero on phones, CMS page titles from `md` |
   | `text-title-1` | 28px | 500, leading 1.3, -0.03em | Page titles (Explore, Notifications, Settings), auth titles, CMS page titles on phones |
   | `text-title-2` | 24px | 500, leading 1.3, -0.02em | Section headings, poll titles on cards from `md`, profile counts |
@@ -56,7 +56,7 @@ Cool canvas, navy ink actions, two signals: Volt (`highlight`) marks what is you
 
 ## Mark
 
-The wordmark (`BrandLogo`) is the brand in the UI: sidebar, sign-in, coming soon. The mark is the ballot box, and for now it lives only where a word cannot: the browser tab and the iOS home screen.
+The wordmark (`BrandLogo`) is the brand in the UI: sidebar, sign-in. The mark is the ballot box, and for now it lives only where a word cannot: the browser tab and the iOS home screen.
 
 - **Drawing**: a cube seen at 30°, flattened to a regular hexagon (97 × 112 on a 120 grid, corners r 7) with the ballot slot cut into its lid. The slot is a hole, never a stroke: 40 × 14 on the lid's centre, rising 30° to the right, ends r 3, 7 from the top-right edge (the corner radius). Board 16 of the Vomatt Logo Exploration canvas is the drawing; `src/lib/brand/mark.ts` is the path.
 - **Icons**: `pnpm generate:icons` writes `src/app/icon0.svg` (the mark at 72% on a rounded ink tile, tile and mark swapping to paper on ink under `prefers-color-scheme: dark`), `favicon.ico` (the light version at 16, 32 and 48, for browsers without SVG favicons) and `apple-icon.png` (the mark at 58% on an ink tile; iOS rounds the corners). The tile is what keeps the icon readable on a dark tab bar. Edit the mark in `mark.ts`, never the files.

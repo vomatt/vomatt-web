@@ -26,7 +26,6 @@ never calls the API directly, so its CORS list doesn't need the web origin.
 - [ ] Set `ENABLE_EXPERIMENTAL_COREPACK=1` in Vercel (all environments) so builds use the pnpm version
       pinned in `package.json` (`packageManager`), not one Vercel guesses from the lockfile.
 - [ ] The deployed API must run current vomatt-api `main` (api-integration-notes E1).
-- [ ] Set `NEXT_PUBLIC_SANITY_STUDIO_URL` to the vomatt-admin Studio so `/sanity` redirects there (Studio CORS is set up in vomatt-admin).
 
 ## Before launch
 
@@ -35,7 +34,6 @@ never calls the API directly, so its CORS list doesn't need the web origin.
 - [ ] Sanity: publish Settings → General (site title, share image, favicon) and the Log-in
       page policy text (terms + privacy links); the login page shows it under the form
 - [ ] Terms of service and privacy policy pages (Sanity pages), linked from login and footer
-- [ ] Last step: Settings → General → Coming soon → off → Publish (live within ~1 minute)
 - [ ] Smoke test on the deployed pair: sign up, sign out, sign in, vote, change vote, withdraw,
       comment, like, edit profile, toggle visibility, delete a throwaway account
 - [ ] Error monitoring (e.g. Sentry) and uptime check on the API's `/actuator/health`

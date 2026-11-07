@@ -20,44 +20,11 @@ const linkFields = defineQuery(`
 	isNewTab
 `);
 
-export const imageMetaFields = defineQuery(`
-	asset,
-	crop,
-	customRatio,
-	hotspot,
-	"meta": asset-> {
-		"id": assetId,
-		"alt": coalesce(^.alt, altText),
-		"type": mimeType,
-		"width": metadata.dimensions.width,
-		"height": metadata.dimensions.height,
-		"aspectRatio": metadata.dimensions.aspectRatio,
-		"lqip": metadata.lqip
-	}
-`);
-
-const callToActionFields = defineQuery(`
-	label,
-	link {
-		${linkFields}
-	},
-	"isButton": true
-`);
-
 const portableTextContentFields = defineQuery(`
 	...,
 	markDefs[]{
 		...,
 		_type == "link" => {
-			${linkFields}
-		},
-		_type == "callToAction" => {
-			${callToActionFields}
-		}
-	},
-	_type == "image" => {
-		${imageMetaFields},
-		link {
 			${linkFields}
 		}
 	}
@@ -65,13 +32,6 @@ const portableTextContentFields = defineQuery(`
 
 export const siteSharingQuery = defineQuery(`
 	*[_type == "settingsGeneral"][0]{
-		comingSoon{
-			enabled,
-			heading,
-			message[]{
-				${portableTextContentFields}
-			}
-		},
 		siteTitle,
 		shareGraphic,
 		'shareVideo': shareVideo.asset->url,

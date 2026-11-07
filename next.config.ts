@@ -3,8 +3,6 @@ import * as path from 'path';
 
 import { aboutHref, ABOUT_SITE_SLUGS } from './src/lib/aboutSite';
 
-const studioUrl = process.env.NEXT_PUBLIC_SANITY_STUDIO_URL?.replace(/\/+$/, '');
-
 const nextConfig: NextConfig = {
 	reactStrictMode: true,
 	// ESM-only; listed so next/jest transforms them in tests
@@ -17,15 +15,6 @@ const nextConfig: NextConfig = {
 	sassOptions: {
 		includePaths: [path.join(__dirname, 'styles')],
 	},
-	images: {
-		remotePatterns: [
-			{
-				protocol: 'https',
-				hostname: 'cdn.sanity.io',
-				pathname: `/images/${process.env.NEXT_PUBLIC_SANITY_PROJECT_ID}/${process.env.NEXT_PUBLIC_SANITY_DATASET}/**`,
-			},
-		],
-	},
 	poweredByHeader: false,
 	async redirects() {
 		// Sign-up and log-in are one form now
@@ -35,13 +24,6 @@ const nextConfig: NextConfig = {
 			{ source: '/profile/:username', destination: '/:username', permanent: true },
 			// About and the legal pages moved to the about site
 			...ABOUT_SITE_SLUGS.map((slug) => ({ source: `/${slug}`, destination: aboutHref(slug), permanent: true })),
-			// The Studio moved to vomatt-admin
-			...(studioUrl
-				? [
-						{ source: '/sanity', destination: studioUrl, permanent: false },
-						{ source: '/sanity/:path+', destination: `${studioUrl}/:path+`, permanent: false },
-					]
-				: []),
 		];
 	},
 	async rewrites() {

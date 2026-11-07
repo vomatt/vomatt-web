@@ -9,7 +9,6 @@ import {
 import React from 'react';
 
 import CMSLink from '@/components/CMSLink';
-import Img from '@/components/Image';
 
 type TableValue = {
 	rows: { _key: string; cells: string[] }[];
@@ -29,10 +28,6 @@ const PortableTextComponents: PortableTextComponentsType = {
 		number: ({ children }) => <ol>{children}</ol>,
 	},
 	types: {
-		image: (data) => {
-			const { value } = data;
-			return <Img image={value} />;
-		},
 		iframe: ({ value }) => {
 			const { embedSnippet } = value;
 			if (!embedSnippet) {
@@ -86,13 +81,6 @@ const PortableTextComponents: PortableTextComponentsType = {
 		link: ({ value, children }) => {
 			return (
 				<CMSLink link={value} className="underline underline-offset-2">
-					{children}
-				</CMSLink>
-			);
-		},
-		callToAction: ({ value, children }) => {
-			return (
-				<CMSLink link={value.link} isButton={true}>
 					{children}
 				</CMSLink>
 			);
