@@ -38,7 +38,7 @@ export function LanguagePreferences() {
 						// The server parts re-render in the new language
 						router.refresh();
 					}}
-					className={cn(settingsCardClassName, 'overflow-hidden')}
+					className={settingsCardClassName}
 				>
 					{(Object.keys(SUPPORTED_LANGUAGES) as LanguageCode[]).map((code) => (
 						<Radio.Root
