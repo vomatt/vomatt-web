@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react';
 
-import { BrandPulse } from '@/components/BrandPulse';
+import { BrandPulse, MarkLoader } from '@/components/BrandPulse';
 
 jest.mock('@/contexts/LanguageContext', () => require('../helpers/mockLanguage'));
 
@@ -24,7 +24,25 @@ describe('BrandPulse', () => {
 		expect(announced(screen.getByRole('status'))).toBeNull();
 	});
 
-	it('announces loading once the wordmark shows', () => {
+	it('shows the mark with its ballot, hidden from screen readers', () => {
+		const { container } = render(<BrandPulse />);
+		const loader = container.querySelector('.animate-ballot-drop');
+		expect(loader).toHaveAttribute('aria-hidden', 'true');
+		expect(loader!.querySelector('svg .mark-ballot')).not.toBeNull();
+	});
+
+	it('gives each loader its own ids', () => {
+		const { container } = render(
+			<>
+				<MarkLoader />
+				<MarkLoader />
+			</>
+		);
+		const ids = [...container.querySelectorAll('[id]')].map((el) => el.id);
+		expect(new Set(ids).size).toBe(ids.length);
+	});
+
+	it('announces loading once the mark shows', () => {
 		const { container } = render(<BrandPulse />);
 		runInlineScript(container);
 		jest.advanceTimersByTime(300);

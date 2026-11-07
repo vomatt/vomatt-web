@@ -1,7 +1,16 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
-import { MARK_ICONS, MARK_PATH, MARK_SLOT, markGlossIconSvg, markIconSvg, roundedPolygon } from '@/lib/brand/mark';
+import {
+	APPLE_TILE,
+	MARK_ICONS,
+	MARK_PATH,
+	MARK_SLOT,
+	markGlossIconSvg,
+	markIconSvg,
+	markLoaderSvg,
+	roundedPolygon,
+} from '@/lib/brand/mark';
 
 describe('brand mark', () => {
 	it('draws box and slot as one even-odd path filling the square', () => {
@@ -72,5 +81,40 @@ describe('glossy mark', () => {
 		expect(svg).toContain('<path fill="url(#l)" d="M');
 		expect(svg).toContain('<path fill="url(#r)" d="M');
 		expect(svg.indexOf('fill="url(#b)"')).toBeLessThan(svg.indexOf('fill="url(#t)"'));
+	});
+});
+
+describe('loader', () => {
+	const ids = (svg: string) => [...svg.matchAll(/ id="([^"]+)"/g)].map((m) => m[1]);
+	const references = (svg: string) => [...svg.matchAll(/url\(#([^)]+)\)/g)].map((m) => m[1]);
+	const parse = (svg: string) => new DOMParser().parseFromString(svg, 'image/svg+xml');
+	const numbers = (text: string) => text.match(/-?\d+(\.\d+)?/g)!.map(Number);
+
+	it('leaves the iOS icon without a ballot', () => {
+		expect(markGlossIconSvg(APPLE_TILE)).not.toContain('mark-ballot');
+	});
+
+	it('rounds its tile', () => {
+		expect(markLoaderSvg('x-')).toMatch(/<rect fill="#14213a" [^>]* rx="42\.48"\/>/);
+	});
+
+	it('prefixes every id and points every reference at one of them', () => {
+		const svg = markLoaderSvg('x-');
+		expect(ids(svg).length).toBeGreaterThan(0);
+		for (const id of ids(svg)) expect(id).toMatch(/^x-/);
+		expect(references(svg).length).toBeGreaterThan(0);
+		for (const ref of references(svg)) expect(ids(svg)).toContain(ref);
+	});
+
+	it('stands the ballot on the slot, along its 30° rise', () => {
+		const doc = parse(markLoaderSvg('x-'));
+		expect(doc.querySelector('parsererror')).toBeNull();
+		const [lx, ly, rx, ry] = numbers(doc.querySelector('.mark-ballot')!.getAttribute('d')!);
+		// The slot's straight sides start at its M and L points; their average is its centre
+		const ends = [...MARK_SLOT.matchAll(/[ML](-?[\d.]+) (-?[\d.]+)/g)].map((m) => [Number(m[1]), Number(m[2])]);
+		const centre = [ends.reduce((a, [x]) => a + x, 0) / ends.length, ends.reduce((a, [, y]) => a + y, 0) / ends.length];
+		expect((lx + rx) / 2).toBeCloseTo(centre[0], 1);
+		expect((ly + ry) / 2).toBeCloseTo(centre[1], 1);
+		expect(Math.atan2(ly - ry, rx - lx)).toBeCloseTo(Math.PI / 6, 3);
 	});
 });

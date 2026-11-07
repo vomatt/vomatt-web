@@ -1,10 +1,8 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { startTransition, useEffect, useState, useSyncExternalStore } from 'react';
+import { ReactNode, startTransition, useEffect, useState, useSyncExternalStore } from 'react';
 
-import BrandLogo from '@/components/BrandLogo';
-import { PULSING_WORDMARK } from '@/components/BrandPulse';
 import { EmptyCard } from '@/components/EmptyCard';
 import { Button } from '@/components/ui/Button';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -33,9 +31,10 @@ async function sessionSettled() {
  * the session, or the layout couldn't load the profile, so a signed-in person
  * never sees the page signed out. It probes
  * the proxy until the session settles, then refreshes to render the page.
- * After the last try it says so and offers another round.
+ * After the last try it says so and offers another round. `loader` is the layout's
+ * MarkLoader, passed in so its drawing code stays on the server.
  */
-export function SessionRetry() {
+export function SessionRetry({ loader }: { loader: ReactNode }) {
 	const router = useRouter();
 	const { t } = useLanguage();
 	const [tries, setTries] = useState(0);
@@ -77,7 +76,7 @@ export function SessionRetry() {
 				/>
 			) : (
 				// No 300ms delay like the splash: this screen stays at least 1.5s, so it can't flash
-				<BrandLogo className={`${PULSING_WORDMARK} text-foreground`} />
+				loader
 			)}
 			<p role="status" className="sr-only">
 				{hydrated && !gaveUp ? t('common.signingIn') : null}

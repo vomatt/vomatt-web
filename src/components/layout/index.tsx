@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react';
 
+import { MarkLoader } from '@/components/BrandPulse';
 import { AdaSkip } from '@/components/layout/AdaSkip';
 import { AppSidebar } from '@/components/layout/AppSidebar';
 import { Header } from '@/components/layout/Header';
@@ -24,7 +25,7 @@ export async function Layout({ children }: LayoutProps) {
 	// The API didn't answer, so whether they're signed in is unknown: wait for it rather than show them signed out
 	if (error) {
 		console.error('Could not load the signed-in profile', error);
-		return <SessionRetry />;
+		return <SessionRetry loader={<MarkLoader />} />;
 	}
 
 	return (

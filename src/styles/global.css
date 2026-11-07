@@ -31,25 +31,21 @@
 	}
 }
 
-/* Wordmark pulse, the first-load splash: opacity runs along the letters. One delay per
-   letter path in BrandLogo, which its test holds at six. */
-@keyframes wordmark-pulse {
-	0%, 100% { opacity: 0.25; }
-	50% { opacity: 1; }
+/* Ballot drop, the first-load loader (MarkLoader): a paper ballot falls into the mark's
+   slot, clipped at the slot so it vanishes inside. The still mark under reduced motion. */
+@keyframes ballot-drop {
+	0% { transform: translateY(-24px); opacity: 0; }
+	25% { transform: translateY(-14px); opacity: 1; }
+	70%, 100% { transform: translateY(36px); opacity: 1; }
 }
-@utility animate-wordmark-pulse {
-	& path {
-		animation: wordmark-pulse 1.2s ease-in-out infinite backwards;
+@utility animate-ballot-drop {
+	& .mark-ballot {
+		animation: ballot-drop 1.4s cubic-bezier(0.55, 0, 0.75, 0.4) infinite;
 	}
-	& path:nth-of-type(2) { animation-delay: 110ms; }
-	& path:nth-of-type(3) { animation-delay: 220ms; }
-	& path:nth-of-type(4) { animation-delay: 330ms; }
-	& path:nth-of-type(5) { animation-delay: 440ms; }
-	& path:nth-of-type(6) { animation-delay: 550ms; }
 	@media (prefers-reduced-motion: reduce) {
-		& path {
+		& .mark-ballot {
 			animation: none;
-			opacity: 0.6;
+			opacity: 0;
 		}
 	}
 }
