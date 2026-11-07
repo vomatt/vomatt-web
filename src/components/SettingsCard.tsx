@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 export const rowClassName = 'flex min-h-15 items-center gap-4 px-4.5 py-3';
 
 /** A settings card's surface, for an element `SettingsCard` can't render (a radio group). */
-export const settingsCardClassName = 'divide-y divide-border rounded-2xl border border-border bg-card';
+export const settingsCardClassName = 'divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card *:first:rounded-t-2xl *:last:rounded-b-2xl';
 
 /** A settings card of rows divided by lines; a `ul` when its rows are a list. */
 export function SettingsCard({
