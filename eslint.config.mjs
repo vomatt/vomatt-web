@@ -22,7 +22,14 @@ export default defineConfig([
 			'simple-import-sort/imports': 'warn',
 			'simple-import-sort/exports': 'warn',
 			'react-hooks/exhaustive-deps': 'error',
-			'no-restricted-syntax': ['error', ...typeScaleRules],
+			'no-restricted-syntax': [
+				'error',
+				...typeScaleRules,
+				{
+					selector: ':matches(Literal[value=/\\u00b7/], TemplateElement[value.raw=/\\u00b7/], JSXText[value=/\\u00b7/])',
+					message: 'Separate meta parts with META_GAP from @/lib/rich, not a middle dot (see DESIGN.md).',
+				},
+			],
 		},
 	},
 	globalIgnores([

@@ -4,6 +4,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { endedSummary } from '@/features/profiles/lists';
 import { toPayloadLocale } from '@/lib/locale';
 import { rich, richList } from '@/lib/rich';
+import { META_GAP } from '@/lib/rich';
 
 import type { Poll } from '../schema';
 import { getTurnout, isCancelled } from '../status';
@@ -28,7 +29,7 @@ function DecidedText({ poll }: { poll: Poll }) {
 	return null;
 }
 
-/** "**Yes** won · 2,061 voted", "Tie between **A** and **B** · 88 voted", or the turnout alone. */
+/** "**Yes** won" + gap + "2,061 voted", "Tie between **A** and **B**" + gap + "88 voted", or the turnout alone. */
 export function EndedMeta({ poll }: { poll: Poll }) {
 	const { t } = useLanguage();
 	if (isCancelled(poll)) return <>{t('notifications.cancelled')}</>;
@@ -36,7 +37,7 @@ export function EndedMeta({ poll }: { poll: Poll }) {
 		<>
 			{endedSummary(poll).kind !== 'none' && (
 				<>
-					<DecidedText poll={poll} /> ·{' '}
+					<DecidedText poll={poll} />{META_GAP}
 				</>
 			)}
 			<Turnout poll={poll} />

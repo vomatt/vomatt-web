@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 
 import { PollTile } from '@/features/polls/components/PollTile';
 import type { Poll } from '@/features/polls/schema';
+import { META_GAP } from '@/lib/rich';
 
 jest.mock('next/link', () => {
 	return function MockLink({ children, href }: { children: React.ReactNode; href: string }) {
@@ -52,7 +53,7 @@ describe('PollTile', () => {
 		expect(screen.getByText('Later')).toBeInTheDocument();
 		expect(screen.queryByText('Never')).not.toBeInTheDocument();
 		expect(screen.getByText('+2 more')).toBeInTheDocument();
-		expect(screen.getByText('1,502 voted').parentElement).toHaveTextContent('1,502 voted · Transport');
+		expect(screen.getByText('1,502 voted').parentElement).toHaveTextContent(`1,502 voted${META_GAP}Transport`, { normalizeWhitespace: false });
 		expect(screen.queryByText(/won/)).not.toBeInTheDocument();
 	});
 

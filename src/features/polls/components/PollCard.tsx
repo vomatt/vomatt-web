@@ -141,7 +141,7 @@ export function PollCard({
 						/>
 						{/* The age needs the viewer's clock; the line holds its height until then */}
 						<time dateTime={createdAt} className="shrink-0 whitespace-nowrap">
-							{clock ? `· ${formatAge(createdAt, clock.language, clock.now)}` : '\u00a0'}
+							{clock ? formatAge(createdAt, clock.language, clock.now) : '\u00a0'}
 						</time>
 					</div>
 					<div className="flex shrink-0 items-center gap-2">

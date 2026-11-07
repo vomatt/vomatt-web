@@ -3,6 +3,9 @@ import { toast } from 'sonner';
 
 import { PollCard } from '@/features/polls/components/PollCard';
 import { Poll } from '@/features/polls/schema';
+import { META_GAP } from '@/lib/rich';
+
+import { keepGaps } from '../../helpers/keepGaps';
 
 jest.mock('next/link', () => {
 	return function MockLink({ children, href }: { children: React.ReactNode; href: string }) {
@@ -129,7 +132,7 @@ beforeEach(() => {
 	mockPostComment.mockResolvedValue({});
 });
 
-describe('PollCard state A · Open, no Ballot', () => {
+describe('PollCard state A: Open, no Ballot', () => {
 	it('renders the question, description, creator and options', () => {
 		render(<PollCard poll={openPoll} />);
 		expect(
@@ -155,7 +158,7 @@ describe('PollCard state A · Open, no Ballot', () => {
 	it('names the creator by handle, with the poll\'s short age', () => {
 		render(<PollCard poll={openPoll} />);
 		expect(screen.getByRole('link', { name: /@mei\.lin/ })).toHaveAttribute('href', '/mei.lin');
-		expect(screen.getByText('· 2h')).toBeInTheDocument();
+		expect(screen.getByText('2h')).toBeInTheDocument();
 	});
 
 	it('shows Turnout and, beside Vote, that results are revealed at the end, but no Support', () => {
@@ -233,7 +236,7 @@ describe('PollCard state A · Open, no Ballot', () => {
 	});
 });
 
-describe('PollCard state B · Open, has Ballot', () => {
+describe('PollCard state B: Open, has Ballot', () => {
 	it('casts the selected option and raises Turnout', async () => {
 		render(<PollCard poll={openPoll} viewerId="user-voter" />);
 		vote('Saturday');
@@ -595,7 +598,7 @@ describe('PollCard state B · Open, has Ballot', () => {
 	});
 });
 
-describe('PollCard · the end passes while it is on screen', () => {
+describe('PollCard: the end passes while it is on screen', () => {
 	const MINUTE = 60_000;
 	afterEach(() => jest.useRealTimers());
 
@@ -649,7 +652,7 @@ describe('PollCard · the end passes while it is on screen', () => {
 	});
 });
 
-describe('PollCard state C · Scheduled', () => {
+describe('PollCard state C: Scheduled', () => {
 	const scheduled: Poll = {
 		...openPoll,
 		votingActive: false,
@@ -760,13 +763,13 @@ describe('PollCard Audience', () => {
 				viewerId="user-voter"
 			/>
 		);
-		expect(screen.getByText('128 voted · invite only')).toBeInTheDocument();
+		expect(screen.getByText(`128 voted${META_GAP}invite only`, keepGaps)).toBeInTheDocument();
 		expect(screen.getByText('After it ends, everyone invited can see what you chose.')).toBeInTheDocument();
 	});
 
 	it('marks an Unlisted Poll after its Turnout', () => {
 		render(<PollCard poll={{ ...openPoll, audience: 'unlisted' }} viewerId="user-voter" />);
-		expect(screen.getByText('128 voted · unlisted')).toBeInTheDocument();
+		expect(screen.getByText(`128 voted${META_GAP}unlisted`, keepGaps)).toBeInTheDocument();
 	});
 
 	it('says nothing for a Public Poll', () => {
@@ -790,7 +793,7 @@ describe('PollCard Audience', () => {
 	});
 });
 
-describe('PollCard state D · Ended', () => {
+describe('PollCard state D: Ended', () => {
 	it('shows each option’s vote count and Support, the winner and the viewer’s choice', () => {
 		render(<PollCard poll={{ ...endedPoll, myOptionId: 'opt-sat' }} viewerId="user-voter" />);
 		expect(screen.getByText('38 votes, 29%')).toBeInTheDocument();

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toPayloadLocale } from '@/lib/locale';
 import { richList } from '@/lib/rich';
+import { META_GAP } from '@/lib/rich';
 import { cn } from '@/lib/utils';
 
 import type { Poll } from '../schema';
@@ -76,7 +77,7 @@ export function PollTile({ poll }: { poll: Poll }) {
 			<p className="mt-auto text-caption-1 text-muted-foreground">
 				{/* A Scheduled Poll takes no Ballots yet, so it shows no turnout */}
 				{ended ? <EndedMeta poll={poll} /> : status !== 'scheduled' && <Turnout poll={poll} />}
-				{status !== 'scheduled' && topics.length > 0 && ' · '}
+				{status !== 'scheduled' && topics.length > 0 && META_GAP}
 				{topics.length > 0 && richList(topics, toPayloadLocale(currentLanguage), (name) => name)}
 			</p>
 		</li>

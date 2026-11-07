@@ -32,6 +32,7 @@ Cool canvas, navy ink actions, two signals: Volt (`highlight`) marks what is you
 - Every title is weight 500: confident, not shouting.
 - Wrapping is set once in `global.css`: `h1`–`h4` balance their lines and `p`, `li`, `dd`, `blockquote` keep a lone word off the last line (`text-wrap-style`, so `truncate` and `whitespace-nowrap` still win). A title that isn't a heading element takes `text-balance`.
 - **The type scale** (`@theme` in `global.css`) is the only source of sizes. Tailwind's own steps (`text-sm`, `text-lg`…) are cleared, and ESLint rejects them and any arbitrary `text-[…]`, `leading-[…]` or `tracking-[…]`. If no step fits, change the design or add a step; don't reach around the scale.
+- **Meta lines** separate their parts with space, not a glyph: `META_GAP` from `@/lib/rich` (an em space, so it keeps its width and wraps like a space). ESLint rejects a middle dot (·) in source. Two languages side by side, as on the global error page, take a slash.
 
   | Class | Size | Carries | Used for |
   | --- | --- | --- | --- |
@@ -86,15 +87,15 @@ Use these. Don't copy their classes into a new element.
 | Underlined tabs | `<TabsList variant="line">` + `TabsTrigger`, no className overrides; `fit` sizes them to their labels so a row can hold filters beside them (the row draws the line) |
 | Filter pills over one list | `FilterPills` |
 | One choice of a few in a settings row (Settings' Theme) | `SegmentedControl`: a radiogroup in a pill track, the checked segment a `card` with a small shadow; `value` stays undefined until it is known, so nothing is checked. MoreMenu keeps its own Volt menu segments |
-| Follow a person | `FollowButton follow={useFollow(…)}`: one derived state, follow (ink, plus), followBack (ink, no icon), following (outline, Unfollow on hover), blocked, or none on your own entry. `size="sm"` (36px) in a profile header, `xs` (32px) on the hover card, in follower rows (meta "@jtan · follows you") and notification rows |
-| A person's follow counts | "128 followers · 42 following", tabular numbers, shown to everyone and buttons that open the list when signed in |
+| Follow a person | `FollowButton follow={useFollow(…)}`: one derived state, follow (ink, plus), followBack (ink, no icon), following (outline, Unfollow on hover), blocked, or none on your own entry. `size="sm"` (36px) in a profile header, `xs` (32px) on the hover card, in follower rows (meta "@jtan follows you") and notification rows |
+| A person's follow counts | "128 followers 42 following", tabular numbers, shown to everyone and buttons that open the list when signed in |
 | People the viewer follows who follow this person | `MutualFollowersLine` ("Followed by @a and 2 others you follow", 12px with two stacked 16px avatars) under a visitor profile's details and on the hover card, opening the mutuals list; `MutualFollowersCard` ("Followers you know") in the visitor profile's rail |
 | A row's ••• menu | Base UI `Menu` with `Button variant="ghost" size="icon-xs"` as the trigger and `menuPopupClassName` / `menuItemClassName` from `components/ui/menu.ts` (ink 16px icons; a destructive item adds `text-destructive`) |
 | Back to the parent page | `BackLink` ("‹ Back": a quiet 14px link with a 44px hit area that takes no extra space, sticking under the phone Header as the page scrolls). Settings has one on phones only, back to the profile (the sidebar leads out from `md` up; `className="md:hidden"`). Visitor profiles have none |
 | People a user blocked (Settings) | `UserRelationPanel`, a row inside a settings card: the title with a tabular count, then soft tiles of a 28px avatar, the @handle and an `xs` action. Who you follow lives on your profile (the following count opens the list, each row with its `FollowButton`), not in Settings |
 | A detail only the owner sees | `OnlyYouMarker` (the lock) beside it |
 | Rows on a profile | `AskedRow`, `VotedRow` and `ProfileSection` from `features/profiles/ProfileRows` |
-| Status of a poll | `StatusChip` with `derivePollStatus(poll)` (tint, an ink dot or a clock while closing, words). Pick `time`: `inline` where the chip stands alone, on cards and the creator's review ("Ends Fri 20:00"); `elsewhere` in a row, which puts `pollTiming(…).when` in its meta ("1,284 voted · ends Fri 20:00" beside "Open") |
+| Status of a poll | `StatusChip` with `derivePollStatus(poll)` (tint, an ink dot or a clock while closing, words). Pick `time`: `inline` where the chip stands alone, on cards and the creator's review ("Ends Fri 20:00"); `elsewhere` in a row, which puts `pollTiming(…).when` in its meta ("1,284 voted ends Fri 20:00" beside "Open") |
 | Any date a poll surface shows | `useViewerClock()` (null until hydrated) + `pollTiming()` from `features/polls/timing`, or `formatPollDay` / `formatPollMoment` / `formatDuration` / `formatAge` from `features/polls/format`. Not `Date.now()` or `new Date()` in a component |
 | Other small pill (e.g. ballot outcome) | `chipClassName` from `features/polls/chip.ts` + a `bg-*` tint |
 | Empty or missing page (no polls, not found, 404, error) | `EmptyCard`: a centered card with a 56px icon disc on `field` (circle-minus unless given another), a `text-title-3` title, one 15px line, an optional action; `headingLevel={1}` on a page with no other title |
@@ -105,9 +106,9 @@ Use these. Don't copy their classes into a new element.
 | The viewer has voted (card header) | `VotedPill` (Volt, check) beside the status chip |
 | The viewer's option on results | `YourVotePill` ("your vote", lower-case, Volt with an ink line) |
 | The cast Ballot | `Seal` (in full once per cast, then a row) with `SealMark`: `sm` 32px on profile rows and notifications, `md` 40px dashed in the Seal row, `lg` 72px with a 58px dashed ring in the full Seal. "Sealed. Thank you.", when results open, how to change the vote (pick another option), and Withdraw vote inside it. Updating and the withdraw confirm are modes of the Ballot (`SealedMode`), not extra flags |
-| A poll card's footer | `PollFooter` with `audience` and `isPage`: the turnout in muted tabular figures, then a non-Public audience ("18 voted · invite only"); Comments leads to `#discussion` |
+| A poll card's footer | `PollFooter` with `audience` and `isPage`: the turnout in muted tabular figures, then a non-Public audience ("18 voted invite only"); Comments leads to `#discussion` |
 | A poll's discussion | `CommentThread` in its own `rounded-2xl` card (`PollDiscussion` on the poll page); composers show the viewer's avatar, a reply composer sits under the reply it answers |
-| Side card of polls (home rail) | `PollSideCard` with a `kind`: `resultsIn` (unread titles 600, read 400, "**Yes** won · N voted · new") or `closingSoon` ("ends in 2h · 96 voted", tabular figures) |
+| Side card of polls (home rail) | `PollSideCard` with a `kind`: `resultsIn` (unread titles 600, read 400, "**Yes** won N voted new") or `closingSoon` ("ends in 2h 96 voted", tabular figures) |
 | Filter pills | `FilterPills`: 30px from `md`, 13px |
 | A notification | one row component per `kind` (`features/notifications/NotificationRows`); consecutive follows group into one row with See followers |
 | Progress (voting window) | `Progress variant="tide"` |

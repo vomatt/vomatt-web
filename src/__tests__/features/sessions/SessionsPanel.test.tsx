@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 
 import { getSessions, revokeOtherSessions, revokeSession } from '@/features/sessions/service';
 import { SessionsPanel } from '@/features/sessions/SessionsPanel';
+import { META_GAP } from '@/lib/rich';
 import type { SignedInSession } from '@/types/user';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
@@ -49,7 +50,7 @@ describe('SessionsPanel', () => {
 		render(<SessionsPanel />);
 
 		const current = await screen.findByRole('region', { name: 'This device' });
-		expect(current).toHaveTextContent('Chrome · Mac');
+		expect(current).toHaveTextContent(`Chrome${META_GAP}Mac`, { normalizeWhitespace: false });
 		expect(within(current).queryByRole('button')).not.toBeInTheDocument();
 		expect(others()).toHaveTextContent('Unknown device');
 		expect(others()).toHaveTextContent('activity unknown');

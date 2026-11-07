@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toPayloadLocale } from '@/lib/locale';
+import { META_GAP } from '@/lib/rich';
 
 import { useSharePoll } from '../hooks/useSharePoll';
 import type { Audience } from '../schema';
@@ -23,7 +24,7 @@ type PollFooterProps = {
 	pollId: string;
 	title: string;
 	turnout: number | undefined;
-	/** Unlisted and Invite-only say so after the turnout: "18 voted · invite only". Public says nothing. */
+	/** Unlisted and Invite-only say so after the turnout: "18 voted" + gap + "invite only". Public says nothing. */
 	audience?: Audience;
 	/** Unknown until the discussion has been opened once. */
 	commentCount?: number;
@@ -67,7 +68,7 @@ export function PollFooter({
 		!isPublic({ audience }) && t(`poll.audienceMeta.${audience}`),
 	]
 		.filter(Boolean)
-		.join(' · ');
+		.join(META_GAP);
 
 	return (
 		// Each item is 44px tall; 4px above and below set the text 16px in. Too narrow for one row

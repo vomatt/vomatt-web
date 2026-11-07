@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 
 import { FollowListDialog } from '@/features/follows/FollowListDialog';
 import { followUser, getFollowers, getMutualFollowers } from '@/features/follows/service';
+import { META_GAP } from '@/lib/rich';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 jest.mock('sonner', () => ({ toast: { error: jest.fn() } }));
@@ -47,7 +48,7 @@ it('lists each person as a link with their name over their @handle', async () =>
 it('offers Follow back, and says so, to someone who follows the viewer', async () => {
 	showList([jtan]);
 
-	const row = await rowOf('Jun Tan @jtan · follows you');
+	const row = await rowOf(`Jun Tan @jtan${META_GAP}follows you`);
 	const button = within(row).getByRole('button', { name: 'Follow back' });
 	// Follow back is ink like Follow, but without the plus
 	expect(button.querySelector('svg')).toBeNull();

@@ -10,6 +10,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { ProfileHoverCard, rememberFollowing } from '@/features/profiles/ProfileHoverCard';
 import { mergeById } from '@/lib/api/cursor';
+import { META_GAP } from '@/lib/rich';
 import { profileHref } from '@/lib/routes';
 
 import { FollowButton, useFollow } from './FollowButton';
@@ -127,7 +128,7 @@ function People({ username, list, ...rowProps }: RowProps & { username: string; 
 	);
 }
 
-/** Name over "@handle · follows you", and Follow on the right. */
+/** Name over "@handle" + gap + "follows you", and Follow on the right. */
 function PersonRow({ user, viewerId, onFollowChange }: RowProps & { user: FollowUserDto }) {
 	const { t } = useLanguage();
 	const follow = useFollow(user.id, user, {
@@ -150,7 +151,7 @@ function PersonRow({ user, viewerId, onFollowChange }: RowProps & { user: Follow
 						<span className="truncate text-body-4 font-medium">{user.displayName || user.username}</span>
 						<span className="truncate text-caption-2 text-muted-foreground">
 							@{user.username}
-							{user.followsYou && ` · ${t('follows.followsYou')}`}
+							{user.followsYou && `${META_GAP}${t('follows.followsYou')}`}
 						</span>
 					</span>
 				</Link>

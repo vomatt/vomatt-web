@@ -16,6 +16,7 @@ import type { Poll } from '@/features/polls/schema';
 import { derivePollStatus, isCancelled, type PollStatus } from '@/features/polls/status';
 import { pollTiming } from '@/features/polls/timing';
 import { toPayloadLocale } from '@/lib/locale';
+import { META_GAP } from '@/lib/rich';
 import { cn } from '@/lib/utils';
 
 
@@ -26,7 +27,7 @@ export const profileRowClassName =
 const linkFocus =
 	'outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring';
 
-/** A small heading over a run of rows: "Open now · 2". */
+/** A small heading over a run of rows: "Open now" + gap + "2". */
 export function ProfileSection({
 	icon,
 	label,
@@ -43,19 +44,22 @@ export function ProfileSection({
 	return (
 		<h3 className="mx-0.5 mt-2.5 mb-0.5 flex items-center gap-1.5 text-caption-2 font-medium text-muted-foreground">
 			{icon}
-			{label}
-			{count !== undefined && (
-				<>
-					{' · '}
-					<span className="tabular-nums">{count.toLocaleString(toPayloadLocale(currentLanguage))}</span>
-				</>
-			)}
-			{note && ` · ${note}`}
+			{/* One item, so the flex gap sits after the icon and only META_GAP separates the text */}
+			<span>
+				{label}
+				{count !== undefined && (
+					<>
+						{META_GAP}
+						<span className="tabular-nums">{count.toLocaleString(toPayloadLocale(currentLanguage))}</span>
+					</>
+				)}
+				{note && `${META_GAP}${note}`}
+			</span>
 		</h3>
 	);
 }
 
-/** "1,284 voted · ends Fri 20:00", or a Scheduled poll's "Opens Mon 9:00"; the chip beside it says the status word. */
+/** "1,284 voted" + gap + "ends Fri 20:00", or a Scheduled poll's "Opens Mon 9:00"; the chip beside it says the status word. */
 function OpenMeta({ poll, status }: { poll: Poll; status: PollStatus }) {
 	const voted = useVotedText();
 	const clock = useViewerClock();
@@ -65,7 +69,7 @@ function OpenMeta({ poll, status }: { poll: Poll; status: PollStatus }) {
 	return (
 		<>
 			<span className="tabular-nums text-foreground">{voted(poll)}</span>
-			{when && ` · ${when}`}
+			{when && `${META_GAP}${when}`}
 		</>
 	);
 }
@@ -110,7 +114,7 @@ export function AskedRow({
 				{ended ? <EndedMeta poll={poll} /> : <OpenMeta poll={poll} status={status} />}
 				{unread && (
 					<>
-						{' · '}
+						{META_GAP}
 						<NewMark />
 					</>
 				)}
@@ -173,7 +177,7 @@ export function VotedRow({ poll }: { poll: Poll }) {
 							{t('myPolls.youChose')} {choice}
 							{clock &&
 								poll.endTime &&
-								` · ${t('profile.resultsAt', { date: formatPollMoment(poll.endTime, clock.language, clock.now) })}`}
+								`${META_GAP}${t('profile.resultsAt', { date: formatPollMoment(poll.endTime, clock.language, clock.now) })}`}
 						</span>
 					</span>
 					<span className="hidden text-caption-2 tabular-nums text-tide-foreground sm:inline">{voted(poll)}</span>
@@ -197,11 +201,11 @@ export function VotedRow({ poll }: { poll: Poll }) {
 						) : (
 							t('myPolls.votedAnonymously')
 						)}
-						{' · '}
+						{META_GAP}
 						{isCancelled(poll) ? t('notifications.cancelled') : <span className="tabular-nums">{voted(poll)}</span>}
 						{poll.unread && (
 							<>
-								{' · '}
+								{META_GAP}
 								<NewMark />
 							</>
 						)}

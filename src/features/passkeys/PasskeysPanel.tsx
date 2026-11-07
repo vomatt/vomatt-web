@@ -18,6 +18,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { formatPollDate } from '@/features/polls/format';
 import { apiErrorText } from '@/lib/api/error-text';
+import { META_GAP } from '@/lib/rich';
 import type { Passkey } from '@/types/user';
 
 import { AddPasskeyButton } from './AddPasskeyButton';
@@ -111,7 +112,7 @@ export function PasskeysPanel() {
 								<span className="block truncate text-body-4 font-medium">{nameOf(passkey)}</span>
 								<span className="block text-caption-2 text-muted-foreground">
 									{t('passkey.created', { date: formatPollDate(passkey.createdAt, currentLanguage) })}
-									{' · '}
+									{META_GAP}
 									{passkey.lastUsedAt
 										? t('passkey.lastUsed', { date: formatPollDate(passkey.lastUsedAt, currentLanguage) })
 										: t('passkey.neverUsed')}

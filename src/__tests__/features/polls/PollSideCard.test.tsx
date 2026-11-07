@@ -2,6 +2,9 @@ import { render, screen, within } from '@testing-library/react';
 
 import { PollSideCard } from '@/features/polls/components/PollSideCard';
 import type { Poll } from '@/features/polls/schema';
+import { META_GAP } from '@/lib/rich';
+
+import { keepGaps } from '../../helpers/keepGaps';
 
 jest.mock('next/link', () => {
 	return function MockLink({ children, href }: { children: React.ReactNode; href: string }) {
@@ -65,14 +68,14 @@ describe('PollSideCard', () => {
 		const tie = { ...poll, id: 'poll-2', options: [{ id: 'a', text: 'Yes', votes: 6 }, { id: 'b', text: 'No', votes: 6 }] };
 		render(<PollSideCard kind="resultsIn" polls={[won, tie]} />);
 		const [wonLink, tieLink] = screen.getAllByRole('link');
-		expect(within(wonLink).getByText(/won/).textContent).toBe('Yes won · 1,502 voted · new');
-		expect(within(tieLink).getByText(/Tie/).textContent).toBe('Tie · 1,502 voted');
+		expect(within(wonLink).getByText(/won/).textContent).toBe(`Yes won${META_GAP}1,502 voted${META_GAP}new`);
+		expect(within(tieLink).getByText(/Tie/).textContent).toBe(`Tie${META_GAP}1,502 voted`);
 	});
 
 	it('says when each Poll in Closing soon ends', () => {
 		render(<PollSideCard kind="closingSoon" polls={[poll]} />);
 		expect(screen.getByRole('region', { name: 'Closing soon' })).toBeInTheDocument();
-		expect(screen.getByText('ends in 2h · 1,502 voted')).toBeInTheDocument();
+		expect(screen.getByText(`ends in 2h${META_GAP}1,502 voted`, keepGaps)).toBeInTheDocument();
 		expect(screen.getByText(poll.title)).toHaveClass('font-medium');
 	});
 });

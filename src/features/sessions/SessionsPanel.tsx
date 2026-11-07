@@ -19,6 +19,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { formatFromNow, formatPollDate } from '@/features/polls/format';
 import { apiErrorText } from '@/lib/api/error-text';
+import { META_GAP } from '@/lib/rich';
 import { loginHref } from '@/lib/routes';
 import type { SignedInSession } from '@/types/user';
 
@@ -106,7 +107,7 @@ export function SessionsPanel() {
 							? t('sessions.lastActive', { time: formatFromNow(session.lastSeenAt, currentLanguage) })
 							: t('sessions.activityUnknown')}
 						{session.createdAt &&
-							` · ${t('sessions.signedInOn', { date: formatPollDate(session.createdAt, currentLanguage) })}`}
+							`${META_GAP}${t('sessions.signedInOn', { date: formatPollDate(session.createdAt, currentLanguage) })}`}
 					</>
 				}
 			/>

@@ -19,6 +19,7 @@ import { menuItemClassName, menuPopupClassName } from '@/components/ui/menu';
 import { Ellipsis, Trash2 } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { countText } from '@/lib/count';
+import { META_GAP } from '@/lib/rich';
 import { cn } from '@/lib/utils';
 
 import { deleteDraft, listDrafts, type PollDraft } from '../drafts';
@@ -88,7 +89,7 @@ export function DraftList({
 										!draft.values.endTime && t('myPolls.draftNoEnd'),
 									]
 										.filter(Boolean)
-										.join(' · ')}
+										.join(META_GAP)}
 								</p>
 							</div>
 							<Button size="xs" variant="outline" onClick={() => setResuming(draft)}>
