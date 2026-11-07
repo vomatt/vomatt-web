@@ -8,7 +8,7 @@
 > - `pGeneral` "Your data", slug `your-data`
 > - Edits to the existing `pGeneral` documents `privacy-policy` and `cookies-policy` (section 4 below), and to the `pSignUp` singleton's `policyMessage` (section 5).
 >
-> In vomatt-web, link to the new pages with `aboutHref('community-guidelines')` etc. (`src/lib/aboutSite.ts`); the root `[slug]` route there is profiles only. Links written inside the pages below as `/report` etc. are internal links to the other about-site documents.
+> In vomatt-web, link to the new pages with `aboutHref('community-guidelines', currentLanguage)` etc. (`src/lib/aboutSite.ts`); the root `[slug]` route there is profiles only. Links written inside the pages below as `/report` etc. are internal links to the other about-site documents.
 >
 > **Chinese versions (section 6).** Sanity content isn't localized today, and the published legal pages are English only. [OWNER: decide how the Chinese pages are served, for example separate `pGeneral` documents with slugs such as `zh-community-guidelines`, or adding localization to the about site.]
 >

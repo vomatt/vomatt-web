@@ -29,7 +29,7 @@ function subscribe(listener: () => void) {
 
 /** Asks before loading analytics; renders nothing when no analytics ID is set in Sanity. */
 export function CookieConsent({ integrations }: { integrations?: Integrations | null }) {
-	const { t } = useLanguage();
+	const { t, currentLanguage } = useLanguage();
 	// undefined on the server, so the banner doesn't flash for returning visitors
 	const consent = useSyncExternalStore(subscribe, readConsent, () => undefined);
 
@@ -51,7 +51,7 @@ export function CookieConsent({ integrations }: { integrations?: Integrations | 
 		>
 			<p className="text-caption-1">
 				{t('cookieConsent.message')}{' '}
-				<a href={aboutHref('privacy-policy')} className="underline underline-offset-2">
+				<a href={aboutHref('privacy-policy', currentLanguage)} className="underline underline-offset-2">
 					{t('cookieConsent.policy')}
 				</a>
 			</p>

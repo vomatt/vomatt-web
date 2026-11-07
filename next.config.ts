@@ -23,7 +23,7 @@ const nextConfig: NextConfig = {
 			// About and the legal pages moved to the about site
 			...ABOUT_SITE_SLUGS.map((slug) => ({
 				source: `/${slug}`,
-				destination: aboutHref(ABOUT_SITE_MOVED[slug] ?? slug),
+				destination: aboutHref(ABOUT_SITE_MOVED[slug] ?? slug, 'en'),
 				permanent: true,
 			})),
 		];

@@ -103,7 +103,7 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 	};
 
 	const toggleVisibility = (...fields: string[]) => {
-		const next = !isFieldPublic(visibility, fields[0]);
+		const next = !fields.some((field) => isFieldPublic(visibility, field));
 		setVisibility((current) => ({ ...current, ...Object.fromEntries(fields.map((field) => [field, next])) }));
 	};
 
@@ -189,7 +189,7 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 	const pill = (fieldLabel: string, fields: string[]) => (
 		<VisibilityPill
 			label={fieldLabel}
-			isPublic={isFieldPublic(visibility, fields[0])}
+			isPublic={fields.some((field) => isFieldPublic(visibility, field))}
 			onToggle={() => toggleVisibility(...fields)}
 		/>
 	);

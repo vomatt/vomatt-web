@@ -22,3 +22,19 @@ export function visibilityChanges(saved: Record<string, boolean>, next: Record<s
 		])
 	);
 }
+
+/**
+ * The visibility settings a person sets, in the order Edit profile and Settings › What others see show them:
+ * first and last name share one, Real name. `key` names its label, `profile.<key>`.
+ */
+export const VISIBILITY_SETTINGS = [
+	{ key: 'realName', fields: ['firstName', 'lastName'] },
+	{ key: 'displayName', fields: ['displayName'] },
+	{ key: 'bio', fields: ['bio'] },
+] as const satisfies readonly { key: string; fields: readonly VisibilityField[] }[];
+
+export type VisibilitySetting = (typeof VISIBILITY_SETTINGS)[number];
+
+/** Whether visitors see a setting; the real name shows when either half does. */
+export const isSettingPublic = (visibility: Record<string, boolean>, setting: VisibilitySetting) =>
+	setting.fields.some((field) => isFieldPublic(visibility, field));

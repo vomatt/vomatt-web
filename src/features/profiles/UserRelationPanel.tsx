@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
+import { rowClassName, SettingsCard } from '@/components/SettingsCard';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -14,18 +15,17 @@ import { apiErrorText } from '@/lib/api/error-text';
 import type { UserDto } from '@/schemas/user';
 
 type UserRelationPanelProps = {
-	/** Locale namespace: `<ns>.title`, `.empty`, `.loadFailed` and the action's keys. */
+	/** Locale namespace: `<ns>.empty`, `.loadFailed` and the action's keys. */
 	ns: 'blocks';
-	/** Locale keys `<ns>.<action>`, `<ns>.<action>ed` and `<ns>.<action>Failed`. */
+	/** Locale keys `<ns>.<action>`, `<ns>.<action>Label`, `<ns>.<action>ed` and `<ns>.<action>Failed`. */
 	action: 'unblock';
 	load: (cursor?: string) => Promise<ActionResult<CursorPage<UserDto>>>;
 	remove: (userId: string) => Promise<ActionResult>;
 };
 
 /**
- * Settings: people the user set a one-way relation with, with a way to undo it for each. A row inside a
- * settings card the host draws: the title with a mono count, then soft tiles of a 28px avatar, the @handle
- * and a 32px action.
+ * The Blocked people page body: people the user set a one-way relation with, each a row of a settings card
+ * with a 36px avatar, the @handle and a 32px action to undo it. The page header names the list.
  */
 export function UserRelationPanel({ ns, action, load, remove }: UserRelationPanelProps) {
 	const { t } = useLanguage();
@@ -91,14 +91,7 @@ export function UserRelationPanel({ ns, action, load, remove }: UserRelationPane
 	};
 
 	return (
-		<section className="space-y-2.5">
-			<div className="flex items-baseline gap-2">
-				<h3 className="flex-1 font-medium">{t(`${ns}.title`)}</h3>
-				{/* Only once every page is in, so it is the whole count */}
-				{!!users?.length && !nextCursor && (
-					<span className="text-body-4 text-muted-foreground tabular-nums">{users.length}</span>
-				)}
-			</div>
+		<div className="flex flex-col gap-3">
 			{users === null && !loadFailed && (
 				<div className="flex justify-center py-2">
 					<Spinner />
@@ -106,36 +99,40 @@ export function UserRelationPanel({ ns, action, load, remove }: UserRelationPane
 			)}
 			{loadFailed && (
 				<div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-					<p className="flex-1 text-caption-1 text-muted-foreground">{t(`${ns}.loadFailed`)}</p>
-					<Button variant="outline" size="xs" onClick={retry}>
+					<p className="flex-1 text-body-4 text-muted-foreground">{t(`${ns}.loadFailed`)}</p>
+					<Button variant="outline" size="md" onClick={retry}>
 						{t('common.tryAgain')}
 					</Button>
 				</div>
 			)}
-			{users?.length === 0 && <p className="text-caption-1 text-muted-foreground">{t(`${ns}.empty`)}</p>}
+			{/* Unblocking a whole page can empty the list while more remain behind Load more */}
+			{users?.length === 0 && !nextCursor && <p className="empty-state">{t(`${ns}.empty`)}</p>}
 			{!!users?.length && (
-				<ul className="flex flex-col gap-2.5">
+				<SettingsCard as="ul">
 					{users.map((user) => (
-						<li
-							key={user.id}
-							className="flex items-center gap-2.5 rounded-xl border border-border bg-surface-soft px-2.5 py-2"
-						>
-							<UserAvatar username={user.username} avatarUrl={user.avatarUrl} className="size-7" />
-							<p className="min-w-0 flex-1 truncate text-body-4">@{user.username}</p>
-							<Button variant="outline" size="xs" loading={pendingId === user.id} onClick={() => undo(user)}>
+						<li key={user.id} className={rowClassName}>
+							<UserAvatar username={user.username} avatarUrl={user.avatarUrl} className="size-9" />
+							<p className="min-w-0 flex-1 truncate font-medium">@{user.username}</p>
+							<Button
+								variant="outline"
+								size="xs"
+								loading={pendingId === user.id}
+								onClick={() => undo(user)}
+								aria-label={t(`${ns}.${action}Label`, { username: user.username })}
+							>
 								{t(`${ns}.${action}`)}
 							</Button>
 						</li>
 					))}
-				</ul>
+				</SettingsCard>
 			)}
 			{nextCursor && (
 				<div className="flex justify-center">
-					<Button variant="outline" size="xs" loading={loadingMore} onClick={loadMore}>
+					<Button variant="outline" size="md" loading={loadingMore} onClick={loadMore}>
 						{t('common.loadMore')}
 					</Button>
 				</div>
 			)}
-		</section>
+		</div>
 	);
 }

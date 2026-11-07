@@ -9,11 +9,11 @@ const LEGAL_LINKS = [
 ];
 
 export function LegalLinks({ className }: { className?: string }) {
-	const { t } = useLanguage();
+	const { t, currentLanguage } = useLanguage();
 	return (
 		<nav aria-label={t('settings.legal')} className={className}>
 			{LEGAL_LINKS.map(({ slug, labelKey }) => (
-				<a key={slug} href={aboutHref(slug)} className="hover:text-foreground">
+				<a key={slug} href={aboutHref(slug, currentLanguage)} className="hover:text-foreground">
 					{t(labelKey)}
 				</a>
 			))}

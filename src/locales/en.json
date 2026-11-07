@@ -1176,6 +1176,7 @@
 		"empty": "You haven’t blocked anyone.",
 		"loadFailed": "Couldn’t load blocked people.",
 		"unblock": "Unblock",
+		"unblockLabel": "Unblock @{username}",
 		"unblocked": "Unblocked @{username}",
 		"unblockFailed": "Couldn’t unblock. Try again.",
 		"block": "Block",
@@ -1215,7 +1216,7 @@
 		"themeBody": "Auto follows your system.",
 		"language": "Language",
 		"privacy": "Privacy and safety",
-		"whatOthersSeeBody": "Set it beside each detail in Edit profile.",
+		"whatOthersSeeBody": "Choose which details show on your profile.",
 		"shownCount": "{shown} of {total} shown",
 		"account": "Account",
 		"onThisPage": "On this page",
@@ -1243,7 +1244,13 @@
 		"notifyClosingSoonBody": "A nudge the day before a poll you haven’t voted in ends.",
 		"notifyOn": "{name} notifications on.",
 		"notifyOff": "{name} notifications off.",
-		"notificationsFailed": "Couldn’t load your notification settings."
+		"notificationsFailed": "Couldn’t load your notification settings.",
+		"blockedBody": "See and unblock the people you’ve blocked.",
+		"visibilityIntro": "Choose which details show on your profile. Your username is always shown; your birthday never is.",
+		"visibilityNotSet": "Not set",
+		"visibilityOn": "{field} shown to everyone",
+		"visibilityOff": "{field} shown only to you",
+		"visibilityEditDetails": "Edit these details"
 	},
 	"passkey": {
 		"title": "Passkeys",

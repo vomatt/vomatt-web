@@ -37,7 +37,7 @@ it('unblocks a user and drops them from the list', async () => {
 	render(<BlockedUsersPanel />);
 	await screen.findByText('@bob');
 
-	fireEvent.click(screen.getAllByRole('button', { name: 'Unblock' })[0]);
+	fireEvent.click(screen.getByRole('button', { name: 'Unblock @bob' }));
 	await waitFor(() => expect(screen.queryByText('@bob')).not.toBeInTheDocument());
 	expect(mockUnblock).toHaveBeenCalledWith('u1');
 	expect(screen.getByText('@cy')).toBeInTheDocument();
@@ -49,7 +49,7 @@ it('keeps the user and says so when unblocking fails', async () => {
 	render(<BlockedUsersPanel />);
 	await screen.findByText('@bob');
 
-	fireEvent.click(screen.getByRole('button', { name: 'Unblock' }));
+	fireEvent.click(screen.getByRole('button', { name: 'Unblock @bob' }));
 	await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Couldn’t unblock. Try again.', { duration: Infinity }));
 	expect(screen.getByText('@bob')).toBeInTheDocument();
 });
