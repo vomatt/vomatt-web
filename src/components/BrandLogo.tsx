@@ -1,4 +1,4 @@
-import clsx from 'clsx';
+import { cn } from '@/lib/utils';
 
 /** The wordmark's letters in reading order (v, o, m, a, t, t), one path each so they can animate in turn. */
 const WORDMARK_LETTERS = [
@@ -17,7 +17,7 @@ interface LogoProps {
 export default function BrandLogo({ className }: LogoProps) {
 	return (
 		<svg
-			className={clsx('svg-vomatt', className)}
+			className={cn('svg-vomatt', className)}
 			viewBox="0 0 152 32"
 			fill="currentColor"
 			xmlns="http://www.w3.org/2000/svg"
