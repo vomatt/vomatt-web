@@ -721,9 +721,15 @@
 		"upload": {
 			"button": "Upload photo",
 			"name": "Your photo",
-			"trait": "Cropped to a square",
-			"unsupported": "Use a JPEG, PNG, GIF or BMP image.",
-			"tooLarge": "That photo is over 2 MB. Pick a smaller one."
+			"trait": "Framed by you",
+			"unsupported": "Use a JPEG, PNG, GIF or BMP image."
+		},
+		"crop": {
+			"title": "Frame your photo",
+			"body": "Drag to move it. Pinch, scroll or use the slider to zoom.",
+			"area": "Photo framing. Use the arrow keys to move the photo.",
+			"zoom": "Zoom",
+			"use": "Use photo"
 		},
 		"none": {
 			"name": "Account icon",
