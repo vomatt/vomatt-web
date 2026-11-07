@@ -28,7 +28,6 @@ pnpm exec jest src/__tests__/components/PollCard.test.tsx
 ### Route Groups
 
 - `src/app/(frontend)/` — customer-facing UI. `layout.tsx` fetches the `settingsGeneral` Sanity singleton for site-wide metadata and applies language detection from cookies/headers.
-- `/sanity` redirects to vomatt-admin's Studio when `NEXT_PUBLIC_SANITY_STUDIO_URL` is set (`next.config.ts`).
 - About and the legal pages (`/about`, `/privacy-policy`, `/terms-of-service`, `/cookies-policy`) live on the about site (`vomatt-about`, about.vomatt.com). `next.config.ts` redirects them there permanently; link to them with `aboutHref(slug)` from `src/lib/aboutSite.ts`. Internal links in Sanity content can only reference about-site documents, so `CMSLink` sends them there. The root `[slug]` route is profiles only.
 - `src/app/api/` — thin API route handlers (user-related endpoints).
 
@@ -80,7 +79,6 @@ Locales: `en`, `zh` (Traditional Chinese; default `en`), strings in `src/locales
 ```
 NEXT_PUBLIC_SANITY_PROJECT_ID  # Sanity project
 NEXT_PUBLIC_SANITY_DATASET     # Sanity dataset
-NEXT_PUBLIC_SANITY_STUDIO_URL  # Optional: vomatt-admin Studio URL; /sanity redirects there
 SESSION_SECRET   # Must equal the API's JWT_SECRET (HMAC-SHA)
 SITE_URL         # Frontend URL, no trailing slash; required (metadataBase)
 NEXT_PUBLIC_ABOUT_URL  # Optional: the about site's origin; defaults to https://about.vomatt.com
@@ -90,7 +88,7 @@ API_LOG          # Optional API request/response log: 0 silences it in dev, 1 en
 CLIENT_IP_SECRET # Same value as the API's; sent with each user's IP (lib/api/client-ip.ts) so its rate limits and OTP lockouts are per user, not per server
 ```
 
-Template and Vercel setup: `.env.example`, `README.md`. The production site shows only the coming-soon page until Sanity's Settings → General → Coming soon is turned off (`src/lib/comingSoon.ts`).
+Template and Vercel setup: `.env.example`, `README.md`.
 
 ## Key Paths Quick Reference
 

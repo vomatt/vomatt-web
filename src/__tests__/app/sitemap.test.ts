@@ -4,15 +4,11 @@ const mockGetPolls = jest.fn();
 jest.mock('@/features/polls/service', () => ({
 	getPolls: (...args: any[]) => mockGetPolls(...args),
 }));
-const mockComingSoon = jest.fn();
-jest.mock('@/lib/comingSoon', () => ({ isComingSoon: () => mockComingSoon() }));
-jest.mock('@/lib/siteSettings', () => ({ getSiteSettings: async () => null }));
 
 const originalSiteUrl = process.env.SITE_URL;
 beforeEach(() => {
 	process.env.SITE_URL = 'https://vomatt.com';
 	mockGetPolls.mockReset();
-	mockComingSoon.mockReturnValue(false);
 });
 afterAll(() => {
 	process.env.SITE_URL = originalSiteUrl;
@@ -44,12 +40,6 @@ describe('sitemap.xml', () => {
 		}));
 		const dates = (await sitemap()).slice(2).map(({ lastModified }) => lastModified);
 		expect(dates).toEqual(['2026-11-02T00:00:00Z', '2026-10-10T00:00:00Z']);
-	});
-
-	it('lists nothing while the site shows the coming soon page', async () => {
-		mockComingSoon.mockReturnValue(true);
-		expect(await sitemap()).toEqual([]);
-		expect(mockGetPolls).not.toHaveBeenCalled();
 	});
 
 	it('still lists the static pages when the poll lists fail', async () => {

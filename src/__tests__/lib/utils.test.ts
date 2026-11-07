@@ -2,7 +2,6 @@ import { getSafeRedirectPath, isActivePath, profileHref } from '@/lib/routes';
 import {
 	cn,
 	formatHandleize,
-	formatNumberSuffix,
 	formatNumberWithCommas,
 	formatUrl,
 	getUrlBaseAndPath,
@@ -60,44 +59,6 @@ describe('getUrlBaseAndPath', () => {
 		expect(getUrlBaseAndPath('https://example.com/page')).toBe(
 			'https://example.com/page'
 		);
-	});
-});
-
-describe('formatNumberSuffix', () => {
-	it('returns 1st for 1', () => {
-		expect(formatNumberSuffix('1', '')).toBe('1st');
-	});
-
-	it('returns 2nd for 2', () => {
-		expect(formatNumberSuffix('2', '')).toBe('2nd');
-	});
-
-	it('returns 3rd for 3', () => {
-		expect(formatNumberSuffix('3', '')).toBe('3rd');
-	});
-
-	it('returns 4th for 4', () => {
-		expect(formatNumberSuffix('4', '')).toBe('4th');
-	});
-
-	it('returns 11th for 11 (teen exception)', () => {
-		expect(formatNumberSuffix('11', '')).toBe('11th');
-	});
-
-	it('returns 12th for 12 (teen exception)', () => {
-		expect(formatNumberSuffix('12', '')).toBe('12th');
-	});
-
-	it('returns 13th for 13 (teen exception)', () => {
-		expect(formatNumberSuffix('13', '')).toBe('13th');
-	});
-
-	it('returns 21st for 21', () => {
-		expect(formatNumberSuffix('21', '')).toBe('21st');
-	});
-
-	it('returns suffix only when suffixOnly is truthy', () => {
-		expect(formatNumberSuffix('1', 'yes')).toBe('st');
 	});
 });
 

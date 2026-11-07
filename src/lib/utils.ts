@@ -38,24 +38,6 @@ export function getUrlBaseAndPath(url: string) {
 
 // ***UTILITIES / FORMAT***
 
-export function formatNumberSuffix(value: string, suffixOnly: string) {
-	let int = parseInt(value);
-	let integer = suffixOnly ? '' : int;
-
-	if (int > 3 && int < 21) return `${integer}th`;
-
-	switch (int % 10) {
-		case 1:
-			return `${integer}st`;
-		case 2:
-			return `${integer}nd`;
-		case 3:
-			return `${integer}rd`;
-		default:
-			return `${integer}th`;
-	}
-}
-
 export function formatHandleize(string: string) {
 	return String(string)
 		.normalize('NFKD') // split accented characters into their base characters and diacritical marks
