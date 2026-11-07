@@ -7,6 +7,7 @@ import { LoadMore } from '@/components/LoadMore';
 import { StickyBar } from '@/components/StickyBar';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PollTileGridSkeleton } from '@/features/polls/components/PollCardSkeleton';
@@ -163,6 +164,20 @@ export function ExploreView({
 			<Suspense fallback={<PollTileGridSkeleton />}>
 				<ExploreResults initialPage={initialPage} listed={listed} onListed={setListed} apiQuery={apiQuery} status={status} />
 			</Suspense>
+		</div>
+	);
+}
+
+/** ExploreView's layout before the page arrives: the search field, filter and topic rows, then tiles. */
+export function ExploreSkeleton() {
+	return (
+		<div className="flex flex-col gap-4">
+			<div className="flex flex-col gap-3 py-2">
+				<Skeleton className="h-12 rounded-[10px]" />
+				<Skeleton className="h-11 w-72 rounded-full md:h-9" />
+			</div>
+			<Skeleton className="h-11 w-60 rounded-full md:h-9" />
+			<PollTileGridSkeleton />
 		</div>
 	);
 }

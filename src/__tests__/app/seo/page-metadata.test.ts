@@ -1,6 +1,6 @@
+import { generateMetadata as homeMetadata } from '@/app/(frontend)/(home)/page';
 import { generateMetadata as profileMetadata } from '@/app/(frontend)/[slug]/page';
 import { generateMetadata as exploreMetadata } from '@/app/(frontend)/explore/page';
-import { generateMetadata as homeMetadata } from '@/app/(frontend)/page';
 import en from '@/locales/en.json';
 
 const mockGetUserProfile = jest.fn();

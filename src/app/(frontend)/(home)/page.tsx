@@ -5,16 +5,16 @@ import { JsonLd } from '@/components/JsonLd';
 import { PageShell } from '@/components/layout/PageShell';
 import { getMyProfile, getUserSession } from '@/data/auth';
 import { DEFAULT_SITE_NAME } from '@/data/constants';
-import { PollListSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import { getFeed, getFollowedTags, getPopularTags } from '@/features/polls/service';
 import { getServerMessages } from '@/lib/getServerLocale';
 import { topicHref } from '@/lib/routes';
 import { getSiteSettings } from '@/lib/siteSettings';
 import { websiteJsonLd } from '@/lib/structuredData';
 
-import { HomepageHeader } from './_components/HomepageHeader';
-import { HomeRail } from './_components/HomeRail';
-import { PollFeedList } from './_components/PollFeedList';
+import { FeedSkeleton } from '../_components/FeedSkeleton';
+import { HomepageHeader } from '../_components/HomepageHeader';
+import { HomeRail } from '../_components/HomeRail';
+import { PollFeedList } from '../_components/PollFeedList';
 
 type Props = { searchParams: Promise<{ tag?: string | string[] }> };
 
@@ -41,11 +41,7 @@ export default async function Page({ searchParams }: Props) {
 			/>
 			<PageShell className="pt-0" rail={<HomeRail signedIn={!!user} />}>
 				<Suspense
-					fallback={
-						<div className="w-full max-w-feed py-4">
-							<PollListSkeleton />
-						</div>
-					}
+					fallback={<FeedSkeleton />}
 				>
 					<Feed tag={tag} viewerId={user?.sub} />
 				</Suspense>

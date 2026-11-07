@@ -3,6 +3,11 @@ import { render, screen } from '@testing-library/react';
 import { TabBar } from '@/components/layout/TabBar';
 
 let mockPathname = '/';
+let mockPending = false;
+jest.mock('next/link', () => {
+	const actual = jest.requireActual('next/link');
+	return { __esModule: true, ...actual, useLinkStatus: () => ({ pending: mockPending }) };
+});
 jest.mock('next/navigation', () => ({
 	usePathname: () => mockPathname,
 }));
@@ -22,6 +27,7 @@ const profileTab = () => screen.getByRole('link', { name: 'Profile' });
 
 beforeEach(() => {
 	mockPathname = '/';
+	mockPending = false;
 });
 
 describe('TabBar', () => {
@@ -54,5 +60,19 @@ describe('TabBar', () => {
 		mockPathname = '/mei';
 		render(<TabBar userSession={{}} username="mei" />);
 		expect(profileTab()).toHaveAttribute('aria-current', 'page');
+	});
+
+	it('marks a tapped tab while its page is still loading', () => {
+		mockPending = true;
+		render(<TabBar userSession={{}} username="mei" />);
+		const icon = screen.getByRole('link', { name: 'Explore' }).querySelector('[data-pending]');
+		expect(icon).toHaveClass('text-foreground');
+	});
+
+	it('leaves other tabs unmarked when no navigation is pending', () => {
+		render(<TabBar userSession={{}} username="mei" />);
+		const explore = screen.getByRole('link', { name: 'Explore' });
+		expect(explore.querySelector('[data-pending]')).toBeNull();
+		expect(explore.querySelector('.text-muted-foreground')).not.toBeNull();
 	});
 });
