@@ -661,7 +661,7 @@
 	"cookieConsent": {
 		"label": "Cookie consent",
 		"message": "We’d like to use analytics cookies to understand how vomatt is used. Sign-in and language cookies are always on.",
-		"policy": "Cookies Policy",
+		"policy": "Privacy Policy",
 		"accept": "Accept analytics",
 		"decline": "Decline"
 	},
@@ -1229,7 +1229,6 @@
 		"legal": "Legal",
 		"terms": "Terms",
 		"privacyPolicy": "Privacy",
-		"cookies": "Cookies",
 		"notifyResultsIn": "Results are in",
 		"notifyResultsInBody": "When a poll you voted in or asked ends. This is the promise on every ballot.",
 		"notifyInvitations": "Invitations",
