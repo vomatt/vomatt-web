@@ -22,6 +22,7 @@ import type { Poll } from '@/features/polls/schema';
 import { getBookmarkedPolls } from '@/features/polls/service';
 import { askedPolls, picksWonRate, splitAsked, splitVoted, votedPolls, votesReceived } from '@/features/profiles/lists';
 import { AskedRow, ProfileSection, VotedRow } from '@/features/profiles/ProfileRows';
+import { PublicPreview } from '@/features/profiles/PublicPreview';
 import { useCursorList } from '@/hooks/useCursorList';
 import type { CursorPage } from '@/lib/api/cursor';
 import type { MyProfile } from '@/types/user';
@@ -29,7 +30,6 @@ import type { MyProfile } from '@/types/user';
 import EditProfileDialog from './EditProfileDialog';
 import ProfileHeader from './ProfileHeader';
 import { ProfileRecord } from './ProfileRecord';
-import { PublicPreview } from './PublicPreview';
 import { ShowMore, usePaged } from './ShowMore';
 
 export type ProfileTab = 'asked' | 'voted' | 'saved';

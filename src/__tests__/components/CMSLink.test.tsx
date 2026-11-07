@@ -2,6 +2,16 @@ import { render, screen } from '@testing-library/react';
 
 import CMSLink from '@/components/CMSLink';
 
+let mockCurrentLanguage = 'en';
+jest.mock('@/contexts/LanguageContext', () => {
+	const { useLanguage } = jest.requireActual('../helpers/mockLanguage');
+	return { useLanguage: () => ({ ...useLanguage(), currentLanguage: mockCurrentLanguage }) };
+});
+
+beforeEach(() => {
+	mockCurrentLanguage = 'en';
+});
+
 function hrefOf(link: { linkType: string; href: string }) {
 	render(<CMSLink link={{ _type: 'link', isNewTab: false, ...link }}>Go</CMSLink>);
 	return screen.getByRole('link').getAttribute('href');
@@ -11,6 +21,13 @@ describe('CMSLink', () => {
 	it('sends an internal link to the about site, where Pages and the Homepage live', () => {
 		expect(hrefOf({ linkType: 'internal', href: '/privacy-policy' })).toBe(
 			'https://about.vomatt.com/privacy-policy'
+		);
+	});
+
+	it('sends a Chinese reader to the about site in Chinese', () => {
+		mockCurrentLanguage = 'zh';
+		expect(hrefOf({ linkType: 'internal', href: '/privacy-policy' })).toBe(
+			'https://about.vomatt.com/zh/privacy-policy'
 		);
 	});
 

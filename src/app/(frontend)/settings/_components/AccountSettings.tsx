@@ -25,8 +25,7 @@ import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { ChevronRight } from '@/components/ui/SvgIcons';
 import { Switch } from '@/components/ui/Switch';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { isFieldPublic } from '@/features/account/visibility';
-import { BlockedUsersPanel } from '@/features/blocks/BlockedUsersPanel';
+import { isSettingPublic, VISIBILITY_SETTINGS } from '@/features/account/visibility';
 import { GroupsPanel } from '@/features/groups/GroupsPanel';
 import { NOTIFICATION_SWITCHES } from '@/features/notifications/preferences';
 import type { NotificationPreferences } from '@/features/notifications/schema';
@@ -36,12 +35,12 @@ import { PasskeysPanel } from '@/features/passkeys/PasskeysPanel';
 import { getSessions } from '@/features/sessions/service';
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
 import { useHydrated } from '@/hooks/useHydrated';
+import { useSavingKeys } from '@/hooks/useSavingKeys';
 import { htmlLang, SUPPORTED_LANGUAGES } from '@/i18n-config';
 import { apiErrorText } from '@/lib/api/error-text';
 import { signout } from '@/lib/api/services/auth';
 import { deleteMyAccount, editProfile } from '@/lib/api/services/users';
 import { countText } from '@/lib/count';
-import { profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 import type { MyProfile } from '@/types/user';
 
@@ -85,9 +84,7 @@ export default function AccountSettings({
 	// Read out by screen readers after each save; the switch itself shows the change
 	const [announcement, setAnnouncement] = useState('');
 	const visibility = profile.visibilitySettings ?? {};
-	// One per Edit profile setting; the real name shows when either half does
-	const settings = [['displayName'], ['bio'], ['firstName', 'lastName']];
-	const shownCount = settings.filter((fields) => fields.some((field) => isFieldPublic(visibility, field))).length;
+	const shownCount = VISIBILITY_SETTINGS.filter((setting) => isSettingPublic(visibility, setting)).length;
 
 	const toggleAnonymousDefault = async (value: boolean) => {
 		setAnonymousDefault(value);
@@ -174,16 +171,17 @@ export default function AccountSettings({
 
 			<Section id="privacy" title={t('settings.privacy')}>
 				<SettingsCard>
-					<Link href={`${profileHref(profile.username)}?edit=1`} className={rowLinkClassName}>
+					<Link href="/settings/visibility" className={rowLinkClassName}>
 						<RowText title={t('account.privacyTitle')} body={t('settings.whatOthersSeeBody')} />
 						<span className="text-body-4 text-muted-foreground">
-							{t('settings.shownCount', { shown: shownCount, total: settings.length })}
+							{t('settings.shownCount', { shown: shownCount, total: VISIBILITY_SETTINGS.length })}
 						</span>
 						<ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
 					</Link>
-					<div className={cn(rowClassName, 'flex-col items-stretch')}>
-						<BlockedUsersPanel />
-					</div>
+					<Link href="/settings/blocked" className={rowLinkClassName}>
+						<RowText title={t('blocks.title')} body={t('settings.blockedBody')} />
+						<ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+					</Link>
 				</SettingsCard>
 			</Section>
 
@@ -248,15 +246,7 @@ function NotificationSwitches({
 	const { t } = useLanguage();
 	const { refresh } = useUnreadCount();
 	const [preferences, setPreferences] = useState(initial);
-	// One save per switch at a time, so the server can't apply an older toggle after a newer one
-	const [saving, setSaving] = useState<ReadonlySet<keyof NotificationPreferences>>(new Set());
-	const setSavingKey = (key: keyof NotificationPreferences, on: boolean) =>
-		setSaving((current) => {
-			const next = new Set(current);
-			if (on) next.add(key);
-			else next.delete(key);
-			return next;
-		});
+	const [saving, setSavingKey] = useSavingKeys<keyof NotificationPreferences>();
 
 	const toggle = async (key: keyof NotificationPreferences, value: boolean, name: string) => {
 		setPreferences((current) => ({ ...current, [key]: value }));

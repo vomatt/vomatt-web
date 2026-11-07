@@ -2,7 +2,8 @@ import { cn } from '@/lib/utils';
 import NextLink from 'next/link';
 import React from 'react';
 
-import { ABOUT_URL } from '@/lib/aboutSite';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { aboutHref } from '@/lib/aboutSite';
 
 type CMSLinkType = {
 	link?: {
@@ -31,13 +32,16 @@ const CMSLink: React.FC<CMSLinkType> = ({
 	isButton,
 	...props
 }) => {
+	const { currentLanguage } = useLanguage();
 	if (!link?.href) {
 		return null;
 	}
 
 	// Internal links can only reference the Homepage or a Page, which live on the about site
 	const route =
-		link.linkType === 'internal' ? `${ABOUT_URL}${link.href}` : link.href;
+		link.linkType === 'internal'
+			? aboutHref(link.href.replace(/^\//, ''), currentLanguage)
+			: link.href;
 	const isOpenNewTab = isNewTab ?? link.isNewTab;
 
 	return (

@@ -12,19 +12,6 @@ jest.mock('next-themes', () => ({ useTheme: () => ({ theme: 'system', setTheme: 
 jest.mock('@/features/groups/GroupsPanel', () => ({ GroupsPanel: () => <p>Groups panel</p> }));
 jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn() } }));
 jest.mock('@/lib/api/services/auth', () => ({ signout: jest.fn() }));
-jest.mock('@/features/blocks/service', () => ({
-	getBlockedUsers: jest.fn().mockResolvedValue({
-		ok: true,
-		data: {
-			items: [
-				{ id: 'b1', username: 'rvoss', displayName: 'R Voss', avatarUrl: null },
-				{ id: 'b2', username: 'tpark', displayName: null, avatarUrl: null },
-			],
-			nextCursor: null,
-		},
-	}),
-	unblockUser: jest.fn(),
-}));
 jest.mock('@/features/passkeys/service', () => ({
 	getPasskeys: jest.fn().mockResolvedValue({ ok: true, data: [] }),
 	deletePasskey: jest.fn(),
@@ -74,13 +61,13 @@ describe('AccountSettings', () => {
 		mockGetSessions.mockReset().mockResolvedValue({ ok: true, data: [{}, {}] });
 	});
 
-	it('counts what others see and sends the owner to Edit profile to change it', () => {
+	it('counts what others see and opens its own page to change it', () => {
 		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
 
 		// Display name and bio are public by default; the real name shows through its last half; points no page shows
 		const link = screen.getByRole('link', { name: /What others see/ });
 		expect(link).toHaveTextContent('3 of 3 shown');
-		expect(link).toHaveAttribute('href', '/mei?edit=1');
+		expect(link).toHaveAttribute('href', '/settings/visibility');
 	});
 
 	it('shows how many invite lists there are and opens them from Voting', () => {
@@ -131,20 +118,15 @@ describe('AccountSettings', () => {
 		expect(mockSetTheme).toHaveBeenCalledWith('dark');
 	});
 
-	it('lists blocked people inside the privacy card, with their count', async () => {
+	it('opens Blocked people on its own page from Privacy', () => {
 		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
-		const card = screen.getByRole('link', { name: /What others see/ }).parentElement!;
-
-		expect(await within(card).findByText('@rvoss')).toBeInTheDocument();
-		const heading = within(card).getByRole('heading', { name: 'Blocked people' });
-		expect(heading.nextElementSibling).toHaveTextContent('2');
-		expect(within(card).getByText('@tpark')).toBeInTheDocument();
-		expect(within(card).getAllByRole('button', { name: 'Unblock' })).toHaveLength(2);
+		const privacy = screen.getByRole('region', { name: 'Privacy and safety' });
+		expect(within(privacy).getByRole('link', { name: /Blocked people/ })).toHaveAttribute('href', '/settings/blocked');
+		expect(within(privacy).queryByRole('button', { name: /^Unblock/ })).not.toBeInTheDocument();
 	});
 
-	it('leaves the people you follow to your profile', async () => {
+	it('leaves the people you follow to your profile', () => {
 		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
-		await screen.findByRole('heading', { name: 'Blocked people' });
 		expect(screen.queryByRole('heading', { name: 'Following' })).not.toBeInTheDocument();
 	});
 

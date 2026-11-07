@@ -1164,6 +1164,7 @@
 		"empty": "你尚未封鎖任何人。",
 		"loadFailed": "無法載入已封鎖的人。",
 		"unblock": "解除封鎖",
+		"unblockLabel": "解除封鎖 @{username}",
 		"unblocked": "已解除封鎖 @{username}",
 		"unblockFailed": "無法解除封鎖，請再試一次。",
 		"block": "封鎖",
@@ -1201,7 +1202,7 @@
 		"themeBody": "「自動」會跟隨系統設定。",
 		"language": "語言",
 		"privacy": "隱私與安全",
-		"whatOthersSeeBody": "在「編輯個人資料」中逐項設定。",
+		"whatOthersSeeBody": "選擇哪些資料要顯示在你的個人頁面。",
 		"shownCount": "顯示 {shown}/{total} 項",
 		"account": "帳號",
 		"onThisPage": "本頁內容",
@@ -1230,7 +1231,13 @@
 		"notifyClosingSoonBody": "你還沒投的投票結束前一天提醒你。",
 		"notifyOn": "已開啟「{name}」通知。",
 		"notifyOff": "已關閉「{name}」通知。",
-		"notificationsFailed": "無法載入你的通知設定。"
+		"notificationsFailed": "無法載入你的通知設定。",
+		"blockedBody": "查看並解除封鎖你封鎖過的人。",
+		"visibilityIntro": "選擇哪些資料要顯示在你的個人頁面。使用者名稱一律公開，生日一律不公開。",
+		"visibilityNotSet": "未設定",
+		"visibilityOn": "{field} 已對所有人公開",
+		"visibilityOff": "{field} 僅限你可見",
+		"visibilityEditDetails": "編輯這些資料"
 	},
 	"passkey": {
 		"title": "通行密鑰",

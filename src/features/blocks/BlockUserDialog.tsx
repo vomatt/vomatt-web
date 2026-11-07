@@ -49,7 +49,7 @@ export function BlockUserDialog({
 		onBlocked?.();
 		toast.success(t('blocks.blocked', { username }), {
 			description: (
-				<Link href="/settings" className="underline underline-offset-3">
+				<Link href="/settings/blocked" className="underline underline-offset-3">
 					{t('blocks.manage')}
 				</Link>
 			),

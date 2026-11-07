@@ -21,7 +21,7 @@ const nextConfig: NextConfig = {
 			// Profiles moved to the root, next to Sanity pages
 			{ source: '/profile/:username', destination: '/:username', permanent: true },
 			// About and the legal pages moved to the about site
-			...ABOUT_SITE_SLUGS.map((slug) => ({ source: `/${slug}`, destination: aboutHref(slug), permanent: true })),
+			...ABOUT_SITE_SLUGS.map((slug) => ({ source: `/${slug}`, destination: aboutHref(slug, 'en'), permanent: true })),
 		];
 	},
 	async rewrites() {
