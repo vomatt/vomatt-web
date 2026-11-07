@@ -106,6 +106,18 @@ describe('AppSidebar more menu', () => {
 		expect(screen.getByRole('separator')).toBeInTheDocument();
 	});
 
+	it('stays put while the page scrolls under it', async () => {
+		renderSidebar();
+		await userEvent.click(
+			screen.getByRole('button', { name: 'navigation.more' })
+		);
+		const menu = await screen.findByRole('menu');
+		// Fixed like the sidebar, so scrolling doesn't carry it, and the page isn't locked
+		expect(menu.parentElement).toHaveStyle({ position: 'fixed' });
+		expect(document.documentElement).not.toHaveStyle({ overflowY: 'hidden' });
+		expect(document.body).not.toHaveStyle({ overflowY: 'hidden' });
+	});
+
 	it('offers guests only the theme choices', async () => {
 		renderSidebar(null);
 		await userEvent.click(

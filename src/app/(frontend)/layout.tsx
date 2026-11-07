@@ -114,10 +114,15 @@ export default async function RootLayout({
 									theme="system"
 									richColors
 									closeButton
-									position="bottom-center"
-									// Above the TabBar on phones
-									offset={{ bottom: 'calc(var(--tabbar-space) + 24px)' }}
-									mobileOffset={{ bottom: 'calc(var(--tabbar-space) + 16px)' }}
+									position="bottom-right"
+									// Above the TabBar on phones and the cookie banner while it shows; the right edge lines up with the banner's
+									offset={{
+										bottom: 'max(calc(var(--tabbar-space) + 24px), calc(var(--cookie-banner-space, 0px) + 12px))',
+										right: 'max(16px, env(safe-area-inset-right))',
+									}}
+									mobileOffset={{
+										bottom: 'max(calc(var(--tabbar-space) + 16px), calc(var(--cookie-banner-space, 0px) + 12px))',
+									}}
 									// The 20px close button keeps its look; its hit area grows to 44px (13px past its 1px border)
 									toastOptions={{ classNames: { closeButton: "before:absolute before:-inset-[13px] before:content-['']" } }}
 								/>

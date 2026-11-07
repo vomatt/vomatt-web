@@ -27,7 +27,7 @@ export function MoreMenu({ signedIn }: { signedIn: boolean }) {
 	const [reportOpen, setReportOpen] = useState(false);
 
 	return (
-		<Menu.Root>
+		<Menu.Root modal={false}>
 			<Menu.Trigger
 				className={cn(
 					'flex items-center gap-3 w-full h-10 px-3 rounded-lg text-body-4 font-medium text-muted-foreground transition-colors duration-150',
@@ -43,6 +43,8 @@ export function MoreMenu({ signedIn }: { signedIn: boolean }) {
 					side="top"
 					align="start"
 					sideOffset={8}
+					// Fixed like the sidebar it opens from, so page scroll doesn't carry it
+					positionMethod="fixed"
 					className="z-50"
 				>
 					<Menu.Popup className="w-60 rounded-xl bg-popover p-1.5 text-popover-foreground shadow-md ring-1 ring-foreground/10 outline-none origin-(--transform-origin) data-starting-style:opacity-0 data-ending-style:opacity-0 transition-opacity duration-100">

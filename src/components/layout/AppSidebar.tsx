@@ -134,7 +134,7 @@ export function AppSidebar({
 													'bg-card border-border text-foreground hover:bg-card'
 											)}
 										>
-											<item.icon className="size-5 shrink-0" />
+											<item.icon />
 											<span className="text-body-4 font-medium capitalize">
 												{t(item.title)}
 											</span>
@@ -168,10 +168,10 @@ export function AppSidebar({
 											<UserAvatar
 												username={profile.username}
 												avatarUrl={profile.avatarUrl}
-												className="size-5 shrink-0"
+												className="size-4 shrink-0"
 											/>
 										) : (
-											<User className="size-5 shrink-0" />
+											<User />
 										)}
 										<span className="text-body-4 font-medium capitalize">
 											{t('navigation.profile')}

@@ -27,6 +27,19 @@ function subscribe(listener: () => void) {
 	return () => listeners.delete(listener);
 }
 
+/** Publishes the room the banner takes from the viewport's bottom, so the Toaster (root layout) stacks toasts above it */
+function reserveBannerSpace(banner: HTMLElement) {
+	const root = document.documentElement;
+	const observer = new ResizeObserver(() => {
+		root.style.setProperty('--cookie-banner-space', `${window.innerHeight - banner.getBoundingClientRect().top}px`);
+	});
+	observer.observe(banner);
+	return () => {
+		observer.disconnect();
+		root.style.removeProperty('--cookie-banner-space');
+	};
+}
+
 /** Asks before loading analytics; renders nothing when no analytics ID is set in Sanity. */
 export function CookieConsent({ integrations }: { integrations?: Integrations | null }) {
 	const { t, currentLanguage } = useLanguage();
@@ -46,6 +59,7 @@ export function CookieConsent({ integrations }: { integrations?: Integrations | 
 
 	return (
 		<section
+			ref={reserveBannerSpace}
 			aria-label={t('cookieConsent.label')}
 			className="fixed inset-x-3 bottom-[calc(64px+env(safe-area-inset-bottom)+0.75rem)] z-50 rounded-lg border border-border bg-card p-4 shadow-lg md:inset-x-auto md:right-[max(--spacing(4),env(safe-area-inset-right))] md:bottom-[max(--spacing(4),env(safe-area-inset-bottom))] md:max-w-sm"
 		>
