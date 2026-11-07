@@ -65,7 +65,7 @@ describe('proxy auth', () => {
 	});
 
 	// The first-load splash streams the page, so a redirect in the page can't send a 307
-	it.each(['/settings', '/settings/devices', '/following', '/following/saved'])(
+	it.each(['/settings', '/settings/devices', '/following', '/following/saved', '/results-in', '/closing-soon'])(
 		'redirects signed-out users from %s to login before the page streams',
 		async (path) => {
 			const res = await proxy(requestFor(path));

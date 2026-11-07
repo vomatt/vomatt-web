@@ -17,6 +17,7 @@ import {
 import { FEED_TAG, pollTag } from './cache';
 import { isSearchable } from './constants';
 import type { ActionResult } from './errors';
+import type { FeedKind } from './feeds';
 import { personPath } from './invitees';
 import {
 	type Comment,
@@ -41,6 +42,7 @@ import {
 	type Voter,
 	VoterSchema,
 } from './schema';
+import { derivePollStatus } from './status';
 
 const PollPage = cursorPageSchema(PollSchema);
 
@@ -124,6 +126,48 @@ export async function getFeed(cursor?: string | null, size = 10, tag?: string) {
  */
 export async function getFollowingFeed(cursor?: string | null, size = 10) {
 	return PollPage.parse(await apiClient(`/votes/following?${pageParams(cursor, size)}`));
+}
+
+/**
+ * Ended Polls the viewer voted in, most recently ended first, each with its `unread` flag. An Anonymous
+ * Ballot's option is sealed a day after the end, but `myBallotAnonymous` still says there was one.
+ * Reads on past pages with no such Poll, so a page comes back empty only at the end.
+ */
+export async function getResultsInFeed(cursor?: string | null, size = 10): Promise<CursorPage<Poll>> {
+	const { items, nextCursor } = await collectPages(
+		async (pageCursor) => {
+			const page = await getMyPolls('ended', pageCursor, size);
+			return { ...page, items: page.items.filter((poll) => !!poll.myOptionId || poll.myBallotAnonymous != null) };
+		},
+		{ cursor, maxPages: 5, until: (found) => found.length > 0 }
+	);
+	return { items, nextCursor };
+}
+
+/** Open Polls ending within a day, soonest first, as the viewer: with their Ballots, without people they blocked. */
+export async function getClosingSoonFeed(cursor?: string | null, size = 10): Promise<CursorPage<Poll>> {
+	const page = await getPolls({ sort: 'closing' }, cursor, size, { asViewer: true });
+	// Soonest first, so the first Poll with more than a day left ends the list
+	const statuses = page.items.map((poll) => derivePollStatus(poll));
+	const pastWindow = statuses.indexOf('open');
+	return {
+		items: page.items.filter((_, i) => statuses[i] === 'closing'),
+		nextCursor: pastWindow === -1 ? page.nextCursor : null,
+	};
+}
+
+/** A page of one of the home page's feeds; `tag` filters For you to a topic. */
+export async function loadFeed(feed: FeedKind, cursor: string | null, tag?: string): Promise<CursorPage<Poll>> {
+	switch (feed) {
+		case 'forYou':
+			return getFeed(cursor, 10, tag);
+		case 'following':
+			return getFollowingFeed(cursor);
+		case 'resultsIn':
+			return getResultsInFeed(cursor);
+		case 'closingSoon':
+			return getClosingSoonFeed(cursor);
+	}
 }
 
 /** The viewer's bookmarked Polls, most recently bookmarked first, in any state. Sign-in required. */

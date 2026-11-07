@@ -1,7 +1,9 @@
 import type { MetadataRoute } from 'next';
 
+import { SIGNED_IN_FEED_ROOTS } from '@/features/polls/feeds';
+
 // Disallow is a prefix match: `/account` alone would also hide a profile like /accountant
-const PRIVATE_ROOTS = ['account', 'settings', 'notifications', 'following', 'login'];
+const PRIVATE_ROOTS = ['account', 'settings', 'notifications', ...SIGNED_IN_FEED_ROOTS, 'login'];
 
 export default function robots(): MetadataRoute.Robots {
 	return {

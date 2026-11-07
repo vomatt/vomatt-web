@@ -421,6 +421,10 @@
 		"resultsIn": "結果出爐",
 		"resultsTie": "平手",
 		"closingSoon": "即將結束",
+		"resultsInEmpty": "還沒有結果。",
+		"resultsInEmptyHint": "你投過票的投票結束後，結果會顯示在這裡。",
+		"closingSoonEmpty": "接下來一天內沒有要結束的投票。",
+		"closingSoonEmptyHint": "進行中的投票在最後一天會顯示在這裡。",
 		"askTitle": "有問題想問大家嗎？",
 		"askBody": "寫一則投票只要一分鐘，一開始就會自動密封。",
 		"askCta": "寫一則"

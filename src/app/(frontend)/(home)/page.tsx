@@ -53,13 +53,12 @@ export default async function Page({ searchParams }: Props) {
 
 /** Streams in behind the skeleton so the shell paints first. */
 async function Feed({ tag, viewerId }: { tag: string | undefined; viewerId: string | undefined }) {
-	const [profile, firstPage, tags, followedTags, sidePolls] = await Promise.all([
+	const [profile, firstPage, tags, followedTags] = await Promise.all([
 		getMyProfile(),
 		getFeed(null, 10, tag).catch(() => null),
 		getPopularTags(),
 		// Only a topic's page offers Follow
 		viewerId && tag ? getFollowedTags() : null,
-		viewerId ? getRailPolls() : undefined,
 	]);
 
 	return (
@@ -76,7 +75,7 @@ async function Feed({ tag, viewerId }: { tag: string | undefined; viewerId: stri
 					activeTag={tag}
 					signedIn={!!viewerId}
 					followedTagIds={followedTags?.ok ? followedTags.data.map((followed) => followed.id) : undefined}
-					sidePolls={sidePolls}
+					resultsUnread={viewerId ? getRailPolls().then((rail) => rail.resultsUnread) : undefined}
 				/>
 			}
 		/>

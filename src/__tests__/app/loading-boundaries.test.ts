@@ -5,7 +5,7 @@ const app = path.join(__dirname, '../../app/(frontend)');
 const hasLoading = (segment: string) => existsSync(path.join(app, segment, 'loading.tsx'));
 
 // Without a loading boundary a dynamic route isn't prefetched, so a tap waits on the whole server render
-it.each(['(home)', 'explore', 'notifications', 'following', 'settings'])('%s navigates to its skeleton at once', (segment) => {
+it.each(['(home)', 'explore', 'notifications', 'following', 'results-in', 'closing-soon', 'settings'])('%s navigates to its skeleton at once', (segment) => {
 	expect(hasLoading(segment)).toBe(true);
 });
 

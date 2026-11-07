@@ -1,3 +1,5 @@
+import { SIGNED_IN_FEED_ROOTS } from '@/features/polls/feeds';
+
 export const checkIfActive = ({
 	pathName,
 	url,
@@ -94,12 +96,4 @@ export const replyHash = (comment: { id: string; parentId?: string | null }) =>
 	commentHash(comment).replace('#comment-', '#reply-');
 
 /** Root segments that are app routes, not usernames; matches the folders in app/(frontend). */
-export const APP_ROOT_SEGMENTS = [
-	'account',
-	'explore',
-	'following',
-	'login',
-	'notifications',
-	'poll',
-	'settings',
-];
+export const APP_ROOT_SEGMENTS = ['account', 'explore', 'login', 'notifications', 'poll', 'settings', ...SIGNED_IN_FEED_ROOTS];

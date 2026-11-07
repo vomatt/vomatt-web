@@ -10,6 +10,7 @@ import {
 	followTag,
 	getAllMyPolls,
 	getBookmarkedPolls,
+	getClosingSoonFeed,
 	getComments,
 	getFeed,
 	getFollowedTags,
@@ -21,10 +22,12 @@ import {
 	getPolls,
 	getReplies,
 	getResults,
+	getResultsInFeed,
 	getTags,
 	getUserPolls,
 	getVoters,
 	likeComment,
+	loadFeed,
 	postComment,
 	removeInvitee,
 	reportComment,
@@ -276,6 +279,68 @@ describe('getMyPolls()', () => {
 		const result = await getMyPolls('ended', 'c1', 20);
 		expect(result.items[0].unread).toBe(true);
 		expect(mockApiClient).toHaveBeenCalledWith('/votes/my?limit=20&cursor=c1&status=ended');
+	});
+});
+
+describe('getResultsInFeed()', () => {
+	const voted = { ...oldPoll, myOptionId: 'opt-1' };
+	const notVoted = { ...oldPoll, id: 'poll-8', myOptionId: null };
+
+	it('keeps only the ended polls the viewer voted in', async () => {
+		mockApiClient.mockResolvedValue(page([voted, notVoted], 'c2'));
+		const result = await getResultsInFeed();
+		expect(result).toEqual({ items: [expect.objectContaining({ id: 'poll-1' })], nextCursor: 'c2' });
+		expect(mockApiClient).toHaveBeenCalledWith('/votes/my?limit=10&status=ended');
+	});
+
+	it('keeps a poll whose Anonymous Ballot was sealed after the end', async () => {
+		const sealed = { ...oldPoll, id: 'poll-7', myOptionId: null, myBallotAnonymous: true };
+		mockApiClient.mockResolvedValue(page([sealed, notVoted]));
+		expect((await getResultsInFeed()).items.map((p) => p.id)).toEqual(['poll-7']);
+	});
+
+	it('reads past pages with no voted poll, so a page is empty only at the end', async () => {
+		mockApiClient.mockResolvedValueOnce(page([notVoted], 'c2')).mockResolvedValueOnce(page([voted], 'c3'));
+		const result = await getResultsInFeed('c1');
+		expect(result.items.map((p) => p.id)).toEqual(['poll-1']);
+		expect(result.nextCursor).toBe('c3');
+		expect(mockApiClient).toHaveBeenLastCalledWith('/votes/my?limit=10&cursor=c2&status=ended');
+	});
+});
+
+describe('getClosingSoonFeed()', () => {
+	const HOUR = 3600_000;
+	const endingIn = (id: string, hours: number) => ({
+		...newPoll,
+		id,
+		startTime: new Date(Date.now() - 48 * HOUR).toISOString(),
+		endTime: new Date(Date.now() + hours * HOUR).toISOString(),
+	});
+
+	it('asks as the viewer for open polls closing soonest first', async () => {
+		mockApiClient.mockResolvedValue(page([endingIn('a', 2)], 'c2'));
+		const result = await getClosingSoonFeed();
+		expect(result).toEqual({ items: [expect.objectContaining({ id: 'a' })], nextCursor: 'c2' });
+		expect(mockApiClient).toHaveBeenCalledWith('/votes?limit=10&sort=closing', expect.objectContaining({ auth: 'optional' }));
+	});
+
+	it('ends the list at the first poll with more than a day left', async () => {
+		mockApiClient.mockResolvedValue(page([endingIn('a', 2), endingIn('b', 30)], 'c2'));
+		const result = await getClosingSoonFeed();
+		expect(result).toEqual({ items: [expect.objectContaining({ id: 'a' })], nextCursor: null });
+	});
+});
+
+describe('loadFeed()', () => {
+	it.each([
+		['forYou', '/votes?limit=10&tag=work'],
+		['following', '/votes/following?limit=10'],
+		['resultsIn', '/votes/my?limit=10&status=ended'],
+		['closingSoon', '/votes?limit=10&sort=closing'],
+	] as const)('reads %s from its list', async (feed, url) => {
+		mockApiClient.mockResolvedValue(page([]));
+		await loadFeed(feed, null, 'work');
+		expect(mockApiClient.mock.calls[0][0]).toBe(url);
 	});
 });
 
