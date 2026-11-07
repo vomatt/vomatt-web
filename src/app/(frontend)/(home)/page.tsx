@@ -15,7 +15,7 @@ import { FeedSkeleton } from '../_components/FeedSkeleton';
 import { HomepageHeader } from '../_components/HomepageHeader';
 import { HomeRail } from '../_components/HomeRail';
 import { PollFeedList } from '../_components/PollFeedList';
-import { getRailPolls, RailPollsStrip } from '../_components/RailPolls';
+import { getRailPolls } from '../_components/RailPolls';
 
 type Props = { searchParams: Promise<{ tag?: string | string[] }> };
 
@@ -53,14 +53,13 @@ export default async function Page({ searchParams }: Props) {
 
 /** Streams in behind the skeleton so the shell paints first. */
 async function Feed({ tag, viewerId }: { tag: string | undefined; viewerId: string | undefined }) {
-	// Starts the strip's fetch alongside the feed's
-	if (viewerId) void getRailPolls();
-	const [profile, firstPage, tags, followedTags] = await Promise.all([
+	const [profile, firstPage, tags, followedTags, sidePolls] = await Promise.all([
 		getMyProfile(),
 		getFeed(null, 10, tag).catch(() => null),
 		getPopularTags(),
 		// Only a topic's page offers Follow
 		viewerId && tag ? getFollowedTags() : null,
+		viewerId ? getRailPolls() : undefined,
 	]);
 
 	return (
@@ -72,15 +71,13 @@ async function Feed({ tag, viewerId }: { tag: string | undefined; viewerId: stri
 			initialPage={firstPage}
 			tag={tag}
 			header={
-				<>
-					<HomepageHeader
-						tags={tags}
-						activeTag={tag}
-						signedIn={!!viewerId}
-						followedTagIds={followedTags?.ok ? followedTags.data.map((followed) => followed.id) : undefined}
-					/>
-					{viewerId && <RailPollsStrip />}
-				</>
+				<HomepageHeader
+					tags={tags}
+					activeTag={tag}
+					signedIn={!!viewerId}
+					followedTagIds={followedTags?.ok ? followedTags.data.map((followed) => followed.id) : undefined}
+					sidePolls={sidePolls}
+				/>
 			}
 		/>
 	);

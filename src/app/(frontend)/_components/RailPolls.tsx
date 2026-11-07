@@ -1,6 +1,6 @@
 import { cache } from 'react';
 
-import { PollSideCard, PollSideStrip } from '@/features/polls/components/PollSideCard';
+import { PollSideCard } from '@/features/polls/components/PollSideCard';
 import { getMyPolls, getPolls } from '@/features/polls/service';
 import { derivePollStatus } from '@/features/polls/status';
 
@@ -8,7 +8,7 @@ const RAIL_SIZE = 3;
 
 /**
  * Ended Polls the signed-in viewer voted in, and Open ones ending within a day. A list that
- * fails comes back empty. Cached per request, so the rail and the strip share one fetch.
+ * fails comes back empty. Cached per request, so the rail and the topic pills share one fetch.
  */
 export const getRailPolls = cache(async () => {
 	const [ended, open] = await Promise.all([
@@ -30,17 +30,5 @@ export async function RailPolls() {
 			{resultsIn.length > 0 && <PollSideCard kind="resultsIn" polls={resultsIn} />}
 			{closingSoon.length > 0 && <PollSideCard kind="closingSoon" polls={closingSoon} />}
 		</>
-	);
-}
-
-/**
- * The side cards as a strip over the feed below xl, where HomeRail leaves them out. It renders
- * with the feed, so nothing shifts once the feed paints; call getRailPolls() early to fetch alongside it.
- */
-export async function RailPollsStrip() {
-	return (
-		<div className="xl:hidden">
-			<PollSideStrip {...await getRailPolls()} />
-		</div>
 	);
 }

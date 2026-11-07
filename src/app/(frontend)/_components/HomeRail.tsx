@@ -8,7 +8,7 @@ import { RailPolls } from './RailPolls';
 
 /**
  * The PageShell rail beside the feed from xl up, below it on phones: the Poll side
- * cards (from xl; RailPollsStrip shows them below) and an invitation to ask for
+ * cards (from xl; HomepageHeader's pills open them below) and an invitation to ask for
  * signed-in viewers, how vomatt counts for guests.
  */
 export function HomeRail({ signedIn }: { signedIn: boolean }) {

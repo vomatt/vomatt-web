@@ -3,6 +3,8 @@ import { fireEvent, render, screen, within } from '@testing-library/react';
 import { HomepageHeader } from '@/app/(frontend)/_components/HomepageHeader';
 import { topicHref } from '@/lib/routes';
 
+import { sidePoll } from '../../helpers/sidePoll';
+
 jest.mock('next/link', () => {
 	return function MockLink({ children, href, ...props }: { children: React.ReactNode; href: string }) {
 		return (
@@ -83,5 +85,52 @@ describe('HomepageHeader', () => {
 
 		render(<HomepageHeader tags={tags} signedIn />);
 		expect(screen.queryByRole('link', { name: 'Log in' })).not.toBeInTheDocument();
+	});
+
+	it('offers a non-empty side card as a pill below xl that opens its polls under the topics', () => {
+		render(<HomepageHeader tags={tags} signedIn sidePolls={{ resultsIn: [], closingSoon: [sidePoll] }} />);
+		const topics = within(screen.getByRole('navigation', { name: 'Topics' }));
+		const pill = topics.getByRole('button', { name: 'Closing soon' });
+		expect(pill.closest('li')).toHaveClass('xl:hidden');
+		expect(pill).toHaveAttribute('aria-expanded', 'false');
+		expect(screen.queryByRole('region', { name: 'Closing soon' })).not.toBeInTheDocument();
+
+		fireEvent.click(pill);
+		expect(pill).toHaveAttribute('aria-expanded', 'true');
+		expect(screen.getByRole('region', { name: 'Closing soon' })).toHaveTextContent('Bike lane on Mill Road?');
+
+		fireEvent.click(pill);
+		expect(screen.queryByRole('region', { name: 'Closing soon' })).not.toBeInTheDocument();
+		// An empty list gets no pill
+		expect(topics.queryByRole('button', { name: 'Results are in' })).not.toBeInTheDocument();
+	});
+
+	it('opens the card in the sticky bar, outside the Topics navigation', () => {
+		render(<HomepageHeader tags={tags} signedIn sidePolls={{ resultsIn: [], closingSoon: [sidePoll] }} />);
+		fireEvent.click(screen.getByRole('button', { name: 'Closing soon' }));
+		const card = screen.getByRole('region', { name: 'Closing soon' });
+		const nav = screen.getByRole('navigation', { name: 'Topics' });
+		expect(nav).not.toContainElement(card);
+		expect(nav.parentElement).toContainElement(card);
+		expect(nav.parentElement).toHaveClass('sticky');
+	});
+
+	it('marks the Results are in pill when a result is unread', () => {
+		const { unmount } = render(
+			<HomepageHeader tags={tags} signedIn sidePolls={{ resultsIn: [{ ...sidePoll, unread: true }], closingSoon: [] }} />
+		);
+		expect(screen.getByRole('button', { name: /Results are in/ })).toHaveTextContent('Unread');
+		unmount();
+		render(<HomepageHeader tags={tags} signedIn sidePolls={{ resultsIn: [sidePoll], closingSoon: [] }} />);
+		expect(screen.getByRole('button', { name: 'Results are in' })).not.toHaveTextContent('Unread');
+	});
+
+	it('closes an open card whose list empties on refresh', () => {
+		const { rerender } = render(
+			<HomepageHeader tags={tags} signedIn sidePolls={{ resultsIn: [sidePoll], closingSoon: [sidePoll] }} />
+		);
+		fireEvent.click(screen.getByRole('button', { name: 'Closing soon' }));
+		rerender(<HomepageHeader tags={tags} signedIn sidePolls={{ resultsIn: [sidePoll], closingSoon: [] }} />);
+		expect(screen.queryByRole('region', { name: 'Closing soon' })).not.toBeInTheDocument();
 	});
 });
