@@ -1043,8 +1043,7 @@
 			"session_revoked": "此裝置已被登出，請重新登入",
 			"session_not_found": "找不到此登入裝置",
 			"passkey": {
-				"invalid": "通行密鑰驗證失敗，請重新操作一次",
-				"admin_scope_required": "此 Passkey 不能登入管理後台，請先用 email 驗證碼登入，再到管理後台重新註冊 Passkey"
+				"invalid": "通行密鑰驗證失敗，請重新操作一次"
 			}
 		},
 		"user": {

@@ -1056,8 +1056,7 @@
 			"session_revoked": "This device has been signed out. Please sign in again",
 			"session_not_found": "Signed-in device not found",
 			"passkey": {
-				"invalid": "Passkey verification failed. Please try again",
-				"admin_scope_required": "This passkey cannot sign in to the admin console. Sign in with an email code, then register a passkey from the admin console"
+				"invalid": "Passkey verification failed. Please try again"
 			}
 		},
 		"user": {
