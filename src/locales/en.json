@@ -722,7 +722,8 @@
 			"button": "Upload photo",
 			"name": "Your photo",
 			"trait": "Framed by you",
-			"unsupported": "Use a JPEG, PNG, GIF or BMP image."
+			"unsupported": "Use a JPEG, PNG, GIF or BMP image.",
+			"tooLarge": "That photo is over 25 MB. Pick a smaller one."
 		},
 		"crop": {
 			"title": "Frame your photo",

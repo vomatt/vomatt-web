@@ -148,11 +148,11 @@ describe('AvatarDialog', () => {
 
 		const usePhoto = () => fireEvent.click(screen.getByRole('button', { name: 'Use photo' }));
 
-		it('shows the crop step for a picked photo without uploading it', () => {
+		it('shows the crop step for a picked photo without uploading it', async () => {
 			openDialog(null);
 			pick(new File(['x'], 'me.png', { type: 'image/png' }));
-			expect(screen.getByRole('heading', { name: en.avatar.crop.title })).toBeInTheDocument();
-			expect(screen.getByTestId('cropper')).toHaveAttribute('data-src', 'blob:picked');
+			expect(await screen.findByRole('heading', { name: en.avatar.crop.title })).toBeInTheDocument();
+			expect(await screen.findByTestId('cropper')).toHaveAttribute('data-src', 'blob:picked');
 			expect(screen.queryByRole('button', { name: 'Save avatar' })).not.toBeInTheDocument();
 			expect(mockUploadAvatar).not.toHaveBeenCalled();
 		});
@@ -203,6 +203,16 @@ describe('AvatarDialog', () => {
 			await waitFor(() => expect(mockToastError).toHaveBeenCalledWith(en.avatar.upload.unsupported, expect.anything()));
 			expect(screen.queryByRole('heading', { name: en.avatar.crop.title })).not.toBeInTheDocument();
 			expect(URL.createObjectURL).not.toHaveBeenCalled();
+			expect(mockUploadAvatar).not.toHaveBeenCalled();
+		});
+
+		it('rejects a photo over 25 MB without a crop step or a request', async () => {
+			openDialog(null);
+			const huge = new File(['x'], 'huge.jpg', { type: 'image/jpeg' });
+			Object.defineProperty(huge, 'size', { value: 25 * 1024 * 1024 + 1 });
+			pick(huge);
+			await waitFor(() => expect(mockToastError).toHaveBeenCalledWith(en.avatar.upload.tooLarge, expect.anything()));
+			expect(screen.queryByRole('heading', { name: en.avatar.crop.title })).not.toBeInTheDocument();
 			expect(mockUploadAvatar).not.toHaveBeenCalled();
 		});
 

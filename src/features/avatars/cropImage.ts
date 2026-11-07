@@ -1,6 +1,8 @@
 import type { Area } from 'react-easy-crop';
 
-import { AVATAR_CROP_QUALITY, AVATAR_CROP_SIZE } from './catalog';
+/** What the API stores (a 512px square JPEG); cropping to it here makes the API's own center crop a no-op. */
+const AVATAR_CROP_SIZE = 512;
+const AVATAR_CROP_QUALITY = 0.9;
 
 /** `area` (source pixels) of the image at `src`, as the square JPEG the API stores. */
 export async function cropToJpeg(src: string, area: Area): Promise<Blob> {

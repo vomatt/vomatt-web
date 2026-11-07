@@ -103,9 +103,7 @@ export function uploadedAvatarSrc(avatarUrl: string | null | undefined): string 
 	return avatarUrl && UPLOADED_AVATAR.test(avatarUrl) ? avatarUrl : null;
 }
 
+/** Bounds the full-size decode in the browser; what's uploaded is the 512px crop, far under the API's 2 MB. */
+export const AVATAR_PICK_MAX_BYTES = 25 * 1024 * 1024;
 /** Image types the API accepts; checked on pick so an unsupported file never reaches the crop step. */
 export const AVATAR_UPLOAD_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp'];
-
-/** What the API stores (a 512px square JPEG); cropping to it here makes the API's own center crop a no-op. */
-export const AVATAR_CROP_SIZE = 512;
-export const AVATAR_CROP_QUALITY = 0.9;

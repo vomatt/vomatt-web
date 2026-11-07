@@ -11,8 +11,6 @@ const nextConfig: NextConfig = {
 	transpilePackages: ['@sanity/image-url', 'groq'],
 	experimental: {
 		agentUpgrade: 'security',
-		// Avatar uploads go through a Server Action; the API takes up to 2 MB
-		serverActions: { bodySizeLimit: '3mb' },
 	},
 	sassOptions: {
 		includePaths: [path.join(__dirname, 'styles')],

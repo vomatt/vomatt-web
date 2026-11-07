@@ -709,7 +709,8 @@
 			"button": "上傳照片",
 			"name": "你的照片",
 			"trait": "由你裁切",
-			"unsupported": "請使用 JPEG、PNG、GIF 或 BMP 圖片。"
+			"unsupported": "請使用 JPEG、PNG、GIF 或 BMP 圖片。",
+			"tooLarge": "照片超過 25 MB，請選較小的檔案。"
 		},
 		"crop": {
 			"title": "調整照片",
