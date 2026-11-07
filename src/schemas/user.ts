@@ -9,10 +9,4 @@ export const UserDtoSchema = z.object({
 	avatarUrl: z.string().nullish(),
 });
 
-export const UserSummarySchema = z.object({
-	username: z.string(),
-	displayName: z.string().nullable(),
-	avatarUrl: z.string().nullable(),
-});
-
 export type UserDto = z.infer<typeof UserDtoSchema>;
