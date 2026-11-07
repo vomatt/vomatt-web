@@ -56,12 +56,12 @@ Cool canvas, navy ink actions, two signals: Volt (`highlight`) marks what is you
 
 ## Mark
 
-The wordmark (`BrandLogo`) is the brand in the UI: sidebar, sign-in. The mark is the ballot box, and for now it lives only where a word cannot: the browser tab and the iOS home screen.
+The wordmark (`BrandLogo`) is the brand in the UI: sidebar, sign-in. The mark is the ballot box, and for now it lives only where a word cannot: the browser tab, the iOS home screen and the first-load loader.
 
 - **Drawing**: a cube seen at 30°, flattened to a regular hexagon (97 × 112 on a 120 grid, corners r 7) with the ballot slot cut into its lid. The slot is a hole, never a stroke: 40 × 14 on the lid's centre, rising 30° to the right, ends r 3, 7 from the top-right edge (the corner radius). Board 16 of the Vomatt Logo Exploration canvas is the drawing; `src/lib/brand/mark.ts` is the path.
-- **Icons**: `pnpm generate:icons` writes `src/app/icon0.svg` (the mark at 72% on a rounded ink tile, tile and mark swapping to paper on ink under `prefers-color-scheme: dark`), `favicon.ico` (the light version at 16, 32 and 48, for browsers without SVG favicons) and `apple-icon.png` (the mark at 58% on an ink tile; iOS rounds the corners). The tile is what keeps the icon readable on a dark tab bar. Edit the mark in `mark.ts`, never the files.
+- **Icons**: `pnpm generate:icons` writes `src/app/icon0.svg` (the mark at 72% on a rounded ink tile, tile and mark swapping to paper on ink under `prefers-color-scheme: dark`), `favicon.ico` (the light version at 16, 32 and 48, for browsers without SVG favicons) and `apple-icon.png` (the glossy silver mark at 58% on an ink tile, board 18 G1: the three faces as rounded shapes over a base tone, lit seams, a highlight on the lid, a lit rim and a drop shadow; iOS rounds the corners). The tile is what keeps the icon readable on a dark tab bar. Gloss only where there are pixels for it: the home screen, and the first-load loader (`MarkLoader`, the same mark at 58% on an ink tile rounded at 22%, the one place the UI shows it); the tab icons and the rest of the UI keep the flat mark. Edit the mark in `mark.ts`, never the files.
 - **Lockup**, when the mark does sit beside the wordmark: to its left, both in `foreground`, mark height the wordmark's 32 plus 0.8 at each point (a 2.5% overshoot, what the o already does), gap ¼ of the wordmark height.
-- **Colour**: one fill; the ground shows through the slot. The resting mark never carries Volt.
+- **Colour**: the flat mark is one fill (the glossy one keeps its G1 tones); the ground shows through the slot. The resting mark never carries Volt.
 
 ## Shape and layout
 
@@ -121,7 +121,7 @@ If a building block doesn't fit, change its variant or add one. Don't override i
 
 ## Motion
 
-Motion is feedback, not decoration: ballot selection (`BallotMotion`), results counting up, the auth error sliding in, skeleton shimmer, and the wordmark pulse (`BrandPulse`, and `SessionRetry` while the API wakes up) on the first load of the app only (navigations keep the current page, then the page's skeleton; in-page loads keep `Spinner`): opacity .25 to 1 and back over 1.2s, 110ms apart letter by letter, ink only, shown after 300ms (`SessionRetry` shows it at once, since it stays at least 1.5s), a static word at 60% under reduced motion. `MotionProvider` sets `reducedMotion="user"`; CSS animations need their own `prefers-reduced-motion` fallback. No other pulsing, no confetti, no backdrop blur over scrolling content (a modal's scrim, which stops the page, may blur it, and so may the poll creator's header and footer).
+Motion is feedback, not decoration: ballot selection (`BallotMotion`), results counting up, the auth error sliding in, skeleton shimmer, and the ballot drop (`BrandPulse`, and `SessionRetry` while the API wakes up) on the first load of the app only (navigations keep the current page, then the page's skeleton; in-page loads keep `Spinner`): a paper ballot falls into the glossy mark's slot and vanishes inside, a 1.4s loop, shown after 300ms (`SessionRetry` shows it at once, since it stays at least 1.5s), the still mark with no ballot under reduced motion. `MotionProvider` sets `reducedMotion="user"`; CSS animations need their own `prefers-reduced-motion` fallback. No other pulsing, no confetti, no backdrop blur over scrolling content (a modal's scrim, which stops the page, may blur it, and so may the poll creator's header and footer).
 
 ## Don'ts
 
@@ -129,4 +129,4 @@ Motion is feedback, not decoration: ballot selection (`BallotMotion`), results c
 - No raw color values or new one-off tokens; add a semantic token in `global.css` if a role is missing.
 - No status shown by color alone.
 - No live vote counts while a poll is open (sealed ballots).
-- No gradients, glows or glass (see Anti-references in `PRODUCT.md`).
+- No gradients, glows or glass (see Anti-references in `PRODUCT.md`). The one exception is the glossy mark, on the home screen and in the first-load loader (see Mark).

@@ -6,6 +6,7 @@ const refresh = jest.fn();
 jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh }) }));
 jest.mock('@/contexts/LanguageContext', () => require('../helpers/mockLanguage'));
 
+const loader = <span data-testid="loader" />;
 const fetchMock = jest.fn();
 beforeEach(() => {
 	jest.useFakeTimers();
@@ -26,19 +27,19 @@ async function waitSeconds(seconds: number) {
 
 describe('SessionRetry', () => {
 	it('says it is signing in', () => {
-		render(<SessionRetry />);
+		render(<SessionRetry loader={loader} />);
 		expect(screen.getByRole('status')).toHaveTextContent('Signing you in');
 	});
 
-	it('pulses the wordmark with no loading bar under it', () => {
-		const { container } = render(<SessionRetry />);
-		expect(container.querySelector('svg.animate-wordmark-pulse')).not.toBeNull();
+	it('shows the loader it is given, with no loading bar under it', () => {
+		const { container } = render(<SessionRetry loader={loader} />);
+		expect(screen.getByTestId('loader')).toBeInTheDocument();
 		expect(container.querySelector('[data-slot="skeleton"]')).toBeNull();
 	});
 
 	it('renders the page once the proxy settles the session', async () => {
 		probeAnswers(503, 503, 204);
-		render(<SessionRetry />);
+		render(<SessionRetry loader={loader} />);
 
 		await waitSeconds(60);
 
@@ -50,7 +51,7 @@ describe('SessionRetry', () => {
 	it('keeps trying through network errors', async () => {
 		fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch'));
 		probeAnswers(204);
-		render(<SessionRetry />);
+		render(<SessionRetry loader={loader} />);
 
 		await waitSeconds(10);
 
@@ -59,7 +60,7 @@ describe('SessionRetry', () => {
 
 	it('keeps trying while a refresh leaves it in place, then gives up', async () => {
 		probeAnswers(204, 204, 204);
-		render(<SessionRetry />);
+		render(<SessionRetry loader={loader} />);
 
 		await waitSeconds(60);
 
@@ -69,7 +70,7 @@ describe('SessionRetry', () => {
 
 	it('after the last try, says so and offers another round', async () => {
 		probeAnswers(503, 503, 503, 204);
-		render(<SessionRetry />);
+		render(<SessionRetry loader={loader} />);
 		await waitSeconds(60);
 
 		expect(refresh).not.toHaveBeenCalled();

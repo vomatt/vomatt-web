@@ -7,7 +7,7 @@ import { headers } from 'next/headers';
 import { ReactNode, Suspense } from 'react';
 import { Toaster } from 'sonner';
 
-import { BrandPulse } from '@/components/BrandPulse';
+import { BrandPulse, MarkLoader } from '@/components/BrandPulse';
 import { Layout } from '@/components/layout';
 import { CookieConsent } from '@/components/layout/CookieConsent';
 import { SessionRetry } from '@/components/SessionRetry';
@@ -102,7 +102,7 @@ export default async function RootLayout({
 					>
 						{/* Nothing of the signed-out page renders, so none of it shows through */}
 						{requestHeaders.has(SESSION_UNCONFIRMED_HEADER) ? (
-							<SessionRetry />
+							<SessionRetry loader={<MarkLoader />} />
 						) : (
 							// A Suspense in a layout falls back on the first load only; navigations keep the
 							// current page. The cookie banner waits with the app, so it can't cover the splash.

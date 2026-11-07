@@ -14,7 +14,7 @@ import { join } from 'path';
 import sharp from 'sharp';
 
 import { packIco } from '../src/lib/brand/ico';
-import { MARK_ICONS, markIconSvg } from '../src/lib/brand/mark';
+import { APPLE_TILE, MARK_ICONS, markGlossIconSvg, markIconSvg } from '../src/lib/brand/mark';
 
 const appDir = join(__dirname, '..', 'src', 'app');
 const ICO_SIZES = [16, 32, 48];
@@ -37,7 +37,7 @@ async function main() {
 	// iOS wants an opaque icon: the tile fills the square, so drop the alpha channel.
 	writeFileSync(
 		join(appDir, 'apple-icon.png'),
-		await rasterise(markIconSvg(MARK_ICONS.apple), 180).removeAlpha().png().toBuffer()
+		await rasterise(markGlossIconSvg(APPLE_TILE), 180).removeAlpha().png().toBuffer()
 	);
 	console.log('Wrote icon0.svg, favicon.ico and apple-icon.png to src/app');
 }
