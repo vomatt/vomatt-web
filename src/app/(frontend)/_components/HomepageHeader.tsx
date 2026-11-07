@@ -1,19 +1,25 @@
 'use client';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { toast } from 'sonner';
 
 import { LegalLinks } from '@/components/layout/LegalLinks';
 import { LoginPrompt } from '@/components/LoginPrompt';
 import { StickyBar } from '@/components/StickyBar';
 import { Button, buttonVariants } from '@/components/ui/Button';
-import { Check, Plus } from '@/components/ui/SvgIcons';
+import { Check, ChevronDown, Plus } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
-import type { TagDto } from '@/features/polls/schema';
+import { UnreadDot } from '@/features/notifications/UnreadDot';
+import {
+	PollSideCard,
+	type SideCardKind,
+} from '@/features/polls/components/PollSideCard';
+import type { Poll, TagDto } from '@/features/polls/schema';
 import { followTag, unfollowTag } from '@/features/polls/service';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
 import { topicHref } from '@/lib/routes';
+import { cn } from '@/lib/utils';
 
 type HomepageHeaderProps = {
 	tags: TagDto[];
@@ -25,23 +31,36 @@ type HomepageHeaderProps = {
 	following?: boolean;
 	/** Ids of the topics the viewer follows; a topic's page offers Follow once it is known. */
 	followedTagIds?: string[];
+	/** The rail's side cards. Below xl, where the rail follows a feed that never ends, each non-empty one is a pill that opens its polls. */
+	sidePolls?: SidePolls;
 };
 
-/** Topic pills over the feed. Each is a link, so a topic can be shared and server-rendered. */
+type SidePolls = Record<SideCardKind, Poll[]>;
+const SIDE_KINDS: SideCardKind[] = ['resultsIn', 'closingSoon'];
+type PillLink = { label: string; href: string; isActive?: boolean };
+
+/**
+ * Topic pills over the feed. Each is a link, so a topic can be shared and server-rendered.
+ * Below xl, Results are in and Closing soon follow the feeds as pills that open their polls.
+ */
 export function HomepageHeader({
 	tags,
 	activeTag,
 	signedIn,
 	following,
 	followedTagIds,
+	sidePolls,
 }: HomepageHeaderProps) {
 	const { t } = useLanguage();
-	const items: {
-		slug?: string;
-		label: string;
-		href: string;
-		isActive?: boolean;
-	}[] = [
+	const [chosenSide, setChosenSide] = useState<SideCardKind | null>(null);
+	const sidePanelId = useId();
+	const sideKinds = SIDE_KINDS.filter(
+		(kind) => (sidePolls?.[kind].length ?? 0) > 0
+	);
+	// A list that empties on refresh takes its pill away, so its card closes with it
+	const openSide =
+		chosenSide && sideKinds.includes(chosenSide) ? chosenSide : null;
+	const feeds: PillLink[] = [
 		{
 			label: t('homePage.allTopics'),
 			href: '/',
@@ -56,13 +75,29 @@ export function HomepageHeader({
 					},
 				]
 			: []),
-		...tags.map((tag) => ({
-			slug: tag.slug,
-			label: tag.name,
-			href: topicHref(tag.slug),
-			isActive: tag.slug === activeTag,
-		})),
 	];
+	const topics: PillLink[] = tags.map((tag) => ({
+		label: tag.name,
+		href: topicHref(tag.slug),
+		isActive: tag.slug === activeTag,
+	}));
+	const pillClass = 'rounded-full px-3.5 text-caption-1';
+	const renderLink = ({ label, href, isActive }: PillLink) => (
+		<li key={href} className="shrink-0">
+			<Link
+				href={href}
+				scroll={false}
+				aria-current={isActive ? 'page' : undefined}
+				className={buttonVariants({
+					variant: isActive ? 'default' : 'outline',
+					size: 'sm',
+					className: pillClass,
+				})}
+			>
+				{label}
+			</Link>
+		</li>
+	);
 
 	// A filtered feed is that topic's page; the topic may not be among the popular ones listed
 	const activeTagDto = tags.find((tag) => tag.slug === activeTag);
@@ -83,25 +118,46 @@ export function HomepageHeader({
 					<LegalLinks className="mb-2 flex flex-wrap gap-x-5 px-1 text-caption-2 text-muted-foreground [&>a]:py-3.5" />
 				</>
 			)}
-			<StickyBar as="nav" aria-label={t('homePage.topics')} className="-mx-1">
-				<ul className="flex gap-2 overflow-x-auto px-1 py-2 scrollbar-none">
-					{items.map(({ label, href, isActive }) => (
-						<li key={href} className="shrink-0">
-							<Link
-								href={href}
-								scroll={false}
-								aria-current={isActive ? 'page' : undefined}
-								className={buttonVariants({
-									variant: isActive ? 'default' : 'outline',
-									size: 'sm',
-									className: 'rounded-full px-3.5 text-caption-1',
-								})}
-							>
-								{label}
-							</Link>
-						</li>
-					))}
-				</ul>
+			<StickyBar className="-mx-1">
+				<nav aria-label={t('homePage.topics')}>
+					<ul className="flex gap-2 overflow-x-auto px-1 py-2 scrollbar-none">
+						{feeds.map(renderLink)}
+						{sideKinds.map((kind) => {
+							const open = openSide === kind;
+							return (
+								<li key={kind} className="shrink-0 xl:hidden">
+									<Button
+										variant="outline"
+										size="sm"
+										aria-expanded={open}
+										aria-controls={open ? sidePanelId : undefined}
+										onClick={() => setChosenSide(open ? null : kind)}
+										className={pillClass}
+									>
+										{t(`homePage.${kind}`)}
+										{sidePolls?.[kind].some((poll) => poll.unread) && (
+											<UnreadDot label={t('notifications.unread')} />
+										)}
+										<ChevronDown
+											aria-hidden
+											className={cn(
+												'transition-transform',
+												open && 'rotate-180'
+											)}
+										/>
+									</Button>
+								</li>
+							);
+						})}
+						{topics.map(renderLink)}
+					</ul>
+				</nav>
+				{/* Inside the sticky bar, so a pill tapped after scrolling opens its card where it can be seen */}
+				{openSide && sidePolls && (
+					<div id={sidePanelId} className="px-1 pb-2 xl:hidden">
+						<PollSideCard kind={openSide} polls={sidePolls[openSide]} />
+					</div>
+				)}
 			</StickyBar>
 			{signedIn && activeTagDto && followedTagIds && (
 				<TopicFollowButton

@@ -17,7 +17,7 @@ import type { Poll } from '../schema';
 import { derivePollStatus, getTurnout } from '../status';
 import { pollTiming } from '../timing';
 
-type SideCardKind = 'resultsIn' | 'closingSoon';
+export type SideCardKind = 'resultsIn' | 'closingSoon';
 
 const KINDS: Record<SideCardKind, { heading: string; titleWeight: (poll: Poll) => string }> = {
 	// Read titles drop to 400 so the unread ones (600, the dot, "new") stand out
@@ -49,7 +49,7 @@ export function PollSideCard({ kind, polls }: PollSideCardProps) {
 					<li key={poll.id}>
 						<Link
 							href={pollHref(poll.id)}
-							className={cn('flex min-h-11 gap-3 rounded-xl px-2 py-1.5', LINK_CLASS)}
+							className="flex min-h-11 gap-3 rounded-xl px-2 py-1.5 transition-colors outline-none hover:bg-surface-soft focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
 						>
 							<PollSideText kind={kind} poll={poll} />
 						</Link>
@@ -59,42 +59,6 @@ export function PollSideCard({ kind, polls }: PollSideCardProps) {
 		</section>
 	);
 }
-
-/**
- * The side cards as one row of tiles under the topics, for phones and tablets, where the rail
- * follows a feed that never ends. Each tile names its card. Renders nothing when both are empty.
- * On phones the row runs to the screen's edges; from md it stops at the feed column's.
- */
-export function PollSideStrip({ resultsIn, closingSoon }: { resultsIn: Poll[]; closingSoon: Poll[] }) {
-	const { t } = useLanguage();
-	const tiles = [
-		...resultsIn.map((poll) => ({ kind: 'resultsIn' as const, poll })),
-		...closingSoon.map((poll) => ({ kind: 'closingSoon' as const, poll })),
-	];
-	if (tiles.length === 0) return null;
-
-	return (
-		<ul
-			aria-label={t('homePage.sideStrip')}
-			className="-mx-contain flex snap-x scroll-px-contain gap-3 overflow-x-auto px-contain pt-1 pb-2 scrollbar-none md:mx-0 md:scroll-px-0 md:px-0"
-		>
-			{tiles.map(({ kind, poll }) => (
-				<li key={`${kind}:${poll.id}`} className="flex w-60 shrink-0 snap-start">
-					<Link
-						href={pollHref(poll.id)}
-						className={cn('flex w-full flex-col gap-1 rounded-2xl border border-border bg-card px-3.5 py-3', LINK_CLASS)}
-					>
-						<span className="text-caption-2 font-medium text-muted-foreground">{t(KINDS[kind].heading)}</span>
-						<PollSideText kind={kind} poll={poll} />
-					</Link>
-				</li>
-			))}
-		</ul>
-	);
-}
-
-const LINK_CLASS =
-	'transition-colors hover:bg-surface-soft outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring';
 
 /** A Poll's title, unread dot and meta line: when it ends or what it decided, then its turnout. */
 function PollSideText({ kind, poll }: { kind: SideCardKind; poll: Poll }) {
