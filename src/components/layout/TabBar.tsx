@@ -3,19 +3,10 @@ import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import { buttonVariants } from '@/components/ui/Button';
-import {
-	Bell,
-	CircleUser,
-	Home,
-	Plus,
-	Search,
-} from '@/components/ui/SvgIcons';
+import { Home, Plus, Search } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { UserAvatar } from '@/features/avatars/UserAvatar';
-import { formatUnreadCount, useUnreadCount } from '@/features/notifications/UnreadCountProvider';
-import { UnreadDot } from '@/features/notifications/UnreadDot';
 import { CreatePollTrigger } from '@/features/polls/components/CreatePollTrigger';
-import { isActivePath, isChromeless, profileHref } from '@/lib/routes';
+import { isActivePath, isChromeless } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
 type TabBarProps = {
@@ -23,8 +14,6 @@ type TabBarProps = {
 	userSession?: any;
 	/** Where the signed-out create button goes; carries `session_expired` when the API refused the session. */
 	loginLink?: string;
-	username?: string;
-	avatarUrl?: string | null;
 };
 
 // The center tab is the primary action: the create button as a square, the "Create a poll" action
@@ -32,55 +21,20 @@ const createClassName = cn(buttonVariants({ variant: 'create' }), 'w-13 px-0');
 const cellClassName =
 	'flex-1 h-full flex justify-center items-center outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring';
 
-export function TabBar({ className, userSession, loginLink = '/login', username, avatarUrl }: TabBarProps) {
+export function TabBar({ className, userSession, loginLink = '/login' }: TabBarProps) {
 	const pathname = usePathname();
 	const { t } = useLanguage();
-	const { count: unreadCount } = useUnreadCount();
-	// /account redirects to the profile; link there directly so the tab shows as active
-	const profileTabHref = username ? profileHref(username) : '/account';
-	// The create action sits between these two halves
-	const leftLinks = [
-		{
-			title: t('navigation.home'),
-			href: '/',
-			icon: <Home className="size-6" />,
-		},
-		{
-			title: t('common.explore'),
-			href: '/explore',
-			icon: <Search className="size-6" />,
-		},
-	];
-	const rightLinks = [
-		{
-			title: t('common.notifications'),
-			href: '/notifications',
-			icon: (
-				<span className="relative">
-					<Bell className="size-6" />
-					{unreadCount > 0 && <UnreadDot label={`${formatUnreadCount(unreadCount)} ${t('notifications.unread')}`} className="absolute -right-1 -top-1" />}
-				</span>
-			),
-		},
-		{
-			title: t('navigation.profile'),
-			href: profileTabHref,
-			// Signed in, the tab is the person: the avatar they chose, as on their profile
-			icon: username ? <UserAvatar username={username} avatarUrl={avatarUrl} className="size-7" /> : <CircleUser className="size-6" />,
-		},
-	];
+	const home = { title: t('navigation.home'), href: '/', icon: <Home className="size-6" /> };
+	const explore = { title: t('common.explore'), href: '/explore', icon: <Search className="size-6" /> };
 
 	if (isChromeless(pathname)) return null;
 
-	const renderLink = ({ href, title, icon }: (typeof leftLinks)[number]) => {
-		const isPage = isActivePath(pathname, href);
-		// Phones reach Settings from the profile, so the profile tab stays active there: the current section, not the page
-		const isActive = isPage || (href === profileTabHref && isActivePath(pathname, '/settings'));
+	const renderLink = ({ href, title, icon }: typeof home) => {
+		const isActive = isActivePath(pathname, href);
 		return (
 			<NextLink
-				key={href}
 				href={href}
-				aria-current={isPage ? 'page' : isActive ? 'true' : undefined}
+				aria-current={isActive ? 'page' : undefined}
 				className={cellClassName}
 			>
 				<span
@@ -94,7 +48,6 @@ export function TabBar({ className, userSession, loginLink = '/login', username,
 				>
 					{icon}
 				</span>
-				{/* Text, not aria-label, so an unread count inside the icon is read out too */}
 				<span className="sr-only">{title}</span>
 			</NextLink>
 		);
@@ -108,7 +61,7 @@ export function TabBar({ className, userSession, loginLink = '/login', username,
 				className
 			)}
 		>
-			{leftLinks.map(renderLink)}
+			{renderLink(home)}
 			{userSession ? (
 				<div className={cellClassName}>
 					<CreatePollTrigger>
@@ -124,7 +77,7 @@ export function TabBar({ className, userSession, loginLink = '/login', username,
 					</span>
 				</NextLink>
 			)}
-			{rightLinks.map(renderLink)}
+			{renderLink(explore)}
 		</nav>
 	);
 }

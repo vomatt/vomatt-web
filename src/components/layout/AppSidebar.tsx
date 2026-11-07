@@ -34,7 +34,7 @@ import {
 	useUnreadCount,
 } from '@/features/notifications/UnreadCountProvider';
 import { CreatePollTrigger } from '@/features/polls/components/CreatePollTrigger';
-import { isActivePath, isChromeless, profileHref } from '@/lib/routes';
+import { accountHref, isActivePath, isChromeless } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 import { MyProfile } from '@/types/user';
 
@@ -76,10 +76,9 @@ export function AppSidebar({
 
 	if (isChromeless(pathname)) return null;
 
-	// /account redirects to the profile; link there directly so the row shows as active
-	const accountHref = profile ? profileHref(profile.username) : '/account';
+	const accountLink = accountHref(profile?.username);
 	// Settings is a page of its own, reached from More; no row is active there
-	const accountCurrent = pathname === accountHref ? 'page' : undefined;
+	const accountCurrent = pathname === accountLink ? 'page' : undefined;
 
 	return (
 		<Sidebar className="border-sidebar-border bg-sidebar ps-[env(safe-area-inset-left)]">
@@ -153,7 +152,7 @@ export function AppSidebar({
 									<SidebarMenuButton
 										render={
 											<Link
-												href={accountHref}
+												href={accountLink}
 												aria-current={accountCurrent}
 												className="flex items-center gap-3 w-full"
 											/>
