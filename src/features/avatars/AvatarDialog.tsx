@@ -1,5 +1,6 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -19,7 +20,7 @@ import { apiErrorText } from '@/lib/api/error-text';
 import { cn } from '@/lib/utils';
 
 import {
-	AVATAR_UPLOAD_MAX_BYTES,
+	AVATAR_PICK_MAX_BYTES,
 	AVATAR_UPLOAD_TYPES,
 	type AvatarChoice,
 	avatarCopyKey,
@@ -29,9 +30,15 @@ import {
 	resolveAvatar,
 	uploadedAvatarSrc,
 } from './catalog';
-import { chooseAvatar, uploadAvatar } from './service';
+import { chooseAvatar } from './service';
 import { ChosenAvatar, UploadedAvatar } from './UserAvatar';
 
+// Profiles render this dialog for every visit; the cropper's code loads only once a photo is being picked
+const loadCropStage = () => import('./CropStage').then((module) => module.CropStage);
+const CropStage = dynamic(loadCropStage, {
+	ssr: false,
+	loading: () => <div className="aspect-square w-full rounded-xl bg-field" />,
+});
 
 /**
  * The owner's avatar, opening the cast to choose from. Size comes from `className`, as on `UserAvatar`.
@@ -53,7 +60,8 @@ export function AvatarDialog({
 	const saved: AvatarChoice | null = savedUpload ? null : resolveAvatar(username, avatarUrl);
 	const [selected, setSelected] = useState<AvatarChoice | null>(saved);
 	const [isSaving, setIsSaving] = useState(false);
-	const [isUploading, setIsUploading] = useState(false);
+	// The photo being framed; null while choosing from the cast
+	const [cropFile, setCropFile] = useState<File | null>(null);
 	const fileInput = useRef<HTMLInputElement>(null);
 	// Tile tooltips stay inside the scrolling grid, so they flip or shift rather than cover the header
 	const [grid, setGrid] = useState<HTMLDivElement | null>(null);
@@ -65,32 +73,16 @@ export function AvatarDialog({
 		setOpen(next);
 	};
 
-	const upload = async (file: File) => {
-		if (isSaving || isUploading) return;
+	const pickFile = (file: File) => {
 		if (file.size === 0 || !AVATAR_UPLOAD_TYPES.includes(file.type)) {
 			toast.error(t('avatar.upload.unsupported'), { duration: Infinity });
 			return;
 		}
-		if (file.size > AVATAR_UPLOAD_MAX_BYTES) {
+		if (file.size > AVATAR_PICK_MAX_BYTES) {
 			toast.error(t('avatar.upload.tooLarge'), { duration: Infinity });
 			return;
 		}
-		setIsUploading(true);
-		try {
-			const formData = new FormData();
-			formData.set('file', file);
-			const result = await uploadAvatar(formData);
-			if (!result.ok) {
-				toast.error(apiErrorText(t, result, 'account.saveFailed'), { duration: Infinity });
-				return;
-			}
-			setOpen(false);
-			toast.success(t('avatar.savedToast'));
-		} catch {
-			toast.error(t('account.saveFailed'), { duration: Infinity });
-		} finally {
-			setIsUploading(false);
-		}
+		setCropFile(file);
 	};
 
 	const surprise = () => {
@@ -100,7 +92,6 @@ export function AvatarDialog({
 
 	const save = async () => {
 		// Enabled even when unchanged, so it never drops focus; nothing to save just closes
-		if (isUploading) return;
 		if (unchanged || selected === null) {
 			setOpen(false);
 			return;
@@ -150,7 +141,12 @@ export function AvatarDialog({
 	);
 
 	return (
-		<Dialog open={open} onOpenChange={openChange}>
+		<Dialog
+			open={open}
+			onOpenChange={openChange}
+			// Cleared once the close animation ends, so the photo isn't held and the next visit starts at the cast
+			onOpenChangeComplete={(isOpen) => !isOpen && setCropFile(null)}
+		>
 			<DialogTrigger
 				aria-label={t('avatar.change')}
 				className="group relative shrink-0 rounded-full outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:outline-solid"
@@ -169,77 +165,96 @@ export function AvatarDialog({
 			</DialogTrigger>
 			<DialogContent
 				closeLabel={t('common.close')}
-				className="max-h-[calc(100dvh-2rem)] grid-rows-[auto_auto_minmax(0,1fr)_auto] sm:max-w-md md:max-w-2xl"
+				className={cn(
+					'max-h-[calc(100dvh-2rem)] sm:max-w-md',
+					!cropFile && 'grid-rows-[auto_auto_minmax(0,1fr)_auto] md:max-w-2xl'
+				)}
 			>
-				<DialogHeader>
-					<DialogTitle>{t('avatar.title')}</DialogTitle>
-					<DialogDescription>{t('avatar.body')}</DialogDescription>
-				</DialogHeader>
+				{cropFile ? (
+					<>
+						{/* Here rather than in CropStage, so the dialog keeps its name while that code loads */}
+						<DialogHeader>
+							<DialogTitle>{t('avatar.crop.title')}</DialogTitle>
+							<DialogDescription>{t('avatar.crop.body')}</DialogDescription>
+						</DialogHeader>
+						<CropStage file={cropFile} onCancel={() => setCropFile(null)} onDone={() => setOpen(false)} />
+					</>
+				) : (
+					<>
+						<DialogHeader>
+							<DialogTitle>{t('avatar.title')}</DialogTitle>
+							<DialogDescription>{t('avatar.body')}</DialogDescription>
+						</DialogHeader>
 
-				<div className="flex flex-wrap items-center gap-4">
-					{selected === null && savedUpload ? (
-						<UploadedAvatar src={savedUpload} className="size-16 md:size-28" />
-					) : (
-						<ChosenAvatar kind={selected ?? NO_BOT} className="size-16 md:size-28" />
-					)}
-					<div className="min-w-0 flex-1" aria-live="polite">
-						<p className="font-medium md:text-body-1">
-							{selected === null ? t('avatar.upload.name') : t(`${avatarCopyKey(selected)}.name`)}
-						</p>
-						<p className="text-caption-2 text-muted-foreground">
-							{selected === null ? t('avatar.upload.trait') : t(`${avatarCopyKey(selected)}.trait`)}
-						</p>
-					</div>
-					<div className="flex w-full gap-2 *:flex-1 md:w-auto md:*:flex-none">
-						<input
-							ref={fileInput}
-							type="file"
-							accept={AVATAR_UPLOAD_TYPES.join(',')}
-							hidden
-							data-testid="avatar-file"
-							onChange={(event) => {
-								const file = event.target.files?.[0];
-								// Cleared so choosing the same file again still fires
-								event.target.value = '';
-								if (file) void upload(file);
-							}}
-						/>
-						<Button
-							variant="outline"
-							size="sm"
-							loading={isUploading}
-								disabled={isSaving}
-							onClick={() => fileInput.current?.click()}
-						>
-							{t('avatar.upload.button')}
-						</Button>
-						<Button variant="outline" size="sm" onClick={surprise}>
-							{t('avatar.surprise')}
-						</Button>
-						<Button
-							variant="outline"
-							size="sm"
-							// Keeps focus once used; pointer-events-none drops the hover on the disabled look
-							disabled={selected === NO_BOT}
-							focusableWhenDisabled
-							onClick={() => setSelected(NO_BOT)}
-							className="aria-disabled:pointer-events-none"
-						>
-							{t('avatar.remove')}
-						</Button>
-					</div>
-				</div>
+						<div className="flex flex-wrap items-center gap-4">
+							{selected === null && savedUpload ? (
+								<UploadedAvatar src={savedUpload} className="size-16 md:size-28" />
+							) : (
+								<ChosenAvatar kind={selected ?? NO_BOT} className="size-16 md:size-28" />
+							)}
+							<div className="min-w-0 flex-1" aria-live="polite">
+								<p className="font-medium md:text-body-1">
+									{selected === null ? t('avatar.upload.name') : t(`${avatarCopyKey(selected)}.name`)}
+								</p>
+								<p className="text-caption-2 text-muted-foreground">
+									{selected === null ? t('avatar.upload.trait') : t(`${avatarCopyKey(selected)}.trait`)}
+								</p>
+							</div>
+							<div className="flex w-full gap-2 *:flex-1 md:w-auto md:*:flex-none">
+								<input
+									ref={fileInput}
+									type="file"
+									accept={AVATAR_UPLOAD_TYPES.join(',')}
+									hidden
+									data-testid="avatar-file"
+									onChange={(event) => {
+										const file = event.target.files?.[0];
+										// Cleared so choosing the same file again still fires
+										event.target.value = '';
+										if (file) pickFile(file);
+									}}
+								/>
+								<Button
+									variant="outline"
+									size="sm"
+									disabled={isSaving}
+									onClick={() => {
+										// Fetched while the file chooser is open, so the crop step opens without a wait
+										void loadCropStage();
+										fileInput.current?.click();
+									}}
+								>
+									{t('avatar.upload.button')}
+								</Button>
+								<Button variant="outline" size="sm" onClick={surprise}>
+									{t('avatar.surprise')}
+								</Button>
+								<Button
+									variant="outline"
+									size="sm"
+									// Keeps focus once used; pointer-events-none drops the hover on the disabled look
+									disabled={selected === NO_BOT}
+									focusableWhenDisabled
+									onClick={() => setSelected(NO_BOT)}
+									className="aria-disabled:pointer-events-none"
+								>
+									{t('avatar.remove')}
+								</Button>
+							</div>
+						</div>
 
-				<div ref={setGrid} className="-mx-4 overflow-y-auto overscroll-contain px-4 pb-1">
-					{/* Six and ten across, so the cast of 60 fills every row */}
-					<div className="grid grid-cols-6 gap-1.5 md:grid-cols-10 md:gap-2">{BOT_KINDS.map(renderTile)}</div>
-				</div>
+						<div ref={setGrid} className="-mx-4 overflow-y-auto overscroll-contain px-4 pb-1">
+							{/* Six and ten across, so the cast of 60 fills every row */}
+							<div className="grid grid-cols-6 gap-1.5 md:grid-cols-10 md:gap-2">{BOT_KINDS.map(renderTile)}</div>
+						</div>
 
-				<DialogFooter showCloseButton closeLabel={t('common.close')}>
-					<Button onClick={save} loading={isSaving} disabled={isUploading}>
-						{t('avatar.save')}
-					</Button>
-				</DialogFooter>
+						<DialogFooter showCloseButton closeLabel={t('common.close')}>
+							<Button onClick={save} loading={isSaving}>
+								{t('avatar.save')}
+							</Button>
+						</DialogFooter>
+					</>
+				)}
 			</DialogContent>
 		</Dialog>
 	);

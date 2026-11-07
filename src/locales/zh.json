@@ -708,9 +708,16 @@
 		"upload": {
 			"button": "上傳照片",
 			"name": "你的照片",
-			"trait": "會裁成正方形",
+			"trait": "由你裁切",
 			"unsupported": "請使用 JPEG、PNG、GIF 或 BMP 圖片。",
-			"tooLarge": "照片超過 2 MB，請選較小的檔案。"
+			"tooLarge": "照片超過 25 MB，請選較小的檔案。"
+		},
+		"crop": {
+			"title": "調整照片",
+			"body": "拖曳移動照片，用雙指、滾輪或滑桿縮放。",
+			"area": "照片取景範圍，可用方向鍵移動照片。",
+			"zoom": "縮放",
+			"use": "使用照片"
 		},
 		"none": {
 			"name": "帳號圖示",

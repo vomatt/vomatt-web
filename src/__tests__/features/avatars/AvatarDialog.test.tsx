@@ -13,6 +13,26 @@ jest.mock('@/features/avatars/service', () => ({
 	chooseAvatar: (...a: unknown[]) => mockChooseAvatar(...a),
 	uploadAvatar: (...a: unknown[]) => mockUploadAvatar(...a),
 }));
+const mockCropToJpeg = jest.fn();
+jest.mock('@/features/avatars/cropImage', () => ({ cropToJpeg: (...a: unknown[]) => mockCropToJpeg(...a) }));
+// jsdom can't lay out or decode an image; the stub reports a fixed crop once mounted, as the cropper does after load
+const CROP_AREA = { x: 40, y: 10, width: 300, height: 300 };
+jest.mock('react-easy-crop', () => {
+	const { useEffect } = jest.requireActual('react');
+	return {
+		__esModule: true,
+		default: function MockCropper({
+			image,
+			onCropComplete,
+		}: {
+			image: string;
+			onCropComplete: (area: unknown, pixels: unknown) => void;
+		}) {
+			useEffect(() => onCropComplete({ x: 0, y: 0, width: 100, height: 100 }, CROP_AREA), [onCropComplete]);
+			return <div data-testid="cropper" data-src={image} />;
+		},
+	};
+});
 // Records where each tile tooltip may be placed; jsdom has no layout to show it
 const mockTooltipBoundaries: unknown[] = [];
 jest.mock('@/components/ui/Tooltip', () => {
@@ -31,6 +51,9 @@ beforeEach(() => {
 	mockTooltipBoundaries.length = 0;
 	mockChooseAvatar.mockResolvedValue({ ok: true, data: undefined });
 	mockUploadAvatar.mockResolvedValue({ ok: true, data: undefined });
+	mockCropToJpeg.mockResolvedValue(new Blob(['jpeg'], { type: 'image/jpeg' }));
+	URL.createObjectURL = jest.fn(() => 'blob:picked');
+	URL.revokeObjectURL = jest.fn();
 });
 
 const openDialog = (avatarUrl: string | null) => {
@@ -123,19 +146,83 @@ describe('AvatarDialog', () => {
 	describe('upload', () => {
 		const pick = (file: File) => fireEvent.change(screen.getByTestId('avatar-file'), { target: { files: [file] } });
 
-		it('uploads a chosen photo', async () => {
+		const usePhoto = () => fireEvent.click(screen.getByRole('button', { name: 'Use photo' }));
+
+		it('shows the crop step for a picked photo without uploading it', async () => {
 			openDialog(null);
 			pick(new File(['x'], 'me.png', { type: 'image/png' }));
-			await waitFor(() => expect(mockUploadAvatar).toHaveBeenCalled());
-			expect((mockUploadAvatar.mock.calls[0][0] as FormData).get('file')).toBeInstanceOf(File);
+			expect(await screen.findByRole('heading', { name: en.avatar.crop.title })).toBeInTheDocument();
+			expect(await screen.findByTestId('cropper')).toHaveAttribute('data-src', 'blob:picked');
+			expect(screen.queryByRole('button', { name: 'Save avatar' })).not.toBeInTheDocument();
+			expect(mockUploadAvatar).not.toHaveBeenCalled();
 		});
 
-		it('rejects a wrong type or an oversized photo without a request', async () => {
+		it('uploads the framed crop as a JPEG and closes', async () => {
+			const jpeg = new Blob(['cropped'], { type: 'image/jpeg' });
+			mockCropToJpeg.mockResolvedValue(jpeg);
+			openDialog(null);
+			pick(new File(['x'], 'me.png', { type: 'image/png' }));
+			usePhoto();
+			await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+			expect(mockCropToJpeg).toHaveBeenCalledWith('blob:picked', CROP_AREA);
+			const sent = (mockUploadAvatar.mock.calls[0][0] as FormData).get('file') as File;
+			expect(sent.name).toBe('avatar.jpg');
+			expect(sent.type).toBe('image/jpeg');
+			// jsdom's File has no text()
+			const body = await new Promise((resolve) => {
+				const reader = new FileReader();
+				reader.onload = () => resolve(reader.result);
+				reader.readAsText(sent);
+			});
+			expect(body).toBe('cropped');
+			expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:picked');
+		});
+
+		it('Cancel goes back to the cast without uploading', () => {
+			openDialog(null);
+			pick(new File(['x'], 'me.png', { type: 'image/png' }));
+			fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+			expect(screen.getByRole('heading', { name: en.avatar.title })).toBeInTheDocument();
+			expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:picked');
+			expect(mockUploadAvatar).not.toHaveBeenCalled();
+		});
+
+		it('starts from the cast again after closing mid-crop', async () => {
+			openDialog(null);
+			pick(new File(['x'], 'me.png', { type: 'image/png' }));
+			fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+			await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+			expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:picked');
+			fireEvent.click(screen.getByRole('button', { name: 'Change avatar' }));
+			expect(screen.getByRole('heading', { name: en.avatar.title })).toBeInTheDocument();
+		});
+
+		it('rejects a wrong type without a crop step or a request', async () => {
 			openDialog(null);
 			pick(new File(['x'], 'me.webp', { type: 'image/webp' }));
 			await waitFor(() => expect(mockToastError).toHaveBeenCalledWith(en.avatar.upload.unsupported, expect.anything()));
-			pick(new File([new Uint8Array(2 * 1024 * 1024 + 1)], 'big.png', { type: 'image/png' }));
+			expect(screen.queryByRole('heading', { name: en.avatar.crop.title })).not.toBeInTheDocument();
+			expect(URL.createObjectURL).not.toHaveBeenCalled();
+			expect(mockUploadAvatar).not.toHaveBeenCalled();
+		});
+
+		it('rejects a photo over 25 MB without a crop step or a request', async () => {
+			openDialog(null);
+			const huge = new File(['x'], 'huge.jpg', { type: 'image/jpeg' });
+			Object.defineProperty(huge, 'size', { value: 25 * 1024 * 1024 + 1 });
+			pick(huge);
 			await waitFor(() => expect(mockToastError).toHaveBeenCalledWith(en.avatar.upload.tooLarge, expect.anything()));
+			expect(screen.queryByRole('heading', { name: en.avatar.crop.title })).not.toBeInTheDocument();
+			expect(mockUploadAvatar).not.toHaveBeenCalled();
+		});
+
+		it("returns to the cast when the photo can't be decoded", async () => {
+			mockCropToJpeg.mockRejectedValue(new Error('EncodingError'));
+			openDialog(null);
+			pick(new File(['x'], 'me.png', { type: 'image/png' }));
+			usePhoto();
+			await waitFor(() => expect(mockToastError).toHaveBeenCalledWith(en.avatar.upload.unsupported, expect.anything()));
+			expect(screen.getByRole('heading', { name: en.avatar.title })).toBeInTheDocument();
 			expect(mockUploadAvatar).not.toHaveBeenCalled();
 		});
 
@@ -143,9 +230,11 @@ describe('AvatarDialog', () => {
 			mockUploadAvatar.mockResolvedValue({ ok: false, errorCode: 'user.avatar.unsupported_image', message: 'x' });
 			openDialog(null);
 			pick(new File(['x'], 'me.png', { type: 'image/png' }));
+			usePhoto();
 			await waitFor(() =>
 				expect(mockToastError).toHaveBeenCalledWith(en.apiError.user.avatar.unsupported_image, expect.anything())
 			);
+			expect(screen.getByRole('button', { name: 'Use photo' })).toBeEnabled();
 		});
 
 		it('saves a bot over an uploaded photo', async () => {
