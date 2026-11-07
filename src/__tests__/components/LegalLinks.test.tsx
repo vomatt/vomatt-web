@@ -16,12 +16,11 @@ describe('LegalLinks', () => {
 		mockCurrentLanguage = 'en';
 	});
 
-	it('links the three legal pages on the about site', () => {
+	it('links the legal pages on the about site', () => {
 		render(<LegalLinks />);
 		expect(hrefs()).toEqual([
 			['Terms', 'https://about.vomatt.com/terms-of-service'],
 			['Privacy', 'https://about.vomatt.com/privacy-policy'],
-			['Cookies', 'https://about.vomatt.com/cookies-policy'],
 		]);
 	});
 
@@ -31,7 +30,6 @@ describe('LegalLinks', () => {
 		expect(hrefs().map(([, href]) => href)).toEqual([
 			'https://about.vomatt.com/zh/terms-of-service',
 			'https://about.vomatt.com/zh/privacy-policy',
-			'https://about.vomatt.com/zh/cookies-policy',
 		]);
 	});
 });

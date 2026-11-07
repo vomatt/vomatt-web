@@ -421,7 +421,6 @@
 		"resultsIn": "結果出爐",
 		"resultsTie": "平手",
 		"closingSoon": "即將結束",
-		"sideStrip": "結果與即將結束的投票",
 		"askTitle": "有問題想問大家嗎？",
 		"askBody": "寫一則投票只要一分鐘，一開始就會自動密封。",
 		"askCta": "寫一則"
@@ -650,7 +649,7 @@
 	"cookieConsent": {
 		"label": "Cookie 同意",
 		"message": "我們想使用分析 Cookie 來了解 vomatt 的使用情形。登入與語言 Cookie 會一直啟用。",
-		"policy": "Cookie 政策",
+		"policy": "隱私權政策",
 		"accept": "接受分析",
 		"decline": "拒絕"
 	},
@@ -1216,7 +1215,6 @@
 		"legal": "法律資訊",
 		"terms": "服務條款",
 		"privacyPolicy": "隱私權政策",
-		"cookies": "Cookie 政策",
 		"notifyResultsIn": "結果出爐",
 		"notifyResultsInBody": "你參與或發起的投票結束時通知你。這是每張選票的承諾。",
 		"notifyInvitations": "邀請",

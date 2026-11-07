@@ -1,7 +1,7 @@
 import type { NextConfig } from 'next';
 import * as path from 'path';
 
-import { aboutHref, ABOUT_SITE_SLUGS } from './src/lib/aboutSite';
+import { ABOUT_SITE_MOVED, ABOUT_SITE_SLUGS,aboutHref } from './src/lib/aboutSite';
 
 const nextConfig: NextConfig = {
 	reactStrictMode: true,
@@ -21,7 +21,11 @@ const nextConfig: NextConfig = {
 			// Profiles moved to the root, next to Sanity pages
 			{ source: '/profile/:username', destination: '/:username', permanent: true },
 			// About and the legal pages moved to the about site
-			...ABOUT_SITE_SLUGS.map((slug) => ({ source: `/${slug}`, destination: aboutHref(slug, 'en'), permanent: true })),
+			...ABOUT_SITE_SLUGS.map((slug) => ({
+				source: `/${slug}`,
+				destination: aboutHref(ABOUT_SITE_MOVED[slug] ?? slug, 'en'),
+				permanent: true,
+			})),
 		];
 	},
 	async rewrites() {

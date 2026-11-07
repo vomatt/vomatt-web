@@ -6,6 +6,9 @@ export const ABOUT_URL = process.env.NEXT_PUBLIC_ABOUT_URL || 'https://about.vom
 /** Pages that used to live here; next.config.ts redirects them, and they never open in the iOS app. */
 export const ABOUT_SITE_SLUGS = ['about', 'privacy-policy', 'terms-of-service', 'cookies-policy'];
 
+/** Old pages that are now part of another page on the about site, so their redirect skips a hop there. */
+export const ABOUT_SITE_MOVED: Record<string, string> = { 'cookies-policy': 'privacy-policy' };
+
 /** Where the about site serves each language; it falls back to English for a page with no translation. */
 const LOCALE_PREFIX: Record<Locale, string> = {
 	en: '',

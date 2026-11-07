@@ -51,7 +51,7 @@ export function CookieConsent({ integrations }: { integrations?: Integrations | 
 		>
 			<p className="text-caption-1">
 				{t('cookieConsent.message')}{' '}
-				<a href={aboutHref('cookies-policy', currentLanguage)} className="underline underline-offset-2">
+				<a href={aboutHref('privacy-policy', currentLanguage)} className="underline underline-offset-2">
 					{t('cookieConsent.policy')}
 				</a>
 			</p>

@@ -23,7 +23,7 @@ jest.mock('@/features/polls/service', () => ({
 jest.mock('@/app/(frontend)/_components/RailPolls', () => ({
 	RailPolls: () => <p>Poll cards</p>,
 }));
-const { RailPolls: realRailPolls, RailPollsStrip } = jest.requireActual<typeof RailPollsModule>(
+const { RailPolls: realRailPolls } = jest.requireActual<typeof RailPollsModule>(
 	'@/app/(frontend)/_components/RailPolls'
 );
 
@@ -92,21 +92,5 @@ describe('RailPolls', () => {
 			'New name for the community garden'
 		);
 		expect(screen.queryByRole('region', { name: 'Results are in' })).not.toBeInTheDocument();
-	});
-});
-
-describe('RailPollsStrip', () => {
-	it('lists the side cards as a strip shown below xl only', async () => {
-		render(await RailPollsStrip());
-		const strip = screen.getByRole('list', { name: 'Results and polls closing soon' });
-		expect(strip).toHaveTextContent('Closing soon');
-		expect(strip.parentElement).toHaveClass('xl:hidden');
-	});
-
-	it('takes no room when there is nothing to list', async () => {
-		mockGetMyPolls.mockResolvedValue({ items: [], nextCursor: null });
-		mockGetPolls.mockResolvedValue({ items: [], nextCursor: null });
-		const { container } = render(await RailPollsStrip());
-		expect(container.firstChild).toBeEmptyDOMElement();
 	});
 });
