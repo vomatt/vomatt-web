@@ -179,8 +179,136 @@ describe('LogIn with a passkey', () => {
 		render(<LogIn />);
 		await waitFor(() => expect(mockConditionalAvailable).toHaveBeenCalled());
 		await act(async () => {});
-		expect(mockGetOptions).not.toHaveBeenCalled();
 		expect(mockGet).not.toHaveBeenCalled();
+	});
+
+	it('fetches the sign-in options before the button is pressed, so the passkey sheet opens on the click', async () => {
+		render(<LogIn />);
+		await waitFor(() => expect(mockGetOptions).toHaveBeenCalledTimes(1));
+
+		fireEvent.click(passkeyButton());
+
+		await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/polls/p1'));
+		expect(mockGetOptions).toHaveBeenCalledTimes(1);
+	});
+
+	it('fetches new options after a failed sign-in spent the challenge', async () => {
+		mockVerify.mockResolvedValueOnce({ status: 'ERROR', error: 'apiError.auth.passkey.invalid' });
+		render(<LogIn />);
+		fireEvent.click(passkeyButton());
+		await screen.findByText('Passkey verification failed. Please try again');
+
+		fireEvent.click(passkeyButton());
+
+		await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/polls/p1'));
+		expect(mockGetOptions).toHaveBeenCalledTimes(2);
+	});
+
+	it('fetches the options again on the click when the page-load fetch threw', async () => {
+		mockGetOptions.mockRejectedValueOnce(new TypeError('Failed to fetch'));
+		render(<LogIn />);
+		await waitFor(() => expect(mockGetOptions).toHaveBeenCalledTimes(1));
+		await act(async () => {});
+
+		fireEvent.click(passkeyButton());
+
+		await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/polls/p1'));
+		expect(mockGetOptions).toHaveBeenCalledTimes(2);
+		expect(screen.queryByText(/went wrong/)).not.toBeInTheDocument();
+	});
+
+	it('fetches the options again on the click when the page-load fetch was refused', async () => {
+		mockGetOptions.mockResolvedValueOnce({ status: 'ERROR', error: 'rateLimited' });
+		render(<LogIn />);
+		await waitFor(() => expect(mockGetOptions).toHaveBeenCalledTimes(1));
+		await act(async () => {});
+
+		fireEvent.click(passkeyButton());
+
+		await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/polls/p1'));
+		expect(mockGetOptions).toHaveBeenCalledTimes(2);
+	});
+
+	it('replaces the options before their challenge expires', async () => {
+		jest.useFakeTimers();
+		try {
+			render(<LogIn />);
+			await act(async () => {});
+			expect(mockGetOptions).toHaveBeenCalledTimes(1);
+
+			await act(async () => jest.advanceTimersByTime(3.5 * 60 * 1000));
+			expect(mockGetOptions).toHaveBeenCalledTimes(1);
+
+			await act(async () => jest.advanceTimersByTime(60 * 1000));
+			expect(mockGetOptions).toHaveBeenCalledTimes(2);
+		} finally {
+			jest.useRealTimers();
+		}
+	});
+
+	it('logs why the autofill request could not start', async () => {
+		const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+		const failure = new Error('unavailable');
+		mockConditionalAvailable.mockRejectedValue(failure);
+		render(<LogIn />);
+
+		await waitFor(() => expect(consoleError).toHaveBeenCalledWith('Passkey autofill failed to start:', failure));
+		consoleError.mockRestore();
+	});
+
+	it('does not open the passkey sheet when a passkey picked from autofill signs in first', async () => {
+		mockConditionalAvailable.mockResolvedValue(true);
+		let finishVerify = () => {};
+		mockVerify.mockImplementation(
+			() => new Promise((resolve) => (finishVerify = () => resolve({ status: 'SUCCESS' })))
+		);
+		render(<LogIn />);
+		await waitFor(() => expect(conditionalSignal).toBeDefined());
+		await act(async () => pickPasskey());
+		await waitFor(() => expect(mockVerify).toHaveBeenCalledTimes(1));
+
+		fireEvent.click(passkeyButton());
+		await act(async () => finishVerify());
+
+		await waitFor(() => expect(passkeyButton()).not.toHaveAttribute('data-loading'));
+		expect(mockGet).toHaveBeenCalledTimes(1);
+		expect(mockReplace).toHaveBeenCalledTimes(1);
+	});
+
+	it('shows a general error and logs the cause when the browser fails the request', async () => {
+		const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+		const failure = new DOMException('The operation couldn’t be completed.', 'UnknownError');
+		mockGet.mockRejectedValue(failure);
+		render(<LogIn />);
+		fireEvent.click(passkeyButton());
+
+		expect(await screen.findByText('Something went wrong. Please try again later.')).toBeInTheDocument();
+		expect(consoleError).toHaveBeenCalledWith('Passkey sign-in failed:', failure);
+		consoleError.mockRestore();
+	});
+
+	it('starts the button request only once the aborted autofill request has ended', async () => {
+		mockConditionalAvailable.mockResolvedValue(true);
+		let endAutofill = () => {};
+		mockGet.mockImplementation(({ mediation, signal }: CredentialRequestOptions) => {
+			if (mediation !== 'conditional') return Promise.resolve(credential);
+			return new Promise((_, reject) => {
+				signal?.addEventListener('abort', () => {
+					endAutofill = () => reject(new DOMException('aborted', 'AbortError'));
+				});
+			});
+		});
+		render(<LogIn />);
+		await waitFor(() => expect(mockGet).toHaveBeenCalledTimes(1));
+
+		fireEvent.click(passkeyButton());
+		await act(async () => {});
+		expect(mockGet).toHaveBeenCalledTimes(1);
+
+		await act(async () => endAutofill());
+
+		await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/polls/p1'));
+		expect(mockGet).toHaveBeenLastCalledWith(expect.objectContaining({ mediation: undefined }));
 	});
 
 	it('signs in with the passkey picked from autofill, like the button', async () => {
