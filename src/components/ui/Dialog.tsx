@@ -44,16 +44,16 @@ function DialogContent({
 	children,
 	showCloseButton = true,
 	closeLabel = 'Close',
-	overlayClassName,
+	overlay = 'default',
 	...props
 }: DialogPrimitive.Popup.Props & {
 	showCloseButton?: boolean;
 	closeLabel?: string;
-	overlayClassName?: string;
+	overlay?: 'default' | 'strong';
 }) {
 	return (
 		<DialogPortal>
-			<DialogOverlay className={overlayClassName} />
+			<DialogOverlay className={cn(overlay === 'strong' && 'bg-overlay-strong backdrop-blur-md')} />
 			<DialogPrimitive.Popup
 				data-slot="dialog-content"
 				className={cn(
@@ -88,6 +88,21 @@ function DialogHeader({ className, ...props }: React.ComponentProps<'div'>) {
 		<div
 			data-slot="dialog-header"
 			className={cn('flex flex-col gap-2', className)}
+			{...props}
+		/>
+	);
+}
+
+/** The scrolling middle row of a `DialogContent` whose `grid-rows-*` give it `minmax(0,1fr)`. */
+function DialogBody({ className, ...props }: React.ComponentProps<'div'>) {
+	return (
+		<div
+			data-slot="dialog-body"
+			className={cn(
+				// The 4px block padding keeps fields' focus outline (2px, offset 2px) from being clipped by the scroll edge
+				'-mx-4 -my-1 overflow-y-auto overscroll-contain px-4 py-1',
+				className
+			)}
 			{...props}
 		/>
 	);
@@ -154,6 +169,7 @@ function DialogDescription({
 
 export {
 	Dialog,
+	DialogBody,
 	DialogClose,
 	DialogContent,
 	DialogDescription,

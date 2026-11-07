@@ -17,6 +17,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import {
 	Dialog,
+	DialogBody,
 	DialogContent,
 	DialogDescription,
 	DialogFooter,
@@ -31,6 +32,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { isValidUsername, RESERVED_USERNAMES, USERNAME_MAX_LENGTH } from '@/features/account/username';
 import { isFieldPublic, visibilityChanges } from '@/features/account/visibility';
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
+import { useVisualViewport } from '@/hooks/useVisualViewport';
 import { apiErrorText } from '@/lib/api/error-text';
 import { editProfile, updateVisibility } from '@/lib/api/services/users';
 import { profileHref } from '@/lib/routes';
@@ -67,6 +69,7 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 	};
 	const savedVisibility = profile.visibilitySettings ?? {};
 	const [open, setOpen] = useState(defaultOpen);
+	const visible = useVisualViewport(open);
 	const [values, setValues] = useState(initial);
 	const [visibility, setVisibility] = useState(savedVisibility);
 	const [birthdayError, setBirthdayError] = useState(false);
@@ -194,11 +197,18 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 	return (
 		<Dialog open={open} onOpenChange={openChange}>
 			<DialogTrigger render={<Button variant="outline" size="sm" />}>{t('profile.editProfile')}</DialogTrigger>
-			<DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[560px]" closeLabel={t('common.close')}>
+			<DialogContent
+				className="grid-rows-[auto_minmax(0,1fr)_auto] sm:max-w-[560px]"
+				// Centered in what's visible, so the Save row stays above a phone's keyboard
+				style={visible ? { top: visible.top + visible.height / 2, maxHeight: `calc(${visible.height}px - 2rem)` } : undefined}
+				overlay="strong"
+				closeLabel={t('common.close')}
+			>
 				<DialogHeader>
 					<DialogTitle>{t('profile.editProfile')}</DialogTitle>
 					<DialogDescription>{t('profile.editIntro')}</DialogDescription>
 				</DialogHeader>
+				<DialogBody>
 				<form id="edit-profile" onSubmit={submit} noValidate className="flex flex-col gap-4">
 					<div className="flex flex-col gap-1.5">
 						<div className="flex min-h-7 items-center justify-between gap-2">
@@ -345,12 +355,13 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 						</p>
 					</div>
 				</form>
-				<DialogFooter className="items-center">
+				</DialogBody>
+				<DialogFooter className="flex-row items-center">
 					<p className="mr-auto hidden text-caption-2 text-muted-foreground sm:block">{t('profile.visibilitySavesHint')}</p>
-					<Button variant="outline" size="md" onClick={() => setOpen(false)} disabled={isPending}>
+					<Button variant="outline" size="md" className="flex-1 sm:flex-none" onClick={() => setOpen(false)} disabled={isPending}>
 						{t('common.cancel')}
 					</Button>
-					<Button type="submit" form="edit-profile" size="md" loading={isPending}>
+					<Button type="submit" form="edit-profile" size="md" className="flex-1 sm:flex-none" loading={isPending}>
 						{t('profile.saveChanges')}
 					</Button>
 				</DialogFooter>

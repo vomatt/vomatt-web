@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
+import { Dialog, DialogBody, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserChip } from '@/features/profiles/UserChip';
@@ -144,7 +144,7 @@ export function VotersDialog({ option, voters, onClose }: VotersDialogProps) {
 						{choicesHidden ? t('poll.votersChoicesHidden') : t('poll.voted', { count: shown?.votes ?? 0 })}
 					</DialogDescription>
 				</DialogHeader>
-				<div className="-mx-4 overflow-y-auto px-4">
+				<DialogBody>
 					{chose.length > 0 && (
 						<ul aria-label={t('poll.voters')} className="space-y-1">
 							{chose.map((voter) => (
@@ -174,7 +174,7 @@ export function VotersDialog({ option, voters, onClose }: VotersDialogProps) {
 							{t(voters.status === 'hidden' ? 'poll.votersHidden' : 'poll.votersFailed')}
 						</p>
 					)}
-				</div>
+				</DialogBody>
 			</DialogContent>
 		</Dialog>
 	);
