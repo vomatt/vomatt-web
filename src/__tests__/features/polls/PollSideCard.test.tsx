@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react';
 
-import { PollSideCard } from '@/features/polls/components/PollSideCard';
+import { PollSideCard, PollSideStrip } from '@/features/polls/components/PollSideCard';
 import type { Poll } from '@/features/polls/schema';
 import { META_GAP } from '@/lib/rich';
 
@@ -77,5 +77,22 @@ describe('PollSideCard', () => {
 		expect(screen.getByRole('region', { name: 'Closing soon' })).toBeInTheDocument();
 		expect(screen.getByText(`ends in 2h${META_GAP}1,502 voted`, keepGaps)).toBeInTheDocument();
 		expect(screen.getByText(poll.title)).toHaveClass('font-medium');
+	});
+});
+
+describe('PollSideStrip', () => {
+	it('lists Results are in before Closing soon, each tile naming its card', () => {
+		render(<PollSideStrip resultsIn={[{ ...poll, id: 'poll-2', title: 'Ended one' }]} closingSoon={[poll]} />);
+		const strip = screen.getByRole('list', { name: 'Results and polls closing soon' });
+		const [ended, closing] = within(strip).getAllByRole('link');
+		expect(ended).toHaveAttribute('href', '/poll/poll-2');
+		expect(ended).toHaveTextContent(/^Results are inEnded one/);
+		expect(closing).toHaveTextContent(/^Closing soonBike lane on Mill Road\?/);
+		expect(within(closing).getByText(`ends in 2h${META_GAP}1,502 voted`, keepGaps)).toBeInTheDocument();
+	});
+
+	it('renders nothing when both cards are empty', () => {
+		const { container } = render(<PollSideStrip resultsIn={[]} closingSoon={[]} />);
+		expect(container).toBeEmptyDOMElement();
 	});
 });
