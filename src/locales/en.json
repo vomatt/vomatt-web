@@ -1021,7 +1021,6 @@
 				"send_failed": "Email delivery failed: {0}"
 			},
 			"phone": {
-				"not_registered": "This phone number is not registered",
 				"invalid": "Invalid phone number. Use a Taiwan mobile number starting with 09 or a number with a country code (e.g. +886912345678)"
 			},
 			"sms": {
@@ -1057,7 +1056,8 @@
 			"session_revoked": "This device has been signed out. Please sign in again",
 			"session_not_found": "Signed-in device not found",
 			"passkey": {
-				"invalid": "Passkey verification failed. Please try again"
+				"invalid": "Passkey verification failed. Please try again",
+				"admin_scope_required": "This passkey cannot sign in to the admin console. Sign in with an email code, then register a passkey from the admin console"
 			}
 		},
 		"user": {

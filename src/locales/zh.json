@@ -1008,7 +1008,6 @@
 				"send_failed": "郵件發送失敗：{0}"
 			},
 			"phone": {
-				"not_registered": "此手機號碼尚未註冊",
 				"invalid": "手機號碼格式錯誤，請輸入 09 開頭的台灣手機號碼或含國碼的號碼（例如 +886912345678）"
 			},
 			"sms": {
@@ -1044,7 +1043,8 @@
 			"session_revoked": "此裝置已被登出，請重新登入",
 			"session_not_found": "找不到此登入裝置",
 			"passkey": {
-				"invalid": "通行密鑰驗證失敗，請重新操作一次"
+				"invalid": "通行密鑰驗證失敗，請重新操作一次",
+				"admin_scope_required": "此 Passkey 不能登入管理後台，請先用 email 驗證碼登入，再到管理後台重新註冊 Passkey"
 			}
 		},
 		"user": {
