@@ -1,8 +1,11 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { DraftList } from '@/features/polls/components/DraftList';
 import { listDrafts, saveDraft } from '@/features/polls/drafts';
+import { META_GAP } from '@/lib/rich';
+
+import { keepGaps } from '../../helpers/keepGaps';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 jest.mock('@/features/polls/service', () => ({}));
@@ -28,8 +31,8 @@ describe('DraftList', () => {
 
 	it('heads the rows with their count', () => {
 		saveDraft(values);
-		render(<DraftList header={(count) => <h3>Drafts · {count}</h3>} />);
-		expect(screen.getByRole('heading', { name: 'Drafts · 1' })).toBeInTheDocument();
+		render(<DraftList header={(count) => <h3>Drafts{META_GAP}{count}</h3>} />);
+		expect(screen.getByRole('heading', { name: `Drafts${META_GAP}1` })).toBeInTheDocument();
 	});
 
 	it('lists drafts newest first, with a fallback title', () => {
@@ -56,7 +59,7 @@ describe('DraftList', () => {
 				values: { ...values, title: 'Rename the club?', options: [{ text: 'A' }, { text: 'B' }, { text: 'C' }, { text: ' ' }] },
 			});
 			render(<DraftList />);
-			expect(screen.getByText('Saved yesterday · 3 options · no end date yet')).toBeInTheDocument();
+			expect(screen.getByText(`Saved yesterday${META_GAP}3 options${META_GAP}no end date yet`, keepGaps)).toBeInTheDocument();
 		});
 
 		it('says only when a blank draft with an end was saved', () => {
@@ -66,13 +69,46 @@ describe('DraftList', () => {
 		});
 	});
 
-	it('deletes a draft from its menu', async () => {
+	it('deletes a draft from its menu once confirmed', async () => {
 		saveDraft({ ...values, title: 'Throwaway' });
 		render(<DraftList />);
 		await userEvent.click(screen.getByRole('button', { name: /More for Throwaway/ }));
 		await userEvent.click(await screen.findByRole('menuitem', { name: 'Delete' }));
+		const dialog = await screen.findByRole('alertdialog', { name: 'Delete this draft?' });
+		expect(listDrafts()).toHaveLength(1);
+		await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }));
 		expect(screen.queryByText('Throwaway')).not.toBeInTheDocument();
 		expect(listDrafts()).toEqual([]);
+	});
+
+	it('moves focus to the deleted draft\'s neighbour, not the top of the list', async () => {
+		saveDraft({ ...values, title: 'Oldest' });
+		saveDraft({ ...values, title: 'Middle' });
+		saveDraft({ ...values, title: 'Newest' });
+		render(<DraftList />);
+		await userEvent.click(screen.getByRole('button', { name: /More for Middle/ }));
+		await userEvent.click(await screen.findByRole('menuitem', { name: 'Delete' }));
+		await userEvent.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Delete' }));
+		await waitFor(() => expect(screen.getByRole('button', { name: /More for Oldest/ })).toHaveFocus());
+	});
+
+	it('keeps focus in place and says so when the last draft is deleted', async () => {
+		saveDraft({ ...values, title: 'Only' });
+		render(<DraftList />);
+		await userEvent.click(screen.getByRole('button', { name: /More for Only/ }));
+		await userEvent.click(await screen.findByRole('menuitem', { name: 'Delete' }));
+		await userEvent.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Delete' }));
+		await waitFor(() => expect(screen.getByText('Draft deleted')).toHaveFocus());
+	});
+
+	it('keeps the draft when the delete is cancelled', async () => {
+		saveDraft({ ...values, title: 'Keeper' });
+		render(<DraftList />);
+		await userEvent.click(screen.getByRole('button', { name: /More for Keeper/ }));
+		await userEvent.click(await screen.findByRole('menuitem', { name: 'Delete' }));
+		await userEvent.click(await screen.findByRole('button', { name: 'Cancel' }));
+		expect(screen.getByText('Keeper')).toBeInTheDocument();
+		expect(listDrafts()).toHaveLength(1);
 	});
 
 	it('fills in the Audience of a draft saved before it existed', () => {

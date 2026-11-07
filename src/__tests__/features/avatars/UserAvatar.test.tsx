@@ -21,4 +21,14 @@ describe('UserAvatar', () => {
 		const { container } = render(<UserAvatar username="mei" avatarUrl="bot:dog" />);
 		expect(container.querySelector('img')).toHaveAttribute('src', '/avatars/dog.svg');
 	});
+
+	it('draws an uploaded photo from the API path', () => {
+		const { container } = render(<UserAvatar username="mei" avatarUrl="/api/avatars/abc-123.jpg" />);
+		expect(container.querySelector('img')).toHaveAttribute('src', '/api/avatars/abc-123.jpg');
+	});
+
+	it('ignores an image URL that is not an uploaded avatar path', () => {
+		const { container } = render(<UserAvatar username="mei" avatarUrl="https://example.com/me.png" />);
+		expect(container.querySelector('img')?.getAttribute('src')).toMatch(/^\/avatars\//);
+	});
 });

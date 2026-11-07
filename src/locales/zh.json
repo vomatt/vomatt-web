@@ -116,7 +116,10 @@
 			"lost": "未獲多數"
 		},
 		"draftOptions": "{count} 個選項",
-		"draftMore": "「{title}」的更多動作"
+		"draftMore": "「{title}」的更多動作",
+		"deleteDraftTitle": "要刪除這份草稿嗎？",
+		"deleteDraftBody": "草稿只存在這個裝置上，刪除後無法復原。",
+		"draftDeleted": "草稿已刪除"
 	},
 	"explore": {
 		"title": "探索",
@@ -203,12 +206,13 @@
 		"new": "新",
 		"recordAsked": "發起的投票",
 		"recordVoted": "參與的投票",
-		"recordReached": "觸及人數",
+		"recordVotesReceived": "收到的票數",
 		"recordPicksWon": "勝出的選擇",
 		"recordAskedCount": "發起 {count} 則投票",
 		"recordVotedCount": "參與 {count} 則",
 		"tabAsked": "發起",
 		"tabVoted": "參與",
+		"tabSaved": "收藏",
 		"askedUnread": "你的投票有新結果",
 		"filterLabel": "顯示",
 		"filterAll": "全部",
@@ -220,6 +224,8 @@
 		"onlyYouSeeThese": "只有你看得到",
 		"noDrafts": "沒有草稿。可在建立投票時儲存草稿。",
 		"noVotesYet": "你參與的投票與你的選擇會顯示在這裡，只有你看得到。",
+		"noSavedYet": "你收藏的投票會顯示在這裡，結束時也會通知你。只有你看得到。",
+		"savedEmptyCta": "探索投票",
 		"showMore": "顯示更多",
 		"everyoneSees": "其他人看到的",
 		"openPublicPage": "查看公開頁面",
@@ -227,6 +233,8 @@
 		"askedNoteBody": "你發起的公開投票所有人都看得到。草稿、••• 選單與未讀標記只有你看得到。",
 		"votedNoteTitle": "你的選票只屬於你",
 		"votedNoteBody": "你的個人頁不會列出你參與的投票或你的選擇。鎖頭標示只有你看得到的內容。",
+		"savedNoteTitle": "收藏只有你知道",
+		"savedNoteBody": "收藏投票不會通知任何人。在投票卡片上收藏，就能在這裡找到，結束時也會通知你。",
 		"previewNote": "這是其他人看到的你的個人頁。",
 		"previewBack": "回到你的個人頁",
 		"moreFor": "@{username} 的更多動作",
@@ -401,9 +409,6 @@
 		"followingEmpty": "你追蹤的人還沒有投票。",
 		"followingEmptyHint": "你追蹤的人所發起的進行中投票會顯示在這裡。到對方的個人檔案即可追蹤。",
 		"followingEmptyCta": "探索投票",
-		"bookmarks": "收藏",
-		"bookmarksEmpty": "還沒有收藏的投票。",
-		"bookmarksEmptyHint": "收藏投票就能在這裡找到，結束時也會通知你。",
 		"followTopic": "追蹤主題",
 		"followingTopic": "已追蹤主題",
 		"followTopicFailed": "無法追蹤主題，請再試一次。",
@@ -547,7 +552,8 @@
 	},
 	"onboarding": {
 		"title": "你叫什麼名字？",
-		"subtitle": "之後可以在編輯個人資料中修改，並決定誰看得到。",
+		"subtitle": "只有你看得到你的名字，其他人看到的是 @{username}。兩者都可以在編輯個人資料中修改。",
+		"subtitleNoUsername": "之後可以在編輯個人資料中修改，並決定誰看得到。",
 		"saveFailed": "名字未儲存，請到編輯個人資料中新增。",
 		"finish": "完成"
 	},
@@ -556,6 +562,7 @@
 		"placeholder": "你為什麼這樣投？說說你的理由",
 		"addComment": "新增留言",
 		"post": "發佈",
+		"posting": "發佈中…",
 		"you": "你",
 		"empty": "還沒有留言，來說說你的選擇吧。",
 		"loadFailed": "無法載入留言。",
@@ -694,17 +701,23 @@
 		"change": "更換頭像",
 		"body": "加入時我們幫你挑了一個，隨時可以換。",
 		"surprise": "隨機換一個",
+		"remove": "移除頭像",
 		"save": "儲存頭像",
 		"savedToast": "頭像已更新",
 		"choose": "選擇{name}",
-		"families": {
-			"plain": "不選角色",
-			"bites": "台灣小吃",
-			"guardians": "廟宇守護",
-			"visitors": "外星訪客",
-			"animals": "島上動物",
-			"cats": "貓咪",
-			"dogs": "狗狗"
+		"upload": {
+			"button": "上傳照片",
+			"name": "你的照片",
+			"trait": "由你裁切",
+			"unsupported": "請使用 JPEG、PNG、GIF 或 BMP 圖片。",
+			"tooLarge": "照片超過 25 MB，請選較小的檔案。"
+		},
+		"crop": {
+			"title": "調整照片",
+			"body": "拖曳移動照片，用雙指、滾輪或滑桿縮放。",
+			"area": "照片取景範圍，可用方向鍵移動照片。",
+			"zoom": "縮放",
+			"use": "使用照片"
 		},
 		"none": {
 			"name": "帳號圖示",
@@ -727,10 +740,6 @@
 				"name": "鳳梨酥",
 				"trait": "咬了一口"
 			},
-			"egg": {
-				"name": "茶葉蛋",
-				"trait": "從早上滷到現在"
-			},
 			"ice": {
 				"name": "芒果冰",
 				"trait": "永康街，芒果加滿"
@@ -738,14 +747,6 @@
 			"youtiao": {
 				"name": "油條",
 				"trait": "泡進豆漿"
-			},
-			"tofu": {
-				"name": "臭豆腐",
-				"trait": "先聞到，再愛上"
-			},
-			"sausage": {
-				"name": "香腸",
-				"trait": "夜市炭烤"
 			},
 			"chip": {
 				"name": "晶片",
@@ -779,10 +780,6 @@
 				"name": "八爺",
 				"trait": "黑無常，走得兇"
 			},
-			"shi": {
-				"name": "石獅",
-				"trait": "腳踩繡球"
-			},
 			"long": {
 				"name": "龍",
 				"trait": "盤在廟頂"
@@ -791,10 +788,6 @@
 				"name": "燈籠",
 				"trait": "紅色的，掛在廟門"
 			},
-			"ding": {
-				"name": "香爐",
-				"trait": "銅鑄的那座"
-			},
 			"jiaobei": {
 				"name": "筊杯",
 				"trait": "問神明是或否"
@@ -802,10 +795,6 @@
 			"xiang": {
 				"name": "香",
 				"trait": "三炷香敬祖先"
-			},
-			"banyan": {
-				"name": "榕樹",
-				"trait": "廟口那棵老樹"
 			},
 			"gray": {
 				"name": "小灰人",
@@ -835,21 +824,9 @@
 				"name": "天蛾人",
 				"trait": "橋塌之前有人看過"
 			},
-			"blob": {
-				"name": "軟泥怪",
-				"trait": "沒有固定立場"
-			},
 			"cyclops": {
 				"name": "獨眼怪",
 				"trait": "一隻眼，一張票"
-			},
-			"probe": {
-				"name": "探測器",
-				"trait": "從 1977 年聽到現在"
-			},
-			"saucer": {
-				"name": "飛碟",
-				"trait": "只是路過"
 			},
 			"trio": {
 				"name": "三眼怪",
@@ -883,21 +860,9 @@
 				"name": "帝雉",
 				"trait": "阿里山的帝王"
 			},
-			"firefly": {
-				"name": "螢火蟲",
-				"trait": "四月的山上夜晚"
-			},
-			"crab": {
-				"name": "陸蟹",
-				"trait": "在墾丁過馬路"
-			},
 			"flyfish": {
 				"name": "飛魚",
 				"trait": "每年春天回蘭嶼"
-			},
-			"turtle": {
-				"name": "海龜",
-				"trait": "小琉球常客"
 			},
 			"dog": {
 				"name": "台灣土狗",
@@ -1015,7 +980,11 @@
 			"type_mismatch": "參數格式錯誤：{0}",
 			"invalid_status": "無效的狀態：{0}",
 			"invalid_sort": "無效的排序：{0}",
-			"cursor_invalid": "分頁 cursor 無效"
+			"cursor_invalid": "分頁 cursor 無效",
+			"file_required": "請選擇要上傳的檔案",
+			"file_read_failed": "檔案讀取失敗",
+			"file_too_large": "檔案大小超過上限（2 MB），請壓縮後重新上傳",
+			"storage_unavailable": "圖片儲存服務暫時無法使用，請稍後再試"
 		},
 		"auth": {
 			"token": {
@@ -1091,6 +1060,9 @@
 			},
 			"follow": {
 				"blocked": "不能追蹤已封鎖的使用者，請先解除封鎖"
+			},
+			"avatar": {
+				"unsupported_image": "不支援的圖片：請上傳 4000 萬像素以內的 JPEG、PNG、GIF 或 BMP"
 			}
 		},
 		"vote": {

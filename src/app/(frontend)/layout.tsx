@@ -7,9 +7,7 @@ import { headers } from 'next/headers';
 import { ReactNode, Suspense } from 'react';
 import { Toaster } from 'sonner';
 
-import BrandLogo from '@/components/BrandLogo';
 import { BrandPulse, MarkLoader } from '@/components/BrandPulse';
-import CustomPortableText from '@/components/CustomPortableText';
 import { Layout } from '@/components/layout';
 import { CookieConsent } from '@/components/layout/CookieConsent';
 import { SessionRetry } from '@/components/SessionRetry';
@@ -18,7 +16,6 @@ import { TooltipProvider } from '@/components/ui/Tooltip';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { DEFAULT_SITE_NAME, SESSION_UNCONFIRMED_HEADER } from '@/data/constants';
 import { htmlLang } from '@/i18n-config';
-import { isComingSoon } from '@/lib/comingSoon';
 import { getServerMessages } from '@/lib/getServerLocale';
 import { getSiteSettings } from '@/lib/siteSettings';
 import { buildShareImageUrl, imageBuilder } from '@/sanity/lib/image';
@@ -71,8 +68,6 @@ export async function generateMetadata() {
 			type: 'website',
 		},
 		twitter: { card: shareGraphicUrl ? 'summary_large_image' : 'summary' },
-		// Keep search engines from indexing the placeholder
-		robots: isComingSoon(data) ? { index: false, follow: false } : undefined,
 		icons: siteFaviconUrl
 			? {
 					icon: [
@@ -94,7 +89,6 @@ export default async function RootLayout({
 		getSiteSettings(),
 		headers(),
 	]);
-	const comingSoon = settings?.comingSoon;
 
 	return (
 		// next-themes sets the theme class on <html> before React hydrates
@@ -102,53 +96,35 @@ export default async function RootLayout({
 			<body className="text-foreground font-sans antialiased">
 				{/* The .dark tokens follow the system setting */}
 				<ThemeProvider>
-					{isComingSoon(settings) ? (
-						<main className="flex min-h-svh items-center justify-center px-4 py-12">
-							<div className="flex w-full max-w-[480px] flex-col items-start gap-3">
-								<div className="w-28 text-foreground">
-									<BrandLogo />
-								</div>
-								<h1 className="mt-4 text-display-1">
-									{comingSoon?.heading || 'Coming soon'}
-								</h1>
-								{comingSoon?.message && (
-									<div className="text-body-1 text-muted-foreground">
-										<CustomPortableText blocks={comingSoon.message} />
-									</div>
-								)}
-							</div>
-						</main>
-					) : (
-						<LanguageProvider
-							initialLanguage={language}
-							defaultTranslations={translations}
-						>
-							{/* Nothing of the signed-out page renders, so none of it shows through */}
-							{requestHeaders.has(SESSION_UNCONFIRMED_HEADER) ? (
-								<SessionRetry loader={<MarkLoader />} />
-							) : (
-								// A Suspense in a layout falls back on the first load only; navigations keep the
-								// current page. The cookie banner waits with the app, so it can't cover the splash.
-								<Suspense fallback={<BrandPulse />}>
-									<TooltipProvider>
-										<Layout>{children}</Layout>
-									</TooltipProvider>
-									<Toaster
-										theme="system"
-										richColors
-										closeButton
-										position="bottom-center"
-										// Above the TabBar on phones
-										offset={{ bottom: 'calc(var(--tabbar-space) + 24px)' }}
-										mobileOffset={{ bottom: 'calc(var(--tabbar-space) + 16px)' }}
-										// The 20px close button keeps its look; its hit area grows to 44px (13px past its 1px border)
-										toastOptions={{ classNames: { closeButton: "before:absolute before:-inset-[13px] before:content-['']" } }}
-									/>
-									<CookieConsent integrations={settings?.integrations} />
-								</Suspense>
-							)}
-						</LanguageProvider>
-					)}
+					<LanguageProvider
+						initialLanguage={language}
+						defaultTranslations={translations}
+					>
+						{/* Nothing of the signed-out page renders, so none of it shows through */}
+						{requestHeaders.has(SESSION_UNCONFIRMED_HEADER) ? (
+							<SessionRetry loader={<MarkLoader />} />
+						) : (
+							// A Suspense in a layout falls back on the first load only; navigations keep the
+							// current page. The cookie banner waits with the app, so it can't cover the splash.
+							<Suspense fallback={<BrandPulse />}>
+								<TooltipProvider>
+									<Layout>{children}</Layout>
+								</TooltipProvider>
+								<Toaster
+									theme="system"
+									richColors
+									closeButton
+									position="bottom-center"
+									// Above the TabBar on phones
+									offset={{ bottom: 'calc(var(--tabbar-space) + 24px)' }}
+									mobileOffset={{ bottom: 'calc(var(--tabbar-space) + 16px)' }}
+									// The 20px close button keeps its look; its hit area grows to 44px (13px past its 1px border)
+									toastOptions={{ classNames: { closeButton: "before:absolute before:-inset-[13px] before:content-['']" } }}
+								/>
+								<CookieConsent integrations={settings?.integrations} />
+							</Suspense>
+						)}
+					</LanguageProvider>
 				</ThemeProvider>
 			</body>
 		</html>

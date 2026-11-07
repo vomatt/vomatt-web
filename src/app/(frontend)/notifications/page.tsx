@@ -9,7 +9,7 @@ import { getMyProfile, redirectToLogin } from '@/data/auth';
 import {
 	NotificationList,
 	NotificationSettingsLink,
-	NotificationsHeader,
+	NotificationsSkeleton,
 } from '@/features/notifications/NotificationList';
 import {
 	type Notification,
@@ -22,7 +22,6 @@ import {
 	getNotifications,
 	getUnreadNotificationIds,
 } from '@/features/notifications/service';
-import { PollRowListSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import type { CursorPage } from '@/lib/api/cursor';
 import { getServerMessages } from '@/lib/getServerLocale';
 
@@ -52,12 +51,7 @@ export default async function NotificationsPage({ searchParams }: { searchParams
 		>
 			<div className="flex flex-col gap-5">
 				<Suspense
-					fallback={
-						<>
-							<NotificationsHeader />
-							<PollRowListSkeleton chip={false} />
-						</>
-					}
+					fallback={<NotificationsSkeleton />}
 				>
 					<Notifications
 						firstPage={firstPage}

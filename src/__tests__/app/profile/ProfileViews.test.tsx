@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { OwnProfileView } from '@/app/(frontend)/[slug]/_components/OwnProfileView';
 import { VisitorProfileView } from '@/app/(frontend)/[slug]/_components/VisitorProfileView';
 import type { Poll } from '@/features/polls/schema';
+import { META_GAP } from '@/lib/rich';
 import type { MyProfile, UserProfile } from '@/types/user';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
@@ -12,7 +13,11 @@ const mockRefresh = jest.fn();
 jest.mock('next/navigation', () => ({ useRouter: () => ({ replace: jest.fn(), refresh: mockRefresh }) }));
 jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn() } }));
 jest.mock('@/lib/api/services/users', () => ({ editProfile: jest.fn(), updateVisibility: jest.fn() }));
-jest.mock('@/features/polls/service', () => ({ getUserPolls: jest.fn() }));
+const mockGetBookmarked = jest.fn();
+jest.mock('@/features/polls/service', () => ({
+	getUserPolls: jest.fn(),
+	getBookmarkedPolls: (...a: unknown[]) => mockGetBookmarked(...a),
+}));
 const mockUnblock = jest.fn();
 jest.mock('@/features/blocks/service', () => ({ blockUser: jest.fn(), unblockUser: (...a: unknown[]) => mockUnblock(...a) }));
 const mockFollow = jest.fn();
@@ -113,7 +118,7 @@ describe('VisitorProfileView', () => {
 		expect(screen.queryByText('Taipei')).not.toBeInTheDocument();
 		expect(cell('polls asked')).toHaveTextContent('31');
 		expect(cell('polls voted in')).toHaveTextContent('204');
-		expect(screen.queryByText('people reached')).not.toBeInTheDocument();
+		expect(screen.queryByText('votes received')).not.toBeInTheDocument();
 		expect(screen.queryByRole('tab')).not.toBeInTheDocument();
 		expect(screen.getByRole('heading', { level: 2, name: 'Asked 31' })).toBeInTheDocument();
 		expect(screen.getByText('No polls yet.')).toBeInTheDocument();
@@ -234,9 +239,9 @@ describe('VisitorProfileView', () => {
 		const tie = poll('t', { options: [{ id: 'a', text: 'Yes', votes: 2 }, { id: 'b', text: 'Only in summer', votes: 2 }] });
 		render(<VisitorProfileView profile={visitor} polls={{ items: [open, poll('e'), tie], nextCursor: null }} viewerId={null} />);
 
-		expect(screen.getByRole('heading', { level: 3, name: 'Open now · 1' })).toBeInTheDocument();
-		expect(screen.getByRole('heading', { level: 3, name: 'Ended · 2' })).toBeInTheDocument();
-		expect(screen.getByRole('link', { name: /Poll e/ })).toHaveTextContent('Yes won · 4 voted');
+		expect(screen.getByRole('heading', { level: 3, name: 'Open now 1' })).toBeInTheDocument();
+		expect(screen.getByRole('heading', { level: 3, name: 'Ended 2' })).toBeInTheDocument();
+		expect(screen.getByRole('link', { name: /Poll e/ })).toHaveTextContent(`Yes won${META_GAP}4 voted`, { normalizeWhitespace: false });
 		expect(screen.getByRole('link', { name: /Poll t/ })).toHaveTextContent('Tie between Yes and Only in summer');
 
 		fireEvent.click(screen.getByRole('button', { name: 'Open' }));
@@ -253,8 +258,8 @@ describe('VisitorProfileView', () => {
 		render(<VisitorProfileView profile={visitor} polls={{ items: [open, closing, soon], nextCursor: null }} viewerId={null} />);
 		jest.useRealTimers();
 
-		expect(screen.getByRole('link', { name: /Poll o/ })).toHaveTextContent(/1,284 voted · ends Fri 20:00\s*Open$/);
-		expect(screen.getByRole('link', { name: /Poll c/ })).toHaveTextContent(/342 voted · ends in 6h\s*Closing$/);
+		expect(screen.getByRole('link', { name: /Poll o/ })).toHaveTextContent(/1,284 voted\u2003ends Fri 20:00\s*Open$/, { normalizeWhitespace: false });
+		expect(screen.getByRole('link', { name: /Poll c/ })).toHaveTextContent(/342 voted\u2003ends in 6h\s*Closing$/, { normalizeWhitespace: false });
 		expect(screen.getByRole('link', { name: /Poll s/ })).toHaveTextContent(/Opens Mon 9:00\s*Soon$/);
 	});
 
@@ -310,6 +315,7 @@ describe('VisitorProfileView', () => {
 });
 
 describe('OwnProfileView', () => {
+	beforeEach(() => mockGetBookmarked.mockReset().mockResolvedValue({ items: [], nextCursor: null }));
 	const voted = poll('v', { creatorId: 'u9', creatorUsername: 'jt', myOptionId: 'a', unread: true });
 	const sealed = poll('s', { creatorId: 'u9', votingActive: true, endTime: '2099-01-01T00:00:00Z', myOptionId: 'b', options: [{ id: 'a', text: 'Yes' }, { id: 'b', text: 'No' }] });
 	const mine = poll('m', { participantCount: 40 });
@@ -356,12 +362,20 @@ describe('OwnProfileView', () => {
 		expect(toast.error).toHaveBeenCalled();
 	});
 
-	it('adds the private record: people reached and picks that won', () => {
+	it('adds the private record: votes received and picks that won', () => {
 		render(<OwnProfileView profile={me} polls={[mine, voted]} />);
 
-		expect(cell('people reached')).toHaveTextContent('40');
+		expect(cell('votes received')).toHaveTextContent('40');
 		expect(cell('picks that won')).toHaveTextContent('100%');
 		expect(cell('picks that won')).toHaveTextContent('Only you can see this');
+	});
+
+	it("counts votes received from other people, leaving out the owner's own ballots", () => {
+		const mineVotedIn = poll('o', { participantCount: 4, myOptionId: 'a' });
+		const mineAnonymous = poll('p', { participantCount: 2, myBallotAnonymous: true });
+		render(<OwnProfileView profile={me} polls={[mine, mineVotedIn, mineAnonymous, voted]} />);
+
+		expect(cell('votes received')).toHaveTextContent('44');
 	});
 
 	it('shows the count of created polls from the API in the record', () => {
@@ -387,10 +401,10 @@ describe('OwnProfileView', () => {
 		expect(screen.queryByRole('link', { name: /Poll v/ })).not.toBeInTheDocument();
 
 		fireEvent.click(screen.getByRole('tab', { name: /Voted/ }));
-		expect(screen.getByRole('heading', { level: 3, name: 'Sealed, waiting for results · 1' })).toBeInTheDocument();
+		expect(screen.getByRole('heading', { level: 3, name: 'Sealed, waiting for results 1' })).toBeInTheDocument();
 		expect(screen.getByRole('link', { name: /Poll s/ })).toHaveTextContent('You chose No');
 		const decided = screen.getByRole('link', { name: /Poll v/ });
-		expect(decided).toHaveTextContent('You chose Yes · 4 voted · new');
+		expect(decided).toHaveTextContent(`You chose Yes${META_GAP}4 voted${META_GAP}new`, { normalizeWhitespace: false });
 		expect(decided).toHaveTextContent('Your pick won');
 	});
 
@@ -402,8 +416,8 @@ describe('OwnProfileView', () => {
 		render(<OwnProfileView profile={me} polls={[today, friday]} initialTab="voted" />);
 		jest.useRealTimers();
 
-		expect(screen.getByRole('link', { name: /Poll t/ })).toHaveTextContent('You chose No · results today at 18:00');
-		expect(screen.getByRole('link', { name: /Poll f/ })).toHaveTextContent('You chose No · results Fri 20:00');
+		expect(screen.getByRole('link', { name: /Poll t/ })).toHaveTextContent(`You chose No${META_GAP}results today at 18:00`, { normalizeWhitespace: false });
+		expect(screen.getByRole('link', { name: /Poll f/ })).toHaveTextContent(`You chose No${META_GAP}results Fri 20:00`, { normalizeWhitespace: false });
 	});
 
 	it('keeps every owner control in the row menu of an open invite-only poll', async () => {
@@ -456,9 +470,63 @@ describe('OwnProfileView', () => {
 		render(<OwnProfileView profile={me} polls={null} />);
 		expect(cell('polls asked')).toHaveTextContent('1');
 		expect(cell('polls voted in')).toHaveTextContent('–');
-		expect(cell('people reached')).toHaveTextContent('–');
+		expect(cell('votes received')).toHaveTextContent('–');
 		fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
 		expect(mockRefresh).toHaveBeenCalled();
+	});
+
+	it('loads saved polls only once the Saved tab opens, as plain links only the owner sees', async () => {
+		mockGetBookmarked.mockResolvedValue({ items: [poll('k', { creatorId: 'u9', creatorUsername: 'jt' })], nextCursor: null });
+		render(<OwnProfileView profile={me} polls={[]} />);
+		expect(mockGetBookmarked).not.toHaveBeenCalled();
+
+		const tab = screen.getByRole('tab', { name: /Saved/ });
+		expect(tab).toHaveTextContent('Only you can see this');
+		fireEvent.click(tab);
+		const row = await screen.findByRole('link', { name: /Poll k/ });
+		expect(row).toHaveAttribute('href', '/poll/k');
+		expect(screen.queryByRole('button', { name: 'More actions for Poll k' })).not.toBeInTheDocument();
+		expect(screen.getByText('Your saved polls are yours')).toBeInTheDocument();
+	});
+
+	it('keeps loaded saved polls when the owner looks at another tab and comes back', async () => {
+		mockGetBookmarked
+			.mockResolvedValueOnce({ items: [poll('k1', { creatorId: 'u9' })], nextCursor: 'c1' })
+			.mockResolvedValueOnce({ items: [poll('k2', { creatorId: 'u9' })], nextCursor: null });
+		render(<OwnProfileView profile={me} polls={[]} initialTab="saved" />);
+		fireEvent.click(await screen.findByRole('button', { name: 'Show more' }));
+		await screen.findByRole('link', { name: /Poll k2/ });
+
+		fireEvent.click(screen.getByRole('tab', { name: /Voted/ }));
+		fireEvent.click(screen.getByRole('tab', { name: /Saved/ }));
+		expect(screen.getByRole('link', { name: /Poll k2/ })).toBeInTheDocument();
+		expect(mockGetBookmarked).toHaveBeenCalledTimes(2);
+	});
+
+	it('loads the next page of saved polls on Show more', async () => {
+		mockGetBookmarked
+			.mockResolvedValueOnce({ items: [poll('k1', { creatorId: 'u9' })], nextCursor: 'c1' })
+			.mockResolvedValueOnce({ items: [poll('k2', { creatorId: 'u9' })], nextCursor: null });
+		render(<OwnProfileView profile={me} polls={[]} initialTab="saved" />);
+
+		fireEvent.click(await screen.findByRole('button', { name: 'Show more' }));
+		expect(await screen.findByRole('link', { name: /Poll k2/ })).toBeInTheDocument();
+		expect(mockGetBookmarked).toHaveBeenLastCalledWith('c1');
+		expect(screen.queryByRole('button', { name: 'Show more' })).not.toBeInTheDocument();
+	});
+
+	it('says how to fill an empty Saved tab, with a way to Explore', async () => {
+		render(<OwnProfileView profile={me} polls={[]} initialTab="saved" />);
+		expect(await screen.findByText(/Polls you save show up here/)).toBeInTheDocument();
+		expect(screen.getByRole('link', { name: 'Explore polls' })).toHaveAttribute('href', '/explore');
+	});
+
+	it("says the saved polls couldn't load, and retries just them", async () => {
+		mockGetBookmarked.mockRejectedValueOnce(new Error('down'));
+		render(<OwnProfileView profile={me} polls={[]} initialTab="saved" />);
+		fireEvent.click(await screen.findByRole('button', { name: 'Try again' }));
+		expect(await screen.findByText(/Polls you save show up here/)).toBeInTheDocument();
+		expect(mockGetBookmarked).toHaveBeenCalledTimes(2);
 	});
 
 	it('links to the public view of the page', () => {

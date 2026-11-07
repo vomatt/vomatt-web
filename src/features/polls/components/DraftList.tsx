@@ -2,13 +2,24 @@
 
 import { Menu } from '@base-ui/react/menu';
 import dynamic from 'next/dynamic';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from '@/components/ui/AlertDialog';
 import { Button } from '@/components/ui/Button';
 import { menuItemClassName, menuPopupClassName } from '@/components/ui/menu';
 import { Ellipsis, Trash2 } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { countText } from '@/lib/count';
+import { META_GAP } from '@/lib/rich';
 import { cn } from '@/lib/utils';
 
 import { deleteDraft, listDrafts, type PollDraft } from '../drafts';
@@ -34,6 +45,13 @@ export function DraftList({
 	const clock = useViewerClock();
 	const [drafts, setDrafts] = useState<PollDraft[] | null>(null);
 	const [resuming, setResuming] = useState<PollDraft | null>(null);
+	// Drafts live only in this browser, so a delete can't be taken back
+	const [deleting, setDeleting] = useState<PollDraft | null>(null);
+	// Where the deleted draft was, so focus lands on its neighbour instead of the page
+	const deletedAt = useRef<number | null>(null);
+	const [justDeleted, setJustDeleted] = useState(false);
+	const listRef = useRef<HTMLUListElement>(null);
+	const deletedNote = useRef<HTMLSpanElement>(null);
 
 	// Local storage is only readable after hydration
 	// eslint-disable-next-line react-hooks/set-state-in-effect -- reading it during render would mismatch the server HTML
@@ -46,12 +64,11 @@ export function DraftList({
 
 	// The saved day reads the viewer's clock, also only there after hydration
 	if (drafts === null || !clock) return null;
-	if (drafts.length === 0) return empty ?? null;
 
 	return (
 		<>
-			{header?.(drafts.length)}
-			<ul className="space-y-2">
+			{drafts.length === 0 ? (empty ?? null) : header?.(drafts.length)}
+			<ul ref={listRef} className="space-y-2 empty:hidden">
 				{drafts.map((draft) => {
 					const title = draft.values.title.trim();
 					// Blank option fields aren't options yet
@@ -72,7 +89,7 @@ export function DraftList({
 										!draft.values.endTime && t('myPolls.draftNoEnd'),
 									]
 										.filter(Boolean)
-										.join(' · ')}
+										.join(META_GAP)}
 								</p>
 							</div>
 							<Button size="xs" variant="outline" onClick={() => setResuming(draft)}>
@@ -80,6 +97,7 @@ export function DraftList({
 							</Button>
 							<Menu.Root>
 								<Menu.Trigger
+									data-draft-more
 									render={<Button variant="ghost" size="icon-xs" />}
 									aria-label={t('myPolls.draftMore', { title: title || t('myPolls.untitledDraft') })}
 									className="data-popup-open:bg-muted"
@@ -90,7 +108,10 @@ export function DraftList({
 									<Menu.Positioner side="bottom" align="end" sideOffset={4} className="z-50">
 										<Menu.Popup className={menuPopupClassName}>
 											<Menu.Item
-												onClick={() => setDrafts(deleteDraft(draft.id))}
+												onClick={() => {
+													deletedAt.current = null;
+													setDeleting(draft);
+												}}
 												className={cn(menuItemClassName, 'text-destructive')}
 											>
 												<Trash2 aria-hidden />
@@ -104,6 +125,42 @@ export function DraftList({
 					);
 				})}
 			</ul>
+			{justDeleted && (
+				// With no draft left to focus, focus stays here and the deletion is read out
+				<span ref={deletedNote} tabIndex={-1} className="sr-only">
+					{t('myPolls.draftDeleted')}
+				</span>
+			)}
+			<AlertDialog open={!!deleting} onOpenChange={(open) => !open && setDeleting(null)}>
+				<AlertDialogContent
+					finalFocus={() => {
+						if (deletedAt.current === null) return true;
+						const more = listRef.current?.querySelectorAll<HTMLElement>('[data-draft-more]') ?? [];
+						return more[Math.min(deletedAt.current, more.length - 1)] ?? deletedNote.current ?? true;
+					}}
+				>
+					<AlertDialogHeader>
+						<AlertDialogTitle>{t('myPolls.deleteDraftTitle')}</AlertDialogTitle>
+						<AlertDialogDescription>{t('myPolls.deleteDraftBody')}</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+						<AlertDialogAction
+							variant="destructive"
+							onClick={() => {
+								if (deleting) {
+									deletedAt.current = drafts.findIndex((draft) => draft.id === deleting.id);
+									setDrafts(deleteDraft(deleting.id));
+									setJustDeleted(true);
+								}
+								setDeleting(null);
+							}}
+						>
+							{t('common.delete')}
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 			{resuming && (
 				<PollCreator
 					key={resuming.id}

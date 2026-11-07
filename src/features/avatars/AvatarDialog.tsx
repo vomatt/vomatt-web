@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import dynamic from 'next/dynamic';
+import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/Button';
@@ -19,19 +20,25 @@ import { apiErrorText } from '@/lib/api/error-text';
 import { cn } from '@/lib/utils';
 
 import {
+	AVATAR_PICK_MAX_BYTES,
+	AVATAR_UPLOAD_TYPES,
 	type AvatarChoice,
 	avatarCopyKey,
-	BOT_FAMILIES,
 	BOT_KINDS,
-	type BotFamily,
+	type BotKind,
 	NO_BOT,
 	resolveAvatar,
+	uploadedAvatarSrc,
 } from './catalog';
 import { chooseAvatar } from './service';
-import { ChosenAvatar } from './UserAvatar';
+import { ChosenAvatar, UploadedAvatar } from './UserAvatar';
 
-const TILE_GRID =
-	'grid grid-cols-[repeat(auto-fill,minmax(44px,1fr))] gap-1.5 md:grid-cols-[repeat(auto-fill,minmax(72px,1fr))] md:gap-2';
+// Profiles render this dialog for every visit; the cropper's code loads only once a photo is being picked
+const loadCropStage = () => import('./CropStage').then((module) => module.CropStage);
+const CropStage = dynamic(loadCropStage, {
+	ssr: false,
+	loading: () => <div className="aspect-square w-full rounded-xl bg-field" />,
+});
 
 /**
  * The owner's avatar, opening the cast to choose from. Size comes from `className`, as on `UserAvatar`.
@@ -48,9 +55,14 @@ export function AvatarDialog({
 	const { t } = useLanguage();
 	const [open, setOpen] = useState(false);
 	// What everyone sees now; saving refreshes the page, which passes the new avatarUrl
-	const saved = resolveAvatar(username, avatarUrl);
-	const [selected, setSelected] = useState<AvatarChoice>(saved);
+	const savedUpload = uploadedAvatarSrc(avatarUrl);
+	// null while the uploaded photo is what's kept
+	const saved: AvatarChoice | null = savedUpload ? null : resolveAvatar(username, avatarUrl);
+	const [selected, setSelected] = useState<AvatarChoice | null>(saved);
 	const [isSaving, setIsSaving] = useState(false);
+	// The photo being framed; null while choosing from the cast
+	const [cropFile, setCropFile] = useState<File | null>(null);
+	const fileInput = useRef<HTMLInputElement>(null);
 	// Tile tooltips stay inside the scrolling grid, so they flip or shift rather than cover the header
 	const [grid, setGrid] = useState<HTMLDivElement | null>(null);
 	const unchanged = selected === saved;
@@ -61,6 +73,18 @@ export function AvatarDialog({
 		setOpen(next);
 	};
 
+	const pickFile = (file: File) => {
+		if (file.size === 0 || !AVATAR_UPLOAD_TYPES.includes(file.type)) {
+			toast.error(t('avatar.upload.unsupported'), { duration: Infinity });
+			return;
+		}
+		if (file.size > AVATAR_PICK_MAX_BYTES) {
+			toast.error(t('avatar.upload.tooLarge'), { duration: Infinity });
+			return;
+		}
+		setCropFile(file);
+	};
+
 	const surprise = () => {
 		const others = BOT_KINDS.filter((kind) => kind !== selected);
 		setSelected(others[Math.floor(Math.random() * others.length)]);
@@ -68,7 +92,7 @@ export function AvatarDialog({
 
 	const save = async () => {
 		// Enabled even when unchanged, so it never drops focus; nothing to save just closes
-		if (unchanged) {
+		if (unchanged || selected === null) {
 			setOpen(false);
 			return;
 		}
@@ -89,7 +113,7 @@ export function AvatarDialog({
 		}
 	};
 
-	const renderTile = (kind: AvatarChoice) => (
+	const renderTile = (kind: BotKind) => (
 		<button
 			key={kind}
 			type="button"
@@ -117,67 +141,121 @@ export function AvatarDialog({
 	);
 
 	return (
-		<Dialog open={open} onOpenChange={openChange}>
+		<Dialog
+			open={open}
+			onOpenChange={openChange}
+			// Cleared once the close animation ends, so the photo isn't held and the next visit starts at the cast
+			onOpenChangeComplete={(isOpen) => !isOpen && setCropFile(null)}
+		>
 			<DialogTrigger
 				aria-label={t('avatar.change')}
 				className="group relative shrink-0 rounded-full outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:outline-solid"
 			>
-				<ChosenAvatar
-					kind={saved}
-					className={cn('transition-opacity group-hover:opacity-80', className)}
-				/>
+				{savedUpload ? (
+					<UploadedAvatar src={savedUpload} className={cn('transition-opacity group-hover:opacity-80', className)} />
+				) : (
+					<ChosenAvatar
+						kind={saved ?? NO_BOT}
+						className={cn('transition-opacity group-hover:opacity-80', className)}
+					/>
+				)}
 				<span className="absolute -right-0.5 -bottom-0.5 flex size-6 items-center justify-center rounded-full border border-border bg-card text-foreground">
 					<Pencil size={12} aria-hidden />
 				</span>
 			</DialogTrigger>
 			<DialogContent
 				closeLabel={t('common.close')}
-				className="max-h-[calc(100dvh-2rem)] grid-rows-[auto_auto_minmax(0,1fr)_auto] sm:max-w-md md:max-w-2xl"
+				className={cn(
+					'max-h-[calc(100dvh-2rem)] sm:max-w-md',
+					!cropFile && 'grid-rows-[auto_auto_minmax(0,1fr)_auto] md:max-w-2xl'
+				)}
 			>
-				<DialogHeader>
-					<DialogTitle>{t('avatar.title')}</DialogTitle>
-					<DialogDescription>{t('avatar.body')}</DialogDescription>
-				</DialogHeader>
+				{cropFile ? (
+					<>
+						{/* Here rather than in CropStage, so the dialog keeps its name while that code loads */}
+						<DialogHeader>
+							<DialogTitle>{t('avatar.crop.title')}</DialogTitle>
+							<DialogDescription>{t('avatar.crop.body')}</DialogDescription>
+						</DialogHeader>
+						<CropStage file={cropFile} onCancel={() => setCropFile(null)} onDone={() => setOpen(false)} />
+					</>
+				) : (
+					<>
+						<DialogHeader>
+							<DialogTitle>{t('avatar.title')}</DialogTitle>
+							<DialogDescription>{t('avatar.body')}</DialogDescription>
+						</DialogHeader>
 
-				<div className="flex items-center gap-4">
-					<ChosenAvatar
-						kind={selected}
-						className="size-16 md:size-28"
-					/>
-					<div className="min-w-0 flex-1" aria-live="polite">
-						<p className="font-medium md:text-body-1">
-							{t(`${avatarCopyKey(selected)}.name`)}
-						</p>
-						<p className="text-caption-2 text-muted-foreground">
-							{t(`${avatarCopyKey(selected)}.trait`)}
-						</p>
-					</div>
-					<Button variant="outline" size="sm" onClick={surprise}>
-						{t('avatar.surprise')}
-					</Button>
-				</div>
-
-				<div ref={setGrid} className="-mx-4 space-y-5 overflow-y-auto overscroll-contain px-4 pb-1">
-					{/* No character first, as its own group, then the cast */}
-					<div className="space-y-2">
-						<p className="text-caption-3 text-muted-foreground">{t('avatar.families.plain')}</p>
-						<div className={TILE_GRID}>{renderTile(NO_BOT)}</div>
-					</div>
-					{(Object.keys(BOT_FAMILIES) as BotFamily[]).map((family) => (
-						<div key={family} className="space-y-2">
-							<p className="text-caption-3 text-muted-foreground">
-								{t(`avatar.families.${family}`)}
-							</p>
-							<div className={TILE_GRID}>{BOT_FAMILIES[family].map(renderTile)}</div>
+						<div className="flex flex-wrap items-center gap-4">
+							{selected === null && savedUpload ? (
+								<UploadedAvatar src={savedUpload} className="size-16 md:size-28" />
+							) : (
+								<ChosenAvatar kind={selected ?? NO_BOT} className="size-16 md:size-28" />
+							)}
+							<div className="min-w-0 flex-1" aria-live="polite">
+								<p className="font-medium md:text-body-1">
+									{selected === null ? t('avatar.upload.name') : t(`${avatarCopyKey(selected)}.name`)}
+								</p>
+								<p className="text-caption-2 text-muted-foreground">
+									{selected === null ? t('avatar.upload.trait') : t(`${avatarCopyKey(selected)}.trait`)}
+								</p>
+							</div>
+							<div className="grid w-full grid-cols-2 gap-2 *:whitespace-normal md:flex md:w-auto">
+								<input
+									ref={fileInput}
+									type="file"
+									accept={AVATAR_UPLOAD_TYPES.join(',')}
+									hidden
+									data-testid="avatar-file"
+									onChange={(event) => {
+										const file = event.target.files?.[0];
+										// Cleared so choosing the same file again still fires
+										event.target.value = '';
+										if (file) pickFile(file);
+									}}
+								/>
+								<Button
+									variant="outline"
+									size="sm"
+									disabled={isSaving}
+									className="col-span-2"
+									onClick={() => {
+										// Fetched while the file chooser is open, so the crop step opens without a wait
+										void loadCropStage();
+										fileInput.current?.click();
+									}}
+								>
+									{t('avatar.upload.button')}
+								</Button>
+								<Button variant="outline" size="sm" onClick={surprise}>
+									{t('avatar.surprise')}
+								</Button>
+								<Button
+									variant="outline"
+									size="sm"
+									// Keeps focus once used; pointer-events-none drops the hover on the disabled look
+									disabled={selected === NO_BOT}
+									focusableWhenDisabled
+									onClick={() => setSelected(NO_BOT)}
+									className="aria-disabled:pointer-events-none"
+								>
+									{t('avatar.remove')}
+								</Button>
+							</div>
 						</div>
-					))}
-				</div>
 
-				<DialogFooter showCloseButton closeLabel={t('common.close')}>
-					<Button onClick={save} loading={isSaving}>
-						{t('avatar.save')}
-					</Button>
-				</DialogFooter>
+						<div ref={setGrid} className="-mx-4 overflow-y-auto overscroll-contain px-4 pb-1">
+							{/* Six and ten across, so the cast of 60 fills every row */}
+							<div className="grid grid-cols-6 gap-1.5 md:grid-cols-10 md:gap-2">{BOT_KINDS.map(renderTile)}</div>
+						</div>
+
+						<DialogFooter showCloseButton closeLabel={t('common.close')}>
+							<Button onClick={save} loading={isSaving}>
+								{t('avatar.save')}
+							</Button>
+						</DialogFooter>
+					</>
+				)}
 			</DialogContent>
 		</Dialog>
 	);

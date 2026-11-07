@@ -51,11 +51,10 @@ describe('HomepageHeader', () => {
 		expect(screen.queryByRole('navigation', { name: 'Legal' })).not.toBeInTheDocument();
 	});
 
-	it('adds a Saved topic for signed-in viewers, marked on its own page', () => {
-		render(<HomepageHeader tags={tags} signedIn saved />);
-		expect(screen.getByRole('link', { name: 'Saved' })).toHaveAttribute('href', '/following/saved');
-		expect(screen.getByRole('link', { name: 'Saved' })).toHaveAttribute('aria-current', 'page');
-		expect(screen.getByRole('link', { name: 'For you' })).not.toHaveAttribute('aria-current');
+	it('keeps Saved off the feed: it lives on the profile', () => {
+		render(<HomepageHeader tags={tags} signedIn />);
+		expect(screen.getByRole('link', { name: 'Following' })).toHaveAttribute('href', '/following');
+		expect(screen.queryByRole('link', { name: 'Saved' })).not.toBeInTheDocument();
 	});
 
 	it('offers Follow on a topic page and follows it at once', async () => {

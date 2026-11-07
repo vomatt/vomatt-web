@@ -2,6 +2,9 @@ import { render, screen, within } from '@testing-library/react';
 
 import { MoreFromAuthor } from '@/features/polls/components/MoreFromAuthor';
 import type { Poll } from '@/features/polls/schema';
+import { META_GAP } from '@/lib/rich';
+
+import { keepGaps } from '../../helpers/keepGaps';
 
 jest.mock('next/link', () => {
 	return function MockLink({ children, href }: { children: React.ReactNode; href: string }) {
@@ -33,11 +36,11 @@ describe('MoreFromAuthor', () => {
 		const card = screen.getByRole('region', { name: 'More from @amira' });
 		const link = within(card).getByRole('link', { name: /Fortnightly street cleaning\?/ });
 		expect(link).toHaveAttribute('href', '/poll/poll-2');
-		expect(within(link).getByText('ended · 611 voted')).toBeInTheDocument();
+		expect(within(link).getByText(`ended${META_GAP}611 voted`, keepGaps)).toBeInTheDocument();
 	});
 
 	it('says when an Open Poll ends beside its turnout', () => {
 		render(<MoreFromAuthor username="amira" polls={[{ ...ended, endTime: iso(2 * HOUR + 60_000), participantCount: 96 }]} />);
-		expect(screen.getByText('ends in 2h · 96 voted')).toBeInTheDocument();
+		expect(screen.getByText(`ends in 2h${META_GAP}96 voted`, keepGaps)).toBeInTheDocument();
 	});
 });

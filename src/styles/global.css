@@ -110,11 +110,12 @@
 	--create-hover: var(--primary-hover);
 	--create-foreground: var(--primary-foreground);
 	--create-icon: var(--highlight);
-	/* One lightness and chroma, so the chips read as one family */
+	/* The live states share one lightness and chroma, so they read as one family. Ended is a cool
+	   neutral, the one state that asks for nothing, a step darker than secondary so it never reads as a disabled fill */
 	--status-scheduled: oklch(0.925 0.03 304.8);
 	--status-open: oklch(0.925 0.03 141.4);
 	--status-closing: oklch(0.925 0.03 52.7);
-	--status-ended: oklch(0.925 0.03 86.1);
+	--status-ended: oklch(0.9 0.008 265);
 	/* A poll card's chip while it can still be voted on, and the stamp on a winning result */
 	--status-open-ends: oklch(0.925 0.03 354.5);
 	--elected: oklch(0.605 0.235 27.3);
@@ -172,40 +173,41 @@ html:has([data-slot='tabs-list'][data-sticky], [data-sticky-bar]) {
 }
 
 .dark {
-	/* Night keeps Daylight's cool neutral (one step of chroma, never a navy canvas): cards lift by
-	   surface, lines stay quiet, text is near white. The button is a true white and Volt sits two steps
-	   below it, so the two never read as one light; ink on Volt is the canvas */
-	--background: oklch(0.165 0.012 265);
-	--foreground: oklch(0.96 0.006 265);
-	--card: oklch(0.205 0.012 265);
-	--card-foreground: oklch(0.96 0.006 265);
-	--popover: oklch(0.205 0.012 265);
-	--popover-foreground: oklch(0.96 0.006 265);
-	--primary: oklch(0.97 0.004 265);
-	--primary-hover: oklch(0.89 0.008 265);
-	--primary-foreground: oklch(0.165 0.012 265);
-	--secondary: oklch(0.265 0.012 265);
-	--secondary-foreground: oklch(0.96 0.006 265);
-	--muted: oklch(0.245 0.012 265);
-	--muted-foreground: oklch(0.72 0.02 265);
-	--accent: oklch(0.245 0.012 265);
-	--accent-foreground: oklch(0.96 0.006 265);
+	/* Night keeps Daylight's cool neutral (one step of chroma, never a navy canvas). Cards, lines and
+	   outline pills separate by at least the ratios they have by day, and text is off-white rather than
+	   white, so it doesn't glare. The button sits above Volt in lightness, so the two never read as one
+	   light; ink on Volt is the canvas. Tints (Volt, Tide) sit above the card and clear of muted hovers */
+	--background: oklch(0.155 0.012 265);
+	--foreground: oklch(0.925 0.006 265);
+	--card: oklch(0.215 0.012 265);
+	--card-foreground: oklch(0.925 0.006 265);
+	--popover: oklch(0.215 0.012 265);
+	--popover-foreground: oklch(0.925 0.006 265);
+	--primary: oklch(0.94 0.006 265);
+	--primary-hover: oklch(0.87 0.008 265);
+	--primary-foreground: oklch(0.155 0.012 265);
+	--secondary: oklch(0.28 0.012 265);
+	--secondary-foreground: oklch(0.925 0.006 265);
+	--muted: oklch(0.26 0.012 265);
+	--muted-foreground: oklch(0.745 0.018 265);
+	--accent: oklch(0.26 0.012 265);
+	--accent-foreground: oklch(0.925 0.006 265);
 	--destructive: oklch(0.771 0.104 25);
 	--alert: oklch(0.55 0.19 27);
 	--alert-foreground: oklch(0.985 0.002 265);
-	--border: oklch(0.265 0.014 265);
-	--border-strong: oklch(0.34 0.016 265);
+	--border: oklch(0.30 0.014 265);
+	--border-strong: oklch(0.385 0.016 265);
 	--input: oklch(0.58 0.02 265);
 	--ring: oklch(0.72 0.14 252);
-	--surface-soft: oklch(0.185 0.012 265);
+	--surface-soft: oklch(0.19 0.012 265);
 	--overlay: oklch(0.1 0.01 265 / 0.6);
 	--overlay-strong: oklch(0.1 0.01 265 / 0.8);
-	--field: oklch(0.245 0.012 265);
+	--field: oklch(0.26 0.012 265);
 	--highlight: oklch(0.86 0.165 118);
-	--highlight-foreground: oklch(0.165 0.012 265);
-	--highlight-tint: oklch(0.255 0.04 120);
+	--highlight-foreground: oklch(0.155 0.012 265);
+	--highlight-tint: oklch(0.275 0.04 120);
 	--tide: oklch(0.74 0.09 185);
-	--tide-tint: oklch(0.235 0.025 190);
+	--tide-tint: oklch(0.245 0.025 190);
 	--tide-line: oklch(0.40 0.05 185);
 	/* White words in the Seal; the teal stays on its ring and line */
 	--tide-foreground: var(--foreground);
@@ -216,10 +218,10 @@ html:has([data-slot='tabs-list'][data-sticky], [data-sticky-bar]) {
 	--status-scheduled: oklch(0.30 0.045 304.8);
 	--status-open: oklch(0.30 0.045 145.4);
 	--status-closing: oklch(0.30 0.045 50.7);
-	--status-ended: oklch(0.30 0.045 86.1);
+	--status-ended: oklch(0.34 0.008 265);
 	--status-open-ends: oklch(0.30 0.045 354.5);
 	--elected: oklch(0.66 0.2 27);
-	--sidebar: oklch(0.145 0.012 265);
+	--sidebar: oklch(0.135 0.012 265);
 	--sidebar-foreground: var(--foreground);
 	--sidebar-primary: var(--primary);
 	--sidebar-primary-foreground: var(--primary-foreground);
@@ -271,9 +273,8 @@ html:has([data-slot='tabs-list'][data-sticky], [data-sticky-bar]) {
 	--text-caption-3--line-height: calc(1 / 0.75);
 	--text-caption-4: 0.625rem;
 
-	/* Tracking for small titles and uppercase labels, beside Tailwind's own steps */
+	/* Tracking for small titles, beside Tailwind's own steps */
 	--tracking-title: -0.01em;
-	--tracking-label: 0.06em;
 }
 
 @theme inline {

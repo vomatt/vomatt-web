@@ -4,13 +4,14 @@ import Link from 'next/link';
 import { useId } from 'react';
 
 import { useLanguage } from '@/contexts/LanguageContext';
+import { META_GAP } from '@/lib/rich';
 
 import { useViewerClock } from '../hooks/useViewerClock';
 import type { Poll } from '../schema';
 import { derivePollStatus, getTurnout } from '../status';
 import { pollTiming } from '../timing';
 
-/** The poll page's rail card of the author's other Polls: "ended · 611 voted", "ends Fri 20:00 · 96 voted". */
+/** The poll page's rail card of the author's other Polls: "ended" + gap + "611 voted", "ends Fri 20:00" + gap + "96 voted". */
 export function MoreFromAuthor({ username, polls }: { username: string; polls: Poll[] }) {
 	const { t } = useLanguage();
 	const clock = useViewerClock();
@@ -18,7 +19,7 @@ export function MoreFromAuthor({ username, polls }: { username: string; polls: P
 
 	return (
 		<section aria-labelledby={headingId} className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5">
-			<h2 id={headingId} className="text-caption-1 font-semibold uppercase tracking-label text-muted-foreground">
+			<h2 id={headingId} className="text-caption-1 font-medium text-muted-foreground">
 				{t('pollDetail.moreFrom', { username })}
 			</h2>
 			<ul className="-mx-2 -my-1.5">
@@ -38,7 +39,7 @@ export function MoreFromAuthor({ username, polls }: { username: string; polls: P
 									{poll.title}
 								</span>
 								<span className="text-caption-1 text-muted-foreground tabular-nums">
-									{when ? `${when} · ${turnout}` : turnout}
+									{when ? `${when}${META_GAP}${turnout}` : turnout}
 								</span>
 							</Link>
 						</li>

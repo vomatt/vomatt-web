@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { countText } from '@/lib/count';
+import { META_GAP } from '@/lib/rich';
 import { cn } from '@/lib/utils';
 
 import { type ActionResult, isSealed } from '../errors';
@@ -191,7 +192,7 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }:
 									{/* On phones the count takes its own line, so a long one doesn't squeeze the option */}
 									<span aria-hidden className="text-muted-foreground max-sm:block">
 										{votes}
-										<span className="max-sm:hidden"> · </span>
+										<span className="max-sm:hidden">{META_GAP}</span>
 									</span>
 									<CountUp value={percent} delay={delay} />
 								</span>

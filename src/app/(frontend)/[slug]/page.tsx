@@ -50,7 +50,7 @@ export default async function PageSlugRoute(props: Props) {
 	if (isOwnUsername(me, username) && view !== 'public') {
 		return (
 			<Suspense fallback={<ProfileSkeleton />}>
-				<OwnProfile profile={me} initialTab={tab === 'voted' ? 'voted' : 'asked'} openEdit={edit === '1'} />
+				<OwnProfile profile={me} initialTab={tab === 'voted' || tab === 'saved' ? tab : 'asked'} openEdit={edit === '1'} />
 			</Suspense>
 		);
 	}

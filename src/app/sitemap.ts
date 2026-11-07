@@ -3,9 +3,7 @@ import type { MetadataRoute } from 'next';
 import type { Poll } from '@/features/polls/schema';
 import { getPolls } from '@/features/polls/service';
 import { MAX_PAGE_SIZE } from '@/lib/api/cursor';
-import { isComingSoon } from '@/lib/comingSoon';
 import { pollHref, siteUrl } from '@/lib/routes';
-import { getSiteSettings } from '@/lib/siteSettings';
 
 /** An Ended Poll changed when it ended: its counts were sealed until then. */
 function lastModified(poll: Poll) {
@@ -17,9 +15,6 @@ function lastModified(poll: Poll) {
 // About and the legal pages moved to the about site. Lists only hold public Polls;
 // a failed list leaves its Polls out rather than failing the sitemap
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-	// Every page is the noindex placeholder until launch
-	if (isComingSoon(await getSiteSettings())) return [];
-
 	const pages = await Promise.all(
 		(['open', 'ended'] as const).map((status) =>
 			getPolls({ status }, null, MAX_PAGE_SIZE).catch(() => null)

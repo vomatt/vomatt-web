@@ -34,7 +34,7 @@ import { cn } from '@/lib/utils';
 
 import { chipClassName } from '../chip';
 import { formatFromNow } from '../format';
-import type { CommentsState } from '../hooks/useComments';
+import type { CommentsState, PendingAuthor } from '../hooks/useComments';
 import type { Comment } from '../schema';
 import { CreateCommentRequestSchema } from '../schema';
 import { pollUrl } from '../url';
@@ -196,6 +196,18 @@ export function CommentThread({ thread, pollId, viewerId, viewer, requireAuth, r
 		if (!target || !activeTarget) replyDraft.write('');
 		setReplyTarget(target);
 	};
+	// A failed Reply reopens its composer with the text, unless the viewer has opened another meanwhile
+	const openTarget = useRef(activeTarget);
+	useEffect(() => {
+		openTarget.current = activeTarget;
+	});
+	const restoreReply = (target: ReplyTarget, text: string) => {
+		if (openTarget.current) return;
+		replyDraft.write(text);
+		setReplyTarget(target);
+	};
+	// How the viewer's pending comments show them, so nothing changes once they are saved
+	const me: PendingAuthor = { author: viewer?.username ?? t('comments.you'), authorAvatarUrl: viewer?.avatarUrl, userId: viewerId };
 
 	return (
 		// tabIndex lets focus land here after a comment is deleted
@@ -222,7 +234,7 @@ export function CommentThread({ thread, pollId, viewerId, viewer, requireAuth, r
 				className="gap-3"
 				requireAuth={requireAuth}
 				onPost={async (text) => {
-					const result = await thread.add(text, t('comments.you'));
+					const result = await thread.add(text, me);
 					if (!result.ok) toast.error(apiErrorText(t, result, 'comments.postFailed'));
 					return result.ok;
 				}}
@@ -267,6 +279,8 @@ export function CommentThread({ thread, pollId, viewerId, viewer, requireAuth, r
 											replyTarget={activeTarget?.rootId === comment.id ? activeTarget : null}
 											replyDraft={replyDraft}
 											onReplyTargetChange={changeReplyTarget}
+											onReplyFailed={restoreReply}
+											me={me}
 										/>
 									</div>
 								</Unfold>
@@ -376,7 +390,8 @@ function Composer({
 			setText('');
 			const ok = await onPost(addressee ? `@${addressee} ${trimmed}` : trimmed);
 			setIsPosting(false);
-			if (!ok) setText(trimmed);
+			// An inline composer folded as it posted; CommentItem brings its text back
+			if (!ok && !isInline) setText(trimmed);
 		});
 	};
 
@@ -404,7 +419,9 @@ function Composer({
 							{t('comments.replyingTo')} <span className="text-foreground">{addressee}</span>
 						</span>
 						{replyTarget?.reply?.text && (
-							<span className="min-w-0 flex-1 truncate">· {splitAddressee(replyTarget.reply.text).text}</span>
+							<span className="min-w-0 flex-1 truncate">
+								{t('notifications.excerpt', { text: splitAddressee(replyTarget.reply.text).text })}
+							</span>
 						)}
 						<button
 							type="button"
@@ -475,12 +492,16 @@ function CommentItem({
 	replyTarget,
 	replyDraft,
 	onReplyTargetChange,
+	onReplyFailed,
+	me,
 }: CommentItemProps & {
 	viewer?: Viewer;
 	/** The open inline Reply composer, when it answers this Comment or one of its Replies. */
 	replyTarget: ReplyTarget | null;
 	replyDraft: Draft;
 	onReplyTargetChange: (target: ReplyTarget | null) => void;
+	onReplyFailed: (target: ReplyTarget, text: string) => void;
+	me: PendingAuthor;
 }) {
 	const { t } = useLanguage();
 	const replyList = thread.replies[comment.id];
@@ -563,12 +584,24 @@ function CommentItem({
 				requireAuth={requireAuth}
 				onCancel={() => onReplyTargetChange(null)}
 				onPost={async (text) => {
-					// Show the thread the Reply lands in
+					// Show the thread the Reply lands in; the pending Reply stands in for the composer, which
+					// folds now and comes back only if the post fails
 					setIsHidden(false);
-					if (!replyList && replyCount > 0) await thread.loadReplies(comment.id);
-					const result = await thread.add(text, t('comments.you'), comment.id);
-					if (result.ok) onReplyTargetChange(null);
-					else toast.error(apiErrorText(t, result, 'comments.postFailed'));
+					// Focus leaves with the composer, so it goes to the Reply that opened it
+					if (document.activeElement?.closest('form')) {
+						document
+							.getElementById(`comment-${replyTarget.reply?.id ?? comment.id}`)
+							?.querySelector<HTMLButtonElement>('[data-reply-action]')
+							?.focus();
+					}
+					onReplyTargetChange(null);
+					if (!replyList && replyCount > 0) thread.loadReplies(comment.id);
+					const result = await thread.add(text, me, comment.id);
+					if (!result.ok) {
+						// The composer names the addressee apart from the text
+						onReplyFailed(replyTarget, replyTarget.reply?.author ? splitAddressee(text).text : text);
+						toast.error(apiErrorText(t, result, 'comments.postFailed'));
+					}
 					return result.ok;
 				}}
 			/>
@@ -803,7 +836,14 @@ function CommentBody({
 	};
 
 	return (
-		<div className={cn('flex min-w-0 flex-1 flex-col gap-1', isPending && 'opacity-60', className)}>
+		// A pending comment dims and says it is posting only once the post takes a moment, so a quick one doesn't flicker
+		<div
+			className={cn(
+				'flex min-w-0 flex-1 flex-col gap-1 transition-opacity duration-200 ease-out',
+				isPending && 'opacity-60 delay-400 starting:opacity-100',
+				className
+			)}
+		>
 			<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-caption-3 text-muted-foreground">
 				{isPending ? (
 					<span className="text-caption-1 font-medium text-foreground">{author}</span>
@@ -821,6 +861,8 @@ function CommentBody({
 				)}
 				{isEditing ? (
 					<span>{t('comments.editing')}</span>
+				) : isPending ? (
+					<span className="transition-opacity duration-200 delay-400 starting:opacity-0">{t('comments.posting')}</span>
 				) : (
 					<>
 						<time dateTime={comment.createdAt}>
@@ -879,8 +921,12 @@ function CommentBody({
 				</>
 			)}
 
-			{!isPending && !isEditing && (
-				<div className="-ml-2.5 mt-0.5 flex items-center gap-0.5">
+			{/* Held in place while pending, so the comment doesn't grow once it is saved */}
+			{!isEditing && (
+				<div
+					inert={isPending}
+					className={cn('-ml-2.5 mt-0.5 flex items-center gap-0.5 transition-opacity duration-200', isPending && 'opacity-0')}
+				>
 					<button
 						type="button"
 						aria-pressed={!!comment.likedByCurrentUser}
@@ -903,6 +949,7 @@ function CommentBody({
 					<button
 						type="button"
 						aria-pressed={replying}
+						data-reply-action
 						onClick={onReply}
 						className={cn(pillClassName, replying && 'text-foreground')}
 					>

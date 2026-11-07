@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 
 import { EmptyCard } from '@/components/EmptyCard';
 import { FilterPills } from '@/components/FilterPills';
@@ -15,13 +15,15 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { isFieldPublic, VISIBILITY_FIELDS } from '@/features/account/visibility';
 import { type FollowList, FollowListDialog } from '@/features/follows/FollowListDialog';
 import { formatUnreadCount } from '@/features/notifications/UnreadCountProvider';
-import { UnreadDot } from '@/features/notifications/UnreadDot';
 import { CreatePollTrigger } from '@/features/polls/components/CreatePollTrigger';
 import { DraftList } from '@/features/polls/components/DraftList';
+import { PollRowListSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import type { Poll } from '@/features/polls/schema';
-import { getTurnout } from '@/features/polls/status';
-import { askedPolls, picksWonRate, splitAsked, splitVoted, votedPolls } from '@/features/profiles/lists';
+import { getBookmarkedPolls } from '@/features/polls/service';
+import { askedPolls, picksWonRate, splitAsked, splitVoted, votedPolls, votesReceived } from '@/features/profiles/lists';
 import { AskedRow, ProfileSection, VotedRow } from '@/features/profiles/ProfileRows';
+import { useCursorList } from '@/hooks/useCursorList';
+import type { CursorPage } from '@/lib/api/cursor';
 import type { MyProfile } from '@/types/user';
 
 import EditProfileDialog from './EditProfileDialog';
@@ -30,15 +32,21 @@ import { ProfileRecord } from './ProfileRecord';
 import { PublicPreview } from './PublicPreview';
 import { ShowMore, usePaged } from './ShowMore';
 
-export type ProfileTab = 'asked' | 'voted';
+export type ProfileTab = 'asked' | 'voted' | 'saved';
 type AskedFilter = 'all' | 'drafts' | 'open' | 'ended';
 type VotedFilter = 'all' | 'sealed' | 'decided';
 
+const TAB_NOTES = {
+	asked: { title: 'profile.askedNoteTitle', body: 'profile.askedNoteBody' },
+	voted: { title: 'profile.votedNoteTitle', body: 'profile.votedNoteBody' },
+	saved: { title: 'profile.savedNoteTitle', body: 'profile.savedNoteBody' },
+} satisfies Record<ProfileTab, { title: string; body: string }>;
+
 /**
- * The owner's profile: their record, and two lists one at a time. Asked holds
+ * The owner's profile: their record, and three lists one at a time. Asked holds
  * their polls (drafts and the ••• controls are theirs alone); Voted holds the
- * polls they voted in and what they chose, which only they ever see. Beside it,
- * from `xl`, what everyone else sees.
+ * polls they voted in and what they chose; Saved holds the polls they bookmarked.
+ * Only they ever see Voted and Saved. Beside it, from `xl`, what everyone else sees.
  */
 export function OwnProfileView({
 	profile,
@@ -56,6 +64,8 @@ export function OwnProfileView({
 	const { t } = useLanguage();
 	const router = useRouter();
 	const [tab, setTab] = useState<ProfileTab>(initialTab);
+	// Saved loads on first open, then stays mounted so its pages survive a look at another tab
+	const [savedOpened, setSavedOpened] = useState(initialTab === 'saved');
 	const [askedFilter, setAskedFilter] = useState<AskedFilter>('all');
 	const [votedFilter, setVotedFilter] = useState<VotedFilter>('all');
 	const [list, setList] = useState<FollowList | null>(null);
@@ -84,9 +94,9 @@ export function OwnProfileView({
 					<TidePanel className="p-3.5 text-caption-1 leading-relaxed">
 						<p className="mb-1 flex items-center gap-1.5 font-medium">
 							<Lock aria-hidden className="size-3.5 shrink-0 text-tide" />
-							{t(tab === 'voted' ? 'profile.votedNoteTitle' : 'profile.askedNoteTitle')}
+							{t(TAB_NOTES[tab].title)}
 						</p>
-						<p>{t(tab === 'voted' ? 'profile.votedNoteBody' : 'profile.askedNoteBody')}</p>
+						<p>{t(TAB_NOTES[tab].body)}</p>
 					</TidePanel>
 				</aside>
 			}
@@ -130,39 +140,54 @@ export function OwnProfileView({
 						// Not votedPollCount: it counts Ballots on the owner's own polls, which the Voted tab leaves out
 						{ label: t('profile.recordVoted'), value: polls ? voted.length : null },
 						{
-							label: t('profile.recordReached'),
-							value: polls ? asked.reduce((sum, poll) => sum + (getTurnout(poll) ?? 0), 0) : null,
+							label: t('profile.recordVotesReceived'),
+							value: polls ? votesReceived(asked) : null,
 							private: true,
 						},
 						{ label: t('profile.recordPicksWon'), value: picksWonRate(voted), suffix: '%', private: true },
 					]}
 				/>
 
-				<Tabs value={tab} onValueChange={(value) => setTab(value as ProfileTab)} className="gap-2">
-					{/* Two lists side by side would split attention; tabs keep one at a time */}
+				<Tabs value={tab} onValueChange={(value) => {
+						setTab(value as ProfileTab);
+						if (value === 'saved') setSavedOpened(true);
+					}} className="gap-2">
+					{/* Lists side by side would split attention; tabs keep one at a time */}
 					<div className="flex flex-wrap items-center gap-x-4 border-b border-border">
 						<TabsList variant="line" fit>
-							<TabsTrigger value="asked">
+							<TabsTrigger value="asked" marks={askedUnread && <span className="size-2 rounded-full bg-alert" />}>
 								{t('profile.tabAsked')}
 								<span className="tabular-nums text-muted-foreground">{asked.length}</span>
-								{askedUnread && <UnreadDot label={t('profile.askedUnread')} />}
+								{askedUnread && <span className="sr-only">{t('profile.askedUnread')}</span>}
 							</TabsTrigger>
-							<TabsTrigger value="voted">
+							<TabsTrigger
+								value="voted"
+								marks={
+									<>
+										<Lock className="size-3 text-muted-foreground" />
+										{votedUnread > 0 && (
+											<span className="min-w-4.5 rounded-full bg-alert px-1.5 text-center text-caption-4 font-semibold leading-4.5 text-alert-foreground tabular-nums">
+												{formatUnreadCount(votedUnread)}
+											</span>
+										)}
+									</>
+								}
+							>
 								{t('profile.tabVoted')}
 								<span className="tabular-nums text-muted-foreground">{voted.length}</span>
-								<Lock aria-hidden className="size-3 text-muted-foreground" />
+								<span className="sr-only">
+									({t('profile.onlyYou')})
+									{votedUnread > 0 && ` ${formatUnreadCount(votedUnread)} ${t('notifications.unread')}`}
+								</span>
+							</TabsTrigger>
+							<TabsTrigger value="saved" marks={<Lock className="size-3 text-muted-foreground" />}>
+								{t('profile.tabSaved')}
 								<span className="sr-only">({t('profile.onlyYou')})</span>
-								{votedUnread > 0 && (
-									<span className="min-w-4.5 rounded-full bg-alert px-1.5 text-center text-caption-4 font-semibold leading-4.5 text-alert-foreground tabular-nums">
-										{formatUnreadCount(votedUnread)}
-										<span className="sr-only"> {t('notifications.unread')}</span>
-									</span>
-								)}
 							</TabsTrigger>
 							<TabsIndicator />
 						</TabsList>
 						<div className="ml-auto py-2">
-							{tab === 'asked' ? (
+							{tab === 'saved' ? null : tab === 'asked' ? (
 								<FilterPills
 									label={t('profile.filterLabel')}
 									value={askedFilter}
@@ -198,6 +223,9 @@ export function OwnProfileView({
 					</TabsContent>
 					<TabsContent value="voted" className="flex flex-col gap-2">
 						{polls === null ? <LoadFailed /> : <VotedList split={votedSplit} filter={votedFilter} />}
+					</TabsContent>
+					<TabsContent value="saved" keepMounted={savedOpened} className="flex flex-col gap-2">
+						<SavedList />
 					</TabsContent>
 				</Tabs>
 			</div>
@@ -317,6 +345,68 @@ function VotedList({ split, filter }: { split: { sealed: Poll[]; decided: Poll[]
 				</>
 			)}
 			<ShowMore paged={paged} />
+		</>
+	);
+}
+
+const fetchSaved = (cursor: string) => getBookmarkedPolls(cursor);
+
+/** Bookmarked Polls, fetched when the tab first opens: most profile visits never look. */
+function SavedList() {
+	const { t } = useLanguage();
+	const [first, setFirst] = useState<CursorPage<Poll> | 'loading' | 'failed'>('loading');
+	const load = () => getBookmarkedPolls().then(setFirst, () => setFirst('failed'));
+
+	useEffect(() => {
+		load();
+	}, []);
+
+	if (first === 'loading') return <PollRowListSkeleton />;
+	if (first === 'failed') {
+		return (
+			<div className="empty-state space-y-3">
+				<p>{t('profile.pollsLoadFailed')}</p>
+				<Button
+					variant="outline"
+					size="sm"
+					onClick={() => {
+						setFirst('loading');
+						load();
+					}}
+				>
+					{t('common.tryAgain')}
+				</Button>
+			</div>
+		);
+	}
+	return <SavedRows initialPage={first} />;
+}
+
+function SavedRows({ initialPage }: { initialPage: CursorPage<Poll> }) {
+	const { t } = useLanguage();
+	const list = useCursorList(initialPage, fetchSaved);
+
+	if (list.items.length === 0) {
+		return (
+			<div className="empty-state space-y-3">
+				<p>{t('profile.noSavedYet')}</p>
+				<Link href="/explore" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
+					{t('profile.savedEmptyCta')}
+				</Link>
+			</div>
+		);
+	}
+
+	return (
+		<>
+			<ul className="space-y-2">
+				{list.items.map((poll) => (
+					<AskedRow key={poll.id} poll={poll} />
+				))}
+			</ul>
+			<ShowMore
+				paged={{ hasMore: list.hasMore, more: list.loadMore, isLoading: list.isLoading, loadFailed: list.loadFailed }}
+			/>
 		</>
 	);
 }

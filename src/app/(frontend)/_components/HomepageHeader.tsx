@@ -23,8 +23,6 @@ type HomepageHeaderProps = {
 	signedIn?: boolean;
 	/** The Following tab is the selected one. */
 	following?: boolean;
-	/** The Saved tab is the selected one. */
-	saved?: boolean;
 	/** Ids of the topics the viewer follows; a topic's page offers Follow once it is known. */
 	followedTagIds?: string[];
 };
@@ -35,7 +33,6 @@ export function HomepageHeader({
 	activeTag,
 	signedIn,
 	following,
-	saved,
 	followedTagIds,
 }: HomepageHeaderProps) {
 	const { t } = useLanguage();
@@ -48,7 +45,7 @@ export function HomepageHeader({
 		{
 			label: t('homePage.allTopics'),
 			href: '/',
-			isActive: !following && !saved && !activeTag,
+			isActive: !following && !activeTag,
 		},
 		...(signedIn
 			? [
@@ -56,11 +53,6 @@ export function HomepageHeader({
 						label: t('homePage.following'),
 						href: '/following',
 						isActive: following,
-					},
-					{
-						label: t('homePage.bookmarks'),
-						href: '/following/saved',
-						isActive: saved,
 					},
 				]
 			: []),
@@ -74,13 +66,11 @@ export function HomepageHeader({
 
 	// A filtered feed is that topic's page; the topic may not be among the popular ones listed
 	const activeTagDto = tags.find((tag) => tag.slug === activeTag);
-	const heading = saved
-		? t('homePage.bookmarks')
-		: following
-			? t('homePage.following')
-			: activeTag
-				? (activeTagDto?.name ?? activeTag)
-				: t('navigation.home');
+	const heading = following
+		? t('homePage.following')
+		: activeTag
+			? (activeTagDto?.name ?? activeTag)
+			: t('navigation.home');
 
 	return (
 		<>

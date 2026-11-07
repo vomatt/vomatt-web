@@ -2,9 +2,9 @@ import { useCallback, useState } from 'react';
 
 import type { AuthErrorKey } from '@/lib/api/auth-errors';
 import { requestOtp, verifyOtp } from '@/lib/api/services/auth';
-import { updateProfile } from '@/lib/api/services/users';
+import { getMyProfile, updateProfile } from '@/lib/api/services/users';
 
-/** email → code → (new accounts only) profile. */
+/** email → code → profile (new accounts, and ones that never gave a first name). */
 type AuthStep = 'email' | 'code' | 'profile';
 
 export type AuthResult = { status: 'OK' } | { status: 'ERROR'; error: AuthErrorKey };
@@ -23,6 +23,8 @@ export function useAuthFlow() {
 	const [email, setEmail] = useState('');
 	/** Seconds until a resend, when the code step opened during the cooldown of an earlier code. */
 	const [resendIn, setResendIn] = useState<number>();
+	/** A new account's username, which everyone else sees it by until it sets a display name. */
+	const [username, setUsername] = useState<string>();
 
 	const submitEmail = useCallback(async (value: string): Promise<AuthResult> => {
 		try {
@@ -54,6 +56,14 @@ export function useAuthFlow() {
 				const res = await verifyOtp(email, code);
 				if (res.status === 'ERROR') return res;
 				if (res.isNewUser) {
+					setUsername(res.username);
+					setStep('profile');
+					return OK;
+				}
+				// Someone who left at the name step is asked again; a failed check doesn't hold up sign-in
+				const me = await getMyProfile().catch(() => null);
+				if (me && !me.firstName?.trim()) {
+					setUsername(me.username);
 					setStep('profile');
 					return OK;
 				}
@@ -83,6 +93,7 @@ export function useAuthFlow() {
 		step,
 		email,
 		resendIn,
+		username,
 		submitEmail,
 		resendCode,
 		submitCode,

@@ -89,7 +89,17 @@ function TabsList({
 	);
 }
 
-function TabsTrigger({ className, ...props }: TabsPrimitive.Tab.Props) {
+/**
+ * `marks` (a lock, an unread count) trail the label, tucked closer than the label's
+ * own parts so the tab and its underline read as one unit. They're hidden from
+ * screen readers: put their meaning in the label as `sr-only` text.
+ */
+function TabsTrigger({
+	className,
+	marks,
+	children,
+	...props
+}: TabsPrimitive.Tab.Props & { marks?: React.ReactElement | false | null }) {
 	return (
 		<TabsPrimitive.Tab
 			data-slot="tabs-trigger"
@@ -101,7 +111,14 @@ function TabsTrigger({ className, ...props }: TabsPrimitive.Tab.Props) {
 				className
 			)}
 			{...props}
-		/>
+		>
+			{children}
+			{marks && (
+				<span aria-hidden className="-ml-0.5 flex items-center gap-1">
+					{marks}
+				</span>
+			)}
+		</TabsPrimitive.Tab>
 	);
 }
 

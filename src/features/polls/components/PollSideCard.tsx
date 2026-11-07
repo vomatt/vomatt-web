@@ -8,6 +8,7 @@ import { NewMark, UnreadDot } from '@/features/notifications/UnreadDot';
 import { endedSummary } from '@/features/profiles/lists';
 import { toPayloadLocale } from '@/lib/locale';
 import { rich } from '@/lib/rich';
+import { META_GAP } from '@/lib/rich';
 import { cn } from '@/lib/utils';
 
 import { useViewerClock } from '../hooks/useViewerClock';
@@ -40,7 +41,7 @@ export function PollSideCard({ kind, polls }: PollSideCardProps) {
 		<section aria-labelledby={headingId} className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-[18px]">
 			<h2
 				id={headingId}
-				className="text-caption-1 font-semibold uppercase tracking-label text-muted-foreground"
+				className="text-caption-1 font-medium text-muted-foreground"
 			>
 				{t(heading)}
 			</h2>
@@ -88,13 +89,13 @@ export function PollSideCard({ kind, polls }: PollSideCardProps) {
 									>
 										{meta.map((part, i) => (
 											<Fragment key={i}>
-												{i > 0 && ' · '}
+												{i > 0 && META_GAP}
 												{part}
 											</Fragment>
 										))}
 										{poll.unread && (
 											<>
-												{' · '}
+												{META_GAP}
 												<NewMark className="font-sans" />
 											</>
 										)}

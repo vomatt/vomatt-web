@@ -116,7 +116,10 @@
 		},
 		"draftOptions": "{count} options",
 		"draftOptions_one": "{count} option",
-		"draftMore": "More for {title}"
+		"draftMore": "More for {title}",
+		"deleteDraftTitle": "Delete this draft?",
+		"deleteDraftBody": "Drafts are kept only on this device, so it can’t be brought back.",
+		"draftDeleted": "Draft deleted"
 	},
 	"explore": {
 		"title": "Explore",
@@ -208,7 +211,7 @@
 		"new": "new",
 		"recordAsked": "polls asked",
 		"recordVoted": "polls voted in",
-		"recordReached": "people reached",
+		"recordVotesReceived": "votes received",
 		"recordPicksWon": "picks that won",
 		"recordAskedCount": "{count} polls asked",
 		"recordAskedCount_one": "{count} poll asked",
@@ -216,6 +219,7 @@
 		"recordVotedCount_one": "{count} poll voted in",
 		"tabAsked": "Asked",
 		"tabVoted": "Voted",
+		"tabSaved": "Saved",
 		"askedUnread": "Results are in on your polls",
 		"filterLabel": "Show",
 		"filterAll": "All",
@@ -227,6 +231,8 @@
 		"onlyYouSeeThese": "only you see these",
 		"noDrafts": "No drafts. Save one from the poll creator.",
 		"noVotesYet": "Polls you vote in show up here, with what you chose. Only you see this list.",
+		"noSavedYet": "Polls you save show up here, and you hear when they end. Only you see this list.",
+		"savedEmptyCta": "Explore polls",
 		"showMore": "Show more",
 		"everyoneSees": "What everyone sees",
 		"openPublicPage": "Open your public page",
@@ -234,6 +240,8 @@
 		"askedNoteBody": "The polls you asked are public, as on any profile. Drafts, the ••• menu and the unread dots are yours alone.",
 		"votedNoteTitle": "Your ballots are yours",
 		"votedNoteBody": "Your profile never lists the polls you voted in or what you chose. The lock marks everything only you see.",
+		"savedNoteTitle": "Your saved polls are yours",
+		"savedNoteBody": "Saving a poll tells no one. Save one from its card to find it here and hear when it ends.",
 		"previewNote": "This is how others see your profile.",
 		"previewBack": "Back to your profile",
 		"moreFor": "More for @{username}",
@@ -410,9 +418,6 @@
 		"followingEmpty": "Nothing from people you follow yet.",
 		"followingEmptyHint": "Open polls by people you follow show up here. Follow someone from their profile.",
 		"followingEmptyCta": "Explore polls",
-		"bookmarks": "Saved",
-		"bookmarksEmpty": "No saved polls yet.",
-		"bookmarksEmptyHint": "Save a poll to find it here, and to hear when it ends.",
 		"followTopic": "Follow topic",
 		"followingTopic": "Following topic",
 		"followTopicFailed": "Couldn’t follow the topic. Try again.",
@@ -558,7 +563,8 @@
 	},
 	"onboarding": {
 		"title": "What's your name?",
-		"subtitle": "You can change these, and who sees them, in Edit profile.",
+		"subtitle": "Only you see your name. Everyone else sees you as @{username}. You can change both in Edit profile.",
+		"subtitleNoUsername": "You can change these, and who sees them, in Edit profile.",
 		"saveFailed": "Your name wasn’t saved. Add it in Edit profile.",
 		"finish": "Finish"
 	},
@@ -567,6 +573,7 @@
 		"placeholder": "Why did you vote the way you did?",
 		"addComment": "Add a comment",
 		"post": "Post",
+		"posting": "Posting…",
 		"you": "You",
 		"empty": "No comments yet. Make the case for your choice.",
 		"loadFailed": "Couldn’t load comments.",
@@ -707,17 +714,23 @@
 		"change": "Change avatar",
 		"body": "We picked one for you when you joined. Swap it any time.",
 		"surprise": "Surprise me",
+		"remove": "Remove avatar",
 		"save": "Save avatar",
 		"savedToast": "Avatar updated",
 		"choose": "Choose {name}",
-		"families": {
-			"plain": "No character",
-			"bites": "Taiwan bites",
-			"guardians": "Temple guardians",
-			"visitors": "Visitors",
-			"animals": "Island animals",
-			"cats": "Cats",
-			"dogs": "Dogs"
+		"upload": {
+			"button": "Upload photo",
+			"name": "Your photo",
+			"trait": "Framed by you",
+			"unsupported": "Use a JPEG, PNG, GIF or BMP image.",
+			"tooLarge": "That photo is over 25 MB. Pick a smaller one."
+		},
+		"crop": {
+			"title": "Frame your photo",
+			"body": "Drag to move it. Pinch, scroll or use the slider to zoom.",
+			"area": "Photo framing. Use the arrow keys to move the photo.",
+			"zoom": "Zoom",
+			"use": "Use photo"
 		},
 		"none": {
 			"name": "Account icon",
@@ -740,10 +753,6 @@
 				"name": "Su",
 				"trait": "Pineapple cake, one bite in"
 			},
-			"egg": {
-				"name": "Tea Egg",
-				"trait": "Simmering since morning"
-			},
 			"ice": {
 				"name": "Shaved Ice",
 				"trait": "Mango on top, Yongkang St"
@@ -751,14 +760,6 @@
 			"youtiao": {
 				"name": "Youtiao",
 				"trait": "Dunked in soy milk"
-			},
-			"tofu": {
-				"name": "Stinky Tofu",
-				"trait": "Smell first, then love"
-			},
-			"sausage": {
-				"name": "Sausage",
-				"trait": "Night-market grill"
 			},
 			"chip": {
 				"name": "Chip",
@@ -792,10 +793,6 @@
 				"name": "Baye",
 				"trait": "Black Wuchang, walks fierce"
 			},
-			"shi": {
-				"name": "Stone Lion",
-				"trait": "Paw on the ball"
-			},
 			"long": {
 				"name": "Long",
 				"trait": "Rides the temple roof"
@@ -804,10 +801,6 @@
 				"name": "Lantern",
 				"trait": "Red, by the gate"
 			},
-			"ding": {
-				"name": "Ding",
-				"trait": "The bronze burner"
-			},
 			"jiaobei": {
 				"name": "Jiaobei",
 				"trait": "Asks the gods yes or no"
@@ -815,10 +808,6 @@
 			"xiang": {
 				"name": "Xiang",
 				"trait": "Three sticks for the ancestors"
-			},
-			"banyan": {
-				"name": "Banyan",
-				"trait": "The old tree by the temple"
 			},
 			"gray": {
 				"name": "Gray",
@@ -848,21 +837,9 @@
 				"name": "Mothman",
 				"trait": "Seen before the bridge"
 			},
-			"blob": {
-				"name": "Blob",
-				"trait": "No fixed opinion"
-			},
 			"cyclops": {
 				"name": "Cyclops",
 				"trait": "One eye, one vote"
-			},
-			"probe": {
-				"name": "Probe",
-				"trait": "Listening since 1977"
-			},
-			"saucer": {
-				"name": "Saucer",
-				"trait": "Just visiting"
 			},
 			"trio": {
 				"name": "Trio",
@@ -896,21 +873,9 @@
 				"name": "Mikado",
 				"trait": "Emperor pheasant, Alishan"
 			},
-			"firefly": {
-				"name": "Firefly",
-				"trait": "April nights in the hills"
-			},
-			"crab": {
-				"name": "Land Crab",
-				"trait": "Crosses the road in Kenting"
-			},
 			"flyfish": {
 				"name": "Flying Fish",
 				"trait": "Lanyu, every spring"
-			},
-			"turtle": {
-				"name": "Sea Turtle",
-				"trait": "Regular at Xiaoliuqiu"
 			},
 			"dog": {
 				"name": "Tugou",
@@ -1028,7 +993,11 @@
 			"type_mismatch": "Invalid parameter format: {0}",
 			"invalid_status": "Invalid status: {0}",
 			"invalid_sort": "Invalid sort: {0}",
-			"cursor_invalid": "Invalid pagination cursor"
+			"cursor_invalid": "Invalid pagination cursor",
+			"file_required": "Please select a file to upload",
+			"file_read_failed": "Failed to read file",
+			"file_too_large": "File size exceeds the limit (2 MB). Please compress and re-upload",
+			"storage_unavailable": "Image storage is temporarily unavailable, please try again later"
 		},
 		"auth": {
 			"token": {
@@ -1104,6 +1073,9 @@
 			},
 			"follow": {
 				"blocked": "You can’t follow a user you blocked; unblock them first"
+			},
+			"avatar": {
+				"unsupported_image": "Unsupported image: upload a JPEG, PNG, GIF or BMP of at most 40 megapixels"
 			}
 		},
 		"vote": {
