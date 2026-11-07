@@ -200,7 +200,7 @@ export function AvatarDialog({
 									{selected === null ? t('avatar.upload.trait') : t(`${avatarCopyKey(selected)}.trait`)}
 								</p>
 							</div>
-							<div className="flex w-full gap-2 *:flex-1 md:w-auto md:*:flex-none">
+							<div className="grid w-full grid-cols-2 gap-2 *:whitespace-normal md:flex md:w-auto">
 								<input
 									ref={fileInput}
 									type="file"
@@ -218,6 +218,7 @@ export function AvatarDialog({
 									variant="outline"
 									size="sm"
 									disabled={isSaving}
+									className="col-span-2"
 									onClick={() => {
 										// Fetched while the file chooser is open, so the crop step opens without a wait
 										void loadCropStage();
