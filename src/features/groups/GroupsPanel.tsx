@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button';
 import {
 	Dialog,
+	DialogBody,
 	DialogContent,
 	DialogDescription,
 	DialogHeader,
@@ -351,12 +352,12 @@ function GroupDialog({
 					)}
 				</form>
 
-				<div
+				<DialogBody
 					ref={membersRegion}
 					tabIndex={-1}
 					role="group"
 					aria-label={t('groups.members')}
-					className="-mx-4 overflow-y-auto overscroll-contain px-4 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
+					className="outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
 				>
 					{members === null && !loadFailed && (
 						<div className="flex justify-center py-4">
@@ -383,7 +384,7 @@ function GroupDialog({
 							disabled={pending !== null}
 						/>
 					)}
-				</div>
+				</DialogBody>
 
 				<div className="space-y-3 border-t border-border pt-4">
 					<Label htmlFor="add-members">{t('groups.addLabel')}</Label>

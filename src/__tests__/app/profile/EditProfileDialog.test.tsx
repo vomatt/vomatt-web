@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import EditProfileDialog from '@/app/(frontend)/[slug]/_components/EditProfileDialog';
 
@@ -238,5 +238,32 @@ describe('EditProfileDialog', () => {
 		await waitFor(() => expect(screen.queryByLabelText('Bio')).not.toBeInTheDocument());
 		fireEvent.click(screen.getByRole('button', { name: 'Edit profile' }));
 		expect(screen.getByLabelText('Bio')).toHaveValue('');
+	});
+
+	it('scrolls only the form, under a fixed header and Save row, over a blurred scrim', () => {
+		open();
+		const body = screen.getByLabelText('Bio').closest('[data-slot="dialog-body"]');
+		expect(body).toHaveClass('overflow-y-auto');
+		expect(body).not.toContainElement(screen.getByRole('heading', { name: 'Edit profile' }));
+		expect(body).not.toContainElement(screen.getByRole('button', { name: 'Save changes' }));
+		expect(document.querySelector('[data-slot="dialog-overlay"]')).toHaveClass('bg-overlay-strong', 'backdrop-blur-md');
+	});
+
+	it('fits the dialog into what an on-screen keyboard leaves visible', () => {
+		const viewport = Object.assign(new EventTarget(), { offsetTop: 0, height: 800 });
+		Object.defineProperty(window, 'visualViewport', { configurable: true, value: viewport });
+		try {
+			open();
+			const popup = document.querySelector<HTMLElement>('[data-slot="dialog-content"]')!;
+			expect(popup.style.top).toBe('400px');
+			act(() => {
+				Object.assign(viewport, { offsetTop: 100, height: 400 });
+				viewport.dispatchEvent(new Event('resize'));
+			});
+			expect(popup.style.top).toBe('300px');
+			expect(popup.style.maxHeight).toBe('calc(400px - 2rem)');
+		} finally {
+			Object.defineProperty(window, 'visualViewport', { configurable: true, value: undefined });
+		}
 	});
 });

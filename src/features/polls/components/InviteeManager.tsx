@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button';
 import {
 	Dialog,
+	DialogBody,
 	DialogContent,
 	DialogDescription,
 	DialogHeader,
@@ -98,7 +99,7 @@ export function InviteeManager({ pollId, open, onOpenChange, onChanged }: Invite
 					</DialogDescription>
 				</DialogHeader>
 
-				<div className="-mx-4 overflow-y-auto px-4">
+				<DialogBody>
 					{invitees === null && !loadFailed && (
 						<div className="flex justify-center py-4">
 							<Spinner />
@@ -121,7 +122,7 @@ export function InviteeManager({ pollId, open, onOpenChange, onChanged }: Invite
 							noteFor={(invitee) => (invitee.hasBallot ? t('invitees.voted') : null)}
 						/>
 					)}
-				</div>
+				</DialogBody>
 
 				<div className="space-y-3 border-t border-border pt-4">
 					<Label htmlFor="add-invitees">{t('invitees.addLabel')}</Label>

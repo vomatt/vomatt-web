@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button';
 import {
 	Dialog,
+	DialogBody,
 	DialogContent,
 	DialogDescription,
 	DialogFooter,
@@ -244,10 +245,10 @@ export function AvatarDialog({
 							</div>
 						</div>
 
-						<div ref={setGrid} className="-mx-4 overflow-y-auto overscroll-contain px-4 pb-1">
+						<DialogBody ref={setGrid}>
 							{/* Six and ten across, so the cast of 60 fills every row */}
 							<div className="grid grid-cols-6 gap-1.5 md:grid-cols-10 md:gap-2">{BOT_KINDS.map(renderTile)}</div>
-						</div>
+						</DialogBody>
 
 						<DialogFooter showCloseButton closeLabel={t('common.close')}>
 							<Button onClick={save} loading={isSaving}>

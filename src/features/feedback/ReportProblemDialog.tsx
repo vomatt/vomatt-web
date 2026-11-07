@@ -51,7 +51,7 @@ export function ReportProblemDialog({
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent
 				className="sm:max-w-md"
-				overlayClassName="bg-overlay-strong backdrop-blur-md"
+				overlay="strong"
 				closeLabel={t('common.close')}
 			>
 				<DialogTitle className="text-center">{t('feedback.title')}</DialogTitle>
