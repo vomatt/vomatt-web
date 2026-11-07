@@ -1,4 +1,4 @@
-import clsx from 'clsx';
+import { cn } from '@/lib/utils';
 import NextLink from 'next/link';
 import React from 'react';
 
@@ -36,7 +36,8 @@ const CMSLink: React.FC<CMSLinkType> = ({
 	}
 
 	// Internal links can only reference the Homepage or a Page, which live on the about site
-	const route = link.linkType === 'internal' ? `${ABOUT_URL}${link.href}` : link.href;
+	const route =
+		link.linkType === 'internal' ? `${ABOUT_URL}${link.href}` : link.href;
 	const isOpenNewTab = isNewTab ?? link.isNewTab;
 
 	return (
@@ -45,8 +46,10 @@ const CMSLink: React.FC<CMSLinkType> = ({
 			target={route?.match('^mailto:') || isOpenNewTab ? '_blank' : ''}
 			rel={isOpenNewTab ? 'noopener noreferrer' : ''}
 			// The visible text names the link (WCAG 2.5.3); the destination only names one with nothing to read
-			aria-label={ariaLabel || (title || children ? undefined : `Go to ${route}`)}
-			className={clsx(className, {
+			aria-label={
+				ariaLabel || (title || children ? undefined : `Go to ${route}`)
+			}
+			className={cn(className, {
 				btn: isButton,
 			})}
 			{...props}
