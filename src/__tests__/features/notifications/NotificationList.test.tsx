@@ -2,6 +2,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testi
 
 import { dayGroup, NotificationList, NotificationSettingsLink } from '@/features/notifications/NotificationList';
 import type { Notification } from '@/features/notifications/schema';
+import { META_GAP } from '@/lib/rich';
 
 jest.mock('next/link', () => {
 	return function MockLink({ children, href, onClick, ...rest }: React.ComponentProps<'a'> & { onClick?: () => void }) {
@@ -151,15 +152,15 @@ describe('NotificationList rows', () => {
 	it('says a result is in, with the outcome and the viewer\'s pick', () => {
 		renderList([result]);
 		const row = rowOf('Keep the library');
-		expect(row).toHaveTextContent('Results are in · Keep the library open until 22:00?');
-		expect(row).toHaveTextContent('Yes won · 2,061 voted · 4h');
+		expect(row).toHaveTextContent(`Results are in${META_GAP}Keep the library open until 22:00?`, { normalizeWhitespace: false });
+		expect(row).toHaveTextContent(`Yes won${META_GAP}2,061 voted${META_GAP}4h`, { normalizeWhitespace: false });
 		expect(row).toHaveTextContent('Your pick won');
 	});
 
 	it('names every option that shares the most votes, and says the viewer\'s pick tied', () => {
 		renderList([{ ...result, poll: { ...result.poll, winningOptionIds: ['a', 'b'], winningOptionLabels: ['Yes', 'No'], tie: true } }]);
 		const row = rowOf('Keep the library');
-		expect(row).toHaveTextContent('Tie between Yes and No · 2,061 voted');
+		expect(row).toHaveTextContent(`Tie between Yes and No${META_GAP}2,061 voted`, { normalizeWhitespace: false });
 		expect(row).toHaveTextContent('Tied for first');
 	});
 
@@ -177,15 +178,15 @@ describe('NotificationList rows', () => {
 		]);
 		expect(rowOf('Keep the library')).toHaveTextContent('Outvoted');
 		const empty = rowOf('Nobody came');
-		expect(empty).toHaveTextContent('0 voted · 4h');
+		expect(empty).toHaveTextContent(`0 voted${META_GAP}4h`, { normalizeWhitespace: false });
 		expect(empty).not.toHaveTextContent(/won|Tie|Outvoted/);
 	});
 
 	it('offers the vote on an invitation', () => {
 		renderList([invitation]);
 		const row = rowOf('Which stall');
-		expect(row).toHaveTextContent('@amira invited you · Which stall should get the corner spot?');
-		expect(row).toHaveTextContent('Invite only · ends Wed 15:00 · 6h');
+		expect(row).toHaveTextContent(`@amira invited you${META_GAP}Which stall should get the corner spot?`, { normalizeWhitespace: false });
+		expect(row).toHaveTextContent(`Invite only${META_GAP}ends Wed 15:00${META_GAP}6h`, { normalizeWhitespace: false });
 		expect(within(row).getByRole('link', { name: 'Vote' })).toHaveAttribute('href', '/poll/p2');
 	});
 
@@ -197,7 +198,7 @@ describe('NotificationList rows', () => {
 		]);
 		const jtan = rowOf('@jtan');
 		expect(jtan).toHaveTextContent('@jtan followed you');
-		expect(jtan).toHaveTextContent('2h · Jun Tan');
+		expect(jtan).toHaveTextContent(`2h${META_GAP}Jun Tan`, { normalizeWhitespace: false });
 		expect(within(jtan).getByRole('button', { name: 'Follow back' })).toBeInTheDocument();
 		expect(within(rowOf('@tpark')).getByRole('button', { name: /Following/ })).toHaveAttribute('aria-haspopup', 'dialog');
 	});
@@ -206,7 +207,7 @@ describe('NotificationList rows', () => {
 		renderList([comment]);
 		const row = rowOf('Saturday market');
 		expect(row).toHaveTextContent('@rosa made the case under Saturday market');
-		expect(row).toHaveTextContent('“The riverside has parking, the high street has foot traffic.” · 9h');
+		expect(row).toHaveTextContent(`“The riverside has parking, the high street has foot traffic.”${META_GAP}9h`, { normalizeWhitespace: false });
 		expect(within(row).getByRole('link', { name: 'Reply' })).toHaveAttribute('href', '/poll/p3#reply-c1');
 	});
 
@@ -225,7 +226,7 @@ describe('NotificationList rows', () => {
 		]);
 		expect(within(rowOf('Which stall')).getByRole('link', { name: 'View' })).toBeInTheDocument();
 		const later = rowOf('Later');
-		expect(later).toHaveTextContent('Invite only · Opens tomorrow at 15:00 · 6h');
+		expect(later).toHaveTextContent(`Invite only${META_GAP}Opens tomorrow at 15:00${META_GAP}6h`, { normalizeWhitespace: false });
 		expect(within(later).getByRole('link', { name: 'View' })).toBeInTheDocument();
 	});
 
@@ -233,7 +234,7 @@ describe('NotificationList rows', () => {
 		renderList([closingSoon]);
 		const row = rowOf('Bike lane');
 		expect(row).toHaveTextContent('Bike lane on Minsheng Road ends in 6h');
-		expect(row).toHaveTextContent('You haven’t voted · 342 voted so far · 11h');
+		expect(row).toHaveTextContent(`You haven’t voted${META_GAP}342 voted so far${META_GAP}11h`, { normalizeWhitespace: false });
 		expect(within(row).getByRole('link', { name: 'Vote' })).toHaveAttribute('href', '/poll/p4');
 	});
 
@@ -466,7 +467,7 @@ describe('NotificationSettingsLink', () => {
 		render(<NotificationSettingsLink preferences={{ resultsIn: true, invitations: true, comments: true, mentions: true, likes: true, closingSoon: false }} />);
 		const link = screen.getByRole('link', { name: /Notification settings/ });
 		expect(link).toHaveAttribute('href', '/settings#notifications');
-		expect(link).toHaveTextContent('Results, invitations, comments, mentions, likes on · closing soon off');
+		expect(link).toHaveTextContent(`Results, invitations, comments, mentions, likes on${META_GAP}closing soon off`, { normalizeWhitespace: false });
 	});
 
 	it('names only what is on, or only what is off', () => {

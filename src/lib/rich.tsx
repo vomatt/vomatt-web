@@ -11,6 +11,9 @@ export function rich(template: string, values: Record<string, ReactNode>): React
 	});
 }
 
+/** The space between the parts of a meta line ("1,284 voted" + gap + "ends Fri 20:00"): an em space, which neither collapses nor needs a divider glyph. */
+export const META_GAP = '\u2003';
+
 /** "A, B and C" in the locale's own list style, each item wrapped by `wrap`. */
 export function richList(items: string[], locale: string, wrap: (item: string) => ReactNode): ReactNode {
 	return new Intl.ListFormat(locale).formatToParts(items).map((part, i) => (

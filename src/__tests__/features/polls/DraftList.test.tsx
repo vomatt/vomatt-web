@@ -3,6 +3,9 @@ import userEvent from '@testing-library/user-event';
 
 import { DraftList } from '@/features/polls/components/DraftList';
 import { listDrafts, saveDraft } from '@/features/polls/drafts';
+import { META_GAP } from '@/lib/rich';
+
+import { keepGaps } from '../../helpers/keepGaps';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 jest.mock('@/features/polls/service', () => ({}));
@@ -28,8 +31,8 @@ describe('DraftList', () => {
 
 	it('heads the rows with their count', () => {
 		saveDraft(values);
-		render(<DraftList header={(count) => <h3>Drafts · {count}</h3>} />);
-		expect(screen.getByRole('heading', { name: 'Drafts · 1' })).toBeInTheDocument();
+		render(<DraftList header={(count) => <h3>Drafts{META_GAP}{count}</h3>} />);
+		expect(screen.getByRole('heading', { name: `Drafts${META_GAP}1` })).toBeInTheDocument();
 	});
 
 	it('lists drafts newest first, with a fallback title', () => {
@@ -56,7 +59,7 @@ describe('DraftList', () => {
 				values: { ...values, title: 'Rename the club?', options: [{ text: 'A' }, { text: 'B' }, { text: 'C' }, { text: ' ' }] },
 			});
 			render(<DraftList />);
-			expect(screen.getByText('Saved yesterday · 3 options · no end date yet')).toBeInTheDocument();
+			expect(screen.getByText(`Saved yesterday${META_GAP}3 options${META_GAP}no end date yet`, keepGaps)).toBeInTheDocument();
 		});
 
 		it('says only when a blank draft with an end was saved', () => {

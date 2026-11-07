@@ -19,6 +19,7 @@ import { ProfileAvatar } from '@/features/profiles/UserChip';
 import { countText } from '@/lib/count';
 import { toPayloadLocale } from '@/lib/locale';
 import { rich, richList } from '@/lib/rich';
+import { META_GAP } from '@/lib/rich';
 import { commentHash, profileHref, replyHash } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
@@ -167,7 +168,7 @@ function RowShell({
 				<span className={cn('text-caption-2 text-muted-foreground', tide && unread && 'text-tide-foreground')}>
 					{meta.filter(Boolean).map((part, i) => (
 						<span key={i}>
-							{i > 0 && ' · '}
+							{i > 0 && META_GAP}
 							{part}
 						</span>
 					))}
@@ -237,7 +238,7 @@ function ResultRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'RESULT' }
 			icon={<SealMark />}
 			line={
 				<>
-					{unread ? strong(t('notifications.ended')) : t('notifications.ended')} ·{' '}
+					{unread ? strong(t('notifications.ended')) : t('notifications.ended')}{META_GAP}
 					<RowLink href={pollHref(poll.id)} onOpen={onOpen}>
 						{poll.title}
 					</RowLink>
@@ -304,7 +305,7 @@ function InvitationRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'INVIT
 			icon={<ProfileAvatar username={actor.username} avatarUrl={actor.avatarUrl} className="size-9" />}
 			line={
 				<>
-					{rich(t('notifications.invitedYou'), { name: strong(`@${actor.username}`) })} ·{' '}
+					{rich(t('notifications.invitedYou'), { name: strong(`@${actor.username}`) })}{META_GAP}
 					<RowLink href={href} onOpen={onOpen} className="font-medium">
 						{poll.title}
 					</RowLink>

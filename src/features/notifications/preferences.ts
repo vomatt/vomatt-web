@@ -1,4 +1,5 @@
 import type { Translate } from '@/lib/count';
+import { META_GAP } from '@/lib/rich';
 
 import type { NotificationPreferences } from './schema';
 
@@ -12,7 +13,7 @@ export const NOTIFICATION_SWITCHES = [
 	{ key: 'closingSoon', title: 'settings.notifyClosingSoon', body: 'settings.notifyClosingSoonBody', name: 'notifications.kindName.closingSoon' },
 ] as const satisfies readonly { key: keyof NotificationPreferences; title: string; body: string; name: string }[];
 
-/** "Results, invitations, comments on · closing soon off" */
+/** "Results, invitations, comments on" + gap + "closing soon off" */
 export function preferencesSummary(preferences: NotificationPreferences, t: Translate) {
 	const names = (on: boolean) =>
 		NOTIFICATION_SWITCHES.filter((item) => preferences[item.key] === on).map((item) => t(item.name));
@@ -24,6 +25,6 @@ export function preferencesSummary(preferences: NotificationPreferences, t: Tran
 	)
 		.filter(([kinds]) => kinds.length > 0)
 		.map(([kinds, key]) => t(key, { kinds: kinds.join(t('notifications.summarySeparator')) }))
-		.join(' · ');
+		.join(META_GAP);
 	return text.charAt(0).toUpperCase() + text.slice(1);
 }

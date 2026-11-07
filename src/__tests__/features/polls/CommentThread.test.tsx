@@ -409,6 +409,7 @@ describe('CommentThread', () => {
 			render(<Harness />);
 			expect(await screen.findByRole('textbox', { name: 'Write a reply…' })).toBeInTheDocument();
 			expect(screen.getByText('Replying to')).toBeInTheDocument();
+			expect(screen.getByText('“A reply”')).toBeInTheDocument();
 		} finally {
 			window.location.hash = '';
 			Element.prototype.scrollIntoView = realScroll;

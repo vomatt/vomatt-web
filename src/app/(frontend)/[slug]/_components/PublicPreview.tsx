@@ -10,6 +10,7 @@ import { formatMonthYear } from '@/features/polls/format';
 import { Count } from '@/features/profiles/Count';
 import { profileName } from '@/features/profiles/name';
 import { countText } from '@/lib/count';
+import { META_GAP } from '@/lib/rich';
 import { profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 import type { MyProfile } from '@/types/user';
@@ -51,7 +52,7 @@ export function PublicPreview({ profile, className }: { profile: MyProfile; clas
 				</p>
 				<p className="text-caption-2 text-muted-foreground">
 					<Count value={profile.totalPolls} label={countText(t, 'profile.recordAskedCount', profile.totalPolls, currentLanguage)} />
-					{' · '}
+					{META_GAP}
 					<Count value={profile.totalVotes} label={countText(t, 'profile.recordVotedCount', profile.totalVotes, currentLanguage)} />
 				</p>
 				<Link

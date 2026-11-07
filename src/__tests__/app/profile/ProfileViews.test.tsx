@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { OwnProfileView } from '@/app/(frontend)/[slug]/_components/OwnProfileView';
 import { VisitorProfileView } from '@/app/(frontend)/[slug]/_components/VisitorProfileView';
 import type { Poll } from '@/features/polls/schema';
+import { META_GAP } from '@/lib/rich';
 import type { MyProfile, UserProfile } from '@/types/user';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
@@ -238,9 +239,9 @@ describe('VisitorProfileView', () => {
 		const tie = poll('t', { options: [{ id: 'a', text: 'Yes', votes: 2 }, { id: 'b', text: 'Only in summer', votes: 2 }] });
 		render(<VisitorProfileView profile={visitor} polls={{ items: [open, poll('e'), tie], nextCursor: null }} viewerId={null} />);
 
-		expect(screen.getByRole('heading', { level: 3, name: 'Open now · 1' })).toBeInTheDocument();
-		expect(screen.getByRole('heading', { level: 3, name: 'Ended · 2' })).toBeInTheDocument();
-		expect(screen.getByRole('link', { name: /Poll e/ })).toHaveTextContent('Yes won · 4 voted');
+		expect(screen.getByRole('heading', { level: 3, name: 'Open now 1' })).toBeInTheDocument();
+		expect(screen.getByRole('heading', { level: 3, name: 'Ended 2' })).toBeInTheDocument();
+		expect(screen.getByRole('link', { name: /Poll e/ })).toHaveTextContent(`Yes won${META_GAP}4 voted`, { normalizeWhitespace: false });
 		expect(screen.getByRole('link', { name: /Poll t/ })).toHaveTextContent('Tie between Yes and Only in summer');
 
 		fireEvent.click(screen.getByRole('button', { name: 'Open' }));
@@ -257,8 +258,8 @@ describe('VisitorProfileView', () => {
 		render(<VisitorProfileView profile={visitor} polls={{ items: [open, closing, soon], nextCursor: null }} viewerId={null} />);
 		jest.useRealTimers();
 
-		expect(screen.getByRole('link', { name: /Poll o/ })).toHaveTextContent(/1,284 voted · ends Fri 20:00\s*Open$/);
-		expect(screen.getByRole('link', { name: /Poll c/ })).toHaveTextContent(/342 voted · ends in 6h\s*Closing$/);
+		expect(screen.getByRole('link', { name: /Poll o/ })).toHaveTextContent(/1,284 voted\u2003ends Fri 20:00\s*Open$/, { normalizeWhitespace: false });
+		expect(screen.getByRole('link', { name: /Poll c/ })).toHaveTextContent(/342 voted\u2003ends in 6h\s*Closing$/, { normalizeWhitespace: false });
 		expect(screen.getByRole('link', { name: /Poll s/ })).toHaveTextContent(/Opens Mon 9:00\s*Soon$/);
 	});
 
@@ -400,10 +401,10 @@ describe('OwnProfileView', () => {
 		expect(screen.queryByRole('link', { name: /Poll v/ })).not.toBeInTheDocument();
 
 		fireEvent.click(screen.getByRole('tab', { name: /Voted/ }));
-		expect(screen.getByRole('heading', { level: 3, name: 'Sealed, waiting for results · 1' })).toBeInTheDocument();
+		expect(screen.getByRole('heading', { level: 3, name: 'Sealed, waiting for results 1' })).toBeInTheDocument();
 		expect(screen.getByRole('link', { name: /Poll s/ })).toHaveTextContent('You chose No');
 		const decided = screen.getByRole('link', { name: /Poll v/ });
-		expect(decided).toHaveTextContent('You chose Yes · 4 voted · new');
+		expect(decided).toHaveTextContent(`You chose Yes${META_GAP}4 voted${META_GAP}new`, { normalizeWhitespace: false });
 		expect(decided).toHaveTextContent('Your pick won');
 	});
 
@@ -415,8 +416,8 @@ describe('OwnProfileView', () => {
 		render(<OwnProfileView profile={me} polls={[today, friday]} initialTab="voted" />);
 		jest.useRealTimers();
 
-		expect(screen.getByRole('link', { name: /Poll t/ })).toHaveTextContent('You chose No · results today at 18:00');
-		expect(screen.getByRole('link', { name: /Poll f/ })).toHaveTextContent('You chose No · results Fri 20:00');
+		expect(screen.getByRole('link', { name: /Poll t/ })).toHaveTextContent(`You chose No${META_GAP}results today at 18:00`, { normalizeWhitespace: false });
+		expect(screen.getByRole('link', { name: /Poll f/ })).toHaveTextContent(`You chose No${META_GAP}results Fri 20:00`, { normalizeWhitespace: false });
 	});
 
 	it('keeps every owner control in the row menu of an open invite-only poll', async () => {

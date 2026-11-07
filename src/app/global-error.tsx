@@ -39,7 +39,7 @@ export default function GlobalError({ error, retry }: { error: unknown; retry: (
 	return (
 		<html lang="en">
 			<body style={styles.body}>
-				<title>Something went wrong · 發生錯誤</title>
+				<title>Something went wrong / 發生錯誤</title>
 				<main style={styles.main}>
 					<h1 style={styles.heading}>
 						Something went wrong
@@ -53,7 +53,7 @@ export default function GlobalError({ error, retry }: { error: unknown; retry: (
 					</p>
 					{/* retry refetches the page; reset would only re-render the same failure */}
 					<button type="button" style={styles.button} onClick={() => retry()}>
-						Try again · <span lang="zh-Hant">再試一次</span>
+						Try again / <span lang="zh-Hant">再試一次</span>
 					</button>
 				</main>
 			</body>

@@ -419,7 +419,9 @@ function Composer({
 							{t('comments.replyingTo')} <span className="text-foreground">{addressee}</span>
 						</span>
 						{replyTarget?.reply?.text && (
-							<span className="min-w-0 flex-1 truncate">· {splitAddressee(replyTarget.reply.text).text}</span>
+							<span className="min-w-0 flex-1 truncate">
+								{t('notifications.excerpt', { text: splitAddressee(replyTarget.reply.text).text })}
+							</span>
 						)}
 						<button
 							type="button"
