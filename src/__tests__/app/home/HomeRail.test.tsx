@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 
 import { HomeRail } from '@/app/(frontend)/_components/HomeRail';
-import type { RailPolls } from '@/app/(frontend)/_components/RailPolls';
+import type * as RailPollsModule from '@/app/(frontend)/_components/RailPolls';
 import type { Poll } from '@/features/polls/schema';
 
 jest.mock('next/link', () => {
@@ -23,7 +23,7 @@ jest.mock('@/features/polls/service', () => ({
 jest.mock('@/app/(frontend)/_components/RailPolls', () => ({
 	RailPolls: () => <p>Poll cards</p>,
 }));
-const { RailPolls: realRailPolls } = jest.requireActual<{ RailPolls: typeof RailPolls }>(
+const { RailPolls: realRailPolls, RailPollsStrip } = jest.requireActual<typeof RailPollsModule>(
 	'@/app/(frontend)/_components/RailPolls'
 );
 
@@ -78,9 +78,10 @@ describe('HomeRail', () => {
 		expect(screen.queryByRole('region', { name: 'Got a question for everyone?' })).not.toBeInTheDocument();
 	});
 
-	it('holds the Poll cards in one aside with the rest of the rail', () => {
+	it('holds the Poll cards in one aside with the rest of the rail, from xl only', () => {
 		render(<HomeRail signedIn />);
 		expect(screen.getByRole('complementary')).toHaveTextContent('Poll cards');
+		expect(screen.getByText('Poll cards').parentElement).toHaveClass('hidden', 'xl:contents');
 	});
 });
 
@@ -91,5 +92,21 @@ describe('RailPolls', () => {
 			'New name for the community garden'
 		);
 		expect(screen.queryByRole('region', { name: 'Results are in' })).not.toBeInTheDocument();
+	});
+});
+
+describe('RailPollsStrip', () => {
+	it('lists the side cards as a strip shown below xl only', async () => {
+		render(await RailPollsStrip());
+		const strip = screen.getByRole('list', { name: 'Results and polls closing soon' });
+		expect(strip).toHaveTextContent('Closing soon');
+		expect(strip.parentElement).toHaveClass('xl:hidden');
+	});
+
+	it('takes no room when there is nothing to list', async () => {
+		mockGetMyPolls.mockResolvedValue({ items: [], nextCursor: null });
+		mockGetPolls.mockResolvedValue({ items: [], nextCursor: null });
+		const { container } = render(await RailPollsStrip());
+		expect(container.firstChild).toBeEmptyDOMElement();
 	});
 });

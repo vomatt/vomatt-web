@@ -8,6 +8,7 @@ import { FeedSkeleton } from '../_components/FeedSkeleton';
 import { HomepageHeader } from '../_components/HomepageHeader';
 import { HomeRail } from '../_components/HomeRail';
 import { PollFeedList } from '../_components/PollFeedList';
+import { getRailPolls, RailPollsStrip } from '../_components/RailPolls';
 
 export default async function FollowingPage() {
 	// The proxy sends signed-out users to login with a 307; this backs it up
@@ -27,6 +28,8 @@ export default async function FollowingPage() {
 
 /** Streams in behind the skeleton so the shell paints first. */
 async function Feed({ viewerId }: { viewerId: string }) {
+	// Starts the strip's fetch alongside the feed's
+	void getRailPolls();
 	const [profile, firstPage, tags] = await Promise.all([
 		getMyProfile(),
 		getFollowingFeed().catch(() => null),
@@ -41,7 +44,12 @@ async function Feed({ viewerId }: { viewerId: string }) {
 			anonymousByDefault={profile?.anonymousBallotByDefault}
 			initialPage={firstPage}
 			following
-			header={<HomepageHeader tags={tags} signedIn following />}
+			header={
+				<>
+					<HomepageHeader tags={tags} signedIn following />
+					<RailPollsStrip />
+				</>
+			}
 		/>
 	);
 }
