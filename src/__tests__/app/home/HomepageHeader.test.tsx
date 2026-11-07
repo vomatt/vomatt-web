@@ -44,7 +44,7 @@ describe('HomepageHeader', () => {
 		const legal = within(screen.getByRole('navigation', { name: 'Legal' }));
 		expect(legal.getByRole('link', { name: 'Terms' })).toHaveAttribute('href', 'https://about.vomatt.com/terms-of-service');
 		expect(legal.getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', 'https://about.vomatt.com/privacy-policy');
-		expect(legal.getByRole('link', { name: 'Cookies' })).toHaveAttribute('href', 'https://about.vomatt.com/cookies-policy');
+		expect(legal.queryByRole('link', { name: 'Cookies' })).not.toBeInTheDocument();
 		unmount();
 
 		render(<HomepageHeader tags={tags} signedIn />);

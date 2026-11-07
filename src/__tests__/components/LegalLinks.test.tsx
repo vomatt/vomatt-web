@@ -5,7 +5,7 @@ import { LegalLinks } from '@/components/layout/LegalLinks';
 jest.mock('@/contexts/LanguageContext', () => require('../helpers/mockLanguage'));
 
 describe('LegalLinks', () => {
-	it('links the three legal pages on the about site', () => {
+	it('links the legal pages on the about site', () => {
 		render(<LegalLinks />);
 
 		const nav = screen.getByRole('navigation');
@@ -13,7 +13,6 @@ describe('LegalLinks', () => {
 		expect(links).toEqual([
 			['Terms', 'https://about.vomatt.com/terms-of-service'],
 			['Privacy', 'https://about.vomatt.com/privacy-policy'],
-			['Cookies', 'https://about.vomatt.com/cookies-policy'],
 		]);
 	});
 });

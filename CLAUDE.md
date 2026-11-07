@@ -28,7 +28,7 @@ pnpm exec jest src/__tests__/components/PollCard.test.tsx
 ### Route Groups
 
 - `src/app/(frontend)/` — customer-facing UI. `layout.tsx` fetches the `settingsGeneral` Sanity singleton for site-wide metadata and applies language detection from cookies/headers.
-- About and the legal pages (`/about`, `/privacy-policy`, `/terms-of-service`, `/cookies-policy`) live on the about site (`vomatt-about`, about.vomatt.com). `next.config.ts` redirects them there permanently; link to them with `aboutHref(slug)` from `src/lib/aboutSite.ts`. Internal links in Sanity content can only reference about-site documents, so `CMSLink` sends them there. The root `[slug]` route is profiles only.
+- About and the legal pages (`/about`, `/privacy-policy`, `/terms-of-service`; the old `/cookies-policy` goes to the Privacy Policy, which lists the cookies) live on the about site (`vomatt-about`, about.vomatt.com). `next.config.ts` redirects them there permanently; link to them with `aboutHref(slug)` from `src/lib/aboutSite.ts`. Internal links in Sanity content can only reference about-site documents, so `CMSLink` sends them there. The root `[slug]` route is profiles only.
 - `src/app/api/` — thin API route handlers (user-related endpoints).
 
 ### Sanity CMS
