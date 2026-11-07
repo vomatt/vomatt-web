@@ -33,6 +33,8 @@ const iconLinkClassName = cn(
 	buttonVariants({ variant: 'ghost', size: 'icon' }),
 	'rounded-full [&[aria-current]]:bg-muted [&:has([data-pending])]:bg-muted'
 );
+// The bell sits in a frame the avatar's size, so the two read as a pair; the current mark fills the frame, not the 44px target
+const bellLinkClassName = cn(buttonVariants({ variant: 'ghost', size: 'icon' }), 'group rounded-full');
 
 /** The phone header: the logo, Notifications and the profile, sliding away while reading down and back on the way up. Desktop has the sidebar. */
 export function Header({ signedIn, loginLink, username, avatarUrl }: HeaderProps) {
@@ -83,10 +85,10 @@ export function Header({ signedIn, loginLink, username, avatarUrl }: HeaderProps
 					<NextLink
 						href="/notifications"
 						aria-current={isActivePath(pathname, '/notifications') ? 'page' : undefined}
-						className={iconLinkClassName}
+						className={bellLinkClassName}
 					>
-						<span className="relative">
-							<Bell className="size-6" />
+						<span className="avatar-frame relative grid size-7 place-items-center group-[[aria-current]]:bg-muted group-has-[[data-pending]]:bg-muted">
+							<Bell className="size-4.5" />
 							{unreadCount > 0 && (
 								<UnreadDot label={`${formatUnreadCount(unreadCount)} ${t('notifications.unread')}`} className="absolute -right-1 -top-1" />
 							)}
