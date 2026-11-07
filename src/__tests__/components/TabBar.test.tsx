@@ -14,16 +14,9 @@ jest.mock('next/navigation', () => ({
 
 jest.mock('@/contexts/LanguageContext', () => require('../helpers/mockLanguage'));
 
-jest.mock('@/features/notifications/UnreadCountProvider', () => ({
-	formatUnreadCount: (count: number) => String(count),
-	useUnreadCount: () => ({ count: 0 }),
-}));
-
 jest.mock('@/features/polls/components/CreatePollTrigger', () => ({
-	CreatePollTrigger: () => null,
+	CreatePollTrigger: ({ children }: { children: React.ReactNode }) => children,
 }));
-
-const profileTab = () => screen.getByRole('link', { name: 'Profile' });
 
 beforeEach(() => {
 	mockPathname = '/';
@@ -31,46 +24,43 @@ beforeEach(() => {
 });
 
 describe('TabBar', () => {
-	it("shows the signed-in person's avatar on the profile tab", () => {
-		render(<TabBar userSession={{}} username="mei" avatarUrl="bot:boba" />);
-		expect(profileTab()).toHaveAttribute('href', '/mei');
-		expect(profileTab().querySelector('img')).toHaveAttribute('src', '/avatars/boba.svg');
+	it('centers Create between Home and Explore', () => {
+		render(<TabBar userSession={{}} />);
+		const cells = Array.from(document.querySelector('[data-tabbar]')!.children);
+		expect(cells).toEqual([
+			screen.getByRole('link', { name: 'Home' }),
+			screen.getByRole('button', { name: 'Create a poll' }).parentElement,
+			screen.getByRole('link', { name: 'Explore' }),
+		]);
 	});
 
-	it('shows the account icon to guests', () => {
-		render(<TabBar />);
-		expect(profileTab()).toHaveAttribute('href', '/account');
-		expect(profileTab().querySelector('img')).toBeNull();
+	it('leaves Notifications and the profile to the Header', () => {
+		render(<TabBar userSession={{}} />);
+		expect(screen.queryByRole('link', { name: /Notifications/ })).not.toBeInTheDocument();
+		expect(screen.queryByRole('link', { name: 'Profile' })).not.toBeInTheDocument();
 	});
 
-	it('reaches Notifications where My polls used to be', () => {
-		render(<TabBar userSession={{}} username="mei" />);
-		expect(screen.getByRole('link', { name: 'Notifications' })).toHaveAttribute('href', '/notifications');
-		expect(screen.queryByRole('link', { name: 'My Polls' })).not.toBeInTheDocument();
+	it('sends guests to log in from Create', () => {
+		render(<TabBar loginLink="/login?session_expired=1" />);
+		expect(screen.getByRole('link', { name: 'Create a poll' })).toHaveAttribute('href', '/login?session_expired=1');
 	});
 
-	it.each(['/settings', '/settings/language'])('keeps the profile tab active on %s', (pathname) => {
-		mockPathname = pathname;
-		render(<TabBar userSession={{}} username="mei" />);
-		expect(profileTab()).toHaveAttribute('aria-current', 'true');
+	it('marks Explore as the page on /explore', () => {
+		mockPathname = '/explore';
+		render(<TabBar userSession={{}} />);
+		expect(screen.getByRole('link', { name: 'Explore' })).toHaveAttribute('aria-current', 'page');
 		expect(screen.getByRole('link', { name: 'Home' })).not.toHaveAttribute('aria-current');
-	});
-
-	it('marks the profile tab as the page on the profile itself', () => {
-		mockPathname = '/mei';
-		render(<TabBar userSession={{}} username="mei" />);
-		expect(profileTab()).toHaveAttribute('aria-current', 'page');
 	});
 
 	it('marks a tapped tab while its page is still loading', () => {
 		mockPending = true;
-		render(<TabBar userSession={{}} username="mei" />);
+		render(<TabBar userSession={{}} />);
 		const icon = screen.getByRole('link', { name: 'Explore' }).querySelector('[data-pending]');
 		expect(icon).toHaveClass('text-foreground');
 	});
 
 	it('leaves other tabs unmarked when no navigation is pending', () => {
-		render(<TabBar userSession={{}} username="mei" />);
+		render(<TabBar userSession={{}} />);
 		const explore = screen.getByRole('link', { name: 'Explore' });
 		expect(explore.querySelector('[data-pending]')).toBeNull();
 		expect(explore.querySelector('.text-muted-foreground')).not.toBeNull();

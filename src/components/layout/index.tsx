@@ -35,9 +35,9 @@ export async function Layout({ children }: LayoutProps) {
 					<ReloadWhenSessionUnconfirmed />
 					<AdaSkip />
 					<AppSidebar userSession={session} profile={profile} loginLink={loginLink} />
-					<Header />
+					<Header signedIn={!!session} loginLink={loginLink} username={profile?.username} avatarUrl={profile?.avatarUrl} />
 					<Main>{children}</Main>
-					<TabBar userSession={session} loginLink={loginLink} username={profile?.username} avatarUrl={profile?.avatarUrl} />
+					<TabBar userSession={session} loginLink={loginLink} />
 				</MotionProvider>
 			</UnreadCountProvider>
 		</SidebarProvider>
