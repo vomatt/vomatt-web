@@ -11,8 +11,9 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { CreatePollTrigger } from '@/features/polls/components/CreatePollTrigger';
 import { PollCard } from '@/features/polls/components/PollCard';
+import { type FeedKind, FEEDS } from '@/features/polls/feeds';
 import type { Poll } from '@/features/polls/schema';
-import { getFeed, getFollowingFeed } from '@/features/polls/service';
+import { loadFeed } from '@/features/polls/service';
 import { mergeById } from '@/lib/api/cursor';
 import { cn } from '@/lib/utils';
 
@@ -23,8 +24,7 @@ type PollFeedListProps = {
 	/** Server-rendered first page; null when it couldn't be loaded. */
 	initialPage: { items: Poll[]; nextCursor: string | null } | null;
 	tag?: string;
-	/** Only Polls by followed people, instead of the home feed. */
-	following?: boolean;
+	feed?: FeedKind;
 	header: React.ReactNode;
 };
 
@@ -34,7 +34,7 @@ export function PollFeedList({
 	anonymousByDefault,
 	initialPage,
 	tag,
-	following,
+	feed = 'forYou',
 	header,
 }: PollFeedListProps) {
 	const { t } = useLanguage();
@@ -51,7 +51,7 @@ export function PollFeedList({
 		setIsLoading(true);
 		setLoadFailed(false);
 		try {
-			const page = following ? await getFollowingFeed(nextCursor) : await getFeed(nextCursor, 10, tag);
+			const page = await loadFeed(feed, nextCursor, tag);
 			setPolls((prev) => mergeById(prev, page.items));
 			setNextCursor(page.nextCursor);
 		} catch {
@@ -60,6 +60,10 @@ export function PollFeedList({
 			setIsLoading(false);
 		}
 	};
+
+	// Not while pages remain: a feed that filters a list can come back empty before its end
+	const isEmpty = initialPage !== null && polls.length === 0 && !nextCursor;
+	const { empty } = FEEDS[feed];
 
 	// Load the next page as the reader nears the end; the button stays as a fallback
 	const { ref: sentinelRef } = useInView({
@@ -87,20 +91,22 @@ export function PollFeedList({
 				</div>
 			)}
 
-			{initialPage !== null && polls.length === 0 && following && (
+			{isEmpty && empty && (
 				<EmptyCard
 					className="mt-2"
-					title={t('homePage.followingEmpty')}
-					body={t('homePage.followingEmptyHint')}
+					title={t(empty.title)}
+					body={t(empty.hint)}
 					action={
-						<Link href="/explore" className={buttonVariants({ variant: 'outline' })}>
-							{t('homePage.followingEmptyCta')}
-						</Link>
+						empty.explore && (
+							<Link href="/explore" className={buttonVariants({ variant: 'outline' })}>
+								{t(empty.explore)}
+							</Link>
+						)
 					}
 				/>
 			)}
 
-			{initialPage !== null && polls.length === 0 && !following && (
+			{isEmpty && !empty && (
 				<div className="flex flex-col items-center gap-6 py-20 text-center">
 					<h2 className="text-title-1">
 						{t(tag ? 'homePage.topicEmpty' : 'homePage.feedListNoData')}

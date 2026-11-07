@@ -12,17 +12,18 @@ import { META_GAP } from '@/lib/rich';
 import { pollHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
+import { FEEDS, type RailFeedKind } from '../feeds';
 import { useViewerClock } from '../hooks/useViewerClock';
 import type { Poll } from '../schema';
 import { derivePollStatus, getTurnout } from '../status';
 import { pollTiming } from '../timing';
 
-export type SideCardKind = 'resultsIn' | 'closingSoon';
+export type SideCardKind = RailFeedKind;
 
-const KINDS: Record<SideCardKind, { heading: string; titleWeight: (poll: Poll) => string }> = {
+const TITLE_WEIGHT: Record<SideCardKind, (poll: Poll) => string> = {
 	// Read titles drop to 400 so the unread ones (600, the dot, "new") stand out
-	resultsIn: { heading: 'homePage.resultsIn', titleWeight: (poll) => (poll.unread ? 'font-semibold' : 'font-normal') },
-	closingSoon: { heading: 'homePage.closingSoon', titleWeight: () => 'font-medium' },
+	resultsIn: (poll) => (poll.unread ? 'font-semibold' : 'font-normal'),
+	closingSoon: () => 'font-medium',
 };
 
 type PollSideCardProps = {
@@ -31,7 +32,7 @@ type PollSideCardProps = {
 	polls: Poll[];
 };
 
-/** A titled side card of linked Polls, each with its turnout and an unread dot when it has one. */
+/** A side card of linked Polls, each with its turnout and an unread dot when it has one. Its title opens the whole feed. */
 export function PollSideCard({ kind, polls }: PollSideCardProps) {
 	const { t } = useLanguage();
 	const headingId = useId();
@@ -42,7 +43,12 @@ export function PollSideCard({ kind, polls }: PollSideCardProps) {
 				id={headingId}
 				className="text-caption-1 font-medium text-muted-foreground"
 			>
-				{t(KINDS[kind].heading)}
+				<Link
+					href={FEEDS[kind].href}
+					className="rounded-sm transition-colors outline-none hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
+				>
+					{t(FEEDS[kind].label)}
+				</Link>
 			</h2>
 			<ul className="-mx-2 -my-1.5">
 				{polls.map((poll) => (
@@ -87,7 +93,7 @@ function PollSideText({ kind, poll }: { kind: SideCardKind; poll: Poll }) {
 				<span
 					className={cn(
 						'min-w-0 line-clamp-2 text-body-3 leading-snug tracking-title text-foreground',
-						KINDS[kind].titleWeight(poll)
+						TITLE_WEIGHT[kind](poll)
 					)}
 				>
 					{poll.title}

@@ -430,6 +430,10 @@
 		"resultsIn": "Results are in",
 		"resultsTie": "Tie",
 		"closingSoon": "Closing soon",
+		"resultsInEmpty": "No results yet.",
+		"resultsInEmptyHint": "When a poll you voted in ends, its result shows up here.",
+		"closingSoonEmpty": "Nothing closes in the next day.",
+		"closingSoonEmptyHint": "Open polls show up here on their last day.",
 		"askTitle": "Got a question for everyone?",
 		"askBody": "A poll takes a minute to write and seals itself the moment it opens.",
 		"askCta": "Write one"

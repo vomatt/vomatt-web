@@ -1,23 +1,28 @@
 import { cache } from 'react';
 
 import { PollSideCard } from '@/features/polls/components/PollSideCard';
-import { getMyPolls, getPolls } from '@/features/polls/service';
-import { derivePollStatus } from '@/features/polls/status';
+import type { FeedKind } from '@/features/polls/feeds';
+import { loadFeed } from '@/features/polls/service';
 
 const RAIL_SIZE = 3;
 
+/** A feed's first page, cached per request, so a feed's page and the rail share one read. */
+export const getFirstPage = cache((feed: FeedKind) => loadFeed(feed, null));
+
 /**
- * Ended Polls the signed-in viewer voted in, and Open ones ending within a day. A list that
- * fails comes back empty. Cached per request, so the rail and the topic pills share one fetch.
+ * The first few of the Results are in and Closing soon feeds, and whether a result is unread.
+ * A list that fails comes back empty. Cached per request, so the rail and the pills share it.
  */
 export const getRailPolls = cache(async () => {
-	const [ended, open] = await Promise.all([
-		getMyPolls('ended', null, 10).catch(() => null),
-		getPolls({ sort: 'closing' }, null, 10).catch(() => null),
+	const [resultsIn, closingSoon] = await Promise.all([
+		getFirstPage('resultsIn').catch(() => null),
+		getFirstPage('closingSoon').catch(() => null),
 	]);
+	const results = resultsIn?.items ?? [];
 	return {
-		resultsIn: (ended?.items ?? []).filter((poll) => !!poll.myOptionId).slice(0, RAIL_SIZE),
-		closingSoon: (open?.items ?? []).filter((poll) => derivePollStatus(poll) === 'closing').slice(0, RAIL_SIZE),
+		resultsIn: results.slice(0, RAIL_SIZE),
+		closingSoon: (closingSoon?.items ?? []).slice(0, RAIL_SIZE),
+		resultsUnread: results.some((poll) => poll.unread),
 	};
 });
 

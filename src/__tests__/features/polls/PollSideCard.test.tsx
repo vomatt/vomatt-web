@@ -12,6 +12,7 @@ jest.mock('next/link', () => {
 	};
 });
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
+jest.mock('@/features/polls/service', () => ({}));
 
 const poll = sidePoll;
 
@@ -24,6 +25,15 @@ describe('PollSideCard', () => {
 		expect(within(link).getByText('1,502 voted')).toBeInTheDocument();
 	});
 
+	it.each([
+		['resultsIn', 'Results are in', '/results-in'],
+		['closingSoon', 'Closing soon', '/closing-soon'],
+	] as const)('links the %s title to its whole feed', (kind, title, href) => {
+		render(<PollSideCard kind={kind} polls={[poll]} />);
+		const heading = screen.getByRole('heading', { name: title });
+		expect(within(heading).getByRole('link', { name: title })).toHaveAttribute('href', href);
+	});
+
 	it('marks an unread Poll with a labelled dot', () => {
 		render(<PollSideCard kind="resultsIn" polls={[{ ...poll, unread: true }, { ...poll, id: 'poll-2' }]} />);
 		expect(screen.getAllByText('Unread')).toHaveLength(1);
@@ -31,7 +41,7 @@ describe('PollSideCard', () => {
 
 	it('says "new" in the meta of an unread Poll only', () => {
 		render(<PollSideCard kind="resultsIn" polls={[{ ...poll, unread: true }, { ...poll, id: 'poll-2' }]} />);
-		const [unread, read] = screen.getAllByRole('link');
+		const [unread, read] = within(screen.getByRole('list')).getAllByRole('link');
 		expect(within(unread).getByText('new')).toBeInTheDocument();
 		expect(within(read).queryByText('new')).not.toBeInTheDocument();
 	});
@@ -52,7 +62,7 @@ describe('PollSideCard', () => {
 		const won = { ...poll, unread: true, options: [{ id: 'a', text: 'Yes', votes: 600 }, { id: 'b', text: 'No', votes: 214 }] };
 		const tie = { ...poll, id: 'poll-2', options: [{ id: 'a', text: 'Yes', votes: 6 }, { id: 'b', text: 'No', votes: 6 }] };
 		render(<PollSideCard kind="resultsIn" polls={[won, tie]} />);
-		const [wonLink, tieLink] = screen.getAllByRole('link');
+		const [wonLink, tieLink] = within(screen.getByRole('list')).getAllByRole('link');
 		expect(within(wonLink).getByText(/won/).textContent).toBe(`Yes won${META_GAP}1,502 voted${META_GAP}new`);
 		expect(within(tieLink).getByText(/Tie/).textContent).toBe(`Tie${META_GAP}1,502 voted`);
 	});

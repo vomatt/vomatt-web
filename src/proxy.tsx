@@ -10,6 +10,7 @@ import {
 	SESSION_UNCONFIRMED,
 	SESSION_UNCONFIRMED_HEADER,
 } from '@/data/constants';
+import { SIGNED_IN_FEED_ROOTS } from '@/features/polls/feeds';
 import { clientHeaders } from '@/lib/api/client-ip';
 import {
 	AUTH_COOKIE_BASE,
@@ -65,7 +66,7 @@ function getLocale(request: NextRequest): string | undefined {
 	return locale || i18n.defaultLocale;
 }
 
-const protectedPaths = ['/account', '/notifications', '/settings', '/following'];
+const protectedPaths = ['/account', '/notifications', '/settings', ...SIGNED_IN_FEED_ROOTS.map((root) => `/${root}`)];
 const authPaths = ['/login'];
 
 type SessionResult =

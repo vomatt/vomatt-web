@@ -8,7 +8,7 @@ function isBlocked(path: string) {
 }
 
 describe('robots.txt', () => {
-	it.each(['/account', '/settings/language', '/notifications', '/following', '/login', '/api/revalidate'])(
+	it.each(['/account', '/settings/language', '/notifications', '/following', '/results-in', '/closing-soon', '/login', '/api/revalidate'])(
 		'blocks %s',
 		(path) => {
 			expect(isBlocked(path)).toBe(true);

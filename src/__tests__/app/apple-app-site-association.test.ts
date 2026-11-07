@@ -67,6 +67,8 @@ describe('apple-app-site-association', () => {
 		'/notifications',
 		'/account',
 		'/following',
+		'/results-in',
+		'/closing-soon',
 		'/settings',
 		'/poll',
 		'/sanity',

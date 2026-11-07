@@ -11,11 +11,10 @@ jest.mock('next/link', () => {
 });
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 
-const mockGetMyPolls = jest.fn();
-const mockGetPolls = jest.fn();
+const mockGetResultsInFeed = jest.fn();
+const mockGetClosingSoonFeed = jest.fn();
 jest.mock('@/features/polls/service', () => ({
-	getMyPolls: (...args: unknown[]) => mockGetMyPolls(...args),
-	getPolls: (...args: unknown[]) => mockGetPolls(...args),
+	loadFeed: (feed: string) => (feed === 'resultsIn' ? mockGetResultsInFeed() : mockGetClosingSoonFeed()),
 }));
 
 // An async Server Component can't render on the client: the rail gets a stand-in, and
@@ -54,8 +53,8 @@ const closing: Poll = {
 
 beforeEach(() => {
 	jest.clearAllMocks();
-	mockGetMyPolls.mockResolvedValue({ items: [{ ...closing, id: 'poll-2', myOptionId: null }], nextCursor: null });
-	mockGetPolls.mockResolvedValue({ items: [closing], nextCursor: null });
+	mockGetResultsInFeed.mockResolvedValue({ items: [], nextCursor: null });
+	mockGetClosingSoonFeed.mockResolvedValue({ items: [closing], nextCursor: null });
 });
 
 describe('HomeRail', () => {
@@ -86,11 +85,23 @@ describe('HomeRail', () => {
 });
 
 describe('RailPolls', () => {
-	it('lists Polls closing soon, leaving out Ended ones the viewer didn’t vote in', async () => {
+	it('shows the first of each feed, leaving out an empty one', async () => {
 		render(await realRailPolls());
 		expect(screen.getByRole('region', { name: 'Closing soon' })).toHaveTextContent(
 			'New name for the community garden'
 		);
+		expect(screen.queryByRole('region', { name: 'Results are in' })).not.toBeInTheDocument();
+	});
+
+	it('shows no more than three of a feed, and leaves out a feed that fails', async () => {
+		mockGetResultsInFeed.mockRejectedValue(new Error('down'));
+		mockGetClosingSoonFeed.mockResolvedValue({
+			items: ['a', 'b', 'c', 'd'].map((id) => ({ ...closing, id, title: `Poll ${id}` })),
+			nextCursor: 'more',
+		});
+		render(await realRailPolls());
+		expect(screen.getByText('Poll c')).toBeInTheDocument();
+		expect(screen.queryByText('Poll d')).not.toBeInTheDocument();
 		expect(screen.queryByRole('region', { name: 'Results are in' })).not.toBeInTheDocument();
 	});
 });
