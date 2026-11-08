@@ -26,6 +26,7 @@ import { ChevronRight } from '@/components/ui/SvgIcons';
 import { Switch } from '@/components/ui/Switch';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { isSettingPublic, VISIBILITY_SETTINGS } from '@/features/account/visibility';
+import { ReportProblemDialog } from '@/features/feedback/ReportProblemDialog';
 import { GroupsPanel } from '@/features/groups/GroupsPanel';
 import { NOTIFICATION_SWITCHES } from '@/features/notifications/preferences';
 import type { NotificationPreferences } from '@/features/notifications/schema';
@@ -45,7 +46,7 @@ import { cn } from '@/lib/utils';
 import type { MyProfile } from '@/types/user';
 
 /** The page's sections, in order; the On this page list links to each. */
-export const SETTINGS_SECTIONS = ['voting', 'notifications', 'appearance', 'privacy', 'account'] as const;
+export const SETTINGS_SECTIONS = ['voting', 'notifications', 'appearance', 'privacy', 'help', 'account'] as const;
 
 const rowLinkClassName = cn(
 	rowClassName,
@@ -80,6 +81,7 @@ export default function AccountSettings({
 	// The last value the server confirmed; quick toggles can answer out of order
 	const savedAnonymousDefault = useRef(profile.anonymousBallotByDefault);
 	const [invitesOpen, setInvitesOpen] = useState(false);
+	const [reportOpen, setReportOpen] = useState(false);
 	const deviceCount = useDeviceCount();
 	// Read out by screen readers after each save; the switch itself shows the change
 	const [announcement, setAnnouncement] = useState('');
@@ -185,6 +187,16 @@ export default function AccountSettings({
 						<ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
 					</Link>
 				</SettingsCard>
+			</Section>
+
+			<Section id="help" title={t('settings.help')}>
+				<SettingsCard>
+					<button type="button" onClick={() => setReportOpen(true)} className={cn(rowLinkClassName, 'w-full text-left')}>
+						<RowText title={t('navigation.reportProblem')} body={t('settings.reportProblemBody')} />
+						<ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+					</button>
+				</SettingsCard>
+				<ReportProblemDialog open={reportOpen} onOpenChange={setReportOpen} />
 			</Section>
 
 			<Section id="account" title={t('settings.account')}>
@@ -458,6 +470,7 @@ const SECTION_TITLES: Record<(typeof SETTINGS_SECTIONS)[number], string> = {
 	notifications: 'notifications.title',
 	appearance: 'settings.appearanceAndLanguage',
 	privacy: 'settings.privacy',
+	help: 'settings.help',
 	account: 'settings.account',
 };
 
