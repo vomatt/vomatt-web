@@ -70,12 +70,12 @@ Ranked by how much a visitor would notice.
 5. **Missing poll returns 200**, not 404 (it is noindex now). A deleted poll shows "Vomatt" as its tab title.
 6. **Account deletion has no confirmation.** `deleteAccount` redirects to `/?account_deleted=1`, which nothing reads.
 7. **`/following` loses the redirect.** Signed-out visitors go to `/login` without `?redirect=`, so they land on `/` after signing in.
-8. **Remaining hardcoded English:** `[slug]/not-found.tsx` title, `defineMetadata` "Page not found" fallback, screen-reader text in `ui/Sheet.tsx` ("Close") and `ui/Sidebar.tsx` ("Toggle Sidebar"), the "Coming soon" fallback heading.
+8. **Remaining hardcoded English:** `[slug]/not-found.tsx` title, `defineMetadata` "Page not found" fallback (removed since), screen-reader text in `ui/Sheet.tsx` ("Close") and `ui/Sidebar.tsx` ("Toggle Sidebar"), the "Coming soon" fallback heading.
 9. **Remaining zh copy:** English API error messages left in `zh.json` (`apiError.*`: invalid token, expired session, sort on ended polls, pagination, client ID mismatch), 發佈 vs 發布, 重試 vs 再試一次, three names for the profile page, 預覽 for "Review", 「白無常，走得高」.
 10. **Remaining en copy:** API errors call a poll a "Vote" and capitalize model names ("Vote not found", "Invite List"); Title Case outliers ("End Poll", "Invite Lists"); straight apostrophe in `passkey.addFailed`.
 11. **No Content-Security-Policy** header. Other security headers are set.
 12. **No `loading.tsx`** for `/explore` and `/settings`, which wait on all their data before first paint.
-13. **Dead code:** `components/Newsletter.tsx` (posts to a missing Klaviyo route), `components/layout/Footer`, `app/api/user/language/route.ts` (unauthenticated stub), `hooks/useUserLanguage.ts`, `absoluteUrl` in `lib/utils.ts`, `lib/session.ts`, `app/client-utils.ts`. Unused locale keys: `profile.joinedAt`, `profile.totalVotes`, `account.turnout_one`, zh `verificationCode.invalidVerificationCode`.
+13. **Dead code:** `components/Newsletter.tsx` (posts to a missing Klaviyo route), `components/layout/Footer`, `app/api/user/language/route.ts` (unauthenticated stub), `hooks/useUserLanguage.ts`, `absoluteUrl` in `lib/utils.ts`, `lib/session.ts`, `app/client-utils.ts`. All removed since. Unused locale keys: `profile.joinedAt`, `profile.totalVotes`, `account.turnout_one`, zh `verificationCode.invalidVerificationCode`.
 
 ## Checked and fine
 
