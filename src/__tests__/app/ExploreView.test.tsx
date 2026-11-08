@@ -134,6 +134,8 @@ describe('ExploreView', () => {
 		await renderView(<ExploreView topics={topics} initialPage={Promise.resolve({ items: [], nextCursor: null })} />);
 		const pills = screen.getByRole('list', { name: 'Topics' });
 		expect(pills).toHaveTextContent('TransportFood');
+		expect(pills).toHaveClass('overflow-x-auto', 'max-md:bleed-r');
+		expect(screen.getByRole('group', { name: 'Status' }).parentElement?.parentElement).toHaveClass('overflow-x-auto', 'max-md:bleed-x');
 
 		fireEvent.click(screen.getByRole('button', { name: 'Food' }));
 		await act(async () => jest.advanceTimersByTime(300));

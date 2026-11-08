@@ -544,6 +544,20 @@ html:has([data-slot='tabs-list'][data-sticky], [data-sticky-bar]) {
 	@apply rounded-xl border border-dashed border-border-strong bg-surface-soft px-5 py-8 text-body-4 text-muted-foreground;
 }
 
+/* A sideways scroller that runs out to the page's edges (PageShell clips it there) while its first item, last item
+   and scroll stops keep its parent's edges, wherever the parent sits. `bleed-r` for a row that starts after a label */
+@utility bleed-x {
+	margin-inline: -100vw;
+	padding-inline: 100vw;
+	scroll-padding-inline: 100vw;
+}
+
+@utility bleed-r {
+	margin-inline-end: -100vw;
+	padding-inline-end: 100vw;
+	scroll-padding-inline-end: 100vw;
+}
+
 /* Every avatar's circle: 32px unless a size goes beside it, with a 1px line so it sits on any surface */
 @utility avatar-frame {
 	@apply size-8 shrink-0 rounded-full border border-border;

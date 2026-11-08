@@ -21,7 +21,8 @@ export function PageShell({
 	| { wide: true; rail?: never }
 )) {
 	return (
-		<div className={cn('px-contain pt-8 pb-16', className)}>
+		// Clipped sideways so `bleed-x` and `bleed-r` rows end at the page's edges; `clip` keeps sticky bars working
+		<div className={cn('overflow-x-clip px-contain pt-8 pb-16', className)}>
 			<div className="mx-auto flex w-full max-w-main flex-col gap-8 xl:max-w-page xl:flex-row xl:gap-10">
 				<div className="flex min-w-0 flex-col xl:flex-1">{children}</div>
 				{!wide && (

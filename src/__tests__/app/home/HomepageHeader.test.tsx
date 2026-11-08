@@ -51,6 +51,12 @@ describe('HomepageHeader', () => {
 		expect(screen.queryByRole('navigation', { name: 'Legal' })).not.toBeInTheDocument();
 	});
 
+	it('runs the topic row out to the screen edges on phones', () => {
+		render(<HomepageHeader tags={tags} signedIn />);
+		const list = within(screen.getByRole('navigation', { name: 'Topics' })).getByRole('list');
+		expect(list).toHaveClass('overflow-x-auto', 'max-md:bleed-x');
+	});
+
 	it('keeps Saved off the feed: it lives on the profile', () => {
 		render(<HomepageHeader tags={tags} signedIn />);
 		expect(screen.getByRole('link', { name: 'Following' })).toHaveAttribute('href', '/following');

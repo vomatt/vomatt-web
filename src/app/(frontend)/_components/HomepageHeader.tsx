@@ -102,9 +102,9 @@ export function HomepageHeader({
 					<LegalLinks className="mb-2 flex flex-wrap gap-x-5 px-1 text-caption-2 text-muted-foreground [&>a]:py-3.5" />
 				</>
 			)}
-			<StickyBar className="-mx-1">
+			<StickyBar className="-mx-1 max-md:mx-0">
 				<nav aria-label={t('homePage.topics')}>
-					<ul className="flex gap-2 overflow-x-auto px-1 py-2 scrollbar-none">
+					<ul className="flex gap-2 overflow-x-auto px-1 py-2 scrollbar-none max-md:bleed-x">
 						{feeds.map(renderLink)}
 						{topics.map(renderLink)}
 					</ul>

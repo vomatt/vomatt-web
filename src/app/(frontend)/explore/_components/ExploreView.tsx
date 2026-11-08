@@ -134,7 +134,7 @@ export function ExploreView({
 				</div>
 
 				{/* One row that scrolls sideways where it doesn't fit, so the stuck bar stays two rows tall on a phone */}
-				<div className="-m-1 flex items-center gap-x-4 overflow-x-auto p-1 scrollbar-none">
+				<div className="-m-1 flex items-center gap-x-4 overflow-x-auto p-1 scrollbar-none max-md:bleed-x">
 					<div className="flex shrink-0 items-center gap-4">
 						<span id={statusLabelId} className="shrink-0 whitespace-nowrap text-caption-1 text-muted-foreground">
 							{t('explore.status')}
@@ -207,7 +207,7 @@ function TopicPills({
 				{t('explore.topics')}
 			</span>
 			{/* Padded inside the scroller, so the end pills' focus rings aren't clipped */}
-			<ul aria-labelledby={labelId} className="-m-1 flex gap-2 overflow-x-auto p-1 scrollbar-none">
+			<ul aria-labelledby={labelId} className="-m-1 flex gap-2 overflow-x-auto p-1 scrollbar-none max-md:bleed-r">
 				{shown.map((tag) => (
 					<li key={tag.id} className="shrink-0">
 						<Pill active={tag === active} onClick={() => onPick(tag.slug)}>{tag.name}</Pill>
