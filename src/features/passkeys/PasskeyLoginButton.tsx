@@ -7,10 +7,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import type { AuthErrorKey } from '@/lib/api/auth-errors';
 import { getPasskeyLoginOptions, verifyPasskeyLogin } from '@/lib/api/services/auth';
 
+import { isPasskeyCancelled, PasskeyRefusedError, requestPasskey } from './request';
 import { useSupportsPasskeys } from './support';
-
-/** The user closed the browser's passkey sheet, it timed out, or the request was aborted: nothing to report. */
-const CANCELLED = ['NotAllowedError', 'AbortError'];
 
 /** The API's challenges last 5 minutes; older options are fetched again before use. */
 const OPTIONS_MAX_AGE_MS = 4 * 60 * 1000;
@@ -59,11 +57,13 @@ export function PasskeyLoginButton({ onSignedIn, onError }: PasskeyLoginButtonPr
 				if (!quiet) onError(result.error);
 				return;
 			}
-			const credential = await navigator.credentials.get({
-				publicKey: PublicKeyCredential.parseRequestOptionsFromJSON(result.options),
-				mediation,
-				signal,
-			});
+			const credential = await requestPasskey(() =>
+				navigator.credentials.get({
+					publicKey: PublicKeyCredential.parseRequestOptionsFromJSON(result.options),
+					mediation,
+					signal,
+				})
+			);
 			if (!credential) return;
 			// Verifying spends the challenge
 			options.current = null;
@@ -75,8 +75,12 @@ export function PasskeyLoginButton({ onSignedIn, onError }: PasskeyLoginButtonPr
 			isSignedIn.current = true;
 			onSignedIn();
 		} catch (error) {
-			const name = (error as { name?: string } | null)?.name ?? '';
-			if (quiet || CANCELLED.includes(name)) return;
+			if (quiet) return;
+			if (error instanceof PasskeyRefusedError) {
+				onError('passkeyRefused');
+				return;
+			}
+			if (isPasskeyCancelled(error)) return;
 			console.error('Passkey sign-in failed:', error);
 			onError('serverError');
 		}

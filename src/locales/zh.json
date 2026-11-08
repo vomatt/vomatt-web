@@ -552,6 +552,7 @@
 		"accountSuspended": "此帳號已被停權。",
 		"rateLimited": "請求過於頻繁，請稍後再試。",
 		"invalidEmail": "請輸入有效的電子郵件。",
+		"passkeyRefused": "瀏覽器沒有開啟你的通行密鑰。請再試一次、改用其他瀏覽器，或使用電子郵件繼續。",
 		"serverError": "發生錯誤，請稍後再試。"
 	},
 	"onboarding": {
@@ -1247,6 +1248,7 @@
 		"added": "已新增通行密鑰",
 		"alreadyAdded": "這部裝置已經有你帳號的通行密鑰。",
 		"addFailed": "無法新增通行密鑰，請再試一次。",
+		"addRefused": "瀏覽器沒有開啟通行密鑰。請再試一次，或改用其他瀏覽器。",
 		"unnamed": "通行密鑰",
 		"created": "新增於 {date}",
 		"lastUsed": "上次使用 {date}",

@@ -19,6 +19,7 @@ const mockParse = jest.fn();
 const optionsJson = { challenge: 'Y2hhbGxlbmdl', rp: { id: 'vomatt.com', name: 'Vomatt' } };
 const parsedOptions = { challenge: new ArrayBuffer(8) };
 const credentialJson = { id: 'cred-1', rawId: 'cred-1', type: 'public-key', response: {} };
+let now: jest.SpyInstance<number, []>;
 
 function supportWebAuthn() {
 	Object.defineProperty(window, 'PublicKeyCredential', {
@@ -30,6 +31,7 @@ function supportWebAuthn() {
 
 beforeEach(() => {
 	jest.clearAllMocks();
+	now = jest.spyOn(performance, 'now').mockReturnValue(0);
 	mockParse.mockReturnValue(parsedOptions);
 	mockGetOptions.mockResolvedValue({ ok: true, data: optionsJson });
 	mockCreate.mockResolvedValue({ toJSON: () => credentialJson });
@@ -38,6 +40,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+	jest.restoreAllMocks();
 	delete (window as { PublicKeyCredential?: unknown }).PublicKeyCredential;
 	delete (navigator as { credentials?: unknown }).credentials;
 });
@@ -56,13 +59,29 @@ describe('AddPasskeyButton', () => {
 	});
 
 	it.each(['NotAllowedError', 'AbortError'])('says nothing when the user cancels (%s)', async (name) => {
-		mockCreate.mockRejectedValue(new DOMException('cancelled', name));
+		mockCreate.mockImplementation(() => {
+			now.mockReturnValue(3000);
+			return Promise.reject(new DOMException('cancelled', name));
+		});
 		render(<AddPasskeyButton />);
 		add();
 
 		await waitFor(() => expect(mockCreate).toHaveBeenCalled());
 		await waitFor(() => expect(screen.queryByRole('status')).not.toBeInTheDocument());
 		expect(toast.error).not.toHaveBeenCalled();
+		expect(mockVerify).not.toHaveBeenCalled();
+	});
+
+	it('says the browser refused when it rejects without opening the passkey sheet', async () => {
+		mockCreate.mockRejectedValue(new DOMException('not allowed', 'NotAllowedError'));
+		render(<AddPasskeyButton />);
+		add();
+
+		await waitFor(() =>
+			expect(toast.error).toHaveBeenCalledWith('Your browser didn’t open passkeys. Try again or use another browser.', {
+				duration: Infinity,
+			})
+		);
 		expect(mockVerify).not.toHaveBeenCalled();
 	});
 

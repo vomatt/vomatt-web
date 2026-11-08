@@ -100,9 +100,16 @@ describe('LogIn with a passkey', () => {
 	/** The autofill request: pending until a passkey is picked, rejecting like browsers do when aborted. */
 	let pickPasskey: () => void;
 	let conditionalSignal: AbortSignal | undefined;
+	let now: jest.SpyInstance<number, []>;
+	/** Rejects like a passkey sheet the user closed after a few seconds. */
+	const closeSheetLater = () => {
+		now.mockReturnValue(3000);
+		return Promise.reject(new DOMException('cancelled', 'NotAllowedError'));
+	};
 
 	beforeEach(() => {
 		jest.clearAllMocks();
+		now = jest.spyOn(performance, 'now').mockReturnValue(0);
 		mockSearch = 'redirect=/polls/p1';
 		mockGetOptions.mockResolvedValue({ status: 'SUCCESS', options: optionsJson });
 		mockVerify.mockResolvedValue({ status: 'SUCCESS' });
@@ -128,6 +135,7 @@ describe('LogIn with a passkey', () => {
 	});
 
 	afterEach(() => {
+		jest.restoreAllMocks();
 		delete (window as { PublicKeyCredential?: unknown }).PublicKeyCredential;
 		delete (navigator as { credentials?: unknown }).credentials;
 	});
@@ -152,7 +160,7 @@ describe('LogIn with a passkey', () => {
 	});
 
 	it('stays quiet when the user closes the passkey sheet', async () => {
-		mockGet.mockRejectedValue(new DOMException('cancelled', 'NotAllowedError'));
+		mockGet.mockImplementation(closeSheetLater);
 		render(<LogIn />);
 		fireEvent.click(passkeyButton());
 
@@ -161,6 +169,26 @@ describe('LogIn with a passkey', () => {
 		expect(mockVerify).not.toHaveBeenCalled();
 		expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 		expect(screen.queryByText(/went wrong/)).not.toBeInTheDocument();
+	});
+
+	it('says so when the browser refuses without opening the passkey sheet', async () => {
+		mockGet.mockRejectedValue(new DOMException('not allowed', 'NotAllowedError'));
+		render(<LogIn />);
+		fireEvent.click(passkeyButton());
+
+		expect(
+			await screen.findByText('Your browser didn’t open your passkeys. Try again, use another browser, or continue with email.')
+		).toBeInTheDocument();
+	});
+
+	it('stays quiet when the browser refuses the autofill request on page load', async () => {
+		mockConditionalAvailable.mockResolvedValue(true);
+		mockGet.mockRejectedValue(new DOMException('not allowed', 'NotAllowedError'));
+		render(<LogIn />);
+
+		await waitFor(() => expect(mockGet).toHaveBeenCalledWith(expect.objectContaining({ mediation: 'conditional' })));
+		await act(async () => {});
+		expect(screen.queryByText(/browser didn’t open/)).not.toBeInTheDocument();
 	});
 
 	it('hides the button when the browser has no WebAuthn JSON helpers', () => {

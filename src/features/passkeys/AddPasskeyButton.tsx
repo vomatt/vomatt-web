@@ -8,8 +8,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { apiErrorText } from '@/lib/api/error-text';
 import { getPasskeyRegistrationOptions, verifyPasskeyRegistration } from '@/lib/api/services/auth';
 
-/** The user closed the browser's passkey sheet, or it timed out: nothing to report. */
-const CANCELLED = ['NotAllowedError', 'AbortError'];
+import { isPasskeyCancelled, PasskeyRefusedError, requestPasskey } from './request';
 
 /** Registers a passkey on this device for the signed-in account. Render it only when useSupportsPasskeys(). */
 export function AddPasskeyButton({ onAdded }: { onAdded?: () => void }) {
@@ -26,12 +25,18 @@ export function AddPasskeyButton({ onAdded }: { onAdded?: () => void }) {
 			}
 			let credential: Credential | null;
 			try {
-				credential = await navigator.credentials.create({
-					publicKey: PublicKeyCredential.parseCreationOptionsFromJSON(options.data),
-				});
+				credential = await requestPasskey(() =>
+					navigator.credentials.create({
+						publicKey: PublicKeyCredential.parseCreationOptionsFromJSON(options.data),
+					})
+				);
 			} catch (error) {
+				if (error instanceof PasskeyRefusedError) {
+					toast.error(t('passkey.addRefused'), { duration: Infinity });
+					return;
+				}
+				if (isPasskeyCancelled(error)) return;
 				const name = (error as { name?: string } | null)?.name ?? '';
-				if (CANCELLED.includes(name)) return;
 				// excludeCredentials matched: this authenticator already holds one
 				toast.error(t(name === 'InvalidStateError' ? 'passkey.alreadyAdded' : 'passkey.addFailed'), {
 					duration: Infinity,
