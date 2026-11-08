@@ -563,6 +563,7 @@
 		"accountSuspended": "This account has been suspended.",
 		"rateLimited": "Too many requests. Please wait a moment and try again.",
 		"invalidEmail": "Please enter a valid email address.",
+		"passkeyRefused": "Your browser didn’t open your passkeys. Try again, use another browser, or continue with email.",
 		"serverError": "Something went wrong. Please try again later."
 	},
 	"onboarding": {
@@ -1264,6 +1265,7 @@
 		"added": "Passkey added",
 		"alreadyAdded": "This device already has a passkey for your account.",
 		"addFailed": "Couldn’t add the passkey. Please try again.",
+		"addRefused": "Your browser didn’t open passkeys. Try again or use another browser.",
 		"unnamed": "Passkey",
 		"created": "Added {date}",
 		"lastUsed": "last used {date}",

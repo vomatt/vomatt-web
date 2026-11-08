@@ -11,6 +11,7 @@ export type AuthErrorKey =
 	| 'accountSuspended'
 	| 'rateLimited'
 	| 'invalidEmail'
+	| 'passkeyRefused'
 	| 'serverError';
 
 const ERROR_CODES: Record<string, AuthErrorKey> = {
