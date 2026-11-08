@@ -12,6 +12,8 @@ jest.mock('next-themes', () => ({ useTheme: () => ({ theme: 'system', setTheme: 
 jest.mock('@/features/groups/GroupsPanel', () => ({ GroupsPanel: () => <p>Groups panel</p> }));
 jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn() } }));
 jest.mock('@/lib/api/services/auth', () => ({ signout: jest.fn() }));
+const mockReportProblem = jest.fn();
+jest.mock('@/features/feedback/service', () => ({ reportProblem: (...args: unknown[]) => mockReportProblem(...args) }));
 jest.mock('@/features/passkeys/service', () => ({
 	getPasskeys: jest.fn().mockResolvedValue({ ok: true, data: [] }),
 	deletePasskey: jest.fn(),
@@ -123,6 +125,20 @@ describe('AccountSettings', () => {
 		const privacy = screen.getByRole('region', { name: 'Privacy and safety' });
 		expect(within(privacy).getByRole('link', { name: /Blocked people/ })).toHaveAttribute('href', '/settings/blocked');
 		expect(within(privacy).queryByRole('button', { name: /^Unblock/ })).not.toBeInTheDocument();
+	});
+
+	it('sends a report from Help and closes the dialog once it is sent', async () => {
+		mockReportProblem.mockResolvedValue({ ok: true, data: null });
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+		const help = screen.getByRole('region', { name: 'Help' });
+		fireEvent.click(within(help).getByRole('button', { name: /Report a problem/ }));
+		const dialog = screen.getByRole('dialog', { name: 'Report a problem' });
+
+		fireEvent.change(within(dialog).getByRole('textbox', { name: 'Describe the problem' }), { target: { value: 'Ballot froze' } });
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Submit' }));
+
+		expect(mockReportProblem).toHaveBeenCalledWith('Ballot froze');
+		await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Report a problem' })).not.toBeInTheDocument());
 	});
 
 	it('leaves the people you follow to your profile', () => {

@@ -12,7 +12,7 @@ import { apiErrorText } from '@/lib/api/error-text';
 import { FEEDBACK_MESSAGE_MAX } from './schema';
 import { reportProblem } from './service';
 
-/** Opened from the More menu; the menu's popup unmounts on close, so the dialog lives outside it. */
+/** Opened from the More menu and from Help in Settings. The menu's popup unmounts on close, so there the dialog lives outside it. */
 export function ReportProblemDialog({
 	open,
 	onOpenChange,
