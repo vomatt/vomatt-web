@@ -19,7 +19,7 @@ import {
 	AlertDialogTitle,
 } from '@/components/ui/AlertDialog';
 import { Button } from '@/components/ui/Button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
+import { Dialog, DialogBody, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { Input } from '@/components/ui/Input';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { ChevronRight } from '@/components/ui/SvgIcons';
@@ -138,7 +138,9 @@ export default function AccountSettings({
 						<DialogHeader>
 							<DialogTitle>{t('account.tabGroups')}</DialogTitle>
 						</DialogHeader>
-						<GroupsPanel />
+						<DialogBody>
+							<GroupsPanel />
+						</DialogBody>
 					</DialogContent>
 				</Dialog>
 			</Section>

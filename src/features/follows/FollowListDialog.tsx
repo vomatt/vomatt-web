@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
+import { Dialog, DialogBody, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
@@ -54,7 +54,11 @@ export function FollowListDialog({
 					<DialogTitle>{list && t(lists[list].title)}</DialogTitle>
 				</DialogHeader>
 				{/* Keyed so switching lists starts from the first page */}
-				{list && <People key={list} username={username} list={list} {...rowProps} />}
+				{list && (
+					<DialogBody>
+						<People key={list} username={username} list={list} {...rowProps} />
+					</DialogBody>
+				)}
 			</DialogContent>
 		</Dialog>
 	);

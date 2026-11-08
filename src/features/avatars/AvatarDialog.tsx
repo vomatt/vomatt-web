@@ -86,11 +86,6 @@ export function AvatarDialog({
 		setCropFile(file);
 	};
 
-	const surprise = () => {
-		const others = BOT_KINDS.filter((kind) => kind !== selected);
-		setSelected(others[Math.floor(Math.random() * others.length)]);
-	};
-
 	const save = async () => {
 		// Enabled even when unchanged, so it never drops focus; nothing to save just closes
 		if (unchanged || selected === null) {
@@ -187,7 +182,8 @@ export function AvatarDialog({
 							<DialogDescription>{t('avatar.body')}</DialogDescription>
 						</DialogHeader>
 
-						<div className="flex flex-wrap items-center gap-4">
+						{/* pb-3: with the grid's 4px top, the two sections stay 16px apart */}
+						<DialogBody className="flex flex-wrap items-center gap-4 pb-3">
 							{selected === null && savedUpload ? (
 								<UploadedAvatar src={savedUpload} className="size-16 md:size-28" />
 							) : (
@@ -219,7 +215,6 @@ export function AvatarDialog({
 									variant="outline"
 									size="sm"
 									disabled={isSaving}
-									className="col-span-2"
 									onClick={() => {
 										// Fetched while the file chooser is open, so the crop step opens without a wait
 										void loadCropStage();
@@ -227,9 +222,6 @@ export function AvatarDialog({
 									}}
 								>
 									{t('avatar.upload.button')}
-								</Button>
-								<Button variant="outline" size="sm" onClick={surprise}>
-									{t('avatar.surprise')}
 								</Button>
 								<Button
 									variant="outline"
@@ -243,9 +235,9 @@ export function AvatarDialog({
 									{t('avatar.remove')}
 								</Button>
 							</div>
-						</div>
+						</DialogBody>
 
-						<DialogBody ref={setGrid}>
+						<DialogBody ref={setGrid} scroll>
 							{/* Six and ten across, so the cast of 60 fills every row */}
 							<div className="grid grid-cols-6 gap-1.5 md:grid-cols-10 md:gap-2">{BOT_KINDS.map(renderTile)}</div>
 						</DialogBody>

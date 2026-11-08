@@ -136,13 +136,6 @@ describe('AvatarDialog', () => {
 		expect(mockTooltipBoundaries.at(-1)).toBe(grid);
 	});
 
-	it('Surprise me picks a different bot', () => {
-		openDialog('bot:boba');
-		fireEvent.click(screen.getByRole('button', { name: 'Surprise me' }));
-		expect(screen.getByRole('button', { name: 'Choose Boba' })).toHaveAttribute('aria-pressed', 'false');
-		expect(screen.getByRole('button', { name: 'Save avatar' })).toBeEnabled();
-	});
-
 	describe('upload', () => {
 		const pick = (file: File) => fireEvent.change(screen.getByTestId('avatar-file'), { target: { files: [file] } });
 

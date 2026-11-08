@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/Button';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/Dialog';
+import { Dialog, DialogBody, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { Textarea } from '@/components/ui/Textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { apiErrorText } from '@/lib/api/error-text';
@@ -54,26 +54,30 @@ export function ReportProblemDialog({
 				overlay="strong"
 				closeLabel={t('common.close')}
 			>
-				<DialogTitle className="text-center">{t('feedback.title')}</DialogTitle>
-				<form onSubmit={submit} className="grid gap-3">
-					<Textarea
-						value={message}
-						onChange={(event) => setMessage(event.target.value)}
-						placeholder={t('feedback.placeholder')}
-						aria-label={t('feedback.label')}
-						className="min-h-32"
-						maxLength={FEEDBACK_MESSAGE_MAX}
-					/>
-					<Button
-						type="submit"
-						variant="outline"
-						className="justify-self-end"
-						disabled={!trimmed}
-						loading={isSending}
-					>
-						{t('feedback.submit')}
-					</Button>
-				</form>
+				<DialogHeader>
+					<DialogTitle className="text-center">{t('feedback.title')}</DialogTitle>
+				</DialogHeader>
+				<DialogBody>
+					<form onSubmit={submit} className="grid gap-3">
+						<Textarea
+							value={message}
+							onChange={(event) => setMessage(event.target.value)}
+							placeholder={t('feedback.placeholder')}
+							aria-label={t('feedback.label')}
+							className="min-h-32"
+							maxLength={FEEDBACK_MESSAGE_MAX}
+						/>
+						<Button
+							type="submit"
+							variant="outline"
+							className="justify-self-end"
+							disabled={!trimmed}
+							loading={isSending}
+						>
+							{t('feedback.submit')}
+						</Button>
+					</form>
+				</DialogBody>
 			</DialogContent>
 		</Dialog>
 	);

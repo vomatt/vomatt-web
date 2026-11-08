@@ -97,7 +97,7 @@ export function AuthFlow({ onDone, onSignedIn, policyMessage, inDialog = false }
 		<div className={cn('flex flex-col', inDialog ? 'gap-5' : 'gap-6')}>
 			{inDialog ? (
 				// Clear of the close button in the corner
-				<DialogHeader className="gap-1.5 pr-8">
+				<DialogHeader className="gap-1.5 p-0 pr-8">
 					<DialogTitle>{heading.title}</DialogTitle>
 					<DialogDescription className="text-body-4">{heading.subtitle}</DialogDescription>
 				</DialogHeader>

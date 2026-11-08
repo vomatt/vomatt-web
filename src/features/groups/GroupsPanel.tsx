@@ -313,46 +313,50 @@ function GroupDialog({
 				// The members row keeps a floor; when the rest can't fit, the popup scrolls instead of hiding it
 				className="grid-rows-[auto_auto_minmax(--spacing(24),1fr)_auto_auto] sm:max-w-md"
 			>
-				<DialogHeader className="pr-8">
+				<DialogHeader className="pr-12">
 					<DialogTitle className="truncate">{group.name}</DialogTitle>
 					<DialogDescription>{t('groups.dialogIntro')}</DialogDescription>
 				</DialogHeader>
 
-				<form onSubmit={rename} className="space-y-1.5">
-					{/* The error goes under the row, so Rename stays level with its field */}
-					<div className="flex items-end gap-2">
-						<div className="flex-1 space-y-1.5">
-							<Label htmlFor="group-name">{t('groups.nameLabel')}</Label>
-							<Input
-								ref={renameInput}
-								id="group-name"
-								maxLength={GROUP_NAME_MAX}
-								value={name}
-								aria-invalid={nameEmpty}
-								aria-describedby={nameEmpty ? 'group-rename-error' : undefined}
-								onChange={(e) => {
-									setName(e.target.value);
-									setNameEmpty(false);
-								}}
-							/>
+				{/* pb-3: with the members' 4px top, the two sections stay 16px apart */}
+				<DialogBody className="pb-3">
+					<form onSubmit={rename} className="space-y-1.5">
+						{/* The error goes under the row, so Rename stays level with its field */}
+						<div className="flex items-end gap-2">
+							<div className="flex-1 space-y-1.5">
+								<Label htmlFor="group-name">{t('groups.nameLabel')}</Label>
+								<Input
+									ref={renameInput}
+									id="group-name"
+									maxLength={GROUP_NAME_MAX}
+									value={name}
+									aria-invalid={nameEmpty}
+									aria-describedby={nameEmpty ? 'group-rename-error' : undefined}
+									onChange={(e) => {
+										setName(e.target.value);
+										setNameEmpty(false);
+									}}
+								/>
+							</div>
+							<Button
+								type="submit"
+								variant="outline"
+								disabled={pending !== null && pending !== 'rename'}
+								loading={pending === 'rename'}
+							>
+								{t('groups.rename')}
+							</Button>
 						</div>
-						<Button
-							type="submit"
-							variant="outline"
-							disabled={pending !== null && pending !== 'rename'}
-							loading={pending === 'rename'}
-						>
-							{t('groups.rename')}
-						</Button>
-					</div>
-					{nameEmpty && (
-						<p id="group-rename-error" className="text-caption-3 text-destructive">
-							{t('groups.nameRequired')}
-						</p>
-					)}
-				</form>
+						{nameEmpty && (
+							<p id="group-rename-error" className="text-caption-3 text-destructive">
+								{t('groups.nameRequired')}
+							</p>
+						)}
+					</form>
+				</DialogBody>
 
 				<DialogBody
+					scroll
 					ref={membersRegion}
 					tabIndex={-1}
 					role="group"
@@ -386,7 +390,7 @@ function GroupDialog({
 					)}
 				</DialogBody>
 
-				<div className="space-y-3 border-t border-border pt-4">
+				<div className="space-y-3 border-t border-border p-4">
 					<Label htmlFor="add-members">{t('groups.addLabel')}</Label>
 					<InviteePicker
 						id="add-members"
@@ -415,7 +419,7 @@ function GroupDialog({
 					</div>
 				</div>
 
-				<div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4">
+				<div className="flex flex-wrap items-center justify-between gap-2 border-t border-border p-4">
 					{confirmingDelete ? (
 						<>
 							<span id="group-delete-question" className="text-caption-2">

@@ -5,7 +5,7 @@ import Cropper, { type Area, type Point } from 'react-easy-crop';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/Button';
-import { DialogFooter } from '@/components/ui/Dialog';
+import { DialogBody, DialogFooter } from '@/components/ui/Dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { apiErrorText } from '@/lib/api/error-text';
 
@@ -77,48 +77,50 @@ export function CropStage({ file, onCancel, onDone }: { file: File; onCancel: ()
 
 	return (
 		<>
-			<div ref={box} className="relative aspect-square w-full overflow-hidden rounded-xl bg-field">
-				{src && (
-					<Cropper
-						image={src}
-						crop={crop}
-						zoom={zoom}
-						minZoom={MIN_ZOOM}
-						maxZoom={MAX_ZOOM}
-						aspect={1}
-						cropShape="round"
-						showGrid={false}
-						objectFit="cover"
-						keyboardStep={10}
-						onCropChange={setCrop}
-						onZoomChange={setZoom}
-						onCropComplete={(_, pixels) => setArea(pixels)}
-						// The library's mousedown handler blocks focus, so a click wouldn't reach the arrow keys
-						onInteractionStart={({ source }) =>
-							source === 'mouse' &&
-							box.current?.querySelector<HTMLElement>('.reactEasyCrop_CropArea')?.focus({ preventScroll: true })
-						}
-						classes={{
-							cropAreaClassName:
-								'outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring',
-						}}
-						cropperProps={{ role: 'group', 'aria-label': t('avatar.crop.area') }}
-					/>
-				)}
-			</div>
+			<DialogBody className="grid gap-4">
+				<div ref={box} className="relative aspect-square w-full overflow-hidden rounded-xl bg-field">
+					{src && (
+						<Cropper
+							image={src}
+							crop={crop}
+							zoom={zoom}
+							minZoom={MIN_ZOOM}
+							maxZoom={MAX_ZOOM}
+							aspect={1}
+							cropShape="round"
+							showGrid={false}
+							objectFit="cover"
+							keyboardStep={10}
+							onCropChange={setCrop}
+							onZoomChange={setZoom}
+							onCropComplete={(_, pixels) => setArea(pixels)}
+							// The library's mousedown handler blocks focus, so a click wouldn't reach the arrow keys
+							onInteractionStart={({ source }) =>
+								source === 'mouse' &&
+								box.current?.querySelector<HTMLElement>('.reactEasyCrop_CropArea')?.focus({ preventScroll: true })
+							}
+							classes={{
+								cropAreaClassName:
+									'outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring',
+							}}
+							cropperProps={{ role: 'group', 'aria-label': t('avatar.crop.area') }}
+						/>
+					)}
+				</div>
 
-			<label className="flex items-center gap-3 text-body-4 text-muted-foreground">
-				{t('avatar.crop.zoom')}
-				<input
-					type="range"
-					min={MIN_ZOOM}
-					max={MAX_ZOOM}
-					step={0.01}
-					value={zoom}
-					onChange={(event) => setZoom(Number(event.target.value))}
-					className="h-11 min-w-0 flex-1 accent-primary outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
-				/>
-			</label>
+				<label className="flex items-center gap-3 text-body-4 text-muted-foreground">
+					{t('avatar.crop.zoom')}
+					<input
+						type="range"
+						min={MIN_ZOOM}
+						max={MAX_ZOOM}
+						step={0.01}
+						value={zoom}
+						onChange={(event) => setZoom(Number(event.target.value))}
+						className="h-11 min-w-0 flex-1 accent-primary outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
+					/>
+				</label>
+			</DialogBody>
 
 			<DialogFooter>
 				<Button variant="outline" size="md" disabled={isUploading} onClick={onCancel}>

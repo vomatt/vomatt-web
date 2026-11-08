@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button';
 import {
 	Dialog,
+	DialogBody,
 	DialogContent,
 	DialogDescription,
 	DialogFooter,
@@ -81,52 +82,54 @@ function ReportForm({ pollId, commentId, onDone }: { pollId: string; commentId?:
 				<DialogTitle>{t(`${copy}.reportTitle`)}</DialogTitle>
 				<DialogDescription className="text-body-4">{t(`${copy}.reportBody`)}</DialogDescription>
 			</DialogHeader>
-			<form onSubmit={submit} className="grid gap-4">
-				<div className="grid gap-1">
-					<p id={reasonsId} className="text-body-4 font-medium">
-						{t('comments.reportReasonLabel')}
-					</p>
-					<RadioGroup
-						aria-labelledby={reasonsId}
-						value={reason}
-						onValueChange={(value) => setReason(value as Reason)}
-						className="-mx-2 flex flex-col"
-					>
-						{COMMENT_REPORT_REASONS.map((value) => (
-							<Radio.Root
-								key={value}
-								value={value}
-								className="group flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-lg px-2 text-left text-body-4 outline-none hover:bg-surface-soft focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring md:min-h-10"
-							>
-								<span
-									aria-hidden
-									className="grid size-[18px] shrink-0 place-items-center rounded-full border-2 border-input group-data-checked:border-foreground"
+			<form onSubmit={submit}>
+				<DialogBody className="grid gap-4">
+					<div className="grid gap-1">
+						<p id={reasonsId} className="text-body-4 font-medium">
+							{t('comments.reportReasonLabel')}
+						</p>
+						<RadioGroup
+							aria-labelledby={reasonsId}
+							value={reason}
+							onValueChange={(value) => setReason(value as Reason)}
+							className="-mx-2 flex flex-col"
+						>
+							{COMMENT_REPORT_REASONS.map((value) => (
+								<Radio.Root
+									key={value}
+									value={value}
+									className="group flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-lg px-2 text-left text-body-4 outline-none hover:bg-surface-soft focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring md:min-h-10"
 								>
-									<span className="hidden size-2 rounded-full bg-foreground group-data-checked:block" />
-								</span>
-								{t(`comments.reportReason.${value.toLowerCase()}`)}
-							</Radio.Root>
-						))}
-					</RadioGroup>
-				</div>
-				<div className="grid gap-2">
-					<div className="flex items-baseline justify-between gap-2">
-						<label htmlFor={noteId} className="text-body-4 font-medium">
-							{t('comments.reportNote')}
-						</label>
-						<span className="text-caption-3 text-muted-foreground tabular-nums">
-							{note.length} / {COMMENT_REPORT_NOTE_MAX}
-						</span>
+									<span
+										aria-hidden
+										className="grid size-[18px] shrink-0 place-items-center rounded-full border-2 border-input group-data-checked:border-foreground"
+									>
+										<span className="hidden size-2 rounded-full bg-foreground group-data-checked:block" />
+									</span>
+									{t(`comments.reportReason.${value.toLowerCase()}`)}
+								</Radio.Root>
+							))}
+						</RadioGroup>
 					</div>
-					<Textarea
-						id={noteId}
-						value={note}
-						onChange={(event) => setNote(event.target.value)}
-						maxLength={COMMENT_REPORT_NOTE_MAX}
-						rows={3}
-						className="resize-none"
-					/>
-				</div>
+					<div className="grid gap-2">
+						<div className="flex items-baseline justify-between gap-2">
+							<label htmlFor={noteId} className="text-body-4 font-medium">
+								{t('comments.reportNote')}
+							</label>
+							<span className="text-caption-3 text-muted-foreground tabular-nums">
+								{note.length} / {COMMENT_REPORT_NOTE_MAX}
+							</span>
+						</div>
+						<Textarea
+							id={noteId}
+							value={note}
+							onChange={(event) => setNote(event.target.value)}
+							maxLength={COMMENT_REPORT_NOTE_MAX}
+							rows={3}
+							className="resize-none"
+						/>
+					</div>
+				</DialogBody>
 				<DialogFooter>
 					<Button type="button" variant="outline" size="md" onClick={onDone}>
 						{t('common.cancel')}

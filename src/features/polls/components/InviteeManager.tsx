@@ -90,7 +90,7 @@ export function InviteeManager({ pollId, open, onOpenChange, onChanged }: Invite
 				closeLabel={t('common.close')}
 				className="max-h-[85dvh] grid-rows-[auto_minmax(0,1fr)_auto] sm:max-w-md"
 			>
-				<DialogHeader className="pr-8">
+				<DialogHeader className="pr-12">
 					<DialogTitle>{t('invitees.title')}</DialogTitle>
 					<DialogDescription>
 						{invitees
@@ -99,7 +99,7 @@ export function InviteeManager({ pollId, open, onOpenChange, onChanged }: Invite
 					</DialogDescription>
 				</DialogHeader>
 
-				<DialogBody>
+				<DialogBody scroll>
 					{invitees === null && !loadFailed && (
 						<div className="flex justify-center py-4">
 							<Spinner />
@@ -124,7 +124,7 @@ export function InviteeManager({ pollId, open, onOpenChange, onChanged }: Invite
 					)}
 				</DialogBody>
 
-				<div className="space-y-3 border-t border-border pt-4">
+				<div className="space-y-3 border-t border-border p-4">
 					<Label htmlFor="add-invitees">{t('invitees.addLabel')}</Label>
 					<InviteePicker id="add-invitees" withGroups value={selection} onChange={setSelection} />
 					<div className="flex justify-end">

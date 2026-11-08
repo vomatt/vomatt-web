@@ -9,6 +9,7 @@ import {
 } from 'motion/react';
 import { useRouter } from 'next/navigation';
 import {
+	type CSSProperties,
 	type FormEvent,
 	type KeyboardEvent,
 	ReactElement,
@@ -48,6 +49,7 @@ import { Textarea } from '@/components/ui/Textarea';
 import { TideRule, TideRules } from '@/components/ui/TidePanel';
 import { ENTER, EXIT, Unfold } from '@/components/Unfold';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useVisualViewport } from '@/hooks/useVisualViewport';
 import { apiErrorText } from '@/lib/api/error-text';
 
 import { deleteDraft, type PollDraft, saveDraft } from '../../drafts';
@@ -197,6 +199,7 @@ export function PollCreator({
 	const isEdit = !!poll;
 	const [internalOpen, setInternalOpen] = useState(false);
 	const open = openProp ?? internalOpen;
+	const visible = useVisualViewport(open);
 	// Built once: they read the clock, and useForm only needs the first value
 	const [defaults] = useState(() => initialValues(poll, draft));
 	const initialPreset = isEdit || draft ? null : '3d';
@@ -241,12 +244,12 @@ export function PollCreator({
 		});
 	const isInviteOnly = audience === 'invite-only';
 	const titleRef = useRef<HTMLHeadingElement>(null);
-	const popupRef = useRef<HTMLDivElement>(null);
+	const scrollRef = useRef<HTMLDivElement>(null);
 	const reduceMotion = useReducedMotion();
 
 	// Each step starts at its top. The write form unmounts on review; land on the step title so it is announced
 	useEffect(() => {
-		if (popupRef.current) popupRef.current.scrollTop = 0;
+		if (scrollRef.current) scrollRef.current.scrollTop = 0;
 		if (review) titleRef.current?.focus();
 	}, [review]);
 	const level = visibilityLevel({ voterVisibility, audience });
@@ -409,17 +412,14 @@ export function PollCreator({
 					<DialogTrigger render={triggerChildren} />
 				)}
 				<DialogContent
-					ref={popupRef}
 					showCloseButton={false}
 					finalFocus={finalFocus}
 					initialFocus={() => document.getElementById('title')}
-					// Scroll padding clears the sticky header and footer when a focused field scrolls into view,
-					// and from sm up keeps Add option, under the last option, clear of the footer too (a phone's
-					// keyboard leaves no room for both).
-					// No overscroll: the rubber band would carry the sticky bars along with the content
-					className="flex h-dvh max-h-dvh max-w-none scroll-pt-28 scroll-pb-24 sm:scroll-pb-40 flex-col overscroll-none gap-0 rounded-none border-0 bg-background p-0 ring-0 sm:h-auto sm:max-h-[90dvh] sm:max-w-2xl sm:rounded-[20px] sm:ring-1"
+					// On phones it fills what's visible, so the footer stays above the keyboard
+					style={visible ? ({ '--visible-center': `${visible.top + visible.height / 2}px`, '--visible-height': `${visible.height}px` } as CSSProperties) : undefined}
+					className="top-[var(--visible-center,50%)] flex h-[var(--visible-height,100dvh)] max-h-[var(--visible-height,100dvh)] max-w-none flex-col overflow-hidden rounded-none border-0 bg-background ring-0 sm:top-1/2 sm:h-auto sm:max-h-[90dvh] sm:max-w-2xl sm:rounded-[20px] sm:ring-1"
 				>
-					<div className="sticky top-0 z-10 flex flex-none items-start gap-3 bg-background/80 p-4 backdrop-blur-md sm:p-5">
+					<div className="flex flex-none items-start gap-3 p-4 sm:p-5">
 						<div className="min-w-0 flex-1 space-y-1">
 							<DialogTitle
 								ref={titleRef}
@@ -454,7 +454,7 @@ export function PollCreator({
 
 					<form
 						noValidate
-						className="flex flex-1 flex-col"
+						className="flex min-h-0 flex-1 flex-col"
 						onKeyDown={(e) => {
 							if (e.key !== 'Enter' || !(e.metaKey || e.ctrlKey)) return;
 							e.preventDefault();
@@ -472,10 +472,8 @@ export function PollCreator({
 							}
 						}}
 					>
-						{/* The whole dialog scrolls, so the step passes under the sticky header and footer.
-						    relative: the leaving step is laid over the arriving one while both animate.
-						    clip, not hidden: hidden would make this a scroll container of its own */}
-						<div className="relative flex-1 overflow-x-clip">
+						{/* relative: the leaving step is laid over the arriving one while both animate */}
+						<div ref={scrollRef} className="relative min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain">
 							<AnimatePresence
 								initial={false}
 								mode="popLayout"
@@ -914,8 +912,7 @@ export function PollCreator({
 							</AnimatePresence>
 						</div>
 
-						{/* Clicks pass through the translucent bar to the fields under it; only the button row takes them */}
-						<div className="pointer-events-none sticky bottom-0 z-10 flex-none bg-background/80 p-4 backdrop-blur-md pb-[calc(1rem+env(safe-area-inset-bottom))] sm:p-5">
+						<div className="flex-none border-t p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:p-5">
 							{/* Rendered empty first, so a failed publish is announced every time, the same error included */}
 							<p
 								role="alert"
@@ -923,7 +920,7 @@ export function PollCreator({
 							>
 								{review && errors.root?.message}
 							</p>
-							<div className="pointer-events-auto flex flex-wrap justify-end gap-2 sm:ml-auto sm:w-fit">
+							<div className="flex flex-wrap justify-end gap-2 sm:ml-auto sm:w-fit">
 								{!review && !isEdit && (
 									<Button
 										type="button"

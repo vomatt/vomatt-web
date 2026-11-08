@@ -57,7 +57,7 @@ function DialogContent({
 			<DialogPrimitive.Popup
 				data-slot="dialog-content"
 				className={cn(
-					'fixed top-1/2 left-1/2 z-50 grid max-h-[calc(100dvh-2rem)] w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 grid-cols-[minmax(0,1fr)] gap-4 rounded-xl border border-transparent bg-popover p-4 text-caption-1 text-popover-foreground ring-1 ring-foreground/10 duration-100 overflow-y-auto outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 motion-safe:data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 motion-safe:data-closed:zoom-out-95',
+					'fixed top-1/2 left-1/2 z-50 grid max-h-[calc(100dvh-2rem)] w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 grid-cols-[minmax(0,1fr)] rounded-xl border border-transparent bg-popover text-caption-1 text-popover-foreground ring-1 ring-foreground/10 duration-100 overflow-y-auto outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 motion-safe:data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 motion-safe:data-closed:zoom-out-95',
 					className
 				)}
 				{...props}
@@ -87,20 +87,22 @@ function DialogHeader({ className, ...props }: React.ComponentProps<'div'>) {
 	return (
 		<div
 			data-slot="dialog-header"
-			className={cn('flex flex-col gap-2', className)}
+			// The 12px under it and a DialogBody's 4px top make the 16px between them
+			className={cn('flex flex-col gap-2 px-4 pt-4 pb-3', className)}
 			{...props}
 		/>
 	);
 }
 
-/** The scrolling middle row of a `DialogContent` whose `grid-rows-*` give it `minmax(0,1fr)`. */
-function DialogBody({ className, ...props }: React.ComponentProps<'div'>) {
+/** A content section of a `DialogContent`. `scroll` for the one whose row the popup's `grid-rows-*` make `minmax(0,1fr)`. */
+function DialogBody({ className, scroll = false, ...props }: React.ComponentProps<'div'> & { scroll?: boolean }) {
 	return (
 		<div
 			data-slot="dialog-body"
 			className={cn(
-				// The 4px block padding keeps fields' focus outline (2px, offset 2px) from being clipped by the scroll edge
-				'-mx-4 -my-1 overflow-y-auto overscroll-contain px-4 py-1',
+				// The 4px top keeps fields' focus outline (2px, offset 2px) clear of a scrolling edge
+				'px-4 pt-1 pb-4',
+				scroll && 'overflow-y-auto overscroll-contain',
 				className
 			)}
 			{...props}
@@ -122,8 +124,7 @@ function DialogFooter({
 		<div
 			data-slot="dialog-footer"
 			className={cn(
-				// Inside the popup's 1px border: bleeding into it would make the scrolling popup scroll 1px
-				'-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-[calc(var(--radius-xl)-1px)] border-t bg-muted/50 p-4 sm:flex-row sm:justify-end',
+				'flex flex-col-reverse gap-2 rounded-b-[calc(var(--radius-xl)-1px)] border-t bg-muted/50 p-4 sm:flex-row sm:justify-end',
 				className
 			)}
 			{...props}

@@ -208,7 +208,7 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 					<DialogTitle>{t('profile.editProfile')}</DialogTitle>
 					<DialogDescription>{t('profile.editIntro')}</DialogDescription>
 				</DialogHeader>
-				<DialogBody>
+				<DialogBody scroll>
 				<form id="edit-profile" onSubmit={submit} noValidate className="flex flex-col gap-4">
 					<div className="flex flex-col gap-1.5">
 						<div className="flex min-h-7 items-center justify-between gap-2">
