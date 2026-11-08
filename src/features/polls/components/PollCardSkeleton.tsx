@@ -2,9 +2,9 @@
 
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { profileRowClassName } from '@/features/profiles/ProfileRows';
 import { cn } from '@/lib/utils';
 
-import { pollRowFrameClassName } from './PollListItem';
 import { pollTileFrameClassName, PollTileGrid } from './PollTile';
 
 /** Placeholder with the PollCard's shape, shown while a page's data loads. */
@@ -35,8 +35,9 @@ export function PollCardSkeleton({ options = 3 }: { options?: number }) {
 }
 
 /**
- * Placeholder rows with PollListItem's shape: chip, title, meta line. Match the
- * list's row spacing with `className`, and drop the chip for rows without one.
+ * Placeholder rows in a profile row's frame (chip, title, meta line), for poll and
+ * notification lists. Match the list's row spacing with `className`, and drop the
+ * chip for rows without one.
  */
 export function PollRowListSkeleton({ chip = true, className }: { chip?: boolean; className?: string }) {
 	const { t } = useLanguage();
@@ -44,7 +45,7 @@ export function PollRowListSkeleton({ chip = true, className }: { chip?: boolean
 		<div role="status" aria-busy className={cn('space-y-2', className)}>
 			<span className="sr-only">{t('common.loading')}</span>
 			{Array.from({ length: 5 }, (_, i) => (
-				<div key={i} aria-hidden className={cn(pollRowFrameClassName, 'space-y-1.5')}>
+				<div key={i} aria-hidden className={cn(profileRowClassName, 'block space-y-1.5 hover:border-border')}>
 					{chip && <Skeleton className="h-5 w-24 rounded-full" />}
 					<Skeleton className="h-6 w-3/4" />
 					<Skeleton className="h-5 w-28" />

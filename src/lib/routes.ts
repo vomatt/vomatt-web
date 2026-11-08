@@ -1,47 +1,8 @@
 import { SIGNED_IN_FEED_ROOTS } from '@/features/polls/feeds';
 
-export const checkIfActive = ({
-	pathName,
-	url,
-	isChild,
-}: {
-	pathName: string;
-	url: string;
-	isChild?: any;
-}) => {
-	if (isChild) {
-		return pathName.split('/')[1] == url.split('/')[1];
-	} else {
-		return pathName == url;
-	}
-};
-
 /** A nav link is active on its own page and every page below it; home only on itself. */
 export const isActivePath = (pathname: string, href: string) =>
 	href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`);
-
-export const resolveHref = ({
-	documentType,
-	slug,
-}: {
-	documentType: string | undefined;
-	slug: string | undefined;
-}) => {
-	switch (documentType) {
-		case 'pHome':
-			return '/';
-		case 'pGeneral':
-			return `/${slug}`;
-		case 'articlePage':
-			return `/article/${slug}`;
-		case 'externalUrl':
-			return slug;
-
-		default:
-			console.warn('Invalid document type:', documentType);
-			return slug ? `/${slug}` : undefined;
-	}
-};
 
 /** Pages that render without the app chrome (sidebar, phone header, TabBar). */
 export const isChromeless = (pathname: string) => pathname === '/login';

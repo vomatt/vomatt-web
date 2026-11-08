@@ -1,13 +1,14 @@
-import defineMetadata from '@/lib/defineMetadata';
+import type { Metadata } from 'next';
+
 import { getServerMessages } from '@/lib/getServerLocale';
 import { sanityFetch } from '@/sanity/lib/live';
 import { pSignUpDataQuery } from '@/sanity/lib/queries';
 
 import { LogIn } from './_component/LogIn';
 
-export async function generateMetadata() {
+export async function generateMetadata(): Promise<Metadata> {
 	const { messages } = await getServerMessages();
-	return defineMetadata({ data: { title: messages.login.title } });
+	return { title: messages.login.title };
 }
 
 export default async function Page() {

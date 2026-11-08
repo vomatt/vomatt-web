@@ -13,9 +13,6 @@ export function cursorPageSchema<T extends z.ZodTypeAny>(item: T) {
 		})) as unknown as z.ZodType<CursorPage<z.output<T>>>;
 }
 
-/** An empty page, e.g. a fallback when a list can't be loaded. */
-export const EMPTY_PAGE: CursorPage<never> = { items: [], nextCursor: null };
-
 /** The API clamps `limit` to 1–50; clamp here too so callers can't ask for more. */
 export const MAX_PAGE_SIZE = 50;
 
