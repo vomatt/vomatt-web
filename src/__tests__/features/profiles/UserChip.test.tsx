@@ -31,8 +31,6 @@ const profile = {
 	totalPolls: 3,
 	totalVotes: 9,
 	location: null,
-	points: null,
-	membershipLevel: null,
 	avatarUrl: 'bot:bear',
 	followersCount: 1204,
 	followingCount: 86,

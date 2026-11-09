@@ -27,6 +27,7 @@ import {
 	getUserPolls,
 	getVoters,
 	likeComment,
+	likePoll,
 	loadFeed,
 	postComment,
 	removeInvitee,
@@ -37,6 +38,7 @@ import {
 	unbookmarkPoll,
 	unfollowTag,
 	unlikeComment,
+	unlikePoll,
 	updateComment,
 	updatePoll,
 } from '@/features/polls/service';
@@ -768,6 +770,14 @@ describe('reportPoll()', () => {
 });
 
 describe('bookmarks', () => {
+	it('likes with PUT and takes the like back with DELETE', async () => {
+		mockApiClient.mockResolvedValue({ success: true });
+		expect(await likePoll('poll-1')).toEqual({ ok: true, data: undefined });
+		expect(mockApiClient).toHaveBeenLastCalledWith('/votes/poll-1/like', { method: 'PUT' });
+		expect(await unlikePoll('poll-1')).toEqual({ ok: true, data: undefined });
+		expect(mockApiClient).toHaveBeenLastCalledWith('/votes/poll-1/like', { method: 'DELETE' });
+	});
+
 	it('bookmarks with PUT and removes with DELETE', async () => {
 		mockApiClient.mockResolvedValue({ success: true });
 		expect(await bookmarkPoll('poll-1')).toEqual({ ok: true, data: undefined });

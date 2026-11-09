@@ -291,6 +291,7 @@
 		"replied": "{name} replied in {title}",
 		"mentioned": "{name} mentioned you in {title}",
 		"liked": "{name} liked your comment in {title}",
+		"pollLiked": "{name} liked your poll {title}",
 		"categoryLabel": "Category",
 		"category": {
 			"CONVERSATION": "Conversation",
@@ -470,6 +471,10 @@
 		"comments": "{count} comments",
 		"comment": "1 comment",
 		"share": "Share",
+		"like": "Like",
+		"liked": "Liked",
+		"likeFailed": "Couldn’t like the poll. Try again.",
+		"unlikeFailed": "Couldn’t take back your like. Try again.",
 		"bookmark": "Save",
 		"bookmarked": "Saved",
 		"bookmarkFailed": "Couldn’t save the poll. Try again.",

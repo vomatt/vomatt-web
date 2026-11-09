@@ -42,8 +42,6 @@ const myProfile: MyProfile = {
 	displayName: 'Mei',
 	bio: 'Poll enthusiast',
 	location: 'Taipei',
-	points: 120,
-	membershipLevel: null,
 	active: true,
 	lastLoginAt: null,
 	joinedAt: '2026-08-01T10:00:00Z',

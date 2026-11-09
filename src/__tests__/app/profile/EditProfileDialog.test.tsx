@@ -33,8 +33,6 @@ const profile = {
 	displayName: 'Mei',
 	bio: null,
 	location: 'Taipei',
-	points: 1240,
-	membershipLevel: null,
 	active: true,
 	lastLoginAt: null,
 	joinedAt: '2026-01-01T00:00:00Z',

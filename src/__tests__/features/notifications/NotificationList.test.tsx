@@ -252,6 +252,14 @@ describe('NotificationList rows', () => {
 		expect(within(row).getByRole('link', { name: 'Reply' })).toHaveAttribute('href', '/poll/p3#reply-c1');
 	});
 
+	it('words a like of the viewer’s poll and links to the poll', () => {
+		const { comment: _comment, ...rest } = comment as any;
+		renderList([{ ...rest, id: 'pl1', kind: 'POLL_LIKE', read: false }]);
+		const row = rowOf('Saturday market');
+		expect(row).toHaveTextContent('@rosa liked your poll Saturday market');
+		expect(within(row).getByRole('link', { name: 'Saturday market' })).toHaveAttribute('href', '/poll/p3');
+	});
+
 	it('words a cancelled poll without an action', () => {
 		renderList([cancelled]);
 		const row = rowOf('Night bus');
