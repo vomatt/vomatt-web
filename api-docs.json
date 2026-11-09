@@ -180,6 +180,44 @@
         },
         "type" : "object"
       },
+      "AdminContactMessageResponse" : {
+        "description" : "Contact form message as seen in the back office",
+        "properties" : {
+          "createdAt" : {
+            "description" : "When it was sent",
+            "example" : "2026-11-07T10:00:00+08:00",
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "email" : {
+            "description" : "Sender's reply-to email address",
+            "example" : "alice@example.com",
+            "type" : "string"
+          },
+          "id" : {
+            "description" : "Message ID (UUIDv7)",
+            "example" : "0199c3a2-7b5e-7c1d-9a4f-3e2b1d5c6f70",
+            "type" : "string"
+          },
+          "locale" : {
+            "description" : "Language of the page the visitor wrote from",
+            "enum" : [ "en", "zh" ],
+            "example" : "en",
+            "type" : "string"
+          },
+          "message" : {
+            "description" : "The question",
+            "example" : "Can my school use Vomatt for student council elections?",
+            "type" : "string"
+          },
+          "name" : {
+            "description" : "Sender's name",
+            "example" : "Alice Chen",
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
       "AdminFeedbackResponse" : {
         "description" : "Feedback as seen in the back office",
         "properties" : {
@@ -1568,6 +1606,38 @@
         },
         "type" : "object"
       },
+      "ApiResponsePageResponseAdminContactMessageResponse" : {
+        "description" : "Envelope of every API response, success or error",
+        "properties" : {
+          "data" : {
+            "$ref" : "#/components/schemas/PageResponseAdminContactMessageResponse"
+          },
+          "error" : {
+            "description" : "Legacy duplicate of `message` on errors; null on success. Use `message` instead",
+            "example" : "Poll not found",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "errorCode" : {
+            "description" : "Stable machine-readable error code (lowercase, dot-separated); branch on this, not on `message`. Null on success",
+            "example" : "vote.not_found",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "message" : {
+            "description" : "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",
+            "example" : "Operation completed",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "success" : {
+            "description" : "true on success, false on error",
+            "example" : true,
+            "type" : "boolean"
+          }
+        },
+        "type" : "object"
+      },
       "ApiResponsePageResponseAdminFeedbackResponse" : {
         "description" : "Envelope of every API response, success or error",
         "properties" : {
@@ -2431,7 +2501,7 @@
             "type" : "string"
           },
           "authorAvatarUrl" : {
-            "description" : "Avatar of the author as `bot:<kind>` (the bot cast). Older accounts may hold an image URL; null if never set, and on a deleted placeholder (`deleted` = true)",
+            "description" : "Avatar of the author as `bot:<kind>` (the bot cast) or `/api/avatars/<id>.jpg` (an uploaded image, a path on the API origin). Older accounts may hold an image URL; null if never set, and on a deleted placeholder (`deleted` = true)",
             "example" : "bot:boba",
             "nullable" : true,
             "type" : "string"
@@ -2589,6 +2659,41 @@
           }
         },
         "required" : [ "text" ],
+        "type" : "object"
+      },
+      "CreateContactMessageRequest" : {
+        "properties" : {
+          "email" : {
+            "description" : "Reply-to email address, max 254 characters; stored trimmed, case kept",
+            "example" : "alice@example.com",
+            "format" : "email",
+            "maxLength" : 254,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "locale" : {
+            "description" : "Language of the page the visitor wrote from",
+            "enum" : [ "en", "zh" ],
+            "example" : "en",
+            "pattern" : "en|zh",
+            "type" : "string"
+          },
+          "message" : {
+            "description" : "The question, not blank, max 5000 characters",
+            "example" : "Can my school use Vomatt for student council elections?",
+            "maxLength" : 5000,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "name" : {
+            "description" : "Sender's name, not blank, max 100 characters",
+            "example" : "Alice Chen",
+            "maxLength" : 100,
+            "minLength" : 0,
+            "type" : "string"
+          }
+        },
+        "required" : [ "email", "locale", "message", "name" ],
         "type" : "object"
       },
       "CreateFeedbackRequest" : {
@@ -3024,7 +3129,7 @@
         "nullable" : true,
         "properties" : {
           "avatarUrl" : {
-            "description" : "Avatar as `bot:<kind>` (the bot cast). Older accounts may hold an image URL; null if never set",
+            "description" : "Avatar as `bot:<kind>` (the bot cast) or `/api/avatars/<id>.jpg` (an uploaded image, a path on the API origin). Older accounts may hold an image URL; null if never set",
             "example" : "bot:boba",
             "nullable" : true,
             "type" : "string"
@@ -3082,7 +3187,7 @@
             "type" : "string"
           },
           "avatarUrl" : {
-            "description" : "Avatar of a member added by ID as `bot:<kind>` (the bot cast); older accounts may hold an image URL. Null if never set, and always null for one added by email",
+            "description" : "Avatar of a member added by ID as `bot:<kind>` (the bot cast) or `/api/avatars/<id>.jpg` (an uploaded image, a path on the API origin); older accounts may hold an image URL. Null if never set, and always null for one added by email",
             "example" : "bot:boba",
             "nullable" : true,
             "type" : "string"
@@ -3193,7 +3298,7 @@
         "nullable" : true,
         "properties" : {
           "avatarUrl" : {
-            "description" : "Avatar of an Invitee added by ID as `bot:<kind>` (the bot cast); older accounts may hold an image URL. Null if never set, and always null for one added by email",
+            "description" : "Avatar of an Invitee added by ID as `bot:<kind>` (the bot cast) or `/api/avatars/<id>.jpg` (an uploaded image, a path on the API origin); older accounts may hold an image URL. Null if never set, and always null for one added by email",
             "example" : "bot:boba",
             "nullable" : true,
             "type" : "string"
@@ -3394,7 +3499,7 @@
             "type" : "boolean"
           },
           "avatarUrl" : {
-            "description" : "Avatar as `bot:<kind>` (the bot cast); always public. Older accounts may hold an image URL; null if never set",
+            "description" : "Avatar as `bot:<kind>` (the bot cast) or `/api/avatars/<id>.jpg` (an uploaded image, a path on the API origin); always public. Older accounts may hold an image URL; null if never set",
             "example" : "bot:boba",
             "nullable" : true,
             "type" : "string"
@@ -3656,6 +3761,38 @@
             "description" : "Items of this page",
             "items" : {
               "$ref" : "#/components/schemas/AdminCommentResponse"
+            },
+            "type" : "array"
+          },
+          "limit" : {
+            "description" : "Page size",
+            "example" : 20,
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "page" : {
+            "description" : "Current page number (1-based)",
+            "example" : 1,
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "total" : {
+            "description" : "Total number of items across all pages",
+            "example" : 123,
+            "format" : "int64",
+            "type" : "integer"
+          }
+        },
+        "type" : "object"
+      },
+      "PageResponseAdminContactMessageResponse" : {
+        "description" : "Offset-style page container (page number and total count); most list endpoints use CursorResponse instead",
+        "nullable" : true,
+        "properties" : {
+          "content" : {
+            "description" : "Items of this page",
+            "items" : {
+              "$ref" : "#/components/schemas/AdminContactMessageResponse"
             },
             "type" : "array"
           },
@@ -4648,8 +4785,8 @@
             "description" : "What to clear; omit for all",
             "example" : [ "lock", "attempts" ],
             "items" : {
-              "enum" : [ "lock", "attempts", "cooldown" ],
-              "pattern" : "lock|attempts|cooldown",
+              "enum" : [ "lock", "attempts", "cooldown", "daily" ],
+              "pattern" : "lock|attempts|cooldown|daily",
               "type" : "string"
             },
             "nullable" : true,
@@ -4839,7 +4976,7 @@
             "type" : "boolean"
           },
           "avatarUrl" : {
-            "description" : "New avatar, one of the bot cast as `bot:<kind>`, or `bot:none` for no character; any other value is rejected. null or omitted keeps the current value",
+            "description" : "New avatar, one of the bot cast as `bot:<kind>`, or `bot:none` for no character; any other value is rejected (an uploaded `/api/avatars/<id>.jpg` is set only through `PUT /api/users/me/avatar`). null or omitted keeps the current value",
             "example" : "bot:boba",
             "nullable" : true,
             "pattern" : "^bot:(boba|bao|oolong|su|egg|ice|youtiao|tofu|sausage|chip|tower|lumen|mazu|tudi|yuelao|qiye|baye|shi|long|denglong|ding|jiaobei|xiang|banyan|gray|nordic|reptile|mantis|anu|tallwhite|moth|blob|cyclops|probe|saucer|trio|bear|magpie|pangolin|shihu|macaque|deer|pheasant|firefly|crab|flyfish|turtle|dog|fold|munchkin|chinchilla|mainecoon|siamese|orange|tuxedo|calico|sphynx|ragdoll|british|bengal|shiba|corgi|golden|husky|pug|dachshund|poodle|frenchie|beagle|collie|dalmatian|labrador|none)$",
@@ -5059,7 +5196,7 @@
         "description" : "User search result item; only public profile fields, masked by the owner's visibility settings",
         "properties" : {
           "avatarUrl" : {
-            "description" : "Avatar as `bot:<kind>` (the bot cast). Older accounts may hold an image URL; null if never set",
+            "description" : "Avatar as `bot:<kind>` (the bot cast) or `/api/avatars/<id>.jpg` (an uploaded image, a path on the API origin). Older accounts may hold an image URL; null if never set",
             "example" : "bot:boba",
             "nullable" : true,
             "type" : "string"
@@ -5088,13 +5225,13 @@
         "nullable" : true,
         "properties" : {
           "avatarUrl" : {
-            "description" : "Avatar as `bot:<kind>` (the bot cast), assigned at random on sign-up. Older accounts may hold an image URL or null",
+            "description" : "Avatar as `bot:<kind>` (the bot cast) or `/api/avatars/<id>.jpg` (an uploaded image, a path on the API origin), assigned at random on sign-up. Older accounts may hold an image URL or null",
             "example" : "bot:boba",
             "nullable" : true,
             "type" : "string"
           },
           "displayName" : {
-            "description" : "Display name. Set at signup (email local part, provider name, or the phone number); null only if the column is empty",
+            "description" : "Display name; null until the user sets one (never set at signup). Show the username when null",
             "example" : "Ming Wang",
             "nullable" : true,
             "type" : "string"
@@ -5141,7 +5278,7 @@
         "nullable" : true,
         "properties" : {
           "avatarUrl" : {
-            "description" : "Avatar as `bot:<kind>` (the bot cast); always public. Older accounts may hold an image URL; null if never set",
+            "description" : "Avatar as `bot:<kind>` (the bot cast) or `/api/avatars/<id>.jpg` (an uploaded image, a path on the API origin); always public. Older accounts may hold an image URL; null if never set",
             "example" : "bot:boba",
             "nullable" : true,
             "type" : "string"
@@ -5311,7 +5448,7 @@
         "nullable" : true,
         "properties" : {
           "avatarUrl" : {
-            "description" : "Avatar as `bot:<kind>` (the bot cast). Older accounts may hold an image URL; null if never set",
+            "description" : "Avatar as `bot:<kind>` (the bot cast) or `/api/avatars/<id>.jpg` (an uploaded image, a path on the API origin). Older accounts may hold an image URL; null if never set",
             "example" : "bot:boba",
             "nullable" : true,
             "type" : "string"
@@ -5499,7 +5636,7 @@
             "type" : "string"
           },
           "creatorAvatarUrl" : {
-            "description" : "Avatar of the owner as `bot:<kind>` (the bot cast). Older accounts may hold an image URL; null if never set",
+            "description" : "Avatar of the owner as `bot:<kind>` (the bot cast) or `/api/avatars/<id>.jpg` (an uploaded image, a path on the API origin). Older accounts may hold an image URL; null if never set",
             "example" : "bot:boba",
             "nullable" : true,
             "type" : "string"
@@ -5653,7 +5790,7 @@
             "type" : "string"
           },
           "creatorAvatarUrl" : {
-            "description" : "Avatar of the owner as `bot:<kind>` (the bot cast). Older accounts may hold an image URL; null if never set",
+            "description" : "Avatar of the owner as `bot:<kind>` (the bot cast) or `/api/avatars/<id>.jpg` (an uploaded image, a path on the API origin). Older accounts may hold an image URL; null if never set",
             "example" : "bot:boba",
             "nullable" : true,
             "type" : "string"
@@ -5745,7 +5882,7 @@
         "description" : "A Participant of an Ended Poll and, when the Poll holds no Anonymous Ballot, the option they chose",
         "properties" : {
           "avatarUrl" : {
-            "description" : "Avatar as `bot:<kind>` (the bot cast). Older accounts may hold an image URL; null if never set",
+            "description" : "Avatar as `bot:<kind>` (the bot cast) or `/api/avatars/<id>.jpg` (an uploaded image, a path on the API origin). Older accounts may hold an image URL; null if never set",
             "example" : "bot:boba",
             "nullable" : true,
             "type" : "string"
@@ -6342,6 +6479,113 @@
         },
         "summary" : "Delete Comment",
         "tags" : [ "Admin - Comment" ]
+      }
+    },
+    "/api/admin/contact-messages" : {
+      "get" : {
+        "description" : "**Auth**: admin (role ADMIN; 403 `common.forbidden` otherwise)\n**Precondition**: caller holds role ADMIN\n**Behavior**: offset page of messages sent from the about site's contact form, newest first. `page` is 1-based (default 1), `limit` 1-50 (default 20)\n**Side effects**: written to the audit log (action `VIEW`, resource `CONTACT_MESSAGE`), since messages hold names and email addresses\n**Errors**: none beyond the common ones",
+        "operationId" : "listMessages",
+        "parameters" : [ {
+          "description" : "Page number, 1-based (default 1)",
+          "in" : "query",
+          "name" : "page",
+          "required" : false,
+          "schema" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        }, {
+          "description" : "Page size (1-50, default 20)",
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "examples" : {
+                  "Contact messages" : {
+                    "description" : "Contact messages",
+                    "value" : {
+                      "data" : {
+                        "content" : [ {
+                          "createdAt" : "2026-11-07T10:00:00+08:00",
+                          "email" : "alice@example.com",
+                          "id" : "0199c3a2-7b5e-7c1d-9a4f-3e2b1d5c6f70",
+                          "locale" : "en",
+                          "message" : "Can my school use Vomatt for student council elections?",
+                          "name" : "Alice Chen"
+                        } ],
+                        "limit" : 20,
+                        "page" : 1,
+                        "total" : 1
+                      },
+                      "error" : null,
+                      "errorCode" : null,
+                      "message" : null,
+                      "success" : true
+                    }
+                  }
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResponsePageResponseAdminContactMessageResponse"
+                }
+              }
+            },
+            "description" : "Success"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Authenticated but not allowed (errorCode `common.forbidden`)"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          }
+        },
+        "summary" : "List contact messages",
+        "tags" : [ "Admin - Contact messages" ]
       }
     },
     "/api/admin/feedback" : {
@@ -7856,7 +8100,7 @@
                       "data" : {
                         "roles" : [ "user", "moderator", "admin" ],
                         "unlockChannels" : [ "email", "phone", "admin" ],
-                        "unlockTargets" : [ "lock", "attempts", "cooldown" ]
+                        "unlockTargets" : [ "lock", "attempts", "cooldown", "daily" ]
                       },
                       "error" : null,
                       "errorCode" : null,
@@ -8535,7 +8779,7 @@
     },
     "/api/admin/users/{userId}/unlock-login" : {
       "post" : {
-        "description" : "**Auth**: admin (role ADMIN; 403 `common.forbidden` otherwise)\n**Precondition**: the account exists. Not the same as Unsuspend User: this clears OTP sign-in lockouts, not a suspension\n**Behavior**: clears the OTP sign-in limits of the account's email and phone number. `channels`: `email` (consumer email OTP), `phone` (consumer phone OTP), `admin` (admin console login). `clear`: `lock` (the lockout after 3 wrong codes, its doubling level and the wrong-code counter, so the user can try again at once and the next lockout is 5 minutes again), `attempts` (wrong-code counters, and the current OTP is discarded so the user requests a new one), `cooldown` (the resend wait, including the 15-minute wait after an OTP's guesses run out). `ip` limits it to one client IP, in any spelling (`2001:DB8::1` matches `2001:db8:0:0:0:0:0:1`); without it every IP is cleared, except lockouts set before this API existed, which can be cleared only by `ip` (they expire within 24 hours). Every field is optional and an omitted or empty one means all; the body itself may be omitted. Allowed values are listed by List User Admin Options. Idempotent: returns `clearedEntries` 0 when nothing matched\n**Side effects**: the user can request and verify OTPs again right away. Written to the audit log with the scope in `details` (empty when the body is omitted, which means all)\n**Errors**:\n- 400 `common.type_mismatch`: `userId` is not a valid UUID\n- 400 `common.validation_failed`: an unknown channel or target, or `ip` is not an IP address\n- 404 `user.not_found`: no account with this ID",
+        "description" : "**Auth**: admin (role ADMIN; 403 `common.forbidden` otherwise)\n**Precondition**: the account exists. Not the same as Unsuspend User: this clears OTP sign-in lockouts, not a suspension\n**Behavior**: clears the OTP sign-in limits of the account's email and phone number. `channels`: `email` (consumer email OTP), `phone` (consumer phone OTP), `admin` (admin console login). `clear`: `lock` (the lockout after 3 wrong codes, its doubling level and the wrong-code counter, so the user can try again at once and the next lockout is 5 minutes again), `attempts` (wrong-code counters, and the current OTP is discarded so the user requests a new one), `cooldown` (the resend wait, including the 15-minute wait after an OTP's guesses run out), `daily` (today's OTP send counts: the identifier's ceiling over all IPs, and the per-IP counts of the IPs that entered a wrong code, or of `ip`). `ip` limits it to one client IP, in any spelling (`2001:DB8::1` matches `2001:db8:0:0:0:0:0:1`); without it every IP is cleared, except lockouts set before this API existed, which can be cleared only by `ip` (they expire within 24 hours). Every field is optional and an omitted or empty one means all; the body itself may be omitted. Allowed values are listed by List User Admin Options. Idempotent: returns `clearedEntries` 0 when nothing matched\n**Side effects**: the user can request and verify OTPs again right away. Written to the audit log with the scope in `details` (empty when the body is omitted, which means all)\n**Errors**:\n- 400 `common.type_mismatch`: `userId` is not a valid UUID\n- 400 `common.validation_failed`: an unknown channel or target, or `ip` is not an IP address\n- 404 `user.not_found`: no account with this ID",
         "operationId" : "unlockLogin",
         "parameters" : [ {
           "description" : "User ID (UUIDv7)",
@@ -9698,9 +9942,75 @@
         "tags" : [ "Admin - Poll" ]
       }
     },
+    "/api/auth/admin/passkey/login/options" : {
+      "post" : {
+        "description" : "**Auth**: public\n**Precondition**: none; usernameless, like `POST /api/auth/passkey/login/options`\n**Behavior**: the admin console counterpart of `POST /api/auth/passkey/login/options`, with the same response: pass `data` to `PublicKeyCredential.parseRequestOptionsFromJSON` and `navigator.credentials.get({ publicKey })` on https://admin.vomatt.com, and send `credential.toJSON()` to `POST /api/auth/admin/passkey/login/verify`. The challenge is accepted only there, and that endpoint accepts no other challenge\n**Side effects**: issues a one-time challenge that expires after 5 minutes\n**Errors**:\n- 429 `common.rate_limited`: too many auth requests from this IP",
+        "operationId" : "adminPasskeyLoginOptions",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "data" : {
+                    "allowCredentials" : [ ],
+                    "challenge" : "Qm8AYkRgZ3B1c2hxS1d0X0Nmc2VhLWtPZ2V3UjN2cTQ",
+                    "rpId" : "vomatt.com",
+                    "timeout" : 300000,
+                    "userVerification" : "preferred"
+                  },
+                  "error" : null,
+                  "errorCode" : null,
+                  "message" : null,
+                  "success" : true
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResponsePasskeyLoginOptionsResponse"
+                }
+              }
+            },
+            "description" : "Success"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Resource not found (errorCode e.g. `vote.not_found`)"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          }
+        },
+        "summary" : "Get admin console passkey sign-in options",
+        "tags" : [ "Auth" ]
+      }
+    },
     "/api/auth/admin/passkey/login/verify" : {
       "post" : {
-        "description" : "**Auth**: public\n**Precondition**: a challenge from `POST /api/auth/passkey/login/options` (shared with the consumer sign-in), at most 5 minutes old and not yet used\n**Behavior**: the passkey counterpart of `POST /api/auth/admin/verify-otp`: verifies the passkey as `POST /api/auth/passkey/login/verify` does, then requires the owner to be an active admin and returns tokens that grant the admin role (`/api/admin/**`); refreshing them keeps the admin scope\n**Side effects**: the challenge is spent whether or not the sign-in succeeds, also when the owner is not an admin; on success the passkey's sign count and last use, and `lastLoginAt`, are updated\n**Errors**:\n- 400 `common.validation_failed`: `credential` or one of its required fields is missing\n- 401 `auth.passkey.invalid`: the response is malformed or fails verification; get new options and retry\n- 403 `auth.admin.forbidden`: the passkey's owner is not an admin (same response as `POST /api/auth/admin/verify-otp`)\n- 403 `auth.account_banned`: the admin is suspended\n- 429 `common.rate_limited`: too many auth requests from this IP",
+        "description" : "**Auth**: public\n**Precondition**: a challenge from `POST /api/auth/admin/passkey/login/options` (a consumer sign-in challenge is refused), at most 5 minutes old and not yet used, and a passkey registered from the admin console (`POST /api/auth/passkey/register/verify` with an admin console access token)\n**Behavior**: the passkey counterpart of `POST /api/auth/admin/verify-otp`: verifies the passkey as `POST /api/auth/passkey/login/verify` does, but accepts only the admin console origin (https://admin.vomatt.com), then requires a passkey registered from the admin console and an active admin owner, and returns tokens that grant the admin role (`/api/admin/**`); refreshing them keeps the admin scope\n**Side effects**: the challenge is spent whether or not the sign-in succeeds, also when the owner is not an admin; on success the passkey's sign count and last use, and `lastLoginAt`, are updated\n**Errors**:\n- 400 `common.validation_failed`: `credential` or one of its required fields is missing\n- 401 `auth.passkey.invalid`: the response is malformed or fails verification (including a consumer sign-in challenge or a non-admin-console origin); get new options and retry\n- 403 `auth.passkey.admin_scope_required`: the passkey was registered outside the admin console (including every passkey registered before this check existed); sign in with `POST /api/auth/admin/send-otp`, then register a passkey from the admin console\n- 403 `auth.admin.forbidden`: the passkey's owner is not an admin (same response as `POST /api/auth/admin/verify-otp`)\n- 403 `auth.account_banned`: the admin is suspended\n- 429 `common.rate_limited`: too many auth requests from this IP",
         "operationId" : "adminPasskeyLoginVerify",
         "requestBody" : {
           "content" : {
@@ -9789,19 +10099,34 @@
           "403" : {
             "content" : {
               "application/json" : {
-                "example" : {
-                  "data" : null,
-                  "error" : "This account does not have admin privileges",
-                  "errorCode" : "auth.admin.forbidden",
-                  "message" : "This account does not have admin privileges",
-                  "success" : false
+                "examples" : {
+                  "admin_forbidden" : {
+                    "description" : "admin_forbidden",
+                    "value" : {
+                      "data" : null,
+                      "error" : "This account does not have admin privileges",
+                      "errorCode" : "auth.admin.forbidden",
+                      "message" : "This account does not have admin privileges",
+                      "success" : false
+                    }
+                  },
+                  "admin_scope_required" : {
+                    "description" : "admin_scope_required",
+                    "value" : {
+                      "data" : null,
+                      "error" : "This passkey cannot sign in to the admin console. Sign in with an email code, then register a passkey from the admin console",
+                      "errorCode" : "auth.passkey.admin_scope_required",
+                      "message" : "This passkey cannot sign in to the admin console. Sign in with an email code, then register a passkey from the admin console",
+                      "success" : false
+                    }
+                  }
                 },
                 "schema" : {
                   "$ref" : "#/components/schemas/ErrorResponse"
                 }
               }
             },
-            "description" : "Not an admin account (`auth.admin.forbidden`) or account suspended (`auth.account_banned`)"
+            "description" : "The passkey was not registered from the admin console (`auth.passkey.admin_scope_required`), not an admin account (`auth.admin.forbidden`) or account suspended (`auth.account_banned`)"
           },
           "404" : {
             "content" : {
@@ -9832,7 +10157,7 @@
     },
     "/api/auth/admin/send-otp" : {
       "post" : {
-        "description" : "**Auth**: public\n**Precondition**: the email belongs to an existing, active account holding the admin role\n**Behavior**: like `POST /api/auth/send-otp` (6-digit OTP, TTL default 180 s, same email normalization), but only for admin accounts. Its OTPs, wrong-code counters, lockouts and resend cooldown are separate from the consumer login, so a code from `send-otp` does not work here and vice versa\n**Side effects**: sends an email; replaces any previous admin console OTP for this address. A resend is refused during the cooldown (default 180 s), and at most 20 OTPs are sent to one address per UTC day\n**Errors**:\n- 400 `auth.identifier.required`: `email` is missing or blank\n- 400 `auth.otp.resend_cooldown`: an OTP was sent too recently; the message states the seconds left\n- 400 `auth.email.send_failed`: the email provider rejected the message; the OTP is dropped and a resend is allowed after 30 s\n- 401 `auth.otp.too_many_attempts`: this email is locked for the caller's IP after 3 wrong codes (5 minutes, doubling on each further lockout, up to 24 hours); other IPs are not affected\n- 429 `auth.otp.daily_limit`: 20 OTPs were already sent to this address today (UTC)\n- 403 `auth.admin.forbidden`: the email is not an existing admin account\n- 403 `auth.account_banned`: the admin is suspended (`active=false`); no OTP is sent",
+        "description" : "**Auth**: public\n**Precondition**: none for the call; only an existing, active account holding the admin role receives the email\n**Behavior**: like `POST /api/auth/send-otp` (6-digit OTP, TTL default 180 s, same email normalization), but the email is sent only to an active admin. Every other email gets the same 200, cooldown and daily count with no email sent, so the response never tells whether an email is an admin. Its OTPs, wrong-code counters, lockouts and resend cooldown are separate from the consumer login, so a code from `send-otp` does not work here and vice versa\n**Side effects**: sends an email (to an active admin only, after the response; a provider failure is only logged, so retry after the cooldown if no email arrives); replaces any previous admin console OTP for this address. A resend is refused during the cooldown (default 180 s), and each IP can request at most 20 OTPs for one address per UTC day, and all IPs together 60\n**Errors**:\n- 400 `auth.identifier.required`: `email` is missing or blank\n- 400 `auth.otp.resend_cooldown`: an OTP was sent too recently; the message states the seconds left\n- 401 `auth.otp.too_many_attempts`: this email is locked for the caller's IP after 3 wrong codes (5 minutes, doubling on each further lockout, up to 24 hours); other IPs are not affected\n- 429 `auth.otp.daily_limit`: 20 OTPs were already requested for this address from this IP today (UTC), or 60 from all IPs",
         "operationId" : "adminSendOtp",
         "requestBody" : {
           "content" : {
@@ -9878,23 +10203,6 @@
             },
             "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
           },
-          "403" : {
-            "content" : {
-              "application/json" : {
-                "example" : {
-                  "data" : null,
-                  "error" : "This account does not have admin privileges",
-                  "errorCode" : "auth.admin.forbidden",
-                  "message" : "This account does not have admin privileges",
-                  "success" : false
-                },
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description" : "The email is not an existing admin account (`auth.admin.forbidden`) or the admin is suspended (`auth.account_banned`)"
-          },
           "404" : {
             "content" : {
               "application/json" : {
@@ -9924,7 +10232,7 @@
     },
     "/api/auth/admin/verify-otp" : {
       "post" : {
-        "description" : "**Auth**: public\n**Precondition**: an OTP was sent to this email via `POST /api/auth/admin/send-otp` and has not expired\n**Behavior**: the only sign-in whose tokens grant the admin role (`/api/admin/**`). Checks the account is an existing admin before consuming the OTP, then returns an access token and refresh token; refreshing them keeps the admin scope. Never creates an account. Wrong-code counting, lockouts and the 10-guess budget work as in `POST /api/auth/verify-otp`, separately from it\n**Side effects**: the OTP is consumed on success; `lastLoginAt` is updated\n**Errors**:\n- 400 `auth.identifier.required`: `email` is missing or blank\n- 401 `auth.otp.invalid_or_expired`: no admin console OTP exists for this email (never sent, expired, already used, or its 10 guesses are used up)\n- 401 `auth.invalid_otp`: the code is wrong\n- 401 `auth.otp.too_many_attempts`: 3rd wrong code, or this email is locked for the caller's IP (even a correct code is refused until the lock ends)\n- 403 `auth.admin.forbidden`: the email is not an existing admin account\n- 403 `auth.account_banned`: the admin is suspended (`active=false`); checked before the OTP is consumed",
+        "description" : "**Auth**: public\n**Precondition**: an OTP was sent to this email via `POST /api/auth/admin/send-otp` and has not expired\n**Behavior**: the only sign-in whose tokens grant the admin role (`/api/admin/**`). Verifies the OTP first (an email that is not an active admin never received one, so it fails like a wrong code), then checks the account is an active admin, and returns an access token and refresh token; refreshing them keeps the admin scope. Never creates an account. Wrong-code counting, lockouts and the 10-guess budget work as in `POST /api/auth/verify-otp`, separately from it\n**Side effects**: the OTP is consumed on success; `lastLoginAt` is updated\n**Errors**:\n- 400 `auth.identifier.required`: `email` is missing or blank\n- 401 `auth.otp.invalid_or_expired`: no admin console OTP exists for this email (never sent, expired, already used, or its 10 guesses are used up)\n- 401 `auth.invalid_otp`: the code is wrong\n- 401 `auth.otp.too_many_attempts`: 3rd wrong code, or this email is locked for the caller's IP (even a correct code is refused until the lock ends)\n- 403 `auth.admin.forbidden`: the code was right but the account is no longer an admin (only possible for a code sent while it was one)\n- 403 `auth.account_banned`: the code was right but the admin was suspended since (`active=false`)",
         "operationId" : "adminVerifyOtp",
         "requestBody" : {
           "content" : {
@@ -11490,6 +11798,168 @@
         "tags" : [ "Auth" ]
       }
     },
+    "/api/avatars/{file}" : {
+      "get" : {
+        "description" : "**Auth**: none\n**Precondition**: `file` is `<id>.jpg` as in an `avatarUrl` of `/api/avatars/<id>.jpg`; other shapes are not served. Such an `avatarUrl` is a path relative to the API origin, not a full URL: web, iOS and Android clients must prefix their API base URL (the web app runs on a different origin, so using the path as is would request it from the web host)\n**Behavior**: streams the image as `image/jpeg` with `Cache-Control: public, max-age=31536000, immutable`: a path never changes content, since every upload gets a new one\n**Side effects**: none\n**Errors**:\n- 404 `common.not_found`: no image at this path (the owner replaced or removed it, or deleted the account)\n- 503 `common.storage_unavailable`: image storage is not configured or unreachable; retry later",
+        "operationId" : "getAvatar",
+        "parameters" : [ {
+          "description" : "Image file name, `<id>.jpg`",
+          "example" : "019a5e3c-2f1d-7b6a-8c4e-5d7f9a1b3c2e.jpg",
+          "in" : "path",
+          "name" : "file",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "image/jpeg" : {
+                "schema" : {
+                  "format" : "binary",
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Success"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Resource not found (errorCode e.g. `vote.not_found`)"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          },
+          "503" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "data" : null,
+                  "error" : "Image storage is temporarily unavailable, please try again later",
+                  "errorCode" : "common.storage_unavailable",
+                  "message" : "Image storage is temporarily unavailable, please try again later",
+                  "success" : false
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Image storage not configured or unreachable (errorCode `common.storage_unavailable`)"
+          }
+        },
+        "summary" : "Get an uploaded avatar",
+        "tags" : [ "User" ]
+      }
+    },
+    "/api/contact" : {
+      "post" : {
+        "description" : "**Auth**: none\n**Precondition**: the client IP is under the daily contact limit (UTC day; 5 unless an admin set lookup `config` / `contact_daily_limit`, a positive number or numeric string). A server-side caller names the visitor's IP with `X-Client-IP` and `X-Client-IP-Secret`, as vomatt-web does\n**Behavior**: stores the message for staff to read in the back office; `name` and `email` are trimmed. Responds 201 with the new message id\n**Side effects**: counts toward the client IP's daily contact limit (only once stored)\n**Errors**:\n- 400 `common.validation_failed`: `name` blank or longer than 100 characters, `email` not a valid address or longer than 254 characters, `message` blank or longer than 5000 characters, or `locale` not `en` / `zh`\n- 429 `common.rate_limited`: daily contact limit reached, or too many write requests from this IP",
+        "operationId" : "createMessage",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "example" : {
+                "email" : "alice@example.com",
+                "locale" : "en",
+                "message" : "Can my school use Vomatt for student council elections?",
+                "name" : "Alice Chen"
+              },
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateContactMessageRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "data" : {
+                    "id" : "0199c3a2-7b5e-7c1d-9a4f-3e2b1d5c6f70",
+                    "message" : null,
+                    "status" : null,
+                    "success" : true
+                  },
+                  "error" : null,
+                  "errorCode" : null,
+                  "message" : null,
+                  "success" : true
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResponseSimpleResultResponse"
+                }
+              }
+            },
+            "description" : "Message stored; `id` is the new message id"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Resource not found (errorCode e.g. `vote.not_found`)"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          }
+        },
+        "summary" : "Send a contact message",
+        "tags" : [ "Contact" ]
+      }
+    },
     "/api/feedback" : {
       "post" : {
         "description" : "**Auth**: required\n**Precondition**: under the daily feedback limit (UTC day; 10 unless an admin set lookup `config` / `feedback_daily_limit`, a positive number or numeric string)\n**Behavior**: stores the text as feedback from the caller. Responds 201 with the new feedback id\n**Side effects**: counts toward the caller's daily feedback limit (only once stored)\n**Errors**:\n- 400 `common.validation_failed`: `content` is blank or longer than 2000 characters\n- 404 `user.not_found`: the signed-in user no longer exists\n- 429 `common.rate_limited`: daily feedback limit reached, or too many write requests from this IP",
@@ -12259,7 +12729,7 @@
         "tags" : [ "Invite List" ]
       },
       "post" : {
-        "description" : "**Auth**: required (owner only)\n**Precondition**: the Invite List stays within the member limit (default 100, admin-configurable). A list already over a lowered limit is kept but accepts no new members\n**Behavior**: adds the users and email addresses as members. Members already in the Invite List, duplicates and the owner's own ID / address are ignored. An address is always listed as entered, whether or not it belongs to an account; once someone verifies it at sign-up / sign-in it is tied to that user, still listed by the address. Returns the full member list.\n**Side effects**: nobody is notified (members never learn about the Invite List); the action is audit-logged.\n**Errors**:\n- 400 `invite_list.member.ids_invalid`: one of `userIds` is not an existing user or is suspended (`emails` never cause it)\n- 400 `invite_list.members.max`: the Invite List would hold more members than the limit (default 100), including when it is already over a lowered limit\n- 400 `common.validation_failed`: both `userIds` and `emails` are empty, one holds more than 100 entries, a null element or an invalid address\n- 404 `invite_list.not_found`: the Invite List does not exist or belongs to someone else",
+        "description" : "**Auth**: required (owner only)\n**Precondition**: the Invite List stays within the member limit (default 100, admin-configurable). A list already over a lowered limit is kept but accepts no new members\n**Behavior**: adds the users and email addresses as members. Users already members by ID, addresses already members, duplicates and the owner's own ID / address are ignored. An address is always listed as entered, whether or not it belongs to an account, including one of a user already a member by ID; once someone verifies it at sign-up / sign-in it is tied to that user, still listed by the address. Returns the full member list.\n**Side effects**: nobody is notified (members never learn about the Invite List); the action is audit-logged.\n**Errors**:\n- 400 `invite_list.member.ids_invalid`: one of `userIds` is not an existing user or is suspended (`emails` never cause it)\n- 400 `invite_list.members.max`: the Invite List would hold more members than the limit (default 100), including when it is already over a lowered limit\n- 400 `common.validation_failed`: both `userIds` and `emails` are empty, one holds more than 100 entries, a null element or an invalid address\n- 404 `invite_list.not_found`: the Invite List does not exist or belongs to someone else",
         "operationId" : "addMembers",
         "parameters" : [ {
           "description" : "Invite List ID",
@@ -14090,7 +14560,7 @@
         "tags" : [ "User" ]
       },
       "patch" : {
-        "description" : "**Auth**: required\n**Precondition**: none\n**Behavior**: updates `username`, `displayName`, `firstName`, `lastName`, `birthday`, `bio`, `avatarUrl` and/or `anonymousBallotByDefault` (the default for Ballots that omit `anonymous`; existing Ballots are unchanged). `avatarUrl` must be `bot:<kind>` with one of the bot cast kinds, or `bot:none` for no character. `firstName` and `lastName` are stored without surrounding whitespace, and a blank value clears them. `birthday` is an ISO date (`yyyy-MM-dd`) from 1900-01-01 to yesterday in Asia/Taipei. Sending the current `username` is a no-op, except that an older account holding a reserved name gets 400 (omit `username` when unchanged). A field that is omitted or `null` is left unchanged (`null` cannot be used to clear a value; send an empty string instead, except `avatarUrl` and `birthday`, which cannot be cleared). Returns the caller's profile after the update: optional fields the caller explicitly hid are `null`, fields whose visibility was never set are shown.\n**Side effects**: persists the new values; after a `username` change the old public profile path returns 404\n**Errors**:\n- 400 `common.validation_failed`: `username` is not 3-50 characters of [a-z0-9_] or is a reserved name (see the `username` schema), `displayName` exceeds 100 characters, `firstName` or `lastName` exceeds 50 characters, `birthday` is before 1900-01-01 or not before today (Asia/Taipei), `bio` exceeds 500 characters, or `avatarUrl` is not a known `bot:<kind>` or `bot:none`\n- 400 `common.bad_request`: `birthday` is not a valid `yyyy-MM-dd` date\n- 404 `user.not_found`: the account no longer exists\n- 409 `user.username.taken`: another account already uses `username`",
+        "description" : "**Auth**: required\n**Precondition**: none\n**Behavior**: updates `username`, `displayName`, `firstName`, `lastName`, `birthday`, `bio`, `avatarUrl` and/or `anonymousBallotByDefault` (the default for Ballots that omit `anonymous`; existing Ballots are unchanged). `avatarUrl` must be `bot:<kind>` with one of the bot cast kinds, or `bot:none` for no character; an uploaded image is set only through `PUT /api/users/me/avatar`, and switching to a bot avatar deletes the uploaded image once the change commits. `firstName` and `lastName` are stored without surrounding whitespace, and a blank value clears them. `birthday` is an ISO date (`yyyy-MM-dd`) from 1900-01-01 to yesterday in Asia/Taipei. Sending the current `username` is a no-op, except that an older account holding a reserved name gets 400 (omit `username` when unchanged). A field that is omitted or `null` is left unchanged (`null` cannot be used to clear a value; send an empty string instead, except `avatarUrl` and `birthday`, which cannot be cleared). Returns the caller's profile after the update: optional fields the caller explicitly hid are `null`, fields whose visibility was never set are shown.\n**Side effects**: persists the new values; after a `username` change the old public profile path returns 404\n**Errors**:\n- 400 `common.validation_failed`: `username` is not 3-50 characters of [a-z0-9_] or is a reserved name (see the `username` schema), `displayName` exceeds 100 characters, `firstName` or `lastName` exceeds 50 characters, `birthday` is before 1900-01-01 or not before today (Asia/Taipei), `bio` exceeds 500 characters, or `avatarUrl` is not a known `bot:<kind>` or `bot:none`\n- 400 `common.bad_request`: `birthday` is not a valid `yyyy-MM-dd` date\n- 404 `user.not_found`: the account no longer exists\n- 409 `user.username.taken`: another account already uses `username`",
         "operationId" : "updateMyProfile",
         "requestBody" : {
           "content" : {
@@ -14216,6 +14686,143 @@
           }
         },
         "summary" : "Update my profile",
+        "tags" : [ "User" ]
+      }
+    },
+    "/api/users/me/avatar" : {
+      "put" : {
+        "description" : "**Auth**: required\n**Precondition**: multipart/form-data with the image in part `file`, at most 2 MB; JPEG, PNG, GIF (first frame) or BMP of at most 40 megapixels; fewer than the daily upload limit attempted today (UTC)\n**Behavior**: center-crops the image to a square, resizes it to 512x512 and re-encodes it as JPEG (transparent pixels become white; EXIF metadata, GPS included, is dropped). Each upload is a new image with a new path: `avatarUrl` becomes `/api/avatars/<id>.jpg`, a path on the API origin served by `GET /api/avatars/{file}`. Returns the caller's profile after the update, as `PATCH /api/users/me` does. To go back to a bot avatar, send `avatarUrl` = `bot:<kind>` to `PATCH /api/users/me`.\n**Side effects**: counts one attempt toward the daily upload limit (before the image is checked); stores the image; once the change commits, the previously uploaded image (if any) is deleted and its path returns 404\n**Errors**:\n- 400 `common.file_required`: part `file` is missing or empty\n- 400 `common.file_read_failed`: the uploaded file could not be read\n- 400 `user.avatar.unsupported_image`: the file is not a decodable JPEG, PNG, GIF or BMP, or exceeds 40 megapixels\n- 413 `common.file_too_large`: the file exceeds 2 MB\n- 429 `common.rate_limited`: the caller already attempted the daily number of avatar uploads (20 by default, counted per UTC day, failed attempts included); retry the next UTC day\n- 404 `user.not_found`: the account no longer exists\n- 503 `common.storage_unavailable`: image storage is not configured or unreachable; retry later",
+        "operationId" : "uploadAvatar",
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "properties" : {
+                  "file" : {
+                    "description" : "Image file (JPEG, PNG, GIF or BMP), at most 2 MB",
+                    "format" : "binary",
+                    "type" : "string"
+                  }
+                },
+                "type" : "object"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "data" : {
+                    "avatarUrl" : "/api/avatars/019a5e3c-2f1d-7b6a-8c4e-5d7f9a1b3c2e.jpg",
+                    "bio" : "Poll enthusiast",
+                    "displayName" : "Alice C.",
+                    "firstName" : "Alice",
+                    "id" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d47",
+                    "isBlocked" : false,
+                    "isFollowing" : false,
+                    "joinedAt" : "2026-08-01T10:00:00+08:00",
+                    "lastName" : null,
+                    "location" : null,
+                    "membershipLevel" : null,
+                    "points" : null,
+                    "totalPolls" : 4,
+                    "totalVotes" : 17,
+                    "username" : "alice"
+                  },
+                  "error" : null,
+                  "errorCode" : null,
+                  "message" : null,
+                  "success" : true
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResponseUserProfileResponse"
+                }
+              }
+            },
+            "description" : "Success"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Authenticated but not allowed (errorCode `common.forbidden`)"
+          },
+          "413" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "data" : null,
+                  "error" : "File size exceeds the limit (2 MB). Please compress and re-upload",
+                  "errorCode" : "common.file_too_large",
+                  "message" : "File size exceeds the limit (2 MB). Please compress and re-upload",
+                  "success" : false
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "File larger than 2 MB (errorCode `common.file_too_large`)"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          },
+          "503" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "data" : null,
+                  "error" : "Image storage is temporarily unavailable, please try again later",
+                  "errorCode" : "common.storage_unavailable",
+                  "message" : "Image storage is temporarily unavailable, please try again later",
+                  "success" : false
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Image storage not configured or unreachable (errorCode `common.storage_unavailable`)"
+          }
+        },
+        "summary" : "Upload my avatar",
         "tags" : [ "User" ]
       }
     },
@@ -19088,7 +19695,7 @@
     },
     "/api/votes/{voteId}/invitees" : {
       "delete" : {
-        "description" : "**Auth**: required (owner only)\n**Precondition**: the Poll is INVITE_ONLY and Scheduled or Open, and the Invitee holds no Ballot\n**Behavior**: removes the Invitee added by this address (normalized like sign-in does: lower-cased, trimmed, Gmail in canonical form), whether or not it belongs to an account; from then on the Poll is 404 `vote.not_found` for that person and verifying the address no longer grants access. Idempotent: succeeds, changing nothing, when the address is not an Invitee. Returns the full Invitee list.\n**Side effects**: `inviteeCount` drops; the action is audit-logged. When every remaining Invitee of an Open Poll holds a Ballot (and at least one remains), the Poll Ends now (`endTime` moves, `deadline` stays) and the Ended Notification follows. This check also runs when nothing was removed, so even a no-op call can end such a Poll.\n**Errors**:\n- 400 `vote.invitee.has_ballot`: the Invitee holds a Ballot, so counted Ballots are never orphaned\n- 400 `vote.invitee.not_invite_only`: the Poll is not INVITE_ONLY\n- 400 `vote.ended`: the Poll has Ended\n- 403 `vote.forbidden`: the caller is not the owner\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is INVITE_ONLY and the caller is neither its owner nor an Invitee, or its owner blocked the caller\n- 409 `common.conflict`: the Poll stayed busy with other changes for 3 seconds; nothing was changed, try again\n",
+        "description" : "**Auth**: required (owner only)\n**Precondition**: the Poll is INVITE_ONLY and Scheduled or Open, and the Invitee holds no Ballot\n**Behavior**: removes the Invitee added by this address (normalized like sign-in does: lower-cased, trimmed, Gmail in canonical form), whether or not it belongs to an account; from then on the Poll is 404 `vote.not_found` for that person and verifying the address no longer grants access, unless they are still an Invitee through another entry. Idempotent: succeeds, changing nothing, when the address is not an Invitee. Returns the full Invitee list.\n**Side effects**: `inviteeCount` drops; the action is audit-logged. When every remaining Invitee of an Open Poll holds a Ballot (and at least one remains), the Poll Ends now (`endTime` moves, `deadline` stays) and the Ended Notification follows. This check also runs when nothing was removed, so even a no-op call can end such a Poll.\n**Errors**:\n- 400 `vote.invitee.has_ballot`: the Invitee holds a Ballot, so counted Ballots are never orphaned\n- 400 `vote.invitee.not_invite_only`: the Poll is not INVITE_ONLY\n- 400 `vote.ended`: the Poll has Ended\n- 403 `vote.forbidden`: the caller is not the owner\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is INVITE_ONLY and the caller is neither its owner nor an Invitee, or its owner blocked the caller\n- 409 `common.conflict`: the Poll stayed busy with other changes for 3 seconds; nothing was changed, try again\n",
         "operationId" : "removeEmailInvitee",
         "parameters" : [ {
           "description" : "Poll ID",
@@ -19221,7 +19828,7 @@
         "tags" : [ "Vote" ]
       },
       "get" : {
-        "description" : "**Auth**: required (owner only)\n**Precondition**: none; the list is empty for a Poll that is not INVITE_ONLY\n**Behavior**: the Poll's Invitees, earliest invited first, each with `hasBallot` so the owner sees who has not answered yet. An Invitee added by email is always listed by that address with `userId` / `username` null, whether or not the address belongs to an account (`hasBallot` turns true once that person casts a Ballot). Never tells which option anyone chose, so Sealed results stay sealed.\n**Side effects**: none\n**Errors**:\n- 403 `vote.forbidden`: the caller is not the owner (Invitees included)\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is INVITE_ONLY and the caller is neither its owner nor an Invitee, or its owner blocked the caller\n",
+        "description" : "**Auth**: required (owner only)\n**Precondition**: none; the list is empty for a Poll that is not INVITE_ONLY\n**Behavior**: the Poll's Invitees, earliest invited first, each with `hasBallot` so the owner sees who has not answered yet. An Invitee added by email is always listed by that address with `userId` / `username` null, whether or not the address belongs to an account (`hasBallot` turns true once that person casts a Ballot). A user listed twice (by ID and by an address of theirs) shows `hasBallot` on the entry tied to them first only; the other entry reads like an address nobody has answered from, also for auto-end. Never tells which option anyone chose, so Sealed results stay sealed.\n**Side effects**: none\n**Errors**:\n- 403 `vote.forbidden`: the caller is not the owner (Invitees included)\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is INVITE_ONLY and the caller is neither its owner nor an Invitee, or its owner blocked the caller\n",
         "operationId" : "getInvitees",
         "parameters" : [ {
           "description" : "Poll ID",
@@ -19345,7 +19952,7 @@
         "tags" : [ "Vote" ]
       },
       "post" : {
-        "description" : "**Auth**: required (owner only)\n**Precondition**: the Poll is INVITE_ONLY and Scheduled or Open (Invitees can still be added after it opened)\n**Behavior**: adds the users and email addresses as Invitees, so they can see the Poll, cast a Ballot and Comment, and find it in My Polls. Users or addresses already invited, duplicates and the owner's own ID / address are ignored. An address is always listed as entered, whether or not it belongs to an account; an active account's user gets access right away, any other address once someone verifies it at sign-up / sign-in. `inviteListIds` invites the current members of the caller's Invite Lists: members added by ID join `userIds` (suspended ones are skipped) and members added by email join `emails` by their stored address; later Invite List changes never touch the Poll. Returns the full Invitee list.\n**Side effects**: `inviteeCount` grows (email Invitees included); each new Invitee tied to a user gets an unread Invitation notification (again unread for one removed and invited again) and later the Ended Notification; each new email Invitee is sent an invitation email (at most once per address per Poll, even after removing and re-adding it, and at most `EMAIL_INVITATION_DAILY_LIMIT` (default 200) per owner per day; over the limit the Invitee is still added and only the email is skipped) linking to the Poll (only when email is enabled) and gets both notifications once tied to a user; the action is audit-logged.\n**Errors**:\n- 400 `vote.invitee.not_invite_only`: the Poll is not INVITE_ONLY\n- 400 `vote.ended`: the Poll has Ended\n- 400 `vote.invitee.ids_invalid`: one of `userIds` is not an existing user or is suspended (`emails` and `inviteListIds` never cause it)\n- 400 `common.validation_failed`: `userIds`, `emails` and `inviteListIds` are all empty, `userIds` / `emails` hold more than 100 entries or `inviteListIds` more than 20, a null element or an invalid address\n- 403 `vote.forbidden`: the caller is not the owner\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is INVITE_ONLY and the caller is neither its owner nor an Invitee, or its owner blocked the caller\n- 404 `invite_list.not_found`: one of `inviteListIds` does not exist or belongs to someone else\n- 409 `common.conflict`: the Poll stayed busy with other changes for 3 seconds; nothing was changed, try again\n",
+        "description" : "**Auth**: required (owner only)\n**Precondition**: the Poll is INVITE_ONLY and Scheduled or Open (Invitees can still be added after it opened)\n**Behavior**: adds the users and email addresses as Invitees, so they can see the Poll, cast a Ballot and Comment, and find it in My Polls. Users already invited by ID, addresses already invited, duplicates and the owner's own ID / address are ignored. An address is always listed as entered, whether or not it belongs to an account, including one of a user already invited by ID (who is then listed twice); an active account's user gets access right away, any other address once someone verifies it at sign-up / sign-in. `inviteListIds` invites the current members of the caller's Invite Lists: members added by ID join `userIds` (suspended ones are skipped) and members added by email join `emails` by their stored address; later Invite List changes never touch the Poll. Returns the full Invitee list.\n**Side effects**: `inviteeCount` grows (email Invitees included); each new Invitee tied to a user gets an unread Invitation notification (again unread for one removed and invited again) and later the Ended Notification; each new email Invitee is sent an invitation email (at most once per address per Poll, even after removing and re-adding it, and at most `EMAIL_INVITATION_DAILY_LIMIT` (default 200) per owner per day; over the limit the Invitee is still added and only the email is skipped) linking to the Poll (only when email is enabled) and gets both notifications once tied to a user; the action is audit-logged.\n**Errors**:\n- 400 `vote.invitee.not_invite_only`: the Poll is not INVITE_ONLY\n- 400 `vote.ended`: the Poll has Ended\n- 400 `vote.invitee.ids_invalid`: one of `userIds` is not an existing user or is suspended (`emails` and `inviteListIds` never cause it)\n- 400 `common.validation_failed`: `userIds`, `emails` and `inviteListIds` are all empty, `userIds` / `emails` hold more than 100 entries or `inviteListIds` more than 20, a null element or an invalid address\n- 403 `vote.forbidden`: the caller is not the owner\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is INVITE_ONLY and the caller is neither its owner nor an Invitee, or its owner blocked the caller\n- 404 `invite_list.not_found`: one of `inviteListIds` does not exist or belongs to someone else\n- 409 `common.conflict`: the Poll stayed busy with other changes for 3 seconds; nothing was changed, try again\n",
         "operationId" : "addInvitees",
         "parameters" : [ {
           "description" : "Poll ID",
@@ -19496,7 +20103,7 @@
     },
     "/api/votes/{voteId}/invitees/{userId}" : {
       "delete" : {
-        "description" : "**Auth**: required (owner only)\n**Precondition**: the Poll is INVITE_ONLY and Scheduled or Open, and the Invitee holds no Ballot\n**Behavior**: removes the Invitee added by this user ID; from then on the Poll is 404 `vote.not_found` for them. Idempotent: succeeds, changing nothing, when the user is not an Invitee added by ID; one added by email is removed through `DELETE /api/votes/{voteId}/invitees?email=`. Returns the full Invitee list.\n**Side effects**: `inviteeCount` drops; the action is audit-logged. When every remaining Invitee of an Open Poll holds a Ballot (and at least one remains), the Poll Ends now (`endTime` moves, `deadline` stays) and the Ended Notification follows. This check also runs when nothing was removed, so even a no-op call can end such a Poll.\n**Errors**:\n- 400 `vote.invitee.has_ballot`: the Invitee holds a Ballot, so counted Ballots are never orphaned\n- 400 `vote.invitee.not_invite_only`: the Poll is not INVITE_ONLY\n- 400 `vote.ended`: the Poll has Ended\n- 403 `vote.forbidden`: the caller is not the owner\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is INVITE_ONLY and the caller is neither its owner nor an Invitee, or its owner blocked the caller\n- 409 `common.conflict`: the Poll stayed busy with other changes for 3 seconds; nothing was changed, try again\n",
+        "description" : "**Auth**: required (owner only)\n**Precondition**: the Poll is INVITE_ONLY and Scheduled or Open, and the Invitee holds no Ballot\n**Behavior**: removes the Invitee added by this user ID; from then on the Poll is 404 `vote.not_found` for them, unless they are still an Invitee through another entry (an address of theirs). Idempotent: succeeds, changing nothing, when the user is not an Invitee added by ID; one added by email is removed through `DELETE /api/votes/{voteId}/invitees?email=`. Returns the full Invitee list.\n**Side effects**: `inviteeCount` drops; the action is audit-logged. When every remaining Invitee of an Open Poll holds a Ballot (and at least one remains), the Poll Ends now (`endTime` moves, `deadline` stays) and the Ended Notification follows. This check also runs when nothing was removed, so even a no-op call can end such a Poll.\n**Errors**:\n- 400 `vote.invitee.has_ballot`: the Invitee holds a Ballot, so counted Ballots are never orphaned\n- 400 `vote.invitee.not_invite_only`: the Poll is not INVITE_ONLY\n- 400 `vote.ended`: the Poll has Ended\n- 403 `vote.forbidden`: the caller is not the owner\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is INVITE_ONLY and the caller is neither its owner nor an Invitee, or its owner blocked the caller\n- 409 `common.conflict`: the Poll stayed busy with other changes for 3 seconds; nothing was changed, try again\n",
         "operationId" : "removeInvitee",
         "parameters" : [ {
           "description" : "Poll ID",
@@ -20832,5 +21439,11 @@
   }, {
     "description" : "Reading user feedback (Admin)",
     "name" : "Admin - Feedback"
+  }, {
+    "description" : "Questions from the about site's contact form",
+    "name" : "Contact"
+  }, {
+    "description" : "Reading contact form messages (Admin)",
+    "name" : "Admin - Contact messages"
   } ]
 }
