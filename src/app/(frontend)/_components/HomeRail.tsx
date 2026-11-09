@@ -13,7 +13,9 @@ import { RailPolls } from './RailPolls';
  */
 export function HomeRail({ signedIn }: { signedIn: boolean }) {
 	return (
-		<aside className="flex w-full max-w-feed flex-col gap-4 xl:sticky xl:top-[calc(var(--header-height)+1rem)] xl:pt-6">
+		// Mirrors the feed's pt-4 and the pill bar's py-2, so the first card lines up with the feed's first row at rest
+		// and with the stuck pills once scrolled. Scrolls itself when taller than the window, so AskCard stays reachable
+		<aside className="flex w-full max-w-feed flex-col gap-4 xl:sticky xl:top-0 xl:mt-4 xl:max-h-dvh xl:overflow-y-auto xl:py-2">
 			{signedIn ? (
 				<>
 					<div className="hidden xl:contents">
