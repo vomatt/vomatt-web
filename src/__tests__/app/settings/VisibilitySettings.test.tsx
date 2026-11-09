@@ -32,8 +32,6 @@ const profile: MyProfile = {
 	displayName: 'Meimei',
 	bio: 'Poll enthusiast',
 	location: null,
-	points: 0,
-	membershipLevel: null,
 	active: true,
 	lastLoginAt: null,
 	joinedAt: '2026-08-01T10:00:00Z',

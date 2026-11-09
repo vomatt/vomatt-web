@@ -31,6 +31,8 @@ export const CommentSchema = z.object({
 	deleted: z.boolean().optional(),
 	/** The users the server resolved as @mentions, in order of first appearance; absent on older Comments. */
 	mentions: z.array(z.object({ userId: z.string(), username: z.string() })).optional(),
+	/** Written under an official account's name. */
+	authorOfficial: z.boolean().optional(),
 });
 
 /**
@@ -199,6 +201,16 @@ export const PollSchema = z.object({
 	 * Ended Notification (`status=ended`).
 	 */
 	unread: z.boolean().nullish(),
+	/** Users who liked the Poll; present while results are Sealed too. */
+	likeCount: z.number().int().optional(),
+	/** Whether the viewer liked the Poll; false when signed out. */
+	likedByMe: z.boolean().optional(),
+	/** Pro polls: casting needs a verified phone number and nobody is named. */
+	pro: z.boolean().optional(),
+	/** Results stay Sealed after the Poll Ended until this time; null when they open at `endTime`. */
+	revealAt: DateTime.nullish(),
+	/** Whether the Poll belongs to an official account. */
+	creatorOfficial: z.boolean().optional(),
 	/** Whether the signed-in viewer bookmarked the Poll; null when signed out. */
 	bookmarked: z.boolean().nullish(),
 	options: z.array(PollOptionSchema),

@@ -10,6 +10,7 @@ import {
 	Bookmark,
 	Ellipsis,
 	Flag,
+	Heart,
 	MessageSquare,
 	Share,
 } from '@/components/ui/SvgIcons';
@@ -34,6 +35,10 @@ type PollFooterProps = {
 	/** Whether the viewer saved the Poll; the toggle shows once `onToggleBookmark` is given. */
 	bookmarked?: boolean;
 	onToggleBookmark?: () => void;
+	/** The like toggle shows once `onToggleLike` is given. */
+	liked?: boolean;
+	likeCount?: number;
+	onToggleLike?: () => void;
 	/** Offered to everyone but the owner. */
 	onReport?: () => void;
 };
@@ -48,6 +53,9 @@ export function PollFooter({
 	isPage,
 	bookmarked,
 	onToggleBookmark,
+	liked,
+	likeCount,
+	onToggleLike,
 	onReport,
 }: PollFooterProps) {
 	const { t, currentLanguage } = useLanguage();
@@ -84,6 +92,20 @@ export function PollFooter({
 				{commentsLabel}
 			</Link>
 			<div className="ml-auto flex items-center gap-5">
+				{onToggleLike && (
+					<button
+						type="button"
+						onClick={onToggleLike}
+						aria-pressed={!!liked}
+						aria-label={t(liked ? 'poll.liked' : 'poll.like')}
+						className="flex min-h-11 items-center gap-1.5 transition-colors hover:text-foreground aria-pressed:text-foreground"
+					>
+						<Heart aria-hidden className="size-[18px]" fill={liked ? 'currentColor' : 'none'} />
+						{!!likeCount && (
+							<span className="tabular-nums">{likeCount.toLocaleString(toPayloadLocale(currentLanguage))}</span>
+						)}
+					</button>
+				)}
 				{onToggleBookmark && (
 					<button
 						type="button"

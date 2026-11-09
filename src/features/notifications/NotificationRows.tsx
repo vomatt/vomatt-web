@@ -76,6 +76,7 @@ const ROWS: { [K in Entry['kind']]: ComponentType<RowProps<Extract<Entry, { kind
 	MENTION: CommentRow,
 	CLOSING_SOON: ClosingSoonRow,
 	LIKE: CommentRow,
+	POLL_LIKE: PollLikeRow,
 };
 
 export function NotificationRow(props: RowProps<Entry>) {
@@ -374,6 +375,30 @@ function FollowGroupRow({ entry, onOpen, viewerUsername }: RowProps<FollowGroup>
 					<FollowListDialog username={viewerUsername} list={open ? 'followers' : null} onOpenChange={setOpen} />
 				</>
 			}
+		/>
+	);
+}
+
+/** Someone liked the viewer's Poll; opens it. */
+function PollLikeRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'POLL_LIKE' }>>) {
+	const { t } = useLanguage();
+	const { actor, poll } = entry;
+	const href = pollHref(poll.id);
+	return (
+		<RowShell
+			href={href}
+			onOpen={onOpen}
+			unread={!entry.read}
+			icon={<ProfileAvatar username={actor.username} avatarUrl={actor.avatarUrl} className="size-9" />}
+			line={rich(t('notifications.pollLiked'), {
+				name: strong(`@${actor.username}`),
+				title: (
+					<RowLink href={href} onOpen={onOpen} className="font-medium">
+						{poll.title}
+					</RowLink>
+				),
+			})}
+			meta={[useAge(entry.createdAt)]}
 		/>
 	);
 }

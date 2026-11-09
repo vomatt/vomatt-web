@@ -590,6 +590,20 @@ export async function unbookmarkPoll(voteId: string): Promise<ActionResult> {
 	});
 }
 
+/** Idempotent: liking a liked Poll changes nothing. Any Poll the viewer can see, in any state. */
+export async function likePoll(voteId: string): Promise<ActionResult> {
+	return attempt(async () => {
+		await apiClient(`/votes/${voteId}/like`, { method: 'PUT' });
+	});
+}
+
+/** Idempotent: always succeeds, also for a Poll the viewer can no longer see. */
+export async function unlikePoll(voteId: string): Promise<ActionResult> {
+	return attempt(async () => {
+		await apiClient(`/votes/${voteId}/like`, { method: 'DELETE' });
+	});
+}
+
 /** The viewer's followed tags, most recently followed first; not paginated. Sign-in required. */
 export async function getFollowedTags(): Promise<ActionResult<TagDto[]>> {
 	return attempt(async () => z.array(TagDtoSchema).parse(await apiClient('/tags/following')));

@@ -19,7 +19,7 @@ import { usePollStatus } from '../hooks/usePollStatus';
 import { useRequireAuth } from '../hooks/useRequireAuth';
 import { useViewerClock } from '../hooks/useViewerClock';
 import type { Poll } from '../schema';
-import { bookmarkPoll, getPoll, unbookmarkPoll } from '../service';
+import { bookmarkPoll, getPoll, likePoll, unbookmarkPoll, unlikePoll } from '../service';
 import { Ballot } from './Ballot';
 import { VotedPill } from './BallotMotion';
 import { getOwnerActions, OwnerActions } from './OwnerActions';
@@ -89,6 +89,29 @@ export function PollCard({
 			if (result.ok) return;
 			setPoll((current) => ({ ...current, bookmarked: !next }));
 			toast.error(apiErrorText(t, result, next ? 'poll.bookmarkFailed' : 'poll.unbookmarkFailed'));
+		});
+
+	const [isLiking, setIsLiking] = useState(false);
+	const toggleLike = () =>
+		requireAuth(async () => {
+			if (isLiking) return;
+			const next = !poll.likedByMe;
+			const step = next ? 1 : -1;
+			setPoll((current) => ({
+				...current,
+				likedByMe: next,
+				likeCount: Math.max(0, (current.likeCount ?? 0) + step),
+			}));
+			setIsLiking(true);
+			const result = await settle(next ? likePoll(poll.id) : unlikePoll(poll.id));
+			setIsLiking(false);
+			if (result.ok) return;
+			setPoll((current) => ({
+				...current,
+				likedByMe: !next,
+				likeCount: Math.max(0, (current.likeCount ?? 0) - step),
+			}));
+			toast.error(apiErrorText(t, result, next ? 'poll.likeFailed' : 'poll.unlikeFailed'));
 		});
 
 	const handlePollEnded = useCallback(
@@ -220,6 +243,9 @@ export function PollCard({
 					isPage={isPage}
 					bookmarked={!!poll.bookmarked}
 					onToggleBookmark={toggleBookmark}
+					liked={!!poll.likedByMe}
+					likeCount={poll.likeCount}
+					onToggleLike={toggleLike}
 					onReport={isOwner ? undefined : () => requireAuth(() => setIsReporting(true))}
 				/>
 			</div>

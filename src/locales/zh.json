@@ -282,6 +282,7 @@
 		"replied": "{name} 在 {title} 回覆了留言",
 		"mentioned": "{name} 在 {title} 提到了你",
 		"liked": "{name} 喜歡你在 {title} 的留言",
+		"pollLiked": "{name} 喜歡你的投票 {title}",
 		"categoryLabel": "分類",
 		"category": {
 			"CONVERSATION": "對話",
@@ -460,6 +461,10 @@
 		"comments": "{count} 則留言",
 		"comment": "1 則留言",
 		"share": "分享",
+		"like": "喜歡",
+		"liked": "已喜歡",
+		"likeFailed": "無法喜歡這個投票，請再試一次。",
+		"unlikeFailed": "無法收回喜歡，請再試一次。",
 		"bookmark": "收藏",
 		"bookmarked": "已收藏",
 		"bookmarkFailed": "無法收藏這個投票，請再試一次。",

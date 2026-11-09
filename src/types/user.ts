@@ -12,8 +12,6 @@ export interface UserProfile {
 	firstName?: string | null;
 	lastName?: string | null;
 	location?: string | null;
-	points?: number | null;
-	membershipLevel?: string | null;
 	avatarUrl: string | null; // `bot:<kind>`; older accounts may hold an image URL
 	followersCount: number;
 	followingCount: number;
@@ -24,6 +22,8 @@ export interface UserProfile {
 	/** The people the viewer follows who follow this user, and the first 3 of them ([] when none); null when signed out and on their own profile. */
 	mutualFollowersCount: number | null;
 	mutualFollowersPreview: UserDto[] | null;
+	/** An official account (a group page run by several members). */
+	official?: boolean;
 }
 
 /** Response from GET /users/me — the authenticated user's own profile. */
@@ -38,8 +38,10 @@ export interface MyProfile {
 	displayName: string | null;
 	bio: string | null;
 	location: string | null;
-	points: number;
-	membershipLevel: string | null;
+	/** The phone number was verified by SMS (phone sign-up or bind). */
+	phoneVerified?: boolean;
+	/** Null when never provided. */
+	gender?: 'MALE' | 'FEMALE' | 'OTHER' | 'UNDISCLOSED' | null;
 	active: boolean;
 	lastLoginAt: string | null; // ISO date string
 	joinedAt: string; // ISO date string

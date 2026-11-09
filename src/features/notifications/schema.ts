@@ -48,6 +48,7 @@ export const NotificationSchema = z.discriminatedUnion('kind', [
 		comment: z.object({ id: z.string(), parentId: z.string().nullish(), excerpt: z.string() }),
 	}),
 	z.object({ ...base, kind: z.literal('CLOSING_SOON'), actor: FollowUserDtoSchema, poll: PollSummarySchema }),
+	z.object({ ...base, kind: z.literal('POLL_LIKE'), actor: FollowUserDtoSchema, poll: PollSummarySchema }),
 	z.object({
 		...base,
 		kind: z.literal('LIKE'),

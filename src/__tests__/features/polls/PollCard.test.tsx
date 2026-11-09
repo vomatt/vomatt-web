@@ -36,6 +36,8 @@ const mockGetVoters = jest.fn();
 const mockBookmarkPoll = jest.fn();
 const mockUnbookmarkPoll = jest.fn();
 const mockReportPoll = jest.fn();
+const mockLikePoll = jest.fn();
+const mockUnlikePoll = jest.fn();
 
 jest.mock('@/features/blocks/service', () => ({ blockUser: jest.fn() }));
 jest.mock('@/features/polls/service', () => ({
@@ -52,6 +54,8 @@ jest.mock('@/features/polls/service', () => ({
 	bookmarkPoll: (...args: any[]) => mockBookmarkPoll(...args),
 	unbookmarkPoll: (...args: any[]) => mockUnbookmarkPoll(...args),
 	reportPoll: (...args: any[]) => mockReportPoll(...args),
+	likePoll: (...args: any[]) => mockLikePoll(...args),
+	unlikePoll: (...args: any[]) => mockUnlikePoll(...args),
 }));
 
 // Exposes the layoutId that motion would use to fly the highlight between elements
@@ -962,6 +966,30 @@ describe('PollCard signed-out visitor', () => {
 		await waitFor(() => expect(toast.error).toHaveBeenCalled());
 		expect(screen.getByRole('button', { name: 'Saved' })).toBeInTheDocument();
 		expect(mockUnbookmarkPoll).toHaveBeenCalledWith('poll-1');
+	});
+
+	it('likes a poll at once, counts it, and takes it back when the request fails', async () => {
+		mockLikePoll.mockResolvedValueOnce({ ok: true });
+		mockUnlikePoll.mockResolvedValue({ ok: false, message: 'x' });
+		render(<PollCard poll={{ ...openPoll, likeCount: 2, likedByMe: false }} viewerId="user-voter" />);
+		fireEvent.click(screen.getByRole('button', { name: 'Like' }));
+		const liked = await screen.findByRole('button', { name: 'Liked' });
+		expect(liked).toHaveAttribute('aria-pressed', 'true');
+		expect(liked).toHaveTextContent('3');
+		expect(mockLikePoll).toHaveBeenCalledWith('poll-1');
+		await act(async () => {});
+
+		fireEvent.click(liked);
+		await waitFor(() => expect(toast.error).toHaveBeenCalled());
+		expect(screen.getByRole('button', { name: 'Liked' })).toHaveTextContent('3');
+		expect(mockUnlikePoll).toHaveBeenCalledWith('poll-1');
+	});
+
+	it('asks a guest to sign in before liking', () => {
+		render(<PollCard poll={openPoll} />);
+		fireEvent.click(screen.getByRole('button', { name: 'Like' }));
+		expect(screen.getByTestId('auth-dialog')).toBeInTheDocument();
+		expect(mockLikePoll).not.toHaveBeenCalled();
 	});
 
 	it('asks a guest to sign in before saving', () => {
