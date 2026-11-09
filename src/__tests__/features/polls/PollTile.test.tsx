@@ -65,6 +65,7 @@ describe('PollTile', () => {
 	it('says what an ended poll decided instead of its options', () => {
 		renderTile({ ...ended, myOptionId: 'o0' });
 		expect(screen.getByText(/won/)).toHaveTextContent('Yes won');
+		expect(screen.getByText(/won/).querySelectorAll('strong svg[aria-hidden]')).toHaveLength(1);
 		expect(screen.queryByText('No')).not.toBeInTheDocument();
 		expect(screen.queryByText('Voted')).not.toBeInTheDocument();
 	});

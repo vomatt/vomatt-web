@@ -14,6 +14,7 @@ import type { Poll, PollResults } from '../schema';
 import { getResults } from '../service';
 import { getWinners } from '../status';
 import { YourVotePill } from './BallotMotion';
+import { ElectedMark } from './ElectedMark';
 
 export type ResultRow = { id: string; text: string; votes: number };
 
@@ -39,21 +40,18 @@ function CountUp({ value, delay }: { value: number; delay: number }) {
 	return <m.span aria-hidden>{label}</m.span>;
 }
 
-/** The red ballot stamp (a ring with a 卜 mark) on the winning option, pressed down once its bar fills. */
+const MotionElectedMark = m.create(ElectedMark);
+
+/** The Elected stamp on the winning option, pressed down once its bar fills. */
 function ElectedStamp({ label }: { label: string }) {
 	return (
-		<m.svg
-			viewBox="0 0 130 130"
-			role="img"
-			aria-label={label}
-			className="relative size-[18px] shrink-0 text-elected"
+		<MotionElectedMark
+			label={label}
+			className="relative size-[18px]"
 			initial={{ scale: 1.6, opacity: 0 }}
 			animate={{ scale: 1, opacity: 1 }}
 			transition={{ duration: 0.3, ease: [0.25, 1, 0.5, 1], delay: BAR_DURATION }}
-		>
-			<circle cx="65" cy="65" r="60.3" fill="none" stroke="currentColor" strokeWidth="9.3" />
-			<path d="M65 2v126M63.5 63.5 19 108" fill="none" stroke="currentColor" strokeWidth="10" />
-		</m.svg>
+		/>
 	);
 }
 

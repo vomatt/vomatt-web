@@ -155,6 +155,7 @@ describe('NotificationList rows', () => {
 		expect(row).toHaveTextContent(`Results are in${META_GAP}Keep the library open until 22:00?`, { normalizeWhitespace: false });
 		expect(row).toHaveTextContent(`Yes won${META_GAP}2,061 voted${META_GAP}4h`, { normalizeWhitespace: false });
 		expect(row).toHaveTextContent('Your pick won');
+		expect(row.querySelectorAll('strong svg[aria-hidden]')).toHaveLength(1);
 	});
 
 	it('names every option that shares the most votes, and says the viewer\'s pick tied', () => {
@@ -162,6 +163,7 @@ describe('NotificationList rows', () => {
 		const row = rowOf('Keep the library');
 		expect(row).toHaveTextContent(`Tie between Yes and No${META_GAP}2,061 voted`, { normalizeWhitespace: false });
 		expect(row).toHaveTextContent('Tied for first');
+		expect(row.querySelectorAll('strong svg[aria-hidden]')).toHaveLength(2);
 	});
 
 	it('gives read rows a soft fill and keeps unread ones a card', () => {

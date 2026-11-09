@@ -8,6 +8,7 @@ import { META_GAP } from '@/lib/rich';
 
 import type { Poll } from '../schema';
 import { getTurnout, isCancelled } from '../status';
+import { WinnerName } from './ElectedMark';
 
 export function useVotedText() {
 	const { t, currentLanguage } = useLanguage();
@@ -21,10 +22,10 @@ export function useVotedText() {
 function DecidedText({ poll }: { poll: Poll }) {
 	const { t, currentLanguage } = useLanguage();
 	const summary = endedSummary(poll);
-	const strong = (text: string) => <strong className="font-medium text-foreground">{text}</strong>;
-	if (summary.kind === 'won') return rich(t('profile.wonBy'), { option: strong(summary.winner) });
+	const winner = (name: string) => <WinnerName name={name} />;
+	if (summary.kind === 'won') return rich(t('profile.wonBy'), { option: winner(summary.winner) });
 	if (summary.kind === 'tie') {
-		return rich(t('profile.tieBetween'), { options: richList(summary.winners, toPayloadLocale(currentLanguage), strong) });
+		return rich(t('profile.tieBetween'), { options: richList(summary.winners, toPayloadLocale(currentLanguage), winner) });
 	}
 	return null;
 }
