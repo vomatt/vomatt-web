@@ -356,7 +356,8 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 					</div>
 				</form>
 				</DialogBody>
-				<DialogFooter className="flex-row items-center">
+				{/* On a phone the keyboard leaves little room: give it all to the field being typed in until it closes */}
+				<DialogFooter className={cn('flex-row items-center', visible?.keyboard && 'max-sm:hidden')}>
 					<p className="mr-auto hidden text-caption-2 text-muted-foreground sm:block">{t('profile.visibilitySavesHint')}</p>
 					<Button variant="outline" size="md" className="flex-1 sm:flex-none" onClick={() => setOpen(false)} disabled={isPending}>
 						{t('common.cancel')}

@@ -669,20 +669,57 @@ describe('PollCreator', () => {
 		expect(draft.values.title).toBe('Half-written');
 	});
 
-	it('steps the footer aside while the on-screen keyboard is up, and back when it closes', async () => {
-		const viewport = Object.assign(new EventTarget(), { height: 400, offsetTop: 0, scale: 1 });
-		Object.defineProperty(window, 'visualViewport', { value: viewport, configurable: true });
-		try {
+	describe('with an on-screen keyboard', () => {
+		const original = Object.getOwnPropertyDescriptor(window, 'visualViewport');
+		const viewport = Object.assign(new EventTarget(), { width: 375, height: 0, offsetTop: 0, scale: 1 });
+		const footer = () => screen.getByRole('button', { name: 'Save draft' }).closest('.border-t');
+		const show = (height: number, scale = 1) =>
+			act(() => {
+				Object.assign(viewport, { height, scale, width: 375 / scale });
+				viewport.dispatchEvent(new Event('resize'));
+			});
+
+		beforeEach(() => {
+			Object.assign(viewport, { width: 375, height: window.innerHeight, scale: 1 });
+			Object.defineProperty(window, 'visualViewport', { value: viewport, configurable: true });
+		});
+		afterEach(() => {
+			if (original) Object.defineProperty(window, 'visualViewport', original);
+			else delete (window as { visualViewport?: unknown }).visualViewport;
+		});
+
+		it('steps the footer aside on a phone while it is up, and back when it closes', async () => {
 			render(<PollCreator triggerChildren={TRIGGER} />);
 			await openDialog();
-			expect(screen.queryByRole('button', { name: 'Save draft' })).not.toBeInTheDocument();
+			expect(footer()).not.toHaveClass('max-sm:hidden');
 
-			viewport.height = window.innerHeight;
-			act(() => viewport.dispatchEvent(new Event('resize')));
-			expect(await screen.findByRole('button', { name: 'Save draft' })).toBeVisible();
-		} finally {
-			Object.defineProperty(window, 'visualViewport', { value: undefined, configurable: true });
-		}
+			show(400);
+			expect(footer()).toHaveClass('max-sm:hidden');
+
+			show(window.innerHeight);
+			expect(footer()).not.toHaveClass('max-sm:hidden');
+		});
+
+		it('keeps the footer when the page is only pinch-zoomed', async () => {
+			render(<PollCreator triggerChildren={TRIGGER} />);
+			await openDialog();
+
+			show(window.innerHeight / 2, 2);
+			expect(footer()).not.toHaveClass('max-sm:hidden');
+		});
+
+		it('still notices it while pinch-zoomed, where iOS scales innerHeight', async () => {
+			const innerHeight = window.innerHeight;
+			render(<PollCreator triggerChildren={TRIGGER} />);
+			await openDialog();
+			try {
+				Object.defineProperty(window, 'innerHeight', { value: innerHeight / 2, configurable: true });
+				show((innerHeight - 300) / 2, 2);
+				expect(footer()).toHaveClass('max-sm:hidden');
+			} finally {
+				Object.defineProperty(window, 'innerHeight', { value: innerHeight, configurable: true });
+			}
+		});
 	});
 
 	it('offers to keep unsaved work as a draft on close', async () => {

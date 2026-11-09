@@ -51,6 +51,7 @@ import { ENTER, EXIT, Unfold } from '@/components/Unfold';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useVisualViewport } from '@/hooks/useVisualViewport';
 import { apiErrorText } from '@/lib/api/error-text';
+import { cn } from '@/lib/utils';
 
 import { deleteDraft, type PollDraft, saveDraft } from '../../drafts';
 import { joinSentences } from '../../format';
@@ -912,10 +913,12 @@ export function PollCreator({
 							</AnimatePresence>
 						</div>
 
-						{/* The keyboard leaves little room: give it all to the field being typed in until it closes */}
+						{/* On a phone the keyboard leaves little room: give it all to the field being typed in until it closes */}
 						<div
-							hidden={visible?.keyboard}
-							className="flex-none border-t p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:p-5"
+							className={cn(
+								'flex-none border-t p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:p-5',
+								visible?.keyboard && 'max-sm:hidden'
+							)}
 						>
 							{/* Rendered empty first, so a failed publish is announced every time, the same error included */}
 							<p

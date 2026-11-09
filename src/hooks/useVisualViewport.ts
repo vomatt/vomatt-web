@@ -17,12 +17,24 @@ export function useVisualViewport(active: boolean): VisualViewportBox | null {
 	useEffect(() => {
 		const viewport = window.visualViewport;
 		if (!active || !viewport) return;
-		const update = () =>
+		// The keyboard is measured against the tallest the page has been at this width, in unzoomed
+		// pixels: iOS scales innerHeight with pinch zoom, and some browsers shrink it for the keyboard
+		let width = 0;
+		let tallest = 0;
+		const update = () => {
+			const seen = viewport.height * viewport.scale;
+			const seenWidth = Math.round(viewport.width * viewport.scale);
+			if (seenWidth !== width) {
+				width = seenWidth;
+				tallest = 0;
+			}
+			tallest = Math.max(tallest, seen, window.innerHeight, document.documentElement.clientHeight);
 			setBox({
 				top: viewport.offsetTop,
 				height: viewport.height,
-				keyboard: window.innerHeight - viewport.height * viewport.scale > KEYBOARD_MIN,
+				keyboard: tallest - seen > KEYBOARD_MIN,
 			});
+		};
 		update();
 		viewport.addEventListener('resize', update);
 		viewport.addEventListener('scroll', update);
