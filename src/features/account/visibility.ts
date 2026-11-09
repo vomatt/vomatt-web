@@ -1,6 +1,6 @@
 /**
  * Profile fields other people can see once their owner allows it: the API's visibility keys this app
- * shows. Location is left out, since no page shows them.
+ * shows. Location is left out, since no page shows it.
  */
 export const VISIBILITY_FIELDS = ['displayName', 'bio', 'firstName', 'lastName'] as const;
 

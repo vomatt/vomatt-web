@@ -3,7 +3,7 @@
 import { AnimatePresence, m } from 'motion/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { AuthDialog } from '@/components/auth/AuthDialog';
@@ -91,10 +91,10 @@ export function PollCard({
 			toast.error(apiErrorText(t, result, next ? 'poll.bookmarkFailed' : 'poll.unbookmarkFailed'));
 		});
 
-	const [isLiking, setIsLiking] = useState(false);
+	const isLiking = useRef(false);
 	const toggleLike = () =>
 		requireAuth(async () => {
-			if (isLiking) return;
+			if (isLiking.current) return;
 			const next = !poll.likedByMe;
 			const step = next ? 1 : -1;
 			setPoll((current) => ({
@@ -102,15 +102,20 @@ export function PollCard({
 				likedByMe: next,
 				likeCount: Math.max(0, (current.likeCount ?? 0) + step),
 			}));
-			setIsLiking(true);
+			isLiking.current = true;
 			const result = await settle(next ? likePoll(poll.id) : unlikePoll(poll.id));
-			setIsLiking(false);
+			isLiking.current = false;
 			if (result.ok) return;
-			setPoll((current) => ({
-				...current,
-				likedByMe: !next,
-				likeCount: Math.max(0, (current.likeCount ?? 0) - step),
-			}));
+			// Only undo our own change: a refetch meanwhile may already hold the server's truth
+			setPoll((current) =>
+				current.likedByMe !== next
+					? current
+					: {
+							...current,
+							likedByMe: !next,
+							likeCount: Math.max(0, (current.likeCount ?? 0) - step),
+						}
+			);
 			toast.error(apiErrorText(t, result, next ? 'poll.likeFailed' : 'poll.unlikeFailed'));
 		});
 

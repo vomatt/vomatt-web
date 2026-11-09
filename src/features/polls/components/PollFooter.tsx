@@ -101,9 +101,9 @@ export function PollFooter({
 						className="flex min-h-11 items-center gap-1.5 transition-colors hover:text-foreground aria-pressed:text-foreground"
 					>
 						<Heart aria-hidden className="size-[18px]" fill={liked ? 'currentColor' : 'none'} />
-						{!!likeCount && (
-							<span className="tabular-nums">{likeCount.toLocaleString(toPayloadLocale(currentLanguage))}</span>
-						)}
+						<span className="tabular-nums">
+							{(likeCount ?? 0).toLocaleString(toPayloadLocale(currentLanguage))}
+						</span>
 					</button>
 				)}
 				{onToggleBookmark && (
