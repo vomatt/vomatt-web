@@ -64,7 +64,17 @@ describe('PollSideCard', () => {
 		render(<PollSideCard kind="resultsIn" polls={[won, tie]} />);
 		const [wonLink, tieLink] = within(screen.getByRole('list')).getAllByRole('link');
 		expect(within(wonLink).getByText(/won/).textContent).toBe(`Yes won${META_GAP}1,502 voted${META_GAP}new`);
-		expect(within(tieLink).getByText(/Tie/).textContent).toBe(`Tie${META_GAP}1,502 voted`);
+		expect(within(tieLink).getByText(/voted/).textContent).toBe(`Tie${META_GAP}1,502 voted`);
+	});
+
+	it('stamps the winner of a Poll in Results are in; a tie names no option to stamp', () => {
+		const won = { ...poll, options: [{ id: 'a', text: 'Yes', votes: 600 }, { id: 'b', text: 'No', votes: 214 }] };
+		const tie = { ...poll, id: 'poll-2', options: [{ id: 'a', text: 'Yes', votes: 6 }, { id: 'b', text: 'No', votes: 6 }] };
+		render(<PollSideCard kind="resultsIn" polls={[won, tie]} />);
+		const [wonLink, tieLink] = within(screen.getByRole('list')).getAllByRole('link');
+		// The stamp is decorative: "won" already says it, so screen readers don't hear "Elected" too
+		expect(within(wonLink).getByText(/won/).querySelectorAll('strong svg[aria-hidden]')).toHaveLength(1);
+		expect(tieLink.querySelector('svg')).not.toBeInTheDocument();
 	});
 
 	it('says when each Poll in Closing soon ends', () => {

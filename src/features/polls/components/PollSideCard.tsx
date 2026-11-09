@@ -17,6 +17,7 @@ import { useViewerClock } from '../hooks/useViewerClock';
 import type { Poll } from '../schema';
 import { derivePollStatus, getTurnout } from '../status';
 import { pollTiming } from '../timing';
+import { WinnerName } from './ElectedMark';
 
 export type SideCardKind = RailFeedKind;
 
@@ -79,10 +80,10 @@ function PollSideText({ kind, poll }: { kind: SideCardKind; poll: Poll }) {
 	const decided =
 		summary?.kind === 'won'
 			? rich(t('profile.wonBy'), {
-					option: <strong className="font-medium text-foreground">{summary.winner}</strong>,
+					option: <WinnerName name={summary.winner} />,
 				})
 			: summary?.kind === 'tie'
-				? t('homePage.resultsTie')
+				? <strong className="font-medium text-foreground">{t('homePage.resultsTie')}</strong>
 				: null;
 	const meta = [when, decided, turnout].filter(Boolean);
 

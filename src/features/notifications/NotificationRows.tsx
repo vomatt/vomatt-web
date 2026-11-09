@@ -8,6 +8,7 @@ import { Ban, Clock } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { FollowButton, useFollow } from '@/features/follows/FollowButton';
 import { FollowListDialog } from '@/features/follows/FollowListDialog';
+import { WinnerName } from '@/features/polls/components/ElectedMark';
 import { type DecidedOutcome, OutcomeChip } from '@/features/polls/components/OutcomeChip';
 import { SealMark } from '@/features/polls/components/Seal';
 import { formatAge, formatDuration } from '@/features/polls/format';
@@ -220,9 +221,9 @@ function pickOutcome({ myOptionId, winningOptionIds, tie }: PollSummary): Decide
 function WinnersText({ poll }: { poll: PollSummary }) {
 	const { t, currentLanguage } = useLanguage();
 	const labels = poll.winningOptionLabels ?? [];
-	const option = (text: string) => <strong className="font-medium text-foreground">{text}</strong>;
-	if (!poll.tie) return rich(t('profile.wonBy'), { option: option(labels[0]) });
-	return rich(t('profile.tieBetween'), { options: richList(labels, toPayloadLocale(currentLanguage), option) });
+	const winner = (name: string) => <WinnerName name={name} />;
+	if (!poll.tie) return rich(t('profile.wonBy'), { option: winner(labels[0]) });
+	return rich(t('profile.tieBetween'), { options: richList(labels, toPayloadLocale(currentLanguage), winner) });
 }
 
 function ResultRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'RESULT' }>>) {
