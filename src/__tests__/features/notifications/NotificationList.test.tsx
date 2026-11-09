@@ -260,6 +260,14 @@ describe('NotificationList rows', () => {
 		expect(within(row).getAllByRole('link')).toHaveLength(1);
 	});
 
+	it('keeps the category pills on one sticky row that runs to the screen edges on phones', () => {
+		renderList([cancelled]);
+		const pills = screen.getByRole('group', { name: 'Category' });
+		expect(pills).toHaveClass('max-md:flex-nowrap', 'max-md:overflow-x-auto', 'max-md:bleed-x');
+		expect(pills).not.toHaveClass('flex-nowrap');
+		expect(pills.closest('.sticky')).toHaveAttribute('data-sticky-bar', 'pills');
+	});
+
 	it('marks only unread rows with a dot', () => {
 		renderList([result, comment]);
 		expect(within(rowOf('Keep the library')).getByText('Unread')).toBeInTheDocument();

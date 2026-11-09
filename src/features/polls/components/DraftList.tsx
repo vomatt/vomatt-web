@@ -4,6 +4,7 @@ import { Menu } from '@base-ui/react/menu';
 import dynamic from 'next/dynamic';
 import { useEffect, useRef, useState } from 'react';
 
+import { RowMenuRoot } from '@/components/RowMenuRoot';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -95,7 +96,7 @@ export function DraftList({
 							<Button size="xs" variant="outline" onClick={() => setResuming(draft)}>
 								{t('myPolls.draftContinue')}
 							</Button>
-							<Menu.Root>
+							<RowMenuRoot>
 								<Menu.Trigger
 									data-draft-more
 									render={<Button variant="ghost" size="icon-xs" />}
@@ -120,7 +121,7 @@ export function DraftList({
 										</Menu.Popup>
 									</Menu.Positioner>
 								</Menu.Portal>
-							</Menu.Root>
+							</RowMenuRoot>
 						</li>
 					);
 				})}

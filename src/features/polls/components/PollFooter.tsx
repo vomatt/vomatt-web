@@ -3,6 +3,7 @@
 import { Menu } from '@base-ui/react/menu';
 import Link from 'next/link';
 
+import { RowMenuRoot } from '@/components/RowMenuRoot';
 import { Button } from '@/components/ui/Button';
 import { menuItemClassName, menuPopupClassName } from '@/components/ui/menu';
 import {
@@ -107,7 +108,7 @@ export function PollFooter({
 					<Share aria-hidden className="size-[18px]" />
 				</button>
 				{onReport && (
-					<Menu.Root>
+					<RowMenuRoot>
 						<Menu.Trigger
 							render={<Button variant="ghost" size="icon-xs" />}
 							aria-label={t('poll.moreOptions')}
@@ -130,7 +131,7 @@ export function PollFooter({
 								</Menu.Popup>
 							</Menu.Positioner>
 						</Menu.Portal>
-					</Menu.Root>
+					</RowMenuRoot>
 				)}
 			</div>
 		</div>

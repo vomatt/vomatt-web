@@ -34,3 +34,4 @@ Each feature file has an H1, a one-paragraph description, then four H2s in order
 - [Vote on a poll](./vote.md): cast, update, and withdraw a vote; sealed results.
 - [Comments](./comments.md): post, reply, and delete comments on a poll.
 - [Explore](./explore.md): browse, search, filter, and sort public polls.
+- [Layout](./layout.md): edge-to-edge pill rows, sticky pill bars, and long option text, measured in the browser.

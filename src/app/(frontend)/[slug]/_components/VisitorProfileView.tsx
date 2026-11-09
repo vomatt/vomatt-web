@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 
 import { FilterPills } from '@/components/FilterPills';
 import { PageShell } from '@/components/layout/PageShell';
+import { RowMenuRoot } from '@/components/RowMenuRoot';
 import { Button, buttonVariants } from '@/components/ui/Button';
 import { ArrowLeft, Ban, Ellipsis, Lock } from '@/components/ui/SvgIcons';
 import { TidePanel } from '@/components/ui/TidePanel';
@@ -149,7 +150,7 @@ function VisitorActions({ profile, follow }: { profile: UserProfile; follow: Fol
 	return (
 		<>
 			<FollowButton follow={follow} username={profile.username} avatarUrl={profile.avatarUrl} />
-			<Menu.Root>
+			<RowMenuRoot>
 				<Menu.Trigger
 					render={<Button variant="outline" size="icon-sm" />}
 					aria-label={t('profile.moreFor', { username: profile.username })}
@@ -170,7 +171,7 @@ function VisitorActions({ profile, follow }: { profile: UserProfile; follow: Fol
 						</Menu.Popup>
 					</Menu.Positioner>
 				</Menu.Portal>
-			</Menu.Root>
+			</RowMenuRoot>
 			<BlockUserDialog
 				userId={profile.id}
 				username={profile.username}
