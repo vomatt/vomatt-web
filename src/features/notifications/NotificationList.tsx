@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { EmptyCard } from '@/components/EmptyCard';
 import { FilterPills } from '@/components/FilterPills';
 import { LoadMore } from '@/components/LoadMore';
+import { StickyBar } from '@/components/StickyBar';
 import { ChevronRight } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PollRowListSkeleton } from '@/features/polls/components/PollCardSkeleton';
@@ -168,15 +169,19 @@ export function NotificationList({
 		<>
 			<NotificationsHeader />
 			<div className="flex flex-col gap-4">
-				<FilterPills
-					label={t('notifications.categoryLabel')}
-					value={category}
-					onChange={changeCategory}
-					options={[
-						{ value: 'all', label: t('profile.filterAll') },
-						...NOTIFICATION_CATEGORIES.map((value) => ({ value, label: t(`notifications.category.${value}`) })),
-					]}
-				/>
+				{/* One row on a phone, so the stuck bar stays one row tall; wider columns can be narrow beside the sidebar, so the pills wrap there */}
+				<StickyBar data-sticky-bar="pills" className="-mx-1 -my-2 max-md:mx-0">
+					<FilterPills
+						label={t('notifications.categoryLabel')}
+						value={category}
+						onChange={changeCategory}
+						options={[
+							{ value: 'all', label: t('profile.filterAll') },
+							...NOTIFICATION_CATEGORIES.map((value) => ({ value, label: t(`notifications.category.${value}`) })),
+						]}
+						className="px-1 py-2 max-md:flex-nowrap max-md:overflow-x-auto max-md:scrollbar-none max-md:bleed-x"
+					/>
+				</StickyBar>
 
 				{isEmpty ? (
 					<EmptyCard title={t('notifications.empty')} body={t('notifications.emptyHint')} />

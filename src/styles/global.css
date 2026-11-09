@@ -170,6 +170,13 @@ html {
 html:has([data-slot='tabs-list'][data-sticky], [data-sticky-bar]) {
 	scroll-padding-top: calc(var(--header-offset) + 44px + 1.5rem);
 }
+/* A pill row's bar is taller: 44px pills with 8px above and below on a phone (30px from md) */
+html:has([data-sticky-bar='pills']) {
+	scroll-padding-top: calc(var(--header-offset) + 60px + 1.5rem);
+	@media (width >= 48rem) {
+		scroll-padding-top: calc(var(--header-offset) + 46px + 1.5rem);
+	}
+}
 
 .dark {
 	/* Night keeps Daylight's cool neutral (one step of chroma, never a navy canvas). Cards, lines and

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useEffect, useId, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
+import { RowMenuRoot } from '@/components/RowMenuRoot';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -958,7 +959,7 @@ function CommentBody({
 					</button>
 
 					{!replying && (
-						<Menu.Root>
+						<RowMenuRoot>
 							<Menu.Trigger
 								ref={moreRef}
 								aria-label={t('comments.more')}
@@ -1015,7 +1016,7 @@ function CommentBody({
 									</Menu.Popup>
 								</Menu.Positioner>
 							</Menu.Portal>
-						</Menu.Root>
+						</RowMenuRoot>
 					)}
 
 					<AlertDialog

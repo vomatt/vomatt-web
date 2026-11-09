@@ -76,6 +76,21 @@ describe('UserChip', () => {
 		expect(fetchMock).toHaveBeenCalledWith('/api/profiles/mei');
 	});
 
+	it('closes the card once a scroll carries the chip away, so it never rides over the sticky bars', async () => {
+		fetchMock.mockResolvedValueOnce(json(profile));
+		render(<UserChip username="mei" avatarUrl="bot:bear" />);
+		const chip = screen.getByRole('link', { name: 'mei' });
+		await userEvent.hover(chip);
+		expect(await screen.findByText('Asks about lunch')).toBeInTheDocument();
+
+		window.dispatchEvent(new Event('scroll'));
+		expect(screen.getByText('Asks about lunch')).toBeInTheDocument();
+
+		chip.getBoundingClientRect = () => ({ top: -120, left: 0 }) as DOMRect;
+		window.dispatchEvent(new Event('scroll'));
+		await waitFor(() => expect(screen.queryByText('Asks about lunch')).not.toBeInTheDocument());
+	});
+
 	it('leads with the real name on hover, then the display name, as the profile does', async () => {
 		fetchMock.mockResolvedValueOnce(json({ ...profile, username: 'ruby', firstName: 'Ruby', lastName: 'Ho', displayName: 'rubes' }));
 		render(<UserChip username="ruby" />);

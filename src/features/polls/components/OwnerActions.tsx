@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
+import { RowMenuRoot } from '@/components/RowMenuRoot';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -225,7 +226,7 @@ function OwnerMenu({
 	const share = useSharePoll();
 
 	return (
-		<Menu.Root>
+		<RowMenuRoot>
 			<Menu.Trigger
 				render={<Button variant="ghost" size="icon-xs" />}
 				aria-label={t('poll.moreActions', { title: poll.title })}
@@ -273,6 +274,6 @@ function OwnerMenu({
 					</Menu.Popup>
 				</Menu.Positioner>
 			</Menu.Portal>
-		</Menu.Root>
+		</RowMenuRoot>
 	);
 }

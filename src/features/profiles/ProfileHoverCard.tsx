@@ -9,6 +9,7 @@ import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { type Follow, FollowButton, UnfollowDialog, useFollow } from '@/features/follows/FollowButton';
 import { FollowListDialog } from '@/features/follows/FollowListDialog';
 import { formatMonthYear } from '@/features/polls/format';
+import { useCloseOnScrollAway } from '@/hooks/useCloseOnScrollAway';
 import { countText } from '@/lib/count';
 import type { UserProfile } from '@/types/user';
 
@@ -87,6 +88,9 @@ export function ProfileHoverCard({
 }) {
 	const [stored, setState] = useState<CardState>({ username, status: 'idle' });
 	const [mutualsOpen, setMutualsOpen] = useState(false);
+	// The trigger the card is open on; none while closed
+	const [anchor, setAnchor] = useState<Element | null>(null);
+	useCloseOnScrollAway(anchor, () => setAnchor(null));
 	const triggerRef = useRef<HTMLAnchorElement>(null);
 	const state: CardState = stored.username === username ? stored : { username, status: 'idle' };
 	const profile = state.status === 'ready' ? state.profile : null;
@@ -111,7 +115,13 @@ export function ProfileHoverCard({
 	};
 
 	return (
-		<PreviewCard.Root onOpenChange={(open) => open && load()}>
+		<PreviewCard.Root
+			open={anchor !== null}
+			onOpenChange={(next, details) => {
+				setAnchor(next ? (details.trigger ?? triggerRef.current) : null);
+				if (next) load();
+			}}
+		>
 			<PreviewCard.Trigger ref={triggerRef} render={children} />
 			<PreviewCard.Portal>
 				<PreviewCard.Positioner side="bottom" align="start" sideOffset={8} className="isolate z-50">
