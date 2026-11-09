@@ -8,8 +8,9 @@ export const EXIT = { duration: 0.15, ease: 'easeOut' } as const;
 
 /**
  * Grows content open from nothing and folds it away; put it in an AnimatePresence.
- * It clips (not overflow-hidden, which focus() could scroll), and the 4px inset and clip margin
- * leave room for focus rings at the edges. Under reduced motion only the fade remains.
+ * It clips 4px outside its box, which leaves room for focus rings at the edges, with clip-path:
+ * overflow-hidden lets focus() scroll it, and Safari ignores overflow-clip-margin.
+ * Under reduced motion only the fade remains.
  * While it folds away it is inert, so it can't be clicked or typed into on its way out.
  */
 export function Unfold({ children }: { children: React.ReactNode }) {
@@ -25,7 +26,7 @@ export function Unfold({ children }: { children: React.ReactNode }) {
 			initial={{ height: 0, opacity: 0 }}
 			animate={{ height: 'auto', opacity: 1, transition: { ...ENTER, height: height(ENTER) } }}
 			exit={{ height: 0, opacity: 0, transition: { ...EXIT, height: height(EXIT) } }}
-			className="-mx-1 overflow-clip px-1 [overflow-clip-margin:4px]"
+			className="[clip-path:inset(-4px)]"
 		>
 			{children}
 		</m.div>

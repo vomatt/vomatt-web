@@ -912,7 +912,11 @@ export function PollCreator({
 							</AnimatePresence>
 						</div>
 
-						<div className="flex-none border-t p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:p-5">
+						{/* The keyboard leaves little room: give it all to the field being typed in until it closes */}
+						<div
+							hidden={visible?.keyboard}
+							className="flex-none border-t p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:p-5"
+						>
 							{/* Rendered empty first, so a failed publish is announced every time, the same error included */}
 							<p
 								role="alert"

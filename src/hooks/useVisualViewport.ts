@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 
-export type VisualViewportBox = { top: number; height: number };
+/** `keyboard`: an on-screen keyboard covers part of the page (pinch zoom alone doesn't count). */
+export type VisualViewportBox = { top: number; height: number; keyboard: boolean };
+
+// Keyboards are taller than this; the browser's toolbars collapsing is not
+const KEYBOARD_MIN = 150;
 
 /**
  * The part of the page the visitor can actually see, while `active`.
@@ -13,7 +17,12 @@ export function useVisualViewport(active: boolean): VisualViewportBox | null {
 	useEffect(() => {
 		const viewport = window.visualViewport;
 		if (!active || !viewport) return;
-		const update = () => setBox({ top: viewport.offsetTop, height: viewport.height });
+		const update = () =>
+			setBox({
+				top: viewport.offsetTop,
+				height: viewport.height,
+				keyboard: window.innerHeight - viewport.height * viewport.scale > KEYBOARD_MIN,
+			});
 		update();
 		viewport.addEventListener('resize', update);
 		viewport.addEventListener('scroll', update);

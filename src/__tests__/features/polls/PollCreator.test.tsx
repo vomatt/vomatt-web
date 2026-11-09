@@ -1,4 +1,4 @@
-import { fireEvent, render as rtlRender, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render as rtlRender, screen, waitFor } from '@testing-library/react';
 import { MotionGlobalConfig } from 'motion/react';
 import type { ReactElement } from 'react';
 
@@ -667,6 +667,22 @@ describe('PollCreator', () => {
 
 		const [draft] = listDrafts();
 		expect(draft.values.title).toBe('Half-written');
+	});
+
+	it('steps the footer aside while the on-screen keyboard is up, and back when it closes', async () => {
+		const viewport = Object.assign(new EventTarget(), { height: 400, offsetTop: 0, scale: 1 });
+		Object.defineProperty(window, 'visualViewport', { value: viewport, configurable: true });
+		try {
+			render(<PollCreator triggerChildren={TRIGGER} />);
+			await openDialog();
+			expect(screen.queryByRole('button', { name: 'Save draft' })).not.toBeInTheDocument();
+
+			viewport.height = window.innerHeight;
+			act(() => viewport.dispatchEvent(new Event('resize')));
+			expect(await screen.findByRole('button', { name: 'Save draft' })).toBeVisible();
+		} finally {
+			Object.defineProperty(window, 'visualViewport', { value: undefined, configurable: true });
+		}
 	});
 
 	it('offers to keep unsaved work as a draft on close', async () => {
