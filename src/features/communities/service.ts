@@ -1,15 +1,21 @@
 'use server';
 
+import { updateTag } from 'next/cache';
+import { cookies } from 'next/headers';
 import { z } from 'zod';
 
+import { ACT_AS } from '@/data/constants';
 import { type ActionResult, attempt } from '@/lib/api/action';
+import { getActingCommunityId } from '@/lib/api/auth';
 import { apiClient } from '@/lib/api/client';
+import { PROFILES_TAG } from '@/lib/api/constants';
 import { type UserDto, UserDtoSchema } from '@/schemas/user';
 
 import { type CommunityMember, CommunityMemberSchema, type CommunityRole, MyCommunitySchema } from './schema';
 
+const communityPath = (communityId: string) => `/communities/${encodeURIComponent(communityId)}`;
 const membersPath = (communityId: string, userId?: string) =>
-	`/communities/${encodeURIComponent(communityId)}/members${userId ? `/${encodeURIComponent(userId)}` : ''}`;
+	`${communityPath(communityId)}/members${userId ? `/${encodeURIComponent(userId)}` : ''}`;
 
 /** The community accounts the signed-in user belongs to (their own, even while acting as one). */
 export async function listMyCommunities() {
@@ -55,9 +61,38 @@ export async function removeMember(communityId: string, userId: string): Promise
 /** The caller (an OWNER) hands OWNER to a member and becomes ADMIN. */
 export async function transferOwner(communityId: string, userId: string): Promise<ActionResult> {
 	return attempt(async () => {
-		await apiClient(`/communities/${encodeURIComponent(communityId)}/owner`, {
+		await apiClient(`${communityPath(communityId)}/owner`, {
 			method: 'POST',
 			body: JSON.stringify({ userId }),
 		});
+	});
+}
+
+/** OWNER or ADMIN; an omitted field stays as it is, and an empty bio clears it. */
+export async function updateCommunity(communityId: string, changes: { displayName?: string; bio?: string }): Promise<ActionResult> {
+	return attempt(async () => {
+		await apiClient(communityPath(communityId), { method: 'PATCH', body: JSON.stringify(changes) });
+		updateTag(PROFILES_TAG);
+	});
+}
+
+/** OWNER or ADMIN; `file` in the form data, with the same limits and errorCodes as the user's own avatar. */
+export async function uploadCommunityAvatar(communityId: string, formData: FormData): Promise<ActionResult> {
+	return attempt(async () => {
+		const file = formData.get('file');
+		if (!(file instanceof File) || file.size === 0) throw new Error('No file');
+		const body = new FormData();
+		body.set('file', file);
+		await apiClient(`${communityPath(communityId)}/avatar`, { method: 'PUT', body, isFormData: true });
+		updateTag(PROFILES_TAG);
+	});
+}
+
+/** OWNER only. Acting as the deleted account ends with it. */
+export async function deleteCommunity(communityId: string): Promise<ActionResult> {
+	return attempt(async () => {
+		await apiClient(communityPath(communityId), { method: 'DELETE' });
+		if ((await getActingCommunityId()) === communityId) (await cookies()).delete(ACT_AS);
+		updateTag(PROFILES_TAG);
 	});
 }

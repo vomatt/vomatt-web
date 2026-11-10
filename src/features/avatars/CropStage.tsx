@@ -7,10 +7,10 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button';
 import { DialogBody, DialogFooter } from '@/components/ui/Dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
+import type { ActionResult } from '@/lib/api/action';
 import { apiErrorText } from '@/lib/api/error-text';
 
 import { cropToJpeg } from './cropImage';
-import { uploadAvatar } from './service';
 
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 3;
@@ -19,7 +19,18 @@ const MAX_ZOOM = 3;
  * Framing the picked photo in a circle (drag to move, pinch, scroll or the slider to zoom, arrow keys on
  * the circle), then uploading just that square. Loaded on demand by `AvatarDialog`.
  */
-export function CropStage({ file, onCancel, onDone }: { file: File; onCancel: () => void; onDone: () => void }) {
+export function CropStage({
+	file,
+	upload: send,
+	onCancel,
+	onDone,
+}: {
+	file: File;
+	/** Saves the square (`file` in the form data) wherever this avatar belongs. */
+	upload: (formData: FormData) => Promise<ActionResult>;
+	onCancel: () => void;
+	onDone: () => void;
+}) {
 	const { t } = useLanguage();
 	const [src, setSrc] = useState<string | null>(null);
 	const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
@@ -61,7 +72,7 @@ export function CropStage({ file, onCancel, onDone }: { file: File; onCancel: ()
 			}
 			const formData = new FormData();
 			formData.set('file', new File([blob], 'avatar.jpg', { type: 'image/jpeg' }));
-			const result = await uploadAvatar(formData);
+			const result = await send(formData);
 			if (!result.ok) {
 				toast.error(apiErrorText(t, result, 'account.saveFailed'), { duration: Infinity });
 				return;

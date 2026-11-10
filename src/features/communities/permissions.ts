@@ -5,6 +5,16 @@ export function canManageMembers(role: CommunityRole) {
 	return role === 'OWNER' || role === 'ADMIN';
 }
 
+/** OWNER and ADMIN edit the account's name, bio and photo. */
+export function canEditProfile(role: CommunityRole) {
+	return role === 'OWNER' || role === 'ADMIN';
+}
+
+/** Only an OWNER deletes the account. */
+export function canDelete(role: CommunityRole) {
+	return role === 'OWNER';
+}
+
 export type MemberAction = 'changeRole' | 'transferOwner' | 'remove' | 'leave';
 
 /** What the viewer's ••• menu offers on a member's row; empty means no menu. */

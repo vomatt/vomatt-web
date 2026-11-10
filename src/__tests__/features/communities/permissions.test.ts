@@ -1,9 +1,21 @@
-import { canManageMembers, grantableRoles, memberActions } from '@/features/communities/permissions';
+import { canDelete, canEditProfile, canManageMembers, grantableRoles, memberActions } from '@/features/communities/permissions';
 import { COMMUNITY_ROLES } from '@/features/communities/schema';
 
 describe('canManageMembers', () => {
 	it('lets only OWNER and ADMIN manage members', () => {
 		expect(COMMUNITY_ROLES.filter(canManageMembers)).toEqual(['OWNER', 'ADMIN']);
+	});
+});
+
+describe('canEditProfile', () => {
+	it('lets only OWNER and ADMIN edit the profile', () => {
+		expect(COMMUNITY_ROLES.filter(canEditProfile)).toEqual(['OWNER', 'ADMIN']);
+	});
+});
+
+describe('canDelete', () => {
+	it('lets only an OWNER delete the account', () => {
+		expect(COMMUNITY_ROLES.filter(canDelete)).toEqual(['OWNER']);
 	});
 });
 
