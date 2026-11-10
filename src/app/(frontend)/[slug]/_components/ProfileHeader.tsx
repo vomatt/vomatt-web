@@ -9,7 +9,7 @@ import { UserAvatar } from '@/features/avatars/UserAvatar';
 import type { FollowList } from '@/features/follows/FollowListDialog';
 import { formatMonthYear } from '@/features/polls/format';
 import { Count } from '@/features/profiles/Count';
-import { profileName, realName } from '@/features/profiles/name';
+import { genderLabel, profileName, realName } from '@/features/profiles/name';
 import { OfficialBadge } from '@/features/profiles/OfficialBadge';
 import { countText } from '@/lib/count';
 import { cn } from '@/lib/utils';
@@ -144,7 +144,7 @@ export default function ProfileHeader({
 					{listCount('following', profile.followingCount)}
 					{profile.gender && (
 						<span>
-							{t('profile.genderMeta', { gender: t(`profile.genders.${profile.gender}`) })}
+							{t('profile.genderMeta', { gender: genderLabel(t, profile.gender) })}
 							{isHidden('gender') && <OnlyYouMarker className="ml-1 size-3 align-[-0.125em]" />}
 						</span>
 					)}

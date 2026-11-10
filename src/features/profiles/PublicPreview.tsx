@@ -8,7 +8,7 @@ import { isFieldPublic, type VisibilityField } from '@/features/account/visibili
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { formatMonthYear } from '@/features/polls/format';
 import { Count } from '@/features/profiles/Count';
-import { profileName } from '@/features/profiles/name';
+import { genderLabel, profileName } from '@/features/profiles/name';
 import { countText } from '@/lib/count';
 import { META_GAP } from '@/lib/rich';
 import { profileHref } from '@/lib/routes';
@@ -48,9 +48,9 @@ export function PublicPreview({ profile, className }: { profile: MyProfile; clas
 				</div>
 				{shows('bio') && <p className="line-clamp-3 wrap-anywhere text-caption-1">{profile.bio}</p>}
 				<p className="text-caption-2 text-muted-foreground">
-					{shows('gender') && (
+					{profile.gender && shows('gender') && (
 						<>
-							{t('profile.genderMeta', { gender: t(`profile.genders.${profile.gender}`) })}
+							{t('profile.genderMeta', { gender: genderLabel(t, profile.gender) })}
 							{META_GAP}
 						</>
 					)}

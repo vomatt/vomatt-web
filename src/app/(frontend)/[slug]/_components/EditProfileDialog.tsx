@@ -32,6 +32,7 @@ import { Textarea } from '@/components/ui/Textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { isValidUsername, RESERVED_USERNAMES, USERNAME_MAX_LENGTH } from '@/features/account/username';
 import { isFieldPublic, visibilityChanges } from '@/features/account/visibility';
+import { genderLabel } from '@/features/profiles/name';
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
 import { useVisualViewport } from '@/hooks/useVisualViewport';
 import { apiErrorText } from '@/lib/api/error-text';
@@ -348,7 +349,7 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 							// No "not set": once chosen it can only change
 							value={values.gender || undefined}
 							onChange={set('gender')}
-							options={GENDERS.map((gender) => ({ value: gender, label: t(`profile.genders.${gender}`) }))}
+							options={GENDERS.map((gender) => ({ value: gender, label: genderLabel(t, gender) }))}
 						/>
 					<div className="flex flex-col gap-1.5">
 						<div className="flex min-h-7 items-center justify-between gap-2">

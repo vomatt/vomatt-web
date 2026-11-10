@@ -458,12 +458,13 @@ function DeleteAccount({ username }: { username: string }) {
 		const result = await deleteMyAccount();
 		setIsDeleting(false);
 		const key = result.errorCode && DELETE_ERROR_KEYS[result.errorCode];
+		const lastOwner = result.errorCode === 'official.last_owner';
 		// Ownership has to move first, so the dialog goes and the toast's action can be reached
-		if (result.errorCode === 'official.last_owner') setOpen(false);
+		if (lastOwner) setOpen(false);
 		toast.error(key ? t(key) : apiErrorText(t, result, 'account.deleteFailed'), {
 			duration: Infinity,
 			// Ownership is handed over from the official account's members page
-			...(result.errorCode === 'official.last_owner' && {
+			...(lastOwner && {
 				action: {
 					label: t('officials.goToOfficials'),
 					onClick: () => document.getElementById('officials')?.scrollIntoView(),

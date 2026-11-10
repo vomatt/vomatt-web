@@ -1212,6 +1212,7 @@
 			"last_admin": "Cannot remove the last active admin"
 		},
 		"official": {
+			"invitee_not_allowed": "Official accounts don’t vote, so they can’t be invited.",
 			"last_owner": "An official account needs at least one owner. Transfer ownership first.",
 			"not_member": "You’re no longer a member of this account.",
 			"role_forbidden": "You don’t have permission to do that.",

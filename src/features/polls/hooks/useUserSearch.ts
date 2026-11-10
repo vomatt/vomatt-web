@@ -19,7 +19,8 @@ export function useUserSearch(term: string, excludeIds: readonly string[]): User
 	const [results, setResults] = useState<Results>({ term: '', users: [] });
 
 	useEffect(() => {
-		if (!term) return;
+		// Nothing to look up, or the term just answered (it went empty and came back)
+		if (!term || term === results.term) return;
 		let ignore = false;
 		const timer = setTimeout(async () => {
 			try {
@@ -33,7 +34,7 @@ export function useUserSearch(term: string, excludeIds: readonly string[]): User
 			ignore = true;
 			clearTimeout(timer);
 		};
-	}, [term]);
+	}, [term, results.term]);
 
 	const answered = !!term && results.term === term;
 	return {

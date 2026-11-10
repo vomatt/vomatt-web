@@ -14,7 +14,7 @@ describe('toAuthErrorKey', () => {
 	});
 
 	it('falls back by status for an auth code whose copy needs a value, a 400 to the caller\'s copy', () => {
-		expect(toAuthErrorKey('auth.email.send_failed_reason', 400, 'invalidEmail')).toBe('invalidEmail');
+		expect(toAuthErrorKey('auth.email.send_failed_reason', 400, { badRequest: 'invalidEmail' })).toBe('invalidEmail');
 		expect(toAuthErrorKey(undefined, 400)).toBe('serverError');
 		expect(toAuthErrorKey(undefined, 429)).toBe('rateLimited');
 	});

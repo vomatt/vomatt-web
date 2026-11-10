@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
+import { PillGroup } from '@/components/PillGroup';
 import { RowMenuRoot } from '@/components/RowMenuRoot';
-import { RowText, SettingsCard } from '@/components/SettingsCard';
+import { rowClassName, RowText, SettingsCard } from '@/components/SettingsCard';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -31,8 +32,7 @@ import { cn } from '@/lib/utils';
 
 import { AddMemberDialog } from './AddMemberDialog';
 import { canManageMembers, grantableRoles, type MemberAction, memberActions } from './permissions';
-import { RolePicker } from './RolePicker';
-import { type MyOfficial, OFFICIAL_ROLES, type OfficialMember, type OfficialRole } from './schema';
+import { DEFAULT_ROLE, type MyOfficial, OFFICIAL_ROLES, type OfficialMember, type OfficialRole } from './schema';
 import { addMember, changeRole, removeMember, transferOwner } from './service';
 
 // The list is stale after these: someone else changed it, or the viewer's role
@@ -48,9 +48,10 @@ const ICONS: Record<MemberAction, React.ReactNode> = {
 type Pending = { action: MemberAction; member: OfficialMember };
 
 /** One row action: the request, what follows its success, the toast, and the confirm dialog's copy (none for Change role, which has its own dialog). */
-type Step = {
-	request: () => Promise<ActionResult<unknown>>;
-	after: (data: unknown) => void;
+type Step<T = unknown> = {
+	request: () => Promise<ActionResult<T>>;
+	// A method, so a step over one data type still fits `Step`
+	after(data: T): void;
 	done: string;
 	confirm?: { title: string; body: string; cta: string };
 };
@@ -78,11 +79,11 @@ export function OfficialMembers({
 	}
 	const [adding, setAdding] = useState(false);
 	const [pending, setPending] = useState<Pending | null>(null);
-	const [newRole, setNewRole] = useState<OfficialRole>('EDITOR');
+	const [newRole, setNewRole] = useState<OfficialRole>(DEFAULT_ROLE);
 	const [busy, setBusy] = useState(false);
 
 	/** Runs a change; true when it went through. */
-	const run = async ({ request, after, done }: Omit<Step, 'confirm'>) => {
+	const run = async <T,>({ request, after, done }: Omit<Step<T>, 'confirm'>) => {
 		setBusy(true);
 		const result = await request();
 		setBusy(false);
@@ -96,12 +97,10 @@ export function OfficialMembers({
 		return true;
 	};
 
-	const replaceMember = (data: unknown) => {
-		const changed = data as OfficialMember;
+	const replaceMember = (changed: OfficialMember) =>
 		setMembers((list) => list.map((m) => (m.userId === changed.userId ? changed : m)));
-	};
 
-	const step = (({ action, member }: Pending): Step => {
+	const step = ({ action, member }: Pending): Step => {
 		const id = official.officialId;
 		const vars = { name: member.username, official: officialName };
 		const copy = (title: string, body: string, cta: string) => ({ title: t(title, vars), body: t(body, vars), cta: t(cta) });
@@ -131,7 +130,7 @@ export function OfficialMembers({
 				confirm: copy('officials.leaveTitle', 'officials.leaveBody', 'officials.leave'),
 			},
 		}[action];
-	});
+	};
 	const current = pending && step(pending);
 
 	const confirm = async () => {
@@ -164,7 +163,7 @@ export function OfficialMembers({
 						const actions = memberActions(viewer, member);
 						const isViewer = member.userId === viewerId;
 						return (
-							<li key={member.userId} className="flex min-h-15 items-center gap-3 px-4.5 py-3">
+							<li key={member.userId} className={cn(rowClassName, 'gap-3')}>
 								<UserAvatar username={member.username} avatarUrl={member.avatarUrl} className="size-9" />
 								<div className="min-w-0 flex-1">
 									<p className="truncate font-medium">
@@ -223,7 +222,7 @@ export function OfficialMembers({
 				</h2>
 				<SettingsCard as="ul">
 					{OFFICIAL_ROLES.map((role) => (
-						<li key={role} className="flex min-h-15 items-center px-4.5 py-3">
+						<li key={role} className={rowClassName}>
 							<RowText title={t(`officials.roles.${role}`)} body={t(`officials.roleBodies.${role}`)} />
 						</li>
 					))}
@@ -239,7 +238,7 @@ export function OfficialMembers({
 				onAdd={(user, role) =>
 					run({
 						request: () => addMember(official.officialId, user.id, role),
-						after: (data) => setMembers((list) => [...list, data as OfficialMember]),
+						after: (added) => setMembers((list) => [...list, added]),
 						done: t('officials.added', { name: user.username }),
 					})
 				}
@@ -251,7 +250,14 @@ export function OfficialMembers({
 						<DialogTitle>{pending && t('officials.changeRoleTitle', { name: pending.member.username })}</DialogTitle>
 					</DialogHeader>
 					<DialogBody>
-						<RolePicker roles={grantableRoles(official.role)} value={newRole} onChange={setNewRole} />
+						<PillGroup
+							legend={t('officials.role')}
+							legendClassName="text-caption-2 font-medium text-muted-foreground"
+							hint={t(`officials.roleBodies.${newRole}`)}
+							value={newRole}
+							onChange={setNewRole}
+							options={grantableRoles(official.role).map((value) => ({ value, label: t(`officials.roles.${value}`) }))}
+						/>
 					</DialogBody>
 					<DialogFooter>
 						<Button size="md" variant="outline" onClick={() => setPending(null)}>

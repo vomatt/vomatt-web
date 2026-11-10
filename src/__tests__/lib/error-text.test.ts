@@ -35,7 +35,7 @@ describe('apiErrorText', () => {
 
 	it('says why an official account cannot be invited', () => {
 		expect(apiErrorText(t, { errorCode: 'official.invitee_not_allowed', message: 'raw' })).toBe(
-			en.invitees.officialNotAllowed
+			en.apiError.official.invitee_not_allowed
 		);
 	});
 

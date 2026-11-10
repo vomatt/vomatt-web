@@ -15,7 +15,7 @@ type AuthFailure = { status: 'ERROR'; error: AuthErrorKey };
 
 function toFailure(error: unknown): AuthFailure {
 	if (error instanceof ApiError) {
-		return { status: 'ERROR', error: toAuthErrorKey(error.data?.errorCode, error.statusCode, 'invalidEmail') };
+		return { status: 'ERROR', error: toAuthErrorKey(error.data?.errorCode, error.statusCode, { badRequest: 'invalidEmail' }) };
 	}
 	return { status: 'ERROR', error: 'serverError' };
 }

@@ -11,8 +11,8 @@ export type AuthResult = { status: 'OK' } | { status: 'ERROR'; error: AuthErrorK
 /** `COOLDOWN`: no code was sent, as one went out recently; a resend is allowed in `seconds`. */
 export type ResendResult = AuthResult | { status: 'COOLDOWN'; seconds: number };
 
-const OK: AuthResult = { status: 'OK' };
-const SERVER_ERROR: AuthResult = { status: 'ERROR', error: 'serverError' };
+export const OK: AuthResult = { status: 'OK' };
+export const SERVER_ERROR: AuthResult = { status: 'ERROR', error: 'serverError' };
 
 /**
  * One flow for sign-in and sign-up: the backend signs in an existing email

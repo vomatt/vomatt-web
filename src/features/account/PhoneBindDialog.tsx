@@ -3,7 +3,7 @@
 import { useState } from 'react';
 
 import { AuthError } from '@/components/auth/AuthError';
-import type { AuthResult, ResendResult } from '@/components/auth/useAuthFlow';
+import { type AuthResult, OK, type ResendResult, SERVER_ERROR } from '@/components/auth/useAuthFlow';
 import VerificationForm from '@/components/auth/VerificationForm';
 import { Button } from '@/components/ui/Button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
@@ -13,9 +13,6 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import type { ActionFailure } from '@/lib/api/action';
 import { type AuthErrorKey, cooldownSeconds, toAuthErrorKey } from '@/lib/api/auth-errors';
 import { sendPhoneBindOtp, verifyPhoneBind } from '@/lib/api/services/users';
-
-const OK: AuthResult = { status: 'OK' };
-const SERVER_ERROR: AuthResult = { status: 'ERROR', error: 'serverError' };
 
 /** Bind refusals that mean something else here than at sign-in; the rest read as there. */
 const PHONE_ERRORS: Record<string, AuthErrorKey> = {
@@ -28,10 +25,7 @@ const PHONE_ERRORS: Record<string, AuthErrorKey> = {
 function toResult(failure: ActionFailure): ResendResult {
 	const seconds = cooldownSeconds(failure.errorCode, failure.message);
 	if (seconds) return { status: 'COOLDOWN', seconds };
-	return {
-		status: 'ERROR',
-		error: (failure.errorCode && PHONE_ERRORS[failure.errorCode]) || toAuthErrorKey(failure.errorCode, failure.status),
-	};
+	return { status: 'ERROR', error: toAuthErrorKey(failure.errorCode, failure.status, { codes: PHONE_ERRORS }) };
 }
 
 type PhoneBindDialogProps = {

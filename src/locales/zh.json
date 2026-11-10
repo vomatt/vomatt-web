@@ -1199,6 +1199,7 @@
 			"last_admin": "不能移除最後一位管理員"
 		},
 		"official": {
+			"invitee_not_allowed": "官方帳號不投票，無法邀請。",
 			"last_owner": "官方帳號至少要有一位擁有者，請先轉移擁有者。",
 			"not_member": "你已不是這個帳號的成員。",
 			"role_forbidden": "你沒有權限這麼做。",

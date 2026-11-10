@@ -48,17 +48,19 @@ function hasApiErrorCopy(errorCode: string) {
 }
 
 /**
- * Maps a backend `errorCode` and HTTP status to a message the UI can show. `badRequest` is the copy for a 400
- * with no copy of its own, which only the caller knows the input of.
+ * Maps a backend `errorCode` and HTTP status to a message the UI can show. `context` is what only the caller
+ * knows: `badRequest`, the copy for a 400 with no copy of its own, and `codes`, its own copy for codes
+ * that mean something else there.
  */
 export function toAuthErrorKey(
 	errorCode: string | undefined,
 	status?: number,
-	badRequest: AuthErrorKey = 'serverError'
+	context: { badRequest?: AuthErrorKey; codes?: Record<string, AuthErrorKey> } = {}
 ): AuthErrorKey {
-	if (errorCode && ERROR_CODES[errorCode]) return ERROR_CODES[errorCode];
+	const known = errorCode && (context.codes?.[errorCode] ?? ERROR_CODES[errorCode]);
+	if (known) return known;
 	if (errorCode?.startsWith('auth.') && hasApiErrorCopy(errorCode)) return `apiError.${errorCode}` as AuthErrorKey;
 	if (status === 429) return 'rateLimited';
-	if (status === 400) return badRequest;
+	if (status === 400) return context.badRequest ?? 'serverError';
 	return 'serverError';
 }

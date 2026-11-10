@@ -1,4 +1,4 @@
-import { realName } from '@/features/profiles/name';
+import { genderLabel, realName } from '@/features/profiles/name';
 import type { MyProfile } from '@/types/user';
 
 /**
@@ -39,7 +39,7 @@ export const VISIBILITY_SETTINGS = [
 	{
 		key: 'gender',
 		fields: ['gender'],
-		value: (profile, t) => (profile.gender ? t(`profile.genders.${profile.gender}`) : null),
+		value: (profile, t) => (profile.gender ? genderLabel(t, profile.gender) : null),
 	},
 	{ key: 'bio', fields: ['bio'], value: (profile) => profile.bio },
 ] as const satisfies readonly {

@@ -11,7 +11,6 @@ const DETAILED_CODES = ['common.validation_failed', 'common.bad_request'];
 // Codes shown with our own wording instead of the `apiError.*` copy
 const OVERRIDES: Record<string, string> = {
 	'common.conflict': 'common.busy',
-	'official.invitee_not_allowed': 'invitees.officialNotAllowed',
 };
 
 /**
