@@ -24,6 +24,7 @@ jest.mock('@/lib/api/services/users', () => ({
 	sendPhoneBindOtp: jest.fn(),
 	verifyPhoneBind: jest.fn(),
 }));
+jest.mock('@/features/officials/service', () => ({ createOfficial: jest.fn() }));
 const mockGetSessions = jest.fn();
 jest.mock('@/features/sessions/service', () => ({ getSessions: () => mockGetSessions() }));
 const mockUpdatePreferences = jest.fn();
@@ -406,9 +407,12 @@ describe('AccountSettings', () => {
 		expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
 	});
 
-	it('has no official accounts section without any', () => {
+	it('offers creating an official account when the user has none, with no list', () => {
 		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
-		expect(screen.queryByRole('region', { name: 'Official accounts' })).not.toBeInTheDocument();
+		const section = screen.getByRole('region', { name: 'Official accounts' });
+		expect(within(section).queryByRole('list')).not.toBeInTheDocument();
+		fireEvent.click(within(section).getByRole('button', { name: /Create an official account/ }));
+		expect(screen.getByRole('dialog', { name: 'Create an official account' })).toBeInTheDocument();
 	});
 });
 

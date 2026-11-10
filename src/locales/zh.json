@@ -1387,7 +1387,16 @@
 		"notMemberBody": "這個官方帳號不存在，或你已不是它的成員。",
 		"goToOfficials": "官方帳號",
 		"deleteLastOwner": "你是某個官方帳號唯一的擁有者，請先轉移擁有者。",
-		"officialNotAllowed": "官方帳號不能成為其他帳號的成員。"
+		"officialNotAllowed": "官方帳號不能成為其他帳號的成員。",
+		"createTitle": "建立官方帳號",
+		"createBody": "由多位成員共同經營的團體頁面，你會是擁有者。",
+		"createIntro": "由多位成員共同經營的團體頁面。你會成為擁有者，並可新增其他成員。",
+		"nameLabel": "團體名稱",
+		"nameRequired": "請輸入團體名稱。",
+		"usernameHint": "3–50 個小寫英文字母、數字或底線。此帳號無法登入。",
+		"create": "建立",
+		"created": "已建立 @{name}",
+		"createFailed": "無法建立帳號，請再試一次。"
 	},
 	"meta": {
 		"siteDescription": "提出問題、參與他人的投票，看看大家真正的想法。投票結束前票數保持密封，沒有人會跟風投票。",

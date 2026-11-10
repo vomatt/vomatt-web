@@ -4,6 +4,7 @@ import { z } from 'zod';
 
 import { type ActionResult, attempt } from '@/lib/api/action';
 import { apiClient } from '@/lib/api/client';
+import { type UserDto, UserDtoSchema } from '@/schemas/user';
 
 import { MyOfficialSchema, type OfficialMember, OfficialMemberSchema, type OfficialRole } from './schema';
 
@@ -13,6 +14,13 @@ const membersPath = (officialId: string, userId?: string) =>
 /** The official accounts the signed-in user belongs to (their own, even while acting as one). */
 export async function listMyOfficials() {
 	return attempt(async () => z.array(MyOfficialSchema).parse(await apiClient('/users/me/officials')));
+}
+
+/** Any signed-in user may; they become the new account's first OWNER. 409 `user.username.taken` when the username is in use. */
+export async function createOfficial(username: string, displayName: string): Promise<ActionResult<UserDto>> {
+	return attempt(async () =>
+		UserDtoSchema.parse(await apiClient('/officials', { method: 'POST', body: JSON.stringify({ username, displayName }) }))
+	);
 }
 
 /** Any member may list; others get 403 `official.not_member`. */
