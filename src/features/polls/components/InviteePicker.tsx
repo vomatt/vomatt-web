@@ -11,6 +11,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import type { Group } from '@/features/groups/schema';
 import { getGroups } from '@/features/groups/service';
+import { OfficialBadge } from '@/features/profiles/OfficialBadge';
 import { searchUsers } from '@/lib/api/services/users';
 import type { UserDto } from '@/schemas/user';
 
@@ -121,7 +122,10 @@ export function InviteePicker({
 		// Never submits the surrounding form
 		e.preventDefault();
 		if (isEmail) addEmail();
-		else if (suggestions[0]) addUser(suggestions[0]);
+		else {
+			const first = suggestions.find((user) => !user.official);
+			if (first) addUser(first);
+		}
 	};
 
 	const chips: { key: string; label: string; user?: PickedUser; remove: () => void }[] = [
@@ -208,16 +212,29 @@ export function InviteePicker({
 					<ul aria-label={t('invitees.suggestions')}>
 						{suggestions.map((user) => (
 							<li key={user.id}>
+								{/* Official accounts don't vote, so the API refuses them as Invitees: shown, but not pickable */}
 								<button
 									type="button"
+									disabled={user.official}
+									aria-describedby={user.official ? `${user.id}-official` : undefined}
 									onClick={() => addUser(user)}
-									className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-body-4 hover:bg-muted"
+									className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-body-4 enabled:hover:bg-muted disabled:text-muted-foreground"
 								>
 									<UserAvatar username={user.username} avatarUrl={user.avatarUrl} />
-									<span className="truncate">{user.username}</span>
-									{user.displayName && (
-										<span className="truncate text-caption-2 text-muted-foreground">{user.displayName}</span>
-									)}
+									<span className="flex min-w-0 flex-col">
+										<span className="flex min-w-0 items-center gap-1">
+											<span className="truncate">{user.username}</span>
+											{user.official && <OfficialBadge />}
+											{user.displayName && (
+												<span className="ml-2 truncate text-caption-2 text-muted-foreground">{user.displayName}</span>
+											)}
+										</span>
+										{user.official && (
+											<span id={`${user.id}-official`} className="text-caption-2 text-muted-foreground">
+												{t('invitees.officialNotAllowed')}
+											</span>
+										)}
+									</span>
 								</button>
 							</li>
 						))}

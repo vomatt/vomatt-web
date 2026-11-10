@@ -170,6 +170,7 @@ export function PollCard({
 							username={creatorUsername}
 							avatarUrl={poll.creatorAvatarUrl}
 							label={`@${creatorUsername}`}
+							official={poll.creatorOfficial}
 							// 44px tall hit area without growing the header row
 							className="relative z-10 -my-2.5 min-h-11 gap-2.5 font-medium text-foreground transition-colors hover:text-muted-foreground"
 							avatarClassName="size-7"

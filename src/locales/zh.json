@@ -173,6 +173,7 @@
 		"noPollsYetOwn": "你的投票開放後會顯示在這裡。",
 		"pollsLoadFailed": "無法載入投票。",
 		"cardFailed": "無法載入個人資料。",
+		"official": "官方帳號",
 		"joined": "{date} 加入",
 		"followers": "追蹤者",
 		"following": "追蹤中",
@@ -559,7 +560,8 @@
 		"rateLimited": "請求過於頻繁，請稍後再試。",
 		"invalidEmail": "請輸入有效的電子郵件。",
 		"passkeyRefused": "瀏覽器沒有開啟你的通行密鑰。請再試一次、改用其他瀏覽器，或使用電子郵件繼續。",
-		"serverError": "發生錯誤，請稍後再試。"
+		"serverError": "發生錯誤，請稍後再試。",
+		"officialSignIn": "官方帳號不能直接登入，請用成員帳號登入後切換。"
 	},
 	"onboarding": {
 		"title": "你叫什麼名字？",
@@ -683,7 +685,8 @@
 		"addLabel": "邀請更多人",
 		"add": "邀請",
 		"addFailed": "無法邀請，請再試一次。",
-		"removeFailed": "無法移除，請再試一次。"
+		"removeFailed": "無法移除，請再試一次。",
+		"officialNotAllowed": "官方帳號不投票，無法邀請。"
 	},
 	"groups": {
 		"title": "邀請名單",

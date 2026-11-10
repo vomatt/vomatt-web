@@ -179,6 +179,15 @@ describe('PollCard state A: Open, no Ballot', () => {
 		expect(screen.getByText('2h')).toBeInTheDocument();
 	});
 
+	it("badges an official account's poll beside its handle", () => {
+		const { unmount } = render(<PollCard poll={openPoll} />);
+		expect(screen.queryByRole('img', { name: 'Official account' })).not.toBeInTheDocument();
+		unmount();
+		render(<PollCard poll={{ ...openPoll, creatorOfficial: true }} />);
+		const link = screen.getByRole('link', { name: /@mei\.lin/ });
+		expect(within(link).getByRole('img', { name: 'Official account' })).toBeInTheDocument();
+	});
+
 	it('shows Turnout and, beside Vote, that results are revealed at the end, but no Support', () => {
 		render(<PollCard poll={openPoll} />);
 		expect(screen.getByText('128 voted')).toBeInTheDocument();

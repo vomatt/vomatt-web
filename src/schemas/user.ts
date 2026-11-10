@@ -7,6 +7,8 @@ export const UserDtoSchema = z.object({
 	// nullish: tolerate the API leaving out an empty field
 	displayName: z.string().nullish(),
 	avatarUrl: z.string().nullish(),
+	/** An official account (a group's page), shown with a badge. */
+	official: z.boolean().optional(),
 });
 
 export type UserDto = z.infer<typeof UserDtoSchema>;
