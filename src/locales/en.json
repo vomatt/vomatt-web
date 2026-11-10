@@ -373,13 +373,15 @@
 		"visibilityLabel": "After it ends, who can see what each person chose?",
 		"visibility": {
 			"nobody": "Nobody",
-			"nobodyHint": "Only totals are shown.",
+			"nobodyHint": "Not even you. Only totals are shown.",
 			"owner": "Only me",
 			"ownerHint": "Only you see who chose each option. Everyone else sees the totals.",
 			"signed-in": "Everyone signed in",
 			"signed-inHint": "Every signed-in user sees who chose what.",
 			"invited": "Everyone invited",
-			"invitedHint": "Everyone invited sees who chose what."
+			"invitedHint": "Everyone invited sees who chose what.",
+			"community": "Only {name}",
+			"communityHint": "Anyone acting as {name} sees who chose each option. Everyone else sees the totals."
 		},
 		"visibilityNote": "Voters are shown this before they vote.",
 		"publish": "Publish poll",
@@ -414,8 +416,10 @@
 			"nobody": "Nobody will see who chose what.",
 			"owner": "Only you will see who chose what once it ends.",
 			"signed-in": "Anyone signed in will see who chose what once it ends.",
-			"invited": "Everyone invited will see who chose what once it ends."
+			"invited": "Everyone invited will see who chose what once it ends.",
+			"community": "Only people acting as {name} will see who chose what once it ends."
 		},
+		"ruleAnonymous": "If anyone votes anonymously, only who took part is listed.",
 		"ruleFixed": "You can’t change this after it opens.",
 		"ruleOneVote": "One vote per person. Voters can change or withdraw it until the poll closes.",
 		"audienceLabel": "Who can see and vote?",

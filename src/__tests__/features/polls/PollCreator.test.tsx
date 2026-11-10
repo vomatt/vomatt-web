@@ -3,6 +3,7 @@ import { MotionGlobalConfig } from 'motion/react';
 import type { ReactElement } from 'react';
 
 import { MotionProvider } from '@/components/MotionProvider';
+import { ActingProvider } from '@/features/communities/ActingProvider';
 import { PollCreator } from '@/features/polls/components/PollCreator';
 import { toDateTimeInput } from '@/features/polls/components/PollCreator/formSchema';
 import { listDrafts, saveDraft } from '@/features/polls/drafts';
@@ -376,6 +377,29 @@ describe('PollCreator', () => {
 		expect(pill('Only me')).toHaveAttribute('aria-pressed', 'true');
 		expect(screen.getByText('Voters are shown this before they vote.')).toBeInTheDocument();
 		expect(screen.queryByRole('switch')).not.toBeInTheDocument();
+	});
+
+	it('names the community, not you, as who sees the choices while acting as it', async () => {
+		const club = { communityId: 'c1', username: 'club', displayName: 'Robotics Club', avatarUrl: null, role: 'OWNER' as const };
+		render(
+			<ActingProvider state={{ acting: club, me: null, communities: [club], stale: false }}>
+				<PollCreator triggerChildren={TRIGGER} />
+			</ActingProvider>
+		);
+		await openDialog();
+		expect(pill('Only Robotics Club')).toHaveAttribute('aria-pressed', 'true');
+		expect(screen.queryByRole('button', { name: 'Only me' })).not.toBeInTheDocument();
+		expect(
+			screen.getByText('Anyone acting as Robotics Club sees who chose each option. Everyone else sees the totals.')
+		).toBeInTheDocument();
+	});
+
+	it('warns on review that an anonymous vote hides who chose what', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		fillPoll();
+		await toReview();
+		expect(screen.getByText(/If anyone votes anonymously, only who took part is listed\./)).toBeInTheDocument();
 	});
 
 	it('fills the end time from a preset', async () => {
