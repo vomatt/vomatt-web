@@ -159,7 +159,8 @@ export async function apiClient<T = any>(
 			asUser.delete('X-Act-As');
 			response = await send(asUser);
 		} else if (errorCode === 'community.not_member') {
-			(await cookies()).delete(ACT_AS);
+			// Cookies are read-only while a page renders; there the layout ends acting on this request instead
+			await cookies().then((store) => store.delete(ACT_AS)).catch(() => {});
 		}
 	}
 
