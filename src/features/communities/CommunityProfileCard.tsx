@@ -181,11 +181,11 @@ function EditCommunityProfile({ community, bio: savedBio }: { community: MyCommu
 									</Button>
 								</div>
 								<div className="flex flex-col gap-1.5">
-									<label htmlFor="community-name" className={labelClassName}>
+									<label htmlFor="community-profile-name" className={labelClassName}>
 										{t('communities.nameLabel')}
 									</label>
 									<Input
-										id="community-name"
+										id="community-profile-name"
 										value={name}
 										onChange={(event) => {
 											setName(event.target.value);
@@ -193,28 +193,28 @@ function EditCommunityProfile({ community, bio: savedBio }: { community: MyCommu
 										}}
 										maxLength={NAME_MAX_LENGTH}
 										aria-invalid={nameError}
-										aria-describedby={nameError ? 'community-name-error' : undefined}
+										aria-describedby={nameError ? 'community-profile-name-error' : undefined}
 									/>
 									{nameError && (
-										<p id="community-name-error" className="text-caption-3 text-destructive">
+										<p id="community-profile-name-error" className="text-caption-3 text-destructive">
 											{t('communities.nameRequired')}
 										</p>
 									)}
 								</div>
 								<div className="flex flex-col gap-1.5">
-									<label htmlFor="community-bio" className={labelClassName}>
+									<label htmlFor="community-profile-bio" className={labelClassName}>
 										{t('profile.bio')}
 									</label>
 									<Textarea
-										id="community-bio"
+										id="community-profile-bio"
 										value={bio}
 										onChange={(event) => setBio(event.target.value)}
 										placeholder={t('communities.bioPlaceholder')}
 										maxLength={BIO_MAX_LENGTH}
 										rows={3}
-										aria-describedby="community-bio-count"
+										aria-describedby="community-profile-bio-count"
 									/>
-									<p id="community-bio-count" className="text-right text-caption-3 tabular-nums text-muted-foreground">
+									<p id="community-profile-bio-count" className="text-right text-caption-3 tabular-nums text-muted-foreground">
 										{bio.length} / {BIO_MAX_LENGTH}
 									</p>
 								</div>
