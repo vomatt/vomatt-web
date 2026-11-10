@@ -543,3 +543,46 @@ describe('OwnProfileView', () => {
 		expect(screen.getByRole('link', { name: 'Open your public page' })).toHaveAttribute('href', '/mei?view=public');
 	});
 });
+
+describe('community account profile', () => {
+	const community: UserProfile = {
+		...visitor,
+		username: 'robotics',
+		displayName: 'Robotics Club',
+		firstName: 'Ro',
+		lastName: 'Bot',
+		gender: 'OTHER',
+		followingCount: 0,
+		community: true,
+	};
+
+	it('marks the group, shows its followers and offers Follow, without following or personal details', () => {
+		render(<VisitorProfileView profile={community} polls={{ items: [], nextCursor: null }} viewerId="u1" />);
+
+		const header = screen.getByRole('banner');
+		expect(screen.getByRole('heading', { level: 1, name: 'Robotics Club Community account' })).toBeInTheDocument();
+		expect(within(header).getByRole('button', { name: '1,204 followers' })).toBeInTheDocument();
+		expect(header).not.toHaveTextContent(/following/i);
+		expect(header).not.toHaveTextContent(/Ro Bot|Gender/);
+		expect(screen.getByRole('button', { name: 'Follow' })).toBeInTheDocument();
+	});
+
+	it('previews the group without personal details to the members acting as it', () => {
+		const own: MyProfile = {
+			...me,
+			username: 'robotics',
+			displayName: 'Robotics Club',
+			firstName: 'Ro',
+			lastName: 'Bot',
+			gender: 'OTHER',
+			visibilitySettings: { firstName: true, lastName: true, gender: true },
+			community: true,
+		};
+		render(<OwnProfileView profile={own} polls={[]} />);
+
+		const preview = screen.getByRole('region', { name: 'What everyone sees' });
+		expect(within(preview).getByRole('img', { name: 'Community account' })).toBeInTheDocument();
+		expect(preview).not.toHaveTextContent(/Ro Bot|Gender/);
+		expect(screen.getByRole('banner')).not.toHaveTextContent(/following/i);
+	});
+});

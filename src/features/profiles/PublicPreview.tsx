@@ -7,6 +7,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { isFieldPublic, type VisibilityField } from '@/features/account/visibility';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { formatMonthYear } from '@/features/polls/format';
+import { CommunityBadge } from '@/features/profiles/CommunityBadge';
 import { Count } from '@/features/profiles/Count';
 import { genderLabel, profileName } from '@/features/profiles/name';
 import { countText } from '@/lib/count';
@@ -15,12 +16,15 @@ import { profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 import type { MyProfile } from '@/types/user';
 
+const PERSONAL: VisibilityField[] = ['firstName', 'lastName', 'gender'];
+
 /** What everyone else sees of the owner's profile: beside their own view, or in its place on narrow screens. */
 export function PublicPreview({ profile, className }: { profile: MyProfile; className?: string }) {
 	const { t, currentLanguage } = useLanguage();
 	const visibility = profile.visibilitySettings ?? {};
+	// A community account is a group: it has no real name or gender to show
 	const shows = (field: VisibilityField) =>
-		isFieldPublic(visibility, field) && !!profile[field];
+		!(profile.community && PERSONAL.includes(field)) && isFieldPublic(visibility, field) && !!profile[field];
 	// Built from what visitors get, so hidden names never leak into the preview
 	const name = profileName({
 		username: profile.username,
@@ -41,6 +45,7 @@ export function PublicPreview({ profile, className }: { profile: MyProfile; clas
 					<div className="min-w-0">
 						<p className="truncate text-title-4 leading-tight">
 							{name.primary}
+							{profile.community && <CommunityBadge className="ml-1.5 size-3.5" />}
 							{name.secondary && <span className="text-muted-foreground"> {name.secondary}</span>}
 						</p>
 						<p className="truncate text-caption-2 text-muted-foreground">@{profile.username}</p>
