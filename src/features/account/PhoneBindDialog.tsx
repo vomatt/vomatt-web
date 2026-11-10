@@ -13,16 +13,14 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import type { ActionFailure } from '@/lib/api/action';
 import { type AuthErrorKey, cooldownSeconds, toAuthErrorKey } from '@/lib/api/auth-errors';
 import { sendPhoneBindOtp, verifyPhoneBind } from '@/lib/api/services/users';
-import type { MyProfile } from '@/types/user';
 
 const OK: AuthResult = { status: 'OK' };
 const SERVER_ERROR: AuthResult = { status: 'ERROR', error: 'serverError' };
 
-/** Bind refusals worded for a phone; the rest read as at sign-in. */
+/** Bind refusals that mean something else here than at sign-in; the rest read as there. */
 const PHONE_ERRORS: Record<string, AuthErrorKey> = {
+	// Sign-in's copy points at the email
 	'auth.invalid_otp': 'invalidSmsCode',
-	'auth.sms.send_failed': 'smsSendFailed',
-	'user.phone.taken': 'phoneTaken',
 	// Another account bound the number between send and verify
 	'common.conflict': 'phoneTaken',
 };
@@ -30,18 +28,19 @@ const PHONE_ERRORS: Record<string, AuthErrorKey> = {
 function toResult(failure: ActionFailure): ResendResult {
 	const seconds = cooldownSeconds(failure.errorCode, failure.message);
 	if (seconds) return { status: 'COOLDOWN', seconds };
-	const key = (failure.errorCode && PHONE_ERRORS[failure.errorCode]) || toAuthErrorKey(failure.errorCode, failure.status);
-	// The sign-in fallback for an unknown 400 asks for an email
-	return { status: 'ERROR', error: key === 'invalidEmail' ? 'serverError' : key };
+	return {
+		status: 'ERROR',
+		error: (failure.errorCode && PHONE_ERRORS[failure.errorCode]) || toAuthErrorKey(failure.errorCode, failure.status),
+	};
 }
 
 type PhoneBindDialogProps = {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	/** Called with the updated profile once the number is bound; the dialog stays open until the caller closes it. */
-	onVerified: (profile: MyProfile) => void;
-	/** Prefills the number, e.g. a bound one that still needs verifying. */
-	defaultPhone?: string | null;
+	/** Called once the number is bound; the dialog stays open until the caller closes it. */
+	onVerified: () => void;
+	/** Prefills the number: a bound one that still needs verifying, or null. */
+	defaultPhone: string | null;
 };
 
 /**
@@ -60,7 +59,7 @@ export function PhoneBindDialog({ open, onOpenChange, onVerified, defaultPhone }
 	);
 }
 
-function PhoneBindFlow({ defaultPhone, onVerified }: { defaultPhone: string; onVerified: (profile: MyProfile) => void }) {
+function PhoneBindFlow({ defaultPhone, onVerified }: { defaultPhone: string; onVerified: () => void }) {
 	const { t } = useLanguage();
 	const [step, setStep] = useState<'phone' | 'code'>('phone');
 	const [phone, setPhone] = useState(defaultPhone);
@@ -87,7 +86,7 @@ function PhoneBindFlow({ defaultPhone, onVerified }: { defaultPhone: string; onV
 		const res = await verifyPhoneBind(phone, code).catch(() => null);
 		if (!res) return SERVER_ERROR;
 		if (!res.ok) return toResult(res) as AuthResult;
-		onVerified(res.data);
+		onVerified();
 		return OK;
 	};
 

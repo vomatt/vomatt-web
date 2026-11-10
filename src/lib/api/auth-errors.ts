@@ -25,6 +25,8 @@ const ERROR_CODES: Record<string, AuthErrorKey> = {
 	'auth.otp.resend_cooldown': 'resendCooldown',
 	'auth.email.send_failed': 'emailSendFailed',
 	'auth.account_banned': 'accountSuspended',
+	'auth.sms.send_failed': 'smsSendFailed',
+	'user.phone.taken': 'phoneTaken',
 };
 
 /** Seconds left on a resend cooldown, which the API states only in its (localized) message. */
@@ -43,11 +45,18 @@ function hasApiErrorCopy(errorCode: string) {
 	return typeof text === 'string' && !/\{\d+\}/.test(text);
 }
 
-/** Maps a backend `errorCode` and HTTP status to a message the UI can show. */
-export function toAuthErrorKey(errorCode: string | undefined, status?: number): AuthErrorKey {
+/**
+ * Maps a backend `errorCode` and HTTP status to a message the UI can show. `badRequest` is the copy for a 400
+ * with no copy of its own, which only the caller knows the input of.
+ */
+export function toAuthErrorKey(
+	errorCode: string | undefined,
+	status?: number,
+	badRequest: AuthErrorKey = 'serverError'
+): AuthErrorKey {
 	if (errorCode && ERROR_CODES[errorCode]) return ERROR_CODES[errorCode];
 	if (errorCode?.startsWith('auth.') && hasApiErrorCopy(errorCode)) return `apiError.${errorCode}` as AuthErrorKey;
 	if (status === 429) return 'rateLimited';
-	if (status === 400) return 'invalidEmail';
+	if (status === 400) return badRequest;
 	return 'serverError';
 }

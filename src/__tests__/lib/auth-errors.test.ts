@@ -9,8 +9,15 @@ describe('toAuthErrorKey', () => {
 		expect(toAuthErrorKey('auth.identifier.required', 400)).toBe('apiError.auth.identifier.required');
 	});
 
-	it('falls back by status for an auth code whose copy needs a value', () => {
-		expect(toAuthErrorKey('auth.sms.send_failed', 400)).toBe('invalidEmail');
+	it('falls back by status for an auth code whose copy needs a value, a 400 to the caller\'s copy', () => {
+		expect(toAuthErrorKey('auth.email.send_failed_reason', 400, 'invalidEmail')).toBe('invalidEmail');
+		expect(toAuthErrorKey(undefined, 400)).toBe('serverError');
+		expect(toAuthErrorKey(undefined, 429)).toBe('rateLimited');
+	});
+
+	it('maps codes that read the same wherever they come', () => {
+		expect(toAuthErrorKey('auth.sms.send_failed', 400)).toBe('smsSendFailed');
+		expect(toAuthErrorKey('user.phone.taken', 409)).toBe('phoneTaken');
 	});
 });
 

@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
+import { PillGroup } from '@/components/PillGroup';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -339,33 +340,16 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 							</p>
 						)}
 					</div>
-					<div role="group" aria-labelledby="gender" aria-describedby="gender-note" className="flex flex-col gap-1.5">
-						<div className="flex min-h-7 items-center justify-between gap-2">
-							<span id="gender" className={labelClassName}>
-								{t('profile.gender')}
-							</span>
-							{pill(t('profile.gender'), ['gender'])}
-						</div>
-						{/* No "not set": once chosen it can only change */}
-						<div className="flex flex-wrap gap-2">
-							{GENDERS.map((gender) => (
-								<Button
-									key={gender}
-									type="button"
-									size="sm"
-									variant={values.gender === gender ? 'default' : 'outline'}
-									aria-pressed={values.gender === gender}
-									className="rounded-full"
-									onClick={() => set('gender')(gender)}
-								>
-									{t(`profile.genders.${gender}`)}
-								</Button>
-							))}
-						</div>
-						<p id="gender-note" className="text-caption-3 text-muted-foreground">
-							{t('profile.genderReportNote')}
-						</p>
-					</div>
+					<PillGroup
+							legend={t('profile.gender')}
+							legendClassName={labelClassName}
+							aside={pill(t('profile.gender'), ['gender'])}
+							hint={t('profile.genderReportNote')}
+							// No "not set": once chosen it can only change
+							value={values.gender || undefined}
+							onChange={set('gender')}
+							options={GENDERS.map((gender) => ({ value: gender, label: t(`profile.genders.${gender}`) }))}
+						/>
 					<div className="flex flex-col gap-1.5">
 						<div className="flex min-h-7 items-center justify-between gap-2">
 							<label htmlFor="bio" className={labelClassName}>

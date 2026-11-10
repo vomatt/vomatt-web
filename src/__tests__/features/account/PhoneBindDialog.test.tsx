@@ -47,7 +47,7 @@ describe('PhoneBindDialog', () => {
 		expect(screen.getByText('0912345678')).toBeInTheDocument();
 
 		await enterCode('123456');
-		await waitFor(() => expect(onVerified).toHaveBeenCalledWith(profile));
+		await waitFor(() => expect(onVerified).toHaveBeenCalled());
 		expect(mockVerify).toHaveBeenCalledWith('0912345678', '123456');
 	});
 

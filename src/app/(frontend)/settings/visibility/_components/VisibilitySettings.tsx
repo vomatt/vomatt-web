@@ -9,7 +9,6 @@ import { rowClassName, RowText, SettingsCard } from '@/components/SettingsCard';
 import { Switch } from '@/components/ui/Switch';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { isSettingPublic, VISIBILITY_SETTINGS, type VisibilitySetting } from '@/features/account/visibility';
-import { realName } from '@/features/profiles/name';
 import { PublicPreview } from '@/features/profiles/PublicPreview';
 import { useSavingKeys } from '@/hooks/useSavingKeys';
 import { updateVisibility } from '@/lib/api/services/users';
@@ -62,12 +61,7 @@ export function VisibilitySettings({ profile }: { profile: MyProfile }) {
 				<SettingsCard>
 					{VISIBILITY_SETTINGS.map((setting) => {
 						const id = `visibility-${setting.key}`;
-						const value =
-							setting.key === 'realName'
-								? realName(profile)
-								: setting.key === 'gender'
-									? profile.gender && t(`profile.genders.${profile.gender}`)
-									: profile[setting.fields[0]];
+						const value = setting.value(profile, t);
 						return (
 							<label key={setting.key} htmlFor={id} className={cn(rowClassName, 'cursor-pointer')}>
 								<RowText
