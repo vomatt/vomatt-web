@@ -22,12 +22,18 @@ export function derivePollStatus(poll: StatusFields, now: Date | number = Date.n
 	return 'open';
 }
 
+/** When the Poll's counts come out: its `revealAt`, or else its end. Null for a Poll without either. */
+export function revealTime(poll: Pick<Poll, 'endTime' | 'revealAt'>) {
+	return poll.revealAt ?? poll.endTime ?? null;
+}
+
 /**
  * Whether the Poll's counts are out: Ended, and past its `revealAt` if it has one. Until then the API
  * sends no `votes` and answers `/results` and `/voters` with 403 `vote.results.sealed`.
  */
 export function isRevealed(poll: StatusFields, now: Date | number = Date.now()) {
 	const time = typeof now === 'number' ? now : now.getTime();
+	// Not revealTime(): a Poll Ended early by its owner may still carry its planned end
 	return derivePollStatus(poll, time) === 'ended' && (!poll.revealAt || Date.parse(poll.revealAt) <= time);
 }
 

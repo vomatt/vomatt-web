@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 import { formatFromNow } from '../format';
 import type { BallotState } from '../hooks/useBallot';
 import type { Poll } from '../schema';
-import { type PollStatus, visibilityLevel } from '../status';
+import { type PollStatus, revealTime, visibilityLevel } from '../status';
 import { BallotBoxIcon, BallotMark, SelectionHighlight } from './BallotMotion';
 import { Seal } from './Seal';
 
@@ -147,7 +147,7 @@ export function Ballot({ poll, status, ballot, requireAuth, isOwner }: BallotPro
 			/>
 		);
 		actions = (
-			<Seal variant={view} endTime={poll.revealAt ?? poll.endTime} footer={nameLine}>
+			<Seal variant={view} endTime={revealTime(poll)} footer={nameLine}>
 				{sealActions}
 			</Seal>
 		);

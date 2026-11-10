@@ -20,7 +20,6 @@ import { useRequireAuth } from '../hooks/useRequireAuth';
 import { useViewerClock } from '../hooks/useViewerClock';
 import type { Poll } from '../schema';
 import { bookmarkPoll, getPoll, likePoll, unbookmarkPoll, unlikePoll } from '../service';
-import { isRevealed } from '../status';
 import { Ballot } from './Ballot';
 import { VotedPill } from './BallotMotion';
 import { getOwnerActions, OwnerActions } from './OwnerActions';
@@ -130,14 +129,14 @@ export function PollCard({
 	);
 	const ballot = useBallot(poll, { isAuthed, anonymousByDefault, onPollEnded: handlePollEnded });
 	// Ended by the clock, this copy still has the Open Poll's Turnout; Results fetch the counts
-	const status = usePollStatus(poll, refetch);
-	// Re-read on each render; usePollStatus re-renders at `revealAt`
-	const revealAt = status === 'ended' && !isRevealed(poll) ? poll.revealAt : null;
+	const { status, revealed } = usePollStatus(poll, refetch);
+	// Ended but sealed until `revealAt`
+	const revealAt = status === 'ended' && !revealed ? poll.revealAt : null;
 	const { id, title, description, creatorId, creatorUsername, createdAt } = poll;
 	const isOwner = !!viewerId && viewerId === creatorId;
 	const canSeeVoters =
 		!revealAt &&
-		poll.voterVisibility === 'signed-in' ? isAuthed : poll.voterVisibility === 'owner' && isOwner;
+		(poll.voterVisibility === 'signed-in' ? isAuthed : poll.voterVisibility === 'owner' && isOwner);
 	const voters = useVoters(id, isAuthed ? (viewerId ?? 'signed-in') : 'guest');
 	const [votersOption, setVotersOption] = useState<ResultRow | null>(null);
 	const showVoters = (row: ResultRow) => {

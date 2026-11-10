@@ -66,6 +66,20 @@ jest.mock('@/features/polls/components/BallotMotion', () => ({
 	),
 }));
 
+// Marks where the card mounts the voter list, which shows nothing until an option is picked
+jest.mock('@/features/polls/components/VoterList', () => {
+	const actual = jest.requireActual('@/features/polls/components/VoterList');
+	return {
+		...actual,
+		VotersDialog: (props: any) => (
+			<>
+				<span data-testid="voters-dialog" />
+				<actual.VotersDialog {...props} />
+			</>
+		),
+	};
+});
+
 jest.mock('@/components/auth/AuthDialog', () => ({
 	AuthDialog: ({ open, onAuthSuccess }: any) => {
 		if (!open) return null;
@@ -918,6 +932,43 @@ describe('PollCard: Ended but sealed until revealAt', () => {
 		expect(screen.queryByRole('img', { name: 'Elected' })).not.toBeInTheDocument();
 		expect(screen.queryByRole('radio')).not.toBeInTheDocument();
 		expect(mockGetResults).not.toHaveBeenCalled();
+	});
+
+	it('keeps the voter list from the owner of an owner-only Poll until the reveal', () => {
+		render(<PollCard poll={{ ...sealedPoll, voterVisibility: 'owner' }} viewerId="user-1" />);
+		expect(screen.queryByTestId('voters-dialog')).not.toBeInTheDocument();
+	});
+
+	it('at revealAt, fetches the results once without refetching the Poll', async () => {
+		jest.useFakeTimers();
+		try {
+			mockGetResults.mockResolvedValue({
+				ok: true,
+				data: {
+					id: 'poll-1',
+					totalParticipants: 129,
+					options: [
+						{ id: 'opt-fri', text: 'Friday', voteCount: 38 },
+						{ id: 'opt-sat', text: 'Saturday', voteCount: 29 },
+						{ id: 'opt-sun', text: 'Sunday', voteCount: 62 },
+					],
+				},
+			});
+			render(<PollCard poll={{ ...sealedPoll, revealAt: iso(60_000), voterVisibility: 'owner' }} viewerId="user-1" />);
+			expect(screen.getByText(/^Results are revealed on/)).toBeInTheDocument();
+
+			await act(async () => {
+				jest.advanceTimersByTime(60_000);
+			});
+			await waitFor(() => expect(screen.getByText('62 votes, 48%')).toBeInTheDocument());
+			expect(mockGetResults).toHaveBeenCalledTimes(1);
+			expect(mockGetPoll).not.toHaveBeenCalled();
+			// Revealed: the owner may now open who chose an option
+			expect(screen.getByTestId('voters-dialog')).toBeInTheDocument();
+			expect(screen.getByRole('button', { name: /Sunday/ })).toBeInTheDocument();
+		} finally {
+			jest.useRealTimers();
+		}
 	});
 });
 

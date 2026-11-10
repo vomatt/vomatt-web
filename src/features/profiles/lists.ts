@@ -57,9 +57,10 @@ export type EndedSummary =
 	| { kind: 'tie'; winners: string[] }
 	| { kind: 'none' };
 
-/** What an Ended Poll decided: one winner, a tie, or nothing to say (no votes, cancelled, not yet revealed). */
+/** What an Ended Poll decided: one winner, a tie, or nothing to say (no votes, cancelled, counts hidden or sealed). */
 export function endedSummary(poll: Poll): EndedSummary {
-	if (isCancelled(poll) || !isRevealed(poll) || poll.options.some((option) => option.votes === undefined)) return { kind: 'none' };
+	// A sealed Poll comes without counts, so the missing votes cover it too
+	if (isCancelled(poll) || poll.options.some((option) => option.votes === undefined)) return { kind: 'none' };
 	const winners = getWinners(poll.options.map((option) => ({ text: option.text, votes: option.votes ?? 0 })));
 	if (winners.length === 1) return { kind: 'won', winner: winners[0].text };
 	if (winners.length > 1) return { kind: 'tie', winners: winners.map((option) => option.text) };

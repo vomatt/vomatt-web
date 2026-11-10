@@ -13,7 +13,7 @@ import { StatusChip } from '@/features/polls/components/StatusChip';
 import { formatPollMoment } from '@/features/polls/format';
 import { useViewerClock } from '@/features/polls/hooks/useViewerClock';
 import type { Poll } from '@/features/polls/schema';
-import { derivePollStatus, isCancelled, isRevealed, type PollStatus } from '@/features/polls/status';
+import { derivePollStatus, isCancelled, isRevealed, type PollStatus, revealTime } from '@/features/polls/status';
 import { pollTiming } from '@/features/polls/timing';
 import { toPayloadLocale } from '@/lib/locale';
 import { META_GAP } from '@/lib/rich';
@@ -160,7 +160,7 @@ export function VotedRow({ poll }: { poll: Poll }) {
 	const { t } = useLanguage();
 	const voted = useVotedText();
 	const clock = useViewerClock();
-	const revealAt = poll.revealAt ?? poll.endTime;
+	const revealAt = revealTime(poll);
 	const choice = <strong className="font-medium">{ballotChoice(poll)}</strong>;
 
 	// Sealed until the results are revealed: the end, or a later `revealAt`

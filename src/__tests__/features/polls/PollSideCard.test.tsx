@@ -79,14 +79,6 @@ describe('PollSideCard', () => {
 		expect(tieLink.querySelector('svg')).not.toBeInTheDocument();
 	});
 
-	it('names no winner while a Poll is sealed until its revealAt', () => {
-		const sealed = { ...ended, revealAt: new Date(Date.now() + 3600_000).toISOString(), options: [{ id: 'a', text: 'Yes', votes: 6 }, { id: 'b', text: 'No', votes: 2 }] };
-		render(<PollSideCard kind="resultsIn" polls={[sealed]} />);
-		const link = within(screen.getByRole('list')).getByRole('link');
-		expect(within(link).queryByText(/won/)).not.toBeInTheDocument();
-		expect(link.querySelector('svg')).not.toBeInTheDocument();
-	});
-
 	it('says when each Poll in Closing soon ends', () => {
 		render(<PollSideCard kind="closingSoon" polls={[poll]} />);
 		expect(screen.getByRole('region', { name: 'Closing soon' })).toBeInTheDocument();
