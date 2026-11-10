@@ -20,12 +20,14 @@ import { useRequireAuth } from '../hooks/useRequireAuth';
 import { useViewerClock } from '../hooks/useViewerClock';
 import type { Poll } from '../schema';
 import { bookmarkPoll, getPoll, likePoll, unbookmarkPoll, unlikePoll } from '../service';
+import { isRevealed } from '../status';
 import { Ballot } from './Ballot';
 import { VotedPill } from './BallotMotion';
 import { getOwnerActions, OwnerActions } from './OwnerActions';
 import { PollFooter } from './PollFooter';
 import { ReportCommentDialog } from './ReportCommentDialog';
 import { type ResultRow, Results } from './Results';
+import { SealedUntilReveal } from './Seal';
 import { StatusChip } from './StatusChip';
 import { useVoters, VotersDialog } from './VoterList';
 
@@ -48,7 +50,10 @@ interface PollCardProps {
 	headingLevel?: 'h1' | 'h2';
 }
 
-/** Shows the Ballot until the Poll Ends, then the Results. Whether the viewer voted doesn't matter. */
+/**
+ * Shows the Ballot until the Poll Ends, then the Results, or the Seal until its `revealAt`.
+ * Whether the viewer voted doesn't matter.
+ */
 export function PollCard({
 	poll: initialPoll,
 	viewerId,
@@ -126,9 +131,12 @@ export function PollCard({
 	const ballot = useBallot(poll, { isAuthed, anonymousByDefault, onPollEnded: handlePollEnded });
 	// Ended by the clock, this copy still has the Open Poll's Turnout; Results fetch the counts
 	const status = usePollStatus(poll, refetch);
+	// Re-read on each render; usePollStatus re-renders at `revealAt`
+	const revealAt = status === 'ended' && !isRevealed(poll) ? poll.revealAt : null;
 	const { id, title, description, creatorId, creatorUsername, createdAt } = poll;
 	const isOwner = !!viewerId && viewerId === creatorId;
 	const canSeeVoters =
+		!revealAt &&
 		poll.voterVisibility === 'signed-in' ? isAuthed : poll.voterVisibility === 'owner' && isOwner;
 	const voters = useVoters(id, isAuthed ? (viewerId ?? 'signed-in') : 'guest');
 	const [votersOption, setVotersOption] = useState<ResultRow | null>(null);
@@ -207,14 +215,16 @@ export function PollCard({
 				{/* When a Poll ends while open on screen, the Ballot gives way to the Results */}
 				<AnimatePresence mode="wait" initial={false}>
 					<m.div
-						key={status === 'ended' ? 'results' : 'ballot'}
+						key={revealAt ? 'sealed' : status === 'ended' ? 'results' : 'ballot'}
 						className="relative z-10"
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
 						transition={{ duration: 0.2 }}
 					>
-						{status === 'ended' ? (
+						{revealAt ? (
+							<SealedUntilReveal revealAt={revealAt} />
+						) : status === 'ended' ? (
 							<Results
 								poll={poll}
 								myOptionId={ballot.myOptionId}

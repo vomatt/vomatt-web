@@ -13,7 +13,7 @@ import { StatusChip } from '@/features/polls/components/StatusChip';
 import { formatPollMoment } from '@/features/polls/format';
 import { useViewerClock } from '@/features/polls/hooks/useViewerClock';
 import type { Poll } from '@/features/polls/schema';
-import { derivePollStatus, isCancelled, type PollStatus } from '@/features/polls/status';
+import { derivePollStatus, isCancelled, isRevealed, type PollStatus } from '@/features/polls/status';
 import { pollTiming } from '@/features/polls/timing';
 import { toPayloadLocale } from '@/lib/locale';
 import { META_GAP } from '@/lib/rich';
@@ -160,10 +160,11 @@ export function VotedRow({ poll }: { poll: Poll }) {
 	const { t } = useLanguage();
 	const voted = useVotedText();
 	const clock = useViewerClock();
-	const status = derivePollStatus(poll);
+	const revealAt = poll.revealAt ?? poll.endTime;
 	const choice = <strong className="font-medium">{ballotChoice(poll)}</strong>;
 
-	if (status !== 'ended') {
+	// Sealed until the results are revealed: the end, or a later `revealAt`
+	if (!isRevealed(poll)) {
 		return (
 			<li>
 				<Link
@@ -176,8 +177,8 @@ export function VotedRow({ poll }: { poll: Poll }) {
 						<span className="text-caption-2 text-tide-foreground">
 							{t('myPolls.youChose')} {choice}
 							{clock &&
-								poll.endTime &&
-								`${META_GAP}${t('profile.resultsAt', { date: formatPollMoment(poll.endTime, clock.language, clock.now) })}`}
+								revealAt &&
+								`${META_GAP}${t('profile.resultsAt', { date: formatPollMoment(revealAt, clock.language, clock.now) })}`}
 						</span>
 					</span>
 					<span className="hidden text-caption-2 tabular-nums text-tide-foreground sm:inline">{voted(poll)}</span>

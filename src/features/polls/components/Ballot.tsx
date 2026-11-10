@@ -147,7 +147,7 @@ export function Ballot({ poll, status, ballot, requireAuth, isOwner }: BallotPro
 			/>
 		);
 		actions = (
-			<Seal variant={view} endTime={poll.endTime} footer={nameLine}>
+			<Seal variant={view} endTime={poll.revealAt ?? poll.endTime} footer={nameLine}>
 				{sealActions}
 			</Seal>
 		);

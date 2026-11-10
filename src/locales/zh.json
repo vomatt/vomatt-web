@@ -453,6 +453,7 @@
 		"sealed": "結果將於 {date} 公開，屆時會通知你。",
 		"sealedNoEnd": "結果將於投票結束後公開，屆時會通知你。",
 		"sealedTitle": "已密封，謝謝你。",
+		"sealedUntilReveal": "結果將於 {date} 揭曉",
 		"opensHint": "投票將於{distance}開始",
 		"voted": "{count} 人已投票",
 		"voteCount": "{count} 票",

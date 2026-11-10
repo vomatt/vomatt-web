@@ -13,7 +13,7 @@ import { topicHref } from '@/lib/routes';
 import { formatPollDate } from '../format';
 import { usePollStatus } from '../hooks/usePollStatus';
 import type { Poll } from '../schema';
-import { endedEarly, timelineProgress, visibilityLevel } from '../status';
+import { endedEarly, isRevealed, timelineProgress, visibilityLevel } from '../status';
 
 /** The rail card on the poll page: the voting window, the rules and topics; once Ended, one line. */
 export function PollAbout({ poll }: { poll: Poll }) {
@@ -31,7 +31,13 @@ export function PollAbout({ poll }: { poll: Poll }) {
 			</h2>
 
 			{status === 'ended' ? (
-				endedEarly(poll) && poll.deadline ? (
+				poll.revealAt && !isRevealed(poll) ? (
+					isHydrated && (
+						<p className="text-body-4">
+							{t('poll.sealedUntilReveal', { date: formatPollDate(poll.revealAt, currentLanguage) })}
+						</p>
+					)
+				) : endedEarly(poll) && poll.deadline ? (
 					// The date is in the viewer's time zone, so it waits for hydration
 					isHydrated && (
 						<p className="text-body-4">

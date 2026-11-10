@@ -87,7 +87,7 @@ function rowsFromPoll(poll: Poll): ResultRow[] | null {
 	return poll.options.map(({ id, text, votes }) => ({ id, text, votes: votes ?? 0 }));
 }
 
-/** Card state D. Only rendered for Ended Polls, so it never asks for sealed data. */
+/** Card state D. Only rendered for revealed Polls (Ended, past any `revealAt`), so it never asks for sealed data. */
 export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }: ResultsProps) {
 	const { t, currentLanguage } = useLanguage();
 	const [fetched, setFetched] = useState<ActionResult<PollResults> | null>(null);

@@ -4,6 +4,7 @@ import {
 	getTurnout,
 	isCancelled,
 	isInvitee,
+	isRevealed,
 	nextStatusChange,
 	timelineProgress,
 	visibilityLevel,
@@ -85,6 +86,32 @@ describe('nextStatusChange()', () => {
 		expect(nextStatusChange({ ...base, endTime: hours(-1) }, NOW)).toBeNull();
 		expect(nextStatusChange({ ...base, active: false }, NOW)).toBeNull();
 		expect(nextStatusChange({ ...base, endTime: null }, NOW)).toBeNull();
+	});
+
+	it('is the revealAt of an Ended Poll still sealed, then never', () => {
+		expect(nextStatusChange({ ...base, endTime: hours(-1), revealAt: hours(6) }, NOW)).toBe(at(6));
+		expect(nextStatusChange({ ...base, endTime: hours(-2), revealAt: hours(-1) }, NOW)).toBeNull();
+	});
+
+	it('is still the end for an Open Poll with a later revealAt', () => {
+		expect(nextStatusChange({ ...base, endTime: hours(5), revealAt: hours(30) }, NOW)).toBe(at(5));
+	});
+});
+
+describe('isRevealed()', () => {
+	it('is false while the Poll is open, whatever its revealAt', () => {
+		expect(isRevealed(base, NOW)).toBe(false);
+		expect(isRevealed({ ...base, revealAt: hours(-1) }, NOW)).toBe(false);
+	});
+
+	it('is true once Ended without a revealAt', () => {
+		expect(isRevealed({ ...base, endTime: hours(-1) }, NOW)).toBe(true);
+		expect(isRevealed({ ...base, endTime: hours(-1), revealAt: null }, NOW)).toBe(true);
+	});
+
+	it('waits for a revealAt after the end', () => {
+		expect(isRevealed({ ...base, endTime: hours(-1), revealAt: hours(1) }, NOW)).toBe(false);
+		expect(isRevealed({ ...base, endTime: hours(-2), revealAt: hours(-1) }, NOW)).toBe(true);
 	});
 });
 

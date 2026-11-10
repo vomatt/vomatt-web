@@ -462,6 +462,7 @@
 		"sealed": "Results are sealed until {date}. We’ll notify you when they’re in.",
 		"sealedNoEnd": "Results are sealed until the poll ends. We’ll notify you when they’re in.",
 		"sealedTitle": "Sealed. Thank you.",
+		"sealedUntilReveal": "Results are revealed on {date}",
 		"opensHint": "Voting opens {distance}",
 		"voted": "{count} voted",
 		"voteCount": "{count} votes",

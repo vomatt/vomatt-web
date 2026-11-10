@@ -904,6 +904,23 @@ describe('PollCard state D: Ended', () => {
 	});
 });
 
+describe('PollCard: Ended but sealed until revealAt', () => {
+	const sealedPoll: Poll = {
+		...endedPoll,
+		revealAt: iso(24 * HOUR),
+		options: openPoll.options,
+	};
+
+	it('shows the Seal with the reveal date and the Turnout, and never asks for the results', async () => {
+		render(<PollCard poll={sealedPoll} viewerId="user-1" />);
+		expect(await screen.findByText(/^Results are revealed on .+/)).toBeInTheDocument();
+		expect(screen.getByText('129 voted')).toBeInTheDocument();
+		expect(screen.queryByRole('img', { name: 'Elected' })).not.toBeInTheDocument();
+		expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+		expect(mockGetResults).not.toHaveBeenCalled();
+	});
+});
+
 describe('PollCard signed-out visitor', () => {
 	it('opens sign-in on Vote, then casts the chosen option', async () => {
 		render(<PollCard poll={openPoll} />);
