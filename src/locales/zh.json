@@ -1197,6 +1197,16 @@
 		"admin": {
 			"self_action_forbidden": "不能停權自己或移除自己的管理員角色",
 			"last_admin": "不能移除最後一位管理員"
+		},
+		"official": {
+			"last_owner": "官方帳號至少要有一位擁有者，請先轉移擁有者。",
+			"not_member": "你已不是這個帳號的成員。",
+			"role_forbidden": "你沒有權限這麼做。",
+			"member": {
+				"exists": "對方已經是成員。",
+				"invalid": "無法將對方加入這個帳號。",
+				"not_found": "對方已不是成員，列表已重新整理。"
+			}
 		}
 	},
 	"blocks": {
@@ -1323,6 +1333,60 @@
 		"signedOut": "已登出該裝置",
 		"othersSignedOut": "已登出其他裝置",
 		"signOutFailed": "無法登出，請再試一次。"
+	},
+	"officials": {
+		"title": "官方帳號",
+		"members": "成員",
+		"add": "新增成員",
+		"addTitle": "新增成員",
+		"searchLabel": "以使用者名稱搜尋",
+		"searchPlaceholder": "以使用者名稱搜尋",
+		"role": "角色",
+		"rolesTitle": "各角色可以做的事",
+		"roles": {
+			"OWNER": "擁有者",
+			"ADMIN": "管理員",
+			"CHIEF_EDITOR": "主編",
+			"EDITOR": "編輯",
+			"ANALYST": "分析師"
+		},
+		"roleBodies": {
+			"OWNER": "所有權限，包括轉移擁有者。",
+			"ADMIN": "所有權限，但不能變更或移除擁有者。",
+			"CHIEF_EDITOR": "發布內容，並可編輯或結束任何人的投票和留言。",
+			"EDITOR": "發布投票和留言，並編輯自己發布的內容。",
+			"ANALYST": "查看結果報告，不能發布內容。"
+		},
+		"you": "（你）",
+		"joined": "{date} 加入",
+		"yourRole": "你是{role}",
+		"memberMore": "@{name} 的更多選項",
+		"actions": {
+			"changeRole": "變更角色",
+			"transferOwner": "設為擁有者",
+			"remove": "移除",
+			"leave": "離開"
+		},
+		"changeRoleTitle": "變更 @{name} 的角色",
+		"removeTitle": "要移除 @{name} 嗎？",
+		"removeBody": "對方將無法再以 {official} 的身分操作，已發布的內容會保留。",
+		"remove": "移除",
+		"transferTitle": "要將 @{name} 設為擁有者嗎？",
+		"transferBody": "@{name} 會成為 {official} 的擁有者，你會變成管理員。",
+		"transfer": "設為擁有者",
+		"leaveTitle": "要離開 {official} 嗎？",
+		"leaveBody": "你將無法再以這個帳號的身分操作，已發布的內容會保留。只有擁有者或管理員能再把你加回來。",
+		"leave": "離開",
+		"added": "已新增 @{name}",
+		"roleChanged": "已變更 @{name} 的角色",
+		"transferred": "@{name} 已成為擁有者",
+		"removed": "已移除 @{name}",
+		"left": "你已離開 {official}",
+		"notMemberTitle": "你不是成員",
+		"notMemberBody": "這個官方帳號不存在，或你已不是它的成員。",
+		"goToOfficials": "官方帳號",
+		"deleteLastOwner": "你是某個官方帳號唯一的擁有者，請先轉移擁有者。",
+		"officialNotAllowed": "官方帳號不能成為其他帳號的成員。"
 	},
 	"meta": {
 		"siteDescription": "提出問題、參與他人的投票，看看大家真正的想法。投票結束前票數保持密封，沒有人會跟風投票。",

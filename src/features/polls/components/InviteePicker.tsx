@@ -5,23 +5,15 @@ import { useEffect, useState } from 'react';
 import { emailSchema } from '@/components/auth/auth-schemas';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Spinner } from '@/components/ui/Spinner';
 import { X } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import type { Group } from '@/features/groups/schema';
 import { getGroups } from '@/features/groups/service';
-import { OfficialBadge } from '@/features/profiles/OfficialBadge';
-import { searchUsers } from '@/lib/api/services/users';
-import type { UserDto } from '@/schemas/user';
 
-import { SEARCH_DEBOUNCE_MS } from '../constants';
+import { useUserSearch } from '../hooks/useUserSearch';
 import type { InviteeSelection, PickedUser } from '../invitees';
-
-const MAX_SUGGESTIONS = 5;
-
-/** Search results, tagged with the term they answer so stale ones never show. */
-type Results = { term: string; users: UserDto[]; failed?: boolean };
+import { UserSuggestions } from './UserSuggestions';
 
 type InviteePickerProps = {
 	value: InviteeSelection;
@@ -49,7 +41,6 @@ export function InviteePicker({
 }: InviteePickerProps) {
 	const { t } = useLanguage();
 	const [query, setQuery] = useState('');
-	const [results, setResults] = useState<Results>({ term: '', users: [] });
 	const [groups, setGroups] = useState<Group[]>([]);
 
 	const term = query.trim();
@@ -58,30 +49,10 @@ export function InviteePicker({
 	const isEmail = emailSchema.shape.email.safeParse(email).success;
 	const looksLikeEmail = term.includes('@');
 	const isSearching = !!term && !looksLikeEmail;
-	const isLoading = isSearching && results.term !== term;
-	const suggestions =
-		isSearching && results.term === term
-			? results.users
-					.filter((user) => !value.users.some((picked) => picked.id === user.id))
-					.slice(0, MAX_SUGGESTIONS)
-			: [];
-
-	useEffect(() => {
-		if (!isSearching) return;
-		let ignore = false;
-		const timer = setTimeout(async () => {
-			try {
-				const page = await searchUsers(term);
-				if (!ignore) setResults({ term, users: page.items });
-			} catch {
-				if (!ignore) setResults({ term, users: [], failed: true });
-			}
-		}, SEARCH_DEBOUNCE_MS);
-		return () => {
-			ignore = true;
-			clearTimeout(timer);
-		};
-	}, [isSearching, term]);
+	const search = useUserSearch(
+		isSearching ? term : '',
+		value.users.map((user) => user.id)
+	);
 
 	useEffect(() => {
 		if (!withGroups) return;
@@ -123,7 +94,7 @@ export function InviteePicker({
 		e.preventDefault();
 		if (isEmail) addEmail();
 		else {
-			const first = suggestions.find((user) => !user.official);
+			const first = search.users.find((user) => !user.official);
 			if (first) addUser(first);
 		}
 	};
@@ -203,48 +174,8 @@ export function InviteePicker({
 						{t('invitees.inviteEmail', { email })}
 					</button>
 				)}
-				{isLoading && (
-					<div className="flex justify-center py-2">
-						<Spinner />
-					</div>
-				)}
-				{suggestions.length > 0 && (
-					<ul aria-label={t('invitees.suggestions')}>
-						{suggestions.map((user) => (
-							<li key={user.id}>
-								{/* Official accounts don't vote, so the API refuses them as Invitees: shown, but not pickable */}
-								<button
-									type="button"
-									disabled={user.official}
-									aria-describedby={user.official ? `${user.id}-official` : undefined}
-									onClick={() => addUser(user)}
-									className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-body-4 enabled:hover:bg-muted disabled:text-muted-foreground"
-								>
-									<UserAvatar username={user.username} avatarUrl={user.avatarUrl} />
-									<span className="flex min-w-0 flex-col">
-										<span className="flex min-w-0 items-center gap-1">
-											<span className="truncate">{user.username}</span>
-											{user.official && <OfficialBadge />}
-											{user.displayName && (
-												<span className="ml-2 truncate text-caption-2 text-muted-foreground">{user.displayName}</span>
-											)}
-										</span>
-										{user.official && (
-											<span id={`${user.id}-official`} className="text-caption-2 text-muted-foreground">
-												{t('invitees.officialNotAllowed')}
-											</span>
-										)}
-									</span>
-								</button>
-							</li>
-						))}
-					</ul>
-				)}
-				{isSearching && !isLoading && suggestions.length === 0 && (
-					<p className="px-3 py-2 text-caption-2 text-muted-foreground">
-						{t(results.failed ? 'invitees.searchFailed' : 'invitees.noUsers')}
-					</p>
-				)}
+				{/* Official accounts don't vote, so the API refuses them as Invitees: shown, but not pickable */}
+				<UserSuggestions search={search} onPick={addUser} officialNote={t('invitees.officialNotAllowed')} />
 			</div>
 
 			{chips.length > 0 && (

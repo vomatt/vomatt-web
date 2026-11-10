@@ -1210,6 +1210,16 @@
 		"admin": {
 			"self_action_forbidden": "You cannot suspend yourself or remove your own admin role",
 			"last_admin": "Cannot remove the last active admin"
+		},
+		"official": {
+			"last_owner": "An official account needs at least one owner. Transfer ownership first.",
+			"not_member": "You’re no longer a member of this account.",
+			"role_forbidden": "You don’t have permission to do that.",
+			"member": {
+				"exists": "They’re already a member.",
+				"invalid": "They can’t be added to this account.",
+				"not_found": "They’re no longer a member. The list has been refreshed."
+			}
 		}
 	},
 	"blocks": {
@@ -1338,6 +1348,60 @@
 		"signedOut": "Device signed out",
 		"othersSignedOut": "Other devices signed out",
 		"signOutFailed": "Couldn’t sign out. Please try again."
+	},
+	"officials": {
+		"title": "Official accounts",
+		"members": "Members",
+		"add": "Add member",
+		"addTitle": "Add a member",
+		"searchLabel": "Search by username",
+		"searchPlaceholder": "Search by username",
+		"role": "Role",
+		"rolesTitle": "What each role can do",
+		"roles": {
+			"OWNER": "Owner",
+			"ADMIN": "Admin",
+			"CHIEF_EDITOR": "Chief editor",
+			"EDITOR": "Editor",
+			"ANALYST": "Analyst"
+		},
+		"roleBodies": {
+			"OWNER": "Everything, including handing over ownership.",
+			"ADMIN": "Everything except changing or removing owners.",
+			"CHIEF_EDITOR": "Posts, and edits or ends anyone’s polls and comments.",
+			"EDITOR": "Posts polls and comments, and edits their own.",
+			"ANALYST": "Sees result reports; doesn’t post."
+		},
+		"you": "(you)",
+		"joined": "joined {date}",
+		"yourRole": "You’re {role}",
+		"memberMore": "More for @{name}",
+		"actions": {
+			"changeRole": "Change role",
+			"transferOwner": "Make owner",
+			"remove": "Remove",
+			"leave": "Leave"
+		},
+		"changeRoleTitle": "Change @{name}’s role",
+		"removeTitle": "Remove @{name}?",
+		"removeBody": "They’ll no longer be able to act as {official}. What they posted stays.",
+		"remove": "Remove",
+		"transferTitle": "Make @{name} the owner?",
+		"transferBody": "@{name} becomes an owner of {official} and you become an admin.",
+		"transfer": "Make owner",
+		"leaveTitle": "Leave {official}?",
+		"leaveBody": "You’ll no longer be able to act as this account. What you posted stays. Only an owner or admin can add you back.",
+		"leave": "Leave",
+		"added": "Added @{name}",
+		"roleChanged": "Changed @{name}’s role",
+		"transferred": "@{name} is now an owner",
+		"removed": "Removed @{name}",
+		"left": "You left {official}",
+		"notMemberTitle": "You’re not a member",
+		"notMemberBody": "This official account doesn’t exist, or you’re no longer one of its members.",
+		"goToOfficials": "Official accounts",
+		"deleteLastOwner": "You’re the only owner of an official account. Transfer ownership first.",
+		"officialNotAllowed": "Official accounts can’t be members of another account."
 	},
 	"meta": {
 		"siteDescription": "Ask a question, vote on other people’s polls, and see what everyone really thinks. Ballots stay sealed until a poll ends, so nobody votes with the crowd.",
