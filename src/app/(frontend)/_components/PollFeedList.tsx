@@ -75,8 +75,7 @@ export function PollFeedList({
 
 	return (
 		<div
-			// With the topics' own padding, the pills sit 24px below the top
-			className={cn('w-full flex-1 min-h-[var(--h-main)] max-w-feed pt-4', className)}
+			className={cn('w-full flex-1 min-h-[var(--h-main)] max-w-feed', className)}
 		>
 			{header}
 

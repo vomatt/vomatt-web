@@ -8,11 +8,13 @@ Sideways pill rows and long option text, checked by measuring the page in a real
 - **Wrapping pills from md** (L2): from 768px the Notifications category pills wrap instead of scrolling.
 - **Sticky pill bars** (L3): the Home topics and Notifications category bars stick under the phone Header and slide with it.
 - **Long options** (L4): an option with no spaces wraps in the results and never runs under its count.
+- **Home bar and rail** (L5): from 1280px the Home pill bar never moves as the page scrolls, and the rail's first card is level with the first row below the bar (a card, or a topic's Follow button) at rest and scrolled.
 
 ## How to get to it (user POV)
 
 - L1, L3: `/` (topics), `/explore`, `/notifications` (signed in) at `vv b viewport 375x812` and `740x900`.
 - L2: `/notifications` at `1024x800` with the sidebar open.
+- L5: `/` and `/?tag=<a topic slug>` signed in, at `1440x900`.
 - L4: create a poll with an option such as `Supercalifragilisticexpialidocious_NoSpaceVeryLongOptionStringToTestWrap` (100 characters at most), end it with `End now`, open its page.
 
 ## Driving it with vv
@@ -32,6 +34,9 @@ vv b js '(()=>{const bar=document.querySelector("[data-sticky-bar],[class*=follo
 
 # L4: no option's text runs past the left edge of its count
 vv b js 'JSON.stringify({okNoOverlap:[...document.querySelectorAll("li")].filter(li=>li.querySelector(".tabular-nums")).every(li=>{const t=li.querySelector(".wrap-anywhere");return !t||t.getBoundingClientRect().right<=li.querySelector(".tabular-nums").getBoundingClientRect().left+0.5})})'
+
+# L5: at rest and scrolled, the bar stays put and the rail's first card stays level with the first row below the bar
+vv b js '(async()=>{const bar=[...document.querySelectorAll("[data-sticky-bar=feed]")].find(b=>b.offsetHeight),rail=document.querySelector("aside").firstElementChild,row=bar.nextElementSibling?.tagName==="BUTTON"?bar.nextElementSibling:document.querySelector("[data-testid=cFeedList]>*");const m=()=>({bar:bar.getBoundingClientRect().top,row:row.getBoundingClientRect().top,rail:rail.getBoundingClientRect().top});scrollTo(0,0);await new Promise(r=>setTimeout(r,300));const a=m();scrollTo(0,500);await new Promise(r=>setTimeout(r,300));const b=m();scrollTo(0,0);return JSON.stringify({okBarStill:a.bar===b.bar,okLevel:Math.abs(a.row-a.rail)<1,okRailStill:a.rail===b.rail})})()'
 ```
 
 Capture `vv b screenshot --viewport $E/layout-<id>-<width>.png` for each check.
