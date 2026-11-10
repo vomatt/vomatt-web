@@ -4,6 +4,8 @@ import { dayGroup, NotificationList, NotificationSettingsLink } from '@/features
 import type { Notification } from '@/features/notifications/schema';
 import { META_GAP } from '@/lib/rich';
 
+import { visibleText } from '../../helpers/visibleText';
+
 jest.mock('next/link', () => {
 	return function MockLink({ children, href, onClick, ...rest }: React.ComponentProps<'a'> & { onClick?: () => void }) {
 		return (
@@ -153,7 +155,7 @@ describe('NotificationList rows', () => {
 		renderList([result]);
 		const row = rowOf('Keep the library');
 		expect(row).toHaveTextContent(`Results are in${META_GAP}Keep the library open until 22:00?`, { normalizeWhitespace: false });
-		expect(row).toHaveTextContent(`Yes won${META_GAP}2,061 voted${META_GAP}4h`, { normalizeWhitespace: false });
+		expect(visibleText(row)).toContain(`Yes won${META_GAP}2,061 voted${META_GAP}4h`);
 		expect(row).toHaveTextContent('Your pick won');
 		expect(row.querySelectorAll('strong svg[aria-hidden]')).toHaveLength(1);
 	});
@@ -161,7 +163,7 @@ describe('NotificationList rows', () => {
 	it('names every option that shares the most votes, and says the viewer\'s pick tied', () => {
 		renderList([{ ...result, poll: { ...result.poll, winningOptionIds: ['a', 'b'], winningOptionLabels: ['Yes', 'No'], tie: true } }]);
 		const row = rowOf('Keep the library');
-		expect(row).toHaveTextContent(`Tie between Yes and No${META_GAP}2,061 voted`, { normalizeWhitespace: false });
+		expect(visibleText(row)).toContain(`Tie between Yes and No${META_GAP}2,061 voted`);
 		expect(row).toHaveTextContent('Tied for first');
 		expect(row.querySelectorAll('strong svg[aria-hidden]')).toHaveLength(2);
 	});

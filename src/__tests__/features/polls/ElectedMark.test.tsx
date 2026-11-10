@@ -32,3 +32,31 @@ describe('WinnerName', () => {
 		expect(container.querySelector('.whitespace-nowrap')).toHaveTextContent(/^🍁$/);
 	});
 });
+
+describe('WinnerName edge cases', () => {
+	it('gives screen readers the whole name once, not split at the stamp', () => {
+		render(<WinnerName name="Yes" />);
+		expect(screen.getByText('Yes')).toHaveClass('sr-only');
+		expect(screen.getByText('Yes').nextElementSibling).toHaveAttribute('aria-hidden', 'true');
+	});
+
+	it('holds the stamp to the first visible character after leading space or zero-width characters', () => {
+		const { container } = render(<WinnerName name={' ​Yes'} />);
+		expect(container.querySelector('.whitespace-nowrap')).toHaveTextContent(/^Y$/);
+	});
+
+	it('works without Intl.Segmenter (Firefox before 125)', () => {
+		const intl = Intl as { Segmenter?: typeof Intl.Segmenter };
+		const original = intl.Segmenter;
+		delete intl.Segmenter;
+		try {
+			jest.isolateModules(() => {
+				const { WinnerName: Fallback } = require('@/features/polls/components/ElectedMark');
+				const { container } = render(<Fallback name="🍁 Maple" />);
+				expect(container.querySelector('.whitespace-nowrap')).toHaveTextContent(/^🍁$/);
+			});
+		} finally {
+			intl.Segmenter = original;
+		}
+	});
+});
