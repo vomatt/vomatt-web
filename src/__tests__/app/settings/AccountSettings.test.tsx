@@ -26,7 +26,12 @@ jest.mock('@/lib/api/services/users', () => ({
 	sendPhoneBindOtp: jest.fn(),
 	verifyPhoneBind: jest.fn(),
 }));
-jest.mock('@/features/communities/service', () => ({ createCommunity: jest.fn() }));
+const mockUnlock = jest.fn();
+jest.mock('@/features/communities/service', () => ({
+	createCommunity: jest.fn(),
+	keepCommunities: jest.fn(),
+	unlockCommunity: (...args: unknown[]) => mockUnlock(...args),
+}));
 const mockGetSessions = jest.fn();
 jest.mock('@/features/sessions/service', () => ({ getSessions: () => mockGetSessions() }));
 const mockUpdatePreferences = jest.fn();
@@ -446,6 +451,40 @@ describe('AccountSettings', () => {
 		expect(section).toHaveTextContent('You own as many community accounts as your plan allows');
 		fireEvent.click(within(section).getByRole('button', { name: 'Upgrade to Pro' }));
 		await waitFor(() => expect(toast.info).toHaveBeenCalledWith('Pro is coming soon.'));
+	});
+
+	const locked = { communityId: 'off2', username: 'harbor', displayName: 'Harbor', avatarUrl: null, role: 'OWNER' as const, locked: true };
+
+	it('marks a locked account and unlocks it while the plan has room', async () => {
+		mockUnlock.mockResolvedValue({ ok: true, data: undefined });
+		render(
+			<AccountSettings profile={{ ...myProfile, plan: 'PRO', communityQuota: quota(2, 3) }} inviteListCount={3} notificationPreferences={preferences} communities={[locked]} />
+		);
+		const section = screen.getByRole('region', { name: 'Community accounts' });
+		expect(within(section).getByRole('link', { name: /Harbor/ })).toHaveTextContent('Locked');
+		fireEvent.click(within(section).getByRole('button', { name: 'Unlock Harbor' }));
+		await waitFor(() => expect(mockUnlock).toHaveBeenCalledWith('off2'));
+		expect(mockRefresh).toHaveBeenCalled();
+	});
+
+	it('offers no Unlock when the plan is full', () => {
+		render(
+			<AccountSettings profile={{ ...myProfile, plan: 'FREE', communityQuota: quota(1, 1) }} inviteListCount={3} notificationPreferences={preferences} communities={[locked]} />
+		);
+		expect(screen.getByRole('link', { name: /Harbor/ })).toHaveTextContent('Locked');
+		expect(screen.queryByRole('button', { name: 'Unlock Harbor' })).not.toBeInTheDocument();
+	});
+
+	it('asks which accounts to keep, by when, until the user chooses', () => {
+		const selection = { owned: 3, limit: 1, selectionRequired: true, selectionDeadline: '2026-11-18T10:00:00Z' };
+		render(
+			<AccountSettings profile={{ ...myProfile, plan: 'FREE', communityQuota: selection }} inviteListCount={3} notificationPreferences={preferences} communities={[{ ...locked, locked: false }]} />
+		);
+		const plan = screen.getByRole('region', { name: 'Plan' });
+		expect(plan).toHaveTextContent('You own more community accounts than your plan allows');
+		expect(plan).toHaveTextContent('Choose by Nov 18, 2026');
+		fireEvent.click(within(plan).getByRole('button', { name: 'Choose' }));
+		expect(screen.getByRole('dialog', { name: 'Choose which community accounts to keep' })).toBeInTheDocument();
 	});
 
 	it('offers no upgrade to a Pro user at their limit', () => {

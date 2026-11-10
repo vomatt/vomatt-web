@@ -149,6 +149,16 @@ describe('CommunityMembers', () => {
 		expect(toast.error).toHaveBeenCalledWith(theirLimit, { duration: Infinity });
 	});
 
+	it('on a locked account, offers only handing ownership over and leaving, and says it is locked', async () => {
+		const community: MyCommunity = { communityId: 'off1', username: 'sunrise', displayName: 'Sunrise', avatarUrl: null, role: 'OWNER', locked: true };
+		render(<CommunityMembers community={community} viewerId="olive" members={members} />);
+		expect(screen.getByText('Locked')).toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Add member' })).not.toBeInTheDocument();
+		expect((await openMenu('ed')).getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Make owner']);
+		fireEvent.keyDown(screen.getByRole('menu'), { key: 'Escape' });
+		expect((await openMenu('olive')).getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Leave']);
+	});
+
 	it('refreshes the list when the member is already gone', async () => {
 		const { removeMember } = jest.requireMock('@/features/communities/service');
 		removeMember.mockResolvedValue({ ok: false, status: 404, errorCode: 'community.member.not_found', message: 'raw' });

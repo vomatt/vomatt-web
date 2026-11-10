@@ -93,8 +93,8 @@ export function AppSidebar({
 				<AccountSwitcher />
 			</div>
 
-			{/* Primary action */}
-			<div className="px-4 pb-4">
+			{/* Primary action; none while acting as a locked community account */}
+			<div className="px-4 pb-4 empty:hidden">
 				{userSession ? (
 					<CreatePollTrigger>
 						<Button variant="create" className="w-full">

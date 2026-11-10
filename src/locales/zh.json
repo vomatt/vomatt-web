@@ -1212,7 +1212,11 @@
 				"invalid": "無法將對方加入這個帳號。",
 				"not_found": "對方已不是成員，列表已重新整理。"
 			},
-			"limit_reached": "你擁有的社群帳號已達方案上限。升級 Pro 即可擁有更多。"
+			"limit_reached": "你擁有的社群帳號已達方案上限。升級 Pro 即可擁有更多。",
+			"locked": "這個社群帳號已被鎖定，無法執行此操作。升級 Pro，或請有額度的擁有者解鎖。",
+			"keep": {
+				"invalid": "只能選擇你擁有的帳號，數量等於方案上限。"
+			}
 		},
 		"billing": {
 			"unavailable": "Pro 方案即將推出。"
@@ -1421,12 +1425,31 @@
 			"postingAs": "以 {name} 的名義發布",
 			"settingsTitle": "這些是你個人的設定",
 			"settingsBody": "你正以 {name} 的身分操作。切換回自己才能修改。",
-			"manageMembers": "管理成員"
+			"manageMembers": "管理成員",
+			"bannerLocked": "你正以 {name} 的身分操作，它已被鎖定，解鎖前無法發布。"
 		},
 		"limitTitle": "擁有的社群帳號已達方案上限",
 		"limitBodyFree": "升級 Pro 即可擁有更多。",
 		"limitBodyPro": "要建立新的，請先刪除一個或轉移擁有者。",
-		"theirLimitReached": "對方擁有的社群帳號已達方案上限，無法成為擁有者。"
+		"theirLimitReached": "對方擁有的社群帳號已達方案上限，無法成為擁有者。",
+		"locked": "已鎖定",
+		"lockedBody": "它的頁面與投票照常顯示，但無法發布或修改任何內容。你仍可以轉移擁有者、離開或刪除它。升級 Pro，或請有額度的擁有者解鎖。",
+		"unlock": "解鎖",
+		"unlockLabel": "解鎖 {name}",
+		"unlocked": "已解鎖 {name}",
+		"unlockFailed": "無法解鎖帳號，請再試一次。",
+		"keep": {
+			"title": "選擇要保留的社群帳號",
+			"body": "你的方案可擁有 {limit} 個。請選擇 {count} 個保留，其餘會被鎖定：頁面與投票照常顯示，但無法發布。",
+			"deadline": "請在 {date} 前選擇，否則會保留最早建立的。",
+			"chosen": "已選 {count} 個，共需 {required} 個",
+			"later": "稍後",
+			"submit": "保留這些",
+			"done": "已儲存你的選擇，其餘已鎖定。",
+			"failed": "無法儲存你的選擇，請再試一次。",
+			"rowTitle": "你擁有的社群帳號超過方案上限",
+			"choose": "選擇"
+		}
 	},
 	"meta": {
 		"siteDescription": "提出問題、參與他人的投票，看看大家真正的想法。投票結束前票數保持密封，沒有人會跟風投票。",
