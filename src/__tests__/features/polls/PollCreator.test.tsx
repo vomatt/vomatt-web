@@ -374,7 +374,7 @@ describe('PollCreator', () => {
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();
 		expect(pill('Only me')).toHaveAttribute('aria-pressed', 'true');
-		expect(screen.getByText('Voters see it before they vote.')).toBeInTheDocument();
+		expect(screen.getByText('Voters are shown this before they vote.')).toBeInTheDocument();
 		expect(screen.queryByRole('switch')).not.toBeInTheDocument();
 	});
 
