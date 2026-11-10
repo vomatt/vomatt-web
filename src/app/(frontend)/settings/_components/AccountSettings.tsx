@@ -32,6 +32,8 @@ import { NOTIFICATION_SWITCHES } from '@/features/notifications/preferences';
 import type { NotificationPreferences } from '@/features/notifications/schema';
 import { updateNotificationPreferences } from '@/features/notifications/service';
 import { useUnreadCount } from '@/features/notifications/UnreadCountProvider';
+import { OfficialAccountsCard } from '@/features/officials/OfficialAccountsCard';
+import type { MyOfficial } from '@/features/officials/schema';
 import { PasskeysPanel } from '@/features/passkeys/PasskeysPanel';
 import { getSessions } from '@/features/sessions/service';
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
@@ -68,12 +70,15 @@ export default function AccountSettings({
 	profile,
 	inviteListCount,
 	notificationPreferences,
+	officials = [],
 }: {
 	profile: MyProfile;
 	/** How many invite lists the user has; null when they couldn't be loaded. */
 	inviteListCount: number | null;
 	/** Null when they couldn't be loaded. */
 	notificationPreferences: NotificationPreferences | null;
+	/** The official accounts the user belongs to; the section shows only with some. */
+	officials?: MyOfficial[];
 }) {
 	const { t, currentLanguage } = useLanguage();
 	const router = useRouter();
@@ -198,6 +203,12 @@ export default function AccountSettings({
 				</SettingsCard>
 				<ReportProblemDialog open={reportOpen} onOpenChange={setReportOpen} />
 			</Section>
+
+			{officials.length > 0 && (
+				<Section id="officials" title={t('officials.title')}>
+					<OfficialAccountsCard officials={officials} />
+				</Section>
+			)}
 
 			<Section id="account" title={t('settings.account')}>
 				<SettingsCard>
@@ -382,6 +393,7 @@ export function useSectionInView(ids: readonly string[]) {
 /** Deletion refusals with their own copy; anything else goes through apiErrorText. */
 const DELETE_ERROR_KEYS: Record<string, string> = {
 	'admin.last_admin': 'account.deleteLastAdmin',
+	'official.last_owner': 'officials.deleteLastOwner',
 };
 
 function DeleteAccount({ username }: { username: string }) {
@@ -404,7 +416,18 @@ function DeleteAccount({ username }: { username: string }) {
 		const result = await deleteMyAccount();
 		setIsDeleting(false);
 		const key = result.errorCode && DELETE_ERROR_KEYS[result.errorCode];
-		toast.error(key ? t(key) : apiErrorText(t, result, 'account.deleteFailed'), { duration: Infinity });
+		// Ownership has to move first, so the dialog goes and the toast's action can be reached
+		if (result.errorCode === 'official.last_owner') setOpen(false);
+		toast.error(key ? t(key) : apiErrorText(t, result, 'account.deleteFailed'), {
+			duration: Infinity,
+			// Ownership is handed over from the official account's members page
+			...(result.errorCode === 'official.last_owner' && {
+				action: {
+					label: t('officials.goToOfficials'),
+					onClick: () => document.getElementById('officials')?.scrollIntoView(),
+				},
+			}),
+		});
 	};
 
 	return (

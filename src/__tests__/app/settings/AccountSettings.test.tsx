@@ -364,6 +364,31 @@ describe('AccountSettings', () => {
 		fireEvent.click(screen.getAllByRole('button', { name: 'Delete account' }).at(-1)!);
 		await waitFor(() => expect(toast.error).toHaveBeenCalledWith(message, { duration: Infinity }));
 	});
+
+	it('sends the only owner of an official account to hand it over before deleting', async () => {
+		const { deleteMyAccount } = jest.requireMock('@/lib/api/services/users');
+		deleteMyAccount.mockResolvedValue({ ok: false, status: 409, errorCode: 'official.last_owner', message: 'raw' });
+		const officials = [{ officialId: 'off1', username: 'sunrise', displayName: 'Sunrise', avatarUrl: null, role: 'OWNER' as const }];
+		render(
+			<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={officials} />
+		);
+		expect(screen.getByRole('link', { name: /Sunrise/ })).toHaveAttribute('href', '/settings/officials/off1/members');
+		fireEvent.click(screen.getByRole('button', { name: 'Delete account…' }));
+		fireEvent.change(screen.getByRole('textbox', { name: 'Type your username to confirm' }), { target: { value: 'mei' } });
+		fireEvent.click(screen.getAllByRole('button', { name: 'Delete account' }).at(-1)!);
+		await waitFor(() =>
+			expect(toast.error).toHaveBeenCalledWith(
+				'You’re the only owner of an official account. Transfer ownership first.',
+				expect.objectContaining({ action: expect.objectContaining({ label: 'Official accounts' }) })
+			)
+		);
+		expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+	});
+
+	it('has no official accounts section without any', () => {
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+		expect(screen.queryByRole('region', { name: 'Official accounts' })).not.toBeInTheDocument();
+	});
 });
 
 describe('SettingsNav', () => {
