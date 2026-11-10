@@ -399,6 +399,9 @@ function Composer({
 		});
 	};
 
+	// A locked community account can't comment (API: `community.locked`)
+	if (acting?.locked) return null;
+
 	return (
 		<form
 			className={cn(
@@ -750,6 +753,7 @@ function CommentBody({
 	findAddressee,
 }: CommentBodyProps) {
 	const { t, currentLanguage } = useLanguage();
+	const { acting } = useActing();
 	const isHydrated = useHydrated();
 	const [isEditing, setIsEditing] = useState(false);
 	const [draft, setDraft] = useState('');
@@ -956,16 +960,18 @@ function CommentBody({
 						{likes > 0 && <span className="tabular-nums">{likes}</span>}
 					</button>
 
-					<button
-						type="button"
-						aria-pressed={replying}
-						data-reply-action
-						onClick={onReply}
-						className={cn(pillClassName, replying && 'text-foreground')}
-					>
-						<Reply aria-hidden className="size-[15px]" strokeWidth={1.8} />
-						{t('comments.reply')}
-					</button>
+					{!acting?.locked && (
+						<button
+							type="button"
+							aria-pressed={replying}
+							data-reply-action
+							onClick={onReply}
+							className={cn(pillClassName, replying && 'text-foreground')}
+						>
+							<Reply aria-hidden className="size-[15px]" strokeWidth={1.8} />
+							{t('comments.reply')}
+						</button>
+					)}
 
 					{!replying && (
 						<RowMenuRoot>

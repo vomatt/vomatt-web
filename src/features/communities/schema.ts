@@ -13,6 +13,8 @@ export const MyCommunitySchema = z.object({
 	displayName: z.string().nullish(),
 	avatarUrl: z.string().nullish(),
 	role: CommunityRoleSchema,
+	/** Readable, but it can't post or change anything except be deleted, handed over or left; missing from an older API */
+	locked: z.boolean().optional(),
 });
 
 export const CommunityMemberSchema = z.object({

@@ -96,6 +96,18 @@ describe('CommentThread', () => {
 		expect(await screen.findByText('Posting as Robotics Club')).toBeInTheDocument();
 	});
 
+	it('leaves out commenting and replying while acting as a locked community account', async () => {
+		const acting = { communityId: 'c1', username: 'robotics', displayName: 'Robotics Club', avatarUrl: null, role: 'OWNER' as const, locked: true };
+		render(
+			<ActingProvider state={{ acting, me: null, communities: [], stale: false }}>
+				<Harness />
+			</ActingProvider>
+		);
+		expect(await screen.findByText('Theirs')).toBeInTheDocument();
+		expect(screen.queryByLabelText('Add a comment')).not.toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Reply' })).not.toBeInTheDocument();
+	});
+
 	it('names no account when the user posts as themself', async () => {
 		render(<Harness />);
 		await screen.findByText('Theirs');
