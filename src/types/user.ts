@@ -26,8 +26,8 @@ export interface UserProfile {
 	/** The people the viewer follows who follow this user, and the first 3 of them ([] when none); null when signed out and on their own profile. */
 	mutualFollowersCount: number | null;
 	mutualFollowersPreview: UserDto[] | null;
-	/** An official account (a group page run by several members). */
-	official?: boolean;
+	/** A community account (a group page run by several members). */
+	community?: boolean;
 	/** Null unless the owner made it visible (hidden by default), or never set. */
 	gender?: Gender | null;
 }

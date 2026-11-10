@@ -1,9 +1,9 @@
-import { canManageMembers, grantableRoles, memberActions } from '@/features/officials/permissions';
-import { OFFICIAL_ROLES } from '@/features/officials/schema';
+import { canManageMembers, grantableRoles, memberActions } from '@/features/communities/permissions';
+import { COMMUNITY_ROLES } from '@/features/communities/schema';
 
 describe('canManageMembers', () => {
 	it('lets only OWNER and ADMIN manage members', () => {
-		expect(OFFICIAL_ROLES.filter(canManageMembers)).toEqual(['OWNER', 'ADMIN']);
+		expect(COMMUNITY_ROLES.filter(canManageMembers)).toEqual(['OWNER', 'ADMIN']);
 	});
 });
 

@@ -31,8 +31,8 @@ export const CommentSchema = z.object({
 	deleted: z.boolean().optional(),
 	/** The users the server resolved as @mentions, in order of first appearance; absent on older Comments. */
 	mentions: z.array(z.object({ userId: z.string(), username: z.string() })).optional(),
-	/** Written under an official account's name. */
-	authorOfficial: z.boolean().optional(),
+	/** Written under a community account's name. */
+	authorCommunity: z.boolean().optional(),
 });
 
 /**
@@ -209,8 +209,8 @@ export const PollSchema = z.object({
 	pro: z.boolean().optional(),
 	/** Results stay Sealed after the Poll Ended until this time; null when they open at `endTime`. */
 	revealAt: DateTime.nullish(),
-	/** Whether the Poll belongs to an official account. */
-	creatorOfficial: z.boolean().optional(),
+	/** Whether the Poll belongs to a community account. */
+	creatorCommunity: z.boolean().optional(),
 	/** Whether the signed-in viewer bookmarked the Poll; null when signed out. */
 	bookmarked: z.boolean().nullish(),
 	options: z.array(PollOptionSchema),

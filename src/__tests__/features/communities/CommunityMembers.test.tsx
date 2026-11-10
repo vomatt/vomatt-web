@@ -1,8 +1,8 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { toast } from 'sonner';
 
-import { OfficialMembers } from '@/features/officials/OfficialMembers';
-import type { MyOfficial, OfficialMember, OfficialRole } from '@/features/officials/schema';
+import { CommunityMembers } from '@/features/communities/CommunityMembers';
+import type { CommunityMember, CommunityRole,MyCommunity } from '@/features/communities/schema';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn() } }));
@@ -10,14 +10,14 @@ const mockRefresh = jest.fn();
 const mockReplace = jest.fn();
 jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh: mockRefresh, replace: mockReplace }) }));
 jest.mock('@/lib/api/services/users', () => ({ searchUsers: jest.fn() }));
-jest.mock('@/features/officials/service', () => ({
+jest.mock('@/features/communities/service', () => ({
 	addMember: jest.fn(),
 	changeRole: jest.fn(),
 	removeMember: jest.fn(),
 	transferOwner: jest.fn(),
 }));
 
-const member = (userId: string, role: OfficialRole): OfficialMember => ({
+const member = (userId: string, role: CommunityRole): CommunityMember => ({
 	userId,
 	username: userId,
 	displayName: null,
@@ -30,8 +30,8 @@ const members = [member('olive', 'OWNER'), member('adam', 'ADMIN'), member('ed',
 
 function renderAs(viewerId: string) {
 	const role = members.find((m) => m.userId === viewerId)!.role;
-	const official: MyOfficial = { officialId: 'off1', username: 'sunrise', displayName: 'Sunrise', avatarUrl: null, role };
-	render(<OfficialMembers official={official} viewerId={viewerId} members={members} />);
+	const community: MyCommunity = { communityId: 'off1', username: 'sunrise', displayName: 'Sunrise', avatarUrl: null, role };
+	render(<CommunityMembers community={community} viewerId={viewerId} members={members} />);
 }
 
 const moreButton = (name: string) => screen.queryByRole('button', { name: `More for @${name}` });
@@ -41,7 +41,7 @@ async function openMenu(name: string) {
 	return within(await screen.findByRole('menu'));
 }
 
-describe('OfficialMembers', () => {
+describe('CommunityMembers', () => {
 	beforeEach(() => jest.clearAllMocks());
 
 	it('lists every member with role and username', () => {
@@ -82,14 +82,14 @@ describe('OfficialMembers', () => {
 	});
 
 	it('says ownership must be handed over when the last owner leaves', async () => {
-		const { removeMember } = jest.requireMock('@/features/officials/service');
-		removeMember.mockResolvedValue({ ok: false, status: 409, errorCode: 'official.last_owner', message: 'raw' });
+		const { removeMember } = jest.requireMock('@/features/communities/service');
+		removeMember.mockResolvedValue({ ok: false, status: 409, errorCode: 'community.last_owner', message: 'raw' });
 		renderAs('olive');
 		fireEvent.click((await openMenu('olive')).getByRole('menuitem', { name: 'Leave' }));
 		fireEvent.click(await screen.findByRole('button', { name: 'Leave' }));
 		await waitFor(() =>
 			expect(toast.error).toHaveBeenCalledWith(
-				'An official account needs at least one owner. Transfer ownership first.',
+				'A community account needs at least one owner. Transfer ownership first.',
 				{ duration: Infinity }
 			)
 		);
@@ -98,7 +98,7 @@ describe('OfficialMembers', () => {
 	});
 
 	it('warns the owner they become an admin before handing ownership over', async () => {
-		const { transferOwner } = jest.requireMock('@/features/officials/service');
+		const { transferOwner } = jest.requireMock('@/features/communities/service');
 		transferOwner.mockResolvedValue({ ok: true, data: undefined });
 		renderAs('olive');
 		fireEvent.click((await openMenu('adam')).getByRole('menuitem', { name: 'Make owner' }));
@@ -110,19 +110,19 @@ describe('OfficialMembers', () => {
 	});
 
 	it('refreshes the list when the member is already gone', async () => {
-		const { removeMember } = jest.requireMock('@/features/officials/service');
-		removeMember.mockResolvedValue({ ok: false, status: 404, errorCode: 'official.member.not_found', message: 'raw' });
+		const { removeMember } = jest.requireMock('@/features/communities/service');
+		removeMember.mockResolvedValue({ ok: false, status: 404, errorCode: 'community.member.not_found', message: 'raw' });
 		renderAs('olive');
 		fireEvent.click((await openMenu('ed')).getByRole('menuitem', { name: 'Remove' }));
 		fireEvent.click(await screen.findByRole('button', { name: 'Remove' }));
 		await waitFor(() => expect(mockRefresh).toHaveBeenCalled());
 	});
 
-	it('shows official accounts in the search, badged, but not pickable', async () => {
+	it('shows community accounts in the search, badged, but not pickable', async () => {
 		const { searchUsers } = jest.requireMock('@/lib/api/services/users');
 		searchUsers.mockResolvedValue({
 			items: [
-				{ id: 'u9', username: 'cityhall', displayName: null, avatarUrl: null, official: true },
+				{ id: 'u9', username: 'cityhall', displayName: null, avatarUrl: null, community: true },
 				{ id: 'u8', username: 'cindy', displayName: null, avatarUrl: null },
 			],
 			nextCursor: null,
@@ -130,9 +130,9 @@ describe('OfficialMembers', () => {
 		renderAs('olive');
 		fireEvent.click(screen.getByRole('button', { name: 'Add member' }));
 		fireEvent.change(await screen.findByRole('textbox', { name: 'Search by username' }), { target: { value: 'ci' } });
-		const official = await screen.findByRole('button', { name: /cityhall/ });
-		expect(official).toBeDisabled();
-		expect(within(official).getByRole('img', { name: 'Official account' })).toBeInTheDocument();
+		const community = await screen.findByRole('button', { name: /cityhall/ });
+		expect(community).toBeDisabled();
+		expect(within(community).getByRole('img', { name: 'Community account' })).toBeInTheDocument();
 		expect(screen.getByRole('button', { name: /cindy/ })).toBeEnabled();
 	});
 });

@@ -4,12 +4,12 @@ import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
-import { OfficialBadge } from './OfficialBadge';
+import { CommunityBadge } from './CommunityBadge';
 import { ProfileHoverCard } from './ProfileHoverCard';
 
 type Person = { username: string; avatarUrl?: string | null };
-/** An official account gets the badge after its name. */
-type Official = { official?: boolean | null };
+/** A community account gets the badge after its name. */
+type Community = { community?: boolean | null };
 
 /**
  * A person's avatar and username as one unit: a link to their profile, with a
@@ -21,11 +21,11 @@ export function UserChip({
 	username,
 	avatarUrl,
 	label = username,
-	official,
+	community,
 	link = true,
 	className,
 	avatarClassName,
-}: Person & Official & {
+}: Person & Community & {
 	label?: string;
 	link?: boolean;
 	className?: string;
@@ -36,7 +36,7 @@ export function UserChip({
 		<>
 			<UserAvatar username={username} avatarUrl={avatarUrl} className={avatarClassName} />
 			<span className="truncate">{label}</span>
-			{official && <OfficialBadge />}
+			{community && <CommunityBadge />}
 		</>
 	);
 	return (
@@ -65,12 +65,12 @@ export function ProfileAvatar({ username, avatarUrl, className }: Person & { cla
 }
 
 /** The username alone as a profile link with the hover card; see `ProfileAvatar`. */
-export function ProfileName({ username, avatarUrl, official, className }: Person & Official & { className?: string }) {
+export function ProfileName({ username, avatarUrl, community, className }: Person & Community & { className?: string }) {
 	return (
 		<ProfileHoverCard username={username} avatarUrl={avatarUrl}>
-			<Link href={profileHref(username)} className={cn(official && 'inline-flex items-center gap-1', className)}>
+			<Link href={profileHref(username)} className={cn(community && 'inline-flex items-center gap-1', className)}>
 				{username}
-				{official && <OfficialBadge />}
+				{community && <CommunityBadge />}
 			</Link>
 		</ProfileHoverCard>
 	);

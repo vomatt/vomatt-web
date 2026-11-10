@@ -3,23 +3,23 @@
 import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
-import { OfficialBadge } from '@/features/profiles/OfficialBadge';
+import { CommunityBadge } from '@/features/profiles/CommunityBadge';
 import type { UserDto } from '@/schemas/user';
 
 import type { UserSearch } from '../hooks/useUserSearch';
 
 /**
  * A `useUserSearch`'s answer: a spinner, the people to pick, or why there are none.
- * Official accounts are shown with their badge but can't be picked; `officialNote` says why.
+ * Community accounts are shown with their badge but can't be picked; `communityNote` says why.
  */
 export function UserSuggestions({
 	search,
 	onPick,
-	officialNote,
+	communityNote,
 }: {
 	search: UserSearch;
 	onPick: (user: UserDto) => void;
-	officialNote: string;
+	communityNote: string;
 }) {
 	const { t } = useLanguage();
 	if (!search.term) return null;
@@ -41,8 +41,8 @@ export function UserSuggestions({
 				<li key={user.id}>
 					<button
 						type="button"
-						disabled={user.official}
-						aria-describedby={user.official ? `${user.id}-official` : undefined}
+						disabled={user.community}
+						aria-describedby={user.community ? `${user.id}-community` : undefined}
 						onClick={() => onPick(user)}
 						className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-body-4 enabled:hover:bg-muted disabled:text-muted-foreground"
 					>
@@ -50,14 +50,14 @@ export function UserSuggestions({
 						<span className="flex min-w-0 flex-col">
 							<span className="flex min-w-0 items-center gap-1">
 								<span className="truncate">{user.username}</span>
-								{user.official && <OfficialBadge />}
+								{user.community && <CommunityBadge />}
 								{user.displayName && (
 									<span className="ml-2 truncate text-caption-2 text-muted-foreground">{user.displayName}</span>
 								)}
 							</span>
-							{user.official && (
-								<span id={`${user.id}-official`} className="text-caption-2 text-muted-foreground">
-									{officialNote}
+							{user.community && (
+								<span id={`${user.id}-community`} className="text-caption-2 text-muted-foreground">
+									{communityNote}
 								</span>
 							)}
 						</span>

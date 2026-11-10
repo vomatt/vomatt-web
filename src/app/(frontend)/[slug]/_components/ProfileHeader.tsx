@@ -8,9 +8,9 @@ import { AvatarDialog } from '@/features/avatars/AvatarDialog';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import type { FollowList } from '@/features/follows/FollowListDialog';
 import { formatMonthYear } from '@/features/polls/format';
+import { CommunityBadge } from '@/features/profiles/CommunityBadge';
 import { Count } from '@/features/profiles/Count';
 import { genderLabel, profileName, realName } from '@/features/profiles/name';
-import { OfficialBadge } from '@/features/profiles/OfficialBadge';
 import { countText } from '@/lib/count';
 import { cn } from '@/lib/utils';
 import type { UserProfile } from '@/types/user';
@@ -26,7 +26,7 @@ type HeaderProfile = Pick<
 	| 'avatarUrl'
 	| 'followersCount'
 	| 'followingCount'
-	| 'official'
+	| 'community'
 	| 'gender'
 >;
 
@@ -112,7 +112,7 @@ export default function ProfileHeader({
 			<div className="min-w-0 flex-[1_1_20rem] max-sm:order-last max-sm:basis-full">
 				<h1 className="wrap-anywhere text-title-3">
 					{name.primary}
-					{profile.official && <OfficialBadge className="ml-2 size-4" />}
+					{profile.community && <CommunityBadge className="ml-2 size-4" />}
 					{primaryHidden && (
 						<OnlyYouMarker className="ml-2 size-4 align-baseline" />
 					)}

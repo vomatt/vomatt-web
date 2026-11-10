@@ -90,16 +90,16 @@ describe('CommentThread', () => {
 		expect(article.querySelector('img')).toHaveAttribute('src', '/avatars/bear.svg');
 	});
 
-	it('badges a comment written under an official account', async () => {
+	it('badges a comment written under a community account', async () => {
 		service.getComments.mockResolvedValue({
 			ok: true,
-			data: { items: [mine, { ...theirs, authorOfficial: true }], nextCursor: null },
+			data: { items: [mine, { ...theirs, authorCommunity: true }], nextCursor: null },
 		});
 		render(<Harness />);
 		const theirArticle = (await screen.findByText('Theirs')).closest('article')!;
-		expect(within(theirArticle).getByRole('img', { name: 'Official account' })).toBeInTheDocument();
+		expect(within(theirArticle).getByRole('img', { name: 'Community account' })).toBeInTheDocument();
 		const myArticle = screen.getByText('Mine').closest('article')!;
-		expect(within(myArticle).queryByRole('img', { name: 'Official account' })).not.toBeInTheDocument();
+		expect(within(myArticle).queryByRole('img', { name: 'Community account' })).not.toBeInTheDocument();
 	});
 
 	it("offers edit and delete on the viewer's own comments, report and block on others'", async () => {

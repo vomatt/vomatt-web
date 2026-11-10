@@ -13,7 +13,7 @@ import { UserSuggestions } from '@/features/polls/components/UserSuggestions';
 import { useUserSearch } from '@/features/polls/hooks/useUserSearch';
 import type { UserDto } from '@/schemas/user';
 
-import { DEFAULT_ROLE, type OfficialRole } from './schema';
+import { type CommunityRole,DEFAULT_ROLE } from './schema';
 
 /** Picks one person by username (the search InviteePicker uses) and the role to give them. */
 export function AddMemberDialog({
@@ -37,13 +37,13 @@ export function AddMemberDialog({
 
 type FormProps = {
 	/** The roles the viewer may grant. */
-	roles: readonly OfficialRole[];
+	roles: readonly CommunityRole[];
 	/** Already members, left out of the suggestions. */
 	memberIds: string[];
 	/** A change is being sent. */
 	busy: boolean;
 	/** Resolves true once added, which closes the dialog. */
-	onAdd: (user: UserDto, role: OfficialRole) => Promise<boolean>;
+	onAdd: (user: UserDto, role: CommunityRole) => Promise<boolean>;
 	onClose: () => void;
 };
 
@@ -51,7 +51,7 @@ function AddMemberForm({ roles, memberIds, busy, onAdd, onClose }: FormProps) {
 	const { t } = useLanguage();
 	const [query, setQuery] = useState('');
 	const [picked, setPicked] = useState<UserDto | null>(null);
-	const [role, setRole] = useState<OfficialRole>(DEFAULT_ROLE);
+	const [role, setRole] = useState<CommunityRole>(DEFAULT_ROLE);
 	const term = query.trim().replace(/^@/, '');
 	const search = useUserSearch(picked ? '' : term, memberIds);
 
@@ -65,7 +65,7 @@ function AddMemberForm({ roles, memberIds, busy, onAdd, onClose }: FormProps) {
 	return (
 		<>
 		<DialogHeader>
-			<DialogTitle>{t('officials.addTitle')}</DialogTitle>
+			<DialogTitle>{t('communities.addTitle')}</DialogTitle>
 		</DialogHeader>
 		<DialogBody className="space-y-5">
 			{picked ? (
@@ -88,22 +88,22 @@ function AddMemberForm({ roles, memberIds, busy, onAdd, onClose }: FormProps) {
 						autoComplete="off"
 						autoCapitalize="none"
 						spellCheck={false}
-						aria-label={t('officials.searchLabel')}
-						placeholder={t('officials.searchPlaceholder')}
+						aria-label={t('communities.searchLabel')}
+						placeholder={t('communities.searchPlaceholder')}
 						value={query}
 						onChange={(e) => setQuery(e.target.value)}
 					/>
-					{/* An official account can't belong to another (`official.member.invalid`): shown, but not pickable */}
-					<UserSuggestions search={search} onPick={setPicked} officialNote={t('officials.officialNotAllowed')} />
+					{/* A community account can't belong to another (`community.member.invalid`): shown, but not pickable */}
+					<UserSuggestions search={search} onPick={setPicked} communityNote={t('communities.communityNotAllowed')} />
 				</div>
 			)}
 			<PillGroup
-				legend={t('officials.role')}
+				legend={t('communities.role')}
 				legendClassName="text-caption-2 font-medium text-muted-foreground"
-				hint={t(`officials.roleBodies.${role}`)}
+				hint={t(`communities.roleBodies.${role}`)}
 				value={role}
 				onChange={setRole}
-				options={roles.map((value) => ({ value, label: t(`officials.roles.${value}`) }))}
+				options={roles.map((value) => ({ value, label: t(`communities.roles.${value}`) }))}
 			/>
 		</DialogBody>
 		<DialogFooter>
@@ -111,7 +111,7 @@ function AddMemberForm({ roles, memberIds, busy, onAdd, onClose }: FormProps) {
 				{t('common.cancel')}
 			</Button>
 			<Button size="md" disabled={!picked} loading={busy} onClick={add}>
-				{t('officials.add')}
+				{t('communities.add')}
 			</Button>
 		</DialogFooter>
 		</>

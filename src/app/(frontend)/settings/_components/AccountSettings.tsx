@@ -27,15 +27,15 @@ import { Switch } from '@/components/ui/Switch';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PhoneBindDialog } from '@/features/account/PhoneBindDialog';
 import { isSettingPublic, VISIBILITY_SETTINGS } from '@/features/account/visibility';
+import { CommunityAccountsCard } from '@/features/communities/CommunityAccountsCard';
+import { CreateCommunityDialog } from '@/features/communities/CreateCommunityDialog';
+import { communityMembersHref,type MyCommunity } from '@/features/communities/schema';
 import { ReportProblemDialog } from '@/features/feedback/ReportProblemDialog';
 import { GroupsPanel } from '@/features/groups/GroupsPanel';
 import { NOTIFICATION_SWITCHES } from '@/features/notifications/preferences';
 import type { NotificationPreferences } from '@/features/notifications/schema';
 import { updateNotificationPreferences } from '@/features/notifications/service';
 import { useUnreadCount } from '@/features/notifications/UnreadCountProvider';
-import { CreateOfficialDialog } from '@/features/officials/CreateOfficialDialog';
-import { OfficialAccountsCard } from '@/features/officials/OfficialAccountsCard';
-import { type MyOfficial, officialMembersHref } from '@/features/officials/schema';
 import { PasskeysPanel } from '@/features/passkeys/PasskeysPanel';
 import { getSessions } from '@/features/sessions/service';
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
@@ -67,15 +67,15 @@ export default function AccountSettings({
 	profile,
 	inviteListCount,
 	notificationPreferences,
-	officials,
+	communities,
 }: {
 	profile: MyProfile;
 	/** How many invite lists the user has; null when they couldn't be loaded. */
 	inviteListCount: number | null;
 	/** Null when they couldn't be loaded. */
 	notificationPreferences: NotificationPreferences | null;
-	/** The official accounts the user belongs to; the section shows only with some. */
-	officials: MyOfficial[];
+	/** The community accounts the user belongs to; the section shows only with some. */
+	communities: MyCommunity[];
 }) {
 	const { t, currentLanguage } = useLanguage();
 	const router = useRouter();
@@ -201,9 +201,9 @@ export default function AccountSettings({
 				<ReportProblemDialog open={reportOpen} onOpenChange={setReportOpen} />
 			</Section>
 
-			<Section id="officials" title={t('officials.title')}>
-				{officials.length > 0 && <OfficialAccountsCard officials={officials} />}
-				<CreateOfficialRow />
+			<Section id="communities" title={t('communities.title')}>
+				{communities.length > 0 && <CommunityAccountsCard communities={communities} />}
+				<CreateCommunityRow />
 			</Section>
 
 			<Section id="account" title={t('settings.account')}>
@@ -238,24 +238,24 @@ export default function AccountSettings({
 	);
 }
 
-/** Starts a new official account; the user becomes its owner and lands on its members page. */
-function CreateOfficialRow() {
+/** Starts a new community account; the user becomes its owner and lands on its members page. */
+function CreateCommunityRow() {
 	const { t } = useLanguage();
 	const router = useRouter();
 	const [open, setOpen] = useState(false);
 	return (
 		<SettingsCard>
 			<button type="button" onClick={() => setOpen(true)} className={cn(rowLinkClassName, 'w-full text-left')}>
-				<RowText title={t('officials.createTitle')} body={t('officials.createBody')} />
+				<RowText title={t('communities.createTitle')} body={t('communities.createBody')} />
 				<ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
 			</button>
-			<CreateOfficialDialog
+			<CreateCommunityDialog
 				open={open}
 				onOpenChange={setOpen}
-				onCreated={(officialId, username) => {
+				onCreated={(communityId, username) => {
 					setOpen(false);
-					toast.success(t('officials.created', { name: username }));
-					router.push(officialMembersHref(officialId));
+					toast.success(t('communities.created', { name: username }));
+					router.push(communityMembersHref(communityId));
 				}}
 			/>
 		</SettingsCard>
@@ -459,7 +459,7 @@ export function useSectionInView(ids: readonly string[]) {
 /** Deletion refusals with their own copy; anything else goes through apiErrorText. */
 const DELETE_ERROR_KEYS: Record<string, string> = {
 	'admin.last_admin': 'account.deleteLastAdmin',
-	'official.last_owner': 'officials.deleteLastOwner',
+	'community.last_owner': 'communities.deleteLastOwner',
 };
 
 function DeleteAccount({ username }: { username: string }) {
@@ -482,16 +482,16 @@ function DeleteAccount({ username }: { username: string }) {
 		const result = await deleteMyAccount();
 		setIsDeleting(false);
 		const key = result.errorCode && DELETE_ERROR_KEYS[result.errorCode];
-		const lastOwner = result.errorCode === 'official.last_owner';
+		const lastOwner = result.errorCode === 'community.last_owner';
 		// Ownership has to move first, so the dialog goes and the toast's action can be reached
 		if (lastOwner) setOpen(false);
 		toast.error(key ? t(key) : apiErrorText(t, result, 'account.deleteFailed'), {
 			duration: Infinity,
-			// Ownership is handed over from the official account's members page
+			// Ownership is handed over from the community account's members page
 			...(lastOwner && {
 				action: {
-					label: t('officials.goToOfficials'),
-					onClick: () => document.getElementById('officials')?.scrollIntoView(),
+					label: t('communities.goToCommunities'),
+					onClick: () => document.getElementById('communities')?.scrollIntoView(),
 				},
 			}),
 		});
