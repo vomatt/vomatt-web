@@ -1,5 +1,9 @@
 import type { UserDto } from '@/schemas/user';
 
+/** The API's gender values, in the order Edit profile offers them. Once set it can't be cleared, only changed. */
+export const GENDERS = ['MALE', 'FEMALE', 'OTHER', 'UNDISCLOSED'] as const;
+export type Gender = (typeof GENDERS)[number];
+
 export interface UserProfile {
 	id: string;
 	username: string;
@@ -24,6 +28,8 @@ export interface UserProfile {
 	mutualFollowersPreview: UserDto[] | null;
 	/** An official account (a group page run by several members). */
 	official?: boolean;
+	/** Null unless the owner made it visible (hidden by default), or never set. */
+	gender?: Gender | null;
 }
 
 /** Response from GET /users/me — the authenticated user's own profile. */
@@ -41,7 +47,7 @@ export interface MyProfile {
 	/** The phone number was verified by SMS (phone sign-up or bind). */
 	phoneVerified?: boolean;
 	/** Null when never provided. */
-	gender?: 'MALE' | 'FEMALE' | 'OTHER' | 'UNDISCLOSED' | null;
+	gender?: Gender | null;
 	active: boolean;
 	lastLoginAt: string | null; // ISO date string
 	joinedAt: string; // ISO date string

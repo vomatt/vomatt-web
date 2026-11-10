@@ -4,13 +4,13 @@ import { revalidateTag, updateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
-import { type ActionFailure, attempt } from '@/lib/api/action';
+import { type ActionFailure, type ActionResult, attempt } from '@/lib/api/action';
 import { clearAuthTokens } from '@/lib/api/auth';
 import { apiClient, ApiError } from '@/lib/api/client';
 import { PROFILES_TAG } from '@/lib/api/constants';
 import { cursorPageSchema, pageParams } from '@/lib/api/cursor';
 import { UserDtoSchema } from '@/schemas/user';
-import { MyProfile, UserProfile } from '@/types/user';
+import { type Gender, MyProfile, UserProfile } from '@/types/user';
 
 export async function getUserProfile(username: string): Promise<UserProfile | null> {
   try {
@@ -54,6 +54,8 @@ export async function updateProfile(data: {
   lastName?: string;
   /** yyyy-MM-dd; cannot be cleared */
   birthday?: string;
+  /** Cannot be cleared; `UNDISCLOSED` instead */
+  gender?: Gender;
   anonymousBallotByDefault?: boolean;
 }) {
   const profile = await apiClient<UserProfile>('/users/me', {
@@ -78,6 +80,27 @@ export async function editProfile(
   // Returned, not thrown: production hides thrown Server Action messages
   const result = await attempt(() => updateProfile(data));
   return result.ok ? { ok: true } : result;
+}
+
+/**
+ * Texts a code that binds `phone` to the signed-in account. A resend inside the cooldown fails with
+ * `auth.otp.resend_cooldown`, its seconds in the message (`cooldownSeconds`).
+ */
+export async function sendPhoneBindOtp(phone: string): Promise<ActionResult> {
+  return attempt(async () => {
+    await apiClient('/users/me/phone/send-otp', { method: 'POST', body: JSON.stringify({ phone }) });
+  });
+}
+
+/**
+ * Binds the number the code went to; the data is the updated profile. A wrong or expired code is a 401
+ * (`auth.invalid_otp`, `auth.otp.invalid_or_expired`, `auth.otp.too_many_attempts`) that doesn't end the
+ * session: it comes back as a failure, like any other, for the form to show.
+ */
+export async function verifyPhoneBind(phone: string, code: string): Promise<ActionResult<MyProfile>> {
+  return attempt(() =>
+    apiClient<MyProfile>('/users/me/phone/verify', { method: 'POST', body: JSON.stringify({ phone, code }) })
+  );
 }
 
 export async function updateVisibility(visibility: Record<string, boolean>) {

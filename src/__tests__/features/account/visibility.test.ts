@@ -1,4 +1,4 @@
-import { isFieldPublic, visibilityChanges } from '@/features/account/visibility';
+import { isFieldPublic, VISIBILITY_SETTINGS, visibilityChanges } from '@/features/account/visibility';
 
 describe('isFieldPublic()', () => {
 	it('follows the saved setting', () => {
@@ -10,6 +10,7 @@ describe('isFieldPublic()', () => {
 		expect(isFieldPublic({}, 'displayName')).toBe(true);
 		expect(isFieldPublic({}, 'bio')).toBe(true);
 		expect(isFieldPublic({}, 'points')).toBe(false);
+		expect(isFieldPublic({}, 'gender')).toBe(false);
 	});
 });
 
@@ -19,6 +20,11 @@ describe('visibilityChanges()', () => {
 			firstName: true,
 			displayName: false,
 		});
+	});
+
+	it('sends gender, a setting of its own', () => {
+		expect(visibilityChanges({}, { gender: true })).toEqual({ gender: true });
+		expect(VISIBILITY_SETTINGS.map((setting) => setting.key)).toContain('gender');
 	});
 
 	it('never sends the fields no page shows', () => {

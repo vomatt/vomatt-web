@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
+import { PillGroup } from '@/components/PillGroup';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -37,7 +38,7 @@ import { apiErrorText } from '@/lib/api/error-text';
 import { editProfile, updateVisibility } from '@/lib/api/services/users';
 import { profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
-import type { MyProfile } from '@/types/user';
+import { type Gender, GENDERS, type MyProfile } from '@/types/user';
 
 /** Refusals about the username itself, shown under its field. */
 const USERNAME_ERROR_CODES = ['user.username.taken'];
@@ -66,6 +67,7 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 		firstName: profile.firstName ?? '',
 		lastName: profile.lastName ?? '',
 		birthday: profile.birthday ?? '',
+		gender: profile.gender ?? '',
 	};
 	const savedVisibility = profile.visibilitySettings ?? {};
 	const [open, setOpen] = useState(defaultOpen);
@@ -84,6 +86,8 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 	const usernameChanged = values.username.toLowerCase() !== initial.username.toLowerCase();
 	// A birthday can't be cleared, so an emptied field means unchanged
 	const birthdayChanged = values.birthday !== '' && values.birthday !== initial.birthday;
+	// Nor a gender: it starts empty only when never set, and no choice empties it
+	const genderChanged = values.gender !== '' && values.gender !== initial.gender;
 
 	const openChange = (next: boolean) => {
 		// Each visit starts from the saved profile, not abandoned edits
@@ -110,6 +114,7 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 	const detailsChanged =
 		usernameChanged ||
 		birthdayChanged ||
+		genderChanged ||
 		values.displayName !== initial.displayName ||
 		values.bio !== initial.bio ||
 		values.firstName !== initial.firstName ||
@@ -151,6 +156,7 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 					firstName: values.firstName !== initial.firstName ? values.firstName : undefined,
 					lastName: values.lastName !== initial.lastName ? values.lastName : undefined,
 					birthday: birthdayChanged ? values.birthday : undefined,
+					gender: genderChanged ? (values.gender as Gender) : undefined,
 				});
 				if (!result.ok) {
 					// A refused username belongs next to its field; anything else is a toast
@@ -334,6 +340,16 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 							</p>
 						)}
 					</div>
+					<PillGroup
+							legend={t('profile.gender')}
+							legendClassName={labelClassName}
+							aside={pill(t('profile.gender'), ['gender'])}
+							hint={t('profile.genderReportNote')}
+							// No "not set": once chosen it can only change
+							value={values.gender || undefined}
+							onChange={set('gender')}
+							options={GENDERS.map((gender) => ({ value: gender, label: t(`profile.genders.${gender}`) }))}
+						/>
 					<div className="flex flex-col gap-1.5">
 						<div className="flex min-h-7 items-center justify-between gap-2">
 							<label htmlFor="bio" className={labelClassName}>

@@ -56,7 +56,9 @@ describe('VisibilitySettings', () => {
 	it('shows a switch per setting with what it shows, the real name hidden and the rest public by default', () => {
 		render(<VisibilitySettings profile={profile} />);
 
-		expect(screen.getAllByRole('switch')).toHaveLength(3);
+		expect(screen.getAllByRole('switch')).toHaveLength(4);
+		expect(screen.getByRole('switch', { name: 'Gender' })).not.toBeChecked();
+		expect(screen.getByRole('switch', { name: 'Gender' })).toHaveAccessibleDescription('Not set');
 		expect(screen.getByRole('switch', { name: 'Real name' })).not.toBeChecked();
 		expect(screen.getByRole('switch', { name: 'Real name' })).toHaveAccessibleDescription('Mei Lin');
 		expect(screen.getByRole('switch', { name: 'Display name' })).toBeChecked();
@@ -126,6 +128,19 @@ describe('VisibilitySettings', () => {
 
 		fireEvent.click(screen.getByRole('switch', { name: 'Bio' }));
 		expect(within(preview()).queryByText('Poll enthusiast')).not.toBeInTheDocument();
+	});
+
+	it('names a set gender in words and adds it to the preview once shown', async () => {
+		mockUpdateVisibility.mockResolvedValue({ gender: true });
+		render(<VisibilitySettings profile={{ ...profile, gender: 'FEMALE' }} />);
+		const gender = screen.getByRole('switch', { name: 'Gender' });
+		expect(gender).toHaveAccessibleDescription('Female');
+		expect(within(preview()).queryByText(/Gender/)).not.toBeInTheDocument();
+
+		fireEvent.click(gender);
+		expect(mockUpdateVisibility).toHaveBeenCalledWith({ gender: true });
+		expect(within(preview()).getByText(/Gender: Female/)).toBeInTheDocument();
+		await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Gender shown to everyone'));
 	});
 
 	it('links to Edit profile to change the details themselves', () => {

@@ -27,6 +27,7 @@ type HeaderProfile = Pick<
 	| 'followersCount'
 	| 'followingCount'
 	| 'official'
+	| 'gender'
 >;
 
 const detailLink =
@@ -141,6 +142,12 @@ export default function ProfileHeader({
 				<div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-caption-2 text-muted-foreground">
 					{listCount('followers', profile.followersCount)}
 					{listCount('following', profile.followingCount)}
+					{profile.gender && (
+						<span>
+							{t('profile.genderMeta', { gender: t(`profile.genders.${profile.gender}`) })}
+							{isHidden('gender') && <OnlyYouMarker className="ml-1 size-3 align-[-0.125em]" />}
+						</span>
+					)}
 					<span>
 						{t('profile.joined', {
 							date: formatMonthYear(profile.joinedAt, currentLanguage),

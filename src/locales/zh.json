@@ -95,6 +95,22 @@
 		"inputLabel": "6 位數驗證碼",
 		"resendReady": "現在可以重新寄送驗證碼。"
 	},
+	"phoneBind": {
+		"rowTitle": "手機號碼",
+		"rowBodyNone": "有些投票需要先驗證手機號碼才能參與。",
+		"verified": "已驗證",
+		"add": "新增手機號碼",
+		"verify": "驗證",
+		"title": "新增手機號碼",
+		"subtitle": "我們會傳送 6 位數驗證碼到這個號碼。號碼只有你看得到。",
+		"label": "手機號碼",
+		"hint": "台灣手機號碼（09 開頭）或含國碼的號碼（+ 開頭）。",
+		"sendCode": "傳送驗證碼",
+		"codeTitle": "請查看你的簡訊",
+		"codeSubtitle": "請輸入我們傳送到以下號碼的 6 位數驗證碼",
+		"useAnotherNumber": "使用其他號碼",
+		"done": "手機號碼已驗證"
+	},
 	"myPolls": {
 		"title": "我的投票",
 		"tabActive": "進行中",
@@ -196,6 +212,15 @@
 		"lastName": "姓氏",
 		"birthday": "生日",
 		"birthdayInvalid": "請選擇 1900 年至昨天之間的日期。",
+		"gender": "性別",
+		"genders": {
+			"MALE": "男",
+			"FEMALE": "女",
+			"OTHER": "其他",
+			"UNDISCLOSED": "不透露"
+		},
+		"genderMeta": "性別：{gender}",
+		"genderReportNote": "性別只會以不具名的彙總數字出現在 Pro poll 的結果報告裡，不會和你的名字放在一起。",
 		"updated": "個人資料已更新",
 		"askedCount": "發起 {count} 則",
 		"followersCount": "{count} 位追蹤者",
@@ -553,6 +578,9 @@
 	"authError": {
 		"invalidCode": "驗證碼不正確，請確認信件後再試一次。",
 		"codeExpired": "驗證碼已過期，請重新取得。",
+		"invalidSmsCode": "驗證碼不正確，請確認簡訊後再試一次。",
+		"phoneTaken": "這個號碼已綁定其他帳號。",
+		"smsSendFailed": "簡訊無法寄出，請確認號碼後再試一次。",
 		"tooManyAttempts": "錯誤次數過多，請稍候幾分鐘再試。",
 		"resendCooldown": "剛剛已寄出驗證碼，請稍候再試。",
 		"emailSendFailed": "無法寄送信件，請確認信箱後再試一次。",

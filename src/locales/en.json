@@ -94,6 +94,22 @@
 		"inputLabel": "6-digit verification code",
 		"resendReady": "You can send a new code now."
 	},
+	"phoneBind": {
+		"rowTitle": "Phone number",
+		"rowBodyNone": "Some polls ask for a verified phone number before you vote.",
+		"verified": "Verified",
+		"add": "Add phone number",
+		"verify": "Verify",
+		"title": "Add your phone number",
+		"subtitle": "We’ll text a 6-digit code to this number. Only you see it.",
+		"label": "Phone number",
+		"hint": "A Taiwan mobile number (09…) or one with a country code (+…).",
+		"sendCode": "Send code",
+		"codeTitle": "Check your messages",
+		"codeSubtitle": "Enter the 6-digit code we texted to",
+		"useAnotherNumber": "Use a different number",
+		"done": "Phone number verified"
+	},
 	"myPolls": {
 		"title": "My Polls",
 		"tabActive": "Active",
@@ -198,6 +214,15 @@
 		"lastName": "Last name",
 		"birthday": "Birthday",
 		"birthdayInvalid": "Pick a date between 1900 and yesterday.",
+		"gender": "Gender",
+		"genders": {
+			"MALE": "Male",
+			"FEMALE": "Female",
+			"OTHER": "Other",
+			"UNDISCLOSED": "Prefer not to say"
+		},
+		"genderMeta": "Gender: {gender}",
+		"genderReportNote": "Pro poll result reports include gender only in anonymous totals, never with your name.",
 		"updated": "Profile updated",
 		"askedCount": "{count} asked",
 		"askedCount_one": "{count} asked",
@@ -564,6 +589,9 @@
 	"authError": {
 		"invalidCode": "That code is not right. Check the email and try again.",
 		"codeExpired": "This code has expired. Request a new one.",
+		"invalidSmsCode": "That code is not right. Check the text message and try again.",
+		"phoneTaken": "This number is linked to another account.",
+		"smsSendFailed": "We could not send the text message. Check the number and try again.",
 		"tooManyAttempts": "Too many wrong attempts. Wait a few minutes, then try again.",
 		"resendCooldown": "A code was sent recently. Please wait before requesting another.",
 		"emailSendFailed": "We could not send the email. Check the address and try again.",
