@@ -34,8 +34,8 @@ describe('sitemap.xml', () => {
 		mockGetPolls.mockImplementation(async ({ status }) => ({
 			items:
 				status === 'open'
-					? [{ id: 'o', startTime: '2026-11-01T00:00:00Z', updatedAt: '2026-11-02T00:00:00Z', endTime: '2099-01-01T00:00:00Z' }]
-					: [{ id: 'e', startTime: '2026-10-01T00:00:00Z', updatedAt: null, endTime: '2026-10-10T00:00:00Z' }],
+					? [{ id: 'o', active: true, votingActive: true, startTime: '2026-11-01T00:00:00Z', updatedAt: '2026-11-02T00:00:00Z', endTime: '2099-01-01T00:00:00Z' }]
+					: [{ id: 'e', active: true, votingActive: false, startTime: '2026-10-01T00:00:00Z', updatedAt: null, endTime: '2026-10-10T00:00:00Z' }],
 			nextCursor: null,
 		}));
 		const dates = (await sitemap()).slice(2).map(({ lastModified }) => lastModified);

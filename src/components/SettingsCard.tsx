@@ -3,6 +3,12 @@ import { cn } from '@/lib/utils';
 /** A settings row: at least 60px, its text then its control. */
 export const rowClassName = 'flex min-h-15 items-center gap-4 px-4.5 py-3';
 
+/** A row that is a link or button: the row, with a hover and focus outline. */
+export const rowLinkClassName = cn(
+	rowClassName,
+	'transition-colors hover:bg-surface-soft outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring'
+);
+
 /** A settings card's surface, for an element `SettingsCard` can't render (a radio group). */
 export const settingsCardClassName = 'divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card *:first:rounded-t-2xl *:last:rounded-b-2xl';
 

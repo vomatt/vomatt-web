@@ -66,6 +66,20 @@ jest.mock('@/features/polls/components/BallotMotion', () => ({
 	),
 }));
 
+// Marks where the card mounts the voter list, which shows nothing until an option is picked
+jest.mock('@/features/polls/components/VoterList', () => {
+	const actual = jest.requireActual('@/features/polls/components/VoterList');
+	return {
+		...actual,
+		VotersDialog: (props: any) => (
+			<>
+				<span data-testid="voters-dialog" />
+				<actual.VotersDialog {...props} />
+			</>
+		),
+	};
+});
+
 jest.mock('@/components/auth/AuthDialog', () => ({
 	AuthDialog: ({ open, onAuthSuccess }: any) => {
 		if (!open) return null;
@@ -163,6 +177,15 @@ describe('PollCard state A: Open, no Ballot', () => {
 		render(<PollCard poll={openPoll} />);
 		expect(screen.getByRole('link', { name: /@mei\.lin/ })).toHaveAttribute('href', '/mei.lin');
 		expect(screen.getByText('2h')).toBeInTheDocument();
+	});
+
+	it("badges an official account's poll beside its handle", () => {
+		const { unmount } = render(<PollCard poll={openPoll} />);
+		expect(screen.queryByRole('img', { name: 'Official account' })).not.toBeInTheDocument();
+		unmount();
+		render(<PollCard poll={{ ...openPoll, creatorOfficial: true }} />);
+		const link = screen.getByRole('link', { name: /@mei\.lin/ });
+		expect(within(link).getByRole('img', { name: 'Official account' })).toBeInTheDocument();
 	});
 
 	it('shows Turnout and, beside Vote, that results are revealed at the end, but no Support', () => {
@@ -901,6 +924,60 @@ describe('PollCard state D: Ended', () => {
 		render(<PollCard poll={{ ...endedPoll, options: openPoll.options }} />);
 		await waitFor(() => expect(mockGetPoll).toHaveBeenCalledWith('poll-1'));
 		expect(await screen.findByText("Couldn’t load the results.")).toBeInTheDocument();
+	});
+});
+
+describe('PollCard: Ended but sealed until revealAt', () => {
+	const sealedPoll: Poll = {
+		...endedPoll,
+		revealAt: iso(24 * HOUR),
+		options: openPoll.options,
+	};
+
+	it('shows the Seal with the reveal date and the Turnout, and never asks for the results', async () => {
+		render(<PollCard poll={sealedPoll} viewerId="user-1" />);
+		expect(await screen.findByText(/^Results are revealed on .+/)).toBeInTheDocument();
+		expect(screen.getByText('129 voted')).toBeInTheDocument();
+		expect(screen.queryByRole('img', { name: 'Elected' })).not.toBeInTheDocument();
+		expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+		expect(mockGetResults).not.toHaveBeenCalled();
+	});
+
+	it('keeps the voter list from the owner of an owner-only Poll until the reveal', () => {
+		render(<PollCard poll={{ ...sealedPoll, voterVisibility: 'owner' }} viewerId="user-1" />);
+		expect(screen.queryByTestId('voters-dialog')).not.toBeInTheDocument();
+	});
+
+	it('at revealAt, fetches the results once without refetching the Poll', async () => {
+		jest.useFakeTimers();
+		try {
+			mockGetResults.mockResolvedValue({
+				ok: true,
+				data: {
+					id: 'poll-1',
+					totalParticipants: 129,
+					options: [
+						{ id: 'opt-fri', text: 'Friday', voteCount: 38 },
+						{ id: 'opt-sat', text: 'Saturday', voteCount: 29 },
+						{ id: 'opt-sun', text: 'Sunday', voteCount: 62 },
+					],
+				},
+			});
+			render(<PollCard poll={{ ...sealedPoll, revealAt: iso(60_000), voterVisibility: 'owner' }} viewerId="user-1" />);
+			expect(screen.getByText(/^Results are revealed on/)).toBeInTheDocument();
+
+			await act(async () => {
+				jest.advanceTimersByTime(60_000);
+			});
+			await waitFor(() => expect(screen.getByText('62 votes, 48%')).toBeInTheDocument());
+			expect(mockGetResults).toHaveBeenCalledTimes(1);
+			expect(mockGetPoll).not.toHaveBeenCalled();
+			// Revealed: the owner may now open who chose an option
+			expect(screen.getByTestId('voters-dialog')).toBeInTheDocument();
+			expect(screen.getByRole('button', { name: /Sunday/ })).toBeInTheDocument();
+		} finally {
+			jest.useRealTimers();
+		}
 	});
 });
 

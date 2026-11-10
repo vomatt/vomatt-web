@@ -4,11 +4,11 @@ import Link from 'next/link';
 
 import { Globe } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { isFieldPublic } from '@/features/account/visibility';
+import { isFieldPublic, type VisibilityField } from '@/features/account/visibility';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { formatMonthYear } from '@/features/polls/format';
 import { Count } from '@/features/profiles/Count';
-import { profileName } from '@/features/profiles/name';
+import { genderLabel, profileName } from '@/features/profiles/name';
 import { countText } from '@/lib/count';
 import { META_GAP } from '@/lib/rich';
 import { profileHref } from '@/lib/routes';
@@ -19,7 +19,7 @@ import type { MyProfile } from '@/types/user';
 export function PublicPreview({ profile, className }: { profile: MyProfile; className?: string }) {
 	const { t, currentLanguage } = useLanguage();
 	const visibility = profile.visibilitySettings ?? {};
-	const shows = (field: 'displayName' | 'bio' | 'firstName' | 'lastName') =>
+	const shows = (field: VisibilityField) =>
 		isFieldPublic(visibility, field) && !!profile[field];
 	// Built from what visitors get, so hidden names never leak into the preview
 	const name = profileName({
@@ -48,6 +48,12 @@ export function PublicPreview({ profile, className }: { profile: MyProfile; clas
 				</div>
 				{shows('bio') && <p className="line-clamp-3 wrap-anywhere text-caption-1">{profile.bio}</p>}
 				<p className="text-caption-2 text-muted-foreground">
+					{profile.gender && shows('gender') && (
+						<>
+							{t('profile.genderMeta', { gender: genderLabel(t, profile.gender) })}
+							{META_GAP}
+						</>
+					)}
 					{t('profile.joined', { date: formatMonthYear(profile.joinedAt, currentLanguage) })}
 				</p>
 				<p className="text-caption-2 text-muted-foreground">

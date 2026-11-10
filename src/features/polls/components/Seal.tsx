@@ -1,5 +1,6 @@
 'use client';
 
+import { Lock } from '@/components/ui/SvgIcons';
 import { TidePanel } from '@/components/ui/TidePanel';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
@@ -53,6 +54,25 @@ type SealProps = {
 	/** A full-width strip along the bottom of the panel. */
 	footer?: React.ReactNode;
 };
+
+/** An Ended Poll whose counts stay sealed until its `revealAt`, for every viewer; Turnout shows in the footer. */
+export function SealedUntilReveal({ revealAt }: { revealAt: string }) {
+	const { t } = useLanguage();
+	const clock = useViewerClock();
+	// The date needs the viewer's time zone, so the line holds its space until hydration
+	const date = clock ? formatPollMoment(revealAt, clock.language, clock.now) : '';
+	return (
+		<TidePanel>
+			{/* A Tide lock, not the SealMark: its Volt check means the viewer's own vote */}
+			<div className="flex items-center gap-3 py-3.5 pr-3.5 pl-4">
+				<Lock aria-hidden className="size-[18px] shrink-0 text-tide" />
+				<p className={cn('text-body-4 font-medium leading-5 text-foreground', !clock && 'invisible')}>
+					{t('poll.sealedUntilReveal', { date })}
+				</p>
+			</div>
+		</TidePanel>
+	);
+}
 
 /** What a cast Ballot becomes: the Seal, saying when the results open, with the vote's actions. */
 export function Seal({ variant, endTime, children, footer }: SealProps) {

@@ -26,6 +26,7 @@ import { getOwnerActions, OwnerActions } from './OwnerActions';
 import { PollFooter } from './PollFooter';
 import { ReportCommentDialog } from './ReportCommentDialog';
 import { type ResultRow, Results } from './Results';
+import { SealedUntilReveal } from './Seal';
 import { StatusChip } from './StatusChip';
 import { useVoters, VotersDialog } from './VoterList';
 
@@ -48,7 +49,10 @@ interface PollCardProps {
 	headingLevel?: 'h1' | 'h2';
 }
 
-/** Shows the Ballot until the Poll Ends, then the Results. Whether the viewer voted doesn't matter. */
+/**
+ * Shows the Ballot until the Poll Ends, then the Results, or the Seal until its `revealAt`.
+ * Whether the viewer voted doesn't matter.
+ */
 export function PollCard({
 	poll: initialPoll,
 	viewerId,
@@ -125,11 +129,12 @@ export function PollCard({
 	);
 	const ballot = useBallot(poll, { isAuthed, anonymousByDefault, onPollEnded: handlePollEnded });
 	// Ended by the clock, this copy still has the Open Poll's Turnout; Results fetch the counts
-	const status = usePollStatus(poll, refetch);
+	const { status, sealedUntil } = usePollStatus(poll, refetch);
 	const { id, title, description, creatorId, creatorUsername, createdAt } = poll;
 	const isOwner = !!viewerId && viewerId === creatorId;
 	const canSeeVoters =
-		poll.voterVisibility === 'signed-in' ? isAuthed : poll.voterVisibility === 'owner' && isOwner;
+		!sealedUntil &&
+		(poll.voterVisibility === 'signed-in' ? isAuthed : poll.voterVisibility === 'owner' && isOwner);
 	const voters = useVoters(id, isAuthed ? (viewerId ?? 'signed-in') : 'guest');
 	const [votersOption, setVotersOption] = useState<ResultRow | null>(null);
 	const showVoters = (row: ResultRow) => {
@@ -163,6 +168,7 @@ export function PollCard({
 							username={creatorUsername}
 							avatarUrl={poll.creatorAvatarUrl}
 							label={`@${creatorUsername}`}
+							official={poll.creatorOfficial}
 							// 44px tall hit area without growing the header row
 							className="relative z-10 -my-2.5 min-h-11 gap-2.5 font-medium text-foreground transition-colors hover:text-muted-foreground"
 							avatarClassName="size-7"
@@ -207,14 +213,16 @@ export function PollCard({
 				{/* When a Poll ends while open on screen, the Ballot gives way to the Results */}
 				<AnimatePresence mode="wait" initial={false}>
 					<m.div
-						key={status === 'ended' ? 'results' : 'ballot'}
+						key={sealedUntil ? 'sealed' : status === 'ended' ? 'results' : 'ballot'}
 						className="relative z-10"
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
 						transition={{ duration: 0.2 }}
 					>
-						{status === 'ended' ? (
+						{sealedUntil ? (
+							<SealedUntilReveal revealAt={sealedUntil} />
+						) : status === 'ended' ? (
 							<Results
 								poll={poll}
 								myOptionId={ballot.myOptionId}

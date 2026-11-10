@@ -11,6 +11,7 @@ jest.mock('@/data/auth', () => ({
 }));
 jest.mock('@/features/groups/service', () => ({ getGroups: jest.fn().mockResolvedValue({ ok: true, data: [] }) }));
 jest.mock('@/features/notifications/service', () => ({ getNotificationPreferences: jest.fn().mockResolvedValue(null) }));
+jest.mock('@/features/officials/service', () => ({ listMyOfficials: jest.fn().mockResolvedValue({ ok: true, data: [] }) }));
 jest.mock('@/app/(frontend)/settings/_components/AccountSettings', () => ({
 	__esModule: true,
 	default: () => <p>Account settings</p>,

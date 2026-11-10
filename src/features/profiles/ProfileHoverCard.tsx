@@ -16,6 +16,7 @@ import type { UserProfile } from '@/types/user';
 import { Count } from './Count';
 import { MutualFollowersLine } from './MutualFollowers';
 import { profileName } from './name';
+import { OfficialBadge } from './OfficialBadge';
 
 // Matches the route's max-age, so an edited profile shows within a minute
 const PROFILE_TTL_MS = 60_000;
@@ -176,6 +177,7 @@ function ProfileCardBody({
 				<div className="min-w-0 flex-1">
 					<p className="truncate text-title-4 leading-tight">
 						{name.primary}
+						{profile?.official && <OfficialBadge className="ml-1" />}
 						{name.secondary && <span className="text-muted-foreground"> {name.secondary}</span>}
 					</p>
 					<p className="truncate text-caption-2 text-muted-foreground">@{username}</p>

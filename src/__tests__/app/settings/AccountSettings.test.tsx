@@ -21,6 +21,8 @@ jest.mock('@/features/passkeys/service', () => ({
 jest.mock('@/lib/api/services/users', () => ({
 	deleteMyAccount: jest.fn(),
 	editProfile: jest.fn(),
+	sendPhoneBindOtp: jest.fn(),
+	verifyPhoneBind: jest.fn(),
 }));
 const mockGetSessions = jest.fn();
 jest.mock('@/features/sessions/service', () => ({ getSessions: () => mockGetSessions() }));
@@ -62,16 +64,35 @@ describe('AccountSettings', () => {
 	});
 
 	it('counts what others see and opens its own page to change it', () => {
-		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
 
-		// Display name and bio are public by default; the real name shows through its last half; points no page shows
+		// Display name and bio are public by default; the real name shows through its last half; gender is hidden by default; points no page shows
 		const link = screen.getByRole('link', { name: /What others see/ });
-		expect(link).toHaveTextContent('3 of 3 shown');
+		expect(link).toHaveTextContent('3 of 4 shown');
 		expect(link).toHaveAttribute('href', '/settings/visibility');
 	});
 
+	it('shows the phone number by state: add, verify, or verified', () => {
+		const { rerender } = render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
+		expect(screen.getByRole('button', { name: 'Add phone number' })).toBeInTheDocument();
+
+		rerender(<AccountSettings profile={{ ...myProfile, phoneNumber: '+886912345678', phoneVerified: false }} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
+		expect(screen.getByRole('button', { name: 'Verify' })).toBeInTheDocument();
+
+		rerender(<AccountSettings profile={{ ...myProfile, phoneNumber: '+886912345678', phoneVerified: true }} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
+		expect(screen.queryByRole('button', { name: 'Verify' })).not.toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Add phone number' })).not.toBeInTheDocument();
+		expect(screen.getByText('Verified')).toBeInTheDocument();
+	});
+
+	it('opens the phone dialog from the row', () => {
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
+		fireEvent.click(screen.getByRole('button', { name: 'Add phone number' }));
+		expect(screen.getByRole('dialog', { name: 'Add your phone number' })).toBeInTheDocument();
+	});
+
 	it('shows how many invite lists there are and opens them from Voting', () => {
-		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
 		const row = screen.getByRole('button', { name: /Invite lists/ });
 		expect(row).toHaveTextContent('3 lists');
 		fireEvent.click(row);
@@ -79,30 +100,30 @@ describe('AccountSettings', () => {
 	});
 
 	it('counts one invite list in the singular, and leaves the count out when it could not load', () => {
-		const { rerender } = render(<AccountSettings profile={myProfile} inviteListCount={1} notificationPreferences={preferences} />);
+		const { rerender } = render(<AccountSettings profile={myProfile} inviteListCount={1} notificationPreferences={preferences} officials={[]} />);
 		expect(screen.getByRole('button', { name: /Invite lists/ })).toHaveTextContent('1 list');
 
-		rerender(<AccountSettings profile={myProfile} inviteListCount={null} notificationPreferences={preferences} />);
+		rerender(<AccountSettings profile={myProfile} inviteListCount={null} notificationPreferences={preferences} officials={[]} />);
 		expect(screen.getByRole('button', { name: /Invite lists/ })).not.toHaveTextContent(/\d list/);
 	});
 
 	it('refreshes the invite list count once the lists are closed', async () => {
 		mockRefresh.mockClear();
-		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
 		fireEvent.click(screen.getByRole('button', { name: /Invite lists/ }));
 		fireEvent.click(screen.getByRole('button', { name: 'Close' }));
 		await waitFor(() => expect(mockRefresh).toHaveBeenCalled());
 	});
 
 	it('links Language to its own page, naming the current one', () => {
-		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
 		const row = screen.getByRole('link', { name: /Language/ });
 		expect(row).toHaveAttribute('href', '/settings/language');
 		expect(row).toHaveTextContent('English');
 	});
 
 	it('ends with the Terms and Privacy pages', () => {
-		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
 		const legal = screen.getByRole('navigation', { name: 'Legal' });
 		expect(within(legal).getByRole('link', { name: 'Terms' })).toHaveAttribute('href', 'https://about.vomatt.com/terms-of-service');
 		expect(within(legal).getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', 'https://about.vomatt.com/privacy-policy');
@@ -110,7 +131,7 @@ describe('AccountSettings', () => {
 
 	it('picks the theme from a radio group', () => {
 		mockSetTheme.mockClear();
-		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
 		const group = screen.getByRole('radiogroup', { name: 'Theme' });
 		expect(within(group).getByRole('radio', { name: 'Auto' })).toBeChecked();
 
@@ -119,7 +140,7 @@ describe('AccountSettings', () => {
 	});
 
 	it('opens Blocked people on its own page from Privacy', () => {
-		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
 		const privacy = screen.getByRole('region', { name: 'Privacy and safety' });
 		expect(within(privacy).getByRole('link', { name: /Blocked people/ })).toHaveAttribute('href', '/settings/blocked');
 		expect(within(privacy).queryByRole('button', { name: /^Unblock/ })).not.toBeInTheDocument();
@@ -127,7 +148,7 @@ describe('AccountSettings', () => {
 
 	it('sends a report from Help and closes the dialog once it is sent', async () => {
 		mockReportProblem.mockResolvedValue({ ok: true, data: null });
-		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
 		const help = screen.getByRole('region', { name: 'Help' });
 		fireEvent.click(within(help).getByRole('button', { name: /Report a problem/ }));
 		const dialog = screen.getByRole('dialog', { name: 'Report a problem' });
@@ -140,12 +161,12 @@ describe('AccountSettings', () => {
 	});
 
 	it('leaves the people you follow to your profile', () => {
-		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
 		expect(screen.queryByRole('heading', { name: 'Following' })).not.toBeInTheDocument();
 	});
 
 	it('opens Signed-in devices on its own page, with how many there are', async () => {
-		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
 		const link = screen.getByRole('link', { name: /Signed-in devices/ });
 		expect(link).toHaveAttribute('href', '/settings/devices');
 		await waitFor(() => expect(link).toHaveTextContent('2 devices'));
@@ -154,12 +175,12 @@ describe('AccountSettings', () => {
 
 	it('counts one device in the singular, and leaves the count out when the devices could not load', async () => {
 		mockGetSessions.mockResolvedValueOnce({ ok: true, data: [{}] });
-		const { unmount } = render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+		const { unmount } = render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
 		await waitFor(() => expect(screen.getByRole('link', { name: /Signed-in devices/ })).toHaveTextContent('1 device'));
 		unmount();
 
 		mockGetSessions.mockResolvedValueOnce({ ok: false, message: 'x' });
-		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
 		await waitFor(() => expect(mockGetSessions).toHaveBeenCalledTimes(2));
 		expect(screen.getByRole('link', { name: /Signed-in devices/ })).not.toHaveTextContent(/\d device/);
 	});
@@ -176,13 +197,13 @@ describe('AccountSettings', () => {
 				value: { parseCreationOptionsFromJSON: jest.fn() },
 			});
 			Object.defineProperty(navigator, 'credentials', { configurable: true, value: { create: jest.fn() } });
-			render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+			render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
 			expect(screen.getByText('Passkeys')).toBeInTheDocument();
 			expect(screen.getByRole('button', { name: 'Add passkey' })).toBeInTheDocument();
 		});
 
 		it('lists passkeys but hides Add passkey without PublicKeyCredential', async () => {
-			render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+			render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
 			const account = screen.getByRole('region', { name: 'Account' });
 			expect(await within(account).findByText('No passkeys yet.')).toBeInTheDocument();
 			expect(screen.queryByRole('button', { name: 'Add passkey' })).not.toBeInTheDocument();
@@ -191,7 +212,7 @@ describe('AccountSettings', () => {
 		it('is hidden when PublicKeyCredential predates parseCreationOptionsFromJSON', () => {
 			Object.defineProperty(window, 'PublicKeyCredential', { configurable: true, value: {} });
 			Object.defineProperty(navigator, 'credentials', { configurable: true, value: { create: jest.fn() } });
-			render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+			render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
 			expect(screen.queryByRole('button', { name: 'Add passkey' })).not.toBeInTheDocument();
 		});
 	});
@@ -199,7 +220,7 @@ describe('AccountSettings', () => {
 	it('lets the owner vote anonymously by default from Settings', async () => {
 		const { editProfile } = jest.requireMock('@/lib/api/services/users');
 		editProfile.mockResolvedValue({ ok: true });
-		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
 
 		const toggle = screen.getByRole('switch', { name: 'Vote anonymously by default' });
 		expect(toggle).not.toBeChecked();
@@ -214,7 +235,7 @@ describe('AccountSettings', () => {
 	it('shows the delete button as busy while the account is deleted', async () => {
 		const { deleteMyAccount } = jest.requireMock('@/lib/api/services/users');
 		deleteMyAccount.mockReturnValue(new Promise(() => {}));
-		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
 
 		fireEvent.click(screen.getByRole('button', { name: 'Delete account…' }));
 		fireEvent.change(screen.getByRole('textbox', { name: 'Type your username to confirm' }), {
@@ -228,7 +249,7 @@ describe('AccountSettings', () => {
 	it('says the account is still active when deletion fails without a reason', async () => {
 		const { deleteMyAccount } = jest.requireMock('@/lib/api/services/users');
 		deleteMyAccount.mockResolvedValue({ ok: false, status: 502, message: 'Request failed with status 502' });
-		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
 
 		fireEvent.click(screen.getByRole('button', { name: 'Delete account…' }));
 		fireEvent.change(screen.getByRole('textbox', { name: 'Type your username to confirm' }), {
@@ -243,7 +264,7 @@ describe('AccountSettings', () => {
 	it('keeps Delete reachable and explains a mismatched confirmation', () => {
 		const { deleteMyAccount } = jest.requireMock('@/lib/api/services/users');
 		deleteMyAccount.mockClear();
-		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
 
 		fireEvent.click(screen.getByRole('button', { name: 'Delete account…' }));
 		const input = screen.getByRole('textbox', { name: 'Type your username to confirm' });
@@ -261,7 +282,7 @@ describe('AccountSettings', () => {
 	it('accepts the username in any case', async () => {
 		const { deleteMyAccount } = jest.requireMock('@/lib/api/services/users');
 		deleteMyAccount.mockResolvedValue({ ok: false, message: '' });
-		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
 
 		fireEvent.click(screen.getByRole('button', { name: 'Delete account…' }));
 		fireEvent.change(screen.getByRole('textbox', { name: 'Type your username to confirm' }), {
@@ -275,7 +296,7 @@ describe('AccountSettings', () => {
 		const { editProfile } = jest.requireMock('@/lib/api/services/users');
 		const answers: ((value: { ok: boolean; message: string }) => void)[] = [];
 		editProfile.mockImplementation(() => new Promise((resolve) => answers.push(resolve)));
-		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
 
 		const toggle = screen.getByRole('switch', { name: 'Vote anonymously by default' });
 		fireEvent.click(toggle);
@@ -288,7 +309,7 @@ describe('AccountSettings', () => {
 	});
 
 	it('shows a switch per notification kind, Closing soon off by default, between Voting and Appearance', () => {
-		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
 		const section = screen.getByRole('region', { name: 'Notifications' });
 		const switches = within(section).getAllByRole('switch');
 		expect(switches.map((s) => s.getAttribute('aria-checked'))).toEqual(['true', 'true', 'true', 'true', 'true', 'false']);
@@ -305,7 +326,7 @@ describe('AccountSettings', () => {
 
 	it('saves a notification switch on its own', async () => {
 		mockUpdatePreferences.mockResolvedValue({ ok: true, data: { ...preferences, closingSoon: true } });
-		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
 
 		const toggle = screen.getByRole('switch', { name: 'Closing soon' });
 		fireEvent.click(toggle);
@@ -316,7 +337,7 @@ describe('AccountSettings', () => {
 
 	it('puts a notification switch back when the save fails', async () => {
 		mockUpdatePreferences.mockResolvedValue({ ok: false, message: 'x' });
-		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
 
 		const toggle = screen.getByRole('switch', { name: 'Results are in' });
 		fireEvent.click(toggle);
@@ -328,7 +349,7 @@ describe('AccountSettings', () => {
 	it('rolls back only the switch that failed when two saves overlap', async () => {
 		const answers: ((value: unknown) => void)[] = [];
 		mockUpdatePreferences.mockImplementation(() => new Promise((resolve) => answers.push(resolve)));
-		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
 
 		const invitations = screen.getByRole('switch', { name: 'Invitations' });
 		const comments = screen.getByRole('switch', { name: 'Comments on your polls' });
@@ -343,7 +364,7 @@ describe('AccountSettings', () => {
 	});
 
 	it('says so when the notification settings could not be loaded', () => {
-		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={null} />);
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={null} officials={[]} />);
 		const section = screen.getByRole('region', { name: 'Notifications' });
 		expect(section).toHaveTextContent('Couldn’t load your notification settings.');
 		expect(within(section).queryByRole('switch')).not.toBeInTheDocument();
@@ -355,7 +376,7 @@ describe('AccountSettings', () => {
 	])('explains a refused deletion (%s)', async (errorCode, message) => {
 		const { deleteMyAccount } = jest.requireMock('@/lib/api/services/users');
 		deleteMyAccount.mockResolvedValue({ ok: false, status: 409, errorCode, message: 'raw' });
-		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
 
 		fireEvent.click(screen.getByRole('button', { name: 'Delete account…' }));
 		fireEvent.change(screen.getByRole('textbox', { name: 'Type your username to confirm' }), {
@@ -363,6 +384,31 @@ describe('AccountSettings', () => {
 		});
 		fireEvent.click(screen.getAllByRole('button', { name: 'Delete account' }).at(-1)!);
 		await waitFor(() => expect(toast.error).toHaveBeenCalledWith(message, { duration: Infinity }));
+	});
+
+	it('sends the only owner of an official account to hand it over before deleting', async () => {
+		const { deleteMyAccount } = jest.requireMock('@/lib/api/services/users');
+		deleteMyAccount.mockResolvedValue({ ok: false, status: 409, errorCode: 'official.last_owner', message: 'raw' });
+		const officials = [{ officialId: 'off1', username: 'sunrise', displayName: 'Sunrise', avatarUrl: null, role: 'OWNER' as const }];
+		render(
+			<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={officials} />
+		);
+		expect(screen.getByRole('link', { name: /Sunrise/ })).toHaveAttribute('href', '/settings/officials/off1/members');
+		fireEvent.click(screen.getByRole('button', { name: 'Delete account…' }));
+		fireEvent.change(screen.getByRole('textbox', { name: 'Type your username to confirm' }), { target: { value: 'mei' } });
+		fireEvent.click(screen.getAllByRole('button', { name: 'Delete account' }).at(-1)!);
+		await waitFor(() =>
+			expect(toast.error).toHaveBeenCalledWith(
+				'You’re the only owner of an official account. Transfer ownership first.',
+				expect.objectContaining({ action: expect.objectContaining({ label: 'Official accounts' }) })
+			)
+		);
+		expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+	});
+
+	it('has no official accounts section without any', () => {
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} officials={[]} />);
+		expect(screen.queryByRole('region', { name: 'Official accounts' })).not.toBeInTheDocument();
 	});
 });
 

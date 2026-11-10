@@ -8,7 +8,7 @@ export type PollStatus = 'scheduled' | 'open' | 'closing' | 'ended';
 
 const CLOSING_WINDOW_MS = 24 * 60 * 60 * 1000;
 
-export type StatusFields = Pick<Poll, 'active' | 'votingActive' | 'startTime' | 'endTime'>;
+export type StatusFields = Pick<Poll, 'active' | 'votingActive' | 'startTime' | 'endTime' | 'revealAt'>;
 
 /** Ended wins over Scheduled, so an old cancelled Scheduled Poll reads as Ended. */
 export function derivePollStatus(poll: StatusFields, now: Date | number = Date.now()): PollStatus {
@@ -22,13 +22,32 @@ export function derivePollStatus(poll: StatusFields, now: Date | number = Date.n
 	return 'open';
 }
 
+/** When the Poll's counts come out: its `revealAt`, or else its end. Null for a Poll without either. */
+export function revealTime(poll: Pick<Poll, 'endTime' | 'revealAt'>) {
+	return poll.revealAt ?? poll.endTime ?? null;
+}
+
 /**
- * When the clock next changes the Poll's status: the start of its last day, then its end. Null once
- * Ended or without an end. A Scheduled copy says `votingActive: false`, which would read as Ended
- * once the start passes, so only its end counts; it shows as Open once fetched again.
+ * Whether the Poll's counts are out: Ended, and past its `revealAt` if it has one. Until then the API
+ * sends no `votes` and answers `/results` and `/voters` with 403 `vote.results.sealed`.
+ */
+export function isRevealed(poll: StatusFields, now: Date | number = Date.now()) {
+	const time = typeof now === 'number' ? now : now.getTime();
+	// Not revealTime(): a Poll Ended early by its owner may still carry its planned end
+	return derivePollStatus(poll, time) === 'ended' && (!poll.revealAt || Date.parse(poll.revealAt) <= time);
+}
+
+/**
+ * When the clock next changes the Poll's status: the start of its last day, then its end, then its
+ * `revealAt`. Null once revealed or without an end. A Scheduled copy says `votingActive: false`, which
+ * would read as Ended once the start passes, so only its end counts; it shows as Open once fetched again.
  */
 export function nextStatusChange(poll: StatusFields, now: number): number | null {
-	if (!poll.endTime || derivePollStatus(poll, now) === 'ended') return null;
+	if (derivePollStatus(poll, now) === 'ended') {
+		const reveal = poll.revealAt ? Date.parse(poll.revealAt) : null;
+		return reveal !== null && reveal > now ? reveal : null;
+	}
+	if (!poll.endTime) return null;
 	const end = Date.parse(poll.endTime);
 	const closing = end - CLOSING_WINDOW_MS;
 	return poll.votingActive && closing > now ? closing : end;

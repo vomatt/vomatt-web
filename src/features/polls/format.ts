@@ -60,6 +60,7 @@ const perLanguage = <T>(make: (locale: string) => T) =>
 const RELATIVE_DAY = perLanguage((locale) => new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }));
 const WEEKDAY = perLanguage((locale) => new Intl.DateTimeFormat(locale, { weekday: 'short' }));
 const MONTH_DAY = perLanguage((locale) => new Intl.DateTimeFormat(locale, { month: 'short', day: 'numeric' }));
+const DAY_DATE = perLanguage((locale) => new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }));
 const unitFormat = (unit: 'minute' | 'hour' | 'day') =>
 	perLanguage((locale) => new Intl.NumberFormat(locale, { style: 'unit', unit, unitDisplay: 'narrow' }));
 const MINUTES = unitFormat('minute');
@@ -123,4 +124,9 @@ export function formatAge(iso: string, language: LanguageCode, now: number) {
 /** Sentences as one paragraph: a space between them in English, none after Chinese 。 */
 export function joinSentences(language: LanguageCode, ...sentences: string[]) {
 	return sentences.join(language === 'zh' ? '' : ' ');
+}
+
+/** "Nov 9, 2026" / "2026年11月9日", in the reader's time zone. */
+export function formatDate(iso: string, language: LanguageCode) {
+	return DAY_DATE[language].format(new Date(iso));
 }

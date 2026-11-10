@@ -1,6 +1,6 @@
 import { ballotOutcome } from '@/features/account/insights';
 import type { Poll } from '@/features/polls/schema';
-import { derivePollStatus, getTurnout, getWinners, isCancelled } from '@/features/polls/status';
+import { derivePollStatus, getTurnout, getWinners, isCancelled, isRevealed } from '@/features/polls/status';
 
 /** Asked: Scheduled and Open polls first (what happens next), then Ended ones. */
 export function splitAsked(polls: Poll[], now = Date.now()) {
@@ -10,11 +10,11 @@ export function splitAsked(polls: Poll[], now = Date.now()) {
 	return { open, ended };
 }
 
-/** Voted: Sealed ballots waiting for results first, then decided ones. */
+/** Voted: Sealed ballots waiting for results (open, or Ended before `revealAt`) first, then decided ones. */
 export function splitVoted(polls: Poll[], now = Date.now()) {
 	const sealed: Poll[] = [];
 	const decided: Poll[] = [];
-	for (const poll of polls) (derivePollStatus(poll, now) === 'ended' ? decided : sealed).push(poll);
+	for (const poll of polls) (isRevealed(poll, now) ? decided : sealed).push(poll);
 	return { sealed, decided };
 }
 
@@ -57,8 +57,9 @@ export type EndedSummary =
 	| { kind: 'tie'; winners: string[] }
 	| { kind: 'none' };
 
-/** What an Ended Poll decided: one winner, a tie, or nothing to say (no votes, cancelled, counts hidden). */
+/** What an Ended Poll decided: one winner, a tie, or nothing to say (no votes, cancelled, counts hidden or sealed). */
 export function endedSummary(poll: Poll): EndedSummary {
+	// A sealed Poll comes without counts, so the missing votes cover it too
 	if (isCancelled(poll) || poll.options.some((option) => option.votes === undefined)) return { kind: 'none' };
 	const winners = getWinners(poll.options.map((option) => ({ text: option.text, votes: option.votes ?? 0 })));
 	if (winners.length === 1) return { kind: 'won', winner: winners[0].text };

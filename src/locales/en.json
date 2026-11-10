@@ -94,6 +94,22 @@
 		"inputLabel": "6-digit verification code",
 		"resendReady": "You can send a new code now."
 	},
+	"phoneBind": {
+		"rowTitle": "Phone number",
+		"rowBodyNone": "Some polls ask for a verified phone number before you vote.",
+		"verified": "Verified",
+		"add": "Add phone number",
+		"verify": "Verify",
+		"title": "Add your phone number",
+		"subtitle": "We’ll text a 6-digit code to this number. Only you see it.",
+		"label": "Phone number",
+		"hint": "A Taiwan mobile number (09…) or one with a country code (+…).",
+		"sendCode": "Send code",
+		"codeTitle": "Check your messages",
+		"codeSubtitle": "Enter the 6-digit code we texted to",
+		"useAnotherNumber": "Use a different number",
+		"done": "Phone number verified"
+	},
 	"myPolls": {
 		"title": "My Polls",
 		"tabActive": "Active",
@@ -173,6 +189,7 @@
 		"noPollsYetOwn": "Your polls show up here once they open.",
 		"pollsLoadFailed": "Couldn’t load polls.",
 		"cardFailed": "Couldn’t load this profile.",
+		"official": "Official account",
 		"joined": "Joined {date}",
 		"followers": "Followers",
 		"following": "Following",
@@ -197,6 +214,15 @@
 		"lastName": "Last name",
 		"birthday": "Birthday",
 		"birthdayInvalid": "Pick a date between 1900 and yesterday.",
+		"gender": "Gender",
+		"genders": {
+			"MALE": "Male",
+			"FEMALE": "Female",
+			"OTHER": "Other",
+			"UNDISCLOSED": "Prefer not to say"
+		},
+		"genderMeta": "Gender: {gender}",
+		"genderReportNote": "Pro poll result reports include gender only in anonymous totals, never with your name.",
 		"updated": "Profile updated",
 		"askedCount": "{count} asked",
 		"askedCount_one": "{count} asked",
@@ -462,6 +488,7 @@
 		"sealed": "Results are sealed until {date}. We’ll notify you when they’re in.",
 		"sealedNoEnd": "Results are sealed until the poll ends. We’ll notify you when they’re in.",
 		"sealedTitle": "Sealed. Thank you.",
+		"sealedUntilReveal": "Results are revealed on {date}",
 		"opensHint": "Voting opens {distance}",
 		"voted": "{count} voted",
 		"voteCount": "{count} votes",
@@ -562,6 +589,9 @@
 	"authError": {
 		"invalidCode": "That code is not right. Check the email and try again.",
 		"codeExpired": "This code has expired. Request a new one.",
+		"invalidSmsCode": "That code is not right. Check the text message and try again.",
+		"phoneTaken": "This number is linked to another account.",
+		"smsSendFailed": "We could not send the text message. Check the number and try again.",
 		"tooManyAttempts": "Too many wrong attempts. Wait a few minutes, then try again.",
 		"resendCooldown": "A code was sent recently. Please wait before requesting another.",
 		"emailSendFailed": "We could not send the email. Check the address and try again.",
@@ -569,7 +599,8 @@
 		"rateLimited": "Too many requests. Please wait a moment and try again.",
 		"invalidEmail": "Please enter a valid email address.",
 		"passkeyRefused": "Your browser didn’t open your passkeys. Try again, use another browser, or continue with email.",
-		"serverError": "Something went wrong. Please try again later."
+		"serverError": "Something went wrong. Please try again later.",
+		"officialSignIn": "Official accounts can’t sign in. Sign in with your own account, then switch."
 	},
 	"onboarding": {
 		"title": "What's your name?",
@@ -694,7 +725,8 @@
 		"addLabel": "Invite more people",
 		"add": "Invite",
 		"addFailed": "Couldn’t invite them. Try again.",
-		"removeFailed": "Couldn’t remove them. Try again."
+		"removeFailed": "Couldn’t remove them. Try again.",
+		"officialNotAllowed": "Official accounts don’t vote, so they can’t be invited."
 	},
 	"groups": {
 		"title": "Invite Lists",
@@ -1178,6 +1210,17 @@
 		"admin": {
 			"self_action_forbidden": "You cannot suspend yourself or remove your own admin role",
 			"last_admin": "Cannot remove the last active admin"
+		},
+		"official": {
+			"invitee_not_allowed": "Official accounts don’t vote, so they can’t be invited.",
+			"last_owner": "An official account needs at least one owner. Transfer ownership first.",
+			"not_member": "You’re no longer a member of this account.",
+			"role_forbidden": "You don’t have permission to do that.",
+			"member": {
+				"exists": "They’re already a member.",
+				"invalid": "They can’t be added to this account.",
+				"not_found": "They’re no longer a member. The list has been refreshed."
+			}
 		}
 	},
 	"blocks": {
@@ -1306,6 +1349,60 @@
 		"signedOut": "Device signed out",
 		"othersSignedOut": "Other devices signed out",
 		"signOutFailed": "Couldn’t sign out. Please try again."
+	},
+	"officials": {
+		"title": "Official accounts",
+		"members": "Members",
+		"add": "Add member",
+		"addTitle": "Add a member",
+		"searchLabel": "Search by username",
+		"searchPlaceholder": "Search by username",
+		"role": "Role",
+		"rolesTitle": "What each role can do",
+		"roles": {
+			"OWNER": "Owner",
+			"ADMIN": "Admin",
+			"CHIEF_EDITOR": "Chief editor",
+			"EDITOR": "Editor",
+			"ANALYST": "Analyst"
+		},
+		"roleBodies": {
+			"OWNER": "Everything, including handing over ownership.",
+			"ADMIN": "Everything except changing or removing owners.",
+			"CHIEF_EDITOR": "Posts, and edits or ends anyone’s polls and comments.",
+			"EDITOR": "Posts polls and comments, and edits their own.",
+			"ANALYST": "Sees result reports; doesn’t post."
+		},
+		"you": "(you)",
+		"joined": "joined {date}",
+		"yourRole": "You’re {role}",
+		"memberMore": "More for @{name}",
+		"actions": {
+			"changeRole": "Change role",
+			"transferOwner": "Make owner",
+			"remove": "Remove",
+			"leave": "Leave"
+		},
+		"changeRoleTitle": "Change @{name}’s role",
+		"removeTitle": "Remove @{name}?",
+		"removeBody": "They’ll no longer be able to act as {official}. What they posted stays.",
+		"remove": "Remove",
+		"transferTitle": "Make @{name} the owner?",
+		"transferBody": "@{name} becomes an owner of {official} and you become an admin.",
+		"transfer": "Make owner",
+		"leaveTitle": "Leave {official}?",
+		"leaveBody": "You’ll no longer be able to act as this account. What you posted stays. Only an owner or admin can add you back.",
+		"leave": "Leave",
+		"added": "Added @{name}",
+		"roleChanged": "Changed @{name}’s role",
+		"transferred": "@{name} is now an owner",
+		"removed": "Removed @{name}",
+		"left": "You left {official}",
+		"notMemberTitle": "You’re not a member",
+		"notMemberBody": "This official account doesn’t exist, or you’re no longer one of its members.",
+		"goToOfficials": "Official accounts",
+		"deleteLastOwner": "You’re the only owner of an official account. Transfer ownership first.",
+		"officialNotAllowed": "Official accounts can’t be members of another account."
 	},
 	"meta": {
 		"siteDescription": "Ask a question, vote on other people’s polls, and see what everyone really thinks. Ballots stay sealed until a poll ends, so nobody votes with the crowd.",

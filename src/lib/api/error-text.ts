@@ -9,7 +9,9 @@ const PLACEHOLDER = /\{\d+\}/;
 const DETAILED_CODES = ['common.validation_failed', 'common.bad_request'];
 
 // Codes shown with our own wording instead of the `apiError.*` copy
-const OVERRIDES: Record<string, string> = { 'common.conflict': 'common.busy' };
+const OVERRIDES: Record<string, string> = {
+	'common.conflict': 'common.busy',
+};
 
 /**
  * The text to show for a failed action: our `apiError.*` copy of its errorCode,

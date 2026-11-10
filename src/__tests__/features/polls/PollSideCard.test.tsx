@@ -15,6 +15,8 @@ jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguag
 jest.mock('@/features/polls/service', () => ({}));
 
 const poll = sidePoll;
+/** What Results are in lists: Ended Polls. */
+const ended = { ...sidePoll, active: false, endTime: new Date(Date.now() - 3600_000).toISOString() };
 
 describe('PollSideCard', () => {
 	it('links each Poll under a named heading, with its turnout', () => {
@@ -59,8 +61,8 @@ describe('PollSideCard', () => {
 	});
 
 	it('says what each Poll in Results are in decided, before its turnout', () => {
-		const won = { ...poll, unread: true, options: [{ id: 'a', text: 'Yes', votes: 600 }, { id: 'b', text: 'No', votes: 214 }] };
-		const tie = { ...poll, id: 'poll-2', options: [{ id: 'a', text: 'Yes', votes: 6 }, { id: 'b', text: 'No', votes: 6 }] };
+		const won = { ...ended, unread: true, options: [{ id: 'a', text: 'Yes', votes: 600 }, { id: 'b', text: 'No', votes: 214 }] };
+		const tie = { ...ended, id: 'poll-2', options: [{ id: 'a', text: 'Yes', votes: 6 }, { id: 'b', text: 'No', votes: 6 }] };
 		render(<PollSideCard kind="resultsIn" polls={[won, tie]} />);
 		const [wonLink, tieLink] = within(screen.getByRole('list')).getAllByRole('link');
 		expect(within(wonLink).getByText(/won/).textContent).toBe(`Yes won${META_GAP}1,502 voted${META_GAP}new`);
@@ -68,8 +70,8 @@ describe('PollSideCard', () => {
 	});
 
 	it('stamps the winner of a Poll in Results are in; a tie names no option to stamp', () => {
-		const won = { ...poll, options: [{ id: 'a', text: 'Yes', votes: 600 }, { id: 'b', text: 'No', votes: 214 }] };
-		const tie = { ...poll, id: 'poll-2', options: [{ id: 'a', text: 'Yes', votes: 6 }, { id: 'b', text: 'No', votes: 6 }] };
+		const won = { ...ended, options: [{ id: 'a', text: 'Yes', votes: 600 }, { id: 'b', text: 'No', votes: 214 }] };
+		const tie = { ...ended, id: 'poll-2', options: [{ id: 'a', text: 'Yes', votes: 6 }, { id: 'b', text: 'No', votes: 6 }] };
 		render(<PollSideCard kind="resultsIn" polls={[won, tie]} />);
 		const [wonLink, tieLink] = within(screen.getByRole('list')).getAllByRole('link');
 		// The stamp is decorative: "won" already says it, so screen readers don't hear "Elected" too

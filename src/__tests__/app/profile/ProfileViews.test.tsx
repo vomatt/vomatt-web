@@ -131,6 +131,13 @@ describe('VisitorProfileView', () => {
 		expect(screen.getByRole('heading', { level: 1, name: 'Amira Haddad Ami' })).toBeInTheDocument();
 	});
 
+	it('shows a gender only when the owner made it public', () => {
+		const { rerender } = render(<VisitorProfileView profile={visitor} polls={{ items: [], nextCursor: null }} viewerId={null} />);
+		expect(screen.queryByText(/Gender/)).not.toBeInTheDocument();
+		rerender(<VisitorProfileView profile={{ ...visitor, gender: 'OTHER' }} polls={{ items: [], nextCursor: null }} viewerId={null} />);
+		expect(screen.getByText('Gender: Other')).toBeInTheDocument();
+	});
+
 	it('says what following does, even signed out', () => {
 		render(<VisitorProfileView profile={visitor} polls={{ items: [], nextCursor: null }} viewerId={null} />);
 		expect(screen.getByText('What following does')).toBeInTheDocument();
@@ -320,6 +327,12 @@ describe('OwnProfileView', () => {
 		render(<OwnProfileView profile={{ ...me, firstName: 'Mei', lastName: 'Lin' }} polls={[]} />);
 		expect(screen.getByRole('heading', { level: 1, name: 'Mei Lin (Only you can see this) Mei' })).toBeInTheDocument();
 		expect(screen.getByRole('region', { name: 'What everyone sees' })).not.toHaveTextContent('Mei Lin');
+	});
+
+	it('shows the owner their hidden gender with the lock, and keeps it out of the public preview', () => {
+		render(<OwnProfileView profile={{ ...me, gender: 'MALE' }} polls={[]} />);
+		expect(screen.getByRole('banner')).toHaveTextContent('Gender: Male(Only you can see this)');
+		expect(screen.getByRole('region', { name: 'What everyone sees' })).not.toHaveTextContent('Gender');
 	});
 
 	it('leaves out location and points, even ones made public', () => {
