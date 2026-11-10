@@ -16,13 +16,13 @@ import {
 	type ReactNode,
 	type RefObject,
 	useEffect,
-	useId,
 	useRef,
 	useState,
 } from 'react';
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 
+import { PillGroup } from '@/components/PillGroup';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -1018,55 +1018,5 @@ export function PollCreator({
 				)}
 			</AlertDialog>
 		</>
-	);
-}
-
-type PillGroupProps<T extends string> = {
-	legend: string;
-	/** Under the legend. */
-	note: string;
-	/** What the chosen pill means, under the pills. */
-	hint: string;
-	value: T;
-	onChange: (value: T) => void;
-	options: { value: T; label: string }[];
-};
-
-/** One choice of a few, as toggle pills. */
-function PillGroup<T extends string>({
-	legend,
-	note,
-	hint,
-	value,
-	onChange,
-	options,
-}: PillGroupProps<T>) {
-	const noteId = useId();
-	const hintId = useId();
-	return (
-		<fieldset aria-describedby={`${noteId} ${hintId}`}>
-			<legend className={LABEL}>{legend}</legend>
-			<p id={noteId} className="mt-0.5 text-caption-1 text-muted-foreground">
-				{note}
-			</p>
-			<div className="mt-3 flex flex-wrap gap-2">
-				{options.map((option) => (
-					<Button
-						key={option.value}
-						type="button"
-						size="sm"
-						variant={option.value === value ? 'default' : 'outline'}
-						aria-pressed={option.value === value}
-						className="rounded-full"
-						onClick={() => onChange(option.value)}
-					>
-						{option.label}
-					</Button>
-				))}
-			</div>
-			<p id={hintId} className="mt-2 text-caption-1 text-muted-foreground">
-				{hint}
-			</p>
-		</fieldset>
 	);
 }

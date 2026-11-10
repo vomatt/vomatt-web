@@ -265,3 +265,45 @@ describe('EditProfileDialog', () => {
 		}
 	});
 });
+
+describe('EditProfileDialog gender', () => {
+	const genderButton = (name: string) => screen.getByRole('button', { name });
+
+	it('starts with no choice when never set, and offers no way to unset it', () => {
+		open();
+		for (const name of ['Male', 'Female', 'Other', 'Prefer not to say']) {
+			expect(genderButton(name)).toHaveAttribute('aria-pressed', 'false');
+		}
+		expect(screen.getByRole('group', { name: 'Gender' })).toHaveAccessibleDescription(
+			'Pro poll result reports include gender only in anonymous totals, never with your name.'
+		);
+	});
+
+	it('saves a gender-only change', async () => {
+		open();
+		fireEvent.click(genderButton('Prefer not to say'));
+		expect(genderButton('Prefer not to say')).toHaveAttribute('aria-pressed', 'true');
+		save();
+		await waitFor(() => expect(mockEditProfile).toHaveBeenCalledTimes(1));
+		expect(mockEditProfile.mock.calls[0][0]).toMatchObject({ gender: 'UNDISCLOSED' });
+	});
+
+	it('leaves gender out of the request when it did not change', async () => {
+		render(<EditProfileDialog profile={{ ...profile, gender: 'FEMALE' }} />);
+		fireEvent.click(screen.getByRole('button', { name: 'Edit profile' }));
+		expect(genderButton('Female')).toHaveAttribute('aria-pressed', 'true');
+		fireEvent.click(genderButton('Female'));
+		fireEvent.change(screen.getByLabelText('Display name'), { target: { value: 'Mei Lin' } });
+		save();
+		await waitFor(() => expect(mockEditProfile).toHaveBeenCalledTimes(1));
+		expect(mockEditProfile.mock.calls[0][0].gender).toBeUndefined();
+	});
+
+	it('keeps gender hidden by default and saves its visibility', async () => {
+		open();
+		fireEvent.click(screen.getByRole('button', { name: 'Gender: only you see it. Change' }));
+		save();
+		await waitFor(() => expect(mockUpdateVisibility).toHaveBeenCalledWith({ gender: true }));
+		expect(mockEditProfile).not.toHaveBeenCalled();
+	});
+});

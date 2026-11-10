@@ -2,13 +2,14 @@ import type { MetadataRoute } from 'next';
 
 import type { Poll } from '@/features/polls/schema';
 import { getPolls } from '@/features/polls/service';
+import { isRevealed, revealTime } from '@/features/polls/status';
 import { MAX_PAGE_SIZE } from '@/lib/api/cursor';
 import { pollHref, siteUrl } from '@/lib/routes';
 
-/** An Ended Poll changed when it ended: its counts were sealed until then. */
+/** A Poll changed when its counts came out: at its end, or its `revealAt`. */
 function lastModified(poll: Poll) {
 	const edited = poll.updatedAt ?? poll.startTime;
-	const ended = poll.endTime && Date.parse(poll.endTime) <= Date.now() ? poll.endTime : null;
+	const ended = isRevealed(poll) ? revealTime(poll) : null;
 	return ended && Date.parse(ended) > Date.parse(edited) ? ended : edited;
 }
 

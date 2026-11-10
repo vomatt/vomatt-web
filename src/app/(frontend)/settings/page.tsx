@@ -6,6 +6,7 @@ import { T } from '@/components/T';
 import { getMyProfile, redirectToLogin } from '@/data/auth';
 import { getGroups } from '@/features/groups/service';
 import { getNotificationPreferences } from '@/features/notifications/service';
+import { listMyOfficials } from '@/features/officials/service';
 import { getServerMessages } from '@/lib/getServerLocale';
 import { profileHref } from '@/lib/routes';
 
@@ -17,10 +18,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function SettingsPage() {
-	const [profile, groups, notificationPreferences] = await Promise.all([
+	const [profile, groups, notificationPreferences, officials] = await Promise.all([
 		getMyProfile(),
 		getGroups(),
 		getNotificationPreferences().catch(() => null),
+		listMyOfficials(),
 	]);
 	if (!profile) return redirectToLogin('/settings');
 
@@ -43,6 +45,7 @@ export default async function SettingsPage() {
 				profile={profile}
 				inviteListCount={groups.ok ? groups.data.length : null}
 				notificationPreferences={notificationPreferences}
+				officials={officials.ok ? officials.data : []}
 			/>
 		</PageShell>
 	);

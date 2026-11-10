@@ -4,6 +4,7 @@ import en from '@/locales/en.json';
 export type AuthErrorKey =
 	| `apiError.auth.${string}`
 	| 'invalidCode'
+	| 'invalidSmsCode'
 	| 'codeExpired'
 	| 'tooManyAttempts'
 	| 'resendCooldown'
@@ -11,7 +12,10 @@ export type AuthErrorKey =
 	| 'accountSuspended'
 	| 'rateLimited'
 	| 'invalidEmail'
+	| 'phoneTaken'
+	| 'smsSendFailed'
 	| 'passkeyRefused'
+	| 'officialSignIn'
 	| 'serverError';
 
 const ERROR_CODES: Record<string, AuthErrorKey> = {
@@ -22,7 +26,17 @@ const ERROR_CODES: Record<string, AuthErrorKey> = {
 	'auth.otp.resend_cooldown': 'resendCooldown',
 	'auth.email.send_failed': 'emailSendFailed',
 	'auth.account_banned': 'accountSuspended',
+	'auth.official_sign_in_not_allowed': 'officialSignIn',
+	'auth.sms.send_failed': 'smsSendFailed',
+	'user.phone.taken': 'phoneTaken',
 };
+
+/** Seconds left on a resend cooldown, which the API states only in its (localized) message. */
+export function cooldownSeconds(errorCode: string | undefined, message: string) {
+	if (errorCode !== 'auth.otp.resend_cooldown') return undefined;
+	const seconds = Number(/\d+/.exec(message)?.[0]);
+	return seconds > 0 ? seconds : undefined;
+}
 
 /** An `auth.*` code with `apiError` copy that needs no `{0}` value. */
 function hasApiErrorCopy(errorCode: string) {
@@ -33,11 +47,20 @@ function hasApiErrorCopy(errorCode: string) {
 	return typeof text === 'string' && !/\{\d+\}/.test(text);
 }
 
-/** Maps a backend `errorCode` and HTTP status to a message the UI can show. */
-export function toAuthErrorKey(errorCode: string | undefined, status?: number): AuthErrorKey {
-	if (errorCode && ERROR_CODES[errorCode]) return ERROR_CODES[errorCode];
+/**
+ * Maps a backend `errorCode` and HTTP status to a message the UI can show. `context` is what only the caller
+ * knows: `badRequest`, the copy for a 400 with no copy of its own, and `codes`, its own copy for codes
+ * that mean something else there.
+ */
+export function toAuthErrorKey(
+	errorCode: string | undefined,
+	status?: number,
+	context: { badRequest?: AuthErrorKey; codes?: Record<string, AuthErrorKey> } = {}
+): AuthErrorKey {
+	const known = errorCode && (context.codes?.[errorCode] ?? ERROR_CODES[errorCode]);
+	if (known) return known;
 	if (errorCode?.startsWith('auth.') && hasApiErrorCopy(errorCode)) return `apiError.${errorCode}` as AuthErrorKey;
 	if (status === 429) return 'rateLimited';
-	if (status === 400) return 'invalidEmail';
+	if (status === 400) return context.badRequest ?? 'serverError';
 	return 'serverError';
 }

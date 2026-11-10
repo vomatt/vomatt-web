@@ -1,11 +1,11 @@
 import type { Poll } from '@/features/polls/schema';
-import { derivePollStatus, getTurnout, getWinners } from '@/features/polls/status';
+import { getTurnout, getWinners, isRevealed } from '@/features/polls/status';
 
 export type BallotOutcome = 'pending' | 'won' | 'tied' | 'lost' | 'unknown';
 
-/** Whether the viewer's pick won an Ended Poll; `pending` while it is still open. */
+/** Whether the viewer's pick won an Ended Poll; `pending` until its results are revealed. */
 export function ballotOutcome(poll: Poll, optionId: string, now = Date.now()): BallotOutcome {
-	if (derivePollStatus(poll, now) !== 'ended') return 'pending';
+	if (!isRevealed(poll, now)) return 'pending';
 	if (poll.options.some((option) => option.votes === undefined)) return 'unknown';
 	const winners = getWinners(poll.options.map((option) => ({ id: option.id, votes: option.votes ?? 0 })));
 	if (!winners.some((option) => option.id === optionId)) return 'lost';

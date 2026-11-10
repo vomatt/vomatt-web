@@ -42,7 +42,7 @@ import {
 	type Voter,
 	VoterSchema,
 } from './schema';
-import { derivePollStatus } from './status';
+import { derivePollStatus, isRevealed } from './status';
 
 const PollPage = cursorPageSchema(PollSchema);
 
@@ -129,7 +129,7 @@ export async function getFollowingFeed(cursor?: string | null, size = 10) {
 }
 
 /**
- * Ended Polls the viewer voted in, most recently ended first, each with its `unread` flag. An Anonymous
+ * Revealed Ended Polls the viewer voted in, most recently ended first, each with its `unread` flag. An Anonymous
  * Ballot's option is sealed a day after the end, but `myBallotAnonymous` still says there was one.
  * Reads on past pages with no such Poll, so a page comes back empty only at the end.
  */
@@ -137,7 +137,11 @@ export async function getResultsInFeed(cursor?: string | null, size = 10): Promi
 	const { items, nextCursor } = await collectPages(
 		async (pageCursor) => {
 			const page = await getMyPolls('ended', pageCursor, size);
-			return { ...page, items: page.items.filter((poll) => !!poll.myOptionId || poll.myBallotAnonymous != null) };
+			// A Poll still sealed past its end (before `revealAt`) has no results in yet
+			const items = page.items.filter(
+				(poll) => (!!poll.myOptionId || poll.myBallotAnonymous != null) && isRevealed(poll)
+			);
+			return { ...page, items };
 		},
 		{ cursor, maxPages: 5, until: (found) => found.length > 0 }
 	);

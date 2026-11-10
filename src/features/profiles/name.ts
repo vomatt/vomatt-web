@@ -1,3 +1,5 @@
+import type { Gender } from '@/types/user';
+
 type NameParts = {
 	username: string;
 	displayName?: string | null;
@@ -28,4 +30,9 @@ export function profileName(profile: NameParts) {
 		// A display name that repeats the real name isn't shown twice
 		secondary: real && display && display.toLowerCase() !== real.toLowerCase() ? display : null,
 	};
+}
+
+/** The gender as the viewer's language words it. */
+export function genderLabel(t: (key: string) => string, gender: Gender) {
+	return t(`profile.genders.${gender}`);
 }

@@ -42,7 +42,7 @@ export default async function Page({ searchParams }: Props) {
 			/>
 			<PageShell className="pt-0" rail={<HomeRail signedIn={!!user} />}>
 				<Suspense
-					fallback={<FeedSkeleton />}
+					fallback={<FeedSkeleton signedIn={!!user} />}
 				>
 					<Feed tag={tag} viewerId={user?.sub} />
 				</Suspense>

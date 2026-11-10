@@ -95,6 +95,22 @@
 		"inputLabel": "6 位數驗證碼",
 		"resendReady": "現在可以重新寄送驗證碼。"
 	},
+	"phoneBind": {
+		"rowTitle": "手機號碼",
+		"rowBodyNone": "有些投票需要先驗證手機號碼才能參與。",
+		"verified": "已驗證",
+		"add": "新增手機號碼",
+		"verify": "驗證",
+		"title": "新增手機號碼",
+		"subtitle": "我們會傳送 6 位數驗證碼到這個號碼。號碼只有你看得到。",
+		"label": "手機號碼",
+		"hint": "台灣手機號碼（09 開頭）或含國碼的號碼（+ 開頭）。",
+		"sendCode": "傳送驗證碼",
+		"codeTitle": "請查看你的簡訊",
+		"codeSubtitle": "請輸入我們傳送到以下號碼的 6 位數驗證碼",
+		"useAnotherNumber": "使用其他號碼",
+		"done": "手機號碼已驗證"
+	},
 	"myPolls": {
 		"title": "我的投票",
 		"tabActive": "進行中",
@@ -173,6 +189,7 @@
 		"noPollsYetOwn": "你的投票開放後會顯示在這裡。",
 		"pollsLoadFailed": "無法載入投票。",
 		"cardFailed": "無法載入個人資料。",
+		"official": "官方帳號",
 		"joined": "{date} 加入",
 		"followers": "追蹤者",
 		"following": "追蹤中",
@@ -195,6 +212,15 @@
 		"lastName": "姓氏",
 		"birthday": "生日",
 		"birthdayInvalid": "請選擇 1900 年至昨天之間的日期。",
+		"gender": "性別",
+		"genders": {
+			"MALE": "男",
+			"FEMALE": "女",
+			"OTHER": "其他",
+			"UNDISCLOSED": "不透露"
+		},
+		"genderMeta": "性別：{gender}",
+		"genderReportNote": "性別只會以不具名的彙總數字出現在 Pro poll 的結果報告裡，不會和你的名字放在一起。",
 		"updated": "個人資料已更新",
 		"askedCount": "發起 {count} 則",
 		"followersCount": "{count} 位追蹤者",
@@ -453,6 +479,7 @@
 		"sealed": "結果將於 {date} 公開，屆時會通知你。",
 		"sealedNoEnd": "結果將於投票結束後公開，屆時會通知你。",
 		"sealedTitle": "已密封，謝謝你。",
+		"sealedUntilReveal": "結果將於 {date} 揭曉",
 		"opensHint": "投票將於{distance}開始",
 		"voted": "{count} 人已投票",
 		"voteCount": "{count} 票",
@@ -551,6 +578,9 @@
 	"authError": {
 		"invalidCode": "驗證碼不正確，請確認信件後再試一次。",
 		"codeExpired": "驗證碼已過期，請重新取得。",
+		"invalidSmsCode": "驗證碼不正確，請確認簡訊後再試一次。",
+		"phoneTaken": "這個號碼已綁定其他帳號。",
+		"smsSendFailed": "簡訊無法寄出，請確認號碼後再試一次。",
 		"tooManyAttempts": "錯誤次數過多，請稍候幾分鐘再試。",
 		"resendCooldown": "剛剛已寄出驗證碼，請稍候再試。",
 		"emailSendFailed": "無法寄送信件，請確認信箱後再試一次。",
@@ -558,7 +588,8 @@
 		"rateLimited": "請求過於頻繁，請稍後再試。",
 		"invalidEmail": "請輸入有效的電子郵件。",
 		"passkeyRefused": "瀏覽器沒有開啟你的通行密鑰。請再試一次、改用其他瀏覽器，或使用電子郵件繼續。",
-		"serverError": "發生錯誤，請稍後再試。"
+		"serverError": "發生錯誤，請稍後再試。",
+		"officialSignIn": "官方帳號不能直接登入，請用成員帳號登入後切換。"
 	},
 	"onboarding": {
 		"title": "你叫什麼名字？",
@@ -682,7 +713,8 @@
 		"addLabel": "邀請更多人",
 		"add": "邀請",
 		"addFailed": "無法邀請，請再試一次。",
-		"removeFailed": "無法移除，請再試一次。"
+		"removeFailed": "無法移除，請再試一次。",
+		"officialNotAllowed": "官方帳號不投票，無法邀請。"
 	},
 	"groups": {
 		"title": "邀請名單",
@@ -1165,6 +1197,17 @@
 		"admin": {
 			"self_action_forbidden": "不能停權自己或移除自己的管理員角色",
 			"last_admin": "不能移除最後一位管理員"
+		},
+		"official": {
+			"invitee_not_allowed": "官方帳號不投票，無法邀請。",
+			"last_owner": "官方帳號至少要有一位擁有者，請先轉移擁有者。",
+			"not_member": "你已不是這個帳號的成員。",
+			"role_forbidden": "你沒有權限這麼做。",
+			"member": {
+				"exists": "對方已經是成員。",
+				"invalid": "無法將對方加入這個帳號。",
+				"not_found": "對方已不是成員，列表已重新整理。"
+			}
 		}
 	},
 	"blocks": {
@@ -1291,6 +1334,60 @@
 		"signedOut": "已登出該裝置",
 		"othersSignedOut": "已登出其他裝置",
 		"signOutFailed": "無法登出，請再試一次。"
+	},
+	"officials": {
+		"title": "官方帳號",
+		"members": "成員",
+		"add": "新增成員",
+		"addTitle": "新增成員",
+		"searchLabel": "以使用者名稱搜尋",
+		"searchPlaceholder": "以使用者名稱搜尋",
+		"role": "角色",
+		"rolesTitle": "各角色可以做的事",
+		"roles": {
+			"OWNER": "擁有者",
+			"ADMIN": "管理員",
+			"CHIEF_EDITOR": "主編",
+			"EDITOR": "編輯",
+			"ANALYST": "分析師"
+		},
+		"roleBodies": {
+			"OWNER": "所有權限，包括轉移擁有者。",
+			"ADMIN": "所有權限，但不能變更或移除擁有者。",
+			"CHIEF_EDITOR": "發布內容，並可編輯或結束任何人的投票和留言。",
+			"EDITOR": "發布投票和留言，並編輯自己發布的內容。",
+			"ANALYST": "查看結果報告，不能發布內容。"
+		},
+		"you": "（你）",
+		"joined": "{date} 加入",
+		"yourRole": "你是{role}",
+		"memberMore": "@{name} 的更多選項",
+		"actions": {
+			"changeRole": "變更角色",
+			"transferOwner": "設為擁有者",
+			"remove": "移除",
+			"leave": "離開"
+		},
+		"changeRoleTitle": "變更 @{name} 的角色",
+		"removeTitle": "要移除 @{name} 嗎？",
+		"removeBody": "對方將無法再以 {official} 的身分操作，已發布的內容會保留。",
+		"remove": "移除",
+		"transferTitle": "要將 @{name} 設為擁有者嗎？",
+		"transferBody": "@{name} 會成為 {official} 的擁有者，你會變成管理員。",
+		"transfer": "設為擁有者",
+		"leaveTitle": "要離開 {official} 嗎？",
+		"leaveBody": "你將無法再以這個帳號的身分操作，已發布的內容會保留。只有擁有者或管理員能再把你加回來。",
+		"leave": "離開",
+		"added": "已新增 @{name}",
+		"roleChanged": "已變更 @{name} 的角色",
+		"transferred": "@{name} 已成為擁有者",
+		"removed": "已移除 @{name}",
+		"left": "你已離開 {official}",
+		"notMemberTitle": "你不是成員",
+		"notMemberBody": "這個官方帳號不存在，或你已不是它的成員。",
+		"goToOfficials": "官方帳號",
+		"deleteLastOwner": "你是某個官方帳號唯一的擁有者，請先轉移擁有者。",
+		"officialNotAllowed": "官方帳號不能成為其他帳號的成員。"
 	},
 	"meta": {
 		"siteDescription": "提出問題、參與他人的投票，看看大家真正的想法。投票結束前票數保持密封，沒有人會跟風投票。",

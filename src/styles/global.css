@@ -145,6 +145,9 @@
 	--announcement-height: 0px;
 	/* Room the fixed TabBar takes; set below only while it is shown */
 	--tabbar-space: 0px;
+	/* Home's pill bar: its pills (44px on phones, 36px from md) sit at the bottom with 8px below. The rail and the feed
+	   skeleton start a row (0.5rem) below it, where the first card lands */
+	--feed-bar-height: 3.75rem;
 }
 
 /* Phones only (it hides from md up), and not on pages that leave it out, like /login */
@@ -176,6 +179,10 @@ html:has([data-sticky-bar='pills']) {
 	@media (width >= 48rem) {
 		scroll-padding-top: calc(var(--header-offset) + 46px + 1.5rem);
 	}
+}
+/* Home's pill bar. The repeated attribute matches the generic rule's specificity, so this one, coming later, wins */
+html:has([data-sticky-bar='feed'][data-sticky-bar]) {
+	scroll-padding-top: calc(var(--header-offset) + var(--feed-bar-height) + 1.5rem);
 }
 
 .dark {

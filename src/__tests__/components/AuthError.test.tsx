@@ -14,4 +14,11 @@ describe('AuthError', () => {
 		render(<AuthError error="codeExpired" />);
 		expect(screen.getByRole('alert')).toHaveTextContent("This code has expired. Request a new one.");
 	});
+
+	it('tells an official account to sign in as a member and switch', () => {
+		render(<AuthError error="officialSignIn" />);
+		expect(screen.getByRole('alert')).toHaveTextContent(
+			'Official accounts can’t sign in. Sign in with your own account, then switch.'
+		);
+	});
 });

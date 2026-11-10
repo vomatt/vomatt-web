@@ -5,9 +5,7 @@ import { Fragment, useId } from 'react';
 
 import { useLanguage } from '@/contexts/LanguageContext';
 import { NewMark, UnreadDot } from '@/features/notifications/UnreadDot';
-import { endedSummary } from '@/features/profiles/lists';
 import { toPayloadLocale } from '@/lib/locale';
-import { rich } from '@/lib/rich';
 import { META_GAP } from '@/lib/rich';
 import { pollHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
@@ -17,6 +15,7 @@ import { useViewerClock } from '../hooks/useViewerClock';
 import type { Poll } from '../schema';
 import { derivePollStatus, getTurnout } from '../status';
 import { pollTiming } from '../timing';
+import { DecidedText, decidedWinners } from './PollMeta';
 
 export type SideCardKind = RailFeedKind;
 
@@ -74,16 +73,9 @@ function PollSideText({ kind, poll }: { kind: SideCardKind; poll: Poll }) {
 	// The time waits for the browser's clock; the turnout alone until then
 	const when =
 		kind === 'closingSoon' && clock ? pollTiming(poll, derivePollStatus(poll, clock.now), clock).when : null;
-	// DecidedText's "**Yes** won", but a short "Tie": the rail has no room to name every winner
-	const summary = kind === 'resultsIn' ? endedSummary(poll) : null;
-	const decided =
-		summary?.kind === 'won'
-			? rich(t('profile.wonBy'), {
-					option: <strong className="font-medium text-foreground">{summary.winner}</strong>,
-				})
-			: summary?.kind === 'tie'
-				? t('homePage.resultsTie')
-				: null;
+	// A short "Tie": the rail has no room to name every winner
+	const winners = kind === 'resultsIn' ? decidedWinners(poll) : null;
+	const decided = winners && <DecidedText {...winners} shortTie />;
 	const meta = [when, decided, turnout].filter(Boolean);
 
 	return (

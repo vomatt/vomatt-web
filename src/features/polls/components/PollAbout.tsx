@@ -10,8 +10,9 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useHydrated } from '@/hooks/useHydrated';
 import { topicHref } from '@/lib/routes';
 
-import { formatPollDate } from '../format';
+import { formatPollDate, formatPollMoment } from '../format';
 import { usePollStatus } from '../hooks/usePollStatus';
+import { useViewerClock } from '../hooks/useViewerClock';
 import type { Poll } from '../schema';
 import { endedEarly, timelineProgress, visibilityLevel } from '../status';
 
@@ -20,7 +21,8 @@ export function PollAbout({ poll }: { poll: Poll }) {
 	const { t, currentLanguage } = useLanguage();
 	const isHydrated = useHydrated();
 	const headingId = useId();
-	const status = usePollStatus(poll);
+	const { status, sealedUntil } = usePollStatus(poll);
+	const clock = useViewerClock();
 	const progress = isHydrated ? timelineProgress(poll) : null;
 	const level = visibilityLevel(poll);
 
@@ -31,7 +33,13 @@ export function PollAbout({ poll }: { poll: Poll }) {
 			</h2>
 
 			{status === 'ended' ? (
-				endedEarly(poll) && poll.deadline ? (
+				sealedUntil ? (
+					clock && (
+						<p className="text-body-4">
+							{t('poll.sealedUntilReveal', { date: formatPollMoment(sealedUntil, clock.language, clock.now) })}
+						</p>
+					)
+				) : endedEarly(poll) && poll.deadline ? (
 					// The date is in the viewer's time zone, so it waits for hydration
 					isHydrated && (
 						<p className="text-body-4">
