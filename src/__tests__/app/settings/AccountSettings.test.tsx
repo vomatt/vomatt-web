@@ -10,7 +10,9 @@ jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh: mockRefresh }
 const mockSetTheme = jest.fn();
 jest.mock('next-themes', () => ({ useTheme: () => ({ theme: 'system', setTheme: mockSetTheme }) }));
 jest.mock('@/features/groups/GroupsPanel', () => ({ GroupsPanel: () => <p>Groups panel</p> }));
-jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn() } }));
+jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn(), info: jest.fn() } }));
+const mockStartCheckout = jest.fn();
+jest.mock('@/features/billing/service', () => ({ startCheckout: () => mockStartCheckout() }));
 jest.mock('@/lib/api/services/auth', () => ({ signout: jest.fn() }));
 const mockReportProblem = jest.fn();
 jest.mock('@/features/feedback/service', () => ({ reportProblem: (...args: unknown[]) => mockReportProblem(...args) }));
@@ -413,6 +415,46 @@ describe('AccountSettings', () => {
 		expect(within(section).queryByRole('list')).not.toBeInTheDocument();
 		fireEvent.click(within(section).getByRole('button', { name: /Create a community account/ }));
 		expect(screen.getByRole('dialog', { name: 'Create a community account' })).toBeInTheDocument();
+	});
+
+	const quota = (owned: number, limit: number) => ({ owned, limit, selectionRequired: false, selectionDeadline: null });
+
+	it('shows the plan and how many community accounts it allows', () => {
+		const { rerender } = render(
+			<AccountSettings profile={{ ...myProfile, plan: 'FREE', communityQuota: quota(0, 1) }} inviteListCount={3} notificationPreferences={preferences} communities={[]} />
+		);
+		const plan = screen.getByRole('region', { name: 'Plan' });
+		expect(plan).toHaveTextContent('Free plan');
+		expect(plan).toHaveTextContent('0 of 1 community accounts owned');
+		expect(within(plan).getByRole('button', { name: 'Upgrade to Pro' })).toBeInTheDocument();
+
+		rerender(
+			<AccountSettings profile={{ ...myProfile, plan: 'PRO', communityQuota: quota(2, 3) }} inviteListCount={3} notificationPreferences={preferences} communities={[]} />
+		);
+		expect(plan).toHaveTextContent('Pro plan');
+		expect(plan).toHaveTextContent('2 of 3 community accounts owned');
+		expect(within(plan).queryByRole('button', { name: 'Upgrade to Pro' })).not.toBeInTheDocument();
+	});
+
+	it('turns Create into an upgrade once a Free user owns their limit, and says Pro is coming soon', async () => {
+		mockStartCheckout.mockResolvedValue({ ok: false, status: 503, errorCode: 'billing.unavailable', message: 'raw' });
+		render(
+			<AccountSettings profile={{ ...myProfile, plan: 'FREE', communityQuota: quota(1, 1) }} inviteListCount={3} notificationPreferences={preferences} communities={[]} />
+		);
+		const section = screen.getByRole('region', { name: 'Community accounts' });
+		expect(within(section).queryByRole('button', { name: /Create a community account/ })).not.toBeInTheDocument();
+		expect(section).toHaveTextContent('You own as many community accounts as your plan allows');
+		fireEvent.click(within(section).getByRole('button', { name: 'Upgrade to Pro' }));
+		await waitFor(() => expect(toast.info).toHaveBeenCalledWith('Pro is coming soon.'));
+	});
+
+	it('offers no upgrade to a Pro user at their limit', () => {
+		render(
+			<AccountSettings profile={{ ...myProfile, plan: 'PRO', communityQuota: quota(3, 3) }} inviteListCount={3} notificationPreferences={preferences} communities={[]} />
+		);
+		const section = screen.getByRole('region', { name: 'Community accounts' });
+		expect(section).toHaveTextContent('To create another, delete one or transfer its ownership.');
+		expect(within(section).queryByRole('button')).not.toBeInTheDocument();
 	});
 });
 

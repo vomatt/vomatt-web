@@ -1211,7 +1211,11 @@
 				"exists": "對方已經是成員。",
 				"invalid": "無法將對方加入這個帳號。",
 				"not_found": "對方已不是成員，列表已重新整理。"
-			}
+			},
+			"limit_reached": "你擁有的社群帳號已達方案上限。升級 Pro 即可擁有更多。"
+		},
+		"billing": {
+			"unavailable": "Pro 方案即將推出。"
 		}
 	},
 	"blocks": {
@@ -1418,11 +1422,26 @@
 			"settingsTitle": "這些是你個人的設定",
 			"settingsBody": "你正以 {name} 的身分操作。切換回自己才能修改。",
 			"manageMembers": "管理成員"
-		}
+		},
+		"limitTitle": "擁有的社群帳號已達方案上限",
+		"limitBodyFree": "升級 Pro 即可擁有更多。",
+		"limitBodyPro": "要建立新的，請先刪除一個或轉移擁有者。",
+		"theirLimitReached": "對方擁有的社群帳號已達方案上限，無法成為擁有者。"
 	},
 	"meta": {
 		"siteDescription": "提出問題、參與他人的投票，看看大家真正的想法。投票結束前票數保持密封，沒有人會跟風投票。",
 		"exploreDescription": "依主題瀏覽公開投票，參與進行中的投票，並查看已結束投票的結果。",
 		"profileDescription": "看看 {name} 發起的投票。"
+	},
+	"plan": {
+		"title": "方案",
+		"names": {
+			"FREE": "免費方案",
+			"PRO": "Pro 方案"
+		},
+		"quota": "已擁有 {owned} 個社群帳號，上限 {limit} 個",
+		"upgrade": "升級 Pro",
+		"comingSoon": "Pro 方案即將推出。",
+		"upgradeFailed": "無法開始升級，請再試一次。"
 	}
 }
