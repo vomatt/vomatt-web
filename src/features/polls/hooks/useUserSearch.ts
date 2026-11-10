@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { searchUsers } from '@/lib/api/services/users';
 import type { UserDto } from '@/schemas/user';
@@ -17,15 +17,19 @@ export type UserSearch = { term: string; users: UserDto[]; isLoading: boolean; f
 /** Debounced username search; an empty `term` searches nothing. `excludeIds` are left out of the suggestions. */
 export function useUserSearch(term: string, excludeIds: readonly string[]): UserSearch {
 	const [results, setResults] = useState<Results>({ term: '', users: [] });
+	// The last term answered successfully; a failed one is looked up again when it comes back
+	const answeredTerm = useRef('');
 
 	useEffect(() => {
-		// Nothing to look up, or the term just answered (it went empty and came back)
-		if (!term || term === results.term) return;
+		// Nothing to look up, or the term already answered (it went empty and came back)
+		if (!term || term === answeredTerm.current) return;
 		let ignore = false;
 		const timer = setTimeout(async () => {
 			try {
 				const page = await searchUsers(term);
-				if (!ignore) setResults({ term, users: page.items });
+				if (ignore) return;
+				answeredTerm.current = term;
+				setResults({ term, users: page.items });
 			} catch {
 				if (!ignore) setResults({ term, users: [], failed: true });
 			}
@@ -34,7 +38,7 @@ export function useUserSearch(term: string, excludeIds: readonly string[]): User
 			ignore = true;
 			clearTimeout(timer);
 		};
-	}, [term, results.term]);
+	}, [term]);
 
 	const answered = !!term && results.term === term;
 	return {
