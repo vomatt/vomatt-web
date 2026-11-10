@@ -8,8 +8,8 @@ import { Ban, Clock } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { FollowButton, useFollow } from '@/features/follows/FollowButton';
 import { FollowListDialog } from '@/features/follows/FollowListDialog';
-import { WinnerName } from '@/features/polls/components/ElectedMark';
 import { type DecidedOutcome, OutcomeChip } from '@/features/polls/components/OutcomeChip';
+import { DecidedText } from '@/features/polls/components/PollMeta';
 import { SealMark } from '@/features/polls/components/Seal';
 import { formatAge, formatDuration } from '@/features/polls/format';
 import { useViewerClock } from '@/features/polls/hooks/useViewerClock';
@@ -19,7 +19,7 @@ import { ProfileHoverCard, rememberFollowing } from '@/features/profiles/Profile
 import { ProfileAvatar } from '@/features/profiles/UserChip';
 import { countText } from '@/lib/count';
 import { toPayloadLocale } from '@/lib/locale';
-import { rich, richList } from '@/lib/rich';
+import { rich } from '@/lib/rich';
 import { META_GAP } from '@/lib/rich';
 import { commentHash, profileHref, replyHash } from '@/lib/routes';
 import { cn } from '@/lib/utils';
@@ -217,15 +217,6 @@ function pickOutcome({ myOptionId, winningOptionIds, tie }: PollSummary): Decide
 	return tie ? 'tied' : 'won';
 }
 
-/** "**Yes** won" or "Tie between **A** and **B**", for an Ended Poll whose Ballots named an option. */
-function WinnersText({ poll }: { poll: PollSummary }) {
-	const { t, currentLanguage } = useLanguage();
-	const labels = poll.winningOptionLabels ?? [];
-	const winner = (name: string) => <WinnerName name={name} />;
-	if (!poll.tie) return rich(t('profile.wonBy'), { option: winner(labels[0]) });
-	return rich(t('profile.tieBetween'), { options: richList(labels, toPayloadLocale(currentLanguage), winner) });
-}
-
 function ResultRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'RESULT' }>>) {
 	const { t, currentLanguage } = useLanguage();
 	const { poll } = entry;
@@ -247,7 +238,9 @@ function ResultRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'RESULT' }
 				</>
 			}
 			meta={[
-				!!poll.winningOptionLabels?.length && <WinnersText key="outcome" poll={poll} />,
+				!!poll.winningOptionLabels?.length && (
+					<DecidedText key="outcome" winners={poll.winningOptionLabels} tie={!!poll.tie} />
+				),
 				<span key="turnout" className="tabular-nums">
 					{t('poll.voted', { count: (poll.turnout ?? 0).toLocaleString(toPayloadLocale(currentLanguage)) })}
 				</span>,

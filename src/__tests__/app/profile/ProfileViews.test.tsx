@@ -245,7 +245,7 @@ describe('VisitorProfileView', () => {
 		expect(screen.getByRole('heading', { level: 3, name: 'Open now 1' })).toBeInTheDocument();
 		expect(screen.getByRole('heading', { level: 3, name: 'Ended 2' })).toBeInTheDocument();
 		expect(screen.getByRole('link', { name: /Poll e/ })).toHaveTextContent(`Yes won${META_GAP}4 voted`, { normalizeWhitespace: false });
-		expect(screen.getByRole('link', { name: /Poll t/ })).toHaveTextContent('Tie between Yes and Only in summer');
+		expect(screen.getByRole('link', { name: /Poll t/ })).toHaveAccessibleName(/Tie between Yes and Only in summer/);
 
 		fireEvent.click(screen.getByRole('button', { name: 'Open' }));
 		expect(screen.queryByRole('link', { name: /Poll e/ })).not.toBeInTheDocument();

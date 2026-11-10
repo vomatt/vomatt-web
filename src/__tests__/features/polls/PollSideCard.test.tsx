@@ -5,6 +5,7 @@ import { META_GAP } from '@/lib/rich';
 
 import { keepGaps } from '../../helpers/keepGaps';
 import { sidePoll } from '../../helpers/sidePoll';
+import { visibleText } from '../../helpers/visibleText';
 
 jest.mock('next/link', () => {
 	return function MockLink({ children, href }: { children: React.ReactNode; href: string }) {
@@ -65,7 +66,7 @@ describe('PollSideCard', () => {
 		const tie = { ...ended, id: 'poll-2', options: [{ id: 'a', text: 'Yes', votes: 6 }, { id: 'b', text: 'No', votes: 6 }] };
 		render(<PollSideCard kind="resultsIn" polls={[won, tie]} />);
 		const [wonLink, tieLink] = within(screen.getByRole('list')).getAllByRole('link');
-		expect(within(wonLink).getByText(/won/).textContent).toBe(`Yes won${META_GAP}1,502 voted${META_GAP}new`);
+		expect(visibleText(within(wonLink).getByText(/won/))).toBe(`Yes won${META_GAP}1,502 voted${META_GAP}new`);
 		expect(within(tieLink).getByText(/voted/).textContent).toBe(`Tie${META_GAP}1,502 voted`);
 	});
 
