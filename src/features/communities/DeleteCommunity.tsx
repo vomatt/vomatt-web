@@ -25,10 +25,8 @@ import { cn } from '@/lib/utils';
 import type { MyCommunity } from './schema';
 import { deleteCommunity } from './service';
 
-/** The viewer's role changed or the account is gone: the page needs the server's answer. */
-const REFRESH_CODES = ['community.role_forbidden', 'community.not_member'];
+const STALE_MEMBERSHIP_CODES = ['community.role_forbidden', 'community.not_member'];
 
-/** Delete for the account's owners: typing its username confirms, as deleting your own account does. */
 export function DeleteCommunity({ community }: { community: MyCommunity }) {
 	const { t } = useLanguage();
 	const router = useRouter();
@@ -40,7 +38,6 @@ export function DeleteCommunity({ community }: { community: MyCommunity }) {
 	const [confirmationInput, focusConfirmation] = useFocusAfterRender<HTMLInputElement>();
 
 	const remove = async () => {
-		// Enabled even before a match, so the button stays reachable and says what's missing
 		if (confirmation.trim().toLowerCase() !== username.toLowerCase()) {
 			setMismatch(true);
 			focusConfirmation();
@@ -51,7 +48,7 @@ export function DeleteCommunity({ community }: { community: MyCommunity }) {
 		setIsDeleting(false);
 		if (!result.ok) {
 			toast.error(apiErrorText(t, result, 'communities.deleteFailed'), { duration: Infinity });
-			if (result.errorCode && REFRESH_CODES.includes(result.errorCode)) {
+			if (result.errorCode && STALE_MEMBERSHIP_CODES.includes(result.errorCode)) {
 				setOpen(false);
 				router.refresh();
 			}

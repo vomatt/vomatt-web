@@ -5,12 +5,10 @@ export function canManageMembers(role: CommunityRole) {
 	return role === 'OWNER' || role === 'ADMIN';
 }
 
-/** OWNER and ADMIN edit the account's name, bio and photo. */
 export function canEditProfile(role: CommunityRole) {
 	return role === 'OWNER' || role === 'ADMIN';
 }
 
-/** Only an OWNER deletes the account. */
 export function canDelete(role: CommunityRole) {
 	return role === 'OWNER';
 }

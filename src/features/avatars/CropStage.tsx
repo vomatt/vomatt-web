@@ -26,7 +26,6 @@ export function CropStage({
 	onDone,
 }: {
 	file: File;
-	/** Saves the square (`file` in the form data) wherever this avatar belongs. */
 	upload: (formData: FormData) => Promise<ActionResult>;
 	onCancel: () => void;
 	onDone: () => void;

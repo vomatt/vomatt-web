@@ -108,7 +108,6 @@ export const AVATAR_PICK_MAX_BYTES = 25 * 1024 * 1024;
 /** Image types the API accepts; checked on pick so an unsupported file never reaches the crop step. */
 export const AVATAR_UPLOAD_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp'];
 
-/** Why a picked file can't be cropped (a message key), or null when it can. */
 export function avatarFileProblem(file: File): string | null {
 	if (file.size === 0 || !AVATAR_UPLOAD_TYPES.includes(file.type)) return 'avatar.upload.unsupported';
 	if (file.size > AVATAR_PICK_MAX_BYTES) return 'avatar.upload.tooLarge';

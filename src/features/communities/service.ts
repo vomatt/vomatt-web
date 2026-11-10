@@ -88,7 +88,7 @@ export async function uploadCommunityAvatar(communityId: string, formData: FormD
 	});
 }
 
-/** OWNER only. Acting as the deleted account ends with it. */
+/** OWNER only. */
 export async function deleteCommunity(communityId: string): Promise<ActionResult> {
 	return attempt(async () => {
 		await apiClient(communityPath(communityId), { method: 'DELETE' });

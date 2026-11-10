@@ -18,7 +18,6 @@ jest.mock('@/features/communities/service', () => ({
 jest.mock('@/features/avatars/cropImage', () => ({
 	cropToJpeg: () => Promise.resolve(new Blob(['cropped'], { type: 'image/jpeg' })),
 }));
-// One object, so reporting it again on every render settles
 const CROP_AREA = { x: 0, y: 0, width: 10, height: 10 };
 jest.mock('react-easy-crop', () => {
 	const { useEffect } = jest.requireActual('react');

@@ -36,7 +36,6 @@ export default async function CommunityMembersPage({ params }: Props) {
 	const community = communities.ok ? communities.data.find((o) => o.communityId === communityId) : undefined;
 	// Not a member (removed, never was, or the account is gone): 403 `community.not_member`
 	const notMember = (communities.ok && !community) || (!members.ok && members.errorCode === 'community.not_member');
-	// Only the bio is missing from the membership; without it the card still shows the rest
 	const publicProfile = community ? await getUserProfile(community.username).catch(() => null) : null;
 
 	return (

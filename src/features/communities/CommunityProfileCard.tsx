@@ -39,7 +39,6 @@ const NAME_MAX_LENGTH = 100;
 const BIO_MAX_LENGTH = 500;
 const labelClassName = 'text-caption-1 font-medium text-foreground';
 
-/** The community account's public face (photo, name, bio), with Edit profile for its owners and admins. */
 export function CommunityProfileCard({ community, bio }: { community: MyCommunity; bio: string | null }) {
 	const { t } = useLanguage();
 	return (
