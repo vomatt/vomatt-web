@@ -63,8 +63,12 @@ export function PublicPreview({ profile, className }: { profile: MyProfile; clas
 				</p>
 				<p className="text-caption-2 text-muted-foreground">
 					<Count value={profile.totalPolls} label={countText(t, 'profile.recordAskedCount', profile.totalPolls, currentLanguage)} />
-					{META_GAP}
-					<Count value={profile.totalVotes} label={countText(t, 'profile.recordVotedCount', profile.totalVotes, currentLanguage)} />
+					{!profile.community && (
+						<>
+							{META_GAP}
+							<Count value={profile.totalVotes} label={countText(t, 'profile.recordVotedCount', profile.totalVotes, currentLanguage)} />
+						</>
+					)}
 				</p>
 				<Link
 					href={`${profileHref(profile.username)}?view=public`}
