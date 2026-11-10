@@ -4,10 +4,10 @@ import { Check } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 
-/** Marks an official account (a group's page), right after its name: an ink check, not Volt, which marks what is yours. */
-export function OfficialBadge({ className }: { className?: string }) {
+/** Marks a community account (a group's page), right after its name: an ink check, not Volt, which marks what is yours. */
+export function CommunityBadge({ className }: { className?: string }) {
 	const { t } = useLanguage();
-	const label = t('profile.official');
+	const label = t('profile.community');
 	return (
 		<span
 			role="img"

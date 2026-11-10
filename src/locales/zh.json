@@ -189,7 +189,7 @@
 		"noPollsYetOwn": "你的投票開放後會顯示在這裡。",
 		"pollsLoadFailed": "無法載入投票。",
 		"cardFailed": "無法載入個人資料。",
-		"official": "官方帳號",
+		"community": "社群帳號",
 		"joined": "{date} 加入",
 		"followers": "追蹤者",
 		"following": "追蹤中",
@@ -589,7 +589,7 @@
 		"invalidEmail": "請輸入有效的電子郵件。",
 		"passkeyRefused": "瀏覽器沒有開啟你的通行密鑰。請再試一次、改用其他瀏覽器，或使用電子郵件繼續。",
 		"serverError": "發生錯誤，請稍後再試。",
-		"officialSignIn": "官方帳號不能直接登入，請用成員帳號登入後切換。"
+		"communitySignIn": "社群帳號不能直接登入，請用成員帳號登入後切換。"
 	},
 	"onboarding": {
 		"title": "你叫什麼名字？",
@@ -714,7 +714,7 @@
 		"add": "邀請",
 		"addFailed": "無法邀請，請再試一次。",
 		"removeFailed": "無法移除，請再試一次。",
-		"officialNotAllowed": "官方帳號不投票，無法邀請。"
+		"communityNotAllowed": "社群帳號不投票，無法邀請。"
 	},
 	"groups": {
 		"title": "邀請名單",
@@ -1198,9 +1198,9 @@
 			"self_action_forbidden": "不能停權自己或移除自己的管理員角色",
 			"last_admin": "不能移除最後一位管理員"
 		},
-		"official": {
-			"invitee_not_allowed": "官方帳號不投票，無法邀請。",
-			"last_owner": "官方帳號至少要有一位擁有者，請先轉移擁有者。",
+		"community": {
+			"invitee_not_allowed": "社群帳號不投票，無法邀請。",
+			"last_owner": "社群帳號至少要有一位擁有者，請先轉移擁有者。",
 			"not_member": "你已不是這個帳號的成員。",
 			"role_forbidden": "你沒有權限這麼做。",
 			"member": {
@@ -1335,8 +1335,8 @@
 		"othersSignedOut": "已登出其他裝置",
 		"signOutFailed": "無法登出，請再試一次。"
 	},
-	"officials": {
-		"title": "官方帳號",
+	"communities": {
+		"title": "社群帳號",
 		"members": "成員",
 		"add": "新增成員",
 		"addTitle": "新增成員",
@@ -1370,25 +1370,25 @@
 		},
 		"changeRoleTitle": "變更 @{name} 的角色",
 		"removeTitle": "要移除 @{name} 嗎？",
-		"removeBody": "對方將無法再以 {official} 的身分操作，已發布的內容會保留。",
+		"removeBody": "對方將無法再以 {community} 的身分操作，已發布的內容會保留。",
 		"remove": "移除",
 		"transferTitle": "要將 @{name} 設為擁有者嗎？",
-		"transferBody": "@{name} 會成為 {official} 的擁有者，你會變成管理員。",
+		"transferBody": "@{name} 會成為 {community} 的擁有者，你會變成管理員。",
 		"transfer": "設為擁有者",
-		"leaveTitle": "要離開 {official} 嗎？",
+		"leaveTitle": "要離開 {community} 嗎？",
 		"leaveBody": "你將無法再以這個帳號的身分操作，已發布的內容會保留。只有擁有者或管理員能再把你加回來。",
 		"leave": "離開",
 		"added": "已新增 @{name}",
 		"roleChanged": "已變更 @{name} 的角色",
 		"transferred": "@{name} 已成為擁有者",
 		"removed": "已移除 @{name}",
-		"left": "你已離開 {official}",
+		"left": "你已離開 {community}",
 		"notMemberTitle": "你不是成員",
-		"notMemberBody": "這個官方帳號不存在，或你已不是它的成員。",
-		"goToOfficials": "官方帳號",
-		"deleteLastOwner": "你是某個官方帳號唯一的擁有者，請先轉移擁有者。",
-		"officialNotAllowed": "官方帳號不能成為其他帳號的成員。",
-		"createTitle": "建立官方帳號",
+		"notMemberBody": "這個社群帳號不存在，或你已不是它的成員。",
+		"goToCommunities": "社群帳號",
+		"deleteLastOwner": "你是某個社群帳號唯一的擁有者，請先轉移擁有者。",
+		"communityNotAllowed": "社群帳號不能成為其他帳號的成員。",
+		"createTitle": "建立社群帳號",
 		"createBody": "由多位成員共同經營的團體頁面，你會是擁有者。",
 		"createIntro": "由多位成員共同經營的團體頁面。你會成為擁有者，並可新增其他成員。",
 		"nameLabel": "團體名稱",

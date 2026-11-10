@@ -189,7 +189,7 @@
 		"noPollsYetOwn": "Your polls show up here once they open.",
 		"pollsLoadFailed": "Couldn’t load polls.",
 		"cardFailed": "Couldn’t load this profile.",
-		"official": "Official account",
+		"community": "Community account",
 		"joined": "Joined {date}",
 		"followers": "Followers",
 		"following": "Following",
@@ -600,7 +600,7 @@
 		"invalidEmail": "Please enter a valid email address.",
 		"passkeyRefused": "Your browser didn’t open your passkeys. Try again, use another browser, or continue with email.",
 		"serverError": "Something went wrong. Please try again later.",
-		"officialSignIn": "Official accounts can’t sign in. Sign in with your own account, then switch."
+		"communitySignIn": "Community accounts can’t sign in. Sign in with your own account, then switch."
 	},
 	"onboarding": {
 		"title": "What's your name?",
@@ -726,7 +726,7 @@
 		"add": "Invite",
 		"addFailed": "Couldn’t invite them. Try again.",
 		"removeFailed": "Couldn’t remove them. Try again.",
-		"officialNotAllowed": "Official accounts don’t vote, so they can’t be invited."
+		"communityNotAllowed": "Community accounts don’t vote, so they can’t be invited."
 	},
 	"groups": {
 		"title": "Invite Lists",
@@ -1211,9 +1211,9 @@
 			"self_action_forbidden": "You cannot suspend yourself or remove your own admin role",
 			"last_admin": "Cannot remove the last active admin"
 		},
-		"official": {
-			"invitee_not_allowed": "Official accounts don’t vote, so they can’t be invited.",
-			"last_owner": "An official account needs at least one owner. Transfer ownership first.",
+		"community": {
+			"invitee_not_allowed": "Community accounts don’t vote, so they can’t be invited.",
+			"last_owner": "A community account needs at least one owner. Transfer ownership first.",
 			"not_member": "You’re no longer a member of this account.",
 			"role_forbidden": "You don’t have permission to do that.",
 			"member": {
@@ -1350,8 +1350,8 @@
 		"othersSignedOut": "Other devices signed out",
 		"signOutFailed": "Couldn’t sign out. Please try again."
 	},
-	"officials": {
-		"title": "Official accounts",
+	"communities": {
+		"title": "Community accounts",
 		"members": "Members",
 		"add": "Add member",
 		"addTitle": "Add a member",
@@ -1385,25 +1385,25 @@
 		},
 		"changeRoleTitle": "Change @{name}’s role",
 		"removeTitle": "Remove @{name}?",
-		"removeBody": "They’ll no longer be able to act as {official}. What they posted stays.",
+		"removeBody": "They’ll no longer be able to act as {community}. What they posted stays.",
 		"remove": "Remove",
 		"transferTitle": "Make @{name} the owner?",
-		"transferBody": "@{name} becomes an owner of {official} and you become an admin.",
+		"transferBody": "@{name} becomes an owner of {community} and you become an admin.",
 		"transfer": "Make owner",
-		"leaveTitle": "Leave {official}?",
+		"leaveTitle": "Leave {community}?",
 		"leaveBody": "You’ll no longer be able to act as this account. What you posted stays. Only an owner or admin can add you back.",
 		"leave": "Leave",
 		"added": "Added @{name}",
 		"roleChanged": "Changed @{name}’s role",
 		"transferred": "@{name} is now an owner",
 		"removed": "Removed @{name}",
-		"left": "You left {official}",
+		"left": "You left {community}",
 		"notMemberTitle": "You’re not a member",
-		"notMemberBody": "This official account doesn’t exist, or you’re no longer one of its members.",
-		"goToOfficials": "Official accounts",
-		"deleteLastOwner": "You’re the only owner of an official account. Transfer ownership first.",
-		"officialNotAllowed": "Official accounts can’t be members of another account.",
-		"createTitle": "Create an official account",
+		"notMemberBody": "This community account doesn’t exist, or you’re no longer one of its members.",
+		"goToCommunities": "Community accounts",
+		"deleteLastOwner": "You’re the only owner of a community account. Transfer ownership first.",
+		"communityNotAllowed": "Community accounts can’t be members of another account.",
+		"createTitle": "Create a community account",
 		"createBody": "A page for a group, run by several members. You’ll be its owner.",
 		"createIntro": "A group’s page that several members run together. You become its owner and can add the others.",
 		"nameLabel": "Group name",

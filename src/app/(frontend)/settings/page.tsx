@@ -4,9 +4,9 @@ import { BackLink } from '@/components/BackLink';
 import { PageShell } from '@/components/layout/PageShell';
 import { T } from '@/components/T';
 import { getMyProfile, redirectToLogin } from '@/data/auth';
+import { listMyCommunities } from '@/features/communities/service';
 import { getGroups } from '@/features/groups/service';
 import { getNotificationPreferences } from '@/features/notifications/service';
-import { listMyOfficials } from '@/features/officials/service';
 import { getServerMessages } from '@/lib/getServerLocale';
 import { profileHref } from '@/lib/routes';
 
@@ -18,11 +18,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function SettingsPage() {
-	const [profile, groups, notificationPreferences, officials] = await Promise.all([
+	const [profile, groups, notificationPreferences, communities] = await Promise.all([
 		getMyProfile(),
 		getGroups(),
 		getNotificationPreferences().catch(() => null),
-		listMyOfficials(),
+		listMyCommunities(),
 	]);
 	if (!profile) return redirectToLogin('/settings');
 
@@ -45,7 +45,7 @@ export default async function SettingsPage() {
 				profile={profile}
 				inviteListCount={groups.ok ? groups.data.length : null}
 				notificationPreferences={notificationPreferences}
-				officials={officials.ok ? officials.data : []}
+				communities={communities.ok ? communities.data : []}
 			/>
 		</PageShell>
 	);

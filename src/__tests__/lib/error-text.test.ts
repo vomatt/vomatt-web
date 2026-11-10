@@ -33,9 +33,9 @@ describe('apiErrorText', () => {
 		expect(apiErrorText(t, { errorCode: 'common.conflict', message: 'raw' })).toBe(en.common.busy);
 	});
 
-	it('says why an official account cannot be invited', () => {
-		expect(apiErrorText(t, { errorCode: 'official.invitee_not_allowed', message: 'raw' })).toBe(
-			en.apiError.official.invitee_not_allowed
+	it('says why a community account cannot be invited', () => {
+		expect(apiErrorText(t, { errorCode: 'community.invitee_not_allowed', message: 'raw' })).toBe(
+			en.apiError.community.invitee_not_allowed
 		);
 	});
 

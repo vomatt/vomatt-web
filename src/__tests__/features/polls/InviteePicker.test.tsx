@@ -19,11 +19,11 @@ describe('InviteePicker', () => {
 		expect(onChange).toHaveBeenCalledWith({ users: [], emails: [], groups: [] });
 	});
 
-	it("shows an official account in the results but won't invite it, and Enter skips it", async () => {
+	it("shows a community account in the results but won't invite it, and Enter skips it", async () => {
 		jest.useFakeTimers();
 		mockSearchUsers.mockResolvedValue({
 			items: [
-				{ id: 'o1', username: 'council', official: true },
+				{ id: 'o1', username: 'council', community: true },
 				{ id: 'u1', username: 'counsel' },
 			],
 		});
@@ -36,10 +36,10 @@ describe('InviteePicker', () => {
 		});
 		jest.useRealTimers();
 
-		const official = screen.getByRole('button', { name: /council/ });
-		expect(official).toBeDisabled();
-		expect(official).toHaveAccessibleDescription('Official accounts don’t vote, so they can’t be invited.');
-		fireEvent.click(official);
+		const community = screen.getByRole('button', { name: /council/ });
+		expect(community).toBeDisabled();
+		expect(community).toHaveAccessibleDescription('Community accounts don’t vote, so they can’t be invited.');
+		fireEvent.click(community);
 		expect(onChange).not.toHaveBeenCalled();
 
 		fireEvent.keyDown(input, { key: 'Enter' });

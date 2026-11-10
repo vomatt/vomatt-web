@@ -8,7 +8,7 @@ import { Dialog, DialogBody, DialogContent, DialogHeader, DialogTitle } from '@/
 import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
-import { OfficialBadge } from '@/features/profiles/OfficialBadge';
+import { CommunityBadge } from '@/features/profiles/CommunityBadge';
 import { ProfileHoverCard, rememberFollowing } from '@/features/profiles/ProfileHoverCard';
 import { mergeById } from '@/lib/api/cursor';
 import { META_GAP } from '@/lib/rich';
@@ -155,7 +155,7 @@ function PersonRow({ user, viewerId, onFollowChange }: RowProps & { user: Follow
 					<span className="flex min-w-0 flex-col gap-0.5">
 						<span className="flex min-w-0 items-center gap-1 text-body-4 font-medium">
 							<span className="truncate">{user.displayName || user.username}</span>
-							{user.official && <OfficialBadge />}
+							{user.community && <CommunityBadge />}
 						</span>
 						<span className="truncate text-caption-2 text-muted-foreground">
 							@{user.username}
