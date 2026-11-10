@@ -23,27 +23,17 @@ import { menuItemClassName, menuPopupClassName } from '@/components/ui/menu';
 import { ArrowRight, Ellipsis, LogOut, Pencil, Plus, Trash2 } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
-import { htmlLang } from '@/i18n-config';
-import type { ActionFailure, ActionResult } from '@/lib/api/action';
+import { formatDate } from '@/features/polls/format';
+import type { ActionResult } from '@/lib/api/action';
 import { apiErrorText } from '@/lib/api/error-text';
 import { META_GAP } from '@/lib/rich';
 import { cn } from '@/lib/utils';
 
 import { AddMemberDialog } from './AddMemberDialog';
-import { can, grantableRoles, type MemberAction, memberActions } from './permissions';
+import { canManageMembers, grantableRoles, type MemberAction, memberActions } from './permissions';
 import { RolePicker } from './RolePicker';
 import { type MyOfficial, OFFICIAL_ROLES, type OfficialMember, type OfficialRole } from './schema';
 import { addMember, changeRole, removeMember, transferOwner } from './service';
-
-/** Refusals with their own copy; anything else goes through apiErrorText. */
-export const MEMBER_ERROR_KEYS: Record<string, string> = {
-	'official.last_owner': 'officials.errors.lastOwner',
-	'official.member.exists': 'officials.errors.exists',
-	'official.member.invalid': 'officials.errors.invalid',
-	'official.member.not_found': 'officials.errors.notFound',
-	'official.role_forbidden': 'officials.errors.forbidden',
-	'official.not_member': 'officials.errors.notMember',
-};
 
 // The list is stale after these: someone else changed it, or the viewer's role
 const REFRESH_CODES = ['official.member.not_found', 'official.role_forbidden', 'official.not_member'];
@@ -57,11 +47,19 @@ const ICONS: Record<MemberAction, React.ReactNode> = {
 
 type Pending = { action: MemberAction; member: OfficialMember };
 
+/** One row action: the request, what follows its success, the toast, and the confirm dialog's copy (none for Change role, which has its own dialog). */
+type Step = {
+	request: () => Promise<ActionResult<unknown>>;
+	after: (data: unknown) => void;
+	done: string;
+	confirm?: { title: string; body: string; cta: string };
+};
+
 /** An official account's members, with what the viewer's role lets them change. */
 export function OfficialMembers({
 	official,
 	viewerId,
-	members,
+	members: initialMembers,
 }: {
 	official: MyOfficial;
 	viewerId: string;
@@ -71,72 +69,81 @@ export function OfficialMembers({
 	const router = useRouter();
 	const viewer = { userId: viewerId, role: official.role };
 	const officialName = official.displayName || official.username;
+	const [members, setMembers] = useState(initialMembers);
+	// A refresh (after a transfer, or a stale list) brings a new list from the server
+	const [shown, setShown] = useState(initialMembers);
+	if (shown !== initialMembers) {
+		setShown(initialMembers);
+		setMembers(initialMembers);
+	}
 	const [adding, setAdding] = useState(false);
 	const [pending, setPending] = useState<Pending | null>(null);
 	const [newRole, setNewRole] = useState<OfficialRole>('EDITOR');
 	const [busy, setBusy] = useState(false);
-	const joined = new Intl.DateTimeFormat(htmlLang(currentLanguage), { dateStyle: 'medium' });
-
-	const fail = (result: ActionFailure) => {
-		const key = result.errorCode && MEMBER_ERROR_KEYS[result.errorCode];
-		toast.error(key ? t(key) : apiErrorText(t, result), { duration: Infinity });
-		if (result.errorCode && REFRESH_CODES.includes(result.errorCode)) router.refresh();
-	};
 
 	/** Runs a change; true when it went through. */
-	const run = async (request: Promise<ActionResult<unknown>>, done: string) => {
+	const run = async ({ request, after, done }: Omit<Step, 'confirm'>) => {
 		setBusy(true);
-		const result = await request;
+		const result = await request();
 		setBusy(false);
 		if (!result.ok) {
-			fail(result);
+			toast.error(apiErrorText(t, result), { duration: Infinity });
+			if (result.errorCode && REFRESH_CODES.includes(result.errorCode)) router.refresh();
 			return false;
 		}
 		toast.success(done);
-		router.refresh();
+		after(result.data);
 		return true;
 	};
 
+	const replaceMember = (data: unknown) => {
+		const changed = data as OfficialMember;
+		setMembers((list) => list.map((m) => (m.userId === changed.userId ? changed : m)));
+	};
+
+	const step = (({ action, member }: Pending): Step => {
+		const id = official.officialId;
+		const vars = { name: member.username, official: officialName };
+		const copy = (title: string, body: string, cta: string) => ({ title: t(title, vars), body: t(body, vars), cta: t(cta) });
+		return {
+			changeRole: {
+				request: () => changeRole(id, member.userId, newRole),
+				after: replaceMember,
+				done: t('officials.roleChanged', vars),
+			},
+			transferOwner: {
+				request: () => transferOwner(id, member.userId),
+				// The viewer is an ADMIN now: their menus change with the server's answer
+				after: () => router.refresh(),
+				done: t('officials.transferred', vars),
+				confirm: copy('officials.transferTitle', 'officials.transferBody', 'officials.transfer'),
+			},
+			remove: {
+				request: () => removeMember(id, member.userId),
+				after: () => setMembers((list) => list.filter((m) => m.userId !== member.userId)),
+				done: t('officials.removed', vars),
+				confirm: copy('officials.removeTitle', 'officials.removeBody', 'officials.remove'),
+			},
+			leave: {
+				request: () => removeMember(id, member.userId),
+				after: () => router.replace('/settings#officials'),
+				done: t('officials.left', vars),
+				confirm: copy('officials.leaveTitle', 'officials.leaveBody', 'officials.leave'),
+			},
+		}[action];
+	});
+	const current = pending && step(pending);
+
 	const confirm = async () => {
-		if (!pending) return;
-		const { action, member } = pending;
-		const name = member.username;
-		const ok =
-			action === 'changeRole'
-				? await run(changeRole(official.officialId, member.userId, newRole), t('officials.roleChanged', { name }))
-				: action === 'transferOwner'
-					? await run(transferOwner(official.officialId, member.userId), t('officials.transferred', { name }))
-					: await run(
-							removeMember(official.officialId, member.userId),
-							t(action === 'leave' ? 'officials.left' : 'officials.removed', { name, official: officialName })
-						);
+		if (!current) return;
+		await run(current);
 		setPending(null);
-		if (ok && action === 'leave') router.replace('/settings#officials');
 	};
 
 	const open = (action: MemberAction, member: OfficialMember) => {
 		setNewRole(member.role);
 		setPending({ action, member });
 	};
-
-	const confirmCopy = pending && {
-		remove: {
-			title: t('officials.removeTitle', { name: pending.member.username }),
-			body: t('officials.removeBody', { official: officialName }),
-			cta: t('officials.remove'),
-		},
-		transferOwner: {
-			title: t('officials.transferTitle', { name: pending.member.username }),
-			body: t('officials.transferBody', { name: pending.member.username, official: officialName }),
-			cta: t('officials.transfer'),
-		},
-		leave: {
-			title: t('officials.leaveTitle', { official: officialName }),
-			body: t('officials.leaveBody'),
-			cta: t('officials.leave'),
-		},
-		changeRole: null,
-	}[pending.action];
 
 	return (
 		<div className="space-y-8">
@@ -145,7 +152,7 @@ export function OfficialMembers({
 					<h2 id="members-title" className="text-title-4">
 						{t('officials.members')}
 					</h2>
-					{can(official.role, 'manageMembers') && (
+					{canManageMembers(official.role) && (
 						<Button size="md" variant="outline" onClick={() => setAdding(true)}>
 							<Plus aria-hidden />
 							{t('officials.add')}
@@ -170,7 +177,7 @@ export function OfficialMembers({
 										{t(`officials.roles.${member.role}`)}
 										{META_GAP}
 										<span suppressHydrationWarning>
-											{t('officials.joined', { date: joined.format(new Date(member.joinedAt)) })}
+											{t('officials.joined', { date: formatDate(member.joinedAt, currentLanguage) })}
 										</span>
 									</p>
 								</div>
@@ -228,7 +235,14 @@ export function OfficialMembers({
 				onOpenChange={setAdding}
 				roles={grantableRoles(official.role)}
 				memberIds={members.map((member) => member.userId)}
-				onAdd={(user, role) => run(addMember(official.officialId, user.id, role), t('officials.added', { name: user.username }))}
+				busy={busy}
+				onAdd={(user, role) =>
+					run({
+						request: () => addMember(official.officialId, user.id, role),
+						after: (data) => setMembers((list) => [...list, data as OfficialMember]),
+						done: t('officials.added', { name: user.username }),
+					})
+				}
 			/>
 
 			<Dialog open={pending?.action === 'changeRole'} onOpenChange={(isOpen) => !isOpen && setPending(null)}>
@@ -250,11 +264,11 @@ export function OfficialMembers({
 				</DialogContent>
 			</Dialog>
 
-			<AlertDialog open={!!confirmCopy} onOpenChange={(isOpen) => !isOpen && setPending(null)}>
+			<AlertDialog open={!!current?.confirm} onOpenChange={(isOpen) => !isOpen && setPending(null)}>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>{confirmCopy?.title}</AlertDialogTitle>
-						<AlertDialogDescription>{confirmCopy?.body}</AlertDialogDescription>
+						<AlertDialogTitle>{current?.confirm?.title}</AlertDialogTitle>
+						<AlertDialogDescription>{current?.confirm?.body}</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
 						<AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
@@ -263,7 +277,7 @@ export function OfficialMembers({
 							onClick={confirm}
 							variant={pending?.action === 'transferOwner' ? 'default' : 'destructive'}
 						>
-							{confirmCopy?.cta}
+							{current?.confirm?.cta}
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>

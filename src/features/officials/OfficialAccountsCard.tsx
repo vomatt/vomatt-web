@@ -2,11 +2,10 @@
 
 import Link from 'next/link';
 
-import { rowClassName, RowText, SettingsCard } from '@/components/SettingsCard';
+import { rowLinkClassName, RowText, SettingsCard } from '@/components/SettingsCard';
 import { ChevronRight } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
-import { cn } from '@/lib/utils';
 
 import { type MyOfficial, officialMembersHref } from './schema';
 
@@ -19,10 +18,7 @@ export function OfficialAccountsCard({ officials }: { officials: MyOfficial[] })
 				<li key={official.officialId}>
 					<Link
 						href={officialMembersHref(official.officialId)}
-						className={cn(
-							rowClassName,
-							'transition-colors hover:bg-surface-soft outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring'
-						)}
+						className={rowLinkClassName}
 					>
 						<UserAvatar username={official.username} avatarUrl={official.avatarUrl} className="size-9" />
 						<RowText

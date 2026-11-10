@@ -1,20 +1,9 @@
-import { can, grantableRoles, memberActions, type OfficialAction } from '@/features/officials/permissions';
+import { canManageMembers, grantableRoles, memberActions } from '@/features/officials/permissions';
 import { OFFICIAL_ROLES } from '@/features/officials/schema';
 
-// Design doc §4: the roles allowed each action, in OWNER, ADMIN, CHIEF_EDITOR, EDITOR, ANALYST order
-const MATRIX: Record<OfficialAction, [boolean, boolean, boolean, boolean, boolean]> = {
-	publish: [true, true, true, true, false],
-	editOthers: [true, true, true, false, false],
-	editProfile: [true, true, false, false, false],
-	manageMembers: [true, true, false, false, false],
-	viewReport: [true, true, false, false, true],
-	markRead: [true, true, true, true, true],
-	leave: [true, true, true, true, true],
-};
-
-describe('can', () => {
-	it.each(Object.entries(MATRIX))('%s follows the role matrix', (action, allowed) => {
-		expect(OFFICIAL_ROLES.map((role) => can(role, action as OfficialAction))).toEqual(allowed);
+describe('canManageMembers', () => {
+	it('lets only OWNER and ADMIN manage members', () => {
+		expect(OFFICIAL_ROLES.filter(canManageMembers)).toEqual(['OWNER', 'ADMIN']);
 	});
 });
 

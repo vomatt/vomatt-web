@@ -1181,6 +1181,16 @@
 		"admin": {
 			"self_action_forbidden": "You cannot suspend yourself or remove your own admin role",
 			"last_admin": "Cannot remove the last active admin"
+		},
+		"official": {
+			"last_owner": "An official account needs at least one owner. Transfer ownership first.",
+			"not_member": "You’re no longer a member of this account.",
+			"role_forbidden": "You don’t have permission to do that.",
+			"member": {
+				"exists": "They’re already a member.",
+				"invalid": "They can’t be added to this account.",
+				"not_found": "They’re no longer a member. The list has been refreshed."
+			}
 		}
 	},
 	"blocks": {
@@ -1362,14 +1372,7 @@
 		"notMemberBody": "This official account doesn’t exist, or you’re no longer one of its members.",
 		"goToOfficials": "Official accounts",
 		"deleteLastOwner": "You’re the only owner of an official account. Transfer ownership first.",
-		"errors": {
-			"lastOwner": "An official account needs at least one owner. Transfer ownership first.",
-			"exists": "They’re already a member.",
-			"invalid": "They can’t be added to this account.",
-			"notFound": "They’re no longer a member. The list has been refreshed.",
-			"forbidden": "You don’t have permission to do that.",
-			"notMember": "You’re no longer a member of this account."
-		}
+		"officialNotAllowed": "Official accounts can’t be members of another account."
 	},
 	"meta": {
 		"siteDescription": "Ask a question, vote on other people’s polls, and see what everyone really thinks. Ballots stay sealed until a poll ends, so nobody votes with the crowd.",

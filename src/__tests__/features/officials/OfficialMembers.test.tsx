@@ -117,4 +117,22 @@ describe('OfficialMembers', () => {
 		fireEvent.click(await screen.findByRole('button', { name: 'Remove' }));
 		await waitFor(() => expect(mockRefresh).toHaveBeenCalled());
 	});
+
+	it('shows official accounts in the search, badged, but not pickable', async () => {
+		const { searchUsers } = jest.requireMock('@/lib/api/services/users');
+		searchUsers.mockResolvedValue({
+			items: [
+				{ id: 'u9', username: 'cityhall', displayName: null, avatarUrl: null, official: true },
+				{ id: 'u8', username: 'cindy', displayName: null, avatarUrl: null },
+			],
+			nextCursor: null,
+		});
+		renderAs('olive');
+		fireEvent.click(screen.getByRole('button', { name: 'Add member' }));
+		fireEvent.change(await screen.findByRole('textbox', { name: 'Search by username' }), { target: { value: 'ci' } });
+		const official = await screen.findByRole('button', { name: /cityhall/ });
+		expect(official).toBeDisabled();
+		expect(within(official).getByRole('img', { name: 'Official account' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: /cindy/ })).toBeEnabled();
+	});
 });

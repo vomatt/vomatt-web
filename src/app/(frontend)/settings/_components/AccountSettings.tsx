@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { LegalLinks } from '@/components/layout/LegalLinks';
-import { rowClassName, RowText, SettingsCard } from '@/components/SettingsCard';
+import { rowClassName, rowLinkClassName, RowText, SettingsCard } from '@/components/SettingsCard';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -50,11 +50,6 @@ import type { MyProfile } from '@/types/user';
 /** The page's sections, in order; the On this page list links to each. */
 export const SETTINGS_SECTIONS = ['voting', 'notifications', 'appearance', 'privacy', 'help', 'account'] as const;
 
-const rowLinkClassName = cn(
-	rowClassName,
-	'transition-colors hover:bg-surface-soft outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring'
-);
-
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
 	return (
 		<section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-20 space-y-2.5">
@@ -70,7 +65,7 @@ export default function AccountSettings({
 	profile,
 	inviteListCount,
 	notificationPreferences,
-	officials = [],
+	officials,
 }: {
 	profile: MyProfile;
 	/** How many invite lists the user has; null when they couldn't be loaded. */
@@ -78,7 +73,7 @@ export default function AccountSettings({
 	/** Null when they couldn't be loaded. */
 	notificationPreferences: NotificationPreferences | null;
 	/** The official accounts the user belongs to; the section shows only with some. */
-	officials?: MyOfficial[];
+	officials: MyOfficial[];
 }) {
 	const { t, currentLanguage } = useLanguage();
 	const router = useRouter();

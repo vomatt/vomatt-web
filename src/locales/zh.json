@@ -1168,6 +1168,16 @@
 		"admin": {
 			"self_action_forbidden": "不能停權自己或移除自己的管理員角色",
 			"last_admin": "不能移除最後一位管理員"
+		},
+		"official": {
+			"last_owner": "官方帳號至少要有一位擁有者，請先轉移擁有者。",
+			"not_member": "你已不是這個帳號的成員。",
+			"role_forbidden": "你沒有權限這麼做。",
+			"member": {
+				"exists": "對方已經是成員。",
+				"invalid": "無法將對方加入這個帳號。",
+				"not_found": "對方已不是成員，列表已重新整理。"
+			}
 		}
 	},
 	"blocks": {
@@ -1347,14 +1357,7 @@
 		"notMemberBody": "這個官方帳號不存在，或你已不是它的成員。",
 		"goToOfficials": "官方帳號",
 		"deleteLastOwner": "你是某個官方帳號唯一的擁有者，請先轉移擁有者。",
-		"errors": {
-			"lastOwner": "官方帳號至少要有一位擁有者，請先轉移擁有者。",
-			"exists": "對方已經是成員。",
-			"invalid": "無法將對方加入這個帳號。",
-			"notFound": "對方已不是成員，列表已重新整理。",
-			"forbidden": "你沒有權限這麼做。",
-			"notMember": "你已不是這個帳號的成員。"
-		}
+		"officialNotAllowed": "官方帳號不能成為其他帳號的成員。"
 	},
 	"meta": {
 		"siteDescription": "提出問題、參與他人的投票，看看大家真正的想法。投票結束前票數保持密封，沒有人會跟風投票。",
