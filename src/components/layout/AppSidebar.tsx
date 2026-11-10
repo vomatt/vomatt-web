@@ -29,6 +29,7 @@ import {
 import { TidePanel } from '@/components/ui/TidePanel';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
+import { AccountSwitcher } from '@/features/communities/AccountSwitcher';
 import {
 	formatUnreadCount,
 	useUnreadCount,
@@ -86,6 +87,11 @@ export function AppSidebar({
 			<SidebarHeader className="px-5 pt-5 pb-5">
 				<BrandLink className="w-24 text-sidebar-foreground hover:text-sidebar-foreground/70 transition-colors" />
 			</SidebarHeader>
+
+			{/* Who the user acts as; empty unless they're in a community account */}
+			<div className="px-3 pb-3 empty:hidden">
+				<AccountSwitcher />
+			</div>
 
 			{/* Primary action */}
 			<div className="px-4 pb-4">

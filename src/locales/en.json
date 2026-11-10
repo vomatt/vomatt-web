@@ -1219,7 +1219,7 @@
 			"roles_fixed": "Community account roles can’t be changed.",
 			"last_owner": "A community account needs at least one owner. Transfer ownership first.",
 			"not_member": "You’re no longer a member of this account.",
-			"role_forbidden": "You don’t have permission to do that.",
+			"role_forbidden": "Your role in this community account can’t do that. Editors can change only the polls and comments they posted.",
 			"member": {
 				"exists": "They’re already a member.",
 				"invalid": "They can’t be added to this account.",
@@ -1415,7 +1415,24 @@
 		"usernameHint": "3–50 lowercase letters, numbers or underscores. The account can’t sign in.",
 		"create": "Create",
 		"created": "Created @{name}",
-		"createFailed": "Couldn’t create the account. Please try again."
+		"createFailed": "Couldn’t create the account. Please try again.",
+		"acting": {
+			"switcher": "Switch account",
+			"you": "You",
+			"actingAs": "Acting as",
+			"banner": "You’re acting as {name}. Polls and comments post under its name.",
+			"switchBack": "Switch back to you",
+			"actAs": "Act as",
+			"actAsLabel": "Act as {name}",
+			"switched": "You’re acting as {name}",
+			"switchedBack": "You’re acting as yourself",
+			"switchFailed": "Couldn’t switch accounts. Please try again.",
+			"noVote": "Community accounts don’t vote. Switch back to you to vote.",
+			"postingAs": "Posting as {name}",
+			"settingsTitle": "These settings are your own",
+			"settingsBody": "You’re acting as {name}. Switch back to you to change them.",
+			"manageMembers": "Manage members"
+		}
 	},
 	"meta": {
 		"siteDescription": "Ask a question, vote on other people’s polls, and see what everyone really thinks. Ballots stay sealed until a poll ends, so nobody votes with the crowd.",

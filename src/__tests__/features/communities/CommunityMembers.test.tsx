@@ -72,6 +72,21 @@ describe('CommunityMembers', () => {
 		expect(within(dialog).getByRole('button', { name: 'Editor' })).toHaveAttribute('aria-pressed', 'true');
 	});
 
+	it('keeps Analyst out of the role list until someone has it, and then keeps it as their choice', async () => {
+		const withAnalyst = [...members, member('ana', 'ANALYST')];
+		const community: MyCommunity = { communityId: 'off1', username: 'sunrise', displayName: 'Sunrise', avatarUrl: null, role: 'OWNER' };
+		const { unmount } = render(<CommunityMembers community={community} viewerId="olive" members={members} />);
+		expect(screen.queryByText('Sees result reports; doesn’t post.')).not.toBeInTheDocument();
+		unmount();
+
+		render(<CommunityMembers community={community} viewerId="olive" members={withAnalyst} />);
+		expect(screen.getByText('Sees result reports; doesn’t post.')).toBeInTheDocument();
+		const menu = await openMenu('ana');
+		fireEvent.click(menu.getByRole('menuitem', { name: 'Change role' }));
+		const dialog = await screen.findByRole('dialog');
+		expect(within(dialog).getByRole('button', { name: 'Analyst' })).toHaveAttribute('aria-pressed', 'true');
+	});
+
 	it('lets an EDITOR only leave', async () => {
 		renderAs('ed');
 		expect(screen.queryByRole('button', { name: 'Add member' })).not.toBeInTheDocument();

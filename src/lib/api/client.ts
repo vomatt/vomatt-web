@@ -1,6 +1,6 @@
 import { headers as requestHeaders } from 'next/headers';
 
-import { getTokens } from '@/lib/api/auth';
+import { getActingCommunityId, getTokens } from '@/lib/api/auth';
 import { backendFetch } from '@/lib/api/backend-fetch';
 import { clientHeaders } from '@/lib/api/client-ip';
 import { API_BASE_PATH } from '@/lib/api/constants';
@@ -12,6 +12,8 @@ interface ApiFetchOptions extends RequestInit {
 	isFormData?: boolean;
 	/** 'optional' sends the request without a token when signed out instead of throwing. */
 	auth?: 'required' | 'optional';
+	/** false sends the request as the signed-in user even while they act as a community account. */
+	actAs?: false;
 }
 
 export class AuthError extends Error {
@@ -105,6 +107,7 @@ export async function apiClient<T = any>(
 	const {
 		isFormData = false,
 		auth = 'required',
+		actAs,
 		headers: customHeaders,
 		...fetchOptions
 	} = options;
@@ -127,13 +130,26 @@ export async function apiClient<T = any>(
 	if (!headers.has('Accept-Language')) {
 		headers.set('Accept-Language', (await getServerLocale()).payloadLocale);
 	}
+	const actingId = actAs === false ? null : await getActingCommunityId();
+	if (actingId) headers.set('X-Act-As', actingId);
 	// A response for one user must never land in the shared data cache
 	const { next: _next, ...uncached } = fetchOptions as RequestInit & { next?: unknown };
-	const response = await backendFetch(`${process.env.API_URL}${API_BASE_PATH}${endpoint}`, {
-		...uncached,
-		headers,
-		cache: 'no-store',
-	});
+	const send = (sent: Headers) =>
+		backendFetch(`${process.env.API_URL}${API_BASE_PATH}${endpoint}`, { ...uncached, headers: sent, cache: 'no-store' });
+	let response = await send(headers);
+	// Removed from the community meanwhile: a read goes on as the user (the layout then ends acting).
+	// A write never does, or it would post under the user's own name.
+	if (actingId && response.status === 403 && (uncached.method ?? 'GET').toUpperCase() === 'GET') {
+		const errorCode = await response
+			.clone()
+			.json()
+			.then((body) => body?.errorCode, () => undefined);
+		if (errorCode === 'community.not_member') {
+			const asUser = new Headers(headers);
+			asUser.delete('X-Act-As');
+			response = await send(asUser);
+		}
+	}
 
 	if (response.status === 401) {
 		const errorCode = await response.json().then(

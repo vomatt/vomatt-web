@@ -7,6 +7,7 @@ jest.mock('@/data/auth', () => ({
 	getUserSession: async () => ({ sub: 'u1' }),
 	getLoginHref: async () => '/login',
 	loadMyProfile: jest.fn(),
+	loadActingState: async () => ({ acting: null, me: null, communities: [], stale: false }),
 }));
 jest.mock('@/components/layout/AppSidebar', () => ({ AppSidebar: () => null }));
 jest.mock('@/components/layout/TabBar', () => ({ TabBar: () => null }));
