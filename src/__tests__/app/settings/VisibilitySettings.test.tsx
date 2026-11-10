@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 
 import { VisibilitySettings } from '@/app/(frontend)/settings/visibility/_components/VisibilitySettings';
 import VisibilityPage from '@/app/(frontend)/settings/visibility/page';
+import { ActingProvider } from '@/features/communities/ActingProvider';
 import type { MyProfile } from '@/types/user';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
@@ -155,6 +156,18 @@ describe('What others see page', () => {
 		render(await VisibilityPage());
 		expect(screen.getByRole('heading', { level: 1, name: 'What others see' })).toBeInTheDocument();
 		expect(screen.getByRole('link', { name: 'Back to Settings' })).toHaveAttribute('href', '/settings');
+	});
+
+	it('says these settings are the person’s own while acting as a community', async () => {
+		mockGetMyProfile.mockResolvedValue(profile);
+		const club = { communityId: 'c1', username: 'club', displayName: 'Robotics Club', avatarUrl: null, role: 'EDITOR' as const };
+		render(
+			<ActingProvider state={{ acting: club, me: null, communities: [club], stale: false }}>
+				{await VisibilityPage()}
+			</ActingProvider>
+		);
+		expect(screen.getByText('These settings are your own')).toBeInTheDocument();
+		expect(screen.queryByRole('switch')).not.toBeInTheDocument();
 	});
 
 	it('sends a signed-out visitor to log in and back', async () => {
