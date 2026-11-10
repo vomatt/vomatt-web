@@ -1128,6 +1128,9 @@
 				"not_in_vote": "Option does not belong to this vote"
 			},
 			"not_allowed": "Voting period has ended or not started",
+			"ballot": {
+				"community_not_allowed": "Community accounts don’t vote."
+			},
 			"ended": "This poll has ended; ballots can no longer be cast or retracted",
 			"results": {
 				"sealed": "Results are sealed until the poll ends"
@@ -1213,6 +1216,7 @@
 		},
 		"community": {
 			"invitee_not_allowed": "Community accounts don’t vote, so they can’t be invited.",
+			"roles_fixed": "Community account roles can’t be changed.",
 			"last_owner": "A community account needs at least one owner. Transfer ownership first.",
 			"not_member": "You’re no longer a member of this account.",
 			"role_forbidden": "You don’t have permission to do that.",

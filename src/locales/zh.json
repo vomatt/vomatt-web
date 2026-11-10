@@ -1115,6 +1115,9 @@
 				"not_in_vote": "選項不屬於此投票"
 			},
 			"not_allowed": "投票尚未開始或已結束",
+			"ballot": {
+				"community_not_allowed": "社群帳號不投票。"
+			},
 			"ended": "投票已結束，無法再投票或撤回",
 			"results": {
 				"sealed": "投票結束前無法查看結果"
@@ -1200,6 +1203,7 @@
 		},
 		"community": {
 			"invitee_not_allowed": "社群帳號不投票，無法邀請。",
+			"roles_fixed": "社群帳號的角色無法變更。",
 			"last_owner": "社群帳號至少要有一位擁有者，請先轉移擁有者。",
 			"not_member": "你已不是這個帳號的成員。",
 			"role_forbidden": "你沒有權限這麼做。",
