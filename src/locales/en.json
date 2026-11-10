@@ -1402,7 +1402,16 @@
 		"notMemberBody": "This official account doesn’t exist, or you’re no longer one of its members.",
 		"goToOfficials": "Official accounts",
 		"deleteLastOwner": "You’re the only owner of an official account. Transfer ownership first.",
-		"officialNotAllowed": "Official accounts can’t be members of another account."
+		"officialNotAllowed": "Official accounts can’t be members of another account.",
+		"createTitle": "Create an official account",
+		"createBody": "A page for a group, run by several members. You’ll be its owner.",
+		"createIntro": "A group’s page that several members run together. You become its owner and can add the others.",
+		"nameLabel": "Group name",
+		"nameRequired": "Enter the group’s name.",
+		"usernameHint": "3–50 lowercase letters, numbers or underscores. The account can’t sign in.",
+		"create": "Create",
+		"created": "Created @{name}",
+		"createFailed": "Couldn’t create the account. Please try again."
 	},
 	"meta": {
 		"siteDescription": "Ask a question, vote on other people’s polls, and see what everyone really thinks. Ballots stay sealed until a poll ends, so nobody votes with the crowd.",

@@ -33,8 +33,9 @@ import { NOTIFICATION_SWITCHES } from '@/features/notifications/preferences';
 import type { NotificationPreferences } from '@/features/notifications/schema';
 import { updateNotificationPreferences } from '@/features/notifications/service';
 import { useUnreadCount } from '@/features/notifications/UnreadCountProvider';
+import { CreateOfficialDialog } from '@/features/officials/CreateOfficialDialog';
 import { OfficialAccountsCard } from '@/features/officials/OfficialAccountsCard';
-import type { MyOfficial } from '@/features/officials/schema';
+import { type MyOfficial, officialMembersHref } from '@/features/officials/schema';
 import { PasskeysPanel } from '@/features/passkeys/PasskeysPanel';
 import { getSessions } from '@/features/sessions/service';
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
@@ -200,11 +201,10 @@ export default function AccountSettings({
 				<ReportProblemDialog open={reportOpen} onOpenChange={setReportOpen} />
 			</Section>
 
-			{officials.length > 0 && (
-				<Section id="officials" title={t('officials.title')}>
-					<OfficialAccountsCard officials={officials} />
-				</Section>
-			)}
+			<Section id="officials" title={t('officials.title')}>
+				{officials.length > 0 && <OfficialAccountsCard officials={officials} />}
+				<CreateOfficialRow />
+			</Section>
 
 			<Section id="account" title={t('settings.account')}>
 				<SettingsCard>
@@ -235,6 +235,30 @@ export default function AccountSettings({
 
 			<LegalLinks className="flex gap-4.5 text-caption-1 text-muted-foreground" />
 		</div>
+	);
+}
+
+/** Starts a new official account; the user becomes its owner and lands on its members page. */
+function CreateOfficialRow() {
+	const { t } = useLanguage();
+	const router = useRouter();
+	const [open, setOpen] = useState(false);
+	return (
+		<SettingsCard>
+			<button type="button" onClick={() => setOpen(true)} className={cn(rowLinkClassName, 'w-full text-left')}>
+				<RowText title={t('officials.createTitle')} body={t('officials.createBody')} />
+				<ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+			</button>
+			<CreateOfficialDialog
+				open={open}
+				onOpenChange={setOpen}
+				onCreated={(officialId, username) => {
+					setOpen(false);
+					toast.success(t('officials.created', { name: username }));
+					router.push(officialMembersHref(officialId));
+				}}
+			/>
+		</SettingsCard>
 	);
 }
 
