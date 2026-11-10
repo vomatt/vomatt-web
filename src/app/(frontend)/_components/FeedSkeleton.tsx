@@ -1,9 +1,15 @@
 import { PollListSkeleton } from '@/features/polls/components/PollCardSkeleton';
+import { cn } from '@/lib/utils';
 
-export function FeedSkeleton() {
+/** The first card starts where it will land: below the pill bar, or for guests where the login prompt goes. Level with HomeRail's. */
+export function FeedSkeleton({ signedIn = true }: { signedIn?: boolean }) {
 	return (
-		// pt-6 puts the first card where the feed's first row lands, level with HomeRail's first card
-		<div className="w-full max-w-feed pt-6 pb-4">
+		<div
+			className={cn(
+				'w-full max-w-feed pb-4',
+				signedIn ? 'pt-[calc(var(--feed-bar-height)+0.5rem)]' : 'pt-6'
+			)}
+		>
 			<PollListSkeleton />
 		</div>
 	);

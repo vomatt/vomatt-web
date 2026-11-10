@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 
 import { Skeleton } from '@/components/ui/Skeleton';
+import { cn } from '@/lib/utils';
 
 import { AskCard } from './AskCard';
 import { HowCountsCard } from './HowCountsCard';
@@ -13,9 +14,14 @@ import { RailPolls } from './RailPolls';
  */
 export function HomeRail({ signedIn }: { signedIn: boolean }) {
 	return (
-		// Mirrors the feed's pt-4 and the pill bar's py-2, so the first card lines up with the feed's first row at rest
-		// and with the stuck pills once scrolled. Scrolls itself when taller than the window, so AskCard stays reachable
-		<aside className="flex w-full max-w-feed flex-col gap-4 xl:sticky xl:top-0 xl:mt-4 xl:max-h-dvh xl:overflow-y-auto xl:py-2">
+		// Its first card lines up with the first row below the pill bar (a card, or a topic's Follow button), or for guests
+		// with the login prompt. Sticks where it rests, like the pill bar. Scrolls itself when taller than the window, so AskCard stays reachable
+		<aside
+			className={cn(
+				'flex w-full max-w-feed flex-col gap-4 xl:sticky xl:top-0 xl:max-h-dvh xl:overflow-y-auto xl:pb-2',
+				signedIn ? 'xl:pt-[calc(var(--feed-bar-height)+0.5rem)]' : 'xl:pt-6'
+			)}
+		>
 			{signedIn ? (
 				<>
 					<div className="hidden xl:contents">
