@@ -1,5 +1,6 @@
-import { headers as requestHeaders } from 'next/headers';
+import { cookies, headers as requestHeaders } from 'next/headers';
 
+import { ACT_AS } from '@/data/constants';
 import { getActingCommunityId, getTokens } from '@/lib/api/auth';
 import { backendFetch } from '@/lib/api/backend-fetch';
 import { clientHeaders } from '@/lib/api/client-ip';
@@ -39,6 +40,14 @@ export class ApiError extends Error {
 		super(message);
 		this.name = 'ApiError';
 	}
+}
+
+// The person's own routes, which the API refuses while acting (vomatt-api SecurityEndpoints.ACT_AS_DENIED)
+const PERSONAL = /^\/(auth\/passkey\/register|users\/me\/(passkeys|sessions|export|phone))(\/|$)/;
+
+function isPersonal(endpoint: string, method: string) {
+	const path = endpoint.split('?')[0];
+	return PERSONAL.test(path) || (method === 'DELETE' && /^\/users\/[^/]+$/.test(path));
 }
 
 function readRetryAfter(response: Response) {
@@ -130,24 +139,27 @@ export async function apiClient<T = any>(
 	if (!headers.has('Accept-Language')) {
 		headers.set('Accept-Language', (await getServerLocale()).payloadLocale);
 	}
-	const actingId = actAs === false ? null : await getActingCommunityId();
-	if (actingId) headers.set('X-Act-As', actingId);
 	// A response for one user must never land in the shared data cache
 	const { next: _next, ...uncached } = fetchOptions as RequestInit & { next?: unknown };
+	const method = (uncached.method ?? 'GET').toUpperCase();
+	const actingId = actAs === false || isPersonal(endpoint, method) ? null : await getActingCommunityId();
+	if (actingId) headers.set('X-Act-As', actingId);
 	const send = (sent: Headers) =>
 		backendFetch(`${process.env.API_URL}${API_BASE_PATH}${endpoint}`, { ...uncached, headers: sent, cache: 'no-store' });
 	let response = await send(headers);
-	// Removed from the community meanwhile: a read goes on as the user (the layout then ends acting).
-	// A write never does, or it would post under the user's own name.
-	if (actingId && response.status === 403 && (uncached.method ?? 'GET').toUpperCase() === 'GET') {
+	// Removed from the community meanwhile. A read goes on as the user (the layout then ends acting); a write never
+	// does, or it would post under the user's own name, so it ends acting and the page reloads as the user.
+	if (actingId && response.status === 403) {
 		const errorCode = await response
 			.clone()
 			.json()
 			.then((body) => body?.errorCode, () => undefined);
-		if (errorCode === 'community.not_member') {
+		if (errorCode === 'community.not_member' && method === 'GET') {
 			const asUser = new Headers(headers);
 			asUser.delete('X-Act-As');
 			response = await send(asUser);
+		} else if (errorCode === 'community.not_member') {
+			(await cookies()).delete(ACT_AS);
 		}
 	}
 

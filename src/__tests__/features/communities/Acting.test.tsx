@@ -8,9 +8,10 @@ import { ActingBanner } from '@/features/communities/ActingBanner';
 import { ActingProvider } from '@/features/communities/ActingProvider';
 import { CommunityAccountsCard } from '@/features/communities/CommunityAccountsCard';
 import type { CommunityRole, MyCommunity } from '@/features/communities/schema';
+import { type Follow, FollowButton } from '@/features/follows/FollowButton';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
-jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn() } }));
+jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn(), info: jest.fn() } }));
 const mockRefresh = jest.fn();
 jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh: mockRefresh }), usePathname: () => '/' }));
 
@@ -102,6 +103,23 @@ describe('ActingProvider', () => {
 		renderWith({ stale: true }, null);
 		await waitFor(() => expect(actAsCommunity).toHaveBeenCalledWith(null));
 		expect(mockRefresh).toHaveBeenCalled();
+		expect(toast.info).toHaveBeenCalledWith('You can no longer act as that account, so you’re acting as yourself again.', {
+			id: 'acting-ended',
+		});
+	});
+});
+
+describe('FollowButton while acting', () => {
+	const follow = { state: 'follow', toggle: jest.fn(), isPending: false, confirming: false, setConfirming: jest.fn(), delta: 0 } as Follow;
+
+	it('offers Follow to the user themself', () => {
+		renderWith({}, <FollowButton follow={follow} username="ann" />);
+		expect(screen.getByRole('button', { name: 'Follow' })).toBeInTheDocument();
+	});
+
+	it('is gone while acting as a community account, which doesn’t follow', () => {
+		renderWith({ acting: { ...community('c1', 'OWNER') } }, <FollowButton follow={follow} username="ann" />);
+		expect(screen.queryByRole('button', { name: 'Follow' })).not.toBeInTheDocument();
 	});
 });
 

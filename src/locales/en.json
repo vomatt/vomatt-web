@@ -1426,6 +1426,7 @@
 			"actAsLabel": "Act as {name}",
 			"switched": "You’re acting as {name}",
 			"switchedBack": "You’re acting as yourself",
+			"ended": "You can no longer act as that account, so you’re acting as yourself again.",
 			"switchFailed": "Couldn’t switch accounts. Please try again.",
 			"noVote": "Community accounts don’t vote. Switch back to you to vote.",
 			"postingAs": "Posting as {name}",
