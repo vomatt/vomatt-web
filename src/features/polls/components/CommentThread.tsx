@@ -27,6 +27,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { AccountAvatar } from '@/features/avatars/AccountAvatar';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { BlockUserDialog } from '@/features/blocks/BlockUserDialog';
+import { useActing } from '@/features/communities/ActingProvider';
+import { accountName } from '@/features/communities/schema';
 import { ProfileAvatar, ProfileName } from '@/features/profiles/UserChip';
 import { useHydrated } from '@/hooks/useHydrated';
 import { apiErrorText } from '@/lib/api/error-text';
@@ -351,6 +353,7 @@ function Composer({
 	viewerUsername?: string;
 }) {
 	const { t } = useLanguage();
+	const { acting } = useActing();
 	const fieldId = useId();
 	const [text, setTextState] = useState(() => draft?.read() ?? '');
 	const setText = (next: string) => {
@@ -433,6 +436,11 @@ function Composer({
 							<X className="size-4" />
 						</button>
 					</div>
+				)}
+				{acting && (
+					<p className="text-caption-3 font-medium text-foreground">
+						{t('communities.acting.postingAs', { name: accountName(acting) })}
+					</p>
 				)}
 				<MentionTextarea
 					id={fieldId}

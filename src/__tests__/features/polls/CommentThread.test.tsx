@@ -1,6 +1,7 @@
 import { act, fireEvent, render, renderHook, screen, waitFor, within } from '@testing-library/react';
 import { useState } from 'react';
 
+import { ActingProvider } from '@/features/communities/ActingProvider';
 import { CommentThread, useCommentLink } from '@/features/polls/components/CommentThread';
 import { useComments } from '@/features/polls/hooks/useComments';
 
@@ -10,6 +11,7 @@ jest.mock('next/link', () => {
 });
  
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
+jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh: jest.fn() }) }));
 jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn() } }));
 jest.mock('@/features/blocks/service', () => ({ blockUser: jest.fn() }));
 jest.mock('@/lib/api/services/users', () => ({ searchUsers: jest.fn() }));
@@ -84,6 +86,22 @@ async function openMenu(text: string) {
 }
 
 describe('CommentThread', () => {
+	it('says the comment posts under the community account while acting', async () => {
+		const acting = { communityId: 'c1', username: 'robotics', displayName: 'Robotics Club', avatarUrl: null, role: 'OWNER' as const };
+		render(
+			<ActingProvider state={{ acting, me: null, communities: [], stale: false }}>
+				<Harness />
+			</ActingProvider>
+		);
+		expect(await screen.findByText('Posting as Robotics Club')).toBeInTheDocument();
+	});
+
+	it('names no account when the user posts as themself', async () => {
+		render(<Harness />);
+		await screen.findByText('Theirs');
+		expect(screen.queryByText(/Posting as/)).not.toBeInTheDocument();
+	});
+
 	it("shows each author's chosen avatar", async () => {
 		render(<Harness />);
 		const article = (await screen.findByText('Theirs')).closest('article')!;

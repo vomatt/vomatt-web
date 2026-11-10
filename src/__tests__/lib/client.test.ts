@@ -12,7 +12,11 @@ jest.mock('@/lib/api/auth', () => ({
 	getActingCommunityId: () => mockActingId(),
 }));
 let mockRequestHeaders = new Headers();
-jest.mock('next/headers', () => ({ headers: async () => mockRequestHeaders }));
+const mockDeleteCookie = jest.fn();
+jest.mock('next/headers', () => ({
+	headers: async () => mockRequestHeaders,
+	cookies: async () => ({ delete: mockDeleteCookie }),
+}));
 const mockLocale = jest.fn();
 jest.mock('@/lib/getServerLocale', () => ({
 	getServerLocale: () => mockLocale(),
@@ -164,5 +168,45 @@ describe('apiClient while acting as a community', () => {
 
 		await expect(apiClient('/votes', { method: 'POST' })).rejects.toMatchObject({ statusCode: 403 });
 		expect(fetchMock).toHaveBeenCalledTimes(1);
+	});
+
+	it('ends acting when a write finds the membership gone', async () => {
+		fetchMock.mockResolvedValue(notMember());
+
+		await expect(apiClient('/votes', { method: 'POST' })).rejects.toMatchObject({ statusCode: 403 });
+		expect(mockDeleteCookie).toHaveBeenCalledWith('actAs');
+	});
+
+	it('keeps acting when a read finds the membership gone (the layout ends it)', async () => {
+		fetchMock.mockResolvedValueOnce(notMember()).mockResolvedValueOnce(json({ success: true, data: {} }));
+
+		await apiClient('/users/me');
+		expect(mockDeleteCookie).not.toHaveBeenCalled();
+	});
+
+	it.each([
+		['GET', '/users/me/sessions'],
+		['DELETE', '/users/me/sessions?scope=others'],
+		['GET', '/users/me/passkeys'],
+		['POST', '/auth/passkey/register/options'],
+		['POST', '/users/me/phone/send-otp'],
+		['GET', '/users/me/export'],
+		['DELETE', '/users/u1'],
+	])("sends the person's own %s %s as the person", async (method, endpoint) => {
+		fetchMock.mockResolvedValue(json({ success: true, data: {} }));
+
+		await apiClient(endpoint, { method });
+		expect(actAs(0)).toBeNull();
+	});
+
+	it.each([
+		['DELETE', '/users/me/follows/u2'],
+		['PATCH', '/users/me'],
+		['DELETE', '/votes/v1'],
+	])('acts as the community on %s %s', async (method, endpoint) => {
+		fetchMock.mockResolvedValue(json({ success: true, data: {} }));
+
+		await apiClient(endpoint, { method });
+		expect(actAs(0)).toBe('c1');
 	});
 });

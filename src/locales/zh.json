@@ -1411,6 +1411,7 @@
 			"actAsLabel": "以 {name} 的身分操作",
 			"switched": "你正以 {name} 的身分操作",
 			"switchedBack": "已切換回自己",
+			"ended": "你已無法以該帳號的身分操作，已切換回自己。",
 			"switchFailed": "無法切換帳號，請再試一次。",
 			"noVote": "社群帳號不能投票。切換回自己即可投票。",
 			"postingAs": "以 {name} 的名義發布",

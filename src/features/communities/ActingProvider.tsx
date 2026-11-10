@@ -29,6 +29,7 @@ const ActingContext = createContext<ActingContextValue>({
 
 /** Who the signed-in user is acting as, for the switcher, the banner and what a community can't do. */
 export function ActingProvider({ state, children }: { state: ActingState; children: ReactNode }) {
+	const { t } = useLanguage();
 	const router = useRouter();
 	const [busy, setBusy] = useState(false);
 	const [loaded, setLoaded] = useState<{ for: ActingState; communities: MyCommunity[] } | null>(null);
@@ -42,10 +43,13 @@ export function ActingProvider({ state, children }: { state: ActingState; childr
 			current = false;
 		};
 	}, [needsList, state]);
-	// The cookie names an account they can no longer act as: go back to the user, once
+	// The cookie names an account they can no longer act as (removed, or the role changed): go back to the user, once
 	useEffect(() => {
 		if (!state.stale) return;
+		toast.info(t('communities.acting.ended'), { id: 'acting-ended' });
 		void actAsCommunity(null).then(() => router.refresh());
+		// t is a new function each render; this runs once per stale state
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [state.stale, router]);
 
 	const communities = state.communities ?? (loaded?.for === state ? loaded.communities : null);

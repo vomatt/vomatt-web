@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/Button';
 import { Check, Plus } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
+import { useActing } from '@/features/communities/ActingProvider';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
 
@@ -90,8 +91,8 @@ export type Follow = ReturnType<typeof useFollow>;
  * The one Follow button, wherever a person is. Ink while not following, as
  * Follow back when they follow the viewer; once following it drops to outline
  * (the page's primary action stays Create) and tapping it opens the unfollow
- * confirm. Blocked once the viewer blocked them; nothing signed out or on the
- * viewer's own entry.
+ * confirm. Blocked once the viewer blocked them; nothing signed out, on the
+ * viewer's own entry, or while acting as a community account (it doesn't follow).
  * `size`: `sm` (36px) in a profile header, `xs` (32px) on the hover card and in rows.
  * `withConfirm={false}` when the host renders `UnfollowDialog` itself.
  */
@@ -111,6 +112,8 @@ export function FollowButton({
 	withConfirm?: boolean;
 }) {
 	const { t } = useLanguage();
+	const { acting } = useActing();
+	if (acting) return null;
 
 	switch (follow.state) {
 		case null:
