@@ -10,6 +10,7 @@ import type { FollowList } from '@/features/follows/FollowListDialog';
 import { formatMonthYear } from '@/features/polls/format';
 import { Count } from '@/features/profiles/Count';
 import { profileName, realName } from '@/features/profiles/name';
+import { OfficialBadge } from '@/features/profiles/OfficialBadge';
 import { countText } from '@/lib/count';
 import { cn } from '@/lib/utils';
 import type { UserProfile } from '@/types/user';
@@ -25,6 +26,7 @@ type HeaderProfile = Pick<
 	| 'avatarUrl'
 	| 'followersCount'
 	| 'followingCount'
+	| 'official'
 >;
 
 const detailLink =
@@ -109,6 +111,7 @@ export default function ProfileHeader({
 			<div className="min-w-0 flex-[1_1_20rem] max-sm:order-last max-sm:basis-full">
 				<h1 className="wrap-anywhere text-title-3">
 					{name.primary}
+					{profile.official && <OfficialBadge className="ml-2 size-4" />}
 					{primaryHidden && (
 						<OnlyYouMarker className="ml-2 size-4 align-baseline" />
 					)}

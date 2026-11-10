@@ -60,6 +60,20 @@ describe('UserChip', () => {
 		expect(link.querySelector('img')).toHaveAttribute('src', '/avatars/bear.svg');
 	});
 
+	it('badges an official account after its name, and in its card', async () => {
+		fetchMock.mockResolvedValueOnce(json({ ...profile, username: 'council', official: true }));
+		render(<UserChip username="council" official />);
+		const link = screen.getByRole('link', { name: 'council Official account' });
+		await userEvent.hover(link);
+		const card = (await screen.findByText('@council')).closest('div')!.parentElement!;
+		expect(within(card).getByRole('img', { name: 'Official account' })).toBeInTheDocument();
+	});
+
+	it('shows no badge for a personal account', () => {
+		render(<UserChip username="mei" />);
+		expect(screen.queryByRole('img', { name: 'Official account' })).not.toBeInTheDocument();
+	});
+
 	it('shows only the public profile fields on hover', async () => {
 		fetchMock.mockResolvedValueOnce(json(profile));
 		render(<UserChip username="mei" avatarUrl="bot:bear" />);

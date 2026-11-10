@@ -5,6 +5,10 @@ describe('toAuthErrorKey', () => {
 		expect(toAuthErrorKey('auth.invalid_otp', 401)).toBe('invalidCode');
 	});
 
+	it("says an official account can't sign in itself", () => {
+		expect(toAuthErrorKey('auth.official_sign_in_not_allowed', 403)).toBe('officialSignIn');
+	});
+
 	it('uses the apiError copy for an unmapped auth code', () => {
 		expect(toAuthErrorKey('auth.identifier.required', 400)).toBe('apiError.auth.identifier.required');
 	});

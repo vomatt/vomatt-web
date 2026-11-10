@@ -4,9 +4,12 @@ import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
+import { OfficialBadge } from './OfficialBadge';
 import { ProfileHoverCard } from './ProfileHoverCard';
 
 type Person = { username: string; avatarUrl?: string | null };
+/** An official account gets the badge after its name. */
+type Official = { official?: boolean | null };
 
 /**
  * A person's avatar and username as one unit: a link to their profile, with a
@@ -18,10 +21,11 @@ export function UserChip({
 	username,
 	avatarUrl,
 	label = username,
+	official,
 	link = true,
 	className,
 	avatarClassName,
-}: Person & {
+}: Person & Official & {
 	label?: string;
 	link?: boolean;
 	className?: string;
@@ -32,6 +36,7 @@ export function UserChip({
 		<>
 			<UserAvatar username={username} avatarUrl={avatarUrl} className={avatarClassName} />
 			<span className="truncate">{label}</span>
+			{official && <OfficialBadge />}
 		</>
 	);
 	return (
@@ -60,11 +65,12 @@ export function ProfileAvatar({ username, avatarUrl, className }: Person & { cla
 }
 
 /** The username alone as a profile link with the hover card; see `ProfileAvatar`. */
-export function ProfileName({ username, avatarUrl, className }: Person & { className?: string }) {
+export function ProfileName({ username, avatarUrl, official, className }: Person & Official & { className?: string }) {
 	return (
 		<ProfileHoverCard username={username} avatarUrl={avatarUrl}>
-			<Link href={profileHref(username)} className={className}>
+			<Link href={profileHref(username)} className={cn(official && 'inline-flex items-center gap-1', className)}>
 				{username}
+				{official && <OfficialBadge />}
 			</Link>
 		</ProfileHoverCard>
 	);

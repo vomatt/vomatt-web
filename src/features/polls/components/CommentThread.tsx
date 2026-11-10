@@ -852,6 +852,7 @@ function CommentBody({
 					<ProfileName
 						username={author}
 						avatarUrl={comment.authorAvatarUrl}
+						official={comment.authorOfficial}
 						className="text-caption-1 font-medium text-foreground hover:underline"
 					/>
 				)}
