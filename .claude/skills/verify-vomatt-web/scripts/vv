@@ -5,7 +5,8 @@ set -euo pipefail
 
 WEB_REPO="$(cd "$(dirname "$0")/../../../.." && pwd)"
 API_REPO="${VERIFY_API_REPO:-$WEB_REPO/../vomatt-api}"
-RUN_ID="${RUN_ID:-default}"
+# docker compose rejects uppercase project names
+RUN_ID="$(printf '%s' "${RUN_ID:-default}" | tr '[:upper:]' '[:lower:]')"
 WEB_PORT="${VERIFY_WEB_PORT:-3102}"
 export VERIFY_API_PORT="${VERIFY_API_PORT:-18080}"
 ROOT="$(cd /tmp && pwd -P)/vomatt-verify/$RUN_ID"   # resolved: macOS /tmp is a symlink

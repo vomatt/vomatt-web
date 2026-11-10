@@ -7,7 +7,7 @@ description: Launch an isolated vomatt-web + local vomatt-api stack and drive th
 
 Everything goes through one helper, `.claude/skills/verify-vomatt-web/scripts/vv` (run from the repo root; below, `vv` means that path). It runs a disposable stack that never touches the developer's own servers:
 
-- **API:** `../vomatt-api` in Docker (Postgres + Redis + API), compose project `vomatt-verify-$RUN_ID`, API on `localhost:$VERIFY_API_PORT` (default `18080`), no host ports for Postgres/Redis. Email is off, so sign-in codes are read from Redis.
+- **API:** `../vomatt-api` in Docker (Postgres + Redis + API), compose project `vomatt-verify-$RUN_ID`, API on `localhost:$VERIFY_API_PORT` (default `18080`), no host ports for Postgres, Redis or S3. Email is off, so sign-in codes are read from Redis.
 - **Web:** `next dev` on `localhost:$VERIFY_WEB_PORT` (default `3102`), run from an APFS clone of the working tree at `/tmp/vomatt-verify/$RUN_ID/web`. Next 16 allows only one `next dev` per project directory, and the developer's own server (usually `:3002`) holds this repo's lock — never kill it.
 - **Browser:** gstack's `browse` CLI with its own daemon (`BROWSE_STATE_FILE=/tmp/vomatt-verify/$RUN_ID/browse.json`), so it never shares tabs or cookies with other browse sessions. `vv b <args>` passes through to it.
 
@@ -16,7 +16,7 @@ Requires Docker running, `../vomatt-api` checked out, `pnpm install` done in thi
 ## Launch
 
 ```bash
-export RUN_ID=$(date +%H%M%S)          # one id per run; parallel runs also need distinct VERIFY_WEB_PORT / VERIFY_API_PORT
+export RUN_ID=$(date +%H%M%S)          # one id per run (lowercased); parallel runs also need distinct VERIFY_WEB_PORT / VERIFY_API_PORT
 .claude/skills/verify-vomatt-web/scripts/vv up
 ```
 
