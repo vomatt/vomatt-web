@@ -3,10 +3,10 @@ import type { Metadata } from 'next';
 import { EmptyCard } from '@/components/EmptyCard';
 import { PageShell } from '@/components/layout/PageShell';
 import { T } from '@/components/T';
-import { getMyProfile, redirectToLogin } from '@/data/auth';
+import { getMyCommunities, getMyProfile, getTokenSession, redirectToLogin } from '@/data/auth';
 import { CommunityMembers } from '@/features/communities/CommunityMembers';
 import { communityMembersHref } from '@/features/communities/schema';
-import { listMembers, listMyCommunities } from '@/features/communities/service';
+import { listMembers } from '@/features/communities/service';
 import { getServerMessages } from '@/lib/getServerLocale';
 
 import { SettingsSubpageHeader } from '../../../_components/SettingsSubpageHeader';
@@ -20,12 +20,14 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function CommunityMembersPage({ params }: Props) {
 	const { communityId } = await params;
-	const [profile, communities, members] = await Promise.all([
+	const [profile, token, communities, members] = await Promise.all([
 		getMyProfile(),
-		listMyCommunities(),
+		// The person, not the account they may be acting as: their own row is the one they can leave
+		getTokenSession(),
+		getMyCommunities(),
 		listMembers(communityId),
 	]);
-	if (!profile) return redirectToLogin(communityMembersHref(communityId));
+	if (!profile || !token) return redirectToLogin(communityMembersHref(communityId));
 
 	const community = communities.ok ? communities.data.find((o) => o.communityId === communityId) : undefined;
 	// Not a member (removed, never was, or the account is gone): 403 `community.not_member`
@@ -36,7 +38,7 @@ export default async function CommunityMembersPage({ params }: Props) {
 			<div className="flex flex-col gap-8">
 				<SettingsSubpageHeader title={community ? community.displayName || community.username : <T k="communities.members" />} />
 				{community && members.ok ? (
-					<CommunityMembers community={community} viewerId={profile.id} members={members.data} />
+					<CommunityMembers community={community} viewerId={token.sub} members={members.data} />
 				) : notMember ? (
 					<EmptyCard title={<T k="communities.notMemberTitle" />} body={<T k="communities.notMemberBody" />} />
 				) : (

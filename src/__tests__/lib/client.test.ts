@@ -6,8 +6,10 @@ import { json } from '@/__tests__/helpers/jsonResponse';
 process.env.API_URL = 'https://api.example.test';
 
 const mockGetTokens = jest.fn();
+const mockActingId = jest.fn();
 jest.mock('@/lib/api/auth', () => ({
 	getTokens: () => mockGetTokens(),
+	getActingCommunityId: () => mockActingId(),
 }));
 let mockRequestHeaders = new Headers();
 jest.mock('next/headers', () => ({ headers: async () => mockRequestHeaders }));
@@ -25,6 +27,7 @@ beforeEach(() => {
 	mockRequestHeaders = new Headers();
 	delete process.env.CLIENT_IP_SECRET;
 	mockLocale.mockResolvedValue({ language: 'en', payloadLocale: 'en' });
+	mockActingId.mockResolvedValue(null);
 	global.fetch = fetchMock;
 });
 
@@ -118,5 +121,48 @@ describe('apiClient', () => {
 		const error = await apiClient('/votes/1/vote', { method: 'POST' }).catch((e: unknown) => e);
 		expect(error).toBeInstanceOf(ApiError);
 		expect((error as InstanceType<typeof ApiError>).data.errorCode).toBe('vote.not_allowed');
+	});
+});
+
+describe('apiClient while acting as a community', () => {
+	const notMember = () =>
+		new Response(JSON.stringify({ success: false, errorCode: 'community.not_member' }), {
+			status: 403,
+			headers: { 'Content-Type': 'application/json' },
+		});
+	const actAs = (call: number) => new Headers(fetchMock.mock.calls[call][1].headers).get('X-Act-As');
+
+	beforeEach(() => {
+		mockGetTokens.mockResolvedValue({ accessToken: 'a1', refreshToken: 'r1' });
+		mockActingId.mockResolvedValue('c1');
+	});
+
+	it('sends X-Act-As with the community id', async () => {
+		fetchMock.mockResolvedValue(json({ success: true, data: {} }));
+
+		await apiClient('/votes', { method: 'POST' });
+		expect(actAs(0)).toBe('c1');
+	});
+
+	it('leaves the header off when the caller asks for the real user', async () => {
+		fetchMock.mockResolvedValue(json({ success: true, data: {} }));
+
+		await apiClient('/users/me', { actAs: false });
+		expect(actAs(0)).toBeNull();
+	});
+
+	it('reads as the real user once the membership is gone', async () => {
+		fetchMock.mockResolvedValueOnce(notMember()).mockResolvedValueOnce(json({ success: true, data: { id: 'u1' } }));
+
+		await expect(apiClient('/users/me')).resolves.toEqual({ id: 'u1' });
+		expect(actAs(0)).toBe('c1');
+		expect(actAs(1)).toBeNull();
+	});
+
+	it('never retries a write as the real user', async () => {
+		fetchMock.mockResolvedValue(notMember());
+
+		await expect(apiClient('/votes', { method: 'POST' })).rejects.toMatchObject({ statusCode: 403 });
+		expect(fetchMock).toHaveBeenCalledTimes(1);
 	});
 });

@@ -8,11 +8,13 @@ import { EmptyCard } from '@/components/EmptyCard';
 import { FilterPills } from '@/components/FilterPills';
 import { PageShell } from '@/components/layout/PageShell';
 import { Button, buttonVariants } from '@/components/ui/Button';
-import { CirclePlus, Lock, Settings } from '@/components/ui/SvgIcons';
+import { CirclePlus, Lock, Settings, Users } from '@/components/ui/SvgIcons';
 import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { TidePanel } from '@/components/ui/TidePanel';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { isFieldPublic, VISIBILITY_FIELDS } from '@/features/account/visibility';
+import { useActing } from '@/features/communities/ActingProvider';
+import { canEditProfile, communityMembersHref } from '@/features/communities/schema';
 import { type FollowList, FollowListDialog } from '@/features/follows/FollowListDialog';
 import { formatUnreadCount } from '@/features/notifications/UnreadCountProvider';
 import { CreatePollTrigger } from '@/features/polls/components/CreatePollTrigger';
@@ -62,6 +64,7 @@ export function OwnProfileView({
 	openEdit?: boolean;
 }) {
 	const { t } = useLanguage();
+	const { acting } = useActing();
 	const router = useRouter();
 	const [tab, setTab] = useState<ProfileTab>(initialTab);
 	// Saved loads on first open, then stays mounted so its pages survive a look at another tab
@@ -108,16 +111,27 @@ export function OwnProfileView({
 					hiddenFields={hiddenFields}
 					onOpenList={setList}
 					actions={
-						<>
-							<EditProfileDialog profile={profile} defaultOpen={openEdit} />
-							<Link
-								href="/settings"
-								aria-label={t('navigation.settings')}
-								className={buttonVariants({ variant: 'outline', size: 'icon-sm' })}
-							>
-								<Settings aria-hidden />
-							</Link>
-						</>
+						acting ? (
+							// The community's own page: its profile for owners and admins, and its members
+							<>
+								{acting.role && canEditProfile(acting.role) && <EditProfileDialog profile={profile} defaultOpen={openEdit} />}
+								<Link href={communityMembersHref(acting.communityId)} className={buttonVariants({ variant: 'outline', size: 'sm' })}>
+									<Users aria-hidden />
+									{t('communities.acting.manageMembers')}
+								</Link>
+							</>
+						) : (
+							<>
+								<EditProfileDialog profile={profile} defaultOpen={openEdit} />
+								<Link
+									href="/settings"
+									aria-label={t('navigation.settings')}
+									className={buttonVariants({ variant: 'outline', size: 'icon-sm' })}
+								>
+									<Settings aria-hidden />
+								</Link>
+							</>
+						)
 					}
 				/>
 				<FollowListDialog

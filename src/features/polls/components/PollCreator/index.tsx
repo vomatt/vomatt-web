@@ -49,6 +49,8 @@ import { Textarea } from '@/components/ui/Textarea';
 import { TideRule, TideRules } from '@/components/ui/TidePanel';
 import { ENTER, EXIT, Unfold } from '@/components/Unfold';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useActing } from '@/features/communities/ActingProvider';
+import { accountName } from '@/features/communities/schema';
 import { useVisualViewport } from '@/hooks/useVisualViewport';
 import { apiErrorText } from '@/lib/api/error-text';
 import { cn } from '@/lib/utils';
@@ -196,6 +198,7 @@ export function PollCreator({
 	finalFocus,
 }: PollCreatorProps) {
 	const { t, currentLanguage } = useLanguage();
+	const { acting } = useActing();
 	const router = useRouter();
 	const isEdit = !!poll;
 	const [internalOpen, setInternalOpen] = useState(false);
@@ -440,6 +443,12 @@ export function PollCreator({
 												: 'pollCreator.subtitle'
 										)}
 							</DialogDescription>
+							{/* While acting, the poll goes out under the community's name */}
+							{acting && !isEdit && (
+								<p className="text-caption-1 font-medium text-foreground">
+									{t('communities.acting.postingAs', { name: accountName(acting) })}
+								</p>
+							)}
 						</div>
 						<Button
 							type="button"

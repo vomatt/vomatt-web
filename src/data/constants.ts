@@ -1,5 +1,7 @@
 export const ACCESS_TOKEN = 'accessToken';
 export const REFRESH_TOKEN = 'refreshToken';
+/** The community account the user is acting as (its id), sent to the API as `X-Act-As`. */
+export const ACT_AS = 'actAs';
 /** Set by the proxy on a request whose token refresh couldn't reach the API. */
 export const SESSION_UNCONFIRMED_HEADER = 'x-session-unconfirmed';
 /** Sent by SessionRetry; the proxy answers 503 while the API is still unreachable, else 204. */

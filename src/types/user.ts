@@ -62,6 +62,8 @@ export interface MyProfile {
 	/** Whether a first Ballot is Anonymous unless the voter says otherwise. */
 	anonymousBallotByDefault: boolean;
 	avatarUrl: string | null; // `bot:<kind>`; older accounts may hold an image URL
+	/** A community account: the one a member is acting as. */
+	community?: boolean;
 }
 
 /** A passkey on the signed-in account. */

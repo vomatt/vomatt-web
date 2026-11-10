@@ -1206,7 +1206,7 @@
 			"roles_fixed": "社群帳號的角色無法變更。",
 			"last_owner": "社群帳號至少要有一位擁有者，請先轉移擁有者。",
 			"not_member": "你已不是這個帳號的成員。",
-			"role_forbidden": "你沒有權限這麼做。",
+			"role_forbidden": "你在這個社群帳號的角色無法執行此操作。編輯只能修改自己發布的投票與留言。",
 			"member": {
 				"exists": "對方已經是成員。",
 				"invalid": "無法將對方加入這個帳號。",
@@ -1400,7 +1400,24 @@
 		"usernameHint": "3–50 個小寫英文字母、數字或底線。此帳號無法登入。",
 		"create": "建立",
 		"created": "已建立 @{name}",
-		"createFailed": "無法建立帳號，請再試一次。"
+		"createFailed": "無法建立帳號，請再試一次。",
+		"acting": {
+			"switcher": "切換帳號",
+			"you": "你",
+			"actingAs": "目前身分",
+			"banner": "你正以 {name} 的身分操作，投票與留言都會以它的名義發布。",
+			"switchBack": "切換回自己",
+			"actAs": "切換",
+			"actAsLabel": "以 {name} 的身分操作",
+			"switched": "你正以 {name} 的身分操作",
+			"switchedBack": "已切換回自己",
+			"switchFailed": "無法切換帳號，請再試一次。",
+			"noVote": "社群帳號不能投票。切換回自己即可投票。",
+			"postingAs": "以 {name} 的名義發布",
+			"settingsTitle": "這些是你個人的設定",
+			"settingsBody": "你正以 {name} 的身分操作。切換回自己才能修改。",
+			"manageMembers": "管理成員"
+		}
 	},
 	"meta": {
 		"siteDescription": "提出問題、參與他人的投票，看看大家真正的想法。投票結束前票數保持密封，沒有人會跟風投票。",

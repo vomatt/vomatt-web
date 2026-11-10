@@ -35,6 +35,10 @@ describe('memberActions', () => {
 describe('grantableRoles', () => {
 	it('lets only an OWNER grant OWNER', () => {
 		expect(grantableRoles('OWNER')).toContain('OWNER');
-		expect(grantableRoles('ADMIN')).toEqual(['ADMIN', 'CHIEF_EDITOR', 'EDITOR', 'ANALYST']);
+		expect(grantableRoles('ADMIN')).toEqual(['ADMIN', 'CHIEF_EDITOR', 'EDITOR']);
+	});
+
+	it('keeps Analyst out until result reports are in the app', () => {
+		expect(grantableRoles('OWNER')).not.toContain('ANALYST');
 	});
 });

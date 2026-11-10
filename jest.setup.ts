@@ -19,3 +19,10 @@ jest.mock('@/features/follows/service', () => ({
 	getFollowers: jest.fn().mockResolvedValue({ ok: true, data: { items: [], nextCursor: null } }),
 	getFollowing: jest.fn().mockResolvedValue({ ok: true, data: { items: [], nextCursor: null } }),
 }));
+
+// The switcher, banner and no-vote notice sit on every page and card; their Server Action reaches
+// the auth stack too. Tests that check acting itself mock it with their own expectations.
+jest.mock('@/features/communities/acting', () => ({
+	actAsCommunity: jest.fn().mockResolvedValue({ ok: true, data: undefined }),
+	loadMyCommunities: jest.fn().mockResolvedValue({ ok: true, data: [] }),
+}));
