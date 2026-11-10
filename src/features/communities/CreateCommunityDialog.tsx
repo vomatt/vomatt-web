@@ -11,20 +11,20 @@ import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
 import { apiErrorText } from '@/lib/api/error-text';
 import { cn } from '@/lib/utils';
 
-import { createOfficial } from './service';
+import { createCommunity } from './service';
 
 const DISPLAY_NAME_MAX_LENGTH = 100;
 const labelClassName = 'text-caption-1 font-medium text-foreground';
 
-/** Creates an official account with the signed-in user as its first owner; `onCreated` gets the new account's id. */
-export function CreateOfficialDialog({
+/** Creates a community account with the signed-in user as its first owner; `onCreated` gets the new account's id. */
+export function CreateCommunityDialog({
 	open,
 	onOpenChange,
 	onCreated,
 }: {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	onCreated: (officialId: string, username: string) => void;
+	onCreated: (communityId: string, username: string) => void;
 }) {
 	const { t } = useLanguage();
 	return (
@@ -37,7 +37,7 @@ export function CreateOfficialDialog({
 	);
 }
 
-function CreateForm({ onCancel, onCreated }: { onCancel: () => void; onCreated: (officialId: string, username: string) => void }) {
+function CreateForm({ onCancel, onCreated }: { onCancel: () => void; onCreated: (communityId: string, username: string) => void }) {
 	const { t } = useLanguage();
 	const [displayName, setDisplayName] = useState('');
 	const [username, setUsername] = useState('');
@@ -66,7 +66,7 @@ function CreateForm({ onCancel, onCreated }: { onCancel: () => void; onCreated: 
 		}
 		setBusy(true);
 		setFailure(null);
-		const result = await createOfficial(username, name);
+		const result = await createCommunity(username, name);
 		setBusy(false);
 		if (result.ok) {
 			onCreated(result.data.id, result.data.username);
@@ -74,47 +74,47 @@ function CreateForm({ onCancel, onCreated }: { onCancel: () => void; onCreated: 
 			setUsernameError(apiErrorText(t, result));
 			focusUsername();
 		} else {
-			setFailure(apiErrorText(t, result, 'officials.createFailed'));
+			setFailure(apiErrorText(t, result, 'communities.createFailed'));
 		}
 	};
 
 	return (
 		<form onSubmit={submit} noValidate>
 			<DialogHeader>
-				<DialogTitle>{t('officials.createTitle')}</DialogTitle>
-				<DialogDescription>{t('officials.createIntro')}</DialogDescription>
+				<DialogTitle>{t('communities.createTitle')}</DialogTitle>
+				<DialogDescription>{t('communities.createIntro')}</DialogDescription>
 			</DialogHeader>
 			<DialogBody className="space-y-5">
 				<div className="flex flex-col gap-1.5">
-					<label htmlFor="official-name" className={labelClassName}>
-						{t('officials.nameLabel')}
+					<label htmlFor="community-name" className={labelClassName}>
+						{t('communities.nameLabel')}
 					</label>
 					<Input
 						ref={nameInput}
-						id="official-name"
+						id="community-name"
 						value={displayName}
 						maxLength={DISPLAY_NAME_MAX_LENGTH}
 						autoComplete="off"
 						aria-invalid={nameError}
-						aria-describedby={nameError ? 'official-name-error' : undefined}
+						aria-describedby={nameError ? 'community-name-error' : undefined}
 						onChange={(e) => {
 							setDisplayName(e.target.value);
 							setNameError(false);
 						}}
 					/>
 					{nameError && (
-						<p id="official-name-error" className="text-caption-3 text-destructive">
-							{t('officials.nameRequired')}
+						<p id="community-name-error" className="text-caption-3 text-destructive">
+							{t('communities.nameRequired')}
 						</p>
 					)}
 				</div>
 				<div className="flex flex-col gap-1.5">
-					<label htmlFor="official-username" className={labelClassName}>
+					<label htmlFor="community-username" className={labelClassName}>
 						{t('account.usernameLabel')}
 					</label>
 					<Input
 						ref={usernameInput}
-						id="official-username"
+						id="community-username"
 						value={username}
 						maxLength={USERNAME_MAX_LENGTH}
 						leading="@"
@@ -122,17 +122,17 @@ function CreateForm({ onCancel, onCreated }: { onCancel: () => void; onCreated: 
 						autoCapitalize="none"
 						spellCheck={false}
 						aria-invalid={!!usernameError}
-						aria-describedby="official-username-hint"
+						aria-describedby="community-username-hint"
 						onChange={(e) => {
 							setUsername(e.target.value.trim().toLowerCase());
 							setUsernameError(null);
 						}}
 					/>
 					<p
-						id="official-username-hint"
+						id="community-username-hint"
 						className={cn('wrap-anywhere text-caption-3', usernameError ? 'text-destructive' : 'text-muted-foreground')}
 					>
-						{usernameError ?? t('officials.usernameHint')}
+						{usernameError ?? t('communities.usernameHint')}
 					</p>
 				</div>
 				{failure && (
@@ -146,7 +146,7 @@ function CreateForm({ onCancel, onCreated }: { onCancel: () => void; onCreated: 
 					{t('common.cancel')}
 				</Button>
 				<Button type="submit" size="md" loading={busy}>
-					{t('officials.create')}
+					{t('communities.create')}
 				</Button>
 			</DialogFooter>
 		</form>

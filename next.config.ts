@@ -20,6 +20,12 @@ const nextConfig: NextConfig = {
 			{ source: '/signup', destination: '/login', permanent: true },
 			// Profiles moved to the root, next to Sanity pages
 			{ source: '/profile/:username', destination: '/:username', permanent: true },
+			// Official accounts were renamed community accounts
+			{
+				source: '/settings/officials/:id/members',
+				destination: '/settings/communities/:id/members',
+				permanent: true,
+			},
 			// About and the legal pages moved to the about site
 			...ABOUT_SITE_SLUGS.map((slug) => ({
 				source: `/${slug}`,

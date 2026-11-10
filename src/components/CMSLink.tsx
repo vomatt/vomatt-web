@@ -1,9 +1,9 @@
-import { cn } from '@/lib/utils';
 import NextLink from 'next/link';
 import React from 'react';
 
 import { useLanguage } from '@/contexts/LanguageContext';
 import { aboutHref } from '@/lib/aboutSite';
+import { cn } from '@/lib/utils';
 
 type CMSLinkType = {
 	link?: {

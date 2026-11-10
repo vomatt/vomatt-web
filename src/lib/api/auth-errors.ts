@@ -15,7 +15,7 @@ export type AuthErrorKey =
 	| 'phoneTaken'
 	| 'smsSendFailed'
 	| 'passkeyRefused'
-	| 'officialSignIn'
+	| 'communitySignIn'
 	| 'serverError';
 
 const ERROR_CODES: Record<string, AuthErrorKey> = {
@@ -26,7 +26,7 @@ const ERROR_CODES: Record<string, AuthErrorKey> = {
 	'auth.otp.resend_cooldown': 'resendCooldown',
 	'auth.email.send_failed': 'emailSendFailed',
 	'auth.account_banned': 'accountSuspended',
-	'auth.official_sign_in_not_allowed': 'officialSignIn',
+	'auth.community_sign_in_not_allowed': 'communitySignIn',
 	'auth.sms.send_failed': 'smsSendFailed',
 	'user.phone.taken': 'phoneTaken',
 };

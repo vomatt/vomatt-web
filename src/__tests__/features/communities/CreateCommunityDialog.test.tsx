@@ -1,17 +1,17 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
-import { CreateOfficialDialog } from '@/features/officials/CreateOfficialDialog';
+import { CreateCommunityDialog } from '@/features/communities/CreateCommunityDialog';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 const mockCreate = jest.fn();
-jest.mock('@/features/officials/service', () => ({
-	createOfficial: (...args: unknown[]) => mockCreate(...args),
+jest.mock('@/features/communities/service', () => ({
+	createCommunity: (...args: unknown[]) => mockCreate(...args),
 }));
 
 const onCreated = jest.fn();
 
 function open() {
-	render(<CreateOfficialDialog open onOpenChange={jest.fn()} onCreated={onCreated} />);
+	render(<CreateCommunityDialog open onOpenChange={jest.fn()} onCreated={onCreated} />);
 }
 
 function fill(name: string, username: string) {
@@ -20,7 +20,7 @@ function fill(name: string, username: string) {
 	fireEvent.click(screen.getByRole('button', { name: 'Create' }));
 }
 
-describe('CreateOfficialDialog', () => {
+describe('CreateCommunityDialog', () => {
 	beforeEach(() => jest.clearAllMocks());
 
 	it('creates the account and reports its id', async () => {

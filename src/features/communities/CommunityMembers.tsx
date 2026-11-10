@@ -32,11 +32,11 @@ import { cn } from '@/lib/utils';
 
 import { AddMemberDialog } from './AddMemberDialog';
 import { canManageMembers, grantableRoles, type MemberAction, memberActions } from './permissions';
-import { DEFAULT_ROLE, type MyOfficial, OFFICIAL_ROLES, type OfficialMember, type OfficialRole } from './schema';
+import { COMMUNITY_ROLES, type CommunityMember, type CommunityRole,DEFAULT_ROLE, type MyCommunity } from './schema';
 import { addMember, changeRole, removeMember, transferOwner } from './service';
 
 // The list is stale after these: someone else changed it, or the viewer's role
-const REFRESH_CODES = ['official.member.not_found', 'official.role_forbidden', 'official.not_member'];
+const REFRESH_CODES = ['community.member.not_found', 'community.role_forbidden', 'community.not_member'];
 
 const ICONS: Record<MemberAction, React.ReactNode> = {
 	changeRole: <Pencil aria-hidden />,
@@ -45,7 +45,7 @@ const ICONS: Record<MemberAction, React.ReactNode> = {
 	leave: <LogOut aria-hidden />,
 };
 
-type Pending = { action: MemberAction; member: OfficialMember };
+type Pending = { action: MemberAction; member: CommunityMember };
 
 /** One row action: the request, what follows its success, the toast, and the confirm dialog's copy (none for Change role, which has its own dialog). */
 type Step<T = unknown> = {
@@ -56,20 +56,20 @@ type Step<T = unknown> = {
 	confirm?: { title: string; body: string; cta: string };
 };
 
-/** An official account's members, with what the viewer's role lets them change. */
-export function OfficialMembers({
-	official,
+/** A community account's members, with what the viewer's role lets them change. */
+export function CommunityMembers({
+	community,
 	viewerId,
 	members: initialMembers,
 }: {
-	official: MyOfficial;
+	community: MyCommunity;
 	viewerId: string;
-	members: OfficialMember[];
+	members: CommunityMember[];
 }) {
 	const { t, currentLanguage } = useLanguage();
 	const router = useRouter();
-	const viewer = { userId: viewerId, role: official.role };
-	const officialName = official.displayName || official.username;
+	const viewer = { userId: viewerId, role: community.role };
+	const communityName = community.displayName || community.username;
 	const [members, setMembers] = useState(initialMembers);
 	// A refresh (after a transfer, or a stale list) brings a new list from the server
 	const [shown, setShown] = useState(initialMembers);
@@ -79,7 +79,7 @@ export function OfficialMembers({
 	}
 	const [adding, setAdding] = useState(false);
 	const [pending, setPending] = useState<Pending | null>(null);
-	const [newRole, setNewRole] = useState<OfficialRole>(DEFAULT_ROLE);
+	const [newRole, setNewRole] = useState<CommunityRole>(DEFAULT_ROLE);
 	const [busy, setBusy] = useState(false);
 
 	/** Runs a change; true when it went through. */
@@ -97,37 +97,37 @@ export function OfficialMembers({
 		return true;
 	};
 
-	const replaceMember = (changed: OfficialMember) =>
+	const replaceMember = (changed: CommunityMember) =>
 		setMembers((list) => list.map((m) => (m.userId === changed.userId ? changed : m)));
 
 	const step = ({ action, member }: Pending): Step => {
-		const id = official.officialId;
-		const vars = { name: member.username, official: officialName };
+		const id = community.communityId;
+		const vars = { name: member.username, community: communityName };
 		const copy = (title: string, body: string, cta: string) => ({ title: t(title, vars), body: t(body, vars), cta: t(cta) });
 		return {
 			changeRole: {
 				request: () => changeRole(id, member.userId, newRole),
 				after: replaceMember,
-				done: t('officials.roleChanged', vars),
+				done: t('communities.roleChanged', vars),
 			},
 			transferOwner: {
 				request: () => transferOwner(id, member.userId),
 				// The viewer is an ADMIN now: their menus change with the server's answer
 				after: () => router.refresh(),
-				done: t('officials.transferred', vars),
-				confirm: copy('officials.transferTitle', 'officials.transferBody', 'officials.transfer'),
+				done: t('communities.transferred', vars),
+				confirm: copy('communities.transferTitle', 'communities.transferBody', 'communities.transfer'),
 			},
 			remove: {
 				request: () => removeMember(id, member.userId),
 				after: () => setMembers((list) => list.filter((m) => m.userId !== member.userId)),
-				done: t('officials.removed', vars),
-				confirm: copy('officials.removeTitle', 'officials.removeBody', 'officials.remove'),
+				done: t('communities.removed', vars),
+				confirm: copy('communities.removeTitle', 'communities.removeBody', 'communities.remove'),
 			},
 			leave: {
 				request: () => removeMember(id, member.userId),
-				after: () => router.replace('/settings#officials'),
-				done: t('officials.left', vars),
-				confirm: copy('officials.leaveTitle', 'officials.leaveBody', 'officials.leave'),
+				after: () => router.replace('/settings#communities'),
+				done: t('communities.left', vars),
+				confirm: copy('communities.leaveTitle', 'communities.leaveBody', 'communities.leave'),
 			},
 		}[action];
 	};
@@ -139,7 +139,7 @@ export function OfficialMembers({
 		setPending(null);
 	};
 
-	const open = (action: MemberAction, member: OfficialMember) => {
+	const open = (action: MemberAction, member: CommunityMember) => {
 		setNewRole(member.role);
 		setPending({ action, member });
 	};
@@ -149,12 +149,12 @@ export function OfficialMembers({
 			<section aria-labelledby="members-title" className="space-y-2.5">
 				<div className="flex items-center justify-between gap-4">
 					<h2 id="members-title" className="text-title-4">
-						{t('officials.members')}
+						{t('communities.members')}
 					</h2>
-					{canManageMembers(official.role) && (
+					{canManageMembers(community.role) && (
 						<Button size="md" variant="outline" onClick={() => setAdding(true)}>
 							<Plus aria-hidden />
-							{t('officials.add')}
+							{t('communities.add')}
 						</Button>
 					)}
 				</div>
@@ -168,15 +168,15 @@ export function OfficialMembers({
 								<div className="min-w-0 flex-1">
 									<p className="truncate font-medium">
 										{member.displayName || member.username}
-										{isViewer && <span className="text-muted-foreground"> {t('officials.you')}</span>}
+										{isViewer && <span className="text-muted-foreground"> {t('communities.you')}</span>}
 									</p>
 									<p className="truncate text-caption-2 text-muted-foreground">
 										@{member.username}
 										{META_GAP}
-										{t(`officials.roles.${member.role}`)}
+										{t(`communities.roles.${member.role}`)}
 										{META_GAP}
 										<span suppressHydrationWarning>
-											{t('officials.joined', { date: formatDate(member.joinedAt, currentLanguage) })}
+											{t('communities.joined', { date: formatDate(member.joinedAt, currentLanguage) })}
 										</span>
 									</p>
 								</div>
@@ -184,7 +184,7 @@ export function OfficialMembers({
 									<RowMenuRoot>
 										<Menu.Trigger
 											render={<Button variant="ghost" size="icon-xs" />}
-											aria-label={t('officials.memberMore', { name: member.username })}
+											aria-label={t('communities.memberMore', { name: member.username })}
 											className="data-popup-open:bg-muted"
 										>
 											<Ellipsis aria-hidden />
@@ -202,7 +202,7 @@ export function OfficialMembers({
 															)}
 														>
 															{ICONS[action]}
-															{t(`officials.actions.${action}`)}
+															{t(`communities.actions.${action}`)}
 														</Menu.Item>
 													))}
 												</Menu.Popup>
@@ -218,12 +218,12 @@ export function OfficialMembers({
 
 			<section aria-labelledby="roles-title" className="space-y-2.5">
 				<h2 id="roles-title" className="text-title-4">
-					{t('officials.rolesTitle')}
+					{t('communities.rolesTitle')}
 				</h2>
 				<SettingsCard as="ul">
-					{OFFICIAL_ROLES.map((role) => (
+					{COMMUNITY_ROLES.map((role) => (
 						<li key={role} className={rowClassName}>
-							<RowText title={t(`officials.roles.${role}`)} body={t(`officials.roleBodies.${role}`)} />
+							<RowText title={t(`communities.roles.${role}`)} body={t(`communities.roleBodies.${role}`)} />
 						</li>
 					))}
 				</SettingsCard>
@@ -232,14 +232,14 @@ export function OfficialMembers({
 			<AddMemberDialog
 				open={adding}
 				onOpenChange={setAdding}
-				roles={grantableRoles(official.role)}
+				roles={grantableRoles(community.role)}
 				memberIds={members.map((member) => member.userId)}
 				busy={busy}
 				onAdd={(user, role) =>
 					run({
-						request: () => addMember(official.officialId, user.id, role),
+						request: () => addMember(community.communityId, user.id, role),
 						after: (added) => setMembers((list) => [...list, added]),
-						done: t('officials.added', { name: user.username }),
+						done: t('communities.added', { name: user.username }),
 					})
 				}
 			/>
@@ -247,16 +247,16 @@ export function OfficialMembers({
 			<Dialog open={pending?.action === 'changeRole'} onOpenChange={(isOpen) => !isOpen && setPending(null)}>
 				<DialogContent className="sm:max-w-lg" closeLabel={t('common.close')}>
 					<DialogHeader>
-						<DialogTitle>{pending && t('officials.changeRoleTitle', { name: pending.member.username })}</DialogTitle>
+						<DialogTitle>{pending && t('communities.changeRoleTitle', { name: pending.member.username })}</DialogTitle>
 					</DialogHeader>
 					<DialogBody>
 						<PillGroup
-							legend={t('officials.role')}
+							legend={t('communities.role')}
 							legendClassName="text-caption-2 font-medium text-muted-foreground"
-							hint={t(`officials.roleBodies.${newRole}`)}
+							hint={t(`communities.roleBodies.${newRole}`)}
 							value={newRole}
 							onChange={setNewRole}
-							options={grantableRoles(official.role).map((value) => ({ value, label: t(`officials.roles.${value}`) }))}
+							options={grantableRoles(community.role).map((value) => ({ value, label: t(`communities.roles.${value}`) }))}
 						/>
 					</DialogBody>
 					<DialogFooter>

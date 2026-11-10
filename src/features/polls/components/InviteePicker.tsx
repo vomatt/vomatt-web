@@ -94,7 +94,7 @@ export function InviteePicker({
 		e.preventDefault();
 		if (isEmail) addEmail();
 		else {
-			const first = search.users.find((user) => !user.official);
+			const first = search.users.find((user) => !user.community);
 			if (first) addUser(first);
 		}
 	};
@@ -174,8 +174,8 @@ export function InviteePicker({
 						{t('invitees.inviteEmail', { email })}
 					</button>
 				)}
-				{/* Official accounts don't vote, so the API refuses them as Invitees: shown, but not pickable */}
-				<UserSuggestions search={search} onPick={addUser} officialNote={t('invitees.officialNotAllowed')} />
+				{/* Community accounts don't vote, so the API refuses them as Invitees: shown, but not pickable */}
+				<UserSuggestions search={search} onPick={addUser} communityNote={t('invitees.communityNotAllowed')} />
 			</div>
 
 			{chips.length > 0 && (

@@ -44,9 +44,9 @@ cmd_up() {
 	mkdir -p "$ROOT" "$EVIDENCE"
 	echo "vv: starting vomatt-api ($PROJECT, port $VERIFY_API_PORT)…"
 	compose up -d --build --wait >"$ROOT/api-up.log" 2>&1 || { tail -30 "$ROOT/api-up.log"; die "api failed to start"; }
-	echo "vv: cloning working tree to $CLONE…"
+	echo "vv: cloning working tree to ${CLONE}…"
 	sync_clone
-	echo "vv: starting next dev on $WEB_PORT…"
+	echo "vv: starting next dev on ${WEB_PORT}…"
 	(cd "$CLONE" && API_URL="http://localhost:$VERIFY_API_PORT" SESSION_SECRET="$JWT_SECRET" \
 		SITE_URL="http://localhost:$WEB_PORT" API_LOG=1 \
 		nohup node node_modules/next/dist/bin/next dev --port="$WEB_PORT" --turbopack >"$ROOT/web.log" 2>&1 &
