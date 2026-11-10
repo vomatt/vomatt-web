@@ -2891,6 +2891,36 @@
         "required" : [ "userId" ],
         "type" : "object"
       },
+      "CommunityQuota" : {
+        "description" : "How many community accounts the user owns against the plan's limit",
+        "properties" : {
+          "limit" : {
+            "description" : "The most the plan allows; creating, receiving ownership, being granted OWNER or unlocking one at this count answers 403 `community.limit_reached`",
+            "example" : 1,
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "owned" : {
+            "description" : "Unlocked community accounts the user is an OWNER of",
+            "example" : 3,
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "selectionDeadline" : {
+            "description" : "When the earliest created are kept and the rest locked if the user has not chosen; null unless `selectionRequired`",
+            "example" : "2026-11-18T10:00:00Z",
+            "format" : "date-time",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "selectionRequired" : {
+            "description" : "True after a downgrade left the user owning more than `limit`: ask them which to keep (`POST /api/users/me/communities/keep`)",
+            "example" : true,
+            "type" : "boolean"
+          }
+        },
+        "type" : "object"
+      },
       "CommunityRoleRequest" : {
         "description" : "A member's new role",
         "properties" : {
@@ -3717,6 +3747,24 @@
         },
         "type" : "object"
       },
+      "KeepCommunitiesRequest" : {
+        "description" : "The community accounts to keep unlocked; every other one the caller owns is locked",
+        "properties" : {
+          "communityIds" : {
+            "description" : "Ids of community accounts the caller is an OWNER of, at most `communityQuota.limit`",
+            "items" : {
+              "example" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d48",
+              "format" : "uuid",
+              "type" : "string"
+            },
+            "minItems" : 1,
+            "type" : "array",
+            "uniqueItems" : true
+          }
+        },
+        "required" : [ "communityIds" ],
+        "type" : "object"
+      },
       "LineAuthRequest" : {
         "description" : "LINE login request",
         "properties" : {
@@ -3837,6 +3885,11 @@
             "nullable" : true,
             "type" : "string"
           },
+          "locked" : {
+            "description" : "Locked: readable, but writes while acting as it answer 403 `community.locked` (except deleting it, transferring ownership and leaving); an OWNER with room unlocks it with `POST /api/communities/{communityId}/unlock`",
+            "example" : false,
+            "type" : "boolean"
+          },
           "role" : {
             "description" : "The caller's role: OWNER, ADMIN, CHIEF_EDITOR, EDITOR or ANALYST",
             "enum" : [ "OWNER", "ADMIN", "CHIEF_EDITOR", "EDITOR", "ANALYST" ],
@@ -3887,6 +3940,9 @@
             "description" : "Whether this is a community account (a group's page, shown with a badge)",
             "example" : false,
             "type" : "boolean"
+          },
+          "communityQuota" : {
+            "$ref" : "#/components/schemas/CommunityQuota"
           },
           "createdPollCount" : {
             "description" : "Number of Polls the caller created, as My Polls lists them: every Audience (Public, Unlisted, Invite-only) and status (Scheduled, Open, Ended, Cancelled); Deleted Polls excluded",
@@ -3971,6 +4027,12 @@
             "description" : "Whether `phoneNumber` was verified by SMS OTP (phone sign-up or `POST /api/users/me/phone/verify`); false when there is no phone number",
             "example" : true,
             "type" : "boolean"
+          },
+          "plan" : {
+            "description" : "The paid plan: FREE or PRO. Set by an admin until billing goes live",
+            "enum" : [ "FREE", "PRO" ],
+            "example" : "FREE",
+            "type" : "string"
           },
           "totalPolls" : {
             "description" : "Number of Polls the user created that have opened (Open and Ended; Scheduled and Cancelled-before-opening excluded)",
@@ -12741,9 +12803,157 @@
         "tags" : [ "User" ]
       }
     },
+    "/api/billing/checkout" : {
+      "post" : {
+        "description" : "**Auth**: required\n**Behavior**: not available yet. Will return the payment page URL to send the user to\n**Errors**:\n- 503 `billing.unavailable`: paid plans are not available yet",
+        "operationId" : "checkout",
+        "responses" : {
+          "200" : {
+            "description" : "Success"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Authenticated but not allowed (errorCode `common.forbidden`)"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          },
+          "503" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "data" : null,
+                  "error" : "Paid plans are coming soon",
+                  "errorCode" : "billing.unavailable",
+                  "message" : "Paid plans are coming soon",
+                  "success" : false
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Paid plans are not available yet (errorCode `billing.unavailable`)"
+          }
+        },
+        "summary" : "Start upgrading to PRO",
+        "tags" : [ "Billing" ]
+      }
+    },
+    "/api/billing/portal" : {
+      "post" : {
+        "description" : "**Auth**: required\n**Behavior**: not available yet. Will return the subscription management page URL\n**Errors**:\n- 503 `billing.unavailable`: paid plans are not available yet",
+        "operationId" : "portal",
+        "responses" : {
+          "200" : {
+            "description" : "Success"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Authenticated but not allowed (errorCode `common.forbidden`)"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          },
+          "503" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "data" : null,
+                  "error" : "Paid plans are coming soon",
+                  "errorCode" : "billing.unavailable",
+                  "message" : "Paid plans are coming soon",
+                  "success" : false
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Paid plans are not available yet (errorCode `billing.unavailable`)"
+          }
+        },
+        "summary" : "Manage the subscription",
+        "tags" : [ "Billing" ]
+      }
+    },
     "/api/communities" : {
       "post" : {
-        "description" : "**Auth**: required\n**Precondition**: the caller is an active account that is not a community account; the username is free\n**Behavior**: creates a community account (a group's page: `displayName` is the group name, the logo is its avatar) with the caller as its first OWNER, who then adds members. It has no email or phone and can never sign in; members act as it with the `X-Act-As` header. Sent while acting, the real member becomes the OWNER. Returns 201 with the account, `community` true\n**Side effects**: the creation is audit-logged\n**Errors**:\n- 400 `common.validation_failed`: `username` not 3-50 characters of [a-z0-9_] or reserved, `displayName` blank or over 100 characters\n- 400 `community.member.invalid`: the caller is suspended or is a community account\n- 409 `user.username.taken`: the username is in use\n",
+        "description" : "**Auth**: required\n**Precondition**: the caller is an active account that is not a community account; the username is free\n**Behavior**: creates a community account (a group's page: `displayName` is the group name, the logo is its avatar) with the caller as its first OWNER, who then adds members. It has no email or phone and can never sign in; members act as it with the `X-Act-As` header. Sent while acting, the real member becomes the OWNER. Returns 201 with the account, `community` true\n**Side effects**: the creation is audit-logged\n**Errors**:\n- 400 `common.validation_failed`: `username` not 3-50 characters of [a-z0-9_] or reserved, `displayName` blank or over 100 characters\n- 400 `community.member.invalid`: the caller is suspended or is a community account\n- 409 `user.username.taken`: the username is in use\n- 409 `common.conflict`: another change to the caller's community accounts is in progress; retry\n- 403 `community.limit_reached`: the user who would become an OWNER already owns as many community accounts as their plan allows; `data` is `{ \"limit\": 1, \"owned\": 1 }`\n",
         "operationId" : "createOwnCommunity",
         "requestBody" : {
           "content" : {
@@ -12958,7 +13168,7 @@
         "tags" : [ "Community Account" ]
       },
       "post" : {
-        "description" : "**Auth**: required (OWNER or ADMIN)\n**Precondition**: the user is an active account, not a community account, and not yet a member\n**Behavior**: adds the user with the role. Roles: OWNER and ADMIN manage members; an ADMIN never changes or removes an OWNER nor grants OWNER. CHIEF_EDITOR, EDITOR and ANALYST cannot manage members.\n**Side effects**: the action is audit-logged.\n**Errors**:\n- 400 `community.member.invalid`: the user is suspended or is a community account\n- 400 `common.validation_failed`: `userId` or `role` missing or invalid\n- 404 `user.not_found`: no user with this id\n- 409 `community.member.exists`: the user is already a member\n- 403 `community.not_member`: the caller is not a member of this community account, or it does not exist or is suspended\n- 403 `community.role_forbidden`: the caller's role does not allow this change\n",
+        "description" : "**Auth**: required (OWNER or ADMIN)\n**Precondition**: the user is an active account, not a community account, and not yet a member\n**Behavior**: adds the user with the role. Roles: OWNER and ADMIN manage members; an ADMIN never changes or removes an OWNER nor grants OWNER. CHIEF_EDITOR, EDITOR and ANALYST cannot manage members.\n**Side effects**: the action is audit-logged.\n**Errors**:\n- 400 `community.member.invalid`: the user is suspended or is a community account\n- 400 `common.validation_failed`: `userId` or `role` missing or invalid\n- 404 `user.not_found`: no user with this id\n- 409 `community.member.exists`: the user is already a member\n- 403 `community.not_member`: the caller is not a member of this community account, or it does not exist or is suspended\n- 403 `community.role_forbidden`: the caller's role does not allow this change\n- 403 `community.limit_reached`: the user who would become an OWNER already owns as many community accounts as their plan allows; `data` is `{ \"limit\": 1, \"owned\": 1 }`\n",
         "operationId" : "addMember",
         "parameters" : [ {
           "description" : "Community account's user id",
@@ -13193,7 +13403,7 @@
         "tags" : [ "Community Account" ]
       },
       "patch" : {
-        "description" : "**Auth**: required (OWNER or ADMIN)\n**Precondition**: the user is a member\n**Behavior**: sets the member's role. Roles: OWNER and ADMIN manage members; an ADMIN never changes or removes an OWNER nor grants OWNER. CHIEF_EDITOR, EDITOR and ANALYST cannot manage members.\n**Side effects**: the action is audit-logged.\n**Errors**:\n- 400 `common.validation_failed`: `role` missing or invalid\n- 403 `community.not_member`: the caller is not a member of this community account, or it does not exist or is suspended\n- 403 `community.role_forbidden`: the caller's role does not allow this change\n- 404 `community.member.not_found`: the user is not a member\n- 409 `community.last_owner`: the change would leave the community account without an OWNER\n- 409 `common.conflict`: another member change is in progress; retry\n",
+        "description" : "**Auth**: required (OWNER or ADMIN)\n**Precondition**: the user is a member\n**Behavior**: sets the member's role. Roles: OWNER and ADMIN manage members; an ADMIN never changes or removes an OWNER nor grants OWNER. CHIEF_EDITOR, EDITOR and ANALYST cannot manage members.\n**Side effects**: the action is audit-logged.\n**Errors**:\n- 400 `common.validation_failed`: `role` missing or invalid\n- 403 `community.not_member`: the caller is not a member of this community account, or it does not exist or is suspended\n- 403 `community.role_forbidden`: the caller's role does not allow this change\n- 404 `community.member.not_found`: the user is not a member\n- 409 `community.last_owner`: the change would leave the community account without an OWNER\n- 409 `common.conflict`: another member change is in progress; retry\n- 403 `community.limit_reached`: the user who would become an OWNER already owns as many community accounts as their plan allows; `data` is `{ \"limit\": 1, \"owned\": 1 }`\n",
         "operationId" : "changeRole",
         "parameters" : [ {
           "description" : "Community account's user id",
@@ -13337,7 +13547,7 @@
     },
     "/api/communities/{communityId}/owner" : {
       "post" : {
-        "description" : "**Auth**: required (OWNER only)\n**Precondition**: the user is a member\n**Behavior**: the member becomes an OWNER and the caller an ADMIN. Naming oneself changes nothing.\n**Side effects**: the action is audit-logged.\n**Errors**:\n- 400 `common.validation_failed`: `userId` missing\n- 403 `community.role_forbidden`: the caller is not an OWNER\n- 409 `common.conflict`: another member change is in progress; retry\n- 403 `community.not_member`: the caller is not a member of this community account, or it does not exist or is suspended\n- 404 `community.member.not_found`: the user is not a member\n",
+        "description" : "**Auth**: required (OWNER only)\n**Precondition**: the user is a member\n**Behavior**: the member becomes an OWNER and the caller an ADMIN. Naming oneself changes nothing.\n**Side effects**: the action is audit-logged.\n**Errors**:\n- 400 `common.validation_failed`: `userId` missing\n- 403 `community.role_forbidden`: the caller is not an OWNER\n- 409 `common.conflict`: another member change is in progress; retry\n- 403 `community.not_member`: the caller is not a member of this community account, or it does not exist or is suspended\n- 404 `community.member.not_found`: the user is not a member\n- 403 `community.limit_reached`: the user who would become an OWNER already owns as many community accounts as their plan allows; `data` is `{ \"limit\": 1, \"owned\": 1 }`\n",
         "operationId" : "transferOwner",
         "parameters" : [ {
           "description" : "Community account's user id",
@@ -13442,6 +13652,98 @@
           }
         },
         "summary" : "Transfer community account ownership",
+        "tags" : [ "Community Account" ]
+      }
+    },
+    "/api/communities/{communityId}/unlock" : {
+      "post" : {
+        "description" : "**Auth**: required (OWNER only)\n**Precondition**: the caller owns fewer unlocked community accounts than their plan allows\n**Behavior**: unlocks a locked community account, which then counts toward the caller's `communityQuota`. An account that is not locked changes nothing.\n**Side effects**: an unlock is audit-logged as `UNLOCK` on `COMMUNITY` with `reason=OWNER_UNLOCK`.\n**Errors**:\n- 403 `community.role_forbidden`: the caller is not an OWNER\n- 409 `common.conflict`: another change to the caller's community accounts is in progress; retry\n- 403 `community.not_member`: the caller is not a member of this community account, or it does not exist or is suspended\n- 403 `community.limit_reached`: the user who would become an OWNER already owns as many community accounts as their plan allows; `data` is `{ \"limit\": 1, \"owned\": 1 }`\n",
+        "operationId" : "unlock",
+        "parameters" : [ {
+          "description" : "Community account's user id",
+          "example" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d48",
+          "in" : "path",
+          "name" : "communityId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "examples" : {
+                  "Unlocked" : {
+                    "description" : "Unlocked",
+                    "value" : {
+                      "data" : {
+                        "id" : null,
+                        "message" : null,
+                        "status" : null,
+                        "success" : true
+                      },
+                      "error" : null,
+                      "errorCode" : null,
+                      "message" : null,
+                      "success" : true
+                    }
+                  }
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResponseSimpleResultResponse"
+                }
+              }
+            },
+            "description" : "Success"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Authenticated but not allowed (errorCode `common.forbidden`)"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          }
+        },
+        "summary" : "Unlock a community account",
         "tags" : [ "Community Account" ]
       }
     },
@@ -16009,7 +16311,7 @@
     },
     "/api/users/me" : {
       "get" : {
-        "description" : "**Auth**: required\n**Precondition**: none\n**Behavior**: returns the caller's own profile with every field, ignoring visibility settings. Unlike the public profile, nothing is masked; `visibilitySettings` reports what other users see on `GET /api/users/{username}` (unset fields use their defaults: `displayName` and `bio` public, the rest hidden). `totalPolls` counts Polls the user created that have opened (Open and Ended; not Scheduled or Cancelled before opening), `totalVotes` counts Public, non-Deleted Polls the user holds a Ballot in. `followersCount` / `followingCount` count the users in `GET /api/users/{username}/followers` / `/following` (suspended accounts left out). `anonymousBallotByDefault` is whether Ballots are Anonymous when a Ballot does not say otherwise (false until set).\n**Side effects**: none\n**Errors**:\n- 404 `user.not_found`: the account no longer exists",
+        "description" : "**Auth**: required\n**Precondition**: none\n**Behavior**: returns the caller's own profile with every field, ignoring visibility settings. Unlike the public profile, nothing is masked; `visibilitySettings` reports what other users see on `GET /api/users/{username}` (unset fields use their defaults: `displayName` and `bio` public, the rest hidden). `totalPolls` counts Polls the user created that have opened (Open and Ended; not Scheduled or Cancelled before opening), `totalVotes` counts Public, non-Deleted Polls the user holds a Ballot in. `followersCount` / `followingCount` count the users in `GET /api/users/{username}/followers` / `/following` (suspended accounts left out). `anonymousBallotByDefault` is whether Ballots are Anonymous when a Ballot does not say otherwise (false until set). `plan` is FREE or PRO; `communityQuota` counts the community accounts the caller is an OWNER of (`owned`) against the plan's `limit`.\n**Side effects**: none\n**Errors**:\n- 404 `user.not_found`: the account no longer exists",
         "operationId" : "getMyProfile",
         "responses" : {
           "200" : {
@@ -16022,6 +16324,11 @@
                     "avatarUrl" : "bot:boba",
                     "bio" : "Poll enthusiast",
                     "birthday" : "1995-04-12",
+                    "community" : false,
+                    "communityQuota" : {
+                      "limit" : 1,
+                      "owned" : 1
+                    },
                     "displayName" : "Alice",
                     "email" : "alice@example.com",
                     "firstName" : "Alice",
@@ -16035,6 +16342,7 @@
                     "location" : "Taipei",
                     "phoneNumber" : null,
                     "phoneVerified" : false,
+                    "plan" : "FREE",
                     "totalPolls" : 4,
                     "totalVotes" : 17,
                     "username" : "alice",
@@ -16675,7 +16983,7 @@
     },
     "/api/users/me/communities" : {
       "get" : {
-        "description" : "**Auth**: required\n**Precondition**: none\n**Behavior**: the active community accounts the caller is a member of, with the caller's role, oldest membership first; for the account switcher. Send an account's `communityId` as the `X-Act-As` header to act as it. While acting, the list is still the real member's.\n**Side effects**: none\n**Errors**: none\n",
+        "description" : "**Auth**: required\n**Precondition**: none\n**Behavior**: the active community accounts the caller is a member of, with the caller's role, oldest membership first; for the account switcher. Send an account's `communityId` as the `X-Act-As` header to act as it. While acting, the list is still the real member's. `locked` accounts are readable, but writes as them answer 403 `community.locked`.\n**Side effects**: none\n**Errors**: none\n",
         "operationId" : "listMine",
         "responses" : {
           "200" : {
@@ -16689,6 +16997,7 @@
                         "avatarUrl" : "/api/avatars/0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d49.jpg",
                         "communityId" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d48",
                         "displayName" : "Sunrise Tower Committee",
+                        "locked" : false,
                         "role" : "EDITOR",
                         "username" : "sunrise_tower"
                       } ],
@@ -16753,6 +17062,95 @@
         },
         "summary" : "List my community accounts",
         "tags" : [ "Community Account" ]
+      }
+    },
+    "/api/users/me/communities/keep" : {
+      "post" : {
+        "description" : "**Auth**: required (the real member, also while acting)\n**Precondition**: every id is a community account the caller is an OWNER of, and there are at most `communityQuota.limit` of them\n**Behavior**: the caller keeps exactly these unlocked: every other community account they own is locked, and a chosen one that was locked is unlocked. Ends `communityQuota.selectionRequired`. Sending the same choice again changes nothing. Used after a downgrade, before `selectionDeadline`; afterwards it swaps which ones stay unlocked.\n**Side effects**: each account locked or unlocked is audit-logged as `LOCK` / `UNLOCK` on `COMMUNITY` with `reason=USER_CHOICE`. A locked account stays readable; writes as it answer 403 `community.locked`\n**Errors**:\n- 400 `common.validation_failed`: `communityIds` missing or empty\n- 400 `community.keep.invalid`: more ids than the limit, or an id the caller is not an OWNER of\n- 409 `common.conflict`: another change to the caller's community accounts is in progress; retry",
+        "operationId" : "keepCommunities",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "example" : {
+                "communityIds" : [ "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d48" ]
+              },
+              "schema" : {
+                "$ref" : "#/components/schemas/KeepCommunitiesRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "data" : {
+                    "id" : null,
+                    "message" : null,
+                    "status" : null,
+                    "success" : true
+                  },
+                  "error" : null,
+                  "errorCode" : null,
+                  "message" : null,
+                  "success" : true
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResponseSimpleResultResponse"
+                }
+              }
+            },
+            "description" : "Success"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Authenticated but not allowed (errorCode `common.forbidden`)"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          }
+        },
+        "summary" : "Choose which community accounts to keep",
+        "tags" : [ "User" ]
       }
     },
     "/api/users/me/export" : {
@@ -23734,6 +24132,9 @@
   }, {
     "description" : "Community account creation (Admin)",
     "name" : "Admin - Community Account"
+  }, {
+    "description" : "Paid plans (not available yet)",
+    "name" : "Billing"
   }, {
     "description" : "User management APIs",
     "name" : "User"
