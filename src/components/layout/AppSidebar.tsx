@@ -29,7 +29,7 @@ import {
 import { TidePanel } from '@/components/ui/TidePanel';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
-import { AccountSwitcher } from '@/features/communities/AccountSwitcher';
+import { AccountSwitcher, useSwitchableAccounts } from '@/features/communities/AccountSwitcher';
 import {
 	formatUnreadCount,
 	useUnreadCount,
@@ -38,6 +38,12 @@ import { CreatePollTrigger } from '@/features/polls/components/CreatePollTrigger
 import { accountHref, isActivePath, isChromeless } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 import { MyProfile } from '@/types/user';
+
+const navRowClassName = cn(
+	'group h-10 rounded-lg border border-transparent px-3 cursor-pointer transition-colors duration-150',
+	'text-muted-foreground hover:text-sidebar-foreground'
+);
+const activeRowClassName = 'bg-card border-border text-foreground hover:bg-card';
 
 const navigationItems = [
 	{
@@ -74,6 +80,7 @@ export function AppSidebar({
 	const { t } = useLanguage();
 	const pathname = usePathname();
 	const { count: unreadCount } = useUnreadCount();
+	const { canSwitch } = useSwitchableAccounts();
 
 	if (isChromeless(pathname)) return null;
 
@@ -87,11 +94,6 @@ export function AppSidebar({
 			<SidebarHeader className="px-5 pt-5 pb-5">
 				<BrandLink className="w-24 text-sidebar-foreground hover:text-sidebar-foreground/70 transition-colors" />
 			</SidebarHeader>
-
-			{/* Who the user acts as; empty unless they're in a community account */}
-			<div className="px-3 pb-3 empty:hidden">
-				<AccountSwitcher />
-			</div>
 
 			{/* Primary action */}
 			<div className="px-4 pb-4">
@@ -133,12 +135,7 @@ export function AppSidebar({
 													className="flex items-center gap-3 w-full"
 												/>
 											}
-											className={cn(
-												'group h-10 rounded-lg border border-transparent px-3 cursor-pointer transition-colors duration-150',
-												'text-muted-foreground hover:text-sidebar-foreground',
-												isActive &&
-													'bg-card border-border text-foreground hover:bg-card'
-											)}
+											className={cn(navRowClassName, isActive && activeRowClassName)}
 										>
 											<item.icon />
 											<span className="text-body-4 font-medium capitalize">
@@ -155,34 +152,41 @@ export function AppSidebar({
 							})}
 							{userSession && (
 								<SidebarMenuItem>
-									<SidebarMenuButton
-										render={
-											<Link
-												href={accountLink}
-												aria-current={accountCurrent}
-												className="flex items-center gap-3 w-full"
-											/>
-										}
-										className={cn(
-											'group h-10 rounded-lg border border-transparent px-3 cursor-pointer transition-colors duration-150',
-											'text-muted-foreground hover:text-sidebar-foreground',
-											accountCurrent &&
-												'bg-card border-border text-foreground hover:bg-card'
-										)}
-									>
-										{profile ? (
-											<UserAvatar
-												username={profile.username}
-												avatarUrl={profile.avatarUrl}
-												className="size-4 shrink-0"
-											/>
-										) : (
-											<User />
-										)}
-										<span className="text-body-4 font-medium capitalize">
-											{t('navigation.profile')}
-										</span>
-									</SidebarMenuButton>
+									{canSwitch ? (
+										// In a community account: the row says who they act as and opens the switcher
+										<AccountSwitcher
+											profileHref={accountLink}
+											className={cn(
+												navRowClassName,
+												'data-popup-open:text-sidebar-foreground',
+												accountCurrent && activeRowClassName
+											)}
+										/>
+									) : (
+										<SidebarMenuButton
+											render={
+												<Link
+													href={accountLink}
+													aria-current={accountCurrent}
+													className="flex items-center gap-3 w-full"
+												/>
+											}
+											className={cn(navRowClassName, accountCurrent && activeRowClassName)}
+										>
+											{profile ? (
+												<UserAvatar
+													username={profile.username}
+													avatarUrl={profile.avatarUrl}
+													className="size-4 shrink-0"
+												/>
+											) : (
+												<User />
+											)}
+											<span className="text-body-4 font-medium capitalize">
+												{t('navigation.profile')}
+											</span>
+										</SidebarMenuButton>
+									)}
 								</SidebarMenuItem>
 							)}
 						</SidebarMenu>

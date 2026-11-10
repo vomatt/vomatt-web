@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 
 import { AppSidebar } from '@/components/layout/AppSidebar';
 import { SidebarProvider } from '@/components/ui/Sidebar';
+import { ActingProvider } from '@/features/communities/ActingProvider';
 
 let mockPathname = '/';
 jest.mock('next/navigation', () => ({
@@ -183,5 +184,24 @@ describe('AppSidebar profile', () => {
 		expect(
 			screen.getByRole('link', { name: 'navigation.profile' })
 		).toHaveAttribute('href', '/account');
+	});
+});
+
+describe('AppSidebar profile, in a community account', () => {
+	it('turns the profile row into the account switcher, with no second chip above Create', async () => {
+		const me = { username: 'klaus', displayName: 'Klaus', avatarUrl: null };
+		const communities = [{ communityId: 'c1', username: 'club', displayName: 'Club', avatarUrl: null, role: 'OWNER' as const }];
+		render(
+			<SidebarProvider>
+				<ActingProvider state={{ acting: null, me, communities, stale: false }}>
+					<AppSidebar userSession={{}} profile={{ username: 'klaus', avatarUrl: null } as never} />
+				</ActingProvider>
+			</SidebarProvider>
+		);
+
+		expect(screen.queryByRole('link', { name: 'navigation.profile' })).not.toBeInTheDocument();
+		expect(screen.getAllByRole('button', { name: 'communities.acting.switcher' })).toHaveLength(1);
+		await userEvent.click(screen.getByRole('button', { name: 'communities.acting.switcher' }));
+		expect(await screen.findByRole('menuitem', { name: 'navigation.viewProfile' })).toHaveAttribute('href', '/klaus');
 	});
 });

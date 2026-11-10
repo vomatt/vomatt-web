@@ -35,6 +35,7 @@
 		"skipToContent": "Skip to content"
 	},
 	"navigation": {
+		"viewProfile": "View profile",
 		"home": "Home",
 		"profile": "Profile",
 		"settings": "Settings",

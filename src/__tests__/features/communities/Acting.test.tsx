@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { toast } from 'sonner';
 
+import { SidebarProvider } from '@/components/ui/Sidebar';
 import type { ActingState } from '@/data/auth';
 import { AccountSwitcher } from '@/features/communities/AccountSwitcher';
 import { actAsCommunity, loadMyCommunities } from '@/features/communities/acting';
@@ -14,6 +15,7 @@ jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguag
 jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn(), info: jest.fn() } }));
 const mockRefresh = jest.fn();
 jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh: mockRefresh }), usePathname: () => '/' }));
+jest.mock('@/hooks/use-mobile', () => ({ useIsMobile: () => false }));
 
 const community = (communityId: string, role: CommunityRole): MyCommunity => ({
 	communityId,
@@ -30,17 +32,20 @@ beforeEach(() => jest.clearAllMocks());
 
 describe('AccountSwitcher', () => {
 	it('stays hidden for someone in no community account', () => {
-		renderWith({}, <AccountSwitcher />);
+		renderWith({}, <SidebarProvider><AccountSwitcher profileHref="/klaus" /></SidebarProvider>);
 		expect(screen.queryByRole('button', { name: 'Switch account' })).not.toBeInTheDocument();
 	});
 
 	it('offers every account the user can act as, and switches to the one picked', async () => {
-		renderWith({ communities: [community('c1', 'EDITOR'), community('c2', 'ANALYST')] }, <AccountSwitcher />);
+		renderWith({ communities: [community('c1', 'EDITOR'), community('c2', 'ANALYST')] }, <SidebarProvider><AccountSwitcher profileHref="/klaus" /></SidebarProvider>);
 		fireEvent.click(screen.getByRole('button', { name: 'Switch account' }));
 
 		expect(await screen.findByRole('menuitemradio', { name: /Community c1/ })).toBeInTheDocument();
 		// Analysts have nothing to do as the account until reports are in the app
 		expect(screen.queryByRole('menuitemradio', { name: /Community c2/ })).not.toBeInTheDocument();
+
+		expect(screen.getByRole('menuitemradio', { name: /Klaus/ })).toHaveAttribute('aria-checked', 'true');
+		expect(screen.getByRole('menuitemradio', { name: /Community c1/ })).toHaveAttribute('aria-checked', 'false');
 
 		fireEvent.click(screen.getByRole('menuitemradio', { name: /Community c1/ }));
 		await waitFor(() => expect(actAsCommunity).toHaveBeenCalledWith('c1'));
@@ -49,17 +54,29 @@ describe('AccountSwitcher', () => {
 	});
 });
 
+describe('AccountSwitcher, the profile row', () => {
+	it('names the account the user acts as, and links to its profile', async () => {
+		const acting = community('c1', 'OWNER');
+		renderWith({ acting, communities: [acting] }, <SidebarProvider><AccountSwitcher profileHref="/c1" /></SidebarProvider>);
+
+		const trigger = screen.getByRole('button', { name: 'Switch account' });
+		expect(trigger).toHaveTextContent('Community c1');
+		fireEvent.click(trigger);
+		expect(await screen.findByRole('menuitem', { name: 'View profile' })).toHaveAttribute('href', '/c1');
+	});
+});
+
 describe('AccountSwitcher, community list', () => {
 	it('loads the accounts in the background when the layout left them out', async () => {
 		(loadMyCommunities as jest.Mock).mockResolvedValueOnce({ ok: true, data: [community('c1', 'OWNER')] });
-		renderWith({ communities: null }, <AccountSwitcher />);
+		renderWith({ communities: null }, <SidebarProvider><AccountSwitcher profileHref="/klaus" /></SidebarProvider>);
 
 		expect(await screen.findByRole('button', { name: 'Switch account' })).toBeInTheDocument();
 	});
 
 	it('still offers the way back when the person behind the account did not load', async () => {
 		const acting = community('c1', 'OWNER');
-		renderWith({ acting, me: null, communities: [acting] }, <AccountSwitcher />);
+		renderWith({ acting, me: null, communities: [acting] }, <SidebarProvider><AccountSwitcher profileHref="/klaus" /></SidebarProvider>);
 		fireEvent.click(screen.getByRole('button', { name: 'Switch account' }));
 
 		fireEvent.click(await screen.findByRole('menuitemradio', { name: 'You' }));
