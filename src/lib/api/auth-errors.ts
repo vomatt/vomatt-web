@@ -4,6 +4,7 @@ import en from '@/locales/en.json';
 export type AuthErrorKey =
 	| `apiError.auth.${string}`
 	| 'invalidCode'
+	| 'invalidSmsCode'
 	| 'codeExpired'
 	| 'tooManyAttempts'
 	| 'resendCooldown'
@@ -11,6 +12,8 @@ export type AuthErrorKey =
 	| 'accountSuspended'
 	| 'rateLimited'
 	| 'invalidEmail'
+	| 'phoneTaken'
+	| 'smsSendFailed'
 	| 'passkeyRefused'
 	| 'serverError';
 
@@ -23,6 +26,13 @@ const ERROR_CODES: Record<string, AuthErrorKey> = {
 	'auth.email.send_failed': 'emailSendFailed',
 	'auth.account_banned': 'accountSuspended',
 };
+
+/** Seconds left on a resend cooldown, which the API states only in its (localized) message. */
+export function cooldownSeconds(errorCode: string | undefined, message: string) {
+	if (errorCode !== 'auth.otp.resend_cooldown') return undefined;
+	const seconds = Number(/\d+/.exec(message)?.[0]);
+	return seconds > 0 ? seconds : undefined;
+}
 
 /** An `auth.*` code with `apiError` copy that needs no `{0}` value. */
 function hasApiErrorCopy(errorCode: string) {

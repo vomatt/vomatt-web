@@ -62,7 +62,12 @@ export function VisibilitySettings({ profile }: { profile: MyProfile }) {
 				<SettingsCard>
 					{VISIBILITY_SETTINGS.map((setting) => {
 						const id = `visibility-${setting.key}`;
-						const value = setting.key === 'realName' ? realName(profile) : profile[setting.fields[0]];
+						const value =
+							setting.key === 'realName'
+								? realName(profile)
+								: setting.key === 'gender'
+									? profile.gender && t(`profile.genders.${profile.gender}`)
+									: profile[setting.fields[0]];
 						return (
 							<label key={setting.key} htmlFor={id} className={cn(rowClassName, 'cursor-pointer')}>
 								<RowText

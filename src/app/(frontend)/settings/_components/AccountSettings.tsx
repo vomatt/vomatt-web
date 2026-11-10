@@ -22,9 +22,10 @@ import { Button } from '@/components/ui/Button';
 import { Dialog, DialogBody, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { Input } from '@/components/ui/Input';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
-import { ChevronRight } from '@/components/ui/SvgIcons';
+import { Check, ChevronRight } from '@/components/ui/SvgIcons';
 import { Switch } from '@/components/ui/Switch';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { PhoneBindDialog } from '@/features/account/PhoneBindDialog';
 import { isSettingPublic, VISIBILITY_SETTINGS } from '@/features/account/visibility';
 import { ReportProblemDialog } from '@/features/feedback/ReportProblemDialog';
 import { GroupsPanel } from '@/features/groups/GroupsPanel';
@@ -207,6 +208,7 @@ export default function AccountSettings({
 							{t('account.signOut')}
 						</Button>
 					</div>
+					<PhoneRow profile={profile} />
 					<div className={cn(rowClassName, 'flex-col items-stretch')}>
 						<PasskeysPanel />
 					</div>
@@ -226,6 +228,51 @@ export default function AccountSettings({
 			<DeleteAccount username={profile.username} />
 
 			<LegalLinks className="flex gap-4.5 text-caption-1 text-muted-foreground" />
+		</div>
+	);
+}
+
+/** The account's phone number: add one, verify one, or show it as verified. */
+function PhoneRow({ profile }: { profile: MyProfile }) {
+	const { t } = useLanguage();
+	const router = useRouter();
+	const [open, setOpen] = useState(false);
+	const phone = profile.phoneNumber;
+	return (
+		<div className={cn(rowClassName, 'flex-wrap')}>
+			<RowText
+				title={t('phoneBind.rowTitle')}
+				body={
+					!phone ? (
+						t('phoneBind.rowBodyNone')
+					) : (
+						<span className="inline-flex flex-wrap items-center gap-x-2">
+							<span className="tabular-nums wrap-anywhere">{phone}</span>
+							{profile.phoneVerified && (
+								<span className="inline-flex items-center gap-1 text-foreground">
+									<Check aria-hidden className="size-3.5" />
+									{t('phoneBind.verified')}
+								</span>
+							)}
+						</span>
+					)
+				}
+			/>
+			{!profile.phoneVerified && (
+				<Button variant="outline" size="md" onClick={() => setOpen(true)}>
+					{t(phone ? 'phoneBind.verify' : 'phoneBind.add')}
+				</Button>
+			)}
+			<PhoneBindDialog
+				open={open}
+				onOpenChange={setOpen}
+				defaultPhone={phone}
+				onVerified={() => {
+					setOpen(false);
+					toast.success(t('phoneBind.done'));
+					router.refresh();
+				}}
+			/>
 		</div>
 	);
 }

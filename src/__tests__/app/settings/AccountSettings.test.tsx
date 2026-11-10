@@ -21,6 +21,8 @@ jest.mock('@/features/passkeys/service', () => ({
 jest.mock('@/lib/api/services/users', () => ({
 	deleteMyAccount: jest.fn(),
 	editProfile: jest.fn(),
+	sendPhoneBindOtp: jest.fn(),
+	verifyPhoneBind: jest.fn(),
 }));
 const mockGetSessions = jest.fn();
 jest.mock('@/features/sessions/service', () => ({ getSessions: () => mockGetSessions() }));
@@ -64,10 +66,29 @@ describe('AccountSettings', () => {
 	it('counts what others see and opens its own page to change it', () => {
 		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
 
-		// Display name and bio are public by default; the real name shows through its last half; points no page shows
+		// Display name and bio are public by default; the real name shows through its last half; gender is hidden by default; points no page shows
 		const link = screen.getByRole('link', { name: /What others see/ });
-		expect(link).toHaveTextContent('3 of 3 shown');
+		expect(link).toHaveTextContent('3 of 4 shown');
 		expect(link).toHaveAttribute('href', '/settings/visibility');
+	});
+
+	it('shows the phone number by state: add, verify, or verified', () => {
+		const { rerender } = render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+		expect(screen.getByRole('button', { name: 'Add phone number' })).toBeInTheDocument();
+
+		rerender(<AccountSettings profile={{ ...myProfile, phoneNumber: '+886912345678', phoneVerified: false }} inviteListCount={3} notificationPreferences={preferences} />);
+		expect(screen.getByRole('button', { name: 'Verify' })).toBeInTheDocument();
+
+		rerender(<AccountSettings profile={{ ...myProfile, phoneNumber: '+886912345678', phoneVerified: true }} inviteListCount={3} notificationPreferences={preferences} />);
+		expect(screen.queryByRole('button', { name: 'Verify' })).not.toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Add phone number' })).not.toBeInTheDocument();
+		expect(screen.getByText('Verified')).toBeInTheDocument();
+	});
+
+	it('opens the phone dialog from the row', () => {
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} />);
+		fireEvent.click(screen.getByRole('button', { name: 'Add phone number' }));
+		expect(screen.getByRole('dialog', { name: 'Add your phone number' })).toBeInTheDocument();
 	});
 
 	it('shows how many invite lists there are and opens them from Voting', () => {

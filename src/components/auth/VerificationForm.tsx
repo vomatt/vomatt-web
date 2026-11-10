@@ -19,6 +19,8 @@ interface VerificationFormProps {
 	onSubmitCode: (code: string) => Promise<AuthResult>;
 	onResend: () => Promise<ResendResult>;
 	onEditEmail: () => void;
+	/** The button back to the address step; "Use a different email" by default. */
+	editLabel?: string;
 	/** Seconds until a resend is allowed; a fresh code's full cooldown by default. */
 	resendIn?: number;
 }
@@ -33,6 +35,7 @@ export default function VerificationForm({
 	onSubmitCode,
 	onResend,
 	onEditEmail,
+	editLabel,
 	resendIn = RESEND_COOLDOWN_SECONDS,
 }: VerificationFormProps) {
 	const { t } = useLanguage();
@@ -172,7 +175,7 @@ export default function VerificationForm({
 				)}
 				{/* Locked while a code is checked, or a late success would sign in the old address */}
 				<Button type="button" variant="link" disabled={isLoading} onClick={onEditEmail}>
-					{t('verificationCode.useAnotherEmail')}
+					{editLabel ?? t('verificationCode.useAnotherEmail')}
 				</Button>
 				{resent && (
 					<p className="text-caption-1 text-positive" role="status">

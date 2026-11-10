@@ -2,7 +2,7 @@
  * Profile fields other people can see once their owner allows it: the API's visibility keys this app
  * shows. Location is left out, since no page shows it.
  */
-export const VISIBILITY_FIELDS = ['displayName', 'bio', 'firstName', 'lastName'] as const;
+export const VISIBILITY_FIELDS = ['displayName', 'bio', 'firstName', 'lastName', 'gender'] as const;
 
 export type VisibilityField = (typeof VISIBILITY_FIELDS)[number];
 
@@ -30,6 +30,7 @@ export function visibilityChanges(saved: Record<string, boolean>, next: Record<s
 export const VISIBILITY_SETTINGS = [
 	{ key: 'realName', fields: ['firstName', 'lastName'] },
 	{ key: 'displayName', fields: ['displayName'] },
+	{ key: 'gender', fields: ['gender'] },
 	{ key: 'bio', fields: ['bio'] },
 ] as const satisfies readonly { key: string; fields: readonly VisibilityField[] }[];
 

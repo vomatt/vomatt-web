@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 
 import { type ActionResult, attempt } from '@/lib/api/action';
 import { clearAuthTokens, getTokens, setAuthTokens } from '@/lib/api/auth';
-import { type AuthErrorKey, toAuthErrorKey } from '@/lib/api/auth-errors';
+import { type AuthErrorKey, cooldownSeconds, toAuthErrorKey } from '@/lib/api/auth-errors';
 import { apiClient, ApiError, publicFetch } from '@/lib/api/client';
 import { clientHeaders } from '@/lib/api/client-ip';
 import { readAuthTokens } from '@/lib/api/tokens';
@@ -30,13 +30,6 @@ async function postJson(endpoint: string, body: unknown) {
 	});
 }
 
-/** Seconds left on a resend cooldown, which the API states only in its (localized) message. */
-function cooldownSeconds(error: unknown) {
-	if (!(error instanceof ApiError) || error.data?.errorCode !== 'auth.otp.resend_cooldown') return undefined;
-	const seconds = Number(/\d+/.exec(error.message)?.[0]);
-	return seconds > 0 ? seconds : undefined;
-}
-
 /**
  * Emails a one-time code. The same code signs in an existing account or
  * creates a new one; the API says which only once the code is verified.
@@ -49,7 +42,7 @@ export async function requestOtp(
 		await postJson('/auth/send-otp', { email: email.trim().toLowerCase() });
 		return { status: 'SUCCESS' };
 	} catch (error) {
-		const seconds = cooldownSeconds(error);
+		const seconds = error instanceof ApiError ? cooldownSeconds(error.data?.errorCode, error.message) : undefined;
 		return seconds ? { status: 'COOLDOWN', seconds } : toFailure(error);
 	}
 }
