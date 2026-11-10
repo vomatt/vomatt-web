@@ -27,7 +27,7 @@ export default async function CommunityMembersPage({ params }: Props) {
 	]);
 	if (!profile) return redirectToLogin(communityMembersHref(communityId));
 
-	const community = communities.ok ? communities.data.find((o) => o.communityId === communityId) : undefined;
+	const community = communities.ok ? communities.data.find((c) => c.communityId === communityId) : undefined;
 	// Not a member (removed, never was, or the account is gone): 403 `community.not_member`
 	const notMember = (communities.ok && !community) || (!members.ok && members.errorCode === 'community.not_member');
 

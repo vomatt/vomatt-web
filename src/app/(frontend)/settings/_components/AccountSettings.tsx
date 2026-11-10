@@ -29,7 +29,7 @@ import { PhoneBindDialog } from '@/features/account/PhoneBindDialog';
 import { isSettingPublic, VISIBILITY_SETTINGS } from '@/features/account/visibility';
 import { CommunityAccountsCard } from '@/features/communities/CommunityAccountsCard';
 import { CreateCommunityDialog } from '@/features/communities/CreateCommunityDialog';
-import { communityMembersHref,type MyCommunity } from '@/features/communities/schema';
+import { communityMembersHref, type MyCommunity } from '@/features/communities/schema';
 import { ReportProblemDialog } from '@/features/feedback/ReportProblemDialog';
 import { GroupsPanel } from '@/features/groups/GroupsPanel';
 import { NOTIFICATION_SWITCHES } from '@/features/notifications/preferences';

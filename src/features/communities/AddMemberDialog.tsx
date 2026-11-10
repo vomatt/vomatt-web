@@ -13,7 +13,7 @@ import { UserSuggestions } from '@/features/polls/components/UserSuggestions';
 import { useUserSearch } from '@/features/polls/hooks/useUserSearch';
 import type { UserDto } from '@/schemas/user';
 
-import { type CommunityRole,DEFAULT_ROLE } from './schema';
+import { type CommunityRole, DEFAULT_ROLE } from './schema';
 
 /** Picks one person by username (the search InviteePicker uses) and the role to give them. */
 export function AddMemberDialog({

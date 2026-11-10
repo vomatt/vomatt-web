@@ -32,7 +32,7 @@ import { cn } from '@/lib/utils';
 
 import { AddMemberDialog } from './AddMemberDialog';
 import { canManageMembers, grantableRoles, type MemberAction, memberActions } from './permissions';
-import { COMMUNITY_ROLES, type CommunityMember, type CommunityRole,DEFAULT_ROLE, type MyCommunity } from './schema';
+import { COMMUNITY_ROLES, type CommunityMember, type CommunityRole, DEFAULT_ROLE, type MyCommunity } from './schema';
 import { addMember, changeRole, removeMember, transferOwner } from './service';
 
 // The list is stale after these: someone else changed it, or the viewer's role

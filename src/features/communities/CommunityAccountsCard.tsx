@@ -7,7 +7,7 @@ import { ChevronRight } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 
-import { communityMembersHref,type MyCommunity } from './schema';
+import { communityMembersHref, type MyCommunity } from './schema';
 
 /** Settings' community accounts: each one the user belongs to, opening its members page. */
 export function CommunityAccountsCard({ communities }: { communities: MyCommunity[] }) {

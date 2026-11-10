@@ -6,7 +6,7 @@ import { type ActionResult, attempt } from '@/lib/api/action';
 import { apiClient } from '@/lib/api/client';
 import { type UserDto, UserDtoSchema } from '@/schemas/user';
 
-import { type CommunityMember, CommunityMemberSchema, type CommunityRole,MyCommunitySchema } from './schema';
+import { type CommunityMember, CommunityMemberSchema, type CommunityRole, MyCommunitySchema } from './schema';
 
 const membersPath = (communityId: string, userId?: string) =>
 	`/communities/${encodeURIComponent(communityId)}/members${userId ? `/${encodeURIComponent(userId)}` : ''}`;
