@@ -61,11 +61,22 @@ export function CommunityProfileCard({ community, bio }: { community: MyCommunit
 	);
 }
 
-function EditCommunityProfile({ community, bio: savedBio }: { community: MyCommunity; bio: string }) {
+const STALE_MEMBERSHIP_CODES = ['community.role_forbidden', 'community.not_member'];
+
+/** Name, bio and avatar, through the community's own endpoints: its username never changes. */
+export function EditCommunityProfile({
+	community,
+	bio: savedBio,
+	defaultOpen = false,
+}: {
+	community: MyCommunity;
+	bio: string;
+	defaultOpen?: boolean;
+}) {
 	const { t } = useLanguage();
 	const router = useRouter();
 	const savedName = community.displayName ?? '';
-	const [open, setOpen] = useState(false);
+	const [open, setOpen] = useState(defaultOpen);
 	const [name, setName] = useState(savedName);
 	const [bio, setBio] = useState(savedBio);
 	const [nameError, setNameError] = useState(false);
@@ -107,7 +118,18 @@ function EditCommunityProfile({ community, bio: savedBio }: { community: MyCommu
 		try {
 			const result = await updateCommunity(community.communityId, changes);
 			if (!result.ok) {
-				toast.error(apiErrorText(t, result, 'account.saveFailed'), { duration: Infinity });
+				if (result.errorCode === 'common.validation_failed' && changes.displayName !== undefined) {
+					setNameError(true);
+				} else if (result.errorCode === 'community.role_forbidden') {
+					toast.error(t('communities.editForbidden'), { duration: Infinity });
+				} else {
+					toast.error(apiErrorText(t, result, 'account.saveFailed'), { duration: Infinity });
+				}
+				// The role or membership changed meanwhile: the refreshed page shows what they can still do
+				if (result.errorCode && STALE_MEMBERSHIP_CODES.includes(result.errorCode)) {
+					setOpen(false);
+					router.refresh();
+				}
 				return;
 			}
 			toast.success(t('profile.updated'));

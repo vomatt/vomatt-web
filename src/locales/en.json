@@ -1219,7 +1219,8 @@
 			"roles_fixed": "Community account roles can’t be changed.",
 			"last_owner": "A community account needs at least one owner. Transfer ownership first.",
 			"not_member": "You’re no longer a member of this account.",
-			"role_forbidden": "Your role in this community account can’t do that. Editors can change only the polls and comments they posted.",
+			"username_immutable": "A community account’s username can’t be changed.",
+			"role_forbidden": "Your role in this community account doesn’t allow this. Owners and admins manage the account and its members; editors change only the polls and comments they posted; analysts only see result reports.",
 			"member": {
 				"exists": "They’re already a member.",
 				"invalid": "They can’t be added to this account.",
@@ -1422,6 +1423,7 @@
 		"createFailed": "Couldn’t create the account. Please try again.",
 		"profile": "Profile",
 		"editIntro": "Everyone sees these on @{name}’s page. The username stays the same.",
+		"editForbidden": "Only this account’s owners and admins can edit its profile.",
 		"bioPlaceholder": "Tell people about this group",
 		"deleteTitle": "Delete community account",
 		"deleteBody": "Removes its polls, with their votes and comments, and every member. This cannot be undone.",
