@@ -34,9 +34,6 @@ export const canActAs = (role: CommunityRole) => OFFERED_ROLES.includes(role);
 export const accountName = (account: { username: string; displayName?: string | null }) =>
 	account.displayName || account.username;
 
-/** OWNER and ADMIN edit the account's profile (API: profile writes need one of them). */
-export const canEditProfile = (role: CommunityRole) => role === 'OWNER' || role === 'ADMIN';
-
 export type CommunityRole = z.infer<typeof CommunityRoleSchema>;
 export type MyCommunity = z.infer<typeof MyCommunitySchema>;
 export type CommunityMember = z.infer<typeof CommunityMemberSchema>;

@@ -5378,6 +5378,29 @@
         "required" : [ "text" ],
         "type" : "object"
       },
+      "UpdateCommunityRequest" : {
+        "description" : "Community account profile update; omitted or null fields are left unchanged. The username cannot be changed",
+        "properties" : {
+          "bio" : {
+            "description" : "Bio (max 500 characters); an empty string clears it",
+            "example" : "Residents' committee of Sunrise Tower",
+            "maxLength" : 500,
+            "minLength" : 0,
+            "nullable" : true,
+            "type" : "string"
+          },
+          "displayName" : {
+            "description" : "Group name, shown as the display name (max 100 characters, not blank)",
+            "example" : "Sunrise Tower Committee",
+            "maxLength" : 100,
+            "minLength" : 0,
+            "nullable" : true,
+            "pattern" : "(?s).*\\S.*",
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
       "UpdateLookupRequest" : {
         "description" : "Update a dictionary item. Despite the PUT verb this is a partial update: null or omitted fields are left unchanged, and a field cannot be cleared back to null",
         "properties" : {
@@ -12861,6 +12884,360 @@
           }
         },
         "summary" : "Create a community account",
+        "tags" : [ "Community Account" ]
+      }
+    },
+    "/api/communities/{communityId}" : {
+      "delete" : {
+        "description" : "**Auth**: required (OWNER only)\n**Precondition**: none\n**Behavior**: permanently deletes the community account the way `DELETE /api/users/{userId}` deletes a user's: its Polls go with it, together with every Ballot and Comment on them, and so do its own Comments, likes and follows. Every membership is removed, so the account leaves each member's `GET /api/users/me/communities`, `GET /api/users/{username}` answers 404 `user.not_found`, and a later `X-Act-As` with its id gets 403 `community.not_member`.\n**Side effects**: audit-logged as `DELETE` on `COMMUNITY` with the username, display name and members (`username:ROLE`) at deletion in the details; the community account's earlier audit entries are kept\n**Errors**:\n- 403 `community.role_forbidden`: the caller is not an OWNER\n- 409 `common.conflict`: another member change is in progress; retry\n- 403 `community.not_member`: the caller is not a member of this community account, or it does not exist or is suspended\n",
+        "operationId" : "deleteCommunity",
+        "parameters" : [ {
+          "description" : "Community account's user id",
+          "example" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d48",
+          "in" : "path",
+          "name" : "communityId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "examples" : {
+                  "Deleted" : {
+                    "description" : "Deleted",
+                    "value" : {
+                      "data" : {
+                        "id" : null,
+                        "message" : null,
+                        "status" : null,
+                        "success" : true
+                      },
+                      "error" : null,
+                      "errorCode" : null,
+                      "message" : null,
+                      "success" : true
+                    }
+                  }
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResponseSimpleResultResponse"
+                }
+              }
+            },
+            "description" : "Success"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Authenticated but not allowed (errorCode `common.forbidden`)"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          }
+        },
+        "summary" : "Delete a community account",
+        "tags" : [ "Community Account" ]
+      },
+      "patch" : {
+        "description" : "**Auth**: required (OWNER or ADMIN)\n**Precondition**: none\n**Behavior**: updates `displayName` and/or `bio`. A field that is omitted or `null` is left unchanged; an empty `bio` clears it. `displayName` is stored without surrounding whitespace. The `username` can never change: a `username` in the body is ignored. Returns the community account's profile after the update, as `GET /api/users/{username}` shows it.\n**Side effects**: audit-logged as `UPDATE` on `COMMUNITY`, with each changed field's value before and after in the details\n**Errors**:\n- 400 `common.validation_failed`: `displayName` blank or over 100 characters, or `bio` over 500 characters\n- 403 `community.not_member`: the caller is not a member of this community account, or it does not exist or is suspended\n- 403 `community.role_forbidden`: the caller is not an OWNER or ADMIN\n",
+        "operationId" : "updateProfile",
+        "parameters" : [ {
+          "description" : "Community account's user id",
+          "example" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d48",
+          "in" : "path",
+          "name" : "communityId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "examples" : {
+                "Rename" : {
+                  "description" : "Rename",
+                  "value" : {
+                    "bio" : "Residents' committee of Sunrise Tower",
+                    "displayName" : "Sunrise Tower Committee"
+                  }
+                }
+              },
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateCommunityRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "examples" : {
+                  "Profile" : {
+                    "description" : "Profile",
+                    "value" : {
+                      "data" : {
+                        "avatarUrl" : "/api/avatars/019a5e3c-2f1d-7b6a-8c4e-5d7f9a1b3c2e.jpg",
+                        "bio" : "Residents' committee of Sunrise Tower",
+                        "community" : true,
+                        "displayName" : "Sunrise Tower Committee",
+                        "firstName" : null,
+                        "followersCount" : 120,
+                        "followingCount" : 0,
+                        "followsYou" : false,
+                        "gender" : null,
+                        "id" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d48",
+                        "isBlocked" : false,
+                        "isFollowing" : false,
+                        "joinedAt" : "2026-11-09T10:00:00+08:00",
+                        "lastName" : null,
+                        "location" : null,
+                        "totalPolls" : 3,
+                        "totalVotes" : 0,
+                        "username" : "sunrise_tower"
+                      },
+                      "error" : null,
+                      "errorCode" : null,
+                      "message" : null,
+                      "success" : true
+                    }
+                  }
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResponseUserProfileResponse"
+                }
+              }
+            },
+            "description" : "Success"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Authenticated but not allowed (errorCode `common.forbidden`)"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          }
+        },
+        "summary" : "Update a community account's profile",
+        "tags" : [ "Community Account" ]
+      }
+    },
+    "/api/communities/{communityId}/avatar" : {
+      "put" : {
+        "description" : "**Auth**: required (OWNER or ADMIN)\n**Precondition**: multipart/form-data with the image in part `file`, as `PUT /api/users/me/avatar`\n**Behavior**: processes and stores the image as `PUT /api/users/me/avatar` does (512x512 JPEG, `avatarUrl` becomes `/api/avatars/<id>.jpg`). The daily upload limit counts per community account. Returns the community account's profile after the update.\n**Side effects**: audit-logged as `UPDATE` on `COMMUNITY`, with `avatarUrl` before and after in the details; once the change commits, the previously uploaded image (if any) is deleted\n**Errors**:\n- 400 `common.file_required`: part `file` is missing or empty\n- 400 `common.file_read_failed`: the uploaded file could not be read\n- 400 `user.avatar.unsupported_image`: the file is not a decodable JPEG, PNG, GIF or BMP, or exceeds 40 megapixels\n- 413 `common.file_too_large`: the file exceeds 2 MB\n- 429 `common.rate_limited`: the community account already attempted the daily number of avatar uploads\n- 503 `common.storage_unavailable`: image storage is not configured or unreachable; retry later\n- 403 `community.not_member`: the caller is not a member of this community account, or it does not exist or is suspended\n- 403 `community.role_forbidden`: the caller is not an OWNER or ADMIN\n",
+        "operationId" : "uploadAvatar_1",
+        "parameters" : [ {
+          "description" : "Community account's user id",
+          "example" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d48",
+          "in" : "path",
+          "name" : "communityId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "properties" : {
+                  "file" : {
+                    "description" : "Image file (JPEG, PNG, GIF or BMP), at most 2 MB",
+                    "format" : "binary",
+                    "type" : "string"
+                  }
+                },
+                "type" : "object"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "examples" : {
+                  "Profile" : {
+                    "description" : "Profile",
+                    "value" : {
+                      "data" : {
+                        "avatarUrl" : "/api/avatars/019a5e3c-2f1d-7b6a-8c4e-5d7f9a1b3c2e.jpg",
+                        "bio" : "Residents' committee of Sunrise Tower",
+                        "community" : true,
+                        "displayName" : "Sunrise Tower Committee",
+                        "firstName" : null,
+                        "followersCount" : 120,
+                        "followingCount" : 0,
+                        "followsYou" : false,
+                        "gender" : null,
+                        "id" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d48",
+                        "isBlocked" : false,
+                        "isFollowing" : false,
+                        "joinedAt" : "2026-11-09T10:00:00+08:00",
+                        "lastName" : null,
+                        "location" : null,
+                        "totalPolls" : 3,
+                        "totalVotes" : 0,
+                        "username" : "sunrise_tower"
+                      },
+                      "error" : null,
+                      "errorCode" : null,
+                      "message" : null,
+                      "success" : true
+                    }
+                  }
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResponseUserProfileResponse"
+                }
+              }
+            },
+            "description" : "Success"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Authenticated but not allowed (errorCode `common.forbidden`)"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          },
+          "503" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "data" : null,
+                  "error" : "Image storage is temporarily unavailable, please try again later",
+                  "errorCode" : "common.storage_unavailable",
+                  "message" : "Image storage is temporarily unavailable, please try again later",
+                  "success" : false
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Image storage not configured or unreachable (errorCode `common.storage_unavailable`)"
+          }
+        },
+        "summary" : "Upload a community account's avatar",
         "tags" : [ "Community Account" ]
       }
     },

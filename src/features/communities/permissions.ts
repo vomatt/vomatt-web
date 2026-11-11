@@ -5,6 +5,14 @@ export function canManageMembers(role: CommunityRole) {
 	return role === 'OWNER' || role === 'ADMIN';
 }
 
+export function canEditProfile(role: CommunityRole) {
+	return role === 'OWNER' || role === 'ADMIN';
+}
+
+export function canDelete(role: CommunityRole) {
+	return role === 'OWNER';
+}
+
 export type MemberAction = 'changeRole' | 'transferOwner' | 'remove' | 'leave';
 
 /** What the viewer's ••• menu offers on a member's row; empty means no menu. */
