@@ -492,7 +492,7 @@ describe('AccountSettings', () => {
 			<AccountSettings profile={{ ...myProfile, plan: 'PRO', communityQuota: quota(3, 3) }} inviteListCount={3} notificationPreferences={preferences} communities={[]} />
 		);
 		const section = screen.getByRole('region', { name: 'Community accounts' });
-		expect(section).toHaveTextContent('To create another, delete one or transfer its ownership.');
+		expect(section).toHaveTextContent('To create another, transfer ownership of one you own.');
 		expect(within(section).queryByRole('button')).not.toBeInTheDocument();
 	});
 });

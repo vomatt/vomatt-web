@@ -318,13 +318,15 @@
 		"mentioned": "{name} mentioned you in {title}",
 		"liked": "{name} liked your comment in {title}",
 		"pollLiked": "{name} liked your poll {title}",
+		"communityLocked": "{name} was locked because no choice was made before the deadline",
 		"categoryLabel": "Category",
 		"category": {
 			"CONVERSATION": "Conversation",
 			"LIKE": "Likes",
 			"POLL_END": "Poll ends",
 			"INVITATION": "Invitations",
-			"FOLLOW": "Follows"
+			"FOLLOW": "Follows",
+			"COMMUNITY": "Community"
 		},
 		"categoryEmpty": "Nothing here yet.",
 		"categoryFailed": "Couldn’t load that tab. Try again.",
@@ -1225,7 +1227,7 @@
 				"invalid": "They can’t be added to this account.",
 				"not_found": "They’re no longer a member. The list has been refreshed."
 			},
-			"limit_reached": "You already own as many community accounts as your plan allows. Upgrade to Pro to own more.",
+			"limit_reached": "You already own as many community accounts as your plan allows.",
 			"locked": "This community account is locked, so it can’t do that. Upgrade to Pro, or have an owner with room unlock it.",
 			"keep": {
 				"invalid": "Choose exactly as many accounts as asked, all ones you own."
@@ -1445,10 +1447,10 @@
 		},
 		"limitTitle": "You own as many community accounts as your plan allows",
 		"limitBodyFree": "Upgrade to Pro to own more.",
-		"limitBodyPro": "To create another, delete one or transfer its ownership.",
+		"limitBodyPro": "To create another, transfer ownership of one you own.",
 		"theirLimitReached": "They already own as many community accounts as their plan allows, so they can’t become an owner.",
 		"locked": "Locked",
-		"lockedBody": "Its page and polls stay up, but it can’t post or change anything. You can still hand ownership over, leave or delete it. Upgrade to Pro, or have an owner with room unlock it.",
+		"lockedBody": "Its page and polls stay up, but it can’t post or change anything. You can still hand ownership over or leave it. Upgrade to Pro, or have an owner with room unlock it.",
 		"unlock": "Unlock",
 		"unlockLabel": "Unlock {name}",
 		"unlocked": "Unlocked {name}",

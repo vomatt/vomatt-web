@@ -153,6 +153,18 @@ describe('getNotifications()', () => {
 		expect(page.items[0]).toMatchObject({ kind: 'LIKE', actor: { username: 'rosa' }, comment: { id: 'c1' } });
 	});
 
+	it('reads a locked community account in its own tab, with nulls for poll and comment', async () => {
+		mockApiClient.mockResolvedValue({
+			items: [
+				{ id: 'community_locked_9', kind: 'COMMUNITY_LOCKED', category: 'COMMUNITY', createdAt: '2026-10-26T10:00:00Z', read: false, actor: { ...rosa, community: true }, poll: null, comment: null },
+			],
+			nextCursor: null,
+		});
+		const page = await getNotifications(null, 'COMMUNITY');
+		expect(mockApiClient).toHaveBeenCalledWith('/notifications?limit=20&category=COMMUNITY');
+		expect(page.items).toEqual([expect.objectContaining({ id: 'community_locked_9', kind: 'COMMUNITY_LOCKED', actor: expect.objectContaining({ community: true }) })]);
+	});
+
 	it('leaves out a kind it does not know rather than failing the page', async () => {
 		mockApiClient.mockResolvedValue({
 			items: [

@@ -944,7 +944,12 @@ function CommentBody({
 						type="button"
 						aria-pressed={!!comment.likedByCurrentUser}
 						aria-label={t('comments.like')}
-						onClick={() => requireAuth(() => thread.toggleLike(comment))}
+						onClick={() =>
+							requireAuth(async () => {
+								const result = await thread.toggleLike(comment);
+								if (!result.ok) toast.error(apiErrorText(t, result));
+							})
+						}
 						className={cn(pillClassName, comment.likedByCurrentUser && 'bg-highlight-tint text-foreground')}
 					>
 						<m.span
