@@ -177,6 +177,16 @@ describe('apiClient while acting as a community', () => {
 		expect(mockDeleteCookie).toHaveBeenCalledWith('actAs');
 	});
 
+	it('still refuses the write when the cookie is read-only (a page rendering)', async () => {
+		fetchMock.mockResolvedValue(notMember());
+		mockDeleteCookie.mockImplementationOnce(() => {
+			throw new Error('Cookies can only be modified in a Server Action or Route Handler');
+		});
+
+		await expect(apiClient('/votes', { method: 'POST' })).rejects.toMatchObject({ statusCode: 403 });
+		expect(fetchMock).toHaveBeenCalledTimes(1);
+	});
+
 	it('keeps acting when a read finds the membership gone (the layout ends it)', async () => {
 		fetchMock.mockResolvedValueOnce(notMember()).mockResolvedValueOnce(json({ success: true, data: {} }));
 

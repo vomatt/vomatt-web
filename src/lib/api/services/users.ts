@@ -119,7 +119,7 @@ export async function updateVisibility(visibility: Record<string, boolean>) {
  * A refusal carries the API's errorCode (e.g. 409 `admin.last_admin`).
  */
 export async function deleteMyAccount(): Promise<ActionFailure> {
-  const result = await attempt(async () => deleteUser((await getMyProfile()).id));
+  const result = await attempt(async () => deleteUser((await apiClient<MyProfile>('/users/me', { actAs: false })).id));
   if (!result.ok) return result;
   await clearAuthTokens();
   redirect('/?account_deleted=1');
