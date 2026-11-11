@@ -488,7 +488,6 @@ function ClosingSoonRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'CLOS
 	);
 }
 
-/** A community account the viewer owns was locked when the time to choose which to keep ran out; Settings unlocks it. */
 function CommunityLockedRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'COMMUNITY_LOCKED' }>>) {
 	const { t } = useLanguage();
 	const { actor } = entry;
