@@ -16,11 +16,14 @@ jest.mock('@/lib/api/services/users', () => ({
 }));
 const mockGetMyProfile = jest.fn();
 const mockRedirectToLogin = jest.fn();
+const mockLoadActingState = jest.fn();
 jest.mock('@/data/auth', () => ({
 	getMyProfile: () => mockGetMyProfile(),
+	loadActingState: () => mockLoadActingState(),
 	redirectToLogin: (path: string) => mockRedirectToLogin(path),
 }));
 jest.mock('@/lib/getServerLocale', () => ({ getServerMessages: jest.fn() }));
+beforeEach(() => mockLoadActingState.mockResolvedValue({ acting: null }));
 
 const profile: MyProfile = {
 	id: 'u1',
@@ -161,6 +164,7 @@ describe('What others see page', () => {
 	it('says these settings are the person’s own while acting as a community', async () => {
 		mockGetMyProfile.mockResolvedValue(profile);
 		const club = { communityId: 'c1', username: 'club', displayName: 'Robotics Club', avatarUrl: null, role: 'EDITOR' as const };
+		mockLoadActingState.mockResolvedValue({ acting: club });
 		render(
 			<ActingProvider state={{ acting: club, me: null, communities: [club], stale: false }}>
 				{await VisibilityPage()}

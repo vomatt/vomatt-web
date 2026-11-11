@@ -32,12 +32,12 @@ beforeEach(() => jest.clearAllMocks());
 
 describe('AccountSwitcher', () => {
 	it('stays hidden for someone in no community account', () => {
-		renderWith({}, <SidebarProvider><AccountSwitcher profileHref="/klaus" /></SidebarProvider>);
+		renderWith({}, <SidebarProvider><AccountSwitcher /></SidebarProvider>);
 		expect(screen.queryByRole('button', { name: 'Switch account' })).not.toBeInTheDocument();
 	});
 
 	it('offers every account the user can act as, and switches to the one picked', async () => {
-		renderWith({ communities: [community('c1', 'EDITOR'), community('c2', 'ANALYST')] }, <SidebarProvider><AccountSwitcher profileHref="/klaus" /></SidebarProvider>);
+		renderWith({ communities: [community('c1', 'EDITOR'), community('c2', 'ANALYST')] }, <SidebarProvider><AccountSwitcher /></SidebarProvider>);
 		fireEvent.click(screen.getByRole('button', { name: 'Switch account' }));
 
 		expect(await screen.findByRole('menuitemradio', { name: /Community c1/ })).toBeInTheDocument();
@@ -54,29 +54,17 @@ describe('AccountSwitcher', () => {
 	});
 });
 
-describe('AccountSwitcher, the profile row', () => {
-	it('names the account the user acts as, and links to its profile', async () => {
-		const acting = community('c1', 'OWNER');
-		renderWith({ acting, communities: [acting] }, <SidebarProvider><AccountSwitcher profileHref="/c1" /></SidebarProvider>);
-
-		const trigger = screen.getByRole('button', { name: 'Switch account' });
-		expect(trigger).toHaveTextContent('Community c1');
-		fireEvent.click(trigger);
-		expect(await screen.findByRole('menuitem', { name: 'View profile' })).toHaveAttribute('href', '/c1');
-	});
-});
-
 describe('AccountSwitcher, community list', () => {
 	it('loads the accounts in the background when the layout left them out', async () => {
 		(loadMyCommunities as jest.Mock).mockResolvedValueOnce({ ok: true, data: [community('c1', 'OWNER')] });
-		renderWith({ communities: null }, <SidebarProvider><AccountSwitcher profileHref="/klaus" /></SidebarProvider>);
+		renderWith({ communities: null }, <SidebarProvider><AccountSwitcher /></SidebarProvider>);
 
 		expect(await screen.findByRole('button', { name: 'Switch account' })).toBeInTheDocument();
 	});
 
 	it('still offers the way back when the person behind the account did not load', async () => {
 		const acting = community('c1', 'OWNER');
-		renderWith({ acting, me: null, communities: [acting] }, <SidebarProvider><AccountSwitcher profileHref="/klaus" /></SidebarProvider>);
+		renderWith({ acting, me: null, communities: [acting] }, <SidebarProvider><AccountSwitcher /></SidebarProvider>);
 		fireEvent.click(screen.getByRole('button', { name: 'Switch account' }));
 
 		fireEvent.click(await screen.findByRole('menuitemradio', { name: 'You' }));

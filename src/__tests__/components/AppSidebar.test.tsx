@@ -188,20 +188,32 @@ describe('AppSidebar profile', () => {
 });
 
 describe('AppSidebar profile, in a community account', () => {
-	it('turns the profile row into the account switcher, with no second chip above Create', async () => {
-		const me = { username: 'klaus', displayName: 'Klaus', avatarUrl: null };
-		const communities = [{ communityId: 'c1', username: 'club', displayName: 'Club', avatarUrl: null, role: 'OWNER' as const }];
+	const me = { username: 'klaus', displayName: 'Klaus', avatarUrl: null };
+	const club = { communityId: 'c1', username: 'club', displayName: 'Club', avatarUrl: null, role: 'OWNER' as const };
+	const renderIn = (acting: typeof club | null, profile: object) =>
 		render(
 			<SidebarProvider>
-				<ActingProvider state={{ acting: null, me, communities, stale: false }}>
-					<AppSidebar userSession={{}} profile={{ username: 'klaus', avatarUrl: null } as never} />
+				<ActingProvider state={{ acting, me, communities: [club], stale: false }}>
+					<AppSidebar userSession={{}} profile={profile as never} />
 				</ActingProvider>
 			</SidebarProvider>
 		);
 
-		expect(screen.queryByRole('link', { name: 'navigation.profile' })).not.toBeInTheDocument();
+	it('keeps the profile link and adds the switcher beside it, with no chip above Create', async () => {
+		mockPathname = '/klaus';
+		renderIn(null, { username: 'klaus', avatarUrl: null });
+
+		const link = screen.getByRole('link', { name: 'navigation.profile' });
+		expect(link).toHaveAttribute('href', '/klaus');
+		expect(link).toHaveAttribute('aria-current', 'page');
 		expect(screen.getAllByRole('button', { name: 'communities.acting.switcher' })).toHaveLength(1);
 		await userEvent.click(screen.getByRole('button', { name: 'communities.acting.switcher' }));
-		expect(await screen.findByRole('menuitem', { name: 'navigation.viewProfile' })).toHaveAttribute('href', '/klaus');
+		expect(await screen.findByRole('menuitemradio', { name: /Club/ })).toBeInTheDocument();
+		mockPathname = '/';
+	});
+
+	it('says who the user is acting as on the profile row', () => {
+		renderIn(club, { username: 'club', avatarUrl: null });
+		expect(screen.getByRole('link', { name: 'communities.acting.actingAs Club' })).toHaveAttribute('href', '/club');
 	});
 });

@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import type { ReactNode } from 'react';
 
 import { EmptyCard } from '@/components/EmptyCard';
 import { buttonVariants } from '@/components/ui/Button';
@@ -36,8 +35,3 @@ export function ActingSettingsNotice() {
 	);
 }
 
-/** A page reached from Settings: while acting, the notice takes its place, as on Settings itself. */
-export function PersonalSettings({ children }: { children: ReactNode }) {
-	const { acting } = useActing();
-	return acting ? <ActingSettingsNotice /> : children;
-}

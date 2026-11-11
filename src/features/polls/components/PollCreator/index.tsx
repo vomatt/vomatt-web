@@ -258,11 +258,12 @@ export function PollCreator({
 	}, [review]);
 	const level = visibilityLevel({ voterVisibility, audience });
 	// "Only me" while acting is the community: everyone acting as it sees the voter list, not the person
-	const visibilityCopy = (value: VoterVisibility) => {
+	const visibilityText = (group: 'visibility' | 'ruleVisibility', value: VoterVisibility, suffix = '') => {
 		const key = visibilityLevel({ voterVisibility: value, audience });
-		return key === 'owner' && acting ? { key: 'community', name: accountName(acting) } : { key, name: '' };
+		return key === 'owner' && acting
+			? t(`pollCreator.${group}.community${suffix}`, { name: accountName(acting) })
+			: t(`pollCreator.${group}.${key}${suffix}`);
 	};
-	const levelCopy = visibilityCopy(voterVisibility);
 
 	const setOpen = (value: boolean) => {
 		setInternalOpen(value);
@@ -546,7 +547,7 @@ export function PollCreator({
 													<TideRule icon={Eye}>
 														{joinSentences(
 															currentLanguage,
-															t(`pollCreator.ruleVisibility.${levelCopy.key}`, { name: levelCopy.name }),
+															visibilityText('ruleVisibility', voterVisibility),
 															...(level === 'nobody' ? [] : [t('pollCreator.ruleAnonymous')]),
 															t('pollCreator.ruleFixed')
 														)}
@@ -907,16 +908,12 @@ export function PollCreator({
 															<PillGroup
 																legend={t('pollCreator.visibilityLabel')}
 																note={t('pollCreator.visibilityNote')}
-																hint={t(`pollCreator.visibility.${visibilityCopy(field.value).key}Hint`, {
-																	name: visibilityCopy(field.value).name,
-																})}
+																hint={visibilityText('visibility', field.value, 'Hint')}
 																value={field.value}
 																onChange={field.onChange}
 																options={VISIBILITY_ORDER.map((value) => ({
 																	value,
-																	label: t(`pollCreator.visibility.${visibilityCopy(value).key}`, {
-																		name: visibilityCopy(value).name,
-																	}),
+																	label: visibilityText('visibility', value),
 																}))}
 															/>
 														)}

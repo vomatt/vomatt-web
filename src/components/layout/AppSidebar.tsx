@@ -29,7 +29,9 @@ import {
 import { TidePanel } from '@/components/ui/TidePanel';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
-import { AccountSwitcher, useSwitchableAccounts } from '@/features/communities/AccountSwitcher';
+import { AccountSwitcher } from '@/features/communities/AccountSwitcher';
+import { useActing } from '@/features/communities/ActingProvider';
+import { accountName } from '@/features/communities/schema';
 import {
 	formatUnreadCount,
 	useUnreadCount,
@@ -80,7 +82,7 @@ export function AppSidebar({
 	const { t } = useLanguage();
 	const pathname = usePathname();
 	const { count: unreadCount } = useUnreadCount();
-	const { canSwitch } = useSwitchableAccounts();
+	const { acting } = useActing();
 
 	if (isChromeless(pathname)) return null;
 
@@ -152,41 +154,47 @@ export function AppSidebar({
 							})}
 							{userSession && (
 								<SidebarMenuItem>
-									{canSwitch ? (
-										// In a community account: the row says who they act as and opens the switcher
-										<AccountSwitcher
-											profileHref={accountLink}
-											className={cn(
-												navRowClassName,
-												'data-popup-open:text-sidebar-foreground',
-												accountCurrent && activeRowClassName
-											)}
-										/>
-									) : (
-										<SidebarMenuButton
-											render={
-												<Link
-													href={accountLink}
-													aria-current={accountCurrent}
-													className="flex items-center gap-3 w-full"
-												/>
-											}
-											className={cn(navRowClassName, accountCurrent && activeRowClassName)}
-										>
-											{profile ? (
-												<UserAvatar
-													username={profile.username}
-													avatarUrl={profile.avatarUrl}
-													className="size-4 shrink-0"
-												/>
-											) : (
-												<User />
-											)}
+									<SidebarMenuButton
+										render={
+											<Link
+												href={accountLink}
+												aria-current={accountCurrent}
+												className="flex items-center gap-3 w-full"
+											/>
+										}
+										className={cn(
+											navRowClassName,
+											acting && 'h-auto min-h-10 py-1.5',
+											accountCurrent && activeRowClassName
+										)}
+									>
+										{profile ? (
+											<UserAvatar
+												username={profile.username}
+												avatarUrl={profile.avatarUrl}
+												className="size-4 shrink-0"
+											/>
+										) : (
+											<User />
+										)}
+										{acting ? (
+											// Stays in view while the banner scrolls away, so nobody posts as the community by mistake
+											<span className="min-w-0 text-left">
+												<span className="block text-caption-3 text-muted-foreground">
+													{t('communities.acting.actingAs')}
+												</span>
+												<span className="block truncate text-body-4 font-medium">
+													{accountName(acting)}
+												</span>
+											</span>
+										) : (
 											<span className="text-body-4 font-medium capitalize">
 												{t('navigation.profile')}
 											</span>
-										</SidebarMenuButton>
-									)}
+										)}
+									</SidebarMenuButton>
+									{/* Who they can act as; absent for anyone in no community account */}
+									<AccountSwitcher />
 								</SidebarMenuItem>
 							)}
 						</SidebarMenu>
