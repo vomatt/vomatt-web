@@ -63,7 +63,6 @@ export function CommunityProfileCard({ community, bio }: { community: MyCommunit
 
 const STALE_MEMBERSHIP_CODES = ['community.role_forbidden', 'community.not_member'];
 
-/** Name, bio and avatar, through the community's own endpoints: its username never changes. */
 export function EditCommunityProfile({
 	community,
 	bio: savedBio,
@@ -125,7 +124,6 @@ export function EditCommunityProfile({
 				} else {
 					toast.error(apiErrorText(t, result, 'account.saveFailed'), { duration: Infinity });
 				}
-				// The role or membership changed meanwhile: the refreshed page shows what they can still do
 				if (result.errorCode && STALE_MEMBERSHIP_CODES.includes(result.errorCode)) {
 					setOpen(false);
 					router.refresh();
