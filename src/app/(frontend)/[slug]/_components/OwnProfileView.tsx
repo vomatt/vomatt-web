@@ -8,7 +8,7 @@ import { EmptyCard } from '@/components/EmptyCard';
 import { FilterPills } from '@/components/FilterPills';
 import { PageShell } from '@/components/layout/PageShell';
 import { Button, buttonVariants } from '@/components/ui/Button';
-import { CirclePlus, Lock, Settings, Users } from '@/components/ui/SvgIcons';
+import { CirclePlus, Eye, Lock, Settings, Users } from '@/components/ui/SvgIcons';
 import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { TidePanel } from '@/components/ui/TidePanel';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -29,6 +29,7 @@ import { AskedRow, ProfileSection, VotedRow } from '@/features/profiles/ProfileR
 import { PublicPreview } from '@/features/profiles/PublicPreview';
 import { useCursorList } from '@/hooks/useCursorList';
 import type { CursorPage } from '@/lib/api/cursor';
+import { profileHref } from '@/lib/routes';
 import type { MyProfile } from '@/types/user';
 
 import EditProfileDialog from './EditProfileDialog';
@@ -50,7 +51,8 @@ const TAB_NOTES = {
  * The owner's profile: their record, and three lists one at a time. Asked holds
  * their polls (drafts and the ••• controls are theirs alone); Voted holds the
  * polls they voted in and what they chose; Saved holds the polls they bookmarked.
- * Only they ever see Voted and Saved. Beside it, from `xl`, what everyone else sees.
+ * Only they ever see Voted and Saved. Beside it, from `xl`, what everyone else sees;
+ * below `xl`, a header button opens the page as everyone else sees it.
  */
 export function OwnProfileView({
 	profile,
@@ -115,40 +117,51 @@ export function OwnProfileView({
 					hiddenFields={hiddenFields}
 					onOpenList={setList}
 					actions={
-						acting ? (
-							// The community's own page: its profile for owners and admins, and its members
-							<>
-								{acting.role && canEdit && (
-									<EditCommunityProfile
-										community={{
-											communityId: acting.communityId,
-											role: acting.role,
-											username: profile.username,
-											displayName: profile.displayName,
-											avatarUrl: profile.avatarUrl,
-										}}
-										bio={profile.bio ?? ''}
-										actingVisibility={visibility}
-										defaultOpen={openEdit}
-									/>
-								)}
-								<Link href={communityMembersHref(acting.communityId)} className={buttonVariants({ variant: 'outline', size: 'sm' })}>
-									<Users aria-hidden />
-									{t('communities.acting.manageMembers')}
-								</Link>
-							</>
-						) : (
-							<>
-								<EditProfileDialog profile={profile} defaultOpen={openEdit} />
-								<Link
-									href="/settings"
-									aria-label={t('navigation.settings')}
-									className={buttonVariants({ variant: 'outline', size: 'icon-sm' })}
-								>
-									<Settings aria-hidden />
-								</Link>
-							</>
-						)
+						<>
+							{acting ? (
+								// The community's own page: its profile for owners and admins, and its members
+								<>
+									{acting.role && canEdit && (
+										<EditCommunityProfile
+											community={{
+												communityId: acting.communityId,
+												role: acting.role,
+												username: profile.username,
+												displayName: profile.displayName,
+												avatarUrl: profile.avatarUrl,
+											}}
+											bio={profile.bio ?? ''}
+											actingVisibility={visibility}
+											defaultOpen={openEdit}
+										/>
+									)}
+									<Link href={communityMembersHref(acting.communityId)} className={buttonVariants({ variant: 'outline', size: 'sm' })}>
+										<Users aria-hidden />
+										{t('communities.acting.manageMembers')}
+									</Link>
+								</>
+							) : (
+								<>
+									<EditProfileDialog profile={profile} defaultOpen={openEdit} />
+									<Link
+										href="/settings"
+										aria-label={t('navigation.settings')}
+										className={buttonVariants({ variant: 'outline', size: 'icon-sm' })}
+									>
+										<Settings aria-hidden />
+									</Link>
+								</>
+							)}
+							{/* Below xl the rail's preview is hidden; this opens the page as visitors see it */}
+							<Link
+								href={`${profileHref(profile.username)}?view=public`}
+								aria-label={t('profile.everyoneSees')}
+								title={t('profile.everyoneSees')}
+								className={buttonVariants({ variant: 'outline', size: 'icon-sm', className: 'xl:hidden' })}
+							>
+								<Eye aria-hidden />
+							</Link>
+						</>
 					}
 				/>
 				<FollowListDialog

@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 
 import { useLanguage } from '@/contexts/LanguageContext';
+import { rich } from '@/lib/rich';
 import { isChromeless } from '@/lib/routes';
 
 import { SwitchBackButton, useActing } from './ActingProvider';
@@ -16,15 +17,13 @@ export function ActingBanner() {
 	if (!acting || isChromeless(pathname)) return null;
 
 	return (
-		<div role="status" className="flex flex-wrap items-center gap-x-3 gap-y-2 bg-primary px-4 py-2.5 text-caption-1 text-primary-foreground md:px-6">
+		<div role="status" className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-border bg-primary/6 px-4 py-2.5 text-caption-1 text-foreground md:px-6">
 			<p className="min-w-0 flex-1">
-				{t(acting.locked ? 'communities.acting.bannerLocked' : 'communities.acting.banner', { name: accountName(acting) })}
+				{rich(t(acting.locked ? 'communities.acting.bannerLocked' : 'communities.acting.banner'), {
+					name: <strong className="font-semibold">{accountName(acting)}</strong>,
+				})}
 			</p>
-			<SwitchBackButton
-				size="xs"
-				variant="outline"
-				className="shrink-0 border-primary-foreground/40 bg-transparent text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
-			/>
+			<SwitchBackButton size="xs" variant="outline" className="shrink-0" />
 		</div>
 	);
 }

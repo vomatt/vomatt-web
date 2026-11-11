@@ -1451,7 +1451,7 @@
 			"switcher": "Switch account",
 			"you": "You",
 			"actingAs": "Acting as",
-			"banner": "You’re acting as {name}. Polls and comments post under its name.",
+			"banner": "You’re acting as {name}. Polls and comments you post will show its name.",
 			"switchBack": "Switch back to you",
 			"actAs": "Act as",
 			"actAsLabel": "Act as {name}",
@@ -1464,7 +1464,7 @@
 			"settingsTitle": "These settings are your own",
 			"settingsBody": "You’re acting as {name}. Switch back to you to change them.",
 			"manageMembers": "Manage members",
-			"bannerLocked": "You’re acting as {name}, which is locked: it can’t post until it’s unlocked."
+			"bannerLocked": "You’re acting as {name}. It’s locked, so it can’t post until it’s unlocked."
 		},
 		"limitTitle": "You own as many community accounts as your plan allows",
 		"limitBodyFree": "Upgrade to Pro to own more.",

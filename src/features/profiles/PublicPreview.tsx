@@ -18,7 +18,7 @@ import type { MyProfile } from '@/types/user';
 
 const PERSONAL: VisibilityField[] = ['firstName', 'lastName', 'gender'];
 
-/** What everyone else sees of the owner's profile: beside their own view, or in its place on narrow screens. */
+/** What everyone else sees of the owner's profile: beside their own view from `xl`, and on Settings › What others see. */
 export function PublicPreview({ profile, className }: { profile: MyProfile; className?: string }) {
 	const { t, currentLanguage } = useLanguage();
 	const visibility = profile.visibilitySettings ?? {};

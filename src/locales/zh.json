@@ -1436,7 +1436,7 @@
 			"switcher": "切換帳號",
 			"you": "你",
 			"actingAs": "目前身分",
-			"banner": "你正以 {name} 的身分操作，投票與留言都會以它的名義發布。",
+			"banner": "你正以 {name} 的身分操作，你發布的投票與留言會顯示它的名稱。",
 			"switchBack": "切換回自己",
 			"actAs": "切換",
 			"actAsLabel": "以 {name} 的身分操作",
@@ -1449,7 +1449,7 @@
 			"settingsTitle": "這些是你個人的設定",
 			"settingsBody": "你正以 {name} 的身分操作。切換回自己才能修改。",
 			"manageMembers": "管理成員",
-			"bannerLocked": "你正以 {name} 的身分操作，它已被鎖定，解鎖前無法發布。"
+			"bannerLocked": "你正以 {name} 的身分操作。此帳號已被鎖定，解鎖前無法發布。"
 		},
 		"limitTitle": "擁有的社群帳號已達方案上限",
 		"limitBodyFree": "升級 Pro 即可擁有更多。",

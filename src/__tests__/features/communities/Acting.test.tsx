@@ -98,7 +98,7 @@ describe('AccountSwitcher, locked accounts', () => {
 
 	it('says in the banner that a locked account can’t post', () => {
 		renderWith({ acting: { ...community('c1', 'OWNER'), locked: true } }, <ActingBanner />);
-		expect(screen.getByRole('status')).toHaveTextContent('You’re acting as Community c1, which is locked: it can’t post until it’s unlocked.');
+		expect(screen.getByRole('status')).toHaveTextContent('You’re acting as Community c1. It’s locked, so it can’t post until it’s unlocked.');
 	});
 });
 
@@ -141,6 +141,7 @@ describe('ActingBanner', () => {
 		renderWith({ acting, communities: [acting] }, <ActingBanner />);
 
 		expect(screen.getByRole('status')).toHaveTextContent('You’re acting as Community c1.');
+		expect(screen.getByText('Community c1').tagName).toBe('STRONG');
 		fireEvent.click(screen.getByRole('button', { name: 'Switch back to you' }));
 		await waitFor(() => expect(actAsCommunity).toHaveBeenCalledWith(null));
 	});

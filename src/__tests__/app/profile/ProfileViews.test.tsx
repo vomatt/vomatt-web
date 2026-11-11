@@ -484,6 +484,13 @@ describe('OwnProfileView', () => {
 		expect(screen.getByRole('region', { name: 'What everyone sees' })).toHaveClass('max-xl:hidden');
 	});
 
+	it('links to the public page from the header below xl, where the preview is hidden', () => {
+		render(<OwnProfileView profile={me} polls={[]} />);
+		const link = screen.getByRole('link', { name: 'What everyone sees' });
+		expect(link).toHaveAttribute('href', `/${me.username}?view=public`);
+		expect(link).toHaveClass('xl:hidden');
+	});
+
 	it("says the polls couldn't load, and retries", () => {
 		render(<OwnProfileView profile={me} polls={null} />);
 		expect(cell('polls asked')).toHaveTextContent('1');
