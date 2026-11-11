@@ -30,7 +30,6 @@ export function CreatePollTrigger({
 	// Not a DialogTrigger, so the dialog is told where focus goes back to on close
 	const triggerRef = useRef<HTMLButtonElement>(null);
 	const { onClick, onFocus, onPointerEnter } = children.props;
-	// A locked community account can't post (API: `community.locked`)
 	if (acting?.locked) return null;
 
 	return (

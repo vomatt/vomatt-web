@@ -78,7 +78,7 @@ describe('KeepCommunitiesDialog', () => {
 		open(1);
 		fireEvent.click(screen.getByLabelText(/alpha/));
 		fireEvent.click(keep());
-		expect(await screen.findByRole('alert')).toHaveTextContent('Choose only accounts you own, as many as your plan allows.');
+		expect(await screen.findByRole('alert')).toHaveTextContent('Choose exactly as many accounts as asked, all ones you own.');
 		expect(onOpenChange).not.toHaveBeenCalled();
 	});
 });

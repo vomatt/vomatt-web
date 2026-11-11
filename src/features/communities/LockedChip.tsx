@@ -5,7 +5,6 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { chipClassName } from '@/features/polls/chip';
 import { cn } from '@/lib/utils';
 
-/** Marks a community account that is locked: readable, but it can't post. */
 export function LockedChip() {
 	const { t } = useLanguage();
 	return (
