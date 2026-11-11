@@ -49,6 +49,8 @@ import { Textarea } from '@/components/ui/Textarea';
 import { TideRule, TideRules } from '@/components/ui/TidePanel';
 import { ENTER, EXIT, Unfold } from '@/components/Unfold';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useActing } from '@/features/communities/ActingProvider';
+import { accountName } from '@/features/communities/schema';
 import { useVisualViewport } from '@/hooks/useVisualViewport';
 import { apiErrorText } from '@/lib/api/error-text';
 import { cn } from '@/lib/utils';
@@ -196,6 +198,7 @@ export function PollCreator({
 	finalFocus,
 }: PollCreatorProps) {
 	const { t, currentLanguage } = useLanguage();
+	const { acting } = useActing();
 	const router = useRouter();
 	const isEdit = !!poll;
 	const [internalOpen, setInternalOpen] = useState(false);
@@ -254,6 +257,13 @@ export function PollCreator({
 		if (review) titleRef.current?.focus();
 	}, [review]);
 	const level = visibilityLevel({ voterVisibility, audience });
+	// "Only me" while acting is the community: everyone acting as it sees the voter list, not the person
+	const visibilityText = (group: 'visibility' | 'ruleVisibility', value: VoterVisibility, suffix = '') => {
+		const key = visibilityLevel({ voterVisibility: value, audience });
+		return key === 'owner' && acting
+			? t(`pollCreator.${group}.community${suffix}`, { name: accountName(acting) })
+			: t(`pollCreator.${group}.${key}${suffix}`);
+	};
 
 	const setOpen = (value: boolean) => {
 		setInternalOpen(value);
@@ -440,6 +450,12 @@ export function PollCreator({
 												: 'pollCreator.subtitle'
 										)}
 							</DialogDescription>
+							{/* While acting, the poll goes out under the community's name */}
+							{acting && !isEdit && (
+								<p className="text-caption-1 font-medium text-foreground">
+									{t('communities.acting.postingAs', { name: accountName(acting) })}
+								</p>
+							)}
 						</div>
 						<Button
 							type="button"
@@ -531,7 +547,8 @@ export function PollCreator({
 													<TideRule icon={Eye}>
 														{joinSentences(
 															currentLanguage,
-															t(`pollCreator.ruleVisibility.${level}`),
+															visibilityText('ruleVisibility', voterVisibility),
+															...(level === 'nobody' ? [] : [t('pollCreator.ruleAnonymous')]),
 															t('pollCreator.ruleFixed')
 														)}
 													</TideRule>
@@ -891,16 +908,12 @@ export function PollCreator({
 															<PillGroup
 																legend={t('pollCreator.visibilityLabel')}
 																note={t('pollCreator.visibilityNote')}
-																hint={t(
-																	`pollCreator.visibility.${visibilityLevel({ voterVisibility: field.value, audience })}Hint`
-																)}
+																hint={visibilityText('visibility', field.value, 'Hint')}
 																value={field.value}
 																onChange={field.onChange}
 																options={VISIBILITY_ORDER.map((value) => ({
 																	value,
-																	label: t(
-																		`pollCreator.visibility.${visibilityLevel({ voterVisibility: value, audience })}`
-																	),
+																	label: visibilityText('visibility', value),
 																}))}
 															/>
 														)}

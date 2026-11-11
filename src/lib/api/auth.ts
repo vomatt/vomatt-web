@@ -1,8 +1,10 @@
 import 'server-only';
 
 import { cookies } from 'next/headers';
+import { cache } from 'react';
+import { z } from 'zod';
 
-import { ACCESS_TOKEN, REFRESH_TOKEN } from '@/data/constants';
+import { ACCESS_TOKEN, ACT_AS, REFRESH_TOKEN } from '@/data/constants';
 import {
 	AccessTokenPayload,
 	buildAuthCookies,
@@ -31,9 +33,20 @@ export async function getTokens(): Promise<{
 	return { accessToken, refreshToken };
 }
 
+/**
+ * The community account the signed-in user is acting as, or null when they act as themself.
+ * Anything but an id in the cookie is ignored rather than sent to the API. Once per request: every API call asks.
+ */
+export const getActingCommunityId = cache(async (): Promise<string | null> => {
+	const parsed = z.string().uuid().safeParse((await cookies()).get(ACT_AS)?.value);
+	return parsed.success ? parsed.data : null;
+});
+
 /** Only works where cookies are writable: Server Actions and Route Handlers. */
 export async function setAuthTokens(tokens: AuthTokens) {
 	const cookieStore = await cookies();
+	// A new sign-in starts as the user themself
+	cookieStore.delete(ACT_AS);
 	for (const { name, value, options } of buildAuthCookies(tokens)) {
 		cookieStore.set(name, value, options);
 	}
@@ -43,4 +56,5 @@ export async function clearAuthTokens() {
 	const cookieStore = await cookies();
 	cookieStore.delete(ACCESS_TOKEN);
 	cookieStore.delete(REFRESH_TOKEN);
+	cookieStore.delete(ACT_AS);
 }

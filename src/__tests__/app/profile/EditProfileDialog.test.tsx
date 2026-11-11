@@ -19,7 +19,7 @@ jest.mock('@/features/avatars/AvatarDialog', () => ({ AvatarDialog: () => null }
 beforeEach(() => {
 	jest.clearAllMocks();
 	mockEditProfile.mockResolvedValue({ ok: true });
-	mockUpdateVisibility.mockResolvedValue({});
+	mockUpdateVisibility.mockResolvedValue({ ok: true, data: {} });
 });
 
 const profile = {
@@ -203,7 +203,7 @@ describe('EditProfileDialog', () => {
 	});
 
 	it('still moves to the new username when only the visibility save fails, and says so', async () => {
-		mockUpdateVisibility.mockRejectedValue(new Error('down'));
+		mockUpdateVisibility.mockResolvedValue({ ok: false, message: 'down' });
 		open();
 		fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'mei_lin' } });
 		fireEvent.click(screen.getByRole('button', { name: 'Real name: only you see it. Change' }));

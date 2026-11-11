@@ -1,6 +1,7 @@
-import { headers as requestHeaders } from 'next/headers';
+import { cookies, headers as requestHeaders } from 'next/headers';
 
-import { getTokens } from '@/lib/api/auth';
+import { ACT_AS } from '@/data/constants';
+import { getActingCommunityId, getTokens } from '@/lib/api/auth';
 import { backendFetch } from '@/lib/api/backend-fetch';
 import { clientHeaders } from '@/lib/api/client-ip';
 import { API_BASE_PATH } from '@/lib/api/constants';
@@ -12,6 +13,8 @@ interface ApiFetchOptions extends RequestInit {
 	isFormData?: boolean;
 	/** 'optional' sends the request without a token when signed out instead of throwing. */
 	auth?: 'required' | 'optional';
+	/** false sends the request as the signed-in user even while they act as a community account. */
+	actAs?: false;
 }
 
 export class AuthError extends Error {
@@ -37,6 +40,17 @@ export class ApiError extends Error {
 		super(message);
 		this.name = 'ApiError';
 	}
+}
+
+// The person's own routes, which the API refuses while acting (vomatt-api SecurityEndpoints.ACT_AS_DENIED)
+const PERSONAL = /^\/(auth\/passkey\/register|users\/me\/(passkeys|sessions|export|phone))(\/|$)/;
+
+// A route that names its community account: the API checks the real member's role on it, so a refusal is about that account
+const COMMUNITY = /^\/communities\/[^/?]+/;
+
+function isPersonal(endpoint: string, method: string) {
+	const path = endpoint.split('?')[0];
+	return PERSONAL.test(path) || (method === 'DELETE' && /^\/users\/[^/]+$/.test(path));
 }
 
 function readRetryAfter(response: Response) {
@@ -105,6 +119,7 @@ export async function apiClient<T = any>(
 	const {
 		isFormData = false,
 		auth = 'required',
+		actAs,
 		headers: customHeaders,
 		...fetchOptions
 	} = options;
@@ -129,11 +144,29 @@ export async function apiClient<T = any>(
 	}
 	// A response for one user must never land in the shared data cache
 	const { next: _next, ...uncached } = fetchOptions as RequestInit & { next?: unknown };
-	const response = await backendFetch(`${process.env.API_URL}${API_BASE_PATH}${endpoint}`, {
-		...uncached,
-		headers,
-		cache: 'no-store',
-	});
+	const method = (uncached.method ?? 'GET').toUpperCase();
+	const actingId =
+		actAs === false || isPersonal(endpoint, method) || COMMUNITY.test(endpoint) ? null : await getActingCommunityId();
+	if (actingId) headers.set('X-Act-As', actingId);
+	const send = (sent: Headers) =>
+		backendFetch(`${process.env.API_URL}${API_BASE_PATH}${endpoint}`, { ...uncached, headers: sent, cache: 'no-store' });
+	let response = await send(headers);
+	// Removed from the community meanwhile. A read goes on as the user (the layout then ends acting); a write never
+	// does, or it would post under the user's own name, so it ends acting and the page reloads as the user.
+	if (actingId && response.status === 403) {
+		const errorCode = await response
+			.clone()
+			.json()
+			.then((body) => body?.errorCode, () => undefined);
+		if (errorCode === 'community.not_member' && method === 'GET') {
+			const asUser = new Headers(headers);
+			asUser.delete('X-Act-As');
+			response = await send(asUser);
+		} else if (errorCode === 'community.not_member') {
+			// Cookies are read-only while a page renders; there the layout ends acting on this request instead
+			await cookies().then((store) => store.delete(ACT_AS)).catch(() => {});
+		}
+	}
 
 	if (response.status === 401) {
 		const errorCode = await response.json().then(

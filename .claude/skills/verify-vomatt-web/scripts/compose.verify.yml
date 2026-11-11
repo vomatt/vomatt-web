@@ -5,6 +5,8 @@ services:
     ports: !reset []
   redis:
     ports: !reset []
+  s3:
+    ports: !reset []
   api:
     ports: !override
       - "${VERIFY_API_PORT:-18080}:8080"

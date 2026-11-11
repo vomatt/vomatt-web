@@ -1,9 +1,21 @@
-import { canManageMembers, grantableRoles, memberActions } from '@/features/communities/permissions';
+import { canDelete, canEditProfile, canManageMembers, grantableRoles, memberActions } from '@/features/communities/permissions';
 import { COMMUNITY_ROLES } from '@/features/communities/schema';
 
 describe('canManageMembers', () => {
 	it('lets only OWNER and ADMIN manage members', () => {
 		expect(COMMUNITY_ROLES.filter(canManageMembers)).toEqual(['OWNER', 'ADMIN']);
+	});
+});
+
+describe('canEditProfile', () => {
+	it('lets only OWNER and ADMIN edit the profile', () => {
+		expect(COMMUNITY_ROLES.filter(canEditProfile)).toEqual(['OWNER', 'ADMIN']);
+	});
+});
+
+describe('canDelete', () => {
+	it('lets only an OWNER delete the account', () => {
+		expect(COMMUNITY_ROLES.filter(canDelete)).toEqual(['OWNER']);
 	});
 });
 
@@ -22,6 +34,12 @@ describe('memberActions', () => {
 		expect(memberActions(owner, { userId: 'o2', role: 'OWNER' })).toEqual(['changeRole', 'remove']);
 	});
 
+	it('keeps only handing ownership over and leaving on a locked account', () => {
+		expect(memberActions(owner, { userId: 'e', role: 'EDITOR' }, true)).toEqual(['transferOwner']);
+		expect(memberActions(owner, owner, true)).toEqual(['leave']);
+		expect(memberActions(admin, { userId: 'e', role: 'EDITOR' }, true)).toEqual([]);
+	});
+
 	it('gives an ADMIN no menu on OWNER rows and no transfer', () => {
 		expect(memberActions(admin, owner)).toEqual([]);
 		expect(memberActions(admin, { userId: 'e', role: 'EDITOR' })).toEqual(['changeRole', 'remove']);
@@ -35,6 +53,10 @@ describe('memberActions', () => {
 describe('grantableRoles', () => {
 	it('lets only an OWNER grant OWNER', () => {
 		expect(grantableRoles('OWNER')).toContain('OWNER');
-		expect(grantableRoles('ADMIN')).toEqual(['ADMIN', 'CHIEF_EDITOR', 'EDITOR', 'ANALYST']);
+		expect(grantableRoles('ADMIN')).toEqual(['ADMIN', 'CHIEF_EDITOR', 'EDITOR']);
+	});
+
+	it('keeps Analyst out until result reports are in the app', () => {
+		expect(grantableRoles('OWNER')).not.toContain('ANALYST');
 	});
 });

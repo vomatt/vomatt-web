@@ -3,8 +3,9 @@
  */
 import { redirect } from 'next/navigation';
 
-import { getLoginHref, getMyProfile, getUserSession, loadMyProfile, redirectToLogin } from '@/data/auth';
-import { ApiError, AuthError } from '@/lib/api/client';
+import { getLoginHref, getMyProfile, getUserSession, loadActingState, loadMyProfile, redirectToLogin } from '@/data/auth';
+import { listMyCommunities } from '@/features/communities/service';
+import { apiClient, ApiError, AuthError } from '@/lib/api/client';
 import { getMyProfile as fetchMyProfile } from '@/lib/api/services/users';
 
 let accessToken: string | undefined = 'token';
@@ -15,13 +16,17 @@ jest.mock('next/headers', () => ({
 	cookies: async () => ({ get: () => (accessToken ? { value: accessToken } : undefined) }),
 }));
 jest.mock('next/navigation', () => ({ redirect: jest.fn() }));
-jest.mock('@/lib/api/auth', () => ({ decodeToken: async () => ({ sub: 'u1' }) }));
+let actingId: string | null = null;
+jest.mock('@/lib/api/auth', () => ({ decodeToken: async () => ({ sub: 'u1' }), getActingCommunityId: async () => actingId }));
+jest.mock('@/features/communities/service', () => ({ listMyCommunities: jest.fn() }));
+jest.mock('@/lib/api/client', () => ({ ...jest.requireActual('@/lib/api/client'), apiClient: jest.fn() }));
 jest.mock('@/lib/api/services/users', () => ({ getMyProfile: jest.fn() }));
 
 const mockFetch = fetchMyProfile as jest.Mock;
 
 beforeEach(() => {
 	accessToken = 'token';
+	actingId = null;
 	jest.clearAllMocks();
 });
 
@@ -86,4 +91,62 @@ it('sends a session signed out from another device to login saying so', async ()
 	mockFetch.mockRejectedValue(new AuthError('Signed out', 401, 'auth.session_revoked'));
 	await redirectToLogin('/following');
 	expect(redirect).toHaveBeenCalledWith('/login?redirect=%2Ffollowing&session_expired=revoked');
+});
+
+describe('acting as a community account', () => {
+	const community = { communityId: 'c1', username: 'tower', displayName: 'Tower', avatarUrl: null, role: 'EDITOR' as const };
+	const me = { id: 'u1', username: 'klaus', displayName: 'Klaus', avatarUrl: null };
+
+	it("makes the session the community's, so it owns what it posts", async () => {
+		actingId = 'c1';
+		mockFetch.mockResolvedValue({ id: 'c1', username: 'tower' });
+		await expect(getUserSession()).resolves.toMatchObject({ sub: 'c1' });
+	});
+
+	it('names the account and the person behind it', async () => {
+		actingId = 'c1';
+		mockFetch.mockResolvedValue({ id: 'c1', username: 'tower' });
+		(listMyCommunities as jest.Mock).mockResolvedValue({ ok: true, data: [community] });
+		(apiClient as jest.Mock).mockResolvedValue(me);
+
+		await expect(loadActingState()).resolves.toEqual({ acting: community, me, communities: [community], stale: false });
+		expect(apiClient).toHaveBeenCalledWith('/users/me', { actAs: false });
+	});
+
+	it('leaves the list to the switcher for someone acting as nobody', async () => {
+		mockFetch.mockResolvedValue(me);
+
+		await expect(loadActingState()).resolves.toEqual({ acting: null, me, communities: null, stale: false });
+		expect(listMyCommunities).not.toHaveBeenCalled();
+	});
+
+	it('is stale once the user is no longer a member', async () => {
+		actingId = 'c1';
+		mockFetch.mockResolvedValue(me);
+		(listMyCommunities as jest.Mock).mockResolvedValue({ ok: true, data: [] });
+
+		await expect(loadActingState()).resolves.toMatchObject({ acting: null, stale: true });
+	});
+
+	it('is stale for an analyst, who has nothing to do as the account yet', async () => {
+		actingId = 'c1';
+		mockFetch.mockResolvedValue(me);
+		(listMyCommunities as jest.Mock).mockResolvedValue({ ok: true, data: [{ ...community, role: 'ANALYST' }] });
+
+		await expect(loadActingState()).resolves.toMatchObject({ acting: null, stale: true });
+	});
+
+	it('keeps acting, role unknown, when the list fails to load', async () => {
+		actingId = 'c1';
+		mockFetch.mockResolvedValue({ id: 'c1', username: 'tower', displayName: 'Tower', avatarUrl: null, community: true });
+		(listMyCommunities as jest.Mock).mockResolvedValue({ ok: false, message: 'down' });
+		(apiClient as jest.Mock).mockResolvedValue(me);
+
+		await expect(loadActingState()).resolves.toEqual({
+			acting: { communityId: 'c1', username: 'tower', displayName: 'Tower', avatarUrl: null, role: null },
+			me,
+			communities: null,
+			stale: false,
+		});
+	});
 });

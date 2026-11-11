@@ -5,8 +5,10 @@ import { redirect } from 'next/navigation';
 import { cache } from 'react';
 
 import { ACCESS_TOKEN } from '@/data/constants';
-import { decodeToken } from '@/lib/api/auth';
-import { ApiError, AuthError } from '@/lib/api/client';
+import { canActAs, type CommunityRole, type MyCommunity } from '@/features/communities/schema';
+import { listMyCommunities } from '@/features/communities/service';
+import { decodeToken, getActingCommunityId } from '@/lib/api/auth';
+import { apiClient, ApiError, AuthError } from '@/lib/api/client';
 import { getMyProfile as fetchMyProfile } from '@/lib/api/services/users';
 import { loginHref } from '@/lib/routes';
 import { MyProfile } from '@/types/user';
@@ -65,11 +67,64 @@ export const loadMyProfile = cache(
 /**
  * The signed-in user: a token the API refused (signed out from another device, account deleted) is no session.
  * While the API can't answer, the token stands; the layout waits on SessionRetry.
+ * While acting as a community account, `sub` is the account's id, so it owns the polls and comments posted as it.
  */
 export const getUserSession = cache(async (): Promise<Session | null> => {
 	const [session, { profile, error }] = await Promise.all([getTokenSession(), loadMyProfile()]);
-	return profile || error ? session : null;
+	if (session && profile) return { ...session, sub: profile.id };
+	return error ? session : null;
 });
+
+/** A community account being acted as; `role` is null when the list of the user's accounts couldn't load. */
+export type ActingAccount = Omit<MyCommunity, 'role'> & { role: CommunityRole | null };
+
+/** Who the signed-in user is and may act as; `stale` when the cookie names an account they can no longer act as. */
+export type ActingState = {
+	acting: ActingAccount | null;
+	/** The person behind it, for the switcher's own row; null when it couldn't load. */
+	me: Pick<MyProfile, 'username' | 'displayName' | 'avatarUrl'> | null;
+	/** The user's community accounts; null when not fetched here (the switcher loads them itself). */
+	communities: MyCommunity[] | null;
+	stale: boolean;
+};
+
+/** The user's community accounts, fetched once per request: the layout and the members page both need them. */
+export const getMyCommunities = cache(listMyCommunities);
+
+const NOT_SIGNED_IN: ActingState = { acting: null, me: null, communities: [], stale: false };
+
+/**
+ * Acting state for the layout. Most users act as nobody: for them it costs nothing beyond the profile, and the
+ * sidebar switcher loads their community accounts in the background. Only a set cookie is checked here.
+ */
+export const loadActingState = cache(async (): Promise<ActingState> => {
+	const [token, actingId] = await Promise.all([getTokenSession(), getActingCommunityId()]);
+	if (!token) return NOT_SIGNED_IN;
+	if (!actingId) {
+		const { profile } = await loadMyProfile();
+		return profile ? { acting: null, me: profile, communities: null, stale: false } : NOT_SIGNED_IN;
+	}
+	const [{ profile }, result, person] = await Promise.all([
+		loadMyProfile(),
+		getMyCommunities(),
+		apiClient<MyProfile>('/users/me', { actAs: false }).catch(() => null),
+	]);
+	if (!profile) return NOT_SIGNED_IN;
+	if (!result.ok) {
+		// Requests still go out as the account, so the banner stays up; its role is unknown until the list loads
+		const acting = actingFromProfile(profile, actingId);
+		return { acting, me: acting ? person : profile, communities: null, stale: false };
+	}
+	const acting = result.data.find((c) => c.communityId === actingId && canActAs(c.role)) ?? null;
+	return { acting, me: acting ? person : profile, communities: result.data, stale: !acting };
+});
+
+/** The account being acted as, read off its own profile (the one `/users/me` answers with while acting). */
+function actingFromProfile(profile: MyProfile, actingId: string): ActingAccount | null {
+	if (!profile.community || profile.id !== actingId) return null;
+	const { username, displayName, avatarUrl } = profile;
+	return { communityId: actingId, username, displayName, avatarUrl, role: null };
+}
 
 /** Throws when the API couldn't answer: treating that as signed out would send a signed-in user to log in. */
 export const getMyProfile = async (): Promise<MyProfile | null> => {

@@ -19,6 +19,27 @@ describe('InviteePicker', () => {
 		expect(onChange).toHaveBeenCalledWith({ users: [], emails: [], groups: [] });
 	});
 
+	it('leaves people already on the list out of the results', async () => {
+		jest.useFakeTimers();
+		mockSearchUsers.mockResolvedValue({
+			items: [
+				{ id: 'u1', username: 'ann' },
+				{ id: 'u2', username: 'anna' },
+			],
+		});
+		render(
+			<InviteePicker value={{ users: [], emails: [], groups: [] }} onChange={jest.fn()} excludeUserIds={['u1']} />
+		);
+		fireEvent.change(screen.getByPlaceholderText('Username or email'), { target: { value: 'ann' } });
+		await act(async () => {
+			await jest.runAllTimersAsync();
+		});
+		jest.useRealTimers();
+
+		expect(screen.queryByRole('button', { name: 'ann' })).not.toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'anna' })).toBeInTheDocument();
+	});
+
 	it("shows a community account in the results but won't invite it, and Enter skips it", async () => {
 		jest.useFakeTimers();
 		mockSearchUsers.mockResolvedValue({

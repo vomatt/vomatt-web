@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 
 import { AppSidebar } from '@/components/layout/AppSidebar';
 import { SidebarProvider } from '@/components/ui/Sidebar';
+import { ActingProvider } from '@/features/communities/ActingProvider';
 
 let mockPathname = '/';
 jest.mock('next/navigation', () => ({
@@ -34,6 +35,11 @@ jest.mock('@/lib/api/services/auth', () => ({
 
 jest.mock('@/features/feedback/service', () => ({
 	reportProblem: jest.fn(),
+}));
+
+jest.mock('@/features/billing/service', () => ({ startCheckout: jest.fn() }));
+jest.mock('@/features/communities/service', () => ({
+	createCommunity: jest.fn(),
 }));
 
 const mockSetTheme = jest.fn();
@@ -183,5 +189,36 @@ describe('AppSidebar profile', () => {
 		expect(
 			screen.getByRole('link', { name: 'navigation.profile' })
 		).toHaveAttribute('href', '/account');
+	});
+});
+
+describe('AppSidebar profile, in a community account', () => {
+	const me = { username: 'klaus', displayName: 'Klaus', avatarUrl: null };
+	const club = { communityId: 'c1', username: 'club', displayName: 'Club', avatarUrl: null, role: 'OWNER' as const };
+	const renderIn = (acting: typeof club | null, profile: object) =>
+		render(
+			<SidebarProvider>
+				<ActingProvider state={{ acting, me, communities: [club], stale: false }}>
+					<AppSidebar userSession={{}} profile={profile as never} />
+				</ActingProvider>
+			</SidebarProvider>
+		);
+
+	it('keeps the profile link and adds the switcher beside it, with no chip above Create', async () => {
+		mockPathname = '/klaus';
+		renderIn(null, { username: 'klaus', avatarUrl: null });
+
+		const link = screen.getByRole('link', { name: 'navigation.profile' });
+		expect(link).toHaveAttribute('href', '/klaus');
+		expect(link).toHaveAttribute('aria-current', 'page');
+		expect(screen.getAllByRole('button', { name: 'communities.acting.switcher' })).toHaveLength(1);
+		await userEvent.click(screen.getByRole('button', { name: 'communities.acting.switcher' }));
+		expect(await screen.findByRole('menuitemradio', { name: /Club/ })).toBeInTheDocument();
+		mockPathname = '/';
+	});
+
+	it('says who the user is acting as on the profile row', () => {
+		renderIn(club, { username: 'club', avatarUrl: null });
+		expect(screen.getByRole('link', { name: 'communities.acting.actingAs Club' })).toHaveAttribute('href', '/club');
 	});
 });

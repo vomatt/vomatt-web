@@ -103,14 +103,16 @@ export async function verifyPhoneBind(phone: string, code: string): Promise<Acti
   );
 }
 
-export async function updateVisibility(visibility: Record<string, boolean>) {
-  const settings = await apiClient<Record<string, boolean>>('/users/me/visibility', {
-    method: 'PATCH',
-    body: JSON.stringify({ visibility }),
+export async function updateVisibility(visibility: Record<string, boolean>): Promise<ActionResult<Record<string, boolean>>> {
+  return attempt(async () => {
+    const settings = await apiClient<Record<string, boolean>>('/users/me/visibility', {
+      method: 'PATCH',
+      body: JSON.stringify({ visibility }),
+    });
+    // Expire public profiles without re-rendering this page; the switch already shows the change
+    revalidateTag(PROFILES_TAG, { expire: 0 });
+    return settings;
   });
-  // Expire public profiles without re-rendering this page; the switch already shows the change
-  revalidateTag(PROFILES_TAG, { expire: 0 });
-  return settings;
 }
 
 /**
@@ -119,7 +121,7 @@ export async function updateVisibility(visibility: Record<string, boolean>) {
  * A refusal carries the API's errorCode (e.g. 409 `admin.last_admin`).
  */
 export async function deleteMyAccount(): Promise<ActionFailure> {
-  const result = await attempt(async () => deleteUser((await getMyProfile()).id));
+  const result = await attempt(async () => deleteUser((await apiClient<MyProfile>('/users/me', { actAs: false })).id));
   if (!result.ok) return result;
   await clearAuthTokens();
   redirect('/?account_deleted=1');

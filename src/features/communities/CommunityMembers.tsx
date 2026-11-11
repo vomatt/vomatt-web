@@ -31,8 +31,9 @@ import { META_GAP } from '@/lib/rich';
 import { cn } from '@/lib/utils';
 
 import { AddMemberDialog } from './AddMemberDialog';
+import { LockedChip } from './LockedChip';
 import { canManageMembers, grantableRoles, type MemberAction, memberActions } from './permissions';
-import { COMMUNITY_ROLES, type CommunityMember, type CommunityRole,DEFAULT_ROLE, type MyCommunity } from './schema';
+import { COMMUNITY_ROLES, type CommunityMember, type CommunityRole,DEFAULT_ROLE, type MyCommunity, OFFERED_ROLES } from './schema';
 import { addMember, changeRole, removeMember, transferOwner } from './service';
 
 // The list is stale after these: someone else changed it, or the viewer's role
@@ -80,6 +81,10 @@ export function CommunityMembers({
 	const [adding, setAdding] = useState(false);
 	const [pending, setPending] = useState<Pending | null>(null);
 	const [newRole, setNewRole] = useState<CommunityRole>(DEFAULT_ROLE);
+	// Analyst isn't offered yet, but a member who already has it still sees it explained and kept as a choice
+	const shownRoles = members.some((m) => m.role === 'ANALYST') ? COMMUNITY_ROLES : OFFERED_ROLES;
+	const grantable = grantableRoles(community.role);
+	const roleChoices = pending && !grantable.includes(pending.member.role) ? [...grantable, pending.member.role] : grantable;
 	const [busy, setBusy] = useState(false);
 
 	/** Runs a change; true when it went through. */
@@ -88,7 +93,9 @@ export function CommunityMembers({
 		const result = await request();
 		setBusy(false);
 		if (!result.ok) {
-			toast.error(apiErrorText(t, result), { duration: Infinity });
+			// Every limit this page can hit is the other member's: they'd become an owner
+			const text = result.errorCode === 'community.limit_reached' ? t('communities.theirLimitReached') : apiErrorText(t, result);
+			toast.error(text, { duration: Infinity });
 			if (result.errorCode && REFRESH_CODES.includes(result.errorCode)) router.refresh();
 			return false;
 		}
@@ -146,12 +153,19 @@ export function CommunityMembers({
 
 	return (
 		<div className="space-y-8">
+			{community.locked && (
+				<SettingsCard>
+					<div className={cn(rowClassName, 'flex-wrap')}>
+						<RowText title={<LockedChip />} body={t('communities.lockedBody')} />
+					</div>
+				</SettingsCard>
+			)}
 			<section aria-labelledby="members-title" className="space-y-2.5">
 				<div className="flex items-center justify-between gap-4">
 					<h2 id="members-title" className="text-title-4">
 						{t('communities.members')}
 					</h2>
-					{canManageMembers(community.role) && (
+					{canManageMembers(community.role) && !community.locked && (
 						<Button size="md" variant="outline" onClick={() => setAdding(true)}>
 							<Plus aria-hidden />
 							{t('communities.add')}
@@ -160,7 +174,7 @@ export function CommunityMembers({
 				</div>
 				<SettingsCard as="ul">
 					{members.map((member) => {
-						const actions = memberActions(viewer, member);
+						const actions = memberActions(viewer, member, community.locked);
 						const isViewer = member.userId === viewerId;
 						return (
 							<li key={member.userId} className={cn(rowClassName, 'gap-3')}>
@@ -221,7 +235,7 @@ export function CommunityMembers({
 					{t('communities.rolesTitle')}
 				</h2>
 				<SettingsCard as="ul">
-					{COMMUNITY_ROLES.map((role) => (
+					{shownRoles.map((role) => (
 						<li key={role} className={rowClassName}>
 							<RowText title={t(`communities.roles.${role}`)} body={t(`communities.roleBodies.${role}`)} />
 						</li>
@@ -256,7 +270,7 @@ export function CommunityMembers({
 							hint={t(`communities.roleBodies.${newRole}`)}
 							value={newRole}
 							onChange={setNewRole}
-							options={grantableRoles(community.role).map((value) => ({ value, label: t(`communities.roles.${value}`) }))}
+							options={roleChoices.map((value) => ({ value, label: t(`communities.roles.${value}`) }))}
 						/>
 					</DialogBody>
 					<DialogFooter>

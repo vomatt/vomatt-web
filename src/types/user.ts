@@ -62,6 +62,24 @@ export interface MyProfile {
 	/** Whether a first Ballot is Anonymous unless the voter says otherwise. */
 	anonymousBallotByDefault: boolean;
 	avatarUrl: string | null; // `bot:<kind>`; older accounts may hold an image URL
+	/** A community account: the one a member is acting as. */
+	community?: boolean;
+	/** Absent from an API older than paid plans. */
+	plan?: Plan;
+	communityQuota?: CommunityQuota;
+}
+
+export type Plan = 'FREE' | 'PRO';
+
+/** The community accounts the user owns against their plan's limit. */
+export interface CommunityQuota {
+	/** Unlocked ones the user is an OWNER of */
+	owned: number;
+	limit: number;
+	/** The user owns more than `limit` unlocked and must choose which to keep */
+	selectionRequired: boolean;
+	/** ISO; null unless `selectionRequired`. After it the earliest created are kept and the rest locked */
+	selectionDeadline: string | null;
 }
 
 /** A passkey on the signed-in account. */

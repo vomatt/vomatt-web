@@ -3,8 +3,8 @@ import type { Metadata } from 'next';
 import { BackLink } from '@/components/BackLink';
 import { PageShell } from '@/components/layout/PageShell';
 import { T } from '@/components/T';
-import { getMyProfile, redirectToLogin } from '@/data/auth';
-import { listMyCommunities } from '@/features/communities/service';
+import { getMyCommunities, getMyProfile, loadActingState, redirectToLogin } from '@/data/auth';
+import { ActingSettingsNotice } from '@/features/communities/ActingSettingsNotice';
 import { getGroups } from '@/features/groups/service';
 import { getNotificationPreferences } from '@/features/notifications/service';
 import { getServerMessages } from '@/lib/getServerLocale';
@@ -18,20 +18,24 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function SettingsPage() {
-	const [profile, groups, notificationPreferences, communities] = await Promise.all([
+	const [profile, groups, notificationPreferences, communities, { acting }] = await Promise.all([
 		getMyProfile(),
 		getGroups(),
 		getNotificationPreferences().catch(() => null),
-		listMyCommunities(),
+		getMyCommunities(),
+		loadActingState(),
 	]);
 	if (!profile) return redirectToLogin('/settings');
 
 	return (
 		<PageShell
 			rail={
-				<aside className="sticky top-8 hidden xl:block">
-					<SettingsNav />
-				</aside>
+				// Acting, there are no sections to jump to
+				acting ? undefined : (
+					<aside className="sticky top-8 hidden xl:block">
+						<SettingsNav />
+					</aside>
+				)
 			}
 		>
 			{/* Phones reach Settings from the profile and have no sidebar to leave by */}
@@ -41,12 +45,16 @@ export default async function SettingsPage() {
 			<h1 className="mt-8 mb-8 text-title-1 text-foreground md:mt-0">
 				<T k="navigation.settings" />
 			</h1>
-			<AccountSettings
-				profile={profile}
-				inviteListCount={groups.ok ? groups.data.length : null}
-				notificationPreferences={notificationPreferences}
-				communities={communities.ok ? communities.data : []}
-			/>
+			{acting ? (
+				<ActingSettingsNotice />
+			) : (
+				<AccountSettings
+					profile={profile}
+					inviteListCount={groups.ok ? groups.data.length : null}
+					notificationPreferences={notificationPreferences}
+					communities={communities.ok ? communities.data : []}
+				/>
+			)}
 		</PageShell>
 	);
 }

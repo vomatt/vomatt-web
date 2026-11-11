@@ -27,11 +27,12 @@ import {
 	DialogTrigger,
 } from '@/components/ui/Dialog';
 import { Input } from '@/components/ui/Input';
-import { ChevronDown, Globe, Lock, TriangleAlert } from '@/components/ui/SvgIcons';
+import { Lock, TriangleAlert } from '@/components/ui/SvgIcons';
 import { Textarea } from '@/components/ui/Textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { isValidUsername, RESERVED_USERNAMES, USERNAME_MAX_LENGTH } from '@/features/account/username';
 import { isFieldPublic, visibilityChanges } from '@/features/account/visibility';
+import { pillClassName, VisibilityPill } from '@/features/account/VisibilityPill';
 import { genderLabel } from '@/features/profiles/name';
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
 import { useVisualViewport } from '@/hooks/useVisualViewport';
@@ -173,7 +174,7 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 			const visibilitySaved =
 				Object.keys(visibilityChanged).length === 0 ||
 				(await updateVisibility(visibilityChanged).then(
-					() => true,
+					(result) => result.ok,
 					() => false
 				));
 			// The profile lives at /[username], so a new username moves the page
@@ -342,14 +343,14 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 						)}
 					</div>
 					<PillGroup
-							legend={t('profile.gender')}
-							legendClassName={labelClassName}
-							aside={pill(t('profile.gender'), ['gender'])}
-							hint={t('profile.genderReportNote')}
-							// No "not set": once chosen it can only change
-							value={values.gender || undefined}
-							onChange={set('gender')}
-							options={GENDERS.map((gender) => ({ value: gender, label: genderLabel(t, gender) }))}
+						legend={t('profile.gender')}
+						legendClassName={labelClassName}
+						aside={pill(t('profile.gender'), ['gender'])}
+						hint={t('profile.genderReportNote')}
+						// No "not set": once chosen it can only change
+						value={values.gender || undefined}
+						onChange={set('gender')}
+						options={GENDERS.map((gender) => ({ value: gender, label: genderLabel(t, gender) }))}
 						/>
 					<div className="flex flex-col gap-1.5">
 						<div className="flex min-h-7 items-center justify-between gap-2">
@@ -400,48 +401,5 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 				</AlertDialogContent>
 			</AlertDialog>
 		</Dialog>
-	);
-}
-
-const pillClassName =
-	'inline-flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 text-caption-2 font-medium';
-// The pill stays small beside its label, but its hit area reaches 44px
-const pillHitArea = "relative before:absolute before:-inset-y-2 before:inset-x-0 before:content-['']";
-
-const PILL_LABELS = {
-	everyone: 'profile.visibilityPillEveryone',
-	onlyYou: 'profile.visibilityPillOnlyYou',
-} as const;
-
-/** Who sees a detail, as a pill that switches between Everyone and Only you. */
-function VisibilityPill({
-	label,
-	isPublic,
-	onToggle,
-}: {
-	label: string;
-	isPublic: boolean;
-	onToggle: () => void;
-}) {
-	const { t } = useLanguage();
-	const state = t(isPublic ? 'profile.everyone' : 'profile.onlyYouShort');
-	return (
-		<button
-			type="button"
-			onClick={onToggle}
-			aria-label={t(PILL_LABELS[isPublic ? 'everyone' : 'onlyYou'], { field: label })}
-			className={cn(
-				pillClassName,
-				pillHitArea,
-				'cursor-pointer transition-colors outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring',
-				isPublic
-					? 'border-border-strong bg-card hover:bg-surface-soft'
-					: 'border-border bg-secondary text-muted-foreground hover:text-foreground'
-			)}
-		>
-			{isPublic ? <Globe aria-hidden className="size-3" /> : <Lock aria-hidden className="size-3" />}
-			{state}
-			<ChevronDown aria-hidden className="size-2.5" />
-		</button>
 	);
 }

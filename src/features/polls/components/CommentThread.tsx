@@ -27,6 +27,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { AccountAvatar } from '@/features/avatars/AccountAvatar';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { BlockUserDialog } from '@/features/blocks/BlockUserDialog';
+import { useActing } from '@/features/communities/ActingProvider';
+import { accountName } from '@/features/communities/schema';
 import { ProfileAvatar, ProfileName } from '@/features/profiles/UserChip';
 import { useHydrated } from '@/hooks/useHydrated';
 import { apiErrorText } from '@/lib/api/error-text';
@@ -351,6 +353,7 @@ function Composer({
 	viewerUsername?: string;
 }) {
 	const { t } = useLanguage();
+	const { acting } = useActing();
 	const fieldId = useId();
 	const [text, setTextState] = useState(() => draft?.read() ?? '');
 	const setText = (next: string) => {
@@ -396,6 +399,8 @@ function Composer({
 		});
 	};
 
+	if (acting?.locked) return null;
+
 	return (
 		<form
 			className={cn(
@@ -433,6 +438,11 @@ function Composer({
 							<X className="size-4" />
 						</button>
 					</div>
+				)}
+				{acting && (
+					<p className="text-caption-3 font-medium text-foreground">
+						{t('communities.acting.postingAs', { name: accountName(acting) })}
+					</p>
 				)}
 				<MentionTextarea
 					id={fieldId}
@@ -742,6 +752,7 @@ function CommentBody({
 	findAddressee,
 }: CommentBodyProps) {
 	const { t, currentLanguage } = useLanguage();
+	const { acting } = useActing();
 	const isHydrated = useHydrated();
 	const [isEditing, setIsEditing] = useState(false);
 	const [draft, setDraft] = useState('');
@@ -933,7 +944,12 @@ function CommentBody({
 						type="button"
 						aria-pressed={!!comment.likedByCurrentUser}
 						aria-label={t('comments.like')}
-						onClick={() => requireAuth(() => thread.toggleLike(comment))}
+						onClick={() =>
+							requireAuth(async () => {
+								const result = await thread.toggleLike(comment);
+								if (!result.ok) toast.error(apiErrorText(t, result));
+							})
+						}
 						className={cn(pillClassName, comment.likedByCurrentUser && 'bg-highlight-tint text-foreground')}
 					>
 						<m.span
@@ -948,16 +964,18 @@ function CommentBody({
 						{likes > 0 && <span className="tabular-nums">{likes}</span>}
 					</button>
 
-					<button
-						type="button"
-						aria-pressed={replying}
-						data-reply-action
-						onClick={onReply}
-						className={cn(pillClassName, replying && 'text-foreground')}
-					>
-						<Reply aria-hidden className="size-[15px]" strokeWidth={1.8} />
-						{t('comments.reply')}
-					</button>
+					{!acting?.locked && (
+						<button
+							type="button"
+							aria-pressed={replying}
+							data-reply-action
+							onClick={onReply}
+							className={cn(pillClassName, replying && 'text-foreground')}
+						>
+							<Reply aria-hidden className="size-[15px]" strokeWidth={1.8} />
+							{t('comments.reply')}
+						</button>
+					)}
 
 					{!replying && (
 						<RowMenuRoot>

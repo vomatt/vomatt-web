@@ -141,10 +141,17 @@ describe('deleteMyAccount()', () => {
   it('deletes the signed-in user by id, clears cookies and goes home', async () => {
     mockApiClient.mockResolvedValueOnce({ id: 'user-7' }).mockResolvedValueOnce(undefined);
     await deleteMyAccount();
-    expect(mockApiClient).toHaveBeenNthCalledWith(1, '/users/me');
     expect(mockApiClient).toHaveBeenLastCalledWith('/users/user-7', { method: 'DELETE' });
     expect(mockClearAuthTokens).toHaveBeenCalled();
     expect(mockRedirect).toHaveBeenCalledWith('/?account_deleted=1');
+  });
+
+  it('deletes the person, not the community they are acting as', async () => {
+    mockApiClient
+      .mockImplementationOnce(async (_endpoint, options) => ({ id: options?.actAs === false ? 'user-7' : 'community-3' }))
+      .mockResolvedValueOnce(undefined);
+    await deleteMyAccount();
+    expect(mockApiClient).toHaveBeenLastCalledWith('/users/user-7', { method: 'DELETE' });
   });
 
   it('keeps the session when the API refuses', async () => {

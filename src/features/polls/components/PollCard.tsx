@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 
 import { AuthDialog } from '@/components/auth/AuthDialog';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useActing } from '@/features/communities/ActingProvider';
 import { UserChip } from '@/features/profiles/UserChip';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
@@ -74,6 +75,7 @@ export function PollCard({
 	}
 	const [isDeleted, setIsDeleted] = useState(false);
 	const { isAuthed, requireAuth, authDialog } = useRequireAuth(!!viewerId);
+	const { acting } = useActing();
 
 	const refetch = useCallback(async () => {
 		const fresh = await getPoll(poll.id).catch(() => null);
@@ -180,7 +182,7 @@ export function PollCard({
 					</div>
 					<div className="flex shrink-0 items-center gap-2">
 						<AnimatePresence initial={false}>
-							{status !== 'ended' && ballot.myOptionId && <VotedPill key="voted" label={t('poll.votedPill')} />}
+							{status !== 'ended' && !acting && ballot.myOptionId && <VotedPill key="voted" label={t('poll.votedPill')} />}
 						</AnimatePresence>
 						<StatusChip status={status} poll={poll} time="inline" onCard />
 					</div>
@@ -237,6 +239,7 @@ export function PollCard({
 								ballot={ballot}
 								requireAuth={requireAuth}
 								isOwner={isOwner}
+								isActing={!!acting}
 							/>
 						)}
 					</m.div>

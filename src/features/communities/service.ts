@@ -1,15 +1,21 @@
 'use server';
 
+import { refresh, updateTag } from 'next/cache';
+import { cookies } from 'next/headers';
 import { z } from 'zod';
 
+import { ACT_AS } from '@/data/constants';
 import { type ActionResult, attempt } from '@/lib/api/action';
+import { getActingCommunityId } from '@/lib/api/auth';
 import { apiClient } from '@/lib/api/client';
+import { PROFILES_TAG } from '@/lib/api/constants';
 import { type UserDto, UserDtoSchema } from '@/schemas/user';
 
 import { type CommunityMember, CommunityMemberSchema, type CommunityRole, MyCommunitySchema } from './schema';
 
+const communityPath = (communityId: string) => `/communities/${encodeURIComponent(communityId)}`;
 const membersPath = (communityId: string, userId?: string) =>
-	`/communities/${encodeURIComponent(communityId)}/members${userId ? `/${encodeURIComponent(userId)}` : ''}`;
+	`${communityPath(communityId)}/members${userId ? `/${encodeURIComponent(userId)}` : ''}`;
 
 /** The community accounts the signed-in user belongs to (their own, even while acting as one). */
 export async function listMyCommunities() {
@@ -18,9 +24,15 @@ export async function listMyCommunities() {
 
 /** Any signed-in user may; they become the new account's first OWNER. 409 `user.username.taken` when the username is in use. */
 export async function createCommunity(username: string, displayName: string): Promise<ActionResult<UserDto>> {
-	return attempt(async () =>
-		UserDtoSchema.parse(await apiClient('/communities', { method: 'POST', body: JSON.stringify({ username, displayName }) }))
-	);
+	return attempt(async () => {
+		// The person owns it, even while acting as another account
+		const created = UserDtoSchema.parse(
+			await apiClient('/communities', { method: 'POST', body: JSON.stringify({ username, displayName }), actAs: false })
+		);
+		// The layout's list of accounts to act as now includes it
+		refresh();
+		return created;
+	});
 }
 
 /** Any member may list; others get 403 `community.not_member`. */
@@ -55,9 +67,55 @@ export async function removeMember(communityId: string, userId: string): Promise
 /** The caller (an OWNER) hands OWNER to a member and becomes ADMIN. */
 export async function transferOwner(communityId: string, userId: string): Promise<ActionResult> {
 	return attempt(async () => {
-		await apiClient(`/communities/${encodeURIComponent(communityId)}/owner`, {
+		await apiClient(`${communityPath(communityId)}/owner`, {
 			method: 'POST',
 			body: JSON.stringify({ userId }),
 		});
+	});
+}
+
+/** OWNER or ADMIN; an omitted field stays as it is, and an empty bio clears it. */
+export async function updateCommunity(communityId: string, changes: { displayName?: string; bio?: string }): Promise<ActionResult> {
+	return attempt(async () => {
+		await apiClient(communityPath(communityId), { method: 'PATCH', body: JSON.stringify(changes) });
+		updateTag(PROFILES_TAG);
+	});
+}
+
+/** OWNER or ADMIN; `file` in the form data, with the same limits and errorCodes as the user's own avatar. */
+export async function uploadCommunityAvatar(communityId: string, formData: FormData): Promise<ActionResult> {
+	return attempt(async () => {
+		const file = formData.get('file');
+		if (!(file instanceof File) || file.size === 0) throw new Error('No file');
+		const body = new FormData();
+		body.set('file', file);
+		await apiClient(`${communityPath(communityId)}/avatar`, { method: 'PUT', body, isFormData: true });
+		updateTag(PROFILES_TAG);
+	});
+}
+
+/** OWNER only. */
+export async function deleteCommunity(communityId: string): Promise<ActionResult> {
+	return attempt(async () => {
+		await apiClient(communityPath(communityId), { method: 'DELETE' });
+		if ((await getActingCommunityId()) === communityId) (await cookies()).delete(ACT_AS);
+		updateTag(PROFILES_TAG);
+	});
+}
+
+/**
+ * After the user owns more than their plan allows: keeps exactly these unlocked and locks the rest they own.
+ * 400 `community.keep.invalid` unless it is exactly min(limit, owned) of their own. Sent as the person.
+ */
+export async function keepCommunities(communityIds: string[]): Promise<ActionResult> {
+	return attempt(async () => {
+		await apiClient('/users/me/communities/keep', { method: 'POST', body: JSON.stringify({ communityIds }), actAs: false });
+	});
+}
+
+/** OWNER only, with room in their plan (else 403 `community.limit_reached`). Sent as the person: the account itself is locked. */
+export async function unlockCommunity(communityId: string): Promise<ActionResult> {
+	return attempt(async () => {
+		await apiClient(`/communities/${encodeURIComponent(communityId)}/unlock`, { method: 'POST', actAs: false });
 	});
 }

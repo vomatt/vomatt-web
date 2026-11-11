@@ -32,7 +32,7 @@ export function UserSuggestions({
 	if (search.users.length === 0)
 		return (
 			<p className="px-3 py-2 text-caption-2 text-muted-foreground">
-				{t(search.failed ? 'invitees.searchFailed' : 'invitees.noUsers')}
+				{t(search.failed ? 'invitees.searchFailed' : search.allExcluded ? 'invitees.alreadyAdded' : 'invitees.noUsers')}
 			</p>
 		);
 	return (

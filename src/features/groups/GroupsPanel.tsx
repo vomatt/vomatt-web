@@ -19,7 +19,7 @@ import { ArrowRight } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { InviteePicker } from '@/features/polls/components/InviteePicker';
 import { PeopleList } from '@/features/polls/components/PeopleList';
-import { EMPTY_INVITEES, isSelectionEmpty, personKey } from '@/features/polls/invitees';
+import { EMPTY_INVITEES, isSelectionEmpty, personKey, userIdsOf } from '@/features/polls/invitees';
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
 import type { ActionResult } from '@/lib/api/action';
 import { apiErrorText } from '@/lib/api/error-text';
@@ -395,6 +395,7 @@ function GroupDialog({
 					<InviteePicker
 						id="add-members"
 						value={selection}
+						excludeUserIds={userIdsOf(members, loadFailed)}
 						onChange={(next) => {
 							setSelection(next);
 							setAddEmpty(false);

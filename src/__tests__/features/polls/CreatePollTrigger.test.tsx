@@ -1,7 +1,10 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 
+import { ActingProvider } from '@/features/communities/ActingProvider';
 import { CreatePollTrigger } from '@/features/polls/components/CreatePollTrigger';
 
+jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
+jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh: jest.fn() }) }));
 const mockCreator = jest.fn();
 jest.mock('@/features/polls/components/PollCreator', () => ({
 	PollCreator: (props: { open: boolean; finalFocus?: unknown }) => {
@@ -58,5 +61,17 @@ describe('CreatePollTrigger', () => {
 		);
 		fireEvent.click(screen.getByRole('button', { name: 'Create poll' }));
 		expect(onClick).toHaveBeenCalledTimes(1);
+	});
+
+	it('leaves the button out while acting as a locked community account', () => {
+		const acting = { communityId: 'c1', username: 'robotics', displayName: null, avatarUrl: null, role: 'OWNER' as const, locked: true };
+		render(
+			<ActingProvider state={{ acting, me: null, communities: [], stale: false }}>
+				<CreatePollTrigger>
+					<button>Create poll</button>
+				</CreatePollTrigger>
+			</ActingProvider>
+		);
+		expect(screen.queryByRole('button', { name: 'Create poll' })).not.toBeInTheDocument();
 	});
 });

@@ -72,6 +72,21 @@ describe('CommunityMembers', () => {
 		expect(within(dialog).getByRole('button', { name: 'Editor' })).toHaveAttribute('aria-pressed', 'true');
 	});
 
+	it('keeps Analyst out of the role list until someone has it, and then keeps it as their choice', async () => {
+		const withAnalyst = [...members, member('ana', 'ANALYST')];
+		const community: MyCommunity = { communityId: 'off1', username: 'sunrise', displayName: 'Sunrise', avatarUrl: null, role: 'OWNER' };
+		const { unmount } = render(<CommunityMembers community={community} viewerId="olive" members={members} />);
+		expect(screen.queryByText('Sees result reports; doesn’t post.')).not.toBeInTheDocument();
+		unmount();
+
+		render(<CommunityMembers community={community} viewerId="olive" members={withAnalyst} />);
+		expect(screen.getByText('Sees result reports; doesn’t post.')).toBeInTheDocument();
+		const menu = await openMenu('ana');
+		fireEvent.click(menu.getByRole('menuitem', { name: 'Change role' }));
+		const dialog = await screen.findByRole('dialog');
+		expect(within(dialog).getByRole('button', { name: 'Analyst' })).toHaveAttribute('aria-pressed', 'true');
+	});
+
 	it('lets an EDITOR only leave', async () => {
 		renderAs('ed');
 		expect(screen.queryByRole('button', { name: 'Add member' })).not.toBeInTheDocument();
@@ -107,6 +122,41 @@ describe('CommunityMembers', () => {
 		fireEvent.click(within(dialog).getByRole('button', { name: 'Make owner' }));
 		await waitFor(() => expect(transferOwner).toHaveBeenCalledWith('off1', 'adam'));
 		expect(mockRefresh).toHaveBeenCalled();
+	});
+
+	const theirLimit = 'They already own as many community accounts as their plan allows, so they can’t become an owner.';
+	const limitReached = { ok: false, status: 403, errorCode: 'community.limit_reached', message: 'raw' };
+
+	it('says the member’s plan is full when they can’t be made owner', async () => {
+		const { transferOwner } = jest.requireMock('@/features/communities/service');
+		transferOwner.mockResolvedValue(limitReached);
+		renderAs('olive');
+		fireEvent.click((await openMenu('adam')).getByRole('menuitem', { name: 'Make owner' }));
+		fireEvent.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Make owner' }));
+		await waitFor(() => expect(toast.error).toHaveBeenCalledWith(theirLimit, { duration: Infinity }));
+		expect(mockRefresh).not.toHaveBeenCalled();
+	});
+
+	it('says the member’s plan is full when they can’t be granted the Owner role', async () => {
+		const { changeRole } = jest.requireMock('@/features/communities/service');
+		changeRole.mockResolvedValue(limitReached);
+		renderAs('olive');
+		fireEvent.click((await openMenu('ed')).getByRole('menuitem', { name: 'Change role' }));
+		const dialog = await screen.findByRole('dialog');
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Owner' }));
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
+		await waitFor(() => expect(changeRole).toHaveBeenCalledWith('off1', 'ed', 'OWNER'));
+		expect(toast.error).toHaveBeenCalledWith(theirLimit, { duration: Infinity });
+	});
+
+	it('on a locked account, offers only handing ownership over and leaving, and says it is locked', async () => {
+		const community: MyCommunity = { communityId: 'off1', username: 'sunrise', displayName: 'Sunrise', avatarUrl: null, role: 'OWNER', locked: true };
+		render(<CommunityMembers community={community} viewerId="olive" members={members} />);
+		expect(screen.getByText('Locked')).toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Add member' })).not.toBeInTheDocument();
+		expect((await openMenu('ed')).getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Make owner']);
+		fireEvent.keyDown(screen.getByRole('menu'), { key: 'Escape' });
+		expect((await openMenu('olive')).getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Leave']);
 	});
 
 	it('refreshes the list when the member is already gone', async () => {
