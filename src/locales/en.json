@@ -1224,7 +1224,11 @@
 				"exists": "They’re already a member.",
 				"invalid": "They can’t be added to this account.",
 				"not_found": "They’re no longer a member. The list has been refreshed."
-			}
+			},
+			"limit_reached": "You already own as many community accounts as your plan allows. Upgrade to Pro to own more."
+		},
+		"billing": {
+			"unavailable": "Pro is coming soon."
 		}
 	},
 	"blocks": {
@@ -1446,11 +1450,26 @@
 			"settingsTitle": "These settings are your own",
 			"settingsBody": "You’re acting as {name}. Switch back to you to change them.",
 			"manageMembers": "Manage members"
-		}
+		},
+		"limitTitle": "You own as many community accounts as your plan allows",
+		"limitBodyFree": "Upgrade to Pro to own more.",
+		"limitBodyPro": "To create another, delete one or transfer its ownership.",
+		"theirLimitReached": "They already own as many community accounts as their plan allows, so they can’t become an owner."
 	},
 	"meta": {
 		"siteDescription": "Ask a question, vote on other people’s polls, and see what everyone really thinks. Ballots stay sealed until a poll ends, so nobody votes with the crowd.",
 		"exploreDescription": "Browse public polls by topic. Vote on open polls and see the results of polls that have ended.",
 		"profileDescription": "See the polls {name} has asked."
+	},
+	"plan": {
+		"title": "Plan",
+		"names": {
+			"FREE": "Free plan",
+			"PRO": "Pro plan"
+		},
+		"quota": "{owned} of {limit} community accounts owned",
+		"upgrade": "Upgrade to Pro",
+		"comingSoon": "Pro is coming soon.",
+		"upgradeFailed": "Couldn’t start the upgrade. Please try again."
 	}
 }

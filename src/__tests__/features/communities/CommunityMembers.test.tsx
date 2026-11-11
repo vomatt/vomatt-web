@@ -124,6 +124,31 @@ describe('CommunityMembers', () => {
 		expect(mockRefresh).toHaveBeenCalled();
 	});
 
+	const theirLimit = 'They already own as many community accounts as their plan allows, so they can’t become an owner.';
+	const limitReached = { ok: false, status: 403, errorCode: 'community.limit_reached', message: 'raw' };
+
+	it('says the member’s plan is full when they can’t be made owner', async () => {
+		const { transferOwner } = jest.requireMock('@/features/communities/service');
+		transferOwner.mockResolvedValue(limitReached);
+		renderAs('olive');
+		fireEvent.click((await openMenu('adam')).getByRole('menuitem', { name: 'Make owner' }));
+		fireEvent.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Make owner' }));
+		await waitFor(() => expect(toast.error).toHaveBeenCalledWith(theirLimit, { duration: Infinity }));
+		expect(mockRefresh).not.toHaveBeenCalled();
+	});
+
+	it('says the member’s plan is full when they can’t be granted the Owner role', async () => {
+		const { changeRole } = jest.requireMock('@/features/communities/service');
+		changeRole.mockResolvedValue(limitReached);
+		renderAs('olive');
+		fireEvent.click((await openMenu('ed')).getByRole('menuitem', { name: 'Change role' }));
+		const dialog = await screen.findByRole('dialog');
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Owner' }));
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
+		await waitFor(() => expect(changeRole).toHaveBeenCalledWith('off1', 'ed', 'OWNER'));
+		expect(toast.error).toHaveBeenCalledWith(theirLimit, { duration: Infinity });
+	});
+
 	it('refreshes the list when the member is already gone', async () => {
 		const { removeMember } = jest.requireMock('@/features/communities/service');
 		removeMember.mockResolvedValue({ ok: false, status: 404, errorCode: 'community.member.not_found', message: 'raw' });

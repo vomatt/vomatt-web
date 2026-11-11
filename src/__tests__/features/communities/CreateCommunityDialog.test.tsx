@@ -51,6 +51,15 @@ describe('CreateCommunityDialog', () => {
 		expect(onCreated).not.toHaveBeenCalled();
 	});
 
+	it('says the plan’s limit is reached and points to Pro', async () => {
+		mockCreate.mockResolvedValue({ ok: false, status: 403, errorCode: 'community.limit_reached', message: 'raw' });
+		open();
+		fill('Sunrise', 'sunrise');
+		expect(await screen.findByRole('alert')).toHaveTextContent(
+			'You already own as many community accounts as your plan allows. Upgrade to Pro to own more.'
+		);
+	});
+
 	it('shows any other failure in the dialog', async () => {
 		mockCreate.mockResolvedValue({ ok: false, status: 502, message: 'Request failed' });
 		open();

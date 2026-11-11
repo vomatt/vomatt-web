@@ -92,7 +92,9 @@ export function CommunityMembers({
 		const result = await request();
 		setBusy(false);
 		if (!result.ok) {
-			toast.error(apiErrorText(t, result), { duration: Infinity });
+			// Every limit this page can hit is the other member's: they'd become an owner
+			const text = result.errorCode === 'community.limit_reached' ? t('communities.theirLimitReached') : apiErrorText(t, result);
+			toast.error(text, { duration: Infinity });
 			if (result.errorCode && REFRESH_CODES.includes(result.errorCode)) router.refresh();
 			return false;
 		}

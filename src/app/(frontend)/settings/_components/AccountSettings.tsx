@@ -27,6 +27,7 @@ import { Switch } from '@/components/ui/Switch';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PhoneBindDialog } from '@/features/account/PhoneBindDialog';
 import { isSettingPublic, VISIBILITY_SETTINGS } from '@/features/account/visibility';
+import { UpgradeButton } from '@/features/billing/UpgradeButton';
 import { CommunityAccountsCard } from '@/features/communities/CommunityAccountsCard';
 import { CreateCommunityDialog } from '@/features/communities/CreateCommunityDialog';
 import { communityMembersHref, type MyCommunity } from '@/features/communities/schema';
@@ -201,9 +202,23 @@ export default function AccountSettings({
 				<ReportProblemDialog open={reportOpen} onOpenChange={setReportOpen} />
 			</Section>
 
+			{profile.plan && profile.communityQuota && (
+				<Section id="plan" title={t('plan.title')}>
+					<SettingsCard>
+						<div className={cn(rowClassName, 'flex-wrap')}>
+							<RowText
+								title={t(`plan.names.${profile.plan}`)}
+								body={<span className="tabular-nums">{t('plan.quota', { owned: profile.communityQuota.owned, limit: profile.communityQuota.limit })}</span>}
+							/>
+							{profile.plan === 'FREE' && <UpgradeButton variant="outline" />}
+						</div>
+					</SettingsCard>
+				</Section>
+			)}
+
 			<Section id="communities" title={t('communities.title')}>
 				{communities.length > 0 && <CommunityAccountsCard communities={communities} />}
-				<CreateCommunityRow />
+				<CreateCommunityRow profile={profile} />
 			</Section>
 
 			<Section id="account" title={t('settings.account')}>
@@ -238,11 +253,22 @@ export default function AccountSettings({
 	);
 }
 
-/** Starts a new community account; the user becomes its owner and lands on its members page. */
-function CreateCommunityRow() {
+/** Starts a new community account; the user becomes its owner and lands on its members page. At the plan's limit, says so instead. */
+function CreateCommunityRow({ profile: { plan, communityQuota: quota } }: { profile: MyProfile }) {
 	const { t } = useLanguage();
 	const router = useRouter();
 	const [open, setOpen] = useState(false);
+	if (quota && quota.owned >= quota.limit) {
+		const free = plan === 'FREE';
+		return (
+			<SettingsCard>
+				<div className={cn(rowClassName, 'flex-wrap')}>
+					<RowText title={t('communities.limitTitle')} body={t(free ? 'communities.limitBodyFree' : 'communities.limitBodyPro')} />
+					{free && <UpgradeButton />}
+				</div>
+			</SettingsCard>
+		);
+	}
 	return (
 		<SettingsCard>
 			<button type="button" onClick={() => setOpen(true)} className={cn(rowLinkClassName, 'w-full text-left')}>
