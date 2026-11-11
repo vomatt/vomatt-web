@@ -399,7 +399,6 @@ function Composer({
 		});
 	};
 
-	// A locked community account can't comment (API: `community.locked`)
 	if (acting?.locked) return null;
 
 	return (

@@ -1229,7 +1229,7 @@
 			"limit_reached": "You already own as many community accounts as your plan allows. Upgrade to Pro to own more.",
 			"locked": "This community account is locked, so it can’t do that. Upgrade to Pro, or have an owner with room unlock it.",
 			"keep": {
-				"invalid": "Choose only accounts you own, as many as your plan allows."
+				"invalid": "Choose exactly as many accounts as asked, all ones you own."
 			}
 		},
 		"billing": {
