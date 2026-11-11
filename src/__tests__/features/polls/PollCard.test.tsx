@@ -189,7 +189,7 @@ describe('PollCard state A: Open, no Ballot', () => {
 		expect(within(link).getByRole('img', { name: 'Community account' })).toBeInTheDocument();
 	});
 
-	it('tells a member acting as a community account that it does not vote, instead of a Ballot', () => {
+	it('shows a member acting as a community account the options, which it cannot pick, and why', () => {
 		const acting = { communityId: 'c1', username: 'tower', displayName: 'Tower', avatarUrl: null, role: 'EDITOR' as const };
 		render(
 			<ActingProvider state={{ acting, me: null, communities: [acting], stale: false }}>
@@ -197,7 +197,35 @@ describe('PollCard state A: Open, no Ballot', () => {
 			</ActingProvider>
 		);
 		expect(screen.getByText('Community accounts don’t vote. Switch back to you to vote.')).toBeInTheDocument();
+		const options = screen.getAllByRole('radio');
+		expect(options).toHaveLength(openPoll.options.length);
+		options.forEach((option) => expect(option).toBeDisabled());
 		expect(screen.queryByRole('button', { name: 'Vote' })).not.toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Hide my name' })).not.toBeInTheDocument();
+	});
+
+	it('does not show the member\'s own vote once they act as a community account', () => {
+		const acting = { communityId: 'c1', username: 'tower', displayName: 'Tower', avatarUrl: null, role: 'EDITOR' as const };
+		const voted = { ...openPoll, myOptionId: openPoll.options[0].id };
+		render(
+			<ActingProvider state={{ acting, me: null, communities: [acting], stale: false }}>
+				<PollCard poll={voted} viewerId="c1" />
+			</ActingProvider>
+		);
+		screen.getAllByRole('radio').forEach((option) => expect(option).not.toBeChecked());
+		expect(screen.queryByText('Voted')).not.toBeInTheDocument();
+	});
+
+	it('still says when a Scheduled poll opens while acting as a community account', () => {
+		const acting = { communityId: 'c1', username: 'tower', displayName: 'Tower', avatarUrl: null, role: 'EDITOR' as const };
+		const scheduled: Poll = { ...openPoll, votingActive: false, startTime: iso(HOUR) };
+		render(
+			<ActingProvider state={{ acting, me: null, communities: [acting], stale: false }}>
+				<PollCard poll={scheduled} viewerId="c1" />
+			</ActingProvider>
+		);
+		expect(screen.getByText(/Voting opens in/)).toBeInTheDocument();
+		expect(screen.getByText('Community accounts don’t vote. Switch back to you to vote.')).toBeInTheDocument();
 	});
 
 	it('shows Turnout and, beside Vote, that results are revealed at the end, but no Support', () => {

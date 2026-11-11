@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { toast } from 'sonner';
 
 import { InviteeManager } from '@/features/polls/components/InviteeManager';
+import { searchUsers } from '@/lib/api/services/users';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 jest.mock('sonner', () => ({ toast: Object.assign(jest.fn(), { error: jest.fn() }) }));
@@ -43,6 +44,21 @@ describe('InviteeManager', () => {
 		// Someone who voted can't be removed
 		expect(screen.queryByRole('button', { name: 'Remove bob' })).not.toBeInTheDocument();
 		expect(mockGetInvitees).toHaveBeenCalledWith('poll-1');
+	});
+
+	it('leaves current Invitees out of the username search', async () => {
+		jest.mocked(searchUsers).mockResolvedValue({
+			items: [
+				{ id: 'u1', username: 'bob' },
+				{ id: 'u2', username: 'bobby' },
+			],
+			nextCursor: null,
+		} as never);
+		setup();
+		await screen.findByText('bob');
+		fireEvent.change(screen.getByPlaceholderText('Username or email'), { target: { value: 'bob' } });
+		expect(await screen.findByRole('button', { name: 'bobby' })).toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'bob' })).not.toBeInTheDocument();
 	});
 
 	it('removes an Invitee who hasn\'t voted', async () => {

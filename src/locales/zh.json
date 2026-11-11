@@ -707,6 +707,7 @@
 		"placeholder": "使用者名稱或信箱",
 		"inviteEmail": "邀請 {email}",
 		"suggestions": "符合的使用者",
+		"alreadyAdded": "符合這個使用者名稱的人都已加入。",
 		"noUsers": "找不到這個使用者名稱。",
 		"searchFailed": "無法搜尋，請再試一次。",
 		"picked": "已邀請",
