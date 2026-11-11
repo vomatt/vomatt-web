@@ -257,6 +257,13 @@ export function PollCreator({
 		if (review) titleRef.current?.focus();
 	}, [review]);
 	const level = visibilityLevel({ voterVisibility, audience });
+	// "Only me" while acting is the community: everyone acting as it sees the voter list, not the person
+	const visibilityText = (group: 'visibility' | 'ruleVisibility', value: VoterVisibility, suffix = '') => {
+		const key = visibilityLevel({ voterVisibility: value, audience });
+		return key === 'owner' && acting
+			? t(`pollCreator.${group}.community${suffix}`, { name: accountName(acting) })
+			: t(`pollCreator.${group}.${key}${suffix}`);
+	};
 
 	const setOpen = (value: boolean) => {
 		setInternalOpen(value);
@@ -540,7 +547,8 @@ export function PollCreator({
 													<TideRule icon={Eye}>
 														{joinSentences(
 															currentLanguage,
-															t(`pollCreator.ruleVisibility.${level}`),
+															visibilityText('ruleVisibility', voterVisibility),
+															...(level === 'nobody' ? [] : [t('pollCreator.ruleAnonymous')]),
 															t('pollCreator.ruleFixed')
 														)}
 													</TideRule>
@@ -900,16 +908,12 @@ export function PollCreator({
 															<PillGroup
 																legend={t('pollCreator.visibilityLabel')}
 																note={t('pollCreator.visibilityNote')}
-																hint={t(
-																	`pollCreator.visibility.${visibilityLevel({ voterVisibility: field.value, audience })}Hint`
-																)}
+																hint={visibilityText('visibility', field.value, 'Hint')}
 																value={field.value}
 																onChange={field.onChange}
 																options={VISIBILITY_ORDER.map((value) => ({
 																	value,
-																	label: t(
-																		`pollCreator.visibility.${visibilityLevel({ voterVisibility: value, audience })}`
-																	),
+																	label: visibilityText('visibility', value),
 																}))}
 															/>
 														)}

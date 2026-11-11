@@ -30,6 +30,8 @@ import { TidePanel } from '@/components/ui/TidePanel';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { AccountSwitcher } from '@/features/communities/AccountSwitcher';
+import { useActing } from '@/features/communities/ActingProvider';
+import { accountName } from '@/features/communities/schema';
 import {
 	formatUnreadCount,
 	useUnreadCount,
@@ -38,6 +40,12 @@ import { CreatePollTrigger } from '@/features/polls/components/CreatePollTrigger
 import { accountHref, isActivePath, isChromeless } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 import { MyProfile } from '@/types/user';
+
+const navRowClassName = cn(
+	'group h-10 rounded-lg border border-transparent px-3 cursor-pointer transition-colors duration-150',
+	'text-muted-foreground hover:text-sidebar-foreground'
+);
+const activeRowClassName = 'bg-card border-border text-foreground hover:bg-card';
 
 const navigationItems = [
 	{
@@ -74,6 +82,7 @@ export function AppSidebar({
 	const { t } = useLanguage();
 	const pathname = usePathname();
 	const { count: unreadCount } = useUnreadCount();
+	const { acting } = useActing();
 
 	if (isChromeless(pathname)) return null;
 
@@ -87,11 +96,6 @@ export function AppSidebar({
 			<SidebarHeader className="px-5 pt-5 pb-5">
 				<BrandLink className="w-24 text-sidebar-foreground hover:text-sidebar-foreground/70 transition-colors" />
 			</SidebarHeader>
-
-			{/* Who the user acts as; empty unless they're in a community account */}
-			<div className="px-3 pb-3 empty:hidden">
-				<AccountSwitcher />
-			</div>
 
 			{/* Primary action; none while acting as a locked community account */}
 			<div className="px-4 pb-4 empty:hidden">
@@ -133,12 +137,7 @@ export function AppSidebar({
 													className="flex items-center gap-3 w-full"
 												/>
 											}
-											className={cn(
-												'group h-10 rounded-lg border border-transparent px-3 cursor-pointer transition-colors duration-150',
-												'text-muted-foreground hover:text-sidebar-foreground',
-												isActive &&
-													'bg-card border-border text-foreground hover:bg-card'
-											)}
+											className={cn(navRowClassName, isActive && activeRowClassName)}
 										>
 											<item.icon />
 											<span className="text-body-4 font-medium capitalize">
@@ -164,10 +163,9 @@ export function AppSidebar({
 											/>
 										}
 										className={cn(
-											'group h-10 rounded-lg border border-transparent px-3 cursor-pointer transition-colors duration-150',
-											'text-muted-foreground hover:text-sidebar-foreground',
-											accountCurrent &&
-												'bg-card border-border text-foreground hover:bg-card'
+											navRowClassName,
+											acting && 'h-auto min-h-10 py-1.5',
+											accountCurrent && activeRowClassName
 										)}
 									>
 										{profile ? (
@@ -179,10 +177,24 @@ export function AppSidebar({
 										) : (
 											<User />
 										)}
-										<span className="text-body-4 font-medium capitalize">
-											{t('navigation.profile')}
-										</span>
+										{acting ? (
+											// Stays in view while the banner scrolls away, so nobody posts as the community by mistake
+											<span className="min-w-0 text-left">
+												<span className="block text-caption-3 text-muted-foreground">
+													{t('communities.acting.actingAs')}
+												</span>
+												<span className="block truncate text-body-4 font-medium">
+													{accountName(acting)}
+												</span>
+											</span>
+										) : (
+											<span className="text-body-4 font-medium capitalize">
+												{t('navigation.profile')}
+											</span>
+										)}
 									</SidebarMenuButton>
+									{/* Who they can act as; absent for anyone in no community account */}
+									<AccountSwitcher />
 								</SidebarMenuItem>
 							)}
 						</SidebarMenu>

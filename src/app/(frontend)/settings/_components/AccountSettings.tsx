@@ -53,7 +53,7 @@ import { cn } from '@/lib/utils';
 import type { CommunityQuota, MyProfile } from '@/types/user';
 
 /** The page's sections, in order; the On this page list links to each. */
-export const SETTINGS_SECTIONS = ['voting', 'notifications', 'appearance', 'privacy', 'help', 'account'] as const;
+export const SETTINGS_SECTIONS = ['voting', 'notifications', 'appearance', 'privacy', 'help', 'communities', 'account'] as const;
 
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
 	return (
@@ -619,6 +619,7 @@ const SECTION_TITLES: Record<(typeof SETTINGS_SECTIONS)[number], string> = {
 	appearance: 'settings.appearanceAndLanguage',
 	privacy: 'settings.privacy',
 	help: 'settings.help',
+	communities: 'communities.title',
 	account: 'settings.account',
 };
 

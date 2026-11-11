@@ -365,15 +365,17 @@
 		"visibilityLabel": "結束後，誰能看到每個人選了什麼？",
 		"visibility": {
 			"nobody": "沒有人",
-			"nobodyHint": "只顯示總數。",
+			"nobodyHint": "包括你在內都看不到，只顯示總數。",
 			"owner": "只有我",
-			"ownerHint": "你能看到誰選了哪個選項。",
+			"ownerHint": "只有你能看到誰選了哪個選項，其他人看得到總數。",
 			"signed-in": "所有登入的使用者",
 			"signed-inHint": "每位登入的使用者都能看到誰選了什麼。",
 			"invited": "所有受邀者",
-			"invitedHint": "所有受邀者都能看到誰選了什麼。"
+			"invitedHint": "所有受邀者都能看到誰選了什麼。",
+			"community": "只有 {name}",
+			"communityHint": "以 {name} 身分操作的成員能看到誰選了哪個選項，其他人看得到總數。"
 		},
-		"visibilityNote": "投票者在投票前會看到這個設定。",
+		"visibilityNote": "投票者投票前會先看到這個設定。",
 		"publish": "發布投票",
 		"saveChanges": "儲存變更",
 		"draftSaved": "已儲存草稿",
@@ -406,8 +408,10 @@
 			"nobody": "沒有人會看到誰選了什麼。",
 			"owner": "結束後只有你會看到誰選了什麼。",
 			"signed-in": "結束後所有登入的人都會看到誰選了什麼。",
-			"invited": "結束後所有受邀者都會看到誰選了什麼。"
+			"invited": "結束後所有受邀者都會看到誰選了什麼。",
+			"community": "結束後只有以 {name} 身分操作的成員會看到誰選了什麼。"
 		},
+		"ruleAnonymous": "只要有人匿名投票，就只會列出誰參與了。",
 		"ruleFixed": "投票開始後就不能再更改。",
 		"ruleOneVote": "每人一票。投票結束前可以更改或撤回。",
 		"audienceLabel": "誰能看到並投票？",
