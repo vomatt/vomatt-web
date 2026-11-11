@@ -14,7 +14,7 @@ import {
 	pageParams,
 } from '@/lib/api/cursor';
 
-import { FEED_TAG, pollTag } from './cache';
+import { FEED_TAG, POLLS_TAG, pollTag } from './cache';
 import { isSearchable } from './constants';
 import type { ActionResult } from './errors';
 import type { FeedKind } from './feeds';
@@ -250,7 +250,7 @@ export async function getPoll(id: string): Promise<Poll | null> {
 	try {
 		const data = await apiClient(`/votes/${encodeURIComponent(id)}`, {
 			auth: 'optional',
-			next: { revalidate: 30, tags: [pollTag(id)] },
+			next: { revalidate: 30, tags: [pollTag(id), POLLS_TAG] },
 		} as RequestInit);
 		return PollSchema.parse(data);
 	} catch (error) {
@@ -268,7 +268,13 @@ export async function getPoll(id: string): Promise<Poll | null> {
  */
 export async function getInviteOnlyCreator(
 	pollId: string
-): Promise<{ username: string; avatarUrl: string | null } | null> {
+): Promise<{
+	username: string;
+	displayName: string | null;
+	firstName: string | null;
+	lastName: string | null;
+	avatarUrl: string | null;
+} | null> {
 	try {
 		return await apiClient(`/votes/${encodeURIComponent(pollId)}/creator`, { auth: 'optional' });
 	} catch (error) {

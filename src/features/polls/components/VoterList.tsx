@@ -152,6 +152,9 @@ export function VotersDialog({ option, voters, onClose }: VotersDialogProps) {
 									<UserChip
 										username={voter.username}
 										avatarUrl={voter.avatarUrl}
+										displayName={voter.displayName}
+										firstName={voter.firstName}
+										lastName={voter.lastName}
 										className="-mx-2 flex min-h-11 gap-3 rounded-lg px-2 text-body-4 hover:bg-muted"
 									/>
 								</li>

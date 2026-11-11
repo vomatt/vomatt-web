@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
+import { shownName } from '@/features/profiles/name';
+import { NameAndHandle } from '@/features/profiles/UserChip';
 import type { ActionResult } from '@/lib/api/action';
 import type { CursorPage } from '@/lib/api/cursor';
 import { mergeById } from '@/lib/api/cursor';
@@ -112,7 +114,9 @@ export function UserRelationPanel({ ns, action, load, remove }: UserRelationPane
 					{users.map((user) => (
 						<li key={user.id} className={rowClassName}>
 							<UserAvatar username={user.username} avatarUrl={user.avatarUrl} className="size-9" />
-							<p className="min-w-0 flex-1 truncate font-medium">@{user.username}</p>
+							<p className="flex min-w-0 flex-1 font-medium">
+								<NameAndHandle name={shownName(user)} username={user.username} fallback={`@${user.username}`} />
+							</p>
 							<Button
 								variant="outline"
 								size="xs"

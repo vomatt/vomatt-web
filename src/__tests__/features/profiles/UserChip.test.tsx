@@ -1,7 +1,7 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { UserChip } from '@/features/profiles/UserChip';
+import { ProfileName, UserChip } from '@/features/profiles/UserChip';
 
 jest.mock('next/link', () => {
 	return function MockLink({ children, href, ...props }: { children: React.ReactNode; href: string }) {
@@ -58,6 +58,31 @@ describe('UserChip', () => {
 		const link = screen.getByRole('link', { name: 'mei' });
 		expect(link).toHaveAttribute('href', '/mei');
 		expect(link.querySelector('img')).toHaveAttribute('src', '/avatars/bear.svg');
+	});
+
+	it('leads with the name the person shows, then their @handle', () => {
+		render(<UserChip username="ruby" firstName="Ruby" lastName="Ho" displayName="rubes" />);
+		expect(screen.getByRole('link', { name: 'Ruby Ho @ruby' })).toHaveAttribute('href', '/ruby');
+	});
+
+	it('leads with the display name when the real name is hidden', () => {
+		render(<UserChip username="mei" displayName="Mei Lin" firstName={null} lastName={null} />);
+		expect(screen.getByRole('link', { name: 'Mei Lin @mei' })).toBeInTheDocument();
+	});
+
+	it('shows only the username when no name is public', () => {
+		render(<UserChip username="mei" label="@mei" displayName={null} />);
+		expect(screen.getByRole('link', { name: '@mei' })).toBeInTheDocument();
+	});
+
+	it('names a comment author by their shown name, then their @handle', () => {
+		render(<ProfileName username="ruby" firstName="Ruby" lastName="Ho" />);
+		expect(screen.getByRole('link', { name: 'Ruby Ho @ruby' })).toBeInTheDocument();
+	});
+
+	it('names a comment author by username when no name is public', () => {
+		render(<ProfileName username="ruby" />);
+		expect(screen.getByRole('link', { name: 'ruby' })).toBeInTheDocument();
 	});
 
 	it('badges a community account after its name, and in its card', async () => {

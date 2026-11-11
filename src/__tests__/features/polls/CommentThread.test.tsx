@@ -819,6 +819,32 @@ describe('CommentThread', () => {
 			expect(within(posted).getByText('You')).toBeInTheDocument();
 		});
 
+		it('leads with the name the viewer shows, under it their handle, as the saved comment will', async () => {
+			service.postComment.mockReturnValue(new Promise(() => {}));
+			function SignedIn() {
+				const thread = useComments('poll-1', { enabled: true });
+				return (
+					<CommentThread
+						thread={thread}
+						pollId="poll-1"
+						viewerId="me"
+						viewer={{ username: 'klaus', avatarUrl: 'bot:owl', firstName: 'Klaus', lastName: 'Chin' }}
+						requireAuth={(action) => action()}
+					/>
+				);
+			}
+			render(<SignedIn />);
+			await screen.findByText('Mine');
+
+			const box = screen.getByRole('combobox', { name: 'Add a comment' });
+			fireEvent.change(box, { target: { value: 'Named' } });
+			fireEvent.submit(box.closest('form')!);
+			const posted = (await screen.findByText('Named')).closest('article')!;
+
+			expect(within(posted).getByText('Klaus Chin')).toBeInTheDocument();
+			expect(within(posted).getByText('@klaus')).toBeInTheDocument();
+		});
+
 		it('says so on the comment, and offers its actions once it is saved', async () => {
 			let save!: (value: unknown) => void;
 			service.postComment.mockReturnValue(new Promise((resolve) => (save = resolve)));

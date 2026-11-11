@@ -28,7 +28,10 @@ export type ReplyList = {
 };
 
 /** Who a pending Comment is shown as until the saved one replaces it. */
-export type PendingAuthor = Pick<Comment, 'author' | 'authorAvatarUrl' | 'userId'>;
+export type PendingAuthor = Pick<
+	Comment,
+	'author' | 'authorAvatarUrl' | 'authorDisplayName' | 'authorFirstName' | 'authorLastName' | 'userId'
+>;
 
 const NO_REPLIES: ReplyList = { items: [], nextCursor: null, status: 'ready' };
 

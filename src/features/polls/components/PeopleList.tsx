@@ -41,6 +41,9 @@ export function PeopleList<P extends Person>({
 							<UserChip
 								username={person.username}
 								avatarUrl={person.avatarUrl}
+								displayName={person.displayName}
+								firstName={person.firstName}
+								lastName={person.lastName}
 								className="flex-1 gap-3"
 							/>
 						) : (

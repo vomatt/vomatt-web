@@ -1,4 +1,4 @@
-import { isFieldPublic, VISIBILITY_SETTINGS, visibilityChanges } from '@/features/account/visibility';
+import { isFieldPublic, publicNames, VISIBILITY_SETTINGS, visibilityChanges } from '@/features/account/visibility';
 
 describe('isFieldPublic()', () => {
 	it('follows the saved setting', () => {
@@ -33,5 +33,21 @@ describe('visibilityChanges()', () => {
 
 	it('is empty when nothing changed', () => {
 		expect(visibilityChanges({}, { displayName: true, points: false })).toEqual({});
+	});
+});
+
+describe('publicNames()', () => {
+	const profile = { displayName: 'rubes', firstName: 'Ruby', lastName: 'Ho' };
+
+	it('shows only the names the owner made public', () => {
+		expect(publicNames({ ...profile, visibilitySettings: { firstName: true, lastName: true, displayName: false } })).toEqual({
+			displayName: null,
+			firstName: 'Ruby',
+			lastName: 'Ho',
+		});
+	});
+
+	it('falls back to the defaults: display name shown, real name hidden', () => {
+		expect(publicNames({ ...profile, visibilitySettings: {} })).toEqual({ displayName: 'rubes', firstName: null, lastName: null });
 	});
 });

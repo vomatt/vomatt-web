@@ -4,6 +4,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { CommunityBadge } from '@/features/profiles/CommunityBadge';
+import { shownName } from '@/features/profiles/name';
 import type { UserDto } from '@/schemas/user';
 
 import type { UserSearch } from '../hooks/useUserSearch';
@@ -37,33 +38,34 @@ export function UserSuggestions({
 		);
 	return (
 		<ul aria-label={t('invitees.suggestions')}>
-			{search.users.map((user) => (
-				<li key={user.id}>
-					<button
-						type="button"
-						disabled={user.community}
-						aria-describedby={user.community ? `${user.id}-community` : undefined}
-						onClick={() => onPick(user)}
-						className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-body-4 enabled:hover:bg-muted disabled:text-muted-foreground"
-					>
-						<UserAvatar username={user.username} avatarUrl={user.avatarUrl} />
-						<span className="flex min-w-0 flex-col">
-							<span className="flex min-w-0 items-center gap-1">
-								<span className="truncate">{user.username}</span>
-								{user.community && <CommunityBadge />}
-								{user.displayName && (
-									<span className="ml-2 truncate text-caption-2 text-muted-foreground">{user.displayName}</span>
+			{search.users.map((user) => {
+				const name = shownName(user);
+				return (
+					<li key={user.id}>
+						<button
+							type="button"
+							disabled={user.community}
+							aria-describedby={user.community ? `${user.id}-community` : undefined}
+							onClick={() => onPick(user)}
+							className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-body-4 enabled:hover:bg-muted disabled:text-muted-foreground"
+						>
+							<UserAvatar username={user.username} avatarUrl={user.avatarUrl} />
+							<span className="flex min-w-0 flex-col">
+								<span className="flex min-w-0 items-center gap-1">
+									<span className="truncate">{user.username}</span>
+									{user.community && <CommunityBadge />}
+									{name && <span className="ml-2 truncate text-caption-2 text-muted-foreground">{name}</span>}
+								</span>
+								{user.community && (
+									<span id={`${user.id}-community`} className="text-caption-2 text-muted-foreground">
+										{communityNote}
+									</span>
 								)}
 							</span>
-							{user.community && (
-								<span id={`${user.id}-community`} className="text-caption-2 text-muted-foreground">
-									{communityNote}
-								</span>
-							)}
-						</span>
-					</button>
-				</li>
-			))}
+						</button>
+					</li>
+				);
+			})}
 		</ul>
 	);
 }

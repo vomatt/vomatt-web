@@ -20,6 +20,10 @@ export const CommentSchema = z.object({
 	userId: z.string().nullish(),
 	author: z.string().nullable(),
 	authorAvatarUrl: z.string().nullish(),
+	/** The author's names as their visibility settings allow; null when hidden or never set. */
+	authorDisplayName: z.string().nullish(),
+	authorFirstName: z.string().nullish(),
+	authorLastName: z.string().nullish(),
 	text: z.string().nullable(),
 	createdAt: DateTime,
 	updatedAt: DateTime.nullish(),
@@ -127,6 +131,10 @@ const ApiAudienceSchema = z
 export const InviteeSchema = z.object({
 	userId: z.string().nullable(),
 	username: z.string().nullable(),
+	/** Names as the person's visibility settings allow; null when hidden or never set. */
+	displayName: z.string().nullish(),
+	firstName: z.string().nullish(),
+	lastName: z.string().nullish(),
 	avatarUrl: z.string().nullish(),
 	email: z.string().nullable(),
 	hasBallot: z.boolean(),
@@ -137,6 +145,10 @@ export const InviteeSchema = z.object({
 export const VoterSchema = z.object({
 	userId: z.string(),
 	username: z.string(),
+	/** Names as the person's visibility settings allow; null when hidden or never set. */
+	displayName: z.string().nullish(),
+	firstName: z.string().nullish(),
+	lastName: z.string().nullish(),
 	avatarUrl: z.string().nullish(),
 	/** Null for every Participant while the Poll holds an Anonymous Ballot other than the caller's. */
 	optionId: z.string().nullable(),
@@ -177,6 +189,10 @@ export const PollSchema = z.object({
 	creatorId: z.string(),
 	creatorUsername: z.string(),
 	creatorAvatarUrl: z.string().nullish(),
+	/** The owner's names as their visibility settings allow; null when hidden or never set. */
+	creatorDisplayName: z.string().nullish(),
+	creatorFirstName: z.string().nullish(),
+	creatorLastName: z.string().nullish(),
 	createdAt: DateTime,
 	updatedAt: DateTime.nullish(),
 	startTime: DateTime,

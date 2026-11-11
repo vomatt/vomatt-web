@@ -4,6 +4,7 @@ import { revalidateTag, updateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
+import { FEED_TAG, POLLS_TAG } from '@/features/polls/cache';
 import { type ActionFailure, type ActionResult, attempt } from '@/lib/api/action';
 import { clearAuthTokens } from '@/lib/api/auth';
 import { apiClient, ApiError } from '@/lib/api/client';
@@ -62,6 +63,7 @@ export async function updateProfile(data: {
     method: 'PATCH',
     body: JSON.stringify(data),
   });
+  if (NAME_FIELDS.some((field) => data[field] !== undefined)) expireCreatorNames();
   if (data.username) {
     // Expire without re-rendering: this page's URL is the old username, which now 404s.
     // The caller navigates to the new URL instead.
@@ -103,6 +105,14 @@ export async function verifyPhoneBind(phone: string, code: string): Promise<Acti
   );
 }
 
+const NAME_FIELDS = ['username', 'displayName', 'firstName', 'lastName'] as const;
+
+/** Cached Polls and feeds show their creator's names, so a hidden or changed name must not outlive the change. */
+function expireCreatorNames() {
+  revalidateTag(POLLS_TAG, { expire: 0 });
+  revalidateTag(FEED_TAG, { expire: 0 });
+}
+
 export async function updateVisibility(visibility: Record<string, boolean>): Promise<ActionResult<Record<string, boolean>>> {
   return attempt(async () => {
     const settings = await apiClient<Record<string, boolean>>('/users/me/visibility', {
@@ -111,6 +121,7 @@ export async function updateVisibility(visibility: Record<string, boolean>): Pro
     });
     // Expire public profiles without re-rendering this page; the switch already shows the change
     revalidateTag(PROFILES_TAG, { expire: 0 });
+    expireCreatorNames();
     return settings;
   });
 }

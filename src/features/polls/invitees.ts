@@ -17,6 +17,10 @@ export type Person = {
 	userId: string | null;
 	username: string | null;
 	avatarUrl?: string | null;
+	/** Only for Invitees, as their visibility settings allow */
+	displayName?: string | null;
+	firstName?: string | null;
+	lastName?: string | null;
 	email: string | null;
 };
 

@@ -5,6 +5,7 @@ import { useId } from 'react';
 
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
+import { profileName } from '@/features/profiles/name';
 import { ProfileHoverCard } from '@/features/profiles/ProfileHoverCard';
 import { countText } from '@/lib/count';
 import { profileHref } from '@/lib/routes';
@@ -47,7 +48,7 @@ export function MutualFollowersCard({
 								>
 									<UserAvatar username={user.username} avatarUrl={user.avatarUrl} />
 									<span className="flex min-w-0 flex-col">
-										<span className="truncate text-body-4 font-medium">{user.displayName || user.username}</span>
+										<span className="truncate text-body-4 font-medium">{profileName(user).primary}</span>
 										<span className="truncate text-caption-2 text-muted-foreground">@{user.username}</span>
 									</span>
 								</Link>

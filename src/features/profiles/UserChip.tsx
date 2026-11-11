@@ -5,21 +5,27 @@ import { profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
 import { CommunityBadge } from './CommunityBadge';
+import { type NameParts, shownName } from './name';
 import { ProfileHoverCard } from './ProfileHoverCard';
 
-type Person = { username: string; avatarUrl?: string | null };
+/** The names are those the person's visibility settings let the API send; hidden ones are null. */
+type Person = NameParts & { avatarUrl?: string | null };
 /** A community account gets the badge after its name. */
 type Community = { community?: boolean | null };
 
 /**
- * A person's avatar and username as one unit: a link to their profile, with a
- * profile card on hover. `label` replaces the username text, e.g. "mei invited you".
+ * A person's avatar and name as one unit: a link to their profile, with a
+ * profile card on hover. A public name leads, then the @handle; with none, `label`
+ * (the username by default) stands alone.
  * Pass `link={false}` inside another link (a poll row); there that row link is
  * what keyboard users reach, and the card is for mouse hover only.
  */
 export function UserChip({
 	username,
 	avatarUrl,
+	displayName,
+	firstName,
+	lastName,
 	label = username,
 	community,
 	link = true,
@@ -35,7 +41,7 @@ export function UserChip({
 	const content = (
 		<>
 			<UserAvatar username={username} avatarUrl={avatarUrl} className={avatarClassName} />
-			<span className="truncate">{label}</span>
+			<NameAndHandle name={shownName({ username, displayName, firstName, lastName })} username={username} fallback={label} />
 			{community && <CommunityBadge />}
 		</>
 	);
@@ -64,14 +70,33 @@ export function ProfileAvatar({ username, avatarUrl, className }: Person & { cla
 	);
 }
 
-/** The username alone as a profile link with the hover card; see `ProfileAvatar`. */
-export function ProfileName({ username, avatarUrl, community, className }: Person & Community & { className?: string }) {
+/** The name alone as a profile link with the hover card; see `ProfileAvatar`. */
+export function ProfileName({
+	username,
+	avatarUrl,
+	displayName,
+	firstName,
+	lastName,
+	community,
+	className,
+}: Person & Community & { className?: string }) {
 	return (
 		<ProfileHoverCard username={username} avatarUrl={avatarUrl}>
 			<Link href={profileHref(username)} className={cn(community && 'inline-flex items-center gap-1', className)}>
-				{username}
+				<NameAndHandle name={shownName({ username, displayName, firstName, lastName })} username={username} fallback={username} />
 				{community && <CommunityBadge />}
 			</Link>
 		</ProfileHoverCard>
+	);
+}
+
+/** A public name with the @handle under it; with no public name, `fallback` alone on one line. */
+export function NameAndHandle({ name, username, fallback }: { name: string | null; username: string; fallback: string }) {
+	if (!name) return <span className="truncate">{fallback}</span>;
+	return (
+		<span className="inline-flex min-w-0 flex-col">
+			<span className="truncate">{name}</span>{' '}
+			<span className="truncate text-caption-2 font-normal text-muted-foreground">@{username}</span>
+		</span>
 	);
 }
