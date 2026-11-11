@@ -200,6 +200,31 @@ describe('apiClient while acting as a community', () => {
 	});
 
 	it.each([
+		['PATCH', '/communities/c2'],
+		['PUT', '/communities/c1/avatar'],
+		['GET', '/communities/c2/members'],
+	])('sends %s %s, which names its account, as the person', async (method, endpoint) => {
+		fetchMock.mockResolvedValue(json({ success: true, data: {} }));
+
+		await apiClient(endpoint, { method });
+		expect(actAs(0)).toBeNull();
+	});
+
+	it('keeps acting when a write to another account finds the user isn’t its member', async () => {
+		fetchMock.mockResolvedValue(notMember());
+
+		await expect(apiClient('/communities/c2', { method: 'PATCH' })).rejects.toMatchObject({ statusCode: 403 });
+		expect(mockDeleteCookie).not.toHaveBeenCalled();
+	});
+
+	it('acts as the community when creating one', async () => {
+		fetchMock.mockResolvedValue(json({ success: true, data: {} }));
+
+		await apiClient('/communities', { method: 'POST' });
+		expect(actAs(0)).toBe('c1');
+	});
+
+	it.each([
 		['DELETE', '/users/me/follows/u2'],
 		['PATCH', '/users/me'],
 		['DELETE', '/votes/v1'],

@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { toast } from 'sonner';
 
-import { CommunityProfileCard } from '@/features/communities/CommunityProfileCard';
+import { CommunityProfileCard, EditCommunityProfile } from '@/features/communities/CommunityProfileCard';
 import type { CommunityRole, MyCommunity } from '@/features/communities/schema';
 import en from '@/locales/en.json';
 
@@ -14,6 +14,10 @@ const mockUpload = jest.fn();
 jest.mock('@/features/communities/service', () => ({
 	updateCommunity: (...a: unknown[]) => mockUpdate(...a),
 	uploadCommunityAvatar: (...a: unknown[]) => mockUpload(...a),
+}));
+const mockUpdateVisibility = jest.fn();
+jest.mock('@/lib/api/services/users', () => ({
+	updateVisibility: (...a: unknown[]) => mockUpdateVisibility(...a),
 }));
 jest.mock('@/features/avatars/cropImage', () => ({
 	cropToJpeg: () => Promise.resolve(new Blob(['cropped'], { type: 'image/jpeg' })),
@@ -34,6 +38,7 @@ beforeEach(() => {
 	jest.clearAllMocks();
 	mockUpdate.mockResolvedValue({ ok: true, data: undefined });
 	mockUpload.mockResolvedValue({ ok: true, data: undefined });
+	mockUpdateVisibility.mockResolvedValue({ ok: true, data: {} });
 	URL.createObjectURL = jest.fn(() => 'blob:picked');
 	URL.revokeObjectURL = jest.fn();
 });
@@ -110,14 +115,50 @@ describe('CommunityProfileCard', () => {
 		expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 	});
 
-	it('keeps the dialog open and says why when the API refuses', async () => {
-		mockUpdate.mockResolvedValue({ ok: false, status: 403, errorCode: 'community.role_forbidden', message: 'x' });
-		renderAs('ADMIN');
+	const refuse = (errorCode: string, status = 403) =>
+		mockUpdate.mockResolvedValue({ ok: false, status, errorCode, message: 'from the API' });
+	const rename = async () => {
 		fireEvent.click(editButton()!);
 		fireEvent.change(nameField(), { target: { value: 'New' } });
 		save();
-		await waitFor(() => expect(toast.error).toHaveBeenCalled());
+		await waitFor(() => expect(mockUpdate).toHaveBeenCalled());
+	};
+
+	it('says only owners and admins edit the profile, then shows the page as the role now allows', async () => {
+		refuse('community.role_forbidden');
+		renderAs('ADMIN');
+		await rename();
+		expect(toast.error).toHaveBeenCalledWith(en.communities.editForbidden, expect.anything());
+		await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+		expect(mockRefresh).toHaveBeenCalled();
+	});
+
+	it('says the membership is gone, then refreshes the page', async () => {
+		refuse('community.not_member');
+		renderAs('ADMIN');
+		await rename();
+		expect(toast.error).toHaveBeenCalledWith(en.apiError.community.not_member, expect.anything());
+		await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+		expect(mockRefresh).toHaveBeenCalled();
+	});
+
+	it('marks the name when the API refuses it', async () => {
+		refuse('common.validation_failed', 400);
+		renderAs('ADMIN');
+		await rename();
+		expect(await screen.findByText(en.communities.nameRequired)).toBeInTheDocument();
+		expect(nameField()).toHaveAttribute('aria-invalid', 'true');
+		expect(toast.error).not.toHaveBeenCalled();
+		expect(mockRefresh).not.toHaveBeenCalled();
+	});
+
+	it('keeps the dialog open on any other refusal', async () => {
+		refuse('community.locked');
+		renderAs('ADMIN');
+		await rename();
+		expect(toast.error).toHaveBeenCalled();
 		expect(screen.getByRole('dialog')).toBeInTheDocument();
+		expect(mockRefresh).not.toHaveBeenCalled();
 	});
 
 	it('uploads a framed photo to the community’s avatar', async () => {
@@ -133,5 +174,76 @@ describe('CommunityProfileCard', () => {
 		expect((mockUpload.mock.calls[0][1] as FormData).get('file')).toHaveProperty('type', 'image/jpeg');
 		expect(mockRefresh).toHaveBeenCalled();
 		expect(await screen.findByRole('textbox', { name: en.communities.nameLabel })).toBeInTheDocument();
+	});
+
+	describe('while acting as the account', () => {
+		const community: MyCommunity = { communityId: 'c1', username: 'sunrise', displayName: 'Sunrise', avatarUrl: null, role: 'OWNER' };
+		const openActing = (visibility: Record<string, boolean> = {}) => {
+			render(<EditCommunityProfile community={community} bio="Residents" actingVisibility={visibility} />);
+			fireEvent.click(editButton()!);
+		};
+		const pill = (name: RegExp) => screen.getByRole('button', { name });
+
+		it('says who sees the name and the bio', () => {
+			openActing({ bio: false });
+			expect(pill(/^Group name: everyone sees it/)).toBeInTheDocument();
+			expect(pill(/^Bio: only you see it/)).toBeInTheDocument();
+		});
+
+		it('saves a visibility change alone for the account', async () => {
+			openActing();
+			fireEvent.click(pill(/^Bio: everyone/));
+			save();
+			await waitFor(() => expect(mockUpdateVisibility).toHaveBeenCalledWith({ bio: false }));
+			expect(mockUpdate).not.toHaveBeenCalled();
+			await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+			expect(mockRefresh).toHaveBeenCalled();
+		});
+
+		it('saves the details first, then who sees them', async () => {
+			openActing({ displayName: false });
+			fireEvent.change(nameField(), { target: { value: 'New' } });
+			fireEvent.click(pill(/^Group name: only you/));
+			save();
+			await waitFor(() => expect(mockUpdateVisibility).toHaveBeenCalledWith({ displayName: true }));
+			expect(mockUpdate.mock.invocationCallOrder[0]).toBeLessThan(mockUpdateVisibility.mock.invocationCallOrder[0]);
+		});
+
+		it('skips the visibility when the details are refused', async () => {
+			mockUpdate.mockResolvedValue({ ok: false, status: 403, errorCode: 'community.locked', message: 'Locked' });
+			openActing();
+			fireEvent.change(nameField(), { target: { value: 'New' } });
+			fireEvent.click(pill(/^Bio: everyone/));
+			save();
+			await waitFor(() => expect(toast.error).toHaveBeenCalled());
+			expect(mockUpdateVisibility).not.toHaveBeenCalled();
+		});
+
+		it('closes and refreshes when the role no longer allows the visibility change', async () => {
+			mockUpdateVisibility.mockResolvedValue({ ok: false, status: 403, errorCode: 'community.role_forbidden', message: 'x' });
+			openActing();
+			fireEvent.click(pill(/^Bio: everyone/));
+			save();
+			await waitFor(() => expect(toast.error).toHaveBeenCalledWith(en.communities.editForbidden, expect.anything()));
+			await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+			expect(mockRefresh).toHaveBeenCalled();
+		});
+
+		it('keeps the dialog open when only the visibility failed after the details saved', async () => {
+			mockUpdateVisibility.mockResolvedValue({ ok: false, status: 403, errorCode: 'community.locked', message: 'Locked' });
+			openActing();
+			fireEvent.change(nameField(), { target: { value: 'New' } });
+			fireEvent.click(pill(/^Bio: everyone/));
+			save();
+			await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Locked', expect.anything()));
+			expect(screen.getByRole('dialog')).toBeInTheDocument();
+			expect(mockRefresh).toHaveBeenCalled();
+		});
+	});
+
+	it('offers no visibility outside acting', () => {
+		renderAs('OWNER');
+		fireEvent.click(editButton()!);
+		expect(screen.queryByRole('button', { name: /everyone sees it|only you see it/ })).not.toBeInTheDocument();
 	});
 });

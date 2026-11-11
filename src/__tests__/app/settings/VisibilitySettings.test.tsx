@@ -84,7 +84,7 @@ describe('VisibilitySettings', () => {
 	});
 
 	it('saves both halves of the real name at once and says so', async () => {
-		mockUpdateVisibility.mockResolvedValue({ firstName: true, lastName: true });
+		mockUpdateVisibility.mockResolvedValue({ ok: true, data: { firstName: true, lastName: true } });
 		render(<VisibilitySettings profile={profile} />);
 
 		const realName = screen.getByRole('switch', { name: 'Real name' });
@@ -106,12 +106,12 @@ describe('VisibilitySettings', () => {
 		fireEvent.click(bio);
 		expect(bio).toHaveAttribute('aria-disabled', 'true');
 		expect(screen.getByRole('switch', { name: 'Display name' })).not.toHaveAttribute('aria-disabled', 'true');
-		await act(async () => answer({}));
+		await act(async () => answer({ ok: true, data: {} }));
 		expect(bio).not.toHaveAttribute('aria-disabled', 'true');
 	});
 
 	it('puts the switch back and says so when the save fails', async () => {
-		mockUpdateVisibility.mockRejectedValue(new Error('x'));
+		mockUpdateVisibility.mockResolvedValue({ ok: false, message: 'x' });
 		render(<VisibilitySettings profile={profile} />);
 
 		const displayName = screen.getByRole('switch', { name: 'Display name' });
@@ -122,7 +122,7 @@ describe('VisibilitySettings', () => {
 	});
 
 	it('drops a hidden detail from the preview of what everyone sees', async () => {
-		mockUpdateVisibility.mockResolvedValue({ bio: false });
+		mockUpdateVisibility.mockResolvedValue({ ok: true, data: { bio: false } });
 		render(<VisibilitySettings profile={profile} />);
 		expect(within(preview()).getByText('Poll enthusiast')).toBeInTheDocument();
 
@@ -131,7 +131,7 @@ describe('VisibilitySettings', () => {
 	});
 
 	it('names a set gender in words and adds it to the preview once shown', async () => {
-		mockUpdateVisibility.mockResolvedValue({ gender: true });
+		mockUpdateVisibility.mockResolvedValue({ ok: true, data: { gender: true } });
 		render(<VisibilitySettings profile={{ ...profile, gender: 'FEMALE' }} />);
 		const gender = screen.getByRole('switch', { name: 'Gender' });
 		expect(gender).toHaveAccessibleDescription('Female');

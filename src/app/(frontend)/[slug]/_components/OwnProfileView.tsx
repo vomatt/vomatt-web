@@ -14,6 +14,7 @@ import { TidePanel } from '@/components/ui/TidePanel';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { isFieldPublic, VISIBILITY_FIELDS } from '@/features/account/visibility';
 import { useActing } from '@/features/communities/ActingProvider';
+import { EditCommunityProfile } from '@/features/communities/CommunityProfileCard';
 import { canEditProfile } from '@/features/communities/permissions';
 import { communityMembersHref } from '@/features/communities/schema';
 import { type FollowList, FollowListDialog } from '@/features/follows/FollowListDialog';
@@ -66,6 +67,7 @@ export function OwnProfileView({
 }) {
 	const { t } = useLanguage();
 	const { acting } = useActing();
+	const canEdit = !acting || (!!acting.role && canEditProfile(acting.role));
 	const router = useRouter();
 	const [tab, setTab] = useState<ProfileTab>(initialTab);
 	// Saved loads on first open, then stays mounted so its pages survive a look at another tab
@@ -108,14 +110,27 @@ export function OwnProfileView({
 			<div className="flex flex-col gap-6">
 				<ProfileHeader
 					profile={{ ...profile, followingCount: profile.followingCount + followingDelta }}
-					isOwn
+					isOwn={canEdit}
 					hiddenFields={hiddenFields}
 					onOpenList={setList}
 					actions={
 						acting ? (
 							// The community's own page: its profile for owners and admins, and its members
 							<>
-								{acting.role && canEditProfile(acting.role) && <EditProfileDialog profile={profile} defaultOpen={openEdit} />}
+								{acting.role && canEdit && (
+									<EditCommunityProfile
+										community={{
+											communityId: acting.communityId,
+											role: acting.role,
+											username: profile.username,
+											displayName: profile.displayName,
+											avatarUrl: profile.avatarUrl,
+										}}
+										bio={profile.bio ?? ''}
+										actingVisibility={visibility}
+										defaultOpen={openEdit}
+									/>
+								)}
 								<Link href={communityMembersHref(acting.communityId)} className={buttonVariants({ variant: 'outline', size: 'sm' })}>
 									<Users aria-hidden />
 									{t('communities.acting.manageMembers')}

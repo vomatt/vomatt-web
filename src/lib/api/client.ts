@@ -45,6 +45,9 @@ export class ApiError extends Error {
 // The person's own routes, which the API refuses while acting (vomatt-api SecurityEndpoints.ACT_AS_DENIED)
 const PERSONAL = /^\/(auth\/passkey\/register|users\/me\/(passkeys|sessions|export|phone))(\/|$)/;
 
+// A route that names its community account: the API checks the real member's role on it, so a refusal is about that account
+const COMMUNITY = /^\/communities\/[^/?]+/;
+
 function isPersonal(endpoint: string, method: string) {
 	const path = endpoint.split('?')[0];
 	return PERSONAL.test(path) || (method === 'DELETE' && /^\/users\/[^/]+$/.test(path));
@@ -142,7 +145,8 @@ export async function apiClient<T = any>(
 	// A response for one user must never land in the shared data cache
 	const { next: _next, ...uncached } = fetchOptions as RequestInit & { next?: unknown };
 	const method = (uncached.method ?? 'GET').toUpperCase();
-	const actingId = actAs === false || isPersonal(endpoint, method) ? null : await getActingCommunityId();
+	const actingId =
+		actAs === false || isPersonal(endpoint, method) || COMMUNITY.test(endpoint) ? null : await getActingCommunityId();
 	if (actingId) headers.set('X-Act-As', actingId);
 	const send = (sent: Headers) =>
 		backendFetch(`${process.env.API_URL}${API_BASE_PATH}${endpoint}`, { ...uncached, headers: sent, cache: 'no-store' });
