@@ -179,7 +179,7 @@ describe('CommunityProfileCard', () => {
 	describe('while acting as the account', () => {
 		const community: MyCommunity = { communityId: 'c1', username: 'sunrise', displayName: 'Sunrise', avatarUrl: null, role: 'OWNER' };
 		const openActing = (visibility: Record<string, boolean> = {}) => {
-			render(<EditCommunityProfile community={community} bio="Residents" visibility={visibility} />);
+			render(<EditCommunityProfile community={community} bio="Residents" actingVisibility={visibility} />);
 			fireEvent.click(editButton()!);
 		};
 		const pill = (name: RegExp) => screen.getByRole('button', { name });

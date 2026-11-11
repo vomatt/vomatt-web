@@ -72,13 +72,12 @@ export function EditCommunityProfile({
 	community,
 	bio: savedBio,
 	defaultOpen = false,
-	visibility: savedVisibility,
+	actingVisibility: savedVisibility,
 }: {
 	community: MyCommunity;
 	bio: string;
 	defaultOpen?: boolean;
-	/** Only while acting as the account: `PATCH /users/me/visibility` then reaches it through X-Act-As. */
-	visibility?: Record<string, boolean>;
+	actingVisibility?: Record<string, boolean>;
 }) {
 	const { t } = useLanguage();
 	const router = useRouter();
@@ -149,7 +148,6 @@ export function EditCommunityProfile({
 			if (Object.keys(visibilityChanged).length > 0) {
 				const result = await updateVisibility(visibilityChanged);
 				if (!result.ok) {
-					// The details are saved now, so the page shows them; the dialog stays open to retry the visibility
 					if (detailsChanged) router.refresh();
 					refuse(result, detailsChanged ? 'profile.visibilitySaveFailed' : 'account.saveFailed');
 					return;
