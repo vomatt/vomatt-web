@@ -78,6 +78,7 @@ const ROWS: { [K in Entry['kind']]: ComponentType<RowProps<Extract<Entry, { kind
 	CLOSING_SOON: ClosingSoonRow,
 	LIKE: CommentRow,
 	POLL_LIKE: PollLikeRow,
+	COMMUNITY_LOCKED: CommunityLockedRow,
 };
 
 export function NotificationRow(props: RowProps<Entry>) {
@@ -482,6 +483,30 @@ function ClosingSoonRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'CLOS
 						{t('poll.vote')}
 					</Link>
 				)
+			}
+		/>
+	);
+}
+
+/** A community account the viewer owns was locked when the time to choose which to keep ran out; Settings unlocks it. */
+function CommunityLockedRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'COMMUNITY_LOCKED' }>>) {
+	const { t } = useLanguage();
+	const { actor } = entry;
+	const href = '/settings#communities';
+	return (
+		<RowShell
+			href={href}
+			onOpen={onOpen}
+			unread={!entry.read}
+			icon={<ProfileAvatar username={actor.username} avatarUrl={actor.avatarUrl} className="size-9" />}
+			line={rich(t('notifications.communityLocked'), {
+				name: <ActorName username={actor.username} avatarUrl={actor.avatarUrl} onOpen={onOpen} />,
+			})}
+			meta={[useAge(entry.createdAt)]}
+			action={
+				<Link href={href} onClick={onOpen} className={buttonVariants({ size: 'xs', variant: 'outline' })}>
+					{t('notifications.view')}
+				</Link>
 			}
 		/>
 	);
