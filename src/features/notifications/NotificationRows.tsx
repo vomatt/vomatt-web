@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { Button, buttonVariants } from '@/components/ui/Button';
 import { Ban, Clock } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { acceptCommunityInvitation, declineCommunityInvitation } from '@/features/communities/service'
+import { acceptCommunityInvitation, declineCommunityInvitation } from '@/features/communities/service';
 import { FollowButton, useFollow } from '@/features/follows/FollowButton';
 import { FollowListDialog } from '@/features/follows/FollowListDialog';
 import { type DecidedOutcome, OutcomeChip } from '@/features/polls/components/OutcomeChip';
@@ -542,7 +542,6 @@ function CommunityInvitationRow({ entry, onOpen }: RowProps<Extract<Entry, { kin
 		}
 		toast.success(t(choice === 'accept' ? 'notifications.invitationAccepted' : 'notifications.invitationDeclined', { name: actorName(actor) }));
 		setAnswered(true);
-		onOpen();
 		refresh();
 	};
 

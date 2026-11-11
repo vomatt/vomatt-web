@@ -37,8 +37,10 @@ export default async function CommunityMembersPage({ params }: Props) {
 	// Not a member (removed, never was, or the account is gone): 403 `community.not_member`
 	const notMember = (communities.ok && !community) || (!members.ok && members.errorCode === 'community.not_member');
 	// Only an OWNER or ADMIN can list them; without them the page still works
-	const invitations = community && canManageMembers(community.role) ? await listInvitations(communityId) : null;
-	const publicProfile = community ? await getUserProfile(community.username).catch(() => null) : null;
+	const [invitations, publicProfile] = await Promise.all([
+		community && canManageMembers(community.role) ? listInvitations(communityId) : null,
+		community ? getUserProfile(community.username).catch(() => null) : null,
+	]);
 
 	return (
 		<PageShell>

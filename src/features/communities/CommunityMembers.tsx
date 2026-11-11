@@ -67,11 +67,14 @@ type Step<T = unknown> = {
 };
 
 /** A community account's members, with what the viewer's role lets them change. */
+// Stable default so the prop-resync check doesn't see a new array on every render
+const NO_INVITATIONS: CommunityInvitation[] = [];
+
 export function CommunityMembers({
 	community,
 	viewerId,
 	members: initialMembers,
-	invitations: initialInvitations = [],
+	invitations: initialInvitations = NO_INVITATIONS,
 }: {
 	community: MyCommunity;
 	viewerId: string;
@@ -87,9 +90,13 @@ export function CommunityMembers({
 	// A refresh (after a transfer, or a stale list) brings a new list from the server
 	const [shown, setShown] = useState(initialMembers);
 	const [invitations, setInvitations] = useState(initialInvitations);
+	const [shownInvitations, setShownInvitations] = useState(initialInvitations);
 	if (shown !== initialMembers) {
 		setShown(initialMembers);
 		setMembers(initialMembers);
+	}
+	if (shownInvitations !== initialInvitations) {
+		setShownInvitations(initialInvitations);
 		setInvitations(initialInvitations);
 	}
 	const [adding, setAdding] = useState(false);
@@ -325,7 +332,7 @@ export function CommunityMembers({
 					return run({
 						request: () => inviteMember(community.communityId, 'user' in invitee ? { userId: invitee.user.id } : invitee, role),
 						// A re-sent invitation replaces the expired one
-						after: (sent) => setInvitations((list) => [...list.filter((i) => i.id !== sent.id), sent]),
+						after: (sent) => setInvitations((list) => [...list.filter((i) => i.id !== sent.id && !(sent.username ? i.username === sent.username : !!sent.email && i.email === sent.email)), sent]),
 						done: t('communities.invited', { name }),
 					});
 				}}
