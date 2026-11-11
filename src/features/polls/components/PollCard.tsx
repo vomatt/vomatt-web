@@ -182,7 +182,7 @@ export function PollCard({
 					</div>
 					<div className="flex shrink-0 items-center gap-2">
 						<AnimatePresence initial={false}>
-							{status !== 'ended' && ballot.myOptionId && <VotedPill key="voted" label={t('poll.votedPill')} />}
+							{status !== 'ended' && !acting && ballot.myOptionId && <VotedPill key="voted" label={t('poll.votedPill')} />}
 						</AnimatePresence>
 						<StatusChip status={status} poll={poll} time="inline" onCard />
 					</div>

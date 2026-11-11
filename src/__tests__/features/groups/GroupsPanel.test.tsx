@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import { toast } from 'sonner';
 
 import { GroupsPanel } from '@/features/groups/GroupsPanel';
+import { searchUsers } from '@/lib/api/services/users';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 jest.mock('sonner', () => ({ toast: Object.assign(jest.fn(), { error: jest.fn() }) }));
@@ -92,6 +93,26 @@ describe('GroupsPanel', () => {
 		);
 		expect(await within(dialog).findByText('dave@example.com')).toBeInTheDocument();
 		expect(screen.getByText('2 members')).toBeInTheDocument();
+	});
+
+	it('leaves people already in the list out of the username search, and says so', async () => {
+		jest.mocked(searchUsers).mockResolvedValue({ items: [{ id: 'u1', username: 'bob' }], nextCursor: null } as never);
+		render(<GroupsPanel />);
+		const dialog = await openBookClub();
+		await within(dialog).findByText('bob');
+		fireEvent.change(within(dialog).getByPlaceholderText('Username or email'), { target: { value: 'bob' } });
+		expect(await within(dialog).findByText('Everyone with that username is already added.')).toBeInTheDocument();
+		expect(within(dialog).queryByRole('list', { name: 'Matching people' })).not.toBeInTheDocument();
+	});
+
+	it('offers nobody from the search until the members have loaded', async () => {
+		jest.mocked(searchUsers).mockResolvedValue({ items: [{ id: 'u1', username: 'bob' }], nextCursor: null } as never);
+		mockService.getGroupMembers.mockReturnValue(new Promise(() => {}));
+		render(<GroupsPanel />);
+		const dialog = await openBookClub();
+		fireEvent.change(within(dialog).getByPlaceholderText('Username or email'), { target: { value: 'bob' } });
+		await waitFor(() => expect(searchUsers).toHaveBeenCalledWith('bob'));
+		expect(within(dialog).queryByRole('button', { name: 'bob' })).not.toBeInTheDocument();
 	});
 
 	it('removes a member', async () => {

@@ -56,7 +56,6 @@ export function Ballot({ poll, status, ballot, requireAuth, isOwner, isActing }:
 	// Nobody else sees the voter list on a 'nobody' Poll, or on an 'owner' one its owner votes on: nothing to hide from
 	const canHideName =
 		!isScheduled &&
-		!isActing &&
 		anonymous !== null &&
 		poll.voterVisibility !== 'nobody' &&
 		!(isOwner && poll.voterVisibility === 'owner');
@@ -114,15 +113,22 @@ export function Ballot({ poll, status, ballot, requireAuth, isOwner, isActing }:
 		</Button>
 	);
 
+	const opensHint = (
+		<p className="flex min-h-11 items-center text-body-4 text-muted-foreground">
+			{isHydrated && t('poll.opensHint', { distance: formatFromNow(poll.startTime, currentLanguage) })}
+		</p>
+	);
+
 	let actions: React.ReactNode;
 	if (view === 'acting') {
-		actions = <CommunityCantVote />;
-	} else if (view === 'scheduled') {
 		actions = (
-			<p className="flex min-h-11 items-center text-body-4 text-muted-foreground">
-				{isHydrated && t('poll.opensHint', { distance: formatFromNow(poll.startTime, currentLanguage) })}
-			</p>
+			<div className="flex flex-col gap-3">
+				{isScheduled && opensHint}
+				<CommunityCantVote />
+			</div>
 		);
+	} else if (view === 'scheduled') {
+		actions = opensHint;
 	} else if (view === 'vote') {
 		actions = (
 			<div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
@@ -220,7 +226,8 @@ export function Ballot({ poll, status, ballot, requireAuth, isOwner, isActing }:
 					className="isolate space-y-2.5"
 				>
 					{poll.options.map((option) => {
-						const isSelected = selected === option.id;
+						// The user's own vote stays in this state after switching; the community has none
+						const isSelected = !isActing && selected === option.id;
 						// The check waits for the cast to land, so it never shows on a vote that rolls back
 						const isCast = option.id === savedOptionId;
 						return (

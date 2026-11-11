@@ -25,9 +25,13 @@ export function personKey(person: Pick<Person, 'userId' | 'email'>) {
 	return person.email ?? person.userId ?? '';
 }
 
-/** The user IDs among `people`; an email-only person has none. */
-export function userIdsOf(people: readonly Pick<Person, 'userId'>[] | null) {
-	return people?.flatMap((person) => (person.userId ? [person.userId] : [])) ?? [];
+/**
+ * The user IDs among `people` (an email-only person has none), for leaving them out of a search.
+ * Null while the list loads; an empty list once it failed, so search still works.
+ */
+export function userIdsOf(people: readonly Pick<Person, 'userId'>[] | null, loadFailed: boolean) {
+	if (!people) return loadFailed ? [] : null;
+	return people.flatMap((person) => (person.userId ? [person.userId] : []));
 }
 
 /** The API path of one Invitee or member under `base`: by `?email=`, or by user ID. */

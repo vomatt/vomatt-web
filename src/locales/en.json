@@ -719,6 +719,7 @@
 		"placeholder": "Username or email",
 		"inviteEmail": "Invite {email}",
 		"suggestions": "Matching people",
+		"alreadyAdded": "Everyone with that username is already added.",
 		"noUsers": "No one with that username.",
 		"searchFailed": "Couldn’t search. Try again.",
 		"picked": "Invited",

@@ -395,7 +395,7 @@ function GroupDialog({
 					<InviteePicker
 						id="add-members"
 						value={selection}
-						excludeUserIds={userIdsOf(members)}
+						excludeUserIds={userIdsOf(members, loadFailed)}
 						onChange={(next) => {
 							setSelection(next);
 							setAddEmpty(false);

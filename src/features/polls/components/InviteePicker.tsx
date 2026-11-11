@@ -18,8 +18,8 @@ import { UserSuggestions } from './UserSuggestions';
 type InviteePickerProps = {
 	value: InviteeSelection;
 	onChange: (value: InviteeSelection) => void;
-	/** People already on the list, left out of the search results. */
-	excludeUserIds?: readonly string[];
+	/** People already on the list, left out of the search results; null while that list loads. */
+	excludeUserIds?: readonly string[] | null;
 	/** Offer the signed-in user's Groups as one-tap additions. */
 	withGroups?: boolean;
 	/** For the field's label. */
@@ -54,7 +54,7 @@ export function InviteePicker({
 	const isSearching = !!term && !looksLikeEmail;
 	const search = useUserSearch(
 		isSearching ? term : '',
-		[...excludeUserIds, ...value.users.map((user) => user.id)]
+		excludeUserIds && [...excludeUserIds, ...value.users.map((user) => user.id)]
 	);
 
 	useEffect(() => {

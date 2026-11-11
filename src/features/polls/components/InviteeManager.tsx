@@ -131,7 +131,7 @@ export function InviteeManager({ pollId, open, onOpenChange, onChanged }: Invite
 						withGroups
 						value={selection}
 						onChange={setSelection}
-						excludeUserIds={userIdsOf(invitees)}
+						excludeUserIds={userIdsOf(invitees, loadFailed)}
 					/>
 					<div className="flex justify-end">
 						<Button
