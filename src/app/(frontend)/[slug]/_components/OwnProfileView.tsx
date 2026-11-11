@@ -67,6 +67,7 @@ export function OwnProfileView({
 }) {
 	const { t } = useLanguage();
 	const { acting } = useActing();
+	const canEdit = !acting || (!!acting.role && canEditProfile(acting.role));
 	const router = useRouter();
 	const [tab, setTab] = useState<ProfileTab>(initialTab);
 	// Saved loads on first open, then stays mounted so its pages survive a look at another tab
@@ -109,14 +110,14 @@ export function OwnProfileView({
 			<div className="flex flex-col gap-6">
 				<ProfileHeader
 					profile={{ ...profile, followingCount: profile.followingCount + followingDelta }}
-					isOwn
+					isOwn={canEdit}
 					hiddenFields={hiddenFields}
 					onOpenList={setList}
 					actions={
 						acting ? (
 							// The community's own page: its profile for owners and admins, and its members
 							<>
-								{acting.role && canEditProfile(acting.role) && (
+								{acting.role && canEdit && (
 									<EditCommunityProfile
 										community={{
 											communityId: acting.communityId,

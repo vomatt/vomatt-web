@@ -17,6 +17,8 @@ import {
 } from '@/components/ui/Dialog';
 import { Check, Pencil } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useActing } from '@/features/communities/ActingProvider';
+import { uploadCommunityAvatar } from '@/features/communities/service';
 import { apiErrorText } from '@/lib/api/error-text';
 import { cn } from '@/lib/utils';
 
@@ -54,6 +56,7 @@ export function AvatarDialog({
 	className?: string;
 }) {
 	const { t } = useLanguage();
+	const { acting } = useActing();
 	const [open, setOpen] = useState(false);
 	// What everyone sees now; saving refreshes the page, which passes the new avatarUrl
 	const savedUpload = uploadedAvatarSrc(avatarUrl);
@@ -172,7 +175,7 @@ export function AvatarDialog({
 						</DialogHeader>
 						<CropStage
 							file={cropFile}
-							upload={uploadAvatar}
+							upload={acting ? (formData) => uploadCommunityAvatar(acting.communityId, formData) : uploadAvatar}
 							onCancel={() => setCropFile(null)}
 							onDone={() => setOpen(false)}
 						/>

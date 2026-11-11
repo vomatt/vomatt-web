@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import { AvatarDialog } from '@/features/avatars/AvatarDialog';
 import { defaultBotFor } from '@/features/avatars/catalog';
+import { ActingProvider } from '@/features/communities/ActingProvider';
 import en from '@/locales/en.json';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
@@ -13,6 +14,12 @@ jest.mock('@/features/avatars/service', () => ({
 	chooseAvatar: (...a: unknown[]) => mockChooseAvatar(...a),
 	uploadAvatar: (...a: unknown[]) => mockUploadAvatar(...a),
 }));
+jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh: jest.fn() }) }));
+const mockUploadCommunityAvatar = jest.fn();
+jest.mock('@/features/communities/service', () => ({
+	uploadCommunityAvatar: (...a: unknown[]) => mockUploadCommunityAvatar(...a),
+}));
+jest.mock('@/features/communities/acting', () => ({ actAsCommunity: jest.fn(), loadMyCommunities: jest.fn() }));
 const mockCropToJpeg = jest.fn();
 jest.mock('@/features/avatars/cropImage', () => ({ cropToJpeg: (...a: unknown[]) => mockCropToJpeg(...a) }));
 // jsdom can't lay out or decode an image; the stub reports a fixed crop once mounted, as the cropper does after load
@@ -169,6 +176,21 @@ describe('AvatarDialog', () => {
 			});
 			expect(body).toBe('cropped');
 			expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:picked');
+		});
+
+		it('uploads to the community’s own avatar while acting as it', async () => {
+			mockUploadCommunityAvatar.mockResolvedValue({ ok: true, data: undefined });
+			const sunrise = { communityId: 'c1', username: 'sunrise', displayName: 'Sunrise', avatarUrl: null, role: 'ADMIN' as const };
+			render(
+				<ActingProvider state={{ acting: sunrise, me: null, communities: [sunrise], stale: false }}>
+					<AvatarDialog username="sunrise" avatarUrl={null} />
+				</ActingProvider>
+			);
+			fireEvent.click(screen.getByRole('button', { name: 'Change avatar' }));
+			pick(new File(['x'], 'logo.png', { type: 'image/png' }));
+			usePhoto();
+			await waitFor(() => expect(mockUploadCommunityAvatar).toHaveBeenCalledWith('c1', expect.any(FormData)));
+			expect(mockUploadAvatar).not.toHaveBeenCalled();
 		});
 
 		it('Cancel goes back to the cast without uploading', () => {

@@ -579,8 +579,9 @@ describe('OwnProfileView while acting as a community account', () => {
 		expect(editProfile).not.toHaveBeenCalled();
 	});
 
-	it('offers an editor no Edit profile', () => {
+	it('offers an editor no Edit profile and no avatar change', () => {
 		renderActing({ ...sunrise, role: 'EDITOR' });
 		expect(screen.queryByRole('button', { name: 'Edit profile' })).not.toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Change avatar' })).not.toBeInTheDocument();
 	});
 });
