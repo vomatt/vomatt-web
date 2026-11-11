@@ -1220,7 +1220,7 @@
 			"last_owner": "A community account needs at least one owner. Transfer ownership first.",
 			"not_member": "You’re no longer a member of this account.",
 			"username_immutable": "A community account’s username can’t be changed.",
-			"role_forbidden": "Your role in this community account doesn’t allow this. Owners and admins manage the account and its members; editors change only the polls and comments they posted; analysts only see result reports.",
+			"role_forbidden": "Your role in this community account doesn’t allow this. Owners and admins manage the account and its members; chief editors change any poll or comment; editors change only their own; analysts only see result reports.",
 			"member": {
 				"exists": "They’re already a member.",
 				"invalid": "They can’t be added to this account.",
