@@ -35,7 +35,8 @@ export function VisibilitySettings({ profile }: { profile: MyProfile }) {
 		setVisibility((current) => ({ ...current, ...changes }));
 		setSavingKey(setting.key, true);
 		try {
-			await updateVisibility(changes);
+			const result = await updateVisibility(changes);
+			if (!result.ok) throw new Error(result.message);
 			saved.current = { ...saved.current, ...changes };
 			// Back would otherwise restore this page and Settings' count from before the save
 			router.refresh();
