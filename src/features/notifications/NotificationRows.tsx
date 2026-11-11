@@ -2,10 +2,12 @@
 
 import Link from 'next/link';
 import { type ComponentType, useState } from 'react';
+import { toast } from 'sonner';
 
 import { Button, buttonVariants } from '@/components/ui/Button';
 import { Ban, Clock } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { acceptCommunityInvitation, declineCommunityInvitation } from '@/features/communities/service'
 import { FollowButton, useFollow } from '@/features/follows/FollowButton';
 import { FollowListDialog } from '@/features/follows/FollowListDialog';
 import { type DecidedOutcome, OutcomeChip } from '@/features/polls/components/OutcomeChip';
@@ -18,6 +20,7 @@ import { pollTiming } from '@/features/polls/timing';
 import { type NameParts, shownName } from '@/features/profiles/name';
 import { ProfileHoverCard, rememberFollowing } from '@/features/profiles/ProfileHoverCard';
 import { ProfileAvatar } from '@/features/profiles/UserChip';
+import { apiErrorText } from '@/lib/api/error-text';
 import { countText } from '@/lib/count';
 import { toPayloadLocale } from '@/lib/locale';
 import { rich } from '@/lib/rich';
@@ -26,6 +29,7 @@ import { commentHash, profileHref, replyHash } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
 import type { Notification, PollSummary } from './schema';
+import { useUnreadCount } from './UnreadCountProvider';
 import { UnreadDot } from './UnreadDot';
 
 type Followed = Extract<Notification, { kind: 'FOLLOWED' }>;
@@ -80,6 +84,7 @@ const ROWS: { [K in Entry['kind']]: ComponentType<RowProps<Extract<Entry, { kind
 	LIKE: CommentRow,
 	POLL_LIKE: PollLikeRow,
 	COMMUNITY_LOCKED: CommunityLockedRow,
+	COMMUNITY_INVITATION: CommunityInvitationRow,
 };
 
 export function NotificationRow(props: RowProps<Entry>) {
@@ -510,6 +515,62 @@ function CommunityLockedRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: '
 				<Link href={href} onClick={onOpen} className={buttonVariants({ size: 'xs', variant: 'outline' })}>
 					{t('notifications.view')}
 				</Link>
+			}
+		/>
+	);
+}
+
+/** Accept or decline right in the feed; once answered the server drops the notification, so the row goes too. */
+function CommunityInvitationRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'COMMUNITY_INVITATION' }>>) {
+	const { t } = useLanguage();
+	const { refresh } = useUnreadCount();
+	const { actor, communityInvitation } = entry;
+	const [busy, setBusy] = useState<'accept' | 'decline' | null>(null);
+	const [answered, setAnswered] = useState(false);
+	const age = useAge(entry.createdAt);
+	if (answered) return null;
+
+	const answer = async (choice: 'accept' | 'decline') => {
+		setBusy(choice);
+		const result = await (choice === 'accept' ? acceptCommunityInvitation : declineCommunityInvitation)(communityInvitation.id);
+		setBusy(null);
+		if (!result.ok) {
+			toast.error(apiErrorText(t, result), { duration: Infinity });
+			// Revoked, expired or answered elsewhere: nothing left to answer
+			if (result.errorCode === 'community.invitation.not_found') setAnswered(true);
+			return;
+		}
+		toast.success(t(choice === 'accept' ? 'notifications.invitationAccepted' : 'notifications.invitationDeclined', { name: actorName(actor) }));
+		setAnswered(true);
+		onOpen();
+		refresh();
+	};
+
+	return (
+		<RowShell
+			onOpen={onOpen}
+			unread={!entry.read}
+			icon={<ProfileAvatar username={actor.username} avatarUrl={actor.avatarUrl} className="size-9" />}
+			line={rich(t('notifications.communityInvitation', { role: t(`communities.roles.${communityInvitation.role}`) }), {
+				name: <ActorName actor={actor} onOpen={onOpen} />,
+			})}
+			meta={[age]}
+			action={
+				<>
+					<Button size="xs" loading={busy === 'accept'} disabled={busy !== null} onClick={() => answer('accept')} className={rowLink}>
+						{t('notifications.accept')}
+					</Button>
+					<Button
+						size="xs"
+						variant="outline"
+						loading={busy === 'decline'}
+						disabled={busy !== null}
+						onClick={() => answer('decline')}
+						className={rowLink}
+					>
+						{t('notifications.decline')}
+					</Button>
+				</>
 			}
 		/>
 	);

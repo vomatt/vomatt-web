@@ -11,7 +11,8 @@ const mockReplace = jest.fn();
 jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh: mockRefresh, replace: mockReplace }) }));
 jest.mock('@/lib/api/services/users', () => ({ searchUsers: jest.fn() }));
 jest.mock('@/features/communities/service', () => ({
-	addMember: jest.fn(),
+	inviteMember: jest.fn(),
+	revokeInvitation: jest.fn(),
 	changeRole: jest.fn(),
 	removeMember: jest.fn(),
 	transferOwner: jest.fn(),
@@ -56,7 +57,7 @@ describe('CommunityMembers', () => {
 
 	it('gives an OWNER every action on others, including making them owner', async () => {
 		renderAs('olive');
-		expect(screen.getByRole('button', { name: 'Add member' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Invite member' })).toBeInTheDocument();
 		const menu = await openMenu('ed');
 		expect(menu.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Change role', 'Make owner', 'Remove']);
 	});
@@ -89,7 +90,7 @@ describe('CommunityMembers', () => {
 
 	it('lets an EDITOR only leave', async () => {
 		renderAs('ed');
-		expect(screen.queryByRole('button', { name: 'Add member' })).not.toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Invite member' })).not.toBeInTheDocument();
 		expect(moreButton('olive')).not.toBeInTheDocument();
 		expect(moreButton('adam')).not.toBeInTheDocument();
 		const menu = await openMenu('ed');
@@ -153,7 +154,7 @@ describe('CommunityMembers', () => {
 		const community: MyCommunity = { communityId: 'off1', username: 'sunrise', displayName: 'Sunrise', avatarUrl: null, role: 'OWNER', locked: true };
 		render(<CommunityMembers community={community} viewerId="olive" members={members} />);
 		expect(screen.getByText('Locked')).toBeInTheDocument();
-		expect(screen.queryByRole('button', { name: 'Add member' })).not.toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Invite member' })).not.toBeInTheDocument();
 		expect((await openMenu('ed')).getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Make owner']);
 		fireEvent.keyDown(screen.getByRole('menu'), { key: 'Escape' });
 		expect((await openMenu('olive')).getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Leave']);
@@ -168,6 +169,25 @@ describe('CommunityMembers', () => {
 		await waitFor(() => expect(mockRefresh).toHaveBeenCalled());
 	});
 
+	it('invites an email address and lists it as pending, which can then be revoked', async () => {
+		const { inviteMember, revokeInvitation } = jest.requireMock('@/features/communities/service');
+		inviteMember.mockResolvedValue({
+			ok: true,
+			data: { id: 'i1', email: 'new@x.co', role: 'EDITOR', invitedAt: '2026-11-09T10:00:00Z', expiresAt: '2099-11-16T10:00:00Z' },
+		});
+		revokeInvitation.mockResolvedValue({ ok: true, data: undefined });
+		renderAs('olive');
+		fireEvent.click(screen.getByRole('button', { name: 'Invite member' }));
+		fireEvent.change(await screen.findByRole('textbox', { name: 'Username or email' }), { target: { value: 'New@x.co' } });
+		fireEvent.click(await screen.findByRole('button', { name: 'Invite new@x.co' }));
+		fireEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Invite member' }));
+		await waitFor(() => expect(inviteMember).toHaveBeenCalledWith('off1', { email: 'new@x.co' }, 'EDITOR'));
+		expect(await screen.findByText('Pending invitations')).toBeInTheDocument();
+		fireEvent.click(screen.getByRole('button', { name: 'Revoke invitation: new@x.co' }));
+		await waitFor(() => expect(revokeInvitation).toHaveBeenCalledWith('off1', 'i1'));
+		await waitFor(() => expect(screen.queryByText('Pending invitations')).not.toBeInTheDocument());
+	});
+
 	it('shows community accounts in the search, badged, but not pickable', async () => {
 		const { searchUsers } = jest.requireMock('@/lib/api/services/users');
 		searchUsers.mockResolvedValue({
@@ -178,8 +198,8 @@ describe('CommunityMembers', () => {
 			nextCursor: null,
 		});
 		renderAs('olive');
-		fireEvent.click(screen.getByRole('button', { name: 'Add member' }));
-		fireEvent.change(await screen.findByRole('textbox', { name: 'Search by username' }), { target: { value: 'ci' } });
+		fireEvent.click(screen.getByRole('button', { name: 'Invite member' }));
+		fireEvent.change(await screen.findByRole('textbox', { name: 'Username or email' }), { target: { value: 'ci' } });
 		const community = await screen.findByRole('button', { name: /cityhall/ });
 		expect(community).toBeDisabled();
 		expect(within(community).getByRole('img', { name: 'Community account' })).toBeInTheDocument();

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { COMMUNITY_ROLES } from '@/features/communities/schema';
 import { FollowUserDtoSchema } from '@/features/follows/schema';
 
 /**
@@ -57,6 +58,13 @@ export const NotificationSchema = z.discriminatedUnion('kind', [
 		comment: z.object({ id: z.string(), parentId: z.string().nullish(), excerpt: z.string() }),
 	}),
 	z.object({ ...base, kind: z.literal('COMMUNITY_LOCKED'), actor: FollowUserDtoSchema }),
+	// `communityInvitation` waits for an answer: it is listed only until accepted, declined, revoked or expired
+	z.object({
+		...base,
+		kind: z.literal('COMMUNITY_INVITATION'),
+		actor: FollowUserDtoSchema,
+		communityInvitation: z.object({ id: z.string(), role: z.enum(COMMUNITY_ROLES), expiresAt: z.string() }),
+	}),
 ]);
 
 export type Notification = z.infer<typeof NotificationSchema>;

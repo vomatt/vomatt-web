@@ -35,7 +35,12 @@ jest.mock('@/features/profiles/ProfileHoverCard', () => ({
 }));
 jest.mock('@/features/profiles/UserChip', () => ({ ProfileAvatar: () => null }));
 const mockToastError = jest.fn();
-jest.mock('sonner', () => ({ toast: { error: (...a: unknown[]) => mockToastError(...a) } }));
+const mockAccept = jest.fn();
+jest.mock('@/features/communities/service', () => ({
+	acceptCommunityInvitation: (...a: unknown[]) => mockAccept(...a),
+	declineCommunityInvitation: jest.fn(),
+}));
+jest.mock('sonner', () => ({ toast: { error: (...a: unknown[]) => mockToastError(...a), success: jest.fn() } }));
 const mockRefresh = jest.fn();
 let mockUnreadCount = 0;
 jest.mock('@/features/notifications/UnreadCountProvider', () => ({
@@ -283,6 +288,27 @@ describe('NotificationList rows', () => {
 		expect(within(row).getByRole('link', { name: 'Robotics Club' })).toHaveAttribute('href', '/robotics');
 		expect(within(row).getByRole('link', { name: 'View' })).toHaveAttribute('href', '/settings#communities');
 		expect(screen.getByRole('button', { name: 'Community' })).toBeInTheDocument();
+	});
+
+	it('lets the person accept a community invitation in the feed, then drops the row', async () => {
+		mockAccept.mockResolvedValue({ ok: true, data: {} });
+		renderList([
+			{
+				id: 'community_invitation_i1',
+				kind: 'COMMUNITY_INVITATION',
+				createdAt: iso(-HOUR),
+				read: false,
+				actor: { ...person('robotics', 'Robotics Club'), community: true },
+				communityInvitation: { id: 'i1', role: 'EDITOR', expiresAt: iso(24 * HOUR) },
+			},
+		]);
+		const row = rowOf('Robotics Club');
+		expect(row).toHaveTextContent('Robotics Club invited you to join as Editor');
+		expect(within(row).getByRole('button', { name: 'Decline' })).toBeInTheDocument();
+		fireEvent.click(within(row).getByRole('button', { name: 'Accept' }));
+		await waitFor(() => expect(screen.queryByText(/invited you to join/)).not.toBeInTheDocument());
+		expect(mockAccept).toHaveBeenCalledWith('i1');
+		expect(mockRefresh).toHaveBeenCalled();
 	});
 
 	it('keeps the category pills on one sticky row that runs to the screen edges on phones', () => {

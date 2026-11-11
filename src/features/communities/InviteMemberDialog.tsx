@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 
+import { emailSchema } from '@/components/auth/auth-schemas';
 import { PillGroup } from '@/components/PillGroup';
 import { Button } from '@/components/ui/Button';
 import { Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
@@ -15,8 +16,8 @@ import type { UserDto } from '@/schemas/user';
 
 import { type CommunityRole,DEFAULT_ROLE } from './schema';
 
-/** Picks one person by username (the search InviteePicker uses) and the role to give them. */
-export function AddMemberDialog({
+/** Picks one person by username (the search InviteePicker uses) or an email address, and the role to offer them. */
+export function InviteMemberDialog({
 	open,
 	onOpenChange,
 	...form
@@ -29,35 +30,42 @@ export function AddMemberDialog({
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="sm:max-w-lg" closeLabel={t('common.close')}>
 				{/* Unmounted on close, so reopening starts empty */}
-				{open && <AddMemberForm {...form} onClose={() => onOpenChange(false)} />}
+				{open && <InviteMemberForm {...form} onClose={() => onOpenChange(false)} />}
 			</DialogContent>
 		</Dialog>
 	);
 }
 
+export type Invitee = { user: UserDto } | { email: string };
+
 type FormProps = {
 	/** The roles the viewer may grant. */
 	roles: readonly CommunityRole[];
 	/** Already members, left out of the suggestions. */
-	memberIds: string[];
+	excludeIds: string[];
 	/** A change is being sent. */
 	busy: boolean;
-	/** Resolves true once added, which closes the dialog. */
-	onAdd: (user: UserDto, role: CommunityRole) => Promise<boolean>;
+	/** Resolves true once invited, which closes the dialog. */
+	onInvite: (invitee: Invitee, role: CommunityRole) => Promise<boolean>;
 	onClose: () => void;
 };
 
-function AddMemberForm({ roles, memberIds, busy, onAdd, onClose }: FormProps) {
+function InviteMemberForm({ roles, excludeIds, busy, onInvite, onClose }: FormProps) {
 	const { t } = useLanguage();
 	const [query, setQuery] = useState('');
-	const [picked, setPicked] = useState<UserDto | null>(null);
+	const [picked, setPicked] = useState<Invitee | null>(null);
 	const [role, setRole] = useState<CommunityRole>(DEFAULT_ROLE);
 	const term = query.trim().replace(/^@/, '');
-	const search = useUserSearch(picked ? '' : term, memberIds);
+	// An address is invited as typed; anything else is searched as a username
+	const email = term.toLowerCase();
+	const isEmail = emailSchema.shape.email.safeParse(email).success;
+	const search = useUserSearch(picked || term.includes('@') ? '' : term, excludeIds);
 
-	const add = async () => {
+	const pickedName = !picked ? '' : ('user' in picked ? `@${picked.user.username}` : picked.email);
+
+	const invite = async () => {
 		if (!picked) return;
-		if (await onAdd(picked, role)) {
+		if (await onInvite(picked, role)) {
 			onClose();
 		}
 	};
@@ -65,17 +73,17 @@ function AddMemberForm({ roles, memberIds, busy, onAdd, onClose }: FormProps) {
 	return (
 		<>
 		<DialogHeader>
-			<DialogTitle>{t('communities.addTitle')}</DialogTitle>
+			<DialogTitle>{t('communities.inviteTitle')}</DialogTitle>
 		</DialogHeader>
 		<DialogBody className="space-y-5">
 			{picked ? (
 				<div className="flex items-center gap-3 rounded-xl border border-border px-3 py-2">
-					<UserAvatar username={picked.username} avatarUrl={picked.avatarUrl} className="size-9" />
-					<span className="min-w-0 flex-1 truncate text-body-4">@{picked.username}</span>
+					{'user' in picked && <UserAvatar username={picked.user.username} avatarUrl={picked.user.avatarUrl} className="size-9" />}
+					<span className="min-w-0 flex-1 truncate text-body-4">{pickedName}</span>
 					<Button
 						variant="ghost"
 						size="icon-xs"
-						aria-label={t('invitees.remove', { name: picked.username })}
+						aria-label={t('invitees.remove', { name: pickedName })}
 						onClick={() => setPicked(null)}
 					>
 						<X aria-hidden />
@@ -94,9 +102,19 @@ function AddMemberForm({ roles, memberIds, busy, onAdd, onClose }: FormProps) {
 						onChange={(e) => setQuery(e.target.value)}
 					/>
 					{/* A community account can't belong to another (`community.member.invalid`): shown, but not pickable */}
-					<UserSuggestions search={search} onPick={setPicked} communityNote={t('communities.communityNotAllowed')} />
+					{isEmail && (
+						<button
+							type="button"
+							onClick={() => setPicked({ email })}
+							className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-body-4 hover:bg-muted"
+						>
+							<span className="min-w-0 flex-1 truncate">{t('communities.inviteEmail', { email })}</span>
+						</button>
+					)}
+					<UserSuggestions search={search} onPick={(user) => setPicked({ user })} communityNote={t('communities.communityNotAllowed')} />
 				</div>
 			)}
+			{picked && 'email' in picked && <p className="text-caption-2 text-muted-foreground">{t('communities.inviteEmailHint')}</p>}
 			<PillGroup
 				legend={t('communities.role')}
 				legendClassName="text-caption-2 font-medium text-muted-foreground"
@@ -110,8 +128,8 @@ function AddMemberForm({ roles, memberIds, busy, onAdd, onClose }: FormProps) {
 			<Button size="md" variant="outline" onClick={onClose}>
 				{t('common.cancel')}
 			</Button>
-			<Button size="md" disabled={!picked} loading={busy} onClick={add}>
-				{t('communities.add')}
+			<Button size="md" disabled={!picked} loading={busy} onClick={invite}>
+				{t('communities.invite')}
 			</Button>
 		</DialogFooter>
 		</>

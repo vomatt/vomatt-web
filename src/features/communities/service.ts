@@ -11,9 +11,18 @@ import { apiClient } from '@/lib/api/client';
 import { PROFILES_TAG } from '@/lib/api/constants';
 import { type UserDto, UserDtoSchema } from '@/schemas/user';
 
-import { type CommunityMember, CommunityMemberSchema, type CommunityRole, MyCommunitySchema } from './schema';
+import {
+	type CommunityInvitation,
+	CommunityInvitationSchema,
+	type CommunityMember,
+	CommunityMemberSchema,
+	type CommunityRole,
+	type MyCommunity,
+	MyCommunitySchema,
+} from './schema';
 
 const communityPath = (communityId: string) => `/communities/${encodeURIComponent(communityId)}`;
+const invitationsPath = (communityId: string) => `${communityPath(communityId)}/invitations`;
 const membersPath = (communityId: string, userId?: string) =>
 	`${communityPath(communityId)}/members${userId ? `/${encodeURIComponent(userId)}` : ''}`;
 
@@ -40,13 +49,53 @@ export async function listMembers(communityId: string): Promise<ActionResult<Com
 	return attempt(async () => z.array(CommunityMemberSchema).parse(await apiClient(membersPath(communityId))));
 }
 
-/** OWNER or ADMIN; only an OWNER grants OWNER. */
-export async function addMember(communityId: string, userId: string, role: CommunityRole): Promise<ActionResult<CommunityMember>> {
+/**
+ * OWNER or ADMIN; only an OWNER grants OWNER. Exactly one of `userId` or `email`: the invitee joins only by accepting.
+ * 404 `user.not_found`, 400 `community.member.invalid`, 409 `community.member.exists` (by id only) or `community.invitation.exists`.
+ */
+export async function inviteMember(
+	communityId: string,
+	invitee: { userId: string } | { email: string },
+	role: CommunityRole
+): Promise<ActionResult<CommunityInvitation>> {
 	return attempt(async () =>
-		CommunityMemberSchema.parse(
-			await apiClient(membersPath(communityId), { method: 'POST', body: JSON.stringify({ userId, role }) })
+		CommunityInvitationSchema.parse(
+			await apiClient(invitationsPath(communityId), { method: 'POST', body: JSON.stringify({ ...invitee, role }) })
 		)
 	);
+}
+
+/** OWNER or ADMIN; oldest first, expired ones included. */
+export async function listInvitations(communityId: string): Promise<ActionResult<CommunityInvitation[]>> {
+	return attempt(async () => z.array(CommunityInvitationSchema).parse(await apiClient(invitationsPath(communityId))));
+}
+
+/** OWNER or ADMIN; 404 `community.invitation.not_found` once it is gone. */
+export async function revokeInvitation(communityId: string, invitationId: string): Promise<ActionResult> {
+	return attempt(async () => {
+		await apiClient(`${invitationsPath(communityId)}/${encodeURIComponent(invitationId)}`, { method: 'DELETE' });
+	});
+}
+
+/**
+ * For the invitee, as the person (refused while acting, 403 `community.role_forbidden`): they become a member and keep any role they had.
+ * 404 `community.invitation.not_found`, 403 `community.locked`, 403 `community.limit_reached` for an OWNER invitation over their plan.
+ */
+export async function acceptCommunityInvitation(invitationId: string): Promise<ActionResult<MyCommunity>> {
+	return attempt(async () => {
+		const joined = MyCommunitySchema.parse(
+			await apiClient(`/community-invitations/${encodeURIComponent(invitationId)}/accept`, { method: 'POST', actAs: false })
+		);
+		// The layout's list of accounts to act as now includes it
+		refresh();
+		return joined;
+	});
+}
+
+export async function declineCommunityInvitation(invitationId: string): Promise<ActionResult> {
+	return attempt(async () => {
+		await apiClient(`/community-invitations/${encodeURIComponent(invitationId)}/decline`, { method: 'POST', actAs: false });
+	});
 }
 
 export async function changeRole(communityId: string, userId: string, role: CommunityRole): Promise<ActionResult<CommunityMember>> {

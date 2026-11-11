@@ -26,6 +26,19 @@ export const CommunityMemberSchema = z.object({
 	joinedAt: z.string(),
 });
 
+/** A pending invitation to join, sent by id (`userId` and the names) or by address (`email`); the invitee is a member only after accepting. */
+export const CommunityInvitationSchema = z.object({
+	id: z.string(),
+	userId: z.string().nullish(),
+	username: z.string().nullish(),
+	displayName: z.string().nullish(),
+	avatarUrl: z.string().nullish(),
+	email: z.string().nullish(),
+	role: CommunityRoleSchema,
+	invitedAt: z.string(),
+	expiresAt: z.string(),
+});
+
 /** The roles offered and explained in phase 1: ANALYST only reads result reports, which aren't in the app yet. */
 export const OFFERED_ROLES: readonly CommunityRole[] = COMMUNITY_ROLES.filter((role) => role !== 'ANALYST');
 
@@ -38,6 +51,7 @@ export const accountName = (account: { username: string; displayName?: string | 
 
 export type CommunityRole = z.infer<typeof CommunityRoleSchema>;
 export type MyCommunity = z.infer<typeof MyCommunitySchema>;
+export type CommunityInvitation = z.infer<typeof CommunityInvitationSchema>;
 export type CommunityMember = z.infer<typeof CommunityMemberSchema>;
 
 export const communityMembersHref = (communityId: string) => `/settings/communities/${encodeURIComponent(communityId)}/members`;

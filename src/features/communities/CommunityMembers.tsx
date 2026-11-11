@@ -25,19 +25,28 @@ import { ArrowRight, Ellipsis, LogOut, Pencil, Plus, Trash2 } from '@/components
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { formatDate } from '@/features/polls/format';
+import { useViewerClock } from '@/features/polls/hooks/useViewerClock';
 import type { ActionResult } from '@/lib/api/action';
 import { apiErrorText } from '@/lib/api/error-text';
 import { META_GAP } from '@/lib/rich';
 import { cn } from '@/lib/utils';
 
-import { AddMemberDialog } from './AddMemberDialog';
+import { InviteMemberDialog } from './InviteMemberDialog';
 import { LockedChip } from './LockedChip';
 import { canManageMembers, grantableRoles, type MemberAction, memberActions } from './permissions';
-import { COMMUNITY_ROLES, type CommunityMember, type CommunityRole,DEFAULT_ROLE, type MyCommunity, OFFERED_ROLES } from './schema';
-import { addMember, changeRole, removeMember, transferOwner } from './service';
+import {
+	COMMUNITY_ROLES,
+	type CommunityInvitation,
+	type CommunityMember,
+	type CommunityRole,
+	DEFAULT_ROLE,
+	type MyCommunity,
+	OFFERED_ROLES,
+} from './schema';
+import { changeRole, inviteMember, removeMember, revokeInvitation, transferOwner } from './service';
 
 // The list is stale after these: someone else changed it, or the viewer's role
-const REFRESH_CODES = ['community.member.not_found', 'community.role_forbidden', 'community.not_member'];
+const REFRESH_CODES = ['community.member.not_found', 'community.invitation.not_found', 'community.role_forbidden', 'community.not_member'];
 
 const ICONS: Record<MemberAction, React.ReactNode> = {
 	changeRole: <Pencil aria-hidden />,
@@ -62,10 +71,13 @@ export function CommunityMembers({
 	community,
 	viewerId,
 	members: initialMembers,
+	invitations: initialInvitations = [],
 }: {
 	community: MyCommunity;
 	viewerId: string;
 	members: CommunityMember[];
+	/** Pending invitations, for an OWNER or ADMIN; others can't list them. */
+	invitations?: CommunityInvitation[];
 }) {
 	const { t, currentLanguage } = useLanguage();
 	const router = useRouter();
@@ -74,9 +86,11 @@ export function CommunityMembers({
 	const [members, setMembers] = useState(initialMembers);
 	// A refresh (after a transfer, or a stale list) brings a new list from the server
 	const [shown, setShown] = useState(initialMembers);
+	const [invitations, setInvitations] = useState(initialInvitations);
 	if (shown !== initialMembers) {
 		setShown(initialMembers);
 		setMembers(initialMembers);
+		setInvitations(initialInvitations);
 	}
 	const [adding, setAdding] = useState(false);
 	const [pending, setPending] = useState<Pending | null>(null);
@@ -86,6 +100,7 @@ export function CommunityMembers({
 	const grantable = grantableRoles(community.role);
 	const roleChoices = pending && !grantable.includes(pending.member.role) ? [...grantable, pending.member.role] : grantable;
 	const [busy, setBusy] = useState(false);
+	const clock = useViewerClock();
 
 	/** Runs a change; true when it went through. */
 	const run = async <T,>({ request, after, done }: Omit<Step<T>, 'confirm'>) => {
@@ -168,7 +183,7 @@ export function CommunityMembers({
 					{canManageMembers(community.role) && !community.locked && (
 						<Button size="md" variant="outline" onClick={() => setAdding(true)}>
 							<Plus aria-hidden />
-							{t('communities.add')}
+							{t('communities.invite')}
 						</Button>
 					)}
 				</div>
@@ -230,6 +245,62 @@ export function CommunityMembers({
 				</SettingsCard>
 			</section>
 
+			{invitations.length > 0 && (
+				<section aria-labelledby="invitations-title" className="space-y-2.5">
+					<h2 id="invitations-title" className="text-title-4">
+						{t('communities.invitationsTitle')}
+					</h2>
+					<SettingsCard as="ul">
+						{invitations.map((invitation) => {
+							const name = invitation.username ? `@${invitation.username}` : (invitation.email ?? '');
+							const expired = !!clock && new Date(invitation.expiresAt).getTime() <= clock.now;
+							return (
+								<li key={invitation.id} className={cn(rowClassName, 'gap-3')}>
+									{invitation.username && (
+										<UserAvatar username={invitation.username} avatarUrl={invitation.avatarUrl} className="size-9" />
+									)}
+									<div className="min-w-0 flex-1">
+										<p className="truncate font-medium">{invitation.displayName || name}</p>
+										<p className="truncate text-caption-2 text-muted-foreground">
+											{invitation.displayName && invitation.username && (
+												<>
+													{name}
+													{META_GAP}
+												</>
+											)}
+											{t(`communities.roles.${invitation.role}`)}
+											{META_GAP}
+											<span suppressHydrationWarning>
+												{expired
+													? t('communities.invitationExpired')
+													: t('communities.invitationExpires', { date: formatDate(invitation.expiresAt, currentLanguage) })}
+											</span>
+										</p>
+									</div>
+									{!community.locked && (
+										<Button
+											variant="ghost"
+											size="icon-xs"
+											aria-label={t('communities.revoke') + ': ' + name}
+											disabled={busy}
+											onClick={() =>
+												run({
+													request: () => revokeInvitation(community.communityId, invitation.id),
+													after: () => setInvitations((list) => list.filter((i) => i.id !== invitation.id)),
+													done: t('communities.revoked', { name }),
+												})
+											}
+										>
+											<Trash2 aria-hidden />
+										</Button>
+									)}
+								</li>
+							);
+						})}
+					</SettingsCard>
+				</section>
+			)}
+
 			<section aria-labelledby="roles-title" className="space-y-2.5">
 				<h2 id="roles-title" className="text-title-4">
 					{t('communities.rolesTitle')}
@@ -243,19 +314,21 @@ export function CommunityMembers({
 				</SettingsCard>
 			</section>
 
-			<AddMemberDialog
+			<InviteMemberDialog
 				open={adding}
 				onOpenChange={setAdding}
 				roles={grantableRoles(community.role)}
-				memberIds={members.map((member) => member.userId)}
+				excludeIds={members.map((member) => member.userId)}
 				busy={busy}
-				onAdd={(user, role) =>
-					run({
-						request: () => addMember(community.communityId, user.id, role),
-						after: (added) => setMembers((list) => [...list, added]),
-						done: t('communities.added', { name: user.username }),
-					})
-				}
+				onInvite={(invitee, role) => {
+					const name = 'user' in invitee ? `@${invitee.user.username}` : invitee.email;
+					return run({
+						request: () => inviteMember(community.communityId, 'user' in invitee ? { userId: invitee.user.id } : invitee, role),
+						// A re-sent invitation replaces the expired one
+						after: (sent) => setInvitations((list) => [...list.filter((i) => i.id !== sent.id), sent]),
+						done: t('communities.invited', { name }),
+					});
+				}}
 			/>
 
 			<Dialog open={pending?.action === 'changeRole'} onOpenChange={(isOpen) => !isOpen && setPending(null)}>
