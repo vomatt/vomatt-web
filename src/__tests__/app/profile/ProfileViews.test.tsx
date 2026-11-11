@@ -4,7 +4,10 @@ import { toast } from 'sonner';
 
 import { OwnProfileView } from '@/app/(frontend)/[slug]/_components/OwnProfileView';
 import { VisitorProfileView } from '@/app/(frontend)/[slug]/_components/VisitorProfileView';
+import { ActingProvider } from '@/features/communities/ActingProvider';
+import type { MyCommunity } from '@/features/communities/schema';
 import type { Poll } from '@/features/polls/schema';
+import { editProfile } from '@/lib/api/services/users';
 import { META_GAP } from '@/lib/rich';
 import type { MyProfile, UserProfile } from '@/types/user';
 
@@ -33,6 +36,12 @@ jest.mock('@/features/follows/service', () => ({
 }));
 jest.mock('@/features/avatars/service', () => ({ chooseAvatar: jest.fn() }));
 jest.mock('@/features/notifications/service', () => ({}));
+jest.mock('@/features/communities/acting', () => ({ actAsCommunity: jest.fn(), loadMyCommunities: jest.fn() }));
+const mockUpdateCommunity = jest.fn();
+jest.mock('@/features/communities/service', () => ({
+	updateCommunity: (...a: unknown[]) => mockUpdateCommunity(...a),
+	uploadCommunityAvatar: jest.fn(),
+}));
 const visitor: UserProfile = {
 	id: 'u2',
 	username: 'amira',
@@ -541,5 +550,37 @@ describe('OwnProfileView', () => {
 	it('links to the public view of the page', () => {
 		render(<OwnProfileView profile={me} polls={[]} />);
 		expect(screen.getByRole('link', { name: 'Open your public page' })).toHaveAttribute('href', '/mei?view=public');
+	});
+});
+
+describe('OwnProfileView while acting as a community account', () => {
+	const sunrise: MyCommunity = { communityId: 'c1', username: 'sunrise', displayName: 'Sunrise', avatarUrl: null, role: 'ADMIN' };
+	const page: MyProfile = { ...me, id: 'c1', username: 'sunrise', displayName: 'Sunrise', bio: 'Tower residents', community: true };
+
+	const renderActing = (community: MyCommunity) =>
+		render(
+			<ActingProvider state={{ acting: community, me, communities: [community], stale: false }}>
+				<OwnProfileView profile={page} polls={[]} />
+			</ActingProvider>
+		);
+
+	beforeEach(() => mockUpdateCommunity.mockReset().mockResolvedValue({ ok: true, data: undefined }));
+
+	it('edits only the name and bio, and saves them to the community’s own endpoint', async () => {
+		renderActing(sunrise);
+		fireEvent.click(screen.getByRole('button', { name: 'Edit profile' }));
+		const dialog = screen.getByRole('dialog');
+		expect(within(dialog).queryByRole('textbox', { name: 'Username' })).not.toBeInTheDocument();
+		expect(within(dialog).getAllByRole('textbox')).toHaveLength(2);
+
+		fireEvent.change(within(dialog).getByRole('textbox', { name: 'Group name' }), { target: { value: 'Sunrise Committee' } });
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Save changes' }));
+		await waitFor(() => expect(mockUpdateCommunity).toHaveBeenCalledWith('c1', { displayName: 'Sunrise Committee' }));
+		expect(editProfile).not.toHaveBeenCalled();
+	});
+
+	it('offers an editor no Edit profile', () => {
+		renderActing({ ...sunrise, role: 'EDITOR' });
+		expect(screen.queryByRole('button', { name: 'Edit profile' })).not.toBeInTheDocument();
 	});
 });

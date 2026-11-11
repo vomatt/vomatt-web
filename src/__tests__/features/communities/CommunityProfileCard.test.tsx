@@ -110,14 +110,50 @@ describe('CommunityProfileCard', () => {
 		expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 	});
 
-	it('keeps the dialog open and says why when the API refuses', async () => {
-		mockUpdate.mockResolvedValue({ ok: false, status: 403, errorCode: 'community.role_forbidden', message: 'x' });
-		renderAs('ADMIN');
+	const refuse = (errorCode: string, status = 403) =>
+		mockUpdate.mockResolvedValue({ ok: false, status, errorCode, message: 'from the API' });
+	const rename = async () => {
 		fireEvent.click(editButton()!);
 		fireEvent.change(nameField(), { target: { value: 'New' } });
 		save();
-		await waitFor(() => expect(toast.error).toHaveBeenCalled());
+		await waitFor(() => expect(mockUpdate).toHaveBeenCalled());
+	};
+
+	it('says only owners and admins edit the profile, then shows the page as the role now allows', async () => {
+		refuse('community.role_forbidden');
+		renderAs('ADMIN');
+		await rename();
+		expect(toast.error).toHaveBeenCalledWith(en.communities.editForbidden, expect.anything());
+		await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+		expect(mockRefresh).toHaveBeenCalled();
+	});
+
+	it('says the membership is gone, then refreshes the page', async () => {
+		refuse('community.not_member');
+		renderAs('ADMIN');
+		await rename();
+		expect(toast.error).toHaveBeenCalledWith(en.apiError.community.not_member, expect.anything());
+		await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+		expect(mockRefresh).toHaveBeenCalled();
+	});
+
+	it('marks the name when the API refuses it', async () => {
+		refuse('common.validation_failed', 400);
+		renderAs('ADMIN');
+		await rename();
+		expect(await screen.findByText(en.communities.nameRequired)).toBeInTheDocument();
+		expect(nameField()).toHaveAttribute('aria-invalid', 'true');
+		expect(toast.error).not.toHaveBeenCalled();
+		expect(mockRefresh).not.toHaveBeenCalled();
+	});
+
+	it('keeps the dialog open on any other refusal', async () => {
+		refuse('community.locked');
+		renderAs('ADMIN');
+		await rename();
+		expect(toast.error).toHaveBeenCalled();
 		expect(screen.getByRole('dialog')).toBeInTheDocument();
+		expect(mockRefresh).not.toHaveBeenCalled();
 	});
 
 	it('uploads a framed photo to the community’s avatar', async () => {
