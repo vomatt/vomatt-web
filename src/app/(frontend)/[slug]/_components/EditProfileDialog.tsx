@@ -27,11 +27,12 @@ import {
 	DialogTrigger,
 } from '@/components/ui/Dialog';
 import { Input } from '@/components/ui/Input';
-import { ChevronDown, Globe, Lock, TriangleAlert } from '@/components/ui/SvgIcons';
+import { Lock, TriangleAlert } from '@/components/ui/SvgIcons';
 import { Textarea } from '@/components/ui/Textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { isValidUsername, RESERVED_USERNAMES, USERNAME_MAX_LENGTH } from '@/features/account/username';
 import { isFieldPublic, visibilityChanges } from '@/features/account/visibility';
+import { pillClassName, VisibilityPill } from '@/features/account/VisibilityPill';
 import { genderLabel } from '@/features/profiles/name';
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
 import { useVisualViewport } from '@/hooks/useVisualViewport';
@@ -61,7 +62,6 @@ const sublabelClassName = 'text-caption-2 text-muted-foreground';
 export default function EditProfileDialog({ profile, defaultOpen = false }: { profile: MyProfile; defaultOpen?: boolean }) {
 	const { t } = useLanguage();
 	const router = useRouter();
-	const isCommunity = !!profile.community;
 	const initial = {
 		username: profile.username,
 		displayName: profile.displayName ?? '',
@@ -174,7 +174,7 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 			const visibilitySaved =
 				Object.keys(visibilityChanged).length === 0 ||
 				(await updateVisibility(visibilityChanged).then(
-					() => true,
+					(result) => result.ok,
 					() => false
 				));
 			// The profile lives at /[username], so a new username moves the page
@@ -262,46 +262,44 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 						</p>
 					</div>
 					{/* First and last name share one visibility setting, so they share one header */}
-					{!isCommunity && (
-						<div role="group" aria-labelledby="realName" className="flex flex-col gap-1.5">
-							<div className="flex min-h-7 items-center justify-between gap-2">
-								<span id="realName" className={labelClassName}>
-									{t('profile.realName')}
-								</span>
-								{pill(t('profile.realName'), ['firstName', 'lastName'])}
+					<div role="group" aria-labelledby="realName" className="flex flex-col gap-1.5">
+						<div className="flex min-h-7 items-center justify-between gap-2">
+							<span id="realName" className={labelClassName}>
+								{t('profile.realName')}
+							</span>
+							{pill(t('profile.realName'), ['firstName', 'lastName'])}
+						</div>
+						<div className="grid gap-2.5 sm:grid-cols-2">
+							<div className="flex flex-col gap-1">
+								<label htmlFor="firstName" className={sublabelClassName}>
+									{t('profile.firstName')}
+								</label>
+								<Input
+									id="firstName"
+									value={values.firstName}
+									onChange={(e) => set('firstName')(e.target.value)}
+									autoComplete="given-name"
+									maxLength={50}
+								/>
 							</div>
-							<div className="grid gap-2.5 sm:grid-cols-2">
-								<div className="flex flex-col gap-1">
-									<label htmlFor="firstName" className={sublabelClassName}>
-										{t('profile.firstName')}
-									</label>
-									<Input
-										id="firstName"
-										value={values.firstName}
-										onChange={(e) => set('firstName')(e.target.value)}
-										autoComplete="given-name"
-										maxLength={50}
-									/>
-								</div>
-								<div className="flex flex-col gap-1">
-									<label htmlFor="lastName" className={sublabelClassName}>
-										{t('profile.lastName')}
-									</label>
-									<Input
-										id="lastName"
-										value={values.lastName}
-										onChange={(e) => set('lastName')(e.target.value)}
-										autoComplete="family-name"
-										maxLength={50}
-									/>
-								</div>
+							<div className="flex flex-col gap-1">
+								<label htmlFor="lastName" className={sublabelClassName}>
+									{t('profile.lastName')}
+								</label>
+								<Input
+									id="lastName"
+									value={values.lastName}
+									onChange={(e) => set('lastName')(e.target.value)}
+									autoComplete="family-name"
+									maxLength={50}
+								/>
 							</div>
 						</div>
-					)}
+					</div>
 					<div className="flex flex-col gap-1.5">
 						<div className="flex min-h-7 items-center justify-between gap-2">
 							<label htmlFor="displayName" className={labelClassName}>
-								{t(isCommunity ? 'communities.nameLabel' : 'profile.displayName')}
+								{t('profile.displayName')}
 							</label>
 							{pill(t('profile.displayName'), ['displayName'])}
 						</div>
@@ -313,52 +311,47 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 							maxLength={100}
 						/>
 					</div>
-					{/* A group has no birthday or gender; its report groups come from the people who vote */}
-					{!isCommunity && (
-						<>
-							<div className="flex flex-col gap-1.5">
-								<div className="flex min-h-7 items-center justify-between gap-2">
-									<label htmlFor="birthday" className={labelClassName}>
-										{t('profile.birthday')}
-									</label>
-									{/* The API never shows a birthday to anyone else */}
-									<span className={cn(pillClassName, 'border-border bg-secondary text-muted-foreground')}>
-										<Lock aria-hidden className="size-3" />
-										{t('profile.onlyYouShort')}
-									</span>
-								</div>
-								<Input
-									id="birthday"
-									type="date"
-									value={values.birthday}
-									onChange={(e) => {
-										set('birthday')(e.target.value);
-										setBirthdayError(false);
-									}}
-									min={BIRTHDAY_MIN}
-									max={latestBirthday()}
-									autoComplete="bday"
-									aria-invalid={birthdayError}
-									aria-describedby={birthdayError ? 'birthday-error' : undefined}
-								/>
-								{birthdayError && (
-									<p id="birthday-error" className="text-caption-3 text-destructive">
-										{t('profile.birthdayInvalid')}
-									</p>
-								)}
-							</div>
-							<PillGroup
-									legend={t('profile.gender')}
-									legendClassName={labelClassName}
-									aside={pill(t('profile.gender'), ['gender'])}
-									hint={t('profile.genderReportNote')}
-									// No "not set": once chosen it can only change
-									value={values.gender || undefined}
-									onChange={set('gender')}
-									options={GENDERS.map((gender) => ({ value: gender, label: genderLabel(t, gender) }))}
-								/>
-						</>
-					)}
+					<div className="flex flex-col gap-1.5">
+						<div className="flex min-h-7 items-center justify-between gap-2">
+							<label htmlFor="birthday" className={labelClassName}>
+								{t('profile.birthday')}
+							</label>
+							{/* The API never shows a birthday to anyone else */}
+							<span className={cn(pillClassName, 'border-border bg-secondary text-muted-foreground')}>
+								<Lock aria-hidden className="size-3" />
+								{t('profile.onlyYouShort')}
+							</span>
+						</div>
+						<Input
+							id="birthday"
+							type="date"
+							value={values.birthday}
+							onChange={(e) => {
+								set('birthday')(e.target.value);
+								setBirthdayError(false);
+							}}
+							min={BIRTHDAY_MIN}
+							max={latestBirthday()}
+							autoComplete="bday"
+							aria-invalid={birthdayError}
+							aria-describedby={birthdayError ? 'birthday-error' : undefined}
+						/>
+						{birthdayError && (
+							<p id="birthday-error" className="text-caption-3 text-destructive">
+								{t('profile.birthdayInvalid')}
+							</p>
+						)}
+					</div>
+					<PillGroup
+						legend={t('profile.gender')}
+						legendClassName={labelClassName}
+						aside={pill(t('profile.gender'), ['gender'])}
+						hint={t('profile.genderReportNote')}
+						// No "not set": once chosen it can only change
+						value={values.gender || undefined}
+						onChange={set('gender')}
+						options={GENDERS.map((gender) => ({ value: gender, label: genderLabel(t, gender) }))}
+						/>
 					<div className="flex flex-col gap-1.5">
 						<div className="flex min-h-7 items-center justify-between gap-2">
 							<label htmlFor="bio" className={labelClassName}>
@@ -408,48 +401,5 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 				</AlertDialogContent>
 			</AlertDialog>
 		</Dialog>
-	);
-}
-
-const pillClassName =
-	'inline-flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 text-caption-2 font-medium';
-// The pill stays small beside its label, but its hit area reaches 44px
-const pillHitArea = "relative before:absolute before:-inset-y-2 before:inset-x-0 before:content-['']";
-
-const PILL_LABELS = {
-	everyone: 'profile.visibilityPillEveryone',
-	onlyYou: 'profile.visibilityPillOnlyYou',
-} as const;
-
-/** Who sees a detail, as a pill that switches between Everyone and Only you. */
-function VisibilityPill({
-	label,
-	isPublic,
-	onToggle,
-}: {
-	label: string;
-	isPublic: boolean;
-	onToggle: () => void;
-}) {
-	const { t } = useLanguage();
-	const state = t(isPublic ? 'profile.everyone' : 'profile.onlyYouShort');
-	return (
-		<button
-			type="button"
-			onClick={onToggle}
-			aria-label={t(PILL_LABELS[isPublic ? 'everyone' : 'onlyYou'], { field: label })}
-			className={cn(
-				pillClassName,
-				pillHitArea,
-				'cursor-pointer transition-colors outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring',
-				isPublic
-					? 'border-border-strong bg-card hover:bg-surface-soft'
-					: 'border-border bg-secondary text-muted-foreground hover:text-foreground'
-			)}
-		>
-			{isPublic ? <Globe aria-hidden className="size-3" /> : <Lock aria-hidden className="size-3" />}
-			{state}
-			<ChevronDown aria-hidden className="size-2.5" />
-		</button>
 	);
 }

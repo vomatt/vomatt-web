@@ -309,13 +309,15 @@
 		"mentioned": "{name} 在 {title} 提到了你",
 		"liked": "{name} 喜歡你在 {title} 的留言",
 		"pollLiked": "{name} 喜歡你的投票 {title}",
+		"communityLocked": "{name} 已被鎖定，因為期限前沒有選擇要保留的社群帳號",
 		"categoryLabel": "分類",
 		"category": {
 			"CONVERSATION": "對話",
 			"LIKE": "喜歡",
 			"POLL_END": "投票結束",
 			"INVITATION": "邀請",
-			"FOLLOW": "追蹤"
+			"FOLLOW": "追蹤",
+			"COMMUNITY": "社群"
 		},
 		"categoryEmpty": "這裡還沒有內容。",
 		"categoryFailed": "無法載入這個分頁，請再試一次。",
@@ -1210,12 +1212,21 @@
 			"roles_fixed": "社群帳號的角色無法變更。",
 			"last_owner": "社群帳號至少要有一位擁有者，請先轉移擁有者。",
 			"not_member": "你已不是這個帳號的成員。",
-			"role_forbidden": "你在這個社群帳號的角色無法執行此操作。編輯只能修改自己發布的投票與留言。",
+			"username_immutable": "社群帳號的使用者名稱無法變更。",
+			"role_forbidden": "你在這個社群帳號的角色無法執行此操作。擁有者與管理員管理帳號與成員，主編可修改任何投票與留言，編輯只能修改自己發布的，分析師只能查看結果報告。",
 			"member": {
 				"exists": "對方已經是成員。",
 				"invalid": "無法將對方加入這個帳號。",
 				"not_found": "對方已不是成員，列表已重新整理。"
+			},
+			"limit_reached": "你擁有的社群帳號已達方案上限。",
+			"locked": "這個社群帳號已被鎖定，無法執行此操作。升級 Pro，或請有額度的擁有者解鎖。",
+			"keep": {
+				"invalid": "請選擇剛好所要求數量的帳號，且都必須是你擁有的。"
 			}
+		},
+		"billing": {
+			"unavailable": "Pro 方案即將推出。"
 		}
 	},
 	"blocks": {
@@ -1405,6 +1416,20 @@
 		"create": "建立",
 		"created": "已建立 @{name}",
 		"createFailed": "無法建立帳號，請再試一次。",
+		"profile": "個人資料",
+		"editIntro": "所有人都會在 @{name} 的頁面看到這些內容，使用者名稱不會改變。",
+		"editForbidden": "只有這個帳號的擁有者與管理員可以編輯個人檔案。",
+		"bioPlaceholder": "介紹這個團體",
+		"deleteTitle": "刪除社群帳號",
+		"deleteBody": "刪除它的投票、投票中的選票與留言，並移除所有成員，此操作無法復原。",
+		"deleteCtaEllipsis": "刪除帳號…",
+		"deleteConfirmTitle": "確定要刪除 @{name}？",
+		"deleteConfirmBody": "請輸入 {name} 以確認，帳號、它的投票以及投票中的選票與留言將被永久刪除。",
+		"deleteConfirmLabel": "輸入帳號的使用者名稱以確認",
+		"deleteConfirmMismatch": "請輸入 {name} 以刪除這個帳號。",
+		"deleteCta": "刪除帳號",
+		"deleted": "已刪除 @{name}",
+		"deleteFailed": "無法刪除帳號，帳號仍然有效，請再試一次。",
 		"acting": {
 			"switcher": "切換帳號",
 			"you": "你",
@@ -1421,12 +1446,46 @@
 			"postingAs": "以 {name} 的名義發布",
 			"settingsTitle": "這些是你個人的設定",
 			"settingsBody": "你正以 {name} 的身分操作。切換回自己才能修改。",
-			"manageMembers": "管理成員"
+			"manageMembers": "管理成員",
+			"bannerLocked": "你正以 {name} 的身分操作，它已被鎖定，解鎖前無法發布。"
+		},
+		"limitTitle": "擁有的社群帳號已達方案上限",
+		"limitBodyFree": "升級 Pro 即可擁有更多。",
+		"limitBodyPro": "要建立新的，請先將你擁有的其中一個轉移給其他擁有者。",
+		"theirLimitReached": "對方擁有的社群帳號已達方案上限，無法成為擁有者。",
+		"locked": "已鎖定",
+		"lockedBody": "它的頁面與投票照常顯示，但無法發布或修改任何內容。你仍可以轉移擁有者或離開。升級 Pro，或請有額度的擁有者解鎖。",
+		"unlock": "解鎖",
+		"unlockLabel": "解鎖 {name}",
+		"unlocked": "已解鎖 {name}",
+		"unlockFailed": "無法解鎖帳號，請再試一次。",
+		"keep": {
+			"title": "選擇要保留的社群帳號",
+			"body": "你的方案可擁有 {limit} 個。請選擇 {count} 個保留，其餘會被鎖定：頁面與投票照常顯示，但無法發布。",
+			"deadline": "請在 {date} 前選擇，否則會保留最早建立的。",
+			"chosen": "已選 {count} 個，共需 {required} 個",
+			"later": "稍後",
+			"submit": "保留這些",
+			"done": "已儲存你的選擇，其餘已鎖定。",
+			"failed": "無法儲存你的選擇，請再試一次。",
+			"rowTitle": "你擁有的社群帳號超過方案上限",
+			"choose": "選擇"
 		}
 	},
 	"meta": {
 		"siteDescription": "提出問題、參與他人的投票，看看大家真正的想法。投票結束前票數保持密封，沒有人會跟風投票。",
 		"exploreDescription": "依主題瀏覽公開投票，參與進行中的投票，並查看已結束投票的結果。",
 		"profileDescription": "看看 {name} 發起的投票。"
+	},
+	"plan": {
+		"title": "方案",
+		"names": {
+			"FREE": "免費方案",
+			"PRO": "Pro 方案"
+		},
+		"quota": "已擁有 {owned} 個社群帳號，上限 {limit} 個",
+		"upgrade": "升級 Pro",
+		"comingSoon": "Pro 方案即將推出。",
+		"upgradeFailed": "無法開始升級，請再試一次。"
 	}
 }

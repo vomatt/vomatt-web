@@ -17,21 +17,23 @@ import {
 } from '@/components/ui/Dialog';
 import { Check, Pencil } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useActing } from '@/features/communities/ActingProvider';
+import { uploadCommunityAvatar } from '@/features/communities/service';
 import { apiErrorText } from '@/lib/api/error-text';
 import { cn } from '@/lib/utils';
 
 import {
-	AVATAR_PICK_MAX_BYTES,
 	AVATAR_UPLOAD_TYPES,
 	type AvatarChoice,
 	avatarCopyKey,
+	avatarFileProblem,
 	BOT_KINDS,
 	type BotKind,
 	NO_BOT,
 	resolveAvatar,
 	uploadedAvatarSrc,
 } from './catalog';
-import { chooseAvatar } from './service';
+import { chooseAvatar, uploadAvatar } from './service';
 import { ChosenAvatar, UploadedAvatar } from './UserAvatar';
 
 // Profiles render this dialog for every visit; the cropper's code loads only once a photo is being picked
@@ -54,6 +56,7 @@ export function AvatarDialog({
 	className?: string;
 }) {
 	const { t } = useLanguage();
+	const { acting } = useActing();
 	const [open, setOpen] = useState(false);
 	// What everyone sees now; saving refreshes the page, which passes the new avatarUrl
 	const savedUpload = uploadedAvatarSrc(avatarUrl);
@@ -75,12 +78,9 @@ export function AvatarDialog({
 	};
 
 	const pickFile = (file: File) => {
-		if (file.size === 0 || !AVATAR_UPLOAD_TYPES.includes(file.type)) {
-			toast.error(t('avatar.upload.unsupported'), { duration: Infinity });
-			return;
-		}
-		if (file.size > AVATAR_PICK_MAX_BYTES) {
-			toast.error(t('avatar.upload.tooLarge'), { duration: Infinity });
+		const problem = avatarFileProblem(file);
+		if (problem) {
+			toast.error(t(problem), { duration: Infinity });
 			return;
 		}
 		setCropFile(file);
@@ -173,7 +173,12 @@ export function AvatarDialog({
 							<DialogTitle>{t('avatar.crop.title')}</DialogTitle>
 							<DialogDescription>{t('avatar.crop.body')}</DialogDescription>
 						</DialogHeader>
-						<CropStage file={cropFile} onCancel={() => setCropFile(null)} onDone={() => setOpen(false)} />
+						<CropStage
+							file={cropFile}
+							upload={acting ? (formData) => uploadCommunityAvatar(acting.communityId, formData) : uploadAvatar}
+							onCancel={() => setCropFile(null)}
+							onDone={() => setOpen(false)}
+						/>
 					</>
 				) : (
 					<>

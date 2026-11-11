@@ -10,6 +10,8 @@ import {
 	useState,
 } from 'react';
 
+import { useActing } from '@/features/communities/ActingProvider';
+
 const loadPollCreator = () => import('./PollCreator').then((m) => m.PollCreator);
 const PollCreator = dynamic(loadPollCreator, { ssr: false });
 
@@ -22,11 +24,13 @@ export function CreatePollTrigger({
 }: {
 	children: ReactElement<ComponentProps<'button'> & { ref?: Ref<HTMLButtonElement> }>;
 }) {
+	const { acting } = useActing();
 	const [mounted, setMounted] = useState(false);
 	const [open, setOpen] = useState(false);
 	// Not a DialogTrigger, so the dialog is told where focus goes back to on close
 	const triggerRef = useRef<HTMLButtonElement>(null);
 	const { onClick, onFocus, onPointerEnter } = children.props;
+	if (acting?.locked) return null;
 
 	return (
 		<>

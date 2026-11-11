@@ -97,8 +97,8 @@ export function AppSidebar({
 				<BrandLink className="w-24 text-sidebar-foreground hover:text-sidebar-foreground/70 transition-colors" />
 			</SidebarHeader>
 
-			{/* Primary action */}
-			<div className="px-4 pb-4">
+			{/* Primary action; none while acting as a locked community account */}
+			<div className="px-4 pb-4 empty:hidden">
 				{userSession ? (
 					<CreatePollTrigger>
 						<Button variant="create" className="w-full">

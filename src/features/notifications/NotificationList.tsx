@@ -10,6 +10,7 @@ import { LoadMore } from '@/components/LoadMore';
 import { StickyBar } from '@/components/StickyBar';
 import { ChevronRight } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useActing } from '@/features/communities/ActingProvider';
 import { PollRowListSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import { useCursorList } from '@/hooks/useCursorList';
 import { useHydrated } from '@/hooks/useHydrated';
@@ -93,13 +94,14 @@ export function NotificationList({
 
 	// Read whenever a feed is shown, including one a refresh recovers; a failed request leaves the badge as it was
 	const hasFeed = initialPage !== null;
+	const locked = !!useActing().acting?.locked;
 	useEffect(() => {
-		if (!hasFeed) return;
+		if (!hasFeed || locked) return;
 		markAllNotificationsRead().then(
 			(result) => result.ok && refresh(),
 			(error) => console.error('Marking notifications read failed:', error)
 		);
-	}, [hasFeed, refresh]);
+	}, [hasFeed, locked, refresh]);
 
 	// Kept from the first render: pages fetched after read-all come back read, and a refreshed server page lists none
 	const [wasUnread, setWasUnread] = useState<ReadonlySet<string>>(() => new Set(unreadIds));

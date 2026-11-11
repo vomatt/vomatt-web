@@ -27,8 +27,10 @@ import { Switch } from '@/components/ui/Switch';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PhoneBindDialog } from '@/features/account/PhoneBindDialog';
 import { isSettingPublic, VISIBILITY_SETTINGS } from '@/features/account/visibility';
+import { UpgradeButton } from '@/features/billing/UpgradeButton';
 import { CommunityAccountsCard } from '@/features/communities/CommunityAccountsCard';
 import { CreateCommunityDialog } from '@/features/communities/CreateCommunityDialog';
+import { KeepCommunitiesDialog } from '@/features/communities/KeepCommunitiesDialog';
 import { communityMembersHref, type MyCommunity } from '@/features/communities/schema';
 import { ReportProblemDialog } from '@/features/feedback/ReportProblemDialog';
 import { GroupsPanel } from '@/features/groups/GroupsPanel';
@@ -37,6 +39,7 @@ import type { NotificationPreferences } from '@/features/notifications/schema';
 import { updateNotificationPreferences } from '@/features/notifications/service';
 import { useUnreadCount } from '@/features/notifications/UnreadCountProvider';
 import { PasskeysPanel } from '@/features/passkeys/PasskeysPanel';
+import { formatDate } from '@/features/polls/format';
 import { getSessions } from '@/features/sessions/service';
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
 import { useHydrated } from '@/hooks/useHydrated';
@@ -47,7 +50,7 @@ import { signout } from '@/lib/api/services/auth';
 import { deleteMyAccount, editProfile } from '@/lib/api/services/users';
 import { countText } from '@/lib/count';
 import { cn } from '@/lib/utils';
-import type { MyProfile } from '@/types/user';
+import type { CommunityQuota, MyProfile } from '@/types/user';
 
 /** The page's sections, in order; the On this page list links to each. */
 export const SETTINGS_SECTIONS = ['voting', 'notifications', 'appearance', 'privacy', 'help', 'communities', 'account'] as const;
@@ -201,9 +204,29 @@ export default function AccountSettings({
 				<ReportProblemDialog open={reportOpen} onOpenChange={setReportOpen} />
 			</Section>
 
+			{profile.plan && profile.communityQuota && (
+				<Section id="plan" title={t('plan.title')}>
+					<SettingsCard>
+						<div className={cn(rowClassName, 'flex-wrap')}>
+							<RowText
+								title={t(`plan.names.${profile.plan}`)}
+								body={<span className="tabular-nums">{t('plan.quota', { owned: profile.communityQuota.owned, limit: profile.communityQuota.limit })}</span>}
+							/>
+							{profile.plan === 'FREE' && <UpgradeButton variant="outline" />}
+						</div>
+						{profile.communityQuota.selectionRequired && <KeepRow quota={profile.communityQuota} communities={communities} />}
+					</SettingsCard>
+				</Section>
+			)}
+
 			<Section id="communities" title={t('communities.title')}>
-				{communities.length > 0 && <CommunityAccountsCard communities={communities} />}
-				<CreateCommunityRow />
+				{communities.length > 0 && (
+					<CommunityAccountsCard
+						communities={communities}
+						canUnlock={!!profile.communityQuota && profile.communityQuota.owned < profile.communityQuota.limit}
+					/>
+				)}
+				<CreateCommunityRow profile={profile} />
 			</Section>
 
 			<Section id="account" title={t('settings.account')}>
@@ -238,11 +261,46 @@ export default function AccountSettings({
 	);
 }
 
-/** Starts a new community account; the user becomes its owner and lands on its members page. */
-function CreateCommunityRow() {
+/** Until the user chooses which community accounts to keep, by when, and the way to choose. */
+function KeepRow({ quota, communities }: { quota: CommunityQuota; communities: MyCommunity[] }) {
+	const { t, currentLanguage } = useLanguage();
+	const [open, setOpen] = useState(false);
+	return (
+		<div className={cn(rowClassName, 'flex-wrap')}>
+			<RowText
+				title={t('communities.keep.rowTitle')}
+				body={
+					quota.selectionDeadline && (
+						<span suppressHydrationWarning>
+							{t('communities.keep.deadline', { date: formatDate(quota.selectionDeadline, currentLanguage) })}
+						</span>
+					)
+				}
+			/>
+			<Button size="md" onClick={() => setOpen(true)}>
+				{t('communities.keep.choose')}
+			</Button>
+			<KeepCommunitiesDialog open={open} onOpenChange={setOpen} quota={quota} communities={communities} />
+		</div>
+	);
+}
+
+/** Starts a new community account; the user becomes its owner and lands on its members page. At the plan's limit, says so instead. */
+function CreateCommunityRow({ profile: { plan, communityQuota: quota } }: { profile: MyProfile }) {
 	const { t } = useLanguage();
 	const router = useRouter();
 	const [open, setOpen] = useState(false);
+	if (quota && quota.owned >= quota.limit) {
+		const free = plan === 'FREE';
+		return (
+			<SettingsCard>
+				<div className={cn(rowClassName, 'flex-wrap')}>
+					<RowText title={t('communities.limitTitle')} body={t(free ? 'communities.limitBodyFree' : 'communities.limitBodyPro')} />
+					{free && <UpgradeButton />}
+				</div>
+			</SettingsCard>
+		);
+	}
 	return (
 		<SettingsCard>
 			<button type="button" onClick={() => setOpen(true)} className={cn(rowLinkClassName, 'w-full text-left')}>

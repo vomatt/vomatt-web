@@ -119,7 +119,7 @@ export function VisitorProfileView({
 				<ProfileRecord
 					cells={[
 						{ label: t('profile.recordAsked'), value: profile.totalPolls },
-						{ label: t('profile.recordVoted'), value: profile.totalVotes },
+						...(profile.community ? [] : [{ label: t('profile.recordVoted'), value: profile.totalVotes }]),
 					]}
 				/>
 				<AskedList username={profile.username} total={profile.totalPolls} initialPage={polls} />

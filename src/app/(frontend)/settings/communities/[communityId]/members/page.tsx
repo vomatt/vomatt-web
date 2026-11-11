@@ -5,8 +5,12 @@ import { PageShell } from '@/components/layout/PageShell';
 import { T } from '@/components/T';
 import { getMyCommunities, getMyProfile, getTokenSession, redirectToLogin } from '@/data/auth';
 import { CommunityMembers } from '@/features/communities/CommunityMembers';
+import { CommunityProfileCard } from '@/features/communities/CommunityProfileCard';
+import { DeleteCommunity } from '@/features/communities/DeleteCommunity';
+import { canDelete } from '@/features/communities/permissions';
 import { communityMembersHref } from '@/features/communities/schema';
 import { listMembers } from '@/features/communities/service';
+import { getUserProfile } from '@/lib/api/services/users';
 import { getServerMessages } from '@/lib/getServerLocale';
 
 import { SettingsSubpageHeader } from '../../../_components/SettingsSubpageHeader';
@@ -32,13 +36,18 @@ export default async function CommunityMembersPage({ params }: Props) {
 	const community = communities.ok ? communities.data.find((o) => o.communityId === communityId) : undefined;
 	// Not a member (removed, never was, or the account is gone): 403 `community.not_member`
 	const notMember = (communities.ok && !community) || (!members.ok && members.errorCode === 'community.not_member');
+	const publicProfile = community ? await getUserProfile(community.username).catch(() => null) : null;
 
 	return (
 		<PageShell>
 			<div className="flex flex-col gap-8">
 				<SettingsSubpageHeader title={community ? community.displayName || community.username : <T k="communities.members" />} />
 				{community && members.ok ? (
-					<CommunityMembers community={community} viewerId={token.sub} members={members.data} />
+					<>
+						<CommunityProfileCard community={community} bio={publicProfile?.bio ?? null} />
+						<CommunityMembers community={community} viewerId={token.sub} members={members.data} />
+						{canDelete(community.role) && <DeleteCommunity community={community} />}
+					</>
 				) : notMember ? (
 					<EmptyCard title={<T k="communities.notMemberTitle" />} body={<T k="communities.notMemberBody" />} />
 				) : (

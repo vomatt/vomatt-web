@@ -177,6 +177,16 @@ describe('apiClient while acting as a community', () => {
 		expect(mockDeleteCookie).toHaveBeenCalledWith('actAs');
 	});
 
+	it('still refuses the write when the cookie is read-only (a page rendering)', async () => {
+		fetchMock.mockResolvedValue(notMember());
+		mockDeleteCookie.mockImplementationOnce(() => {
+			throw new Error('Cookies can only be modified in a Server Action or Route Handler');
+		});
+
+		await expect(apiClient('/votes', { method: 'POST' })).rejects.toMatchObject({ statusCode: 403 });
+		expect(fetchMock).toHaveBeenCalledTimes(1);
+	});
+
 	it('keeps acting when a read finds the membership gone (the layout ends it)', async () => {
 		fetchMock.mockResolvedValueOnce(notMember()).mockResolvedValueOnce(json({ success: true, data: {} }));
 
@@ -197,6 +207,31 @@ describe('apiClient while acting as a community', () => {
 
 		await apiClient(endpoint, { method });
 		expect(actAs(0)).toBeNull();
+	});
+
+	it.each([
+		['PATCH', '/communities/c2'],
+		['PUT', '/communities/c1/avatar'],
+		['GET', '/communities/c2/members'],
+	])('sends %s %s, which names its account, as the person', async (method, endpoint) => {
+		fetchMock.mockResolvedValue(json({ success: true, data: {} }));
+
+		await apiClient(endpoint, { method });
+		expect(actAs(0)).toBeNull();
+	});
+
+	it('keeps acting when a write to another account finds the user isn’t its member', async () => {
+		fetchMock.mockResolvedValue(notMember());
+
+		await expect(apiClient('/communities/c2', { method: 'PATCH' })).rejects.toMatchObject({ statusCode: 403 });
+		expect(mockDeleteCookie).not.toHaveBeenCalled();
+	});
+
+	it('acts as the community when creating one', async () => {
+		fetchMock.mockResolvedValue(json({ success: true, data: {} }));
+
+		await apiClient('/communities', { method: 'POST' });
+		expect(actAs(0)).toBe('c1');
 	});
 
 	it.each([

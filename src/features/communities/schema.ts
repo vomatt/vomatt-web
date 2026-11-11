@@ -13,6 +13,8 @@ export const MyCommunitySchema = z.object({
 	displayName: z.string().nullish(),
 	avatarUrl: z.string().nullish(),
 	role: CommunityRoleSchema,
+	/** Readable, but it can't post or change anything except be deleted, handed over or left; missing from an older API */
+	locked: z.boolean().optional(),
 });
 
 export const CommunityMemberSchema = z.object({
@@ -33,9 +35,6 @@ export const canActAs = (role: CommunityRole) => OFFERED_ROLES.includes(role);
 /** The name an account goes by: its display name, else its username. */
 export const accountName = (account: { username: string; displayName?: string | null }) =>
 	account.displayName || account.username;
-
-/** OWNER and ADMIN edit the account's profile (API: profile writes need one of them). */
-export const canEditProfile = (role: CommunityRole) => role === 'OWNER' || role === 'ADMIN';
 
 export type CommunityRole = z.infer<typeof CommunityRoleSchema>;
 export type MyCommunity = z.infer<typeof MyCommunitySchema>;

@@ -5,12 +5,15 @@ import { useId } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Plus } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useActing } from '@/features/communities/ActingProvider';
 import { CreatePollTrigger } from '@/features/polls/components/CreatePollTrigger';
 
 /** The rail's invitation to ask: "Write one" opens the poll creator. Signed-in viewers only. */
 export function AskCard() {
 	const { t } = useLanguage();
 	const headingId = useId();
+	const { acting } = useActing();
+	if (acting?.locked) return null;
 
 	return (
 		<section

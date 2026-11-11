@@ -14,6 +14,7 @@ import { type Follow, FollowButton } from '@/features/follows/FollowButton';
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn(), info: jest.fn() } }));
 const mockRefresh = jest.fn();
+jest.mock('@/features/communities/service', () => ({ unlockCommunity: jest.fn() }));
 jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh: mockRefresh }), usePathname: () => '/' }));
 jest.mock('@/hooks/use-mobile', () => ({ useIsMobile: () => false }));
 
@@ -51,6 +52,19 @@ describe('AccountSwitcher', () => {
 		await waitFor(() => expect(actAsCommunity).toHaveBeenCalledWith('c1'));
 		expect(toast.success).toHaveBeenCalledWith('You’re acting as Community c1');
 		expect(mockRefresh).toHaveBeenCalled();
+	});
+});
+
+describe('AccountSwitcher, locked accounts', () => {
+	it('marks a locked account but still switches to it', async () => {
+		renderWith({ communities: [{ ...community('c1', 'OWNER'), locked: true }] }, <AccountSwitcher />);
+		fireEvent.click(screen.getByRole('button', { name: 'Switch account' }));
+		expect(await screen.findByRole('menuitemradio', { name: /Community c1/ })).toHaveTextContent('Locked');
+	});
+
+	it('says in the banner that a locked account can’t post', () => {
+		renderWith({ acting: { ...community('c1', 'OWNER'), locked: true } }, <ActingBanner />);
+		expect(screen.getByRole('status')).toHaveTextContent('You’re acting as Community c1, which is locked: it can’t post until it’s unlocked.');
 	});
 });
 

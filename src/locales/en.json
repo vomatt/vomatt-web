@@ -318,13 +318,15 @@
 		"mentioned": "{name} mentioned you in {title}",
 		"liked": "{name} liked your comment in {title}",
 		"pollLiked": "{name} liked your poll {title}",
+		"communityLocked": "{name} was locked because no choice was made before the deadline",
 		"categoryLabel": "Category",
 		"category": {
 			"CONVERSATION": "Conversation",
 			"LIKE": "Likes",
 			"POLL_END": "Poll ends",
 			"INVITATION": "Invitations",
-			"FOLLOW": "Follows"
+			"FOLLOW": "Follows",
+			"COMMUNITY": "Community"
 		},
 		"categoryEmpty": "Nothing here yet.",
 		"categoryFailed": "Couldn’t load that tab. Try again.",
@@ -1223,12 +1225,21 @@
 			"roles_fixed": "Community account roles can’t be changed.",
 			"last_owner": "A community account needs at least one owner. Transfer ownership first.",
 			"not_member": "You’re no longer a member of this account.",
-			"role_forbidden": "Your role in this community account can’t do that. Editors can change only the polls and comments they posted.",
+			"username_immutable": "A community account’s username can’t be changed.",
+			"role_forbidden": "Your role in this community account doesn’t allow this. Owners and admins manage the account and its members; chief editors change any poll or comment; editors change only their own; analysts only see result reports.",
 			"member": {
 				"exists": "They’re already a member.",
 				"invalid": "They can’t be added to this account.",
 				"not_found": "They’re no longer a member. The list has been refreshed."
+			},
+			"limit_reached": "You already own as many community accounts as your plan allows.",
+			"locked": "This community account is locked, so it can’t do that. Upgrade to Pro, or have an owner with room unlock it.",
+			"keep": {
+				"invalid": "Choose exactly as many accounts as asked, all ones you own."
 			}
+		},
+		"billing": {
+			"unavailable": "Pro is coming soon."
 		}
 	},
 	"blocks": {
@@ -1420,6 +1431,20 @@
 		"create": "Create",
 		"created": "Created @{name}",
 		"createFailed": "Couldn’t create the account. Please try again.",
+		"profile": "Profile",
+		"editIntro": "Everyone sees these on @{name}’s page. The username stays the same.",
+		"editForbidden": "Only this account’s owners and admins can edit its profile.",
+		"bioPlaceholder": "Tell people about this group",
+		"deleteTitle": "Delete community account",
+		"deleteBody": "Removes its polls, with their votes and comments, and every member. This cannot be undone.",
+		"deleteCtaEllipsis": "Delete account…",
+		"deleteConfirmTitle": "Delete @{name}?",
+		"deleteConfirmBody": "Type {name} to confirm. The account, its polls and their votes and comments will be removed permanently.",
+		"deleteConfirmLabel": "Type the account’s username to confirm",
+		"deleteConfirmMismatch": "Type {name} to delete this account.",
+		"deleteCta": "Delete account",
+		"deleted": "Deleted @{name}",
+		"deleteFailed": "Couldn’t delete the account. It’s still active; try again.",
 		"acting": {
 			"switcher": "Switch account",
 			"you": "You",
@@ -1436,12 +1461,46 @@
 			"postingAs": "Posting as {name}",
 			"settingsTitle": "These settings are your own",
 			"settingsBody": "You’re acting as {name}. Switch back to you to change them.",
-			"manageMembers": "Manage members"
+			"manageMembers": "Manage members",
+			"bannerLocked": "You’re acting as {name}, which is locked: it can’t post until it’s unlocked."
+		},
+		"limitTitle": "You own as many community accounts as your plan allows",
+		"limitBodyFree": "Upgrade to Pro to own more.",
+		"limitBodyPro": "To create another, transfer ownership of one you own.",
+		"theirLimitReached": "They already own as many community accounts as their plan allows, so they can’t become an owner.",
+		"locked": "Locked",
+		"lockedBody": "Its page and polls stay up, but it can’t post or change anything. You can still hand ownership over or leave it. Upgrade to Pro, or have an owner with room unlock it.",
+		"unlock": "Unlock",
+		"unlockLabel": "Unlock {name}",
+		"unlocked": "Unlocked {name}",
+		"unlockFailed": "Couldn’t unlock the account. Please try again.",
+		"keep": {
+			"title": "Choose which community accounts to keep",
+			"body": "Your plan lets you own {limit}. Choose {count} to keep. The others are locked: their pages and polls stay up, but they can’t post.",
+			"deadline": "Choose by {date}, or the earliest created are kept.",
+			"chosen": "{count} of {required} chosen",
+			"later": "Later",
+			"submit": "Keep these",
+			"done": "Your choice is saved. The others are locked.",
+			"failed": "Couldn’t save your choice. Please try again.",
+			"rowTitle": "You own more community accounts than your plan allows",
+			"choose": "Choose"
 		}
 	},
 	"meta": {
 		"siteDescription": "Ask a question, vote on other people’s polls, and see what everyone really thinks. Ballots stay sealed until a poll ends, so nobody votes with the crowd.",
 		"exploreDescription": "Browse public polls by topic. Vote on open polls and see the results of polls that have ended.",
 		"profileDescription": "See the polls {name} has asked."
+	},
+	"plan": {
+		"title": "Plan",
+		"names": {
+			"FREE": "Free plan",
+			"PRO": "Pro plan"
+		},
+		"quota": "{owned} of {limit} community accounts owned",
+		"upgrade": "Upgrade to Pro",
+		"comingSoon": "Pro is coming soon.",
+		"upgradeFailed": "Couldn’t start the upgrade. Please try again."
 	}
 }

@@ -8,6 +8,7 @@ import { SidebarMenuAction } from '@/components/ui/Sidebar';
 import { Check, ChevronDown, Plus, User } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
+import { META_GAP } from '@/lib/rich';
 import { cn } from '@/lib/utils';
 
 import { useActing, useSwitchAccount } from './ActingProvider';
@@ -88,6 +89,12 @@ export function AccountSwitcher() {
 											<span className="block truncate text-body-4 font-medium">{accountName(c)}</span>
 											<span className="block text-caption-3 text-muted-foreground">
 												{t('communities.yourRole', { role: t(`communities.roles.${c.role}`) })}
+												{c.locked && (
+													<>
+														{META_GAP}
+														{t('communities.locked')}
+													</>
+												)}
 											</span>
 										</span>
 										<SelectedMark />

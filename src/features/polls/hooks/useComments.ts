@@ -290,6 +290,7 @@ export function useComments(
 			apply(liked);
 			const result = await settle((liked ? likeComment : unlikeComment)(pollId, comment.id));
 			if (!result.ok) apply(!liked);
+			return result;
 		},
 		[pollId, updateOne]
 	);
