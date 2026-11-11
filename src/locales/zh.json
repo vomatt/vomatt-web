@@ -1106,7 +1106,8 @@
 				"self": "無法封鎖自己"
 			},
 			"follow": {
-				"blocked": "不能追蹤已封鎖的使用者，請先解除封鎖"
+				"blocked": "不能追蹤已封鎖的使用者，請先解除封鎖",
+				"community": "社群帳號不能追蹤別人"
 			},
 			"avatar": {
 				"unsupported_image": "不支援的圖片：請上傳 4000 萬像素以內的 JPEG、PNG、GIF 或 BMP"

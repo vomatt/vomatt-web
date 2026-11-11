@@ -1119,7 +1119,8 @@
 				"self": "You can’t block yourself"
 			},
 			"follow": {
-				"blocked": "You can’t follow a user you blocked; unblock them first"
+				"blocked": "You can’t follow a user you blocked; unblock them first",
+				"community": "A community account can’t follow anyone"
 			},
 			"avatar": {
 				"unsupported_image": "Unsupported image: upload a JPEG, PNG, GIF or BMP of at most 40 megapixels"
