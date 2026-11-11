@@ -229,6 +229,20 @@ describe('CommentThread', () => {
 		expect(like).toHaveTextContent('2');
 	});
 
+	it('says why a like was refused while acting as a locked community account', async () => {
+		const { toast } = jest.requireMock('sonner');
+		service.likeComment.mockResolvedValue({ ok: false, status: 403, errorCode: 'community.locked', message: 'raw' });
+		render(<Harness />);
+		await screen.findByText('Mine');
+		fireEvent.click(screen.getAllByRole('button', { name: 'Like' })[0]);
+
+		await waitFor(() =>
+			expect(toast.error).toHaveBeenCalledWith(
+				'This community account is locked, so it can’t do that. Upgrade to Pro, or have an owner with room unlock it.'
+			)
+		);
+	});
+
 	it('deletes after confirming', async () => {
 		service.deleteComment.mockResolvedValue({ ok: true, data: undefined });
 		render(<Harness />);

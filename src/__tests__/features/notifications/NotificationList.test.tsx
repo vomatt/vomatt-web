@@ -1,5 +1,6 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 
+import { ActingProvider } from '@/features/communities/ActingProvider';
 import { dayGroup, NotificationList, NotificationSettingsLink } from '@/features/notifications/NotificationList';
 import type { Notification } from '@/features/notifications/schema';
 import { META_GAP } from '@/lib/rich';
@@ -16,6 +17,7 @@ jest.mock('next/link', () => {
 	};
 });
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
+jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh: jest.fn() }) }));
 jest.mock('@/features/polls/service', () => ({}));
 const mockMarkAllRead = jest.fn();
 jest.mock('@/features/notifications/service', () => ({
@@ -272,6 +274,17 @@ describe('NotificationList rows', () => {
 		expect(within(row).getAllByRole('link')).toHaveLength(1);
 	});
 
+	it('says a community account was locked at the deadline and links to Settings to unlock it', () => {
+		renderList([
+			{ id: 'community_locked_a1', kind: 'COMMUNITY_LOCKED', createdAt: iso(-HOUR), read: false, actor: { ...person('robotics', 'Robotics Club'), community: true } },
+		]);
+		const row = rowOf('@robotics');
+		expect(row).toHaveTextContent('@robotics was locked because no choice was made before the deadline');
+		expect(within(row).getByRole('link', { name: '@robotics' })).toHaveAttribute('href', '/robotics');
+		expect(within(row).getByRole('link', { name: 'View' })).toHaveAttribute('href', '/settings#communities');
+		expect(screen.getByRole('button', { name: 'Community' })).toBeInTheDocument();
+	});
+
 	it('keeps the category pills on one sticky row that runs to the screen edges on phones', () => {
 		renderList([cancelled]);
 		const pills = screen.getByRole('group', { name: 'Category' });
@@ -313,6 +326,18 @@ describe('NotificationList read state', () => {
 		renderList([invitation, result]);
 		await waitFor(() => expect(mockRefresh).toHaveBeenCalledTimes(1));
 		expect(mockMarkAllRead).toHaveBeenCalledTimes(1);
+	});
+
+	it('reads nothing while acting as a locked community account, which the API would refuse', async () => {
+		const acting = { communityId: 'c1', username: 'robotics', displayName: 'Robotics Club', avatarUrl: null, role: 'OWNER' as const, locked: true };
+		render(
+			<ActingProvider state={{ acting, me: null, communities: [], stale: false }}>
+				<NotificationList initialPage={{ items: [invitation], nextCursor: null }} unreadIds={null} viewerUsername="robotics" />
+			</ActingProvider>
+		);
+		await act(async () => {});
+		expect(mockMarkAllRead).not.toHaveBeenCalled();
+		expect(mockToastError).not.toHaveBeenCalled();
 	});
 
 	it('keeps the dots for this visit, until a row is opened', async () => {

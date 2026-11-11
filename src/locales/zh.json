@@ -309,13 +309,15 @@
 		"mentioned": "{name} 在 {title} 提到了你",
 		"liked": "{name} 喜歡你在 {title} 的留言",
 		"pollLiked": "{name} 喜歡你的投票 {title}",
+		"communityLocked": "{name} 已被鎖定，因為期限前沒有選擇要保留的社群帳號",
 		"categoryLabel": "分類",
 		"category": {
 			"CONVERSATION": "對話",
 			"LIKE": "喜歡",
 			"POLL_END": "投票結束",
 			"INVITATION": "邀請",
-			"FOLLOW": "追蹤"
+			"FOLLOW": "追蹤",
+			"COMMUNITY": "社群"
 		},
 		"categoryEmpty": "這裡還沒有內容。",
 		"categoryFailed": "無法載入這個分頁，請再試一次。",
@@ -1212,7 +1214,7 @@
 				"invalid": "無法將對方加入這個帳號。",
 				"not_found": "對方已不是成員，列表已重新整理。"
 			},
-			"limit_reached": "你擁有的社群帳號已達方案上限。升級 Pro 即可擁有更多。",
+			"limit_reached": "你擁有的社群帳號已達方案上限。",
 			"locked": "這個社群帳號已被鎖定，無法執行此操作。升級 Pro，或請有額度的擁有者解鎖。",
 			"keep": {
 				"invalid": "請選擇剛好所要求數量的帳號，且都必須是你擁有的。"
@@ -1430,10 +1432,10 @@
 		},
 		"limitTitle": "擁有的社群帳號已達方案上限",
 		"limitBodyFree": "升級 Pro 即可擁有更多。",
-		"limitBodyPro": "要建立新的，請先刪除一個或轉移擁有者。",
+		"limitBodyPro": "要建立新的，請先將你擁有的其中一個轉移給其他擁有者。",
 		"theirLimitReached": "對方擁有的社群帳號已達方案上限，無法成為擁有者。",
 		"locked": "已鎖定",
-		"lockedBody": "它的頁面與投票照常顯示，但無法發布或修改任何內容。你仍可以轉移擁有者、離開或刪除它。升級 Pro，或請有額度的擁有者解鎖。",
+		"lockedBody": "它的頁面與投票照常顯示，但無法發布或修改任何內容。你仍可以轉移擁有者或離開。升級 Pro，或請有額度的擁有者解鎖。",
 		"unlock": "解鎖",
 		"unlockLabel": "解鎖 {name}",
 		"unlocked": "已解鎖 {name}",

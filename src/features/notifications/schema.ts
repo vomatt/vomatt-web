@@ -24,7 +24,7 @@ export type PollSummary = z.infer<typeof PollSummarySchema>;
 const base = { id: z.string(), createdAt: z.string(), read: z.boolean() };
 
 /** The tab a notification is filed under, fixed by its `kind`; the feed and the unread count filter by it. */
-export const NOTIFICATION_CATEGORIES = ['CONVERSATION', 'LIKE', 'POLL_END', 'INVITATION', 'FOLLOW'] as const;
+export const NOTIFICATION_CATEGORIES = ['CONVERSATION', 'LIKE', 'POLL_END', 'INVITATION', 'FOLLOW', 'COMMUNITY'] as const;
 export type NotificationCategory = (typeof NOTIFICATION_CATEGORIES)[number];
 
 /** One item of `GET /notifications`; which of `actor`, `poll` and `comment` it carries follows its `kind`. */
@@ -56,6 +56,7 @@ export const NotificationSchema = z.discriminatedUnion('kind', [
 		poll: PollSummarySchema,
 		comment: z.object({ id: z.string(), parentId: z.string().nullish(), excerpt: z.string() }),
 	}),
+	z.object({ ...base, kind: z.literal('COMMUNITY_LOCKED'), actor: FollowUserDtoSchema }),
 ]);
 
 export type Notification = z.infer<typeof NotificationSchema>;
