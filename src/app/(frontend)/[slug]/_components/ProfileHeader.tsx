@@ -37,10 +37,11 @@ const detailLink =
  * The same header for the owner and for visitors. Visitors get only the fields
  * the owner made public: the API sends hidden ones as null, so they drop out.
  * The owner sees every field, with one lock beside each detail only they see;
- * their avatar opens the dialog to change it.
+ * their avatar opens the dialog to change it. A community account is a group:
+ * no real name or gender, and no following (it can't follow anyone).
  */
 export default function ProfileHeader({
-	profile,
+	profile: given,
 	actions,
 	isOwn = false,
 	hiddenFields = [],
@@ -59,6 +60,7 @@ export default function ProfileHeader({
 	mutuals?: ReactNode;
 }) {
 	const { t, currentLanguage } = useLanguage();
+	const profile = given.community ? { ...given, firstName: null, lastName: null, gender: null } : given;
 	const name = profileName(profile);
 	const isHidden = (field: string) => hiddenFields.includes(field);
 	const leadsWithRealName = realName(profile) !== null;
@@ -141,7 +143,7 @@ export default function ProfileHeader({
 				{/* Items set apart by space and kept whole when they wrap */}
 				<div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-caption-2 text-muted-foreground">
 					{listCount('followers', profile.followersCount)}
-					{listCount('following', profile.followingCount)}
+					{!profile.community && listCount('following', profile.followingCount)}
 					{profile.gender && (
 						<span>
 							{t('profile.genderMeta', { gender: genderLabel(t, profile.gender) })}
