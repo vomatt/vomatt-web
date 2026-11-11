@@ -2,7 +2,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 import { SwitchBackButton } from './ActingProvider';
 
-/** In place of the Ballot while acting: community accounts never vote (API: `vote.ballot.community_not_allowed`). */
+/** Under the Ballot's options while acting: community accounts never vote (API: `vote.ballot.community_not_allowed`). */
 export function CommunityCantVote() {
 	const { t } = useLanguage();
 	return (

@@ -25,6 +25,11 @@ export function personKey(person: Pick<Person, 'userId' | 'email'>) {
 	return person.email ?? person.userId ?? '';
 }
 
+/** The user IDs among `people`; an email-only person has none. */
+export function userIdsOf(people: readonly Pick<Person, 'userId'>[] | null) {
+	return people?.flatMap((person) => (person.userId ? [person.userId] : [])) ?? [];
+}
+
 /** The API path of one Invitee or member under `base`: by `?email=`, or by user ID. */
 export function personPath(base: string, person: Pick<Person, 'userId' | 'email'>) {
 	return person.email

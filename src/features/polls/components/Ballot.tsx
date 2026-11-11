@@ -6,6 +6,7 @@ import { useId, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Eye, EyeOff, Lock } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { CommunityCantVote } from '@/features/communities/CommunityCantVote';
 import { useHydrated } from '@/hooks/useHydrated';
 import { cn } from '@/lib/utils';
 
@@ -22,6 +23,8 @@ type BallotProps = {
 	ballot: BallotState;
 	requireAuth: (action: () => void) => void;
 	isOwner: boolean;
+	/** Acting as a community account, which never votes: the options show, but can't be picked. */
+	isActing: boolean;
 };
 
 /** What the viewer is doing with a cast Ballot. Without a Ballot the card shows the Vote row instead. */
@@ -34,8 +37,8 @@ type SealedMode =
 	| { kind: 'updating'; from: string }
 	| { kind: 'withdrawing' };
 
-/** Card states A (no Ballot), B (has Ballot) and C (Scheduled). Never shows counts. */
-export function Ballot({ poll, status, ballot, requireAuth, isOwner }: BallotProps) {
+/** Card states A (no Ballot), B (has Ballot), C (Scheduled) and acting. Never shows counts. */
+export function Ballot({ poll, status, ballot, requireAuth, isOwner, isActing }: BallotProps) {
 	const { t, currentLanguage } = useLanguage();
 	const isHydrated = useHydrated();
 	const [mode, setMode] = useState<SealedMode>({ kind: 'row' });
@@ -44,7 +47,7 @@ export function Ballot({ poll, status, ballot, requireAuth, isOwner }: BallotPro
 	const { myOptionId, savedOptionId, selected, setSelected, anonymous, setAnonymous, isPending, pendingAction } = ballot;
 	const isScheduled = status === 'scheduled';
 	// A first vote in flight already has a Ballot; its Vote button stays (busy) until it is in
-	const view = isScheduled ? 'scheduled' : !myOptionId || pendingAction === 'vote' ? 'vote' : mode.kind;
+	const view = isActing ? 'acting' : isScheduled ? 'scheduled' : !myOptionId || pendingAction === 'vote' ? 'vote' : mode.kind;
 	// A pick waits on Vote or Update vote; on phones that row stays on screen until it is pressed
 	const awaitsConfirm = (view === 'vote' && !!selected) || view === 'updating';
 	// One id per Ballot, not per Poll: the feed card and the Poll page each have a Ballot for the same Poll,
@@ -53,6 +56,7 @@ export function Ballot({ poll, status, ballot, requireAuth, isOwner }: BallotPro
 	// Nobody else sees the voter list on a 'nobody' Poll, or on an 'owner' one its owner votes on: nothing to hide from
 	const canHideName =
 		!isScheduled &&
+		!isActing &&
 		anonymous !== null &&
 		poll.voterVisibility !== 'nobody' &&
 		!(isOwner && poll.voterVisibility === 'owner');
@@ -111,7 +115,9 @@ export function Ballot({ poll, status, ballot, requireAuth, isOwner }: BallotPro
 	);
 
 	let actions: React.ReactNode;
-	if (view === 'scheduled') {
+	if (view === 'acting') {
+		actions = <CommunityCantVote />;
+	} else if (view === 'scheduled') {
 		actions = (
 			<p className="flex min-h-11 items-center text-body-4 text-muted-foreground">
 				{isHydrated && t('poll.opensHint', { distance: formatFromNow(poll.startTime, currentLanguage) })}
@@ -208,7 +214,7 @@ export function Ballot({ poll, status, ballot, requireAuth, isOwner }: BallotPro
 			<form onSubmit={(event) => event.preventDefault()}>
 				<fieldset
 					ref={optionsRef}
-					disabled={isScheduled || isPending}
+					disabled={isScheduled || isActing || isPending}
 					// A short name: the question is the heading right above, so naming the group by it reads it twice
 					aria-label={t('poll.options')}
 					className="isolate space-y-2.5"
@@ -225,7 +231,7 @@ export function Ballot({ poll, status, ballot, requireAuth, isOwner }: BallotPro
 									'has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring',
 									// Raised so the highlight slides over the other options, not under the ones after it
 									isSelected ? 'z-10 border-transparent' : 'hover:border-border-strong',
-									isScheduled && 'cursor-not-allowed text-muted-foreground'
+									(isScheduled || isActing) && 'cursor-not-allowed text-muted-foreground'
 								)}
 							>
 								{isSelected && <SelectionHighlight layoutId={highlightId} inTransit={isPending} />}

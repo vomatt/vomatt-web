@@ -9,7 +9,6 @@ import { toast } from 'sonner';
 import { AuthDialog } from '@/components/auth/AuthDialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useActing } from '@/features/communities/ActingProvider';
-import { CommunityCantVote } from '@/features/communities/CommunityCantVote';
 import { UserChip } from '@/features/profiles/UserChip';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
@@ -233,8 +232,6 @@ export function PollCard({
 								onSealed={refetch}
 								onSelectOption={canSeeVoters ? showVoters : undefined}
 							/>
-						) : acting ? (
-							<CommunityCantVote />
 						) : (
 							<Ballot
 								poll={poll}
@@ -242,6 +239,7 @@ export function PollCard({
 								ballot={ballot}
 								requireAuth={requireAuth}
 								isOwner={isOwner}
+								isActing={!!acting}
 							/>
 						)}
 					</m.div>

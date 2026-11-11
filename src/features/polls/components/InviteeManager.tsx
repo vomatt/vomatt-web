@@ -17,7 +17,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { apiErrorText } from '@/lib/api/error-text';
 
-import { EMPTY_INVITEES, isSelectionEmpty, personKey, selectionToInput } from '../invitees';
+import { EMPTY_INVITEES, isSelectionEmpty, personKey, selectionToInput, userIdsOf } from '../invitees';
 import type { Invitee } from '../schema';
 import { addInvitees, getInvitees, removeInvitee } from '../service';
 import { InviteePicker } from './InviteePicker';
@@ -126,7 +126,13 @@ export function InviteeManager({ pollId, open, onOpenChange, onChanged }: Invite
 
 				<div className="space-y-3 border-t border-border p-4">
 					<Label htmlFor="add-invitees">{t('invitees.addLabel')}</Label>
-					<InviteePicker id="add-invitees" withGroups value={selection} onChange={setSelection} />
+					<InviteePicker
+						id="add-invitees"
+						withGroups
+						value={selection}
+						onChange={setSelection}
+						excludeUserIds={userIdsOf(invitees)}
+					/>
 					<div className="flex justify-end">
 						<Button
 							type="button"
