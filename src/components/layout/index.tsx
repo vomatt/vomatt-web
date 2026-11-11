@@ -12,6 +12,7 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/Sidebar';
 import { getLoginHref, getUserSession, loadActingState, loadMyProfile } from '@/data/auth';
 import { ActingBanner } from '@/features/communities/ActingBanner';
 import { ActingProvider } from '@/features/communities/ActingProvider';
+import { KeepCommunitiesPrompt } from '@/features/communities/KeepCommunitiesPrompt';
 import { UnreadCountProvider } from '@/features/notifications/UnreadCountProvider';
 
 interface LayoutProps {
@@ -50,6 +51,8 @@ export async function Layout({ children }: LayoutProps) {
 					{/* Wraps the nav too: the poll creator opens from the sidebar and TabBar */}
 					<MotionProvider>
 						<ReloadWhenSessionUnconfirmed />
+						{/* Acting, the profile is the community account's; the person is asked once they're back */}
+						{!acting.acting && profile?.communityQuota?.selectionRequired && <KeepCommunitiesPrompt quota={profile.communityQuota} />}
 						<AdaSkip />
 						<AppSidebar userSession={session} profile={profile} loginLink={loginLink} />
 						<Header signedIn={!!session} loginLink={loginLink} username={profile?.username} avatarUrl={profile?.avatarUrl} />
