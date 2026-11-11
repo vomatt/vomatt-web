@@ -235,7 +235,12 @@ describe('CommunityProfileCard', () => {
 			fireEvent.change(nameField(), { target: { value: 'New' } });
 			fireEvent.click(pill(/^Bio: everyone/));
 			save();
-			await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Locked', expect.anything()));
+			await waitFor(() =>
+				expect(toast.error).toHaveBeenCalledWith(
+					'This community account is locked, so it can’t do that. Upgrade to Pro, or have an owner with room unlock it.',
+					expect.anything()
+				)
+			);
 			expect(screen.getByRole('dialog')).toBeInTheDocument();
 			expect(mockRefresh).toHaveBeenCalled();
 		});
