@@ -127,6 +127,7 @@ export function OwnProfileView({
 											avatarUrl: profile.avatarUrl,
 										}}
 										bio={profile.bio ?? ''}
+										visibility={visibility}
 										defaultOpen={openEdit}
 									/>
 								)}

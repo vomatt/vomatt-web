@@ -20,9 +20,13 @@ import {
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { isFieldPublic, visibilityChanges } from '@/features/account/visibility';
+import { VisibilityPill } from '@/features/account/VisibilityPill';
 import { AVATAR_UPLOAD_TYPES, avatarFileProblem } from '@/features/avatars/catalog';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
+import { type ActionFailure } from '@/lib/api/action';
 import { apiErrorText } from '@/lib/api/error-text';
+import { updateVisibility } from '@/lib/api/services/users';
 import { cn } from '@/lib/utils';
 
 import { canEditProfile } from './permissions';
@@ -38,6 +42,7 @@ const CropStage = dynamic(loadCropStage, {
 const NAME_MAX_LENGTH = 100;
 const BIO_MAX_LENGTH = 500;
 const labelClassName = 'text-caption-1 font-medium text-foreground';
+const fieldHeaderClassName = 'flex min-h-7 items-center justify-between gap-2';
 
 export function CommunityProfileCard({ community, bio }: { community: MyCommunity; bio: string | null }) {
 	const { t } = useLanguage();
@@ -67,10 +72,13 @@ export function EditCommunityProfile({
 	community,
 	bio: savedBio,
 	defaultOpen = false,
+	visibility: savedVisibility,
 }: {
 	community: MyCommunity;
 	bio: string;
 	defaultOpen?: boolean;
+	/** Only while acting as the account: `PATCH /users/me/visibility` then reaches it through X-Act-As. */
+	visibility?: Record<string, boolean>;
 }) {
 	const { t } = useLanguage();
 	const router = useRouter();
@@ -78,6 +86,7 @@ export function EditCommunityProfile({
 	const [open, setOpen] = useState(defaultOpen);
 	const [name, setName] = useState(savedName);
 	const [bio, setBio] = useState(savedBio);
+	const [visibility, setVisibility] = useState(savedVisibility ?? {});
 	const [nameError, setNameError] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
 	const [cropFile, setCropFile] = useState<File | null>(null);
@@ -87,6 +96,7 @@ export function EditCommunityProfile({
 		if (next) {
 			setName(savedName);
 			setBio(savedBio);
+			setVisibility(savedVisibility ?? {});
 			setNameError(false);
 		}
 		setOpen(next);
@@ -109,26 +119,41 @@ export function EditCommunityProfile({
 			...(displayName !== savedName && { displayName }),
 			...(bio !== savedBio && { bio }),
 		};
-		if (Object.keys(changes).length === 0) {
+		const detailsChanged = Object.keys(changes).length > 0;
+		const visibilityChanged = savedVisibility ? visibilityChanges(savedVisibility, visibility) : {};
+		if (!detailsChanged && Object.keys(visibilityChanged).length === 0) {
 			setOpen(false);
 			return;
 		}
+		const refuse = (failure: ActionFailure, fallbackKey: string) => {
+			if (failure.errorCode === 'community.role_forbidden') {
+				toast.error(t('communities.editForbidden'), { duration: Infinity });
+			} else {
+				toast.error(apiErrorText(t, failure, fallbackKey), { duration: Infinity });
+			}
+			if (failure.errorCode && STALE_MEMBERSHIP_CODES.includes(failure.errorCode)) {
+				setOpen(false);
+				router.refresh();
+			}
+		};
 		setIsSaving(true);
 		try {
-			const result = await updateCommunity(community.communityId, changes);
-			if (!result.ok) {
-				if (result.errorCode === 'common.validation_failed' && changes.displayName !== undefined) {
-					setNameError(true);
-				} else if (result.errorCode === 'community.role_forbidden') {
-					toast.error(t('communities.editForbidden'), { duration: Infinity });
-				} else {
-					toast.error(apiErrorText(t, result, 'account.saveFailed'), { duration: Infinity });
+			if (detailsChanged) {
+				const result = await updateCommunity(community.communityId, changes);
+				if (!result.ok) {
+					if (result.errorCode === 'common.validation_failed' && changes.displayName !== undefined) setNameError(true);
+					else refuse(result, 'account.saveFailed');
+					return;
 				}
-				if (result.errorCode && STALE_MEMBERSHIP_CODES.includes(result.errorCode)) {
-					setOpen(false);
-					router.refresh();
+			}
+			if (Object.keys(visibilityChanged).length > 0) {
+				const result = await updateVisibility(visibilityChanged);
+				if (!result.ok) {
+					// The details are saved now, so the page shows them; the dialog stays open to retry the visibility
+					if (detailsChanged) router.refresh();
+					refuse(result, detailsChanged ? 'profile.visibilitySaveFailed' : 'account.saveFailed');
+					return;
 				}
-				return;
 			}
 			toast.success(t('profile.updated'));
 			setOpen(false);
@@ -139,6 +164,15 @@ export function EditCommunityProfile({
 			setIsSaving(false);
 		}
 	}
+
+	const pill = (fieldLabel: string, field: string) =>
+		savedVisibility && (
+			<VisibilityPill
+				label={fieldLabel}
+				isPublic={isFieldPublic(visibility, field)}
+				onToggle={() => setVisibility((current) => ({ ...current, [field]: !isFieldPublic(current, field) }))}
+			/>
+		);
 
 	return (
 		<Dialog
@@ -200,9 +234,12 @@ export function EditCommunityProfile({
 									</Button>
 								</div>
 								<div className="flex flex-col gap-1.5">
-									<label htmlFor="community-profile-name" className={labelClassName}>
-										{t('communities.nameLabel')}
-									</label>
+									<div className={fieldHeaderClassName}>
+										<label htmlFor="community-profile-name" className={labelClassName}>
+											{t('communities.nameLabel')}
+										</label>
+										{pill(t('communities.nameLabel'), 'displayName')}
+									</div>
 									<Input
 										id="community-profile-name"
 										value={name}
@@ -221,9 +258,12 @@ export function EditCommunityProfile({
 									)}
 								</div>
 								<div className="flex flex-col gap-1.5">
-									<label htmlFor="community-profile-bio" className={labelClassName}>
-										{t('profile.bio')}
-									</label>
+									<div className={fieldHeaderClassName}>
+										<label htmlFor="community-profile-bio" className={labelClassName}>
+											{t('profile.bio')}
+										</label>
+										{pill(t('profile.bio'), 'bio')}
+									</div>
 									<Textarea
 										id="community-profile-bio"
 										value={bio}
