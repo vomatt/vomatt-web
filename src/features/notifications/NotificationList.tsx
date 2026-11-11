@@ -92,8 +92,7 @@ export function NotificationList({
 	// Days follow the reader's clock, so the grouping waits for hydration
 	const isHydrated = useHydrated();
 
-	// Read whenever a feed is shown, including one a refresh recovers; a failed request leaves the badge as it was.
-	// A locked community account can't mark anything read (403 community.locked).
+	// Read whenever a feed is shown, including one a refresh recovers; a failed request leaves the badge as it was
 	const hasFeed = initialPage !== null;
 	const locked = !!useActing().acting?.locked;
 	useEffect(() => {
