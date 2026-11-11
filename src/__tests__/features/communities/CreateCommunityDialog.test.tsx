@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { toast } from 'sonner';
 
 import { CreateCommunityDialog } from '@/features/communities/CreateCommunityDialog';
 
@@ -8,10 +9,15 @@ jest.mock('@/features/communities/service', () => ({
 	createCommunity: (...args: unknown[]) => mockCreate(...args),
 }));
 
-const onCreated = jest.fn();
+jest.mock('@/features/billing/service', () => ({ startCheckout: jest.fn() }));
+jest.mock('sonner', () => ({ toast: { success: jest.fn() } }));
+const mockPush = jest.fn();
+jest.mock('next/navigation', () => ({ useRouter: () => ({ push: mockPush }) }));
+
+const onOpenChange = jest.fn();
 
 function open() {
-	render(<CreateCommunityDialog open onOpenChange={jest.fn()} onCreated={onCreated} />);
+	render(<CreateCommunityDialog open onOpenChange={onOpenChange} />);
 }
 
 function fill(name: string, username: string) {
@@ -23,12 +29,14 @@ function fill(name: string, username: string) {
 describe('CreateCommunityDialog', () => {
 	beforeEach(() => jest.clearAllMocks());
 
-	it('creates the account and reports its id', async () => {
+	it('creates the account, closes, and goes to its members page', async () => {
 		mockCreate.mockResolvedValue({ ok: true, data: { id: 'off1', username: 'sunrise_tower' } });
 		open();
 		fill('  Sunrise Tower  ', 'Sunrise_Tower');
-		await waitFor(() => expect(onCreated).toHaveBeenCalledWith('off1', 'sunrise_tower'));
+		await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/settings/communities/off1/members'));
 		expect(mockCreate).toHaveBeenCalledWith('sunrise_tower', 'Sunrise Tower');
+		expect(onOpenChange).toHaveBeenCalledWith(false);
+		expect(toast.success).toHaveBeenCalled();
 	});
 
 	it('refuses a blank name and an invalid or reserved username without sending', () => {
@@ -48,7 +56,7 @@ describe('CreateCommunityDialog', () => {
 		fill('Sunrise', 'sunrise');
 		expect(await screen.findByText('Username already taken')).toBeInTheDocument();
 		expect(screen.getByLabelText('Username')).toHaveAttribute('aria-invalid', 'true');
-		expect(onCreated).not.toHaveBeenCalled();
+		expect(mockPush).not.toHaveBeenCalled();
 	});
 
 	it('says the plan’s limit is reached without assuming which plan', async () => {
@@ -58,6 +66,17 @@ describe('CreateCommunityDialog', () => {
 		const alert = await screen.findByRole('alert');
 		expect(alert).toHaveTextContent('You already own as many community accounts as your plan allows.');
 		expect(alert).not.toHaveTextContent('Pro');
+	});
+
+	it('at the plan’s limit, says so instead of the form, with Upgrade only on Free', () => {
+		const { rerender } = render(<CreateCommunityDialog open onOpenChange={onOpenChange} atLimit={{ free: true }} />);
+		expect(screen.getByText('Upgrade to Pro to own more.')).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Upgrade to Pro' })).toBeInTheDocument();
+		expect(screen.queryByLabelText('Username')).not.toBeInTheDocument();
+
+		rerender(<CreateCommunityDialog open onOpenChange={onOpenChange} atLimit={{ free: false }} />);
+		expect(screen.getByText('To create another, transfer ownership of one you own.')).toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Upgrade to Pro' })).not.toBeInTheDocument();
 	});
 
 	it('shows any other failure in the dialog', async () => {

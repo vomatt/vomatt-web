@@ -1,7 +1,7 @@
 'use client';
 
 import { Menu } from '@base-ui/react/menu';
-import Link from 'next/link';
+import { useState } from 'react';
 
 import { menuItemClassName, menuPopupClassName } from '@/components/ui/menu';
 import { SidebarMenuAction } from '@/components/ui/Sidebar';
@@ -10,8 +10,10 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { META_GAP } from '@/lib/rich';
 import { cn } from '@/lib/utils';
+import type { MyProfile } from '@/types/user';
 
 import { useActing, useSwitchAccount } from './ActingProvider';
+import { CreateCommunityDialog } from './CreateCommunityDialog';
 import { accountName, canActAs } from './schema';
 
 // Two-line rows: the shared menu item, grown to fit a name over a handle or role
@@ -33,12 +35,16 @@ function SelectedMark() {
  * The chevron at the end of the sidebar's Profile row: opens the accounts the user can switch between.
  * Hidden unless they can act as a community account.
  */
-export function AccountSwitcher() {
+export function AccountSwitcher({ profile }: { profile: MyProfile | null }) {
 	const { t } = useLanguage();
 	const { acting, me, communities } = useActing();
 	const { switchTo, busy } = useSwitchAccount();
+	const [creating, setCreating] = useState(false);
 	const actable = (communities ?? []).filter((c) => canActAs(c.role));
 	if (actable.length === 0) return null;
+	// Acting, the profile is the community account's, so the person's quota is unknown and the API decides
+	const quota = acting ? undefined : profile?.communityQuota;
+	const atLimit = quota && quota.owned >= quota.limit ? { free: profile?.plan === 'FREE' } : undefined;
 
 	return (
 		<Menu.Root modal={false}>
@@ -103,13 +109,14 @@ export function AccountSwitcher() {
 							</Menu.Group>
 						</Menu.RadioGroup>
 						<Menu.Separator className="-mx-1.5 my-1.5 h-px bg-border" />
-						<Menu.Item render={<Link href="/settings#communities" />} className={cn(menuItemClassName, 'font-medium')}>
+						<Menu.Item onClick={() => setCreating(true)} className={cn(menuItemClassName, 'font-medium')}>
 							<Plus aria-hidden />
 							{t('communities.createTitle')}
 						</Menu.Item>
 					</Menu.Popup>
 				</Menu.Positioner>
 			</Menu.Portal>
+			<CreateCommunityDialog open={creating} onOpenChange={setCreating} atLimit={atLimit} />
 		</Menu.Root>
 	);
 }

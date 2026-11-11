@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { toast } from 'sonner';
 
 import { SidebarProvider } from '@/components/ui/Sidebar';
@@ -10,8 +10,10 @@ import { ActingProvider } from '@/features/communities/ActingProvider';
 import { CommunityAccountsCard } from '@/features/communities/CommunityAccountsCard';
 import type { CommunityRole, MyCommunity } from '@/features/communities/schema';
 import { type Follow, FollowButton } from '@/features/follows/FollowButton';
+import type { MyProfile } from '@/types/user';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
+jest.mock('@/features/billing/service', () => ({ startCheckout: jest.fn() }));
 jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn(), info: jest.fn() } }));
 const mockRefresh = jest.fn();
 jest.mock('@/features/communities/service', () => ({ unlockCommunity: jest.fn() }));
@@ -33,12 +35,12 @@ beforeEach(() => jest.clearAllMocks());
 
 describe('AccountSwitcher', () => {
 	it('stays hidden for someone in no community account', () => {
-		renderWith({}, <SidebarProvider><AccountSwitcher /></SidebarProvider>);
+		renderWith({}, <SidebarProvider><AccountSwitcher profile={null} /></SidebarProvider>);
 		expect(screen.queryByRole('button', { name: 'Switch account' })).not.toBeInTheDocument();
 	});
 
 	it('offers every account the user can act as, and switches to the one picked', async () => {
-		renderWith({ communities: [community('c1', 'EDITOR'), community('c2', 'ANALYST')] }, <SidebarProvider><AccountSwitcher /></SidebarProvider>);
+		renderWith({ communities: [community('c1', 'EDITOR'), community('c2', 'ANALYST')] }, <SidebarProvider><AccountSwitcher profile={null} /></SidebarProvider>);
 		fireEvent.click(screen.getByRole('button', { name: 'Switch account' }));
 
 		expect(await screen.findByRole('menuitemradio', { name: /Community c1/ })).toBeInTheDocument();
@@ -53,11 +55,43 @@ describe('AccountSwitcher', () => {
 		expect(toast.success).toHaveBeenCalledWith('You’re acting as Community c1');
 		expect(mockRefresh).toHaveBeenCalled();
 	});
+
+	it('opens the create dialog in place instead of leaving for Settings', async () => {
+		renderWith({ communities: [community('c1', 'OWNER')] }, <SidebarProvider><AccountSwitcher profile={null} /></SidebarProvider>);
+		fireEvent.click(screen.getByRole('button', { name: 'Switch account' }));
+		fireEvent.click(await screen.findByRole('menuitem', { name: 'Create a community account' }));
+
+		expect(await screen.findByRole('dialog', { name: 'Create a community account' })).toBeInTheDocument();
+	});
+
+	const atLimit = { plan: 'FREE', communityQuota: { owned: 1, limit: 1, selectionRequired: false, selectionDeadline: null } } as MyProfile;
+	const openCreate = async () => {
+		fireEvent.click(screen.getByRole('button', { name: 'Switch account' }));
+		fireEvent.click(await screen.findByRole('menuitem', { name: 'Create a community account' }));
+		return screen.findByRole('dialog');
+	};
+
+	it('says the plan’s limit is reached, with the way to upgrade, instead of the form', async () => {
+		renderWith({ communities: [community('c1', 'OWNER')] }, <SidebarProvider><AccountSwitcher profile={atLimit} /></SidebarProvider>);
+		const dialog = await openCreate();
+
+		expect(dialog).toHaveAccessibleName('You own as many community accounts as your plan allows');
+		expect(within(dialog).getByRole('button', { name: 'Upgrade to Pro' })).toBeInTheDocument();
+		expect(within(dialog).queryByLabelText('Username')).not.toBeInTheDocument();
+	});
+
+	it('offers the form while acting, where the profile is the community account’s', async () => {
+		const acting = community('c1', 'OWNER');
+		renderWith({ acting, communities: [acting] }, <SidebarProvider><AccountSwitcher profile={atLimit} /></SidebarProvider>);
+		const dialog = await openCreate();
+
+		expect(within(dialog).getByLabelText('Username')).toBeInTheDocument();
+	});
 });
 
 describe('AccountSwitcher, locked accounts', () => {
 	it('marks a locked account but still switches to it', async () => {
-		renderWith({ communities: [{ ...community('c1', 'OWNER'), locked: true }] }, <AccountSwitcher />);
+		renderWith({ communities: [{ ...community('c1', 'OWNER'), locked: true }] }, <AccountSwitcher profile={null} />);
 		fireEvent.click(screen.getByRole('button', { name: 'Switch account' }));
 		expect(await screen.findByRole('menuitemradio', { name: /Community c1/ })).toHaveTextContent('Locked');
 	});
@@ -71,14 +105,14 @@ describe('AccountSwitcher, locked accounts', () => {
 describe('AccountSwitcher, community list', () => {
 	it('loads the accounts in the background when the layout left them out', async () => {
 		(loadMyCommunities as jest.Mock).mockResolvedValueOnce({ ok: true, data: [community('c1', 'OWNER')] });
-		renderWith({ communities: null }, <SidebarProvider><AccountSwitcher /></SidebarProvider>);
+		renderWith({ communities: null }, <SidebarProvider><AccountSwitcher profile={null} /></SidebarProvider>);
 
 		expect(await screen.findByRole('button', { name: 'Switch account' })).toBeInTheDocument();
 	});
 
 	it('still offers the way back when the person behind the account did not load', async () => {
 		const acting = community('c1', 'OWNER');
-		renderWith({ acting, me: null, communities: [acting] }, <SidebarProvider><AccountSwitcher /></SidebarProvider>);
+		renderWith({ acting, me: null, communities: [acting] }, <SidebarProvider><AccountSwitcher profile={null} /></SidebarProvider>);
 		fireEvent.click(screen.getByRole('button', { name: 'Switch account' }));
 
 		fireEvent.click(await screen.findByRole('menuitemradio', { name: 'You' }));

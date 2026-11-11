@@ -1,6 +1,6 @@
 'use server';
 
-import { updateTag } from 'next/cache';
+import { refresh, updateTag } from 'next/cache';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
 
@@ -24,9 +24,15 @@ export async function listMyCommunities() {
 
 /** Any signed-in user may; they become the new account's first OWNER. 409 `user.username.taken` when the username is in use. */
 export async function createCommunity(username: string, displayName: string): Promise<ActionResult<UserDto>> {
-	return attempt(async () =>
-		UserDtoSchema.parse(await apiClient('/communities', { method: 'POST', body: JSON.stringify({ username, displayName }) }))
-	);
+	return attempt(async () => {
+		// The person owns it, even while acting as another account
+		const created = UserDtoSchema.parse(
+			await apiClient('/communities', { method: 'POST', body: JSON.stringify({ username, displayName }), actAs: false })
+		);
+		// The layout's list of accounts to act as now includes it
+		refresh();
+		return created;
+	});
 }
 
 /** Any member may list; others get 403 `community.not_member`. */
