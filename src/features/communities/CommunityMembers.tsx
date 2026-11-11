@@ -31,6 +31,7 @@ import { META_GAP } from '@/lib/rich';
 import { cn } from '@/lib/utils';
 
 import { AddMemberDialog } from './AddMemberDialog';
+import { LockedChip } from './LockedChip';
 import { canManageMembers, grantableRoles, type MemberAction, memberActions } from './permissions';
 import { COMMUNITY_ROLES, type CommunityMember, type CommunityRole,DEFAULT_ROLE, type MyCommunity, OFFERED_ROLES } from './schema';
 import { addMember, changeRole, removeMember, transferOwner } from './service';
@@ -152,12 +153,19 @@ export function CommunityMembers({
 
 	return (
 		<div className="space-y-8">
+			{community.locked && (
+				<SettingsCard>
+					<div className={cn(rowClassName, 'flex-wrap')}>
+						<RowText title={<LockedChip />} body={t('communities.lockedBody')} />
+					</div>
+				</SettingsCard>
+			)}
 			<section aria-labelledby="members-title" className="space-y-2.5">
 				<div className="flex items-center justify-between gap-4">
 					<h2 id="members-title" className="text-title-4">
 						{t('communities.members')}
 					</h2>
-					{canManageMembers(community.role) && (
+					{canManageMembers(community.role) && !community.locked && (
 						<Button size="md" variant="outline" onClick={() => setAdding(true)}>
 							<Plus aria-hidden />
 							{t('communities.add')}
@@ -166,7 +174,7 @@ export function CommunityMembers({
 				</div>
 				<SettingsCard as="ul">
 					{members.map((member) => {
-						const actions = memberActions(viewer, member);
+						const actions = memberActions(viewer, member, community.locked);
 						const isViewer = member.userId === viewerId;
 						return (
 							<li key={member.userId} className={cn(rowClassName, 'gap-3')}>

@@ -18,7 +18,7 @@ export function ActingBanner() {
 	return (
 		<div role="status" className="flex flex-wrap items-center gap-x-3 gap-y-2 bg-primary px-4 py-2.5 text-caption-1 text-primary-foreground md:px-6">
 			<p className="min-w-0 flex-1">
-				{t('communities.acting.banner', { name: accountName(acting) })}
+				{t(acting.locked ? 'communities.acting.bannerLocked' : 'communities.acting.banner', { name: accountName(acting) })}
 			</p>
 			<SwitchBackButton
 				size="xs"

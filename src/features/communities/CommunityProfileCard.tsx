@@ -20,9 +20,13 @@ import {
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { isFieldPublic, visibilityChanges } from '@/features/account/visibility';
+import { VisibilityPill } from '@/features/account/VisibilityPill';
 import { AVATAR_UPLOAD_TYPES, avatarFileProblem } from '@/features/avatars/catalog';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
+import { type ActionFailure } from '@/lib/api/action';
 import { apiErrorText } from '@/lib/api/error-text';
+import { updateVisibility } from '@/lib/api/services/users';
 import { cn } from '@/lib/utils';
 
 import { canEditProfile } from './permissions';
@@ -38,6 +42,7 @@ const CropStage = dynamic(loadCropStage, {
 const NAME_MAX_LENGTH = 100;
 const BIO_MAX_LENGTH = 500;
 const labelClassName = 'text-caption-1 font-medium text-foreground';
+const fieldHeaderClassName = 'flex min-h-7 items-center justify-between gap-2';
 
 export function CommunityProfileCard({ community, bio }: { community: MyCommunity; bio: string | null }) {
 	const { t } = useLanguage();
@@ -61,13 +66,26 @@ export function CommunityProfileCard({ community, bio }: { community: MyCommunit
 	);
 }
 
-function EditCommunityProfile({ community, bio: savedBio }: { community: MyCommunity; bio: string }) {
+const STALE_MEMBERSHIP_CODES = ['community.role_forbidden', 'community.not_member'];
+
+export function EditCommunityProfile({
+	community,
+	bio: savedBio,
+	defaultOpen = false,
+	actingVisibility: savedVisibility,
+}: {
+	community: MyCommunity;
+	bio: string;
+	defaultOpen?: boolean;
+	actingVisibility?: Record<string, boolean>;
+}) {
 	const { t } = useLanguage();
 	const router = useRouter();
 	const savedName = community.displayName ?? '';
-	const [open, setOpen] = useState(false);
+	const [open, setOpen] = useState(defaultOpen);
 	const [name, setName] = useState(savedName);
 	const [bio, setBio] = useState(savedBio);
+	const [visibility, setVisibility] = useState(savedVisibility ?? {});
 	const [nameError, setNameError] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
 	const [cropFile, setCropFile] = useState<File | null>(null);
@@ -77,6 +95,7 @@ function EditCommunityProfile({ community, bio: savedBio }: { community: MyCommu
 		if (next) {
 			setName(savedName);
 			setBio(savedBio);
+			setVisibility(savedVisibility ?? {});
 			setNameError(false);
 		}
 		setOpen(next);
@@ -99,16 +118,40 @@ function EditCommunityProfile({ community, bio: savedBio }: { community: MyCommu
 			...(displayName !== savedName && { displayName }),
 			...(bio !== savedBio && { bio }),
 		};
-		if (Object.keys(changes).length === 0) {
+		const detailsChanged = Object.keys(changes).length > 0;
+		const visibilityChanged = savedVisibility ? visibilityChanges(savedVisibility, visibility) : {};
+		if (!detailsChanged && Object.keys(visibilityChanged).length === 0) {
 			setOpen(false);
 			return;
 		}
+		const refuse = (failure: ActionFailure, fallbackKey: string) => {
+			if (failure.errorCode === 'community.role_forbidden') {
+				toast.error(t('communities.editForbidden'), { duration: Infinity });
+			} else {
+				toast.error(apiErrorText(t, failure, fallbackKey), { duration: Infinity });
+			}
+			if (failure.errorCode && STALE_MEMBERSHIP_CODES.includes(failure.errorCode)) {
+				setOpen(false);
+				router.refresh();
+			}
+		};
 		setIsSaving(true);
 		try {
-			const result = await updateCommunity(community.communityId, changes);
-			if (!result.ok) {
-				toast.error(apiErrorText(t, result, 'account.saveFailed'), { duration: Infinity });
-				return;
+			if (detailsChanged) {
+				const result = await updateCommunity(community.communityId, changes);
+				if (!result.ok) {
+					if (result.errorCode === 'common.validation_failed' && changes.displayName !== undefined) setNameError(true);
+					else refuse(result, 'account.saveFailed');
+					return;
+				}
+			}
+			if (Object.keys(visibilityChanged).length > 0) {
+				const result = await updateVisibility(visibilityChanged);
+				if (!result.ok) {
+					if (detailsChanged) router.refresh();
+					refuse(result, detailsChanged ? 'profile.visibilitySaveFailed' : 'account.saveFailed');
+					return;
+				}
 			}
 			toast.success(t('profile.updated'));
 			setOpen(false);
@@ -119,6 +162,15 @@ function EditCommunityProfile({ community, bio: savedBio }: { community: MyCommu
 			setIsSaving(false);
 		}
 	}
+
+	const pill = (fieldLabel: string, field: string) =>
+		savedVisibility && (
+			<VisibilityPill
+				label={fieldLabel}
+				isPublic={isFieldPublic(visibility, field)}
+				onToggle={() => setVisibility((current) => ({ ...current, [field]: !isFieldPublic(current, field) }))}
+			/>
+		);
 
 	return (
 		<Dialog
@@ -180,9 +232,12 @@ function EditCommunityProfile({ community, bio: savedBio }: { community: MyCommu
 									</Button>
 								</div>
 								<div className="flex flex-col gap-1.5">
-									<label htmlFor="community-profile-name" className={labelClassName}>
-										{t('communities.nameLabel')}
-									</label>
+									<div className={fieldHeaderClassName}>
+										<label htmlFor="community-profile-name" className={labelClassName}>
+											{t('communities.nameLabel')}
+										</label>
+										{pill(t('communities.nameLabel'), 'displayName')}
+									</div>
 									<Input
 										id="community-profile-name"
 										value={name}
@@ -201,9 +256,12 @@ function EditCommunityProfile({ community, bio: savedBio }: { community: MyCommu
 									)}
 								</div>
 								<div className="flex flex-col gap-1.5">
-									<label htmlFor="community-profile-bio" className={labelClassName}>
-										{t('profile.bio')}
-									</label>
+									<div className={fieldHeaderClassName}>
+										<label htmlFor="community-profile-bio" className={labelClassName}>
+											{t('profile.bio')}
+										</label>
+										{pill(t('profile.bio'), 'bio')}
+									</div>
 									<Textarea
 										id="community-profile-bio"
 										value={bio}

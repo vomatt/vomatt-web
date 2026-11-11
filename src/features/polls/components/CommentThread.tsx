@@ -399,6 +399,8 @@ function Composer({
 		});
 	};
 
+	if (acting?.locked) return null;
+
 	return (
 		<form
 			className={cn(
@@ -750,6 +752,7 @@ function CommentBody({
 	findAddressee,
 }: CommentBodyProps) {
 	const { t, currentLanguage } = useLanguage();
+	const { acting } = useActing();
 	const isHydrated = useHydrated();
 	const [isEditing, setIsEditing] = useState(false);
 	const [draft, setDraft] = useState('');
@@ -941,7 +944,12 @@ function CommentBody({
 						type="button"
 						aria-pressed={!!comment.likedByCurrentUser}
 						aria-label={t('comments.like')}
-						onClick={() => requireAuth(() => thread.toggleLike(comment))}
+						onClick={() =>
+							requireAuth(async () => {
+								const result = await thread.toggleLike(comment);
+								if (!result.ok) toast.error(apiErrorText(t, result));
+							})
+						}
 						className={cn(pillClassName, comment.likedByCurrentUser && 'bg-highlight-tint text-foreground')}
 					>
 						<m.span
@@ -956,16 +964,18 @@ function CommentBody({
 						{likes > 0 && <span className="tabular-nums">{likes}</span>}
 					</button>
 
-					<button
-						type="button"
-						aria-pressed={replying}
-						data-reply-action
-						onClick={onReply}
-						className={cn(pillClassName, replying && 'text-foreground')}
-					>
-						<Reply aria-hidden className="size-[15px]" strokeWidth={1.8} />
-						{t('comments.reply')}
-					</button>
+					{!acting?.locked && (
+						<button
+							type="button"
+							aria-pressed={replying}
+							data-reply-action
+							onClick={onReply}
+							className={cn(pillClassName, replying && 'text-foreground')}
+						>
+							<Reply aria-hidden className="size-[15px]" strokeWidth={1.8} />
+							{t('comments.reply')}
+						</button>
+					)}
 
 					{!replying && (
 						<RowMenuRoot>

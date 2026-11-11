@@ -34,6 +34,12 @@ describe('memberActions', () => {
 		expect(memberActions(owner, { userId: 'o2', role: 'OWNER' })).toEqual(['changeRole', 'remove']);
 	});
 
+	it('keeps only handing ownership over and leaving on a locked account', () => {
+		expect(memberActions(owner, { userId: 'e', role: 'EDITOR' }, true)).toEqual(['transferOwner']);
+		expect(memberActions(owner, owner, true)).toEqual(['leave']);
+		expect(memberActions(admin, { userId: 'e', role: 'EDITOR' }, true)).toEqual([]);
+	});
+
 	it('gives an ADMIN no menu on OWNER rows and no transfer', () => {
 		expect(memberActions(admin, owner)).toEqual([]);
 		expect(memberActions(admin, { userId: 'e', role: 'EDITOR' })).toEqual(['changeRole', 'remove']);

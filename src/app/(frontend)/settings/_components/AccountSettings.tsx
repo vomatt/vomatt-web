@@ -30,6 +30,7 @@ import { isSettingPublic, VISIBILITY_SETTINGS } from '@/features/account/visibil
 import { UpgradeButton } from '@/features/billing/UpgradeButton';
 import { CommunityAccountsCard } from '@/features/communities/CommunityAccountsCard';
 import { CreateCommunityDialog } from '@/features/communities/CreateCommunityDialog';
+import { KeepCommunitiesDialog } from '@/features/communities/KeepCommunitiesDialog';
 import { communityMembersHref, type MyCommunity } from '@/features/communities/schema';
 import { ReportProblemDialog } from '@/features/feedback/ReportProblemDialog';
 import { GroupsPanel } from '@/features/groups/GroupsPanel';
@@ -38,6 +39,7 @@ import type { NotificationPreferences } from '@/features/notifications/schema';
 import { updateNotificationPreferences } from '@/features/notifications/service';
 import { useUnreadCount } from '@/features/notifications/UnreadCountProvider';
 import { PasskeysPanel } from '@/features/passkeys/PasskeysPanel';
+import { formatDate } from '@/features/polls/format';
 import { getSessions } from '@/features/sessions/service';
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
 import { useHydrated } from '@/hooks/useHydrated';
@@ -48,7 +50,7 @@ import { signout } from '@/lib/api/services/auth';
 import { deleteMyAccount, editProfile } from '@/lib/api/services/users';
 import { countText } from '@/lib/count';
 import { cn } from '@/lib/utils';
-import type { MyProfile } from '@/types/user';
+import type { CommunityQuota, MyProfile } from '@/types/user';
 
 /** The page's sections, in order; the On this page list links to each. */
 export const SETTINGS_SECTIONS = ['voting', 'notifications', 'appearance', 'privacy', 'help', 'account'] as const;
@@ -212,12 +214,18 @@ export default function AccountSettings({
 							/>
 							{profile.plan === 'FREE' && <UpgradeButton variant="outline" />}
 						</div>
+						{profile.communityQuota.selectionRequired && <KeepRow quota={profile.communityQuota} communities={communities} />}
 					</SettingsCard>
 				</Section>
 			)}
 
 			<Section id="communities" title={t('communities.title')}>
-				{communities.length > 0 && <CommunityAccountsCard communities={communities} />}
+				{communities.length > 0 && (
+					<CommunityAccountsCard
+						communities={communities}
+						canUnlock={!!profile.communityQuota && profile.communityQuota.owned < profile.communityQuota.limit}
+					/>
+				)}
 				<CreateCommunityRow profile={profile} />
 			</Section>
 
@@ -249,6 +257,30 @@ export default function AccountSettings({
 			<DeleteAccount username={profile.username} />
 
 			<LegalLinks className="flex gap-4.5 text-caption-1 text-muted-foreground" />
+		</div>
+	);
+}
+
+/** Until the user chooses which community accounts to keep, by when, and the way to choose. */
+function KeepRow({ quota, communities }: { quota: CommunityQuota; communities: MyCommunity[] }) {
+	const { t, currentLanguage } = useLanguage();
+	const [open, setOpen] = useState(false);
+	return (
+		<div className={cn(rowClassName, 'flex-wrap')}>
+			<RowText
+				title={t('communities.keep.rowTitle')}
+				body={
+					quota.selectionDeadline && (
+						<span suppressHydrationWarning>
+							{t('communities.keep.deadline', { date: formatDate(quota.selectionDeadline, currentLanguage) })}
+						</span>
+					)
+				}
+			/>
+			<Button size="md" onClick={() => setOpen(true)}>
+				{t('communities.keep.choose')}
+			</Button>
+			<KeepCommunitiesDialog open={open} onOpenChange={setOpen} quota={quota} communities={communities} />
 		</div>
 	);
 }

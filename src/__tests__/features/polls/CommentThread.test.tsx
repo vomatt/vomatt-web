@@ -96,6 +96,18 @@ describe('CommentThread', () => {
 		expect(await screen.findByText('Posting as Robotics Club')).toBeInTheDocument();
 	});
 
+	it('leaves out commenting and replying while acting as a locked community account', async () => {
+		const acting = { communityId: 'c1', username: 'robotics', displayName: 'Robotics Club', avatarUrl: null, role: 'OWNER' as const, locked: true };
+		render(
+			<ActingProvider state={{ acting, me: null, communities: [], stale: false }}>
+				<Harness />
+			</ActingProvider>
+		);
+		expect(await screen.findByText('Theirs')).toBeInTheDocument();
+		expect(screen.queryByLabelText('Add a comment')).not.toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Reply' })).not.toBeInTheDocument();
+	});
+
 	it('names no account when the user posts as themself', async () => {
 		render(<Harness />);
 		await screen.findByText('Theirs');
@@ -215,6 +227,20 @@ describe('CommentThread', () => {
 
 		await waitFor(() => expect(like).toHaveAttribute('aria-pressed', 'false'));
 		expect(like).toHaveTextContent('2');
+	});
+
+	it('says why a like was refused while acting as a locked community account', async () => {
+		const { toast } = jest.requireMock('sonner');
+		service.likeComment.mockResolvedValue({ ok: false, status: 403, errorCode: 'community.locked', message: 'raw' });
+		render(<Harness />);
+		await screen.findByText('Mine');
+		fireEvent.click(screen.getAllByRole('button', { name: 'Like' })[0]);
+
+		await waitFor(() =>
+			expect(toast.error).toHaveBeenCalledWith(
+				'This community account is locked, so it can’t do that. Upgrade to Pro, or have an owner with room unlock it.'
+			)
+		);
 	});
 
 	it('deletes after confirming', async () => {

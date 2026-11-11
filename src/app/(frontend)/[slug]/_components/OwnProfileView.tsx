@@ -14,6 +14,7 @@ import { TidePanel } from '@/components/ui/TidePanel';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { isFieldPublic, VISIBILITY_FIELDS } from '@/features/account/visibility';
 import { useActing } from '@/features/communities/ActingProvider';
+import { EditCommunityProfile } from '@/features/communities/CommunityProfileCard';
 import { canEditProfile } from '@/features/communities/permissions';
 import { communityMembersHref } from '@/features/communities/schema';
 import { type FollowList, FollowListDialog } from '@/features/follows/FollowListDialog';
@@ -66,8 +67,10 @@ export function OwnProfileView({
 }) {
 	const { t } = useLanguage();
 	const { acting } = useActing();
+	const canEdit = !acting || (!!acting.role && canEditProfile(acting.role));
 	const router = useRouter();
-	const [tab, setTab] = useState<ProfileTab>(initialTab);
+	// A community account can't vote, so it has no Voted tab
+	const [tab, setTab] = useState<ProfileTab>(profile.community && initialTab === 'voted' ? 'asked' : initialTab);
 	// Saved loads on first open, then stays mounted so its pages survive a look at another tab
 	const [savedOpened, setSavedOpened] = useState(initialTab === 'saved');
 	const [askedFilter, setAskedFilter] = useState<AskedFilter>('all');
@@ -108,14 +111,27 @@ export function OwnProfileView({
 			<div className="flex flex-col gap-6">
 				<ProfileHeader
 					profile={{ ...profile, followingCount: profile.followingCount + followingDelta }}
-					isOwn
+					isOwn={canEdit}
 					hiddenFields={hiddenFields}
 					onOpenList={setList}
 					actions={
 						acting ? (
 							// The community's own page: its profile for owners and admins, and its members
 							<>
-								{acting.role && canEditProfile(acting.role) && <EditProfileDialog profile={profile} defaultOpen={openEdit} />}
+								{acting.role && canEdit && (
+									<EditCommunityProfile
+										community={{
+											communityId: acting.communityId,
+											role: acting.role,
+											username: profile.username,
+											displayName: profile.displayName,
+											avatarUrl: profile.avatarUrl,
+										}}
+										bio={profile.bio ?? ''}
+										actingVisibility={visibility}
+										defaultOpen={openEdit}
+									/>
+								)}
 								<Link href={communityMembersHref(acting.communityId)} className={buttonVariants({ variant: 'outline', size: 'sm' })}>
 									<Users aria-hidden />
 									{t('communities.acting.manageMembers')}
@@ -153,13 +169,15 @@ export function OwnProfileView({
 						// The counts of the tabs' lists, not the public totals, which leave out Scheduled, Unlisted and Invite-only polls
 						{ label: t('profile.recordAsked'), value: profile.createdPollCount },
 						// Not votedPollCount: it counts Ballots on the owner's own polls, which the Voted tab leaves out
-						{ label: t('profile.recordVoted'), value: polls ? voted.length : null },
+						...(profile.community ? [] : [{ label: t('profile.recordVoted'), value: polls ? voted.length : null }]),
 						{
 							label: t('profile.recordVotesReceived'),
 							value: polls ? votesReceived(asked) : null,
 							private: true,
 						},
-						{ label: t('profile.recordPicksWon'), value: picksWonRate(voted), suffix: '%', private: true },
+						...(profile.community
+							? []
+							: [{ label: t('profile.recordPicksWon'), value: picksWonRate(voted), suffix: '%', private: true }]),
 					]}
 				/>
 
@@ -175,26 +193,28 @@ export function OwnProfileView({
 								<span className="tabular-nums text-muted-foreground">{asked.length}</span>
 								{askedUnread && <span className="sr-only">{t('profile.askedUnread')}</span>}
 							</TabsTrigger>
-							<TabsTrigger
-								value="voted"
-								marks={
-									<>
-										<Lock className="size-3 text-muted-foreground" />
-										{votedUnread > 0 && (
-											<span className="min-w-4.5 rounded-full bg-alert px-1.5 text-center text-caption-4 font-semibold leading-4.5 text-alert-foreground tabular-nums">
-												{formatUnreadCount(votedUnread)}
-											</span>
-										)}
-									</>
-								}
-							>
-								{t('profile.tabVoted')}
-								<span className="tabular-nums text-muted-foreground">{voted.length}</span>
-								<span className="sr-only">
-									({t('profile.onlyYou')})
-									{votedUnread > 0 && ` ${formatUnreadCount(votedUnread)} ${t('notifications.unread')}`}
-								</span>
-							</TabsTrigger>
+							{!profile.community && (
+								<TabsTrigger
+									value="voted"
+									marks={
+										<>
+											<Lock className="size-3 text-muted-foreground" />
+											{votedUnread > 0 && (
+												<span className="min-w-4.5 rounded-full bg-alert px-1.5 text-center text-caption-4 font-semibold leading-4.5 text-alert-foreground tabular-nums">
+													{formatUnreadCount(votedUnread)}
+												</span>
+											)}
+										</>
+									}
+								>
+									{t('profile.tabVoted')}
+									<span className="tabular-nums text-muted-foreground">{voted.length}</span>
+									<span className="sr-only">
+										({t('profile.onlyYou')})
+										{votedUnread > 0 && ` ${formatUnreadCount(votedUnread)} ${t('notifications.unread')}`}
+									</span>
+								</TabsTrigger>
+							)}
 							<TabsTrigger value="saved" marks={<Lock className="size-3 text-muted-foreground" />}>
 								{t('profile.tabSaved')}
 								<span className="sr-only">({t('profile.onlyYou')})</span>

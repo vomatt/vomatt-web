@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from 'react';
 
+import { useActing } from '@/features/communities/ActingProvider';
+
 import { markNotificationRead } from './service';
 import { useUnreadCount } from './UnreadCountProvider';
 
@@ -11,13 +13,14 @@ import { useUnreadCount } from './UnreadCountProvider';
  */
 export function MarkNotificationRead({ pollId }: { pollId: string }) {
 	const { count, isLoaded, refresh } = useUnreadCount();
+	const locked = !!useActing().acting?.locked;
 	const handledPollId = useRef<string | null>(null);
 
 	useEffect(() => {
-		if (!isLoaded || handledPollId.current === pollId) return;
+		if (!isLoaded || locked || handledPollId.current === pollId) return;
 		handledPollId.current = pollId;
 		if (count > 0) markNotificationRead(pollId).then(refresh);
-	}, [count, isLoaded, pollId, refresh]);
+	}, [count, isLoaded, locked, pollId, refresh]);
 
 	return null;
 }

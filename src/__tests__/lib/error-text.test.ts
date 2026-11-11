@@ -10,6 +10,12 @@ describe('apiErrorText', () => {
 		expect(apiErrorText(t, { errorCode: 'vote.not_found', message: 'raw' })).toBe('Vote not found');
 	});
 
+	it('points a locked community account to Pro', () => {
+		expect(apiErrorText(t, { errorCode: 'community.locked', message: 'raw' })).toBe(
+			'This community account is locked, so it can’t do that. Upgrade to Pro, or have an owner with room unlock it.'
+		);
+	});
+
 	it("keeps the API's filled-in message for a code with a {0} placeholder", () => {
 		const failure = { errorCode: 'invite_list.max_reached', message: 'You can keep at most 50 Groups' };
 		expect(apiErrorText(t, failure)).toBe('You can keep at most 50 Groups');

@@ -96,3 +96,20 @@ export async function deleteCommunity(communityId: string): Promise<ActionResult
 		updateTag(PROFILES_TAG);
 	});
 }
+
+/**
+ * After the user owns more than their plan allows: keeps exactly these unlocked and locks the rest they own.
+ * 400 `community.keep.invalid` unless it is exactly min(limit, owned) of their own. Sent as the person.
+ */
+export async function keepCommunities(communityIds: string[]): Promise<ActionResult> {
+	return attempt(async () => {
+		await apiClient('/users/me/communities/keep', { method: 'POST', body: JSON.stringify({ communityIds }), actAs: false });
+	});
+}
+
+/** OWNER only, with room in their plan (else 403 `community.limit_reached`). Sent as the person: the account itself is locked. */
+export async function unlockCommunity(communityId: string): Promise<ActionResult> {
+	return attempt(async () => {
+		await apiClient(`/communities/${encodeURIComponent(communityId)}/unlock`, { method: 'POST', actAs: false });
+	});
+}

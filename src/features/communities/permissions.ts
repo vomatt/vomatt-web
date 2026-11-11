@@ -15,11 +15,20 @@ export function canDelete(role: CommunityRole) {
 
 export type MemberAction = 'changeRole' | 'transferOwner' | 'remove' | 'leave';
 
+// What a locked account still allows besides deleting it: an owner with room can take it over, and anyone can leave
+const LOCKED_ACTIONS: MemberAction[] = ['transferOwner', 'leave'];
+
 /** What the viewer's ••• menu offers on a member's row; empty means no menu. */
 export function memberActions(
 	viewer: { userId: string; role: CommunityRole },
-	member: { userId: string; role: CommunityRole }
+	member: { userId: string; role: CommunityRole },
+	locked = false
 ): MemberAction[] {
+	const actions = roleActions(viewer, member);
+	return locked ? actions.filter((action) => LOCKED_ACTIONS.includes(action)) : actions;
+}
+
+function roleActions(viewer: { userId: string; role: CommunityRole }, member: { userId: string; role: CommunityRole }): MemberAction[] {
 	if (member.userId === viewer.userId) return ['leave'];
 	if (!canManageMembers(viewer.role)) return [];
 	if (viewer.role !== 'OWNER' && member.role === 'OWNER') return [];
