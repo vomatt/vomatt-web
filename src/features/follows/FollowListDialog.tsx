@@ -9,6 +9,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { CommunityBadge } from '@/features/profiles/CommunityBadge';
+import { profileName } from '@/features/profiles/name';
 import { ProfileHoverCard, rememberFollowing } from '@/features/profiles/ProfileHoverCard';
 import { mergeById } from '@/lib/api/cursor';
 import { META_GAP } from '@/lib/rich';
@@ -154,7 +155,7 @@ function PersonRow({ user, viewerId, onFollowChange }: RowProps & { user: Follow
 					<UserAvatar username={user.username} avatarUrl={user.avatarUrl} />
 					<span className="flex min-w-0 flex-col gap-0.5">
 						<span className="flex min-w-0 items-center gap-1 text-body-4 font-medium">
-							<span className="truncate">{user.displayName || user.username}</span>
+							<span className="truncate">{profileName(user).primary}</span>
 							{user.community && <CommunityBadge />}
 						</span>
 						<span className="truncate text-caption-2 text-muted-foreground">

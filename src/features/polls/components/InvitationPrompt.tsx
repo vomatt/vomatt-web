@@ -6,9 +6,10 @@ import { Button, buttonVariants } from '@/components/ui/Button';
 import { Lock } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
+import { type NameParts, shownName } from '@/features/profiles/name';
 
 type InvitationPromptProps = {
-	creator: { username: string; avatarUrl: string | null };
+	creator: NameParts & { avatarUrl: string | null };
 	pollId: string;
 	/** Set when signed in, but not as the invited account: signs out and back to login for this Poll. */
 	switchAccount?: () => Promise<void>;
@@ -23,7 +24,7 @@ export function InvitationPrompt({ creator, pollId, switchAccount }: InvitationP
 		<section className="flex w-full max-w-[640px] flex-col items-center gap-3 rounded-2xl border border-border bg-card px-8 py-10 text-center">
 			<UserAvatar username={creator.username} avatarUrl={creator.avatarUrl} className="size-14" />
 			<h1 className="text-title-2 text-foreground">
-				{t('poll.invitation.title', { username: creator.username })}
+				{t('poll.invitation.title', { username: shownName(creator) ?? creator.username })}
 			</h1>
 			<p className="max-w-[420px] text-body-3 text-muted-foreground">
 				{t(switchAccount ? 'poll.invitation.wrongAccount' : 'poll.invitation.signIn')}

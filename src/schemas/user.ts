@@ -6,6 +6,9 @@ export const UserDtoSchema = z.object({
 	username: z.string(),
 	// nullish: tolerate the API leaving out an empty field
 	displayName: z.string().nullish(),
+	// Hidden unless the owner shows them
+	firstName: z.string().nullish(),
+	lastName: z.string().nullish(),
 	avatarUrl: z.string().nullish(),
 	/** A community account (a group's page), shown with a badge. */
 	community: z.boolean().optional(),

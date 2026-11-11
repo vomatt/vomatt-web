@@ -2702,6 +2702,24 @@
             "example" : false,
             "type" : "boolean"
           },
+          "authorDisplayName" : {
+            "description" : "Display name of the author; null if they hid it (public by default) or never set one, and on a deleted placeholder (`deleted` = true)",
+            "example" : "Alice",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "authorFirstName" : {
+            "description" : "First name of the author; null if they hid it (hidden by default) or never set one, and on a deleted placeholder (`deleted` = true)",
+            "example" : "Alice",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "authorLastName" : {
+            "description" : "Last name of the author; null if they hid it (hidden by default) or never set one, and on a deleted placeholder (`deleted` = true)",
+            "example" : "Chen",
+            "nullable" : true,
+            "type" : "string"
+          },
           "createdAt" : {
             "description" : "Creation time (ISO-8601 with offset)",
             "example" : "2026-10-09T12:34:56+08:00",
@@ -3492,6 +3510,12 @@
             "nullable" : true,
             "type" : "string"
           },
+          "firstName" : {
+            "description" : "First name; null if the owner hid it (hidden by default) or never set one",
+            "example" : "Alice",
+            "nullable" : true,
+            "type" : "string"
+          },
           "followsYou" : {
             "description" : "Whether this user follows the caller; false for the caller's own entry",
             "example" : false,
@@ -3506,6 +3530,12 @@
             "description" : "Whether the caller follows this user; false for the caller's own entry",
             "example" : true,
             "type" : "boolean"
+          },
+          "lastName" : {
+            "description" : "Last name; null if the owner hid it (hidden by default) or never set one",
+            "example" : "Chen",
+            "nullable" : true,
+            "type" : "string"
           },
           "username" : {
             "description" : "Unique username",
@@ -3683,9 +3713,21 @@
             "nullable" : true,
             "type" : "string"
           },
+          "displayName" : {
+            "description" : "Display name of the Invitee; null if they hid it (public by default) or never set one; always null for one added by email",
+            "example" : "Alice",
+            "nullable" : true,
+            "type" : "string"
+          },
           "email" : {
             "description" : "Email address an Invitee was added by, for its whole life; null for one added by ID",
             "example" : "dave@example.com",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "firstName" : {
+            "description" : "First name of the Invitee; null if they hid it (hidden by default) or never set one; always null for one added by email",
+            "example" : "Alice",
             "nullable" : true,
             "type" : "string"
           },
@@ -3698,6 +3740,12 @@
             "description" : "When the Invitee was added",
             "example" : "2026-10-09T15:20:31+08:00",
             "format" : "date-time",
+            "type" : "string"
+          },
+          "lastName" : {
+            "description" : "Last name of the Invitee; null if they hid it (hidden by default) or never set one; always null for one added by email",
+            "example" : "Chen",
+            "nullable" : true,
             "type" : "string"
           },
           "userId" : {
@@ -5845,9 +5893,21 @@
             "nullable" : true,
             "type" : "string"
           },
+          "firstName" : {
+            "description" : "First name; null if the owner hid it (hidden by default) or never set one",
+            "example" : "Alice",
+            "nullable" : true,
+            "type" : "string"
+          },
           "id" : {
             "description" : "User id (UUIDv7)",
             "example" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d47",
+            "type" : "string"
+          },
+          "lastName" : {
+            "description" : "Last name; null if the owner hid it (hidden by default) or never set one",
+            "example" : "Chen",
+            "nullable" : true,
             "type" : "string"
           },
           "username" : {
@@ -6095,6 +6155,24 @@
             "example" : false,
             "type" : "boolean"
           },
+          "displayName" : {
+            "description" : "Display name of the Poll owner; null if they hid it (public by default) or never set one",
+            "example" : "Alice",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "firstName" : {
+            "description" : "First name of the Poll owner; null if they hid it (hidden by default) or never set one",
+            "example" : "Alice",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "lastName" : {
+            "description" : "Last name of the Poll owner; null if they hid it (hidden by default) or never set one",
+            "example" : "Chen",
+            "nullable" : true,
+            "type" : "string"
+          },
           "username" : {
             "description" : "Username of the Poll owner",
             "example" : "alice",
@@ -6288,9 +6366,27 @@
             "example" : false,
             "type" : "boolean"
           },
+          "creatorDisplayName" : {
+            "description" : "Display name of the owner; null if they hid it (public by default) or never set one",
+            "example" : "Alice",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "creatorFirstName" : {
+            "description" : "First name of the owner; null if they hid it (hidden by default) or never set one",
+            "example" : "Alice",
+            "nullable" : true,
+            "type" : "string"
+          },
           "creatorId" : {
             "description" : "User ID of the owner",
             "example" : "0199f2a1-1b4c-7e02-8a9d-6c3f0d2e5b71",
+            "type" : "string"
+          },
+          "creatorLastName" : {
+            "description" : "Last name of the owner; null if they hid it (hidden by default) or never set one",
+            "example" : "Chen",
+            "nullable" : true,
             "type" : "string"
           },
           "creatorUsername" : {
@@ -6470,9 +6566,27 @@
             "example" : false,
             "type" : "boolean"
           },
+          "creatorDisplayName" : {
+            "description" : "Display name of the owner; null if they hid it (public by default) or never set one",
+            "example" : "Alice",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "creatorFirstName" : {
+            "description" : "First name of the owner; null if they hid it (hidden by default) or never set one",
+            "example" : "Alice",
+            "nullable" : true,
+            "type" : "string"
+          },
           "creatorId" : {
             "description" : "User ID of the owner",
             "example" : "0199f2a1-1b4c-7e02-8a9d-6c3f0d2e5b71",
+            "type" : "string"
+          },
+          "creatorLastName" : {
+            "description" : "Last name of the owner; null if they hid it (hidden by default) or never set one",
+            "example" : "Chen",
+            "nullable" : true,
             "type" : "string"
           },
           "creatorUsername" : {
@@ -6559,6 +6673,24 @@
           "avatarUrl" : {
             "description" : "Avatar as `bot:<kind>` (the bot cast) or `/api/avatars/<id>.jpg` (an uploaded image, a path on the API origin). Older accounts may hold an image URL; null if never set",
             "example" : "bot:boba",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "displayName" : {
+            "description" : "Display name of the Participant; null if they hid it (public by default) or never set one",
+            "example" : "Alice",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "firstName" : {
+            "description" : "First name of the Participant; null if they hid it (hidden by default) or never set one",
+            "example" : "Alice",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "lastName" : {
+            "description" : "Last name of the Participant; null if they hid it (hidden by default) or never set one",
+            "example" : "Chen",
             "nullable" : true,
             "type" : "string"
           },

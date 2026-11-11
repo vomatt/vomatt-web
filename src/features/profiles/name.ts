@@ -1,6 +1,6 @@
 import type { Gender } from '@/types/user';
 
-type NameParts = {
+export type NameParts = {
 	username: string;
 	displayName?: string | null;
 	firstName?: string | null;
@@ -30,6 +30,12 @@ export function profileName(profile: NameParts) {
 		// A display name that repeats the real name isn't shown twice
 		secondary: real && display && display.toLowerCase() !== real.toLowerCase() ? display : null,
 	};
+}
+
+/** The name a person leads with beside their @handle in a list or byline; null when only the username is public. */
+export function shownName(person: NameParts) {
+	const { primary } = profileName(person);
+	return primary === person.username ? null : primary;
 }
 
 /** The gender as the viewer's language words it. */

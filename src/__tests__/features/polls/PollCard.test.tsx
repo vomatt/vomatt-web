@@ -180,6 +180,11 @@ describe('PollCard state A: Open, no Ballot', () => {
 		expect(screen.getByText('2h')).toBeInTheDocument();
 	});
 
+	it('leads with the name the creator shows, then their handle', () => {
+		render(<PollCard poll={{ ...openPoll, creatorFirstName: 'Mei', creatorLastName: 'Lin', creatorDisplayName: 'meimei' }} />);
+		expect(screen.getByRole('link', { name: 'Mei Lin @mei.lin' })).toHaveAttribute('href', '/mei.lin');
+	});
+
 	it("badges a community account's poll beside its handle", () => {
 		const { unmount } = render(<PollCard poll={openPoll} />);
 		expect(screen.queryByRole('img', { name: 'Community account' })).not.toBeInTheDocument();

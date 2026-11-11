@@ -15,6 +15,7 @@ import { formatAge, formatDuration } from '@/features/polls/format';
 import { useViewerClock } from '@/features/polls/hooks/useViewerClock';
 import { derivePollStatus } from '@/features/polls/status';
 import { pollTiming } from '@/features/polls/timing';
+import { type NameParts, shownName } from '@/features/profiles/name';
 import { ProfileHoverCard, rememberFollowing } from '@/features/profiles/ProfileHoverCard';
 import { ProfileAvatar } from '@/features/profiles/UserChip';
 import { countText } from '@/lib/count';
@@ -198,12 +199,15 @@ function RowLink({ href, onOpen, className, children }: { href: string; onOpen: 
 	);
 }
 
-/** "@jtan" as a profile link with the hover card. */
-function ActorName({ username, avatarUrl, onOpen }: { username: string; avatarUrl?: string | null; onOpen: () => void }) {
+/** What a notification calls its actor: the name they show, else their @handle. */
+const actorName = (actor: NameParts) => shownName(actor) ?? `@${actor.username}`;
+
+/** The actor's name as a profile link with the hover card. */
+function ActorName({ actor, onOpen }: { actor: NameParts & { avatarUrl?: string | null }; onOpen: () => void }) {
 	return (
-		<ProfileHoverCard username={username} avatarUrl={avatarUrl}>
-			<Link href={profileHref(username)} onClick={onOpen} className={rowLink}>
-				{strong(`@${username}`)}
+		<ProfileHoverCard username={actor.username} avatarUrl={actor.avatarUrl}>
+			<Link href={profileHref(actor.username)} onClick={onOpen} className={rowLink}>
+				{strong(actorName(actor))}
 			</Link>
 		</ProfileHoverCard>
 	);
@@ -273,7 +277,7 @@ function CancelledRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'CANCEL
 						{poll.title}
 					</RowLink>
 				),
-				name: `@${entry.actor.username}`,
+				name: actorName(entry.actor),
 			})}
 			meta={[useAge(entry.createdAt)]}
 		/>
@@ -301,7 +305,7 @@ function InvitationRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'INVIT
 			icon={<ProfileAvatar username={actor.username} avatarUrl={actor.avatarUrl} className="size-9" />}
 			line={
 				<>
-					{rich(t('notifications.invitedYou'), { name: strong(`@${actor.username}`) })}{META_GAP}
+					{rich(t('notifications.invitedYou'), { name: strong(actorName(actor)) })}{META_GAP}
 					<RowLink href={href} onOpen={onOpen} className="font-medium">
 						{poll.title}
 					</RowLink>
@@ -334,9 +338,9 @@ function FollowedRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'FOLLOWE
 			unread={!entry.read}
 			icon={<ProfileAvatar username={actor.username} avatarUrl={actor.avatarUrl} className="size-9" />}
 			line={rich(t('notifications.followedYou'), {
-				name: <ActorName username={actor.username} avatarUrl={actor.avatarUrl} onOpen={onOpen} />,
+				name: <ActorName actor={actor} onOpen={onOpen} />,
 			})}
-			meta={[useAge(entry.createdAt), actor.displayName]}
+			meta={[useAge(entry.createdAt), shownName(actor) && `@${actor.username}`]}
 			action={<FollowButton follow={follow} username={actor.username} avatarUrl={actor.avatarUrl} size="xs" />}
 		/>
 	);
@@ -359,7 +363,7 @@ function FollowGroupRow({ entry, onOpen, viewerUsername }: RowProps<FollowGroup>
 			icon={<ProfileAvatar username={actor.username} avatarUrl={actor.avatarUrl} className="size-9" />}
 			// countText fills in the count and leaves `{name}` for rich to put the link in
 			line={rich(countText(t, 'notifications.followedYouGroup', others, currentLanguage), {
-				name: <ActorName username={actor.username} avatarUrl={actor.avatarUrl} onOpen={onOpen} />,
+				name: <ActorName actor={actor} onOpen={onOpen} />,
 			})}
 			meta={[useAge(createdAt)]}
 			action={
@@ -386,7 +390,7 @@ function PollLikeRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'POLL_LI
 			unread={!entry.read}
 			icon={<ProfileAvatar username={actor.username} avatarUrl={actor.avatarUrl} className="size-9" />}
 			line={rich(t('notifications.pollLiked'), {
-				name: strong(`@${actor.username}`),
+				name: strong(actorName(actor)),
 				title: (
 					<RowLink href={href} onOpen={onOpen} className="font-medium">
 						{poll.title}
@@ -417,7 +421,7 @@ function CommentRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'COMMENT'
 			icon={<ProfileAvatar username={actor.username} avatarUrl={actor.avatarUrl} className="size-9" />}
 			// The API doesn't say whose comment a reply answers: on the viewer's poll it may be someone else's
 			line={rich(t(entry.kind === 'COMMENT' && comment.parentId ? 'notifications.replied' : COMMENT_ROW_LINE[entry.kind]), {
-				name: strong(`@${actor.username}`),
+				name: strong(actorName(actor)),
 				title: (
 					<RowLink href={href} onOpen={onOpen} className="font-medium">
 						{poll.title}
@@ -499,7 +503,7 @@ function CommunityLockedRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: '
 			unread={!entry.read}
 			icon={<ProfileAvatar username={actor.username} avatarUrl={actor.avatarUrl} className="size-9" />}
 			line={rich(t('notifications.communityLocked'), {
-				name: <ActorName username={actor.username} avatarUrl={actor.avatarUrl} onOpen={onOpen} />,
+				name: <ActorName actor={actor} onOpen={onOpen} />,
 			})}
 			meta={[useAge(entry.createdAt)]}
 			action={

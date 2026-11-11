@@ -5,6 +5,7 @@ import {
   editProfile,
   getUserProfile,
   searchUsers,
+  updateVisibility,
 } from '@/lib/api/services/users';
 
 const mockUpdateTag = jest.fn();
@@ -110,9 +111,15 @@ describe('editProfile()', () => {
   });
 
   it('re-renders cached profiles when the username stays', async () => {
-    expect(await editProfile({ displayName: 'Alice' })).toEqual({ ok: true });
+    expect(await editProfile({ bio: 'hi' })).toEqual({ ok: true });
     expect(mockUpdateTag).toHaveBeenCalledWith('profiles');
     expect(mockRevalidateTag).not.toHaveBeenCalled();
+  });
+
+  it('expires cached polls and feeds, which name their creator, when a name changes', async () => {
+    expect(await editProfile({ firstName: 'Ruby' })).toEqual({ ok: true });
+    expect(mockRevalidateTag).toHaveBeenCalledWith('polls', { expire: 0 });
+    expect(mockRevalidateTag).toHaveBeenCalledWith('polls-feed', { expire: 0 });
   });
 
   it('only expires cached profiles when the username changes', async () => {
@@ -173,5 +180,20 @@ describe('deleteMyAccount()', () => {
       message: 'Last admin',
     });
     expect(mockClearAuthTokens).not.toHaveBeenCalled();
+  });
+});
+
+describe('updateVisibility()', () => {
+  beforeEach(() => mockRevalidateTag.mockClear());
+
+  it('expires cached profiles, polls and feeds, so a hidden name stops showing at once', async () => {
+    mockApiClient.mockResolvedValueOnce({ firstName: false, lastName: false });
+    expect(await updateVisibility({ firstName: false, lastName: false })).toEqual({
+      ok: true,
+      data: { firstName: false, lastName: false },
+    });
+    expect(mockRevalidateTag).toHaveBeenCalledWith('profiles', { expire: 0 });
+    expect(mockRevalidateTag).toHaveBeenCalledWith('polls', { expire: 0 });
+    expect(mockRevalidateTag).toHaveBeenCalledWith('polls-feed', { expire: 0 });
   });
 });

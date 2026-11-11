@@ -16,6 +16,18 @@ const PUBLIC_BY_DEFAULT: readonly string[] = ['displayName', 'bio'];
 export const isFieldPublic = (visibility: Record<string, boolean>, field: string) =>
 	visibility[field] ?? PUBLIC_BY_DEFAULT.includes(field);
 
+/** The names other people see of the owner, as the API masks them for everyone else. */
+export function publicNames(
+	profile: Pick<MyProfile, 'displayName' | 'firstName' | 'lastName' | 'visibilitySettings'>
+) {
+	const shown = (field: VisibilityField) => isFieldPublic(profile.visibilitySettings ?? {}, field);
+	return {
+		displayName: shown('displayName') ? profile.displayName : null,
+		firstName: shown('firstName') ? profile.firstName : null,
+		lastName: shown('lastName') ? profile.lastName : null,
+	};
+}
+
 /** The settings that differ from `saved`, as `PATCH /users/me/visibility` takes them; empty when none do. */
 export function visibilityChanges(saved: Record<string, boolean>, next: Record<string, boolean>) {
 	return Object.fromEntries(

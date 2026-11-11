@@ -196,15 +196,15 @@ describe('NotificationList rows', () => {
 		expect(within(row).getByRole('link', { name: 'Vote' })).toHaveAttribute('href', '/poll/p2');
 	});
 
-	it('offers Follow back to a new follower, or shows Following once followed back', () => {
+	it('offers Follow back to a new follower by the name they show, or shows Following once followed back', () => {
 		renderList([
 			follow('jtan', 120, { actor: { ...person('jtan', 'Jun Tan'), followsYou: true } }),
 			comment,
 			follow('tpark', 600, { read: true, actor: { ...person('tpark'), isFollowing: true, followsYou: true } }),
 		]);
 		const jtan = rowOf('@jtan');
-		expect(jtan).toHaveTextContent('@jtan followed you');
-		expect(jtan).toHaveTextContent(`2h${META_GAP}Jun Tan`, { normalizeWhitespace: false });
+		expect(jtan).toHaveTextContent('Jun Tan followed you');
+		expect(jtan).toHaveTextContent(`2h${META_GAP}@jtan`, { normalizeWhitespace: false });
 		expect(within(jtan).getByRole('button', { name: 'Follow back' })).toBeInTheDocument();
 		expect(within(rowOf('@tpark')).getByRole('button', { name: /Following/ })).toHaveAttribute('aria-haspopup', 'dialog');
 	});
@@ -278,9 +278,9 @@ describe('NotificationList rows', () => {
 		renderList([
 			{ id: 'community_locked_a1', kind: 'COMMUNITY_LOCKED', createdAt: iso(-HOUR), read: false, actor: { ...person('robotics', 'Robotics Club'), community: true } },
 		]);
-		const row = rowOf('@robotics');
-		expect(row).toHaveTextContent('@robotics was locked because no choice was made before the deadline');
-		expect(within(row).getByRole('link', { name: '@robotics' })).toHaveAttribute('href', '/robotics');
+		const row = rowOf('Robotics Club');
+		expect(row).toHaveTextContent('Robotics Club was locked because no choice was made before the deadline');
+		expect(within(row).getByRole('link', { name: 'Robotics Club' })).toHaveAttribute('href', '/robotics');
 		expect(within(row).getByRole('link', { name: 'View' })).toHaveAttribute('href', '/settings#communities');
 		expect(screen.getByRole('button', { name: 'Community' })).toBeInTheDocument();
 	});

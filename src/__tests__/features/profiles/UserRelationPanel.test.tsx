@@ -14,13 +14,12 @@ function renderPanel(load: jest.Mock, remove = jest.fn()) {
 }
 
 describe('UserRelationPanel', () => {
-	it('lists each person by handle only, leaving the title to the page', async () => {
+	it('lists each person by the name they show, then their handle, leaving the title to the page', async () => {
 		const load = jest.fn().mockResolvedValue({ ok: true, data: { items: [bob, cy], nextCursor: null } });
 		renderPanel(load);
 
 		const items = await screen.findAllByRole('listitem');
-		expect(items.map((item) => item.textContent)).toEqual(['@bobUnblock', '@cyUnblock']);
-		expect(screen.queryByText('Bob')).not.toBeInTheDocument();
+		expect(items.map((item) => item.textContent)).toEqual(['Bob @bobUnblock', '@cyUnblock']);
 		expect(screen.queryByRole('heading')).not.toBeInTheDocument();
 	});
 

@@ -174,7 +174,7 @@ describe('getPoll()', () => {
 		await getPoll('poll-1');
 		expect(mockApiClient).toHaveBeenCalledWith('/votes/poll-1', {
 			auth: 'optional',
-			next: { revalidate: 30, tags: ['poll:poll-1'] },
+			next: { revalidate: 30, tags: ['poll:poll-1', 'polls'] },
 		});
 	});
 
