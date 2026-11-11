@@ -1,37 +1,65 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/Button';
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { Input } from '@/components/ui/Input';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { isValidUsername, RESERVED_USERNAMES, USERNAME_MAX_LENGTH } from '@/features/account/username';
+import { UpgradeButton } from '@/features/billing/UpgradeButton';
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
 import { apiErrorText } from '@/lib/api/error-text';
 import { cn } from '@/lib/utils';
 
+import { communityMembersHref } from './schema';
 import { createCommunity } from './service';
 
 const DISPLAY_NAME_MAX_LENGTH = 100;
 const labelClassName = 'text-caption-1 font-medium text-foreground';
 
-/** Creates a community account with the signed-in user as its first owner; `onCreated` gets the new account's id. */
+/**
+ * Creates a community account with the signed-in user as its first owner, then takes them to its members page.
+ * `atLimit` when they already own as many as their plan allows: says so instead of the form.
+ */
 export function CreateCommunityDialog({
 	open,
 	onOpenChange,
-	onCreated,
+	atLimit,
 }: {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	onCreated: (communityId: string, username: string) => void;
+	atLimit?: { free: boolean };
 }) {
 	const { t } = useLanguage();
+	const router = useRouter();
+	const onCreated = (communityId: string, username: string) => {
+		onOpenChange(false);
+		toast.success(t('communities.created', { name: username }));
+		router.push(communityMembersHref(communityId));
+	};
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="sm:max-w-lg" closeLabel={t('common.close')}>
 				{/* Unmounted on close, so reopening starts empty */}
-				{open && <CreateForm onCancel={() => onOpenChange(false)} onCreated={onCreated} />}
+				{atLimit ? (
+					<>
+						<DialogHeader>
+							<DialogTitle>{t('communities.limitTitle')}</DialogTitle>
+							<DialogDescription>{t(atLimit.free ? 'communities.limitBodyFree' : 'communities.limitBodyPro')}</DialogDescription>
+						</DialogHeader>
+						<DialogFooter>
+							<Button type="button" size="md" variant="outline" onClick={() => onOpenChange(false)}>
+								{t('common.close')}
+							</Button>
+							{atLimit.free && <UpgradeButton />}
+						</DialogFooter>
+					</>
+				) : (
+					open && <CreateForm onCancel={() => onOpenChange(false)} onCreated={onCreated} />
+				)}
 			</DialogContent>
 		</Dialog>
 	);

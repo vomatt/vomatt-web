@@ -194,7 +194,7 @@ export function AppSidebar({
 										)}
 									</SidebarMenuButton>
 									{/* Who they can act as; absent for anyone in no community account */}
-									<AccountSwitcher />
+									<AccountSwitcher profile={profile} />
 								</SidebarMenuItem>
 							)}
 						</SidebarMenu>

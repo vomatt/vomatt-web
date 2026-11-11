@@ -31,7 +31,7 @@ import { UpgradeButton } from '@/features/billing/UpgradeButton';
 import { CommunityAccountsCard } from '@/features/communities/CommunityAccountsCard';
 import { CreateCommunityDialog } from '@/features/communities/CreateCommunityDialog';
 import { KeepCommunitiesDialog } from '@/features/communities/KeepCommunitiesDialog';
-import { communityMembersHref, type MyCommunity } from '@/features/communities/schema';
+import type { MyCommunity } from '@/features/communities/schema';
 import { ReportProblemDialog } from '@/features/feedback/ReportProblemDialog';
 import { GroupsPanel } from '@/features/groups/GroupsPanel';
 import { NOTIFICATION_SWITCHES } from '@/features/notifications/preferences';
@@ -288,7 +288,6 @@ function KeepRow({ quota, communities }: { quota: CommunityQuota; communities: M
 /** Starts a new community account; the user becomes its owner and lands on its members page. At the plan's limit, says so instead. */
 function CreateCommunityRow({ profile: { plan, communityQuota: quota } }: { profile: MyProfile }) {
 	const { t } = useLanguage();
-	const router = useRouter();
 	const [open, setOpen] = useState(false);
 	if (quota && quota.owned >= quota.limit) {
 		const free = plan === 'FREE';
@@ -307,15 +306,7 @@ function CreateCommunityRow({ profile: { plan, communityQuota: quota } }: { prof
 				<RowText title={t('communities.createTitle')} body={t('communities.createBody')} />
 				<ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
 			</button>
-			<CreateCommunityDialog
-				open={open}
-				onOpenChange={setOpen}
-				onCreated={(communityId, username) => {
-					setOpen(false);
-					toast.success(t('communities.created', { name: username }));
-					router.push(communityMembersHref(communityId));
-				}}
-			/>
+			<CreateCommunityDialog open={open} onOpenChange={setOpen} />
 		</SettingsCard>
 	);
 }

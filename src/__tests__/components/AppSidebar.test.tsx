@@ -37,6 +37,11 @@ jest.mock('@/features/feedback/service', () => ({
 	reportProblem: jest.fn(),
 }));
 
+jest.mock('@/features/billing/service', () => ({ startCheckout: jest.fn() }));
+jest.mock('@/features/communities/service', () => ({
+	createCommunity: jest.fn(),
+}));
+
 const mockSetTheme = jest.fn();
 jest.mock('next-themes', () => ({
 	useTheme: () => ({ theme: 'light', setTheme: mockSetTheme }),
