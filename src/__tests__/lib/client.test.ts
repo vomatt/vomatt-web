@@ -30,7 +30,7 @@ beforeEach(() => {
 	jest.clearAllMocks();
 	mockRequestHeaders = new Headers();
 	delete process.env.CLIENT_IP_SECRET;
-	mockLocale.mockResolvedValue({ language: 'en', payloadLocale: 'en' });
+	mockLocale.mockResolvedValue({ language: 'en', localeTag: 'en' });
 	mockActingId.mockResolvedValue(null);
 	global.fetch = fetchMock;
 });
@@ -60,7 +60,7 @@ describe('apiClient', () => {
 
 	it('asks for messages in the viewer\'s language', async () => {
 		mockGetTokens.mockResolvedValue({ accessToken: 'a1', refreshToken: 'r1' });
-		mockLocale.mockResolvedValue({ language: 'zh', payloadLocale: 'zh-TW' });
+		mockLocale.mockResolvedValue({ language: 'zh', localeTag: 'zh-TW' });
 		fetchMock.mockResolvedValue(json({ success: true, data: {} }));
 
 		await apiClient('/votes', { method: 'POST' });

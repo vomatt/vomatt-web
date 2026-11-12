@@ -1,3 +1,5 @@
+import { serverNow } from '@/lib/clock';
+
 import type { Poll } from './schema';
 
 /**
@@ -11,7 +13,7 @@ const CLOSING_WINDOW_MS = 24 * 60 * 60 * 1000;
 export type StatusFields = Pick<Poll, 'active' | 'votingActive' | 'startTime' | 'endTime' | 'revealAt'>;
 
 /** Ended wins over Scheduled, so an old cancelled Scheduled Poll reads as Ended. */
-export function derivePollStatus(poll: StatusFields, now: Date | number = Date.now()): PollStatus {
+export function derivePollStatus(poll: StatusFields, now: Date | number = serverNow()): PollStatus {
 	const time = typeof now === 'number' ? now : now.getTime();
 	const end = poll.endTime ? Date.parse(poll.endTime) : null;
 
@@ -31,7 +33,7 @@ export function revealTime(poll: Pick<Poll, 'endTime' | 'revealAt'>) {
  * Whether the Poll's counts are out: Ended, and past its `revealAt` if it has one. Until then the API
  * sends no `votes` and answers `/results` and `/voters` with 403 `vote.results.sealed`.
  */
-export function isRevealed(poll: StatusFields, now: Date | number = Date.now()) {
+export function isRevealed(poll: StatusFields, now: Date | number = serverNow()) {
 	const time = typeof now === 'number' ? now : now.getTime();
 	// Not revealTime(): a Poll Ended early by its owner may still carry its planned end
 	return derivePollStatus(poll, time) === 'ended' && (!poll.revealAt || Date.parse(poll.revealAt) <= time);
@@ -105,7 +107,7 @@ export function getTurnout(poll: Pick<Poll, 'participantCount' | 'totalVotes'>) 
 }
 
 /** How far through its voting window the Poll is, 0–100. */
-export function timelineProgress(poll: Pick<Poll, 'startTime' | 'endTime'>, now = Date.now()) {
+export function timelineProgress(poll: Pick<Poll, 'startTime' | 'endTime'>, now = serverNow()) {
 	if (!poll.endTime) return null;
 	const start = Date.parse(poll.startTime);
 	const end = Date.parse(poll.endTime);

@@ -9,6 +9,7 @@ import { ReactNode, Suspense } from 'react';
 import { BrandPulse, MarkLoader } from '@/components/BrandPulse';
 import { Layout } from '@/components/layout';
 import { CookieConsent } from '@/components/layout/CookieConsent';
+import { ServerClock } from '@/components/ServerClock';
 import { SessionRetry } from '@/components/SessionRetry';
 import { ThemedToaster } from '@/components/ThemedToaster';
 import { ThemeProvider } from '@/components/ui/ThemeProvider';
@@ -93,6 +94,7 @@ export default async function RootLayout({
 		// next-themes sets the theme class on <html> before React hydrates
 		<html lang={htmlLang(language)} className={geistSans.variable} suppressHydrationWarning>
 			<body className="text-foreground font-sans antialiased">
+				<ServerClock />
 				<ThemeProvider>
 					<LanguageProvider
 						initialLanguage={language}

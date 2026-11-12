@@ -39,7 +39,7 @@ export async function searchUsers(username: string, cursor?: string, limit = 20)
 }
 
 async function deleteUser(userId: string) {
-  return apiClient(`/users/${userId}`, { method: 'DELETE' });
+  return apiClient(`/users/${encodeURIComponent(userId)}`, { method: 'DELETE' });
 }
 
 export async function getMyProfile(): Promise<MyProfile> {

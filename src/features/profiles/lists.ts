@@ -1,9 +1,10 @@
 import { ballotOutcome } from '@/features/account/insights';
 import type { Poll } from '@/features/polls/schema';
 import { derivePollStatus, getTurnout, getWinners, holdsBallot, isCancelled, isRevealed } from '@/features/polls/status';
+import { serverNow } from '@/lib/clock';
 
 /** Asked: Scheduled and Open polls first (what happens next), then Ended ones. */
-export function splitAsked(polls: Poll[], now = Date.now()) {
+export function splitAsked(polls: Poll[], now = serverNow()) {
 	const open: Poll[] = [];
 	const ended: Poll[] = [];
 	for (const poll of polls) (derivePollStatus(poll, now) === 'ended' ? ended : open).push(poll);
@@ -11,7 +12,7 @@ export function splitAsked(polls: Poll[], now = Date.now()) {
 }
 
 /** Voted: Sealed ballots waiting for results (open, or Ended before `revealAt`) first, then decided ones. */
-export function splitVoted(polls: Poll[], now = Date.now()) {
+export function splitVoted(polls: Poll[], now = serverNow()) {
 	const sealed: Poll[] = [];
 	const decided: Poll[] = [];
 	for (const poll of polls) (isRevealed(poll, now) ? decided : sealed).push(poll);
@@ -36,7 +37,7 @@ export const askedPolls = (polls: Poll[], viewerId: string) =>
  * Share of decided ballots whose pick won outright, 0–100; null before any is decided.
  * Ties and unknown results count as decided only when known: a tie isn't a win.
  */
-export function picksWonRate(polls: Poll[], now = Date.now()): number | null {
+export function picksWonRate(polls: Poll[], now = serverNow()): number | null {
 	let decided = 0;
 	let won = 0;
 	for (const poll of polls) {

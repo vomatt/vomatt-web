@@ -1,7 +1,7 @@
 'use client';
 
 import { useLanguage } from '@/contexts/LanguageContext';
-import { toPayloadLocale } from '@/lib/locale';
+import { toLocaleTag } from '@/lib/locale';
 
 import { OnlyYouMarker } from './ProfileHeader';
 
@@ -27,7 +27,7 @@ export function ProfileRecord({ cells }: { cells: RecordCell[] }) {
 						{cell.private && <OnlyYouMarker className="size-3" />}
 					</dt>
 					<dd className="text-title-2 leading-tight tabular-nums">
-						{cell.value === null ? '–' : `${cell.value.toLocaleString(toPayloadLocale(currentLanguage))}${cell.suffix ?? ''}`}
+						{cell.value === null ? '–' : `${cell.value.toLocaleString(toLocaleTag(currentLanguage))}${cell.suffix ?? ''}`}
 					</dd>
 				</div>
 			))}

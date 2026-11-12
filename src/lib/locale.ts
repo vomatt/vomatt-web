@@ -1,14 +1,13 @@
 import type { LanguageCode } from '@/types';
 
 /**
- * Maps frontend language codes to Payload CMS locale codes.
- * Frontend uses 'zh', Payload uses 'zh-TW'.
+ * The BCP 47 tag for a language code, for Intl and the API's Accept-Language: our 'zh' is Traditional Chinese, 'zh-TW'.
  */
-const FRONTEND_TO_PAYLOAD: Record<LanguageCode, string> = {
+const LOCALE_TAGS: Record<LanguageCode, string> = {
 	en: 'en',
 	zh: 'zh-TW',
 };
 
-export function toPayloadLocale(lang: LanguageCode): string {
-	return FRONTEND_TO_PAYLOAD[lang] ?? 'en';
+export function toLocaleTag(lang: LanguageCode): string {
+	return LOCALE_TAGS[lang] ?? 'en';
 }

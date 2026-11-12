@@ -138,7 +138,7 @@ export async function apiClient<T = any>(
 	// Error messages the UI shows as-is come back in the viewer's language. Only
 	// here: on cached public requests the header would split the cache by language.
 	if (!headers.has('Accept-Language')) {
-		headers.set('Accept-Language', (await getServerLocale()).payloadLocale);
+		headers.set('Accept-Language', (await getServerLocale()).localeTag);
 	}
 	// A response for one user must never land in the shared data cache
 	const { next: _next, ...uncached } = fetchOptions as RequestInit & { next?: unknown };

@@ -350,14 +350,17 @@ describe('getAllMyPolls()', () => {
 		mockApiClient
 			.mockResolvedValueOnce(page([oldPoll], 'c2'))
 			.mockResolvedValueOnce(page([{ ...oldPoll, id: 'poll-9' }]));
-		const polls = await getAllMyPolls('ended');
+		const { polls, truncated } = await getAllMyPolls('ended');
 		expect(polls.map((p) => p.id)).toEqual(['poll-1', 'poll-9']);
+		expect(truncated).toBe(false);
 		expect(mockApiClient).toHaveBeenLastCalledWith('/votes/my?limit=50&cursor=c2&status=ended');
 	});
 
-	it('stops after 10 pages even if the cursor never ends', async () => {
+	it('stops after 10 pages even if the cursor never ends, and says the set is incomplete', async () => {
 		mockApiClient.mockResolvedValue(page([oldPoll], 'again'));
-		expect(await getAllMyPolls('open')).toHaveLength(10);
+		const { polls, truncated } = await getAllMyPolls('open');
+		expect(polls).toHaveLength(10);
+		expect(truncated).toBe(true);
 		expect(mockApiClient).toHaveBeenCalledTimes(10);
 	});
 });
@@ -446,6 +449,12 @@ describe('retractBallot()', () => {
 });
 
 describe('getResults()', () => {
+	it('encodes the id, so it can only ever name one poll', async () => {
+		mockApiClient.mockResolvedValue({ id: 'x', options: [] });
+		await getResults('a/../b?c');
+		expect(mockApiClient).toHaveBeenCalledWith('/votes/a%2F..%2Fb%3Fc/results', { auth: 'optional' });
+	});
+
 	it('parses results for an Ended Poll', async () => {
 		mockApiClient.mockResolvedValue({
 			id: 'poll-1',

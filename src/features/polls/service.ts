@@ -44,7 +44,8 @@ import {
 } from './schema';
 import { derivePollStatus, holdsBallot, isRevealed } from './status';
 
-const PollPage = cursorPageSchema(PollSchema);
+// One Poll the app can't read is left out of a list, not the whole page
+const PollPage = cursorPageSchema(PollSchema, { skipInvalid: true });
 
 function toRequestBody(input: PollInput) {
 	return JSON.stringify({
@@ -235,15 +236,18 @@ export async function getMyPolls(
 	return PollPage.parse(await apiClient(`/votes/my?${params}`));
 }
 
-/** Enough for any real user; a cap so a runaway cursor can't loop forever. */
+/** A cap so a runaway cursor can't loop forever, and one profile load can't make unlimited requests. */
 const MY_POLLS_MAX_PAGES = 10;
 
-/** Every page of getMyPolls, for account insights that need the whole set. */
-export async function getAllMyPolls(status: 'open' | 'ended'): Promise<Poll[]> {
-	const { items } = await collectPages((cursor) => getMyPolls(status, cursor), {
+/**
+ * Every page of getMyPolls, for account insights that need the whole set.
+ * `truncated`: the cap was reached with pages left, so the set is incomplete.
+ */
+export async function getAllMyPolls(status: 'open' | 'ended'): Promise<{ polls: Poll[]; truncated: boolean }> {
+	const { items, nextCursor } = await collectPages((cursor) => getMyPolls(status, cursor), {
 		maxPages: MY_POLLS_MAX_PAGES,
 	});
-	return items;
+	return { polls: items, truncated: nextCursor !== null };
 }
 
 /** Null when the Poll doesn't exist. Signed-in viewers get their `myOptionId`. */
@@ -292,7 +296,7 @@ export async function getInviteOnlyCreator(
  */
 export async function getMyBallot(pollId: string): Promise<string | null> {
 	try {
-		const data = await apiClient(`/votes/${pollId}/my-vote-status`);
+		const data = await apiClient(`/votes/${encodeURIComponent(pollId)}/my-vote-status`);
 		const status = UserVoteStatusSchema.parse(data);
 		return status.hasVoted ? (status.selectedOptions?.[0] ?? null) : null;
 	} catch (error) {
@@ -312,14 +316,14 @@ export async function getVoters(
 	cursor?: string | null
 ): Promise<ActionResult<CursorPage<Voter>>> {
 	return attempt(async () =>
-		VoterPage.parse(await apiClient(`/votes/${pollId}/voters?${pageParams(cursor, MAX_PAGE_SIZE)}`))
+		VoterPage.parse(await apiClient(`/votes/${encodeURIComponent(pollId)}/voters?${pageParams(cursor, MAX_PAGE_SIZE)}`))
 	);
 }
 
 /** Only for Ended Polls. A 403 means the results are still sealed. */
 export async function getResults(pollId: string): Promise<ActionResult<PollResults>> {
 	return attempt(async () =>
-		PollResultsSchema.parse(await apiClient(`/votes/${pollId}/results`, { auth: 'optional' }))
+		PollResultsSchema.parse(await apiClient(`/votes/${encodeURIComponent(pollId)}/results`, { auth: 'optional' }))
 	);
 }
 
@@ -351,7 +355,7 @@ export async function castBallot(
 	anonymous?: boolean
 ): Promise<ActionResult<Poll>> {
 	return attempt(async () => {
-		const poll = await apiClient(`/votes/${pollId}/vote`, {
+		const poll = await apiClient(`/votes/${encodeURIComponent(pollId)}/vote`, {
 			method: 'POST',
 			body: JSON.stringify({ optionIds: [optionId], anonymous }),
 		});
@@ -363,7 +367,7 @@ export async function castBallot(
 /** Retraction: the voter is no longer a Participant and won't be notified. Idempotent. */
 export async function retractBallot(pollId: string): Promise<ActionResult> {
 	return attempt(async () => {
-		await apiClient(`/votes/${pollId}/vote`, { method: 'DELETE' });
+		await apiClient(`/votes/${encodeURIComponent(pollId)}/vote`, { method: 'DELETE' });
 		invalidatePoll(pollId);
 	});
 }
@@ -400,7 +404,7 @@ export async function createPoll(input: PollInput): Promise<ActionResult<Poll>> 
 /** Owner only, and only while the Poll is Scheduled. */
 export async function updatePoll(id: string, input: PollInput): Promise<ActionResult<Poll>> {
 	return attempt(async () => {
-		const poll = await apiClient<Poll>(`/votes/${id}`, {
+		const poll = await apiClient<Poll>(`/votes/${encodeURIComponent(id)}`, {
 			method: 'PUT',
 			body: toRequestBody(input),
 		});
@@ -415,7 +419,7 @@ export async function updatePoll(id: string, input: PollInput): Promise<ActionRe
  */
 export async function closePoll(id: string): Promise<ActionResult> {
 	return attempt(async () => {
-		await apiClient(`/votes/${id}/deactivate`, { method: 'PUT' });
+		await apiClient(`/votes/${encodeURIComponent(id)}/deactivate`, { method: 'PUT' });
 		invalidatePoll(id, { lists: true });
 	});
 }
@@ -426,7 +430,7 @@ export async function closePoll(id: string): Promise<ActionResult> {
  */
 export async function deletePoll(id: string): Promise<ActionResult> {
 	return attempt(async () => {
-		await apiClient(`/votes/${id}`, { method: 'DELETE' });
+		await apiClient(`/votes/${encodeURIComponent(id)}`, { method: 'DELETE' });
 		invalidatePoll(id, { lists: true });
 	});
 }
@@ -437,7 +441,7 @@ const InviteeList = z.array(InviteeSchema);
 
 /** Every Invitee, each with `hasBallot`. */
 export async function getInvitees(pollId: string): Promise<ActionResult<Invitee[]>> {
-	return attempt(async () => InviteeList.parse(await apiClient(`/votes/${pollId}/invitees`)));
+	return attempt(async () => InviteeList.parse(await apiClient(`/votes/${encodeURIComponent(pollId)}/invitees`)));
 }
 
 /**
@@ -449,7 +453,7 @@ export async function addInvitees(
 	invitees: InviteesInput
 ): Promise<ActionResult<Invitee[]>> {
 	return attempt(async () => {
-		const list = await apiClient(`/votes/${pollId}/invitees`, {
+		const list = await apiClient(`/votes/${encodeURIComponent(pollId)}/invitees`, {
 			method: 'POST',
 			body: JSON.stringify(invitees),
 		});
@@ -468,7 +472,7 @@ export async function removeInvitee(
 	invitee: Pick<Invitee, 'userId' | 'email'>
 ): Promise<ActionResult<Invitee[]>> {
 	return attempt(async () => {
-		const list = await apiClient(personPath(`/votes/${pollId}/invitees`, invitee), {
+		const list = await apiClient(personPath(`/votes/${encodeURIComponent(pollId)}/invitees`, invitee), {
 			method: 'DELETE',
 		});
 		invalidatePoll(pollId);
@@ -489,7 +493,7 @@ export async function getComments(
 ): Promise<ActionResult<CursorPage<ThreadComment>>> {
 	return attempt(async () => {
 		const params = pageParams(cursor, COMMENT_PAGE_SIZE);
-		const data = await apiClient(`/votes/${pollId}/comments?${params}`, { auth: 'optional' });
+		const data = await apiClient(`/votes/${encodeURIComponent(pollId)}/comments?${params}`, { auth: 'optional' });
 		return ThreadCommentPage.parse(data);
 	});
 }
@@ -502,7 +506,7 @@ export async function getReplies(
 ): Promise<ActionResult<CursorPage<Comment>>> {
 	return attempt(async () => {
 		const params = pageParams(cursor, COMMENT_PAGE_SIZE);
-		const data = await apiClient(`/votes/${pollId}/comments/${commentId}/replies?${params}`, {
+		const data = await apiClient(`/votes/${encodeURIComponent(pollId)}/comments/${encodeURIComponent(commentId)}/replies?${params}`, {
 			auth: 'optional',
 		});
 		return CommentPage.parse(data);
@@ -516,7 +520,7 @@ export async function postComment(
 	parentId?: string
 ): Promise<ActionResult<Comment>> {
 	return attempt(async () => {
-		const comment = await apiClient(`/votes/${pollId}/comments`, {
+		const comment = await apiClient(`/votes/${encodeURIComponent(pollId)}/comments`, {
 			method: 'POST',
 			// JSON leaves out an undefined parentId
 			body: JSON.stringify({ text, parentId }),
@@ -533,7 +537,7 @@ export async function updateComment(
 ): Promise<ActionResult<Comment>> {
 	return attempt(async () =>
 		CommentSchema.parse(
-			await apiClient(`/votes/${voteId}/comments/${commentId}`, {
+			await apiClient(`/votes/${encodeURIComponent(voteId)}/comments/${encodeURIComponent(commentId)}`, {
 				method: 'PUT',
 				body: JSON.stringify({ text }),
 			})
@@ -543,7 +547,7 @@ export async function updateComment(
 
 export async function deleteComment(voteId: string, commentId: string): Promise<ActionResult> {
 	return attempt(async () => {
-		await apiClient(`/votes/${voteId}/comments/${commentId}`, {
+		await apiClient(`/votes/${encodeURIComponent(voteId)}/comments/${encodeURIComponent(commentId)}`, {
 			method: 'DELETE',
 		});
 		invalidatePoll(voteId);
@@ -552,7 +556,7 @@ export async function deleteComment(voteId: string, commentId: string): Promise<
 
 export async function likeComment(voteId: string, commentId: string): Promise<ActionResult> {
 	return attempt(async () => {
-		await apiClient(`/votes/${voteId}/comments/${commentId}/like`, {
+		await apiClient(`/votes/${encodeURIComponent(voteId)}/comments/${encodeURIComponent(commentId)}/like`, {
 			method: 'POST',
 		});
 	});
@@ -560,7 +564,7 @@ export async function likeComment(voteId: string, commentId: string): Promise<Ac
 
 export async function unlikeComment(voteId: string, commentId: string): Promise<ActionResult> {
 	return attempt(async () => {
-		await apiClient(`/votes/${voteId}/comments/${commentId}/like`, {
+		await apiClient(`/votes/${encodeURIComponent(voteId)}/comments/${encodeURIComponent(commentId)}/like`, {
 			method: 'DELETE',
 		});
 	});
@@ -573,7 +577,7 @@ export async function reportComment(
 	report: ReportCommentRequest
 ): Promise<ActionResult> {
 	return attempt(async () => {
-		await apiClient(`/votes/${voteId}/comments/${commentId}/report`, {
+		await apiClient(`/votes/${encodeURIComponent(voteId)}/comments/${encodeURIComponent(commentId)}/report`, {
 			method: 'POST',
 			body: JSON.stringify(report),
 		});
@@ -583,35 +587,35 @@ export async function reportComment(
 /** Reports another person's Poll to the moderators; reporting it again keeps the first report. */
 export async function reportPoll(voteId: string, report: ReportPollRequest): Promise<ActionResult> {
 	return attempt(async () => {
-		await apiClient(`/votes/${voteId}/report`, { method: 'POST', body: JSON.stringify(report) });
+		await apiClient(`/votes/${encodeURIComponent(voteId)}/report`, { method: 'POST', body: JSON.stringify(report) });
 	});
 }
 
 /** Idempotent: bookmarking a bookmarked Poll keeps its first place in the list. */
 export async function bookmarkPoll(voteId: string): Promise<ActionResult> {
 	return attempt(async () => {
-		await apiClient(`/votes/${voteId}/bookmark`, { method: 'PUT' });
+		await apiClient(`/votes/${encodeURIComponent(voteId)}/bookmark`, { method: 'PUT' });
 	});
 }
 
 /** Idempotent: succeeds when the Poll was not bookmarked. */
 export async function unbookmarkPoll(voteId: string): Promise<ActionResult> {
 	return attempt(async () => {
-		await apiClient(`/votes/${voteId}/bookmark`, { method: 'DELETE' });
+		await apiClient(`/votes/${encodeURIComponent(voteId)}/bookmark`, { method: 'DELETE' });
 	});
 }
 
 /** Idempotent: liking a liked Poll changes nothing. Any Poll the viewer can see, in any state. */
 export async function likePoll(voteId: string): Promise<ActionResult> {
 	return attempt(async () => {
-		await apiClient(`/votes/${voteId}/like`, { method: 'PUT' });
+		await apiClient(`/votes/${encodeURIComponent(voteId)}/like`, { method: 'PUT' });
 	});
 }
 
 /** Idempotent: always succeeds, also for a Poll the viewer can no longer see. */
 export async function unlikePoll(voteId: string): Promise<ActionResult> {
 	return attempt(async () => {
-		await apiClient(`/votes/${voteId}/like`, { method: 'DELETE' });
+		await apiClient(`/votes/${encodeURIComponent(voteId)}/like`, { method: 'DELETE' });
 	});
 }
 

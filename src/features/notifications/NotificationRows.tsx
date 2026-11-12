@@ -22,7 +22,7 @@ import { ProfileHoverCard, rememberFollowing } from '@/features/profiles/Profile
 import { ProfileAvatar } from '@/features/profiles/UserChip';
 import { apiErrorText } from '@/lib/api/error-text';
 import { countText } from '@/lib/count';
-import { toPayloadLocale } from '@/lib/locale';
+import { toLocaleTag } from '@/lib/locale';
 import { rich } from '@/lib/rich';
 import { META_GAP } from '@/lib/rich';
 import { commentHash, pollHref, profileHref, replyHash } from '@/lib/routes';
@@ -251,7 +251,7 @@ function ResultRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'RESULT' }
 					<DecidedText key="outcome" winners={poll.winningOptionLabels} tie={!!poll.tie} />
 				),
 				<span key="turnout" className="tabular-nums">
-					{t('poll.voted', { count: (poll.turnout ?? 0).toLocaleString(toPayloadLocale(currentLanguage)) })}
+					{t('poll.voted', { count: (poll.turnout ?? 0).toLocaleString(toLocaleTag(currentLanguage)) })}
 				</span>,
 				useAge(entry.createdAt),
 			]}
@@ -481,7 +481,7 @@ function ClosingSoonRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'CLOS
 			meta={[
 				t('notifications.notVoted'),
 				<span key="turnout" className="tabular-nums">
-					{t('notifications.votedSoFar', { count: (poll.turnout ?? 0).toLocaleString(toPayloadLocale(currentLanguage)) })}
+					{t('notifications.votedSoFar', { count: (poll.turnout ?? 0).toLocaleString(toLocaleTag(currentLanguage)) })}
 				</span>,
 				useAge(entry.createdAt),
 			]}

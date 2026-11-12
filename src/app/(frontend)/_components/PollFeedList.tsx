@@ -2,8 +2,7 @@
 
 import { m } from 'motion/react';
 import Link from 'next/link';
-import { useState } from 'react';
-import { useInView } from 'react-intersection-observer';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 
 import { EmptyCard } from '@/components/EmptyCard';
 import { Button, buttonVariants } from '@/components/ui/Button';
@@ -66,12 +65,21 @@ export function PollFeedList({
 	const { empty } = FEEDS[feed];
 
 	// Load the next page as the reader nears the end; the button stays as a fallback
-	const { ref: sentinelRef } = useInView({
-		rootMargin: '600px',
-		onChange: (inView) => {
-			if (inView && !loadFailed) loadMore();
-		},
-	});
+	const sentinelRef = useRef<HTMLDivElement>(null);
+	const onNearEnd = useEffectEvent(loadMore);
+	// Observing again after each load reports a sentinel still in view
+	useEffect(() => {
+		const sentinel = sentinelRef.current;
+		if (!sentinel || isLoading || loadFailed) return;
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				if (entry.isIntersecting) onNearEnd();
+			},
+			{ rootMargin: '600px' }
+		);
+		observer.observe(sentinel);
+		return () => observer.disconnect();
+	}, [nextCursor, isLoading, loadFailed]);
 
 	return (
 		<div

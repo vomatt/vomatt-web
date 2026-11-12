@@ -57,12 +57,15 @@ const TAB_NOTES = {
 export function OwnProfileView({
 	profile,
 	polls,
+	pollsTruncated,
 	initialTab = 'asked',
 	openEdit = false,
 }: {
 	profile: MyProfile;
 	/** Every Poll in My Polls (asked and voted in); null when it couldn't load. */
 	polls: Poll[] | null;
+	/** My Polls has more pages than were read, so the lists and their counts are incomplete. */
+	pollsTruncated?: boolean;
 	initialTab?: ProfileTab;
 	/** Opens Edit profile on arrival, e.g. from Settings › What others see. */
 	openEdit?: boolean;
@@ -268,9 +271,11 @@ export function OwnProfileView({
 						) : (
 							<AskedList split={askedSplit} filter={askedFilter} onChanged={() => router.refresh()} />
 						)}
+						{pollsTruncated && <p className="text-caption-2 text-muted-foreground">{t('profile.pollsTruncated')}</p>}
 					</TabsContent>
 					<TabsContent value="voted" className="flex flex-col gap-2">
 						{polls === null ? <LoadFailed /> : <VotedList split={votedSplit} filter={votedFilter} />}
+						{pollsTruncated && <p className="text-caption-2 text-muted-foreground">{t('profile.pollsTruncated')}</p>}
 					</TabsContent>
 					<TabsContent value="saved" keepMounted={savedOpened} className="flex flex-col gap-2">
 						<SavedList />

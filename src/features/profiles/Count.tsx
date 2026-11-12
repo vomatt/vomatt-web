@@ -1,5 +1,5 @@
 import { useLanguage } from '@/contexts/LanguageContext';
-import { toPayloadLocale } from '@/lib/locale';
+import { toLocaleTag } from '@/lib/locale';
 
 /**
  * A localized count phrase ("1,204 followers", "1,204 位追蹤者") with its number
@@ -7,7 +7,7 @@ import { toPayloadLocale } from '@/lib/locale';
  */
 export function Count({ value, label }: { value: number; label: string }) {
 	const { currentLanguage } = useLanguage();
-	const number = value.toLocaleString(toPayloadLocale(currentLanguage));
+	const number = value.toLocaleString(toLocaleTag(currentLanguage));
 	const at = label.indexOf(number);
 	if (at < 0) return label;
 	return (

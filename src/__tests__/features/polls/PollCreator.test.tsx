@@ -99,15 +99,15 @@ describe('PollCreator', () => {
 		expect(screen.getByText('39/200')).toBeInTheDocument();
 	});
 
-	it('counts an option against the 100 limit once it nears it', async () => {
+	it('counts an option against the 200 limit once it nears it', async () => {
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();
 		const option = screen.getByLabelText('Option 1');
-		expect(option).toHaveAttribute('maxLength', '100');
+		expect(option).toHaveAttribute('maxLength', '200');
 		fireEvent.change(option, { target: { value: 'Saturday' } });
-		expect(screen.queryByText('8/100')).not.toBeInTheDocument();
-		fireEvent.change(option, { target: { value: 'x'.repeat(85) } });
-		expect(screen.getByText('85/100')).toBeInTheDocument();
+		expect(screen.queryByText('8/200')).not.toBeInTheDocument();
+		fireEvent.change(option, { target: { value: 'x'.repeat(185) } });
+		expect(screen.getByText('185/200')).toBeInTheDocument();
 	});
 
 	it('keeps context folded away until asked for', async () => {

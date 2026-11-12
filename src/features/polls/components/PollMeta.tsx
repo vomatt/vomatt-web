@@ -2,7 +2,7 @@
 
 import { useLanguage } from '@/contexts/LanguageContext';
 import { endedSummary } from '@/features/profiles/lists';
-import { toPayloadLocale } from '@/lib/locale';
+import { toLocaleTag } from '@/lib/locale';
 import { rich, richList } from '@/lib/rich';
 import { META_GAP } from '@/lib/rich';
 
@@ -13,7 +13,7 @@ import { WINNER_TEXT, WinnerName } from './ElectedMark';
 export function useVotedText() {
 	const { t, currentLanguage } = useLanguage();
 	return (poll: Poll) => {
-		const turnout = (getTurnout(poll) ?? 0).toLocaleString(toPayloadLocale(currentLanguage));
+		const turnout = (getTurnout(poll) ?? 0).toLocaleString(toLocaleTag(currentLanguage));
 		return t('poll.voted', { count: turnout });
 	};
 }
@@ -28,7 +28,7 @@ export function DecidedText({ winners, tie, shortTie }: { winners: string[]; tie
 	if (!winners.length) return null;
 	if (!tie) return rich(t('profile.wonBy'), { option: winner(winners[0]) });
 	if (shortTie) return <strong className={WINNER_TEXT}>{t('homePage.resultsTie')}</strong>;
-	return rich(t('profile.tieBetween'), { options: richList(winners, toPayloadLocale(currentLanguage), winner) });
+	return rich(t('profile.tieBetween'), { options: richList(winners, toLocaleTag(currentLanguage), winner) });
 }
 
 /** The winners of an Ended Poll as DecidedText takes them; null when there is no winner to name. */

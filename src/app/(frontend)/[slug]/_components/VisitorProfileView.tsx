@@ -27,7 +27,7 @@ import { useCursorList } from '@/hooks/useCursorList';
 import type { CursorPage } from '@/lib/api/cursor';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
-import { toPayloadLocale } from '@/lib/locale';
+import { toLocaleTag } from '@/lib/locale';
 import { profileHref } from '@/lib/routes';
 import type { UserProfile } from '@/types/user';
 
@@ -210,7 +210,7 @@ function AskedList({
 				<h2 className="relative inline-flex h-11 items-center gap-1.5 text-body-3 font-medium after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-foreground">
 					{t('profile.tabAsked')}
 					<span className="tabular-nums text-muted-foreground">
-						{total.toLocaleString(toPayloadLocale(currentLanguage))}
+						{total.toLocaleString(toLocaleTag(currentLanguage))}
 					</span>
 				</h2>
 				<FilterPills

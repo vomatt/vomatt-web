@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ActionResult } from '@/lib/api/action';
 import { mergeById } from '@/lib/api/cursor';
 import { settle } from '@/lib/api/settle';
+import { serverNow } from '@/lib/clock';
 
 import type { Comment, ThreadComment } from '../schema';
 import {
@@ -175,7 +176,8 @@ export function useComments(
 				id: tempId,
 				...author,
 				text,
-				createdAt: new Date().toISOString(),
+				// The server's clock, like the times it is shown against
+				createdAt: new Date(serverNow()).toISOString(),
 				parentId: rootId ?? null,
 			};
 			// The list the new Comment goes into: its thread's Replies, or the top level

@@ -57,7 +57,7 @@ The backend is `vomatt-api` (sibling repo): prefix `/api`; the contract is `api-
 
 ### Internationalization
 
-Locales: `en`, `zh` (Traditional Chinese; default `en`), strings in `src/locales/{en,zh}.json`. Config at `src/i18n-config.ts`. Language is detected in `src/proxy.tsx` middleware via `negotiator` + `@formatjs/intl-localematcher` and stored in the `preferred-language` cookie. In components, use the `useLanguage()` context hook and call `t('key')`.
+Locales: `en`, `zh` (Traditional Chinese; default `en`), strings in `src/locales/{en,zh}.json`. Config at `src/i18n-config.ts`. Language is detected in `src/proxy.tsx` middleware from `Accept-Language` and stored in the `preferred-language` cookie. In components, use the `useLanguage()` context hook and call `t('key')`.
 
 ### State & UI Conventions
 

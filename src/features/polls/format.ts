@@ -1,14 +1,10 @@
-import { differenceInCalendarDays, formatDistanceToNowStrict } from 'date-fns';
-import { enUS, zhTW } from 'date-fns/locale';
-
-import { toPayloadLocale } from '@/lib/locale';
+import { serverNow } from '@/lib/clock';
+import { toLocaleTag } from '@/lib/locale';
 import type { LanguageCode } from '@/types';
-
-const DATE_FNS_LOCALES = { en: enUS, zh: zhTW } satisfies Record<LanguageCode, unknown>;
 
 // Building an Intl formatter is costly, so keep one per language
 const dateFormatter = (language: LanguageCode) =>
-	new Intl.DateTimeFormat(toPayloadLocale(language), {
+	new Intl.DateTimeFormat(toLocaleTag(language), {
 		month: 'short',
 		day: 'numeric',
 		hour: '2-digit',
@@ -22,7 +18,7 @@ const DATE_FORMATTERS = {
 
 // UTC so the server render and the browser agree on the month
 const monthYearFormatter = (language: LanguageCode) =>
-	new Intl.DateTimeFormat(toPayloadLocale(language), { month: 'short', year: 'numeric', timeZone: 'UTC' });
+	new Intl.DateTimeFormat(toLocaleTag(language), { month: 'short', year: 'numeric', timeZone: 'UTC' });
 const MONTH_YEAR_FORMATTERS = {
 	en: monthYearFormatter('en'),
 	zh: monthYearFormatter('zh'),
@@ -38,25 +34,11 @@ export function formatPollDate(iso: string, language: LanguageCode) {
 	return DATE_FORMATTERS[language].format(new Date(iso));
 }
 
-const JUST_NOW = { en: 'just now', zh: '剛剛' } satisfies Record<LanguageCode, string>;
-
-/** "in 5 hours" / "5 小時前"; under a minute ago is "just now" / "剛剛" */
-export function formatFromNow(iso: string, language: LanguageCode) {
-	const age = Date.now() - new Date(iso).getTime();
-	// Only the past: a future moment reads "Ends in 30 seconds", never "Ends just now"
-	if (age >= 0 && age < 60_000) return JUST_NOW[language];
-	return formatDistanceToNowStrict(new Date(iso), {
-		addSuffix: true,
-		locale: DATE_FNS_LOCALES[language],
-		// An age floors, like formatAge: 1.6 days is "1 day ago" on both
-		roundingMethod: age > 0 ? 'floor' : 'round',
-	});
-}
-
 // One per language, built once, like the formatters above
 const perLanguage = <T>(make: (locale: string) => T) =>
-	({ en: make(toPayloadLocale('en')), zh: make(toPayloadLocale('zh')) }) satisfies Record<LanguageCode, T>;
+	({ en: make(toLocaleTag('en')), zh: make(toLocaleTag('zh')) }) satisfies Record<LanguageCode, T>;
 
+const RELATIVE = perLanguage((locale) => new Intl.RelativeTimeFormat(locale, { numeric: 'always' }));
 const RELATIVE_DAY = perLanguage((locale) => new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }));
 const WEEKDAY = perLanguage((locale) => new Intl.DateTimeFormat(locale, { weekday: 'short' }));
 const MONTH_DAY = perLanguage((locale) => new Intl.DateTimeFormat(locale, { month: 'short', day: 'numeric' }));
@@ -71,13 +53,43 @@ const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
 
+const JUST_NOW = { en: 'just now', zh: '剛剛' } satisfies Record<LanguageCode, string>;
+
+// Largest first; a month is 30 days and a year 365
+const RELATIVE_UNITS = [
+	['year', 365 * DAY],
+	['month', 30 * DAY],
+	['day', DAY],
+	['hour', HOUR],
+	['minute', MINUTE],
+	['second', 1000],
+] as const;
+
+/** "in 5 hours" / "5 小時前"; under a minute ago is "just now" / "剛剛" */
+export function formatFromNow(iso: string, language: LanguageCode) {
+	const age = serverNow() - new Date(iso).getTime();
+	// Only the past: a future moment reads "Ends in 30 seconds", never "Ends just now"
+	if (age >= 0 && age < MINUTE) return JUST_NOW[language];
+	const span = Math.abs(age);
+	const [unit, size] = RELATIVE_UNITS.find(([, size]) => span >= size) ?? RELATIVE_UNITS[RELATIVE_UNITS.length - 1];
+	// An age floors, like formatAge: 1.6 days is "1 day ago" on both
+	const count = age > 0 ? Math.floor(span / size) : Math.round(span / size);
+	return RELATIVE[language].format(age > 0 ? -count : count, unit);
+}
+
+/** Calendar days from `now` to `date` in the viewer's time zone; rounding absorbs a DST hour. */
+function calendarDaysBetween(date: Date, now: number) {
+	const midnight = (moment: Date) => new Date(moment.getFullYear(), moment.getMonth(), moment.getDate()).getTime();
+	return Math.round((midnight(date) - midnight(new Date(now))) / DAY);
+}
+
 /**
  * "today" / "tomorrow" / "yesterday", the weekday within six days ("Fri"), else "Oct 24";
  * zh 今天 / 週五 / 10月24日. Counts calendar days in the viewer's time zone, not 24-hour spans.
  */
 export function formatPollDay(iso: string, language: LanguageCode, now: number) {
 	const date = new Date(iso);
-	const days = differenceInCalendarDays(date, now);
+	const days = calendarDaysBetween(date, now);
 	if (Math.abs(days) <= 1) return RELATIVE_DAY[language].format(days, 'day');
 	if (Math.abs(days) <= 6) return WEEKDAY[language].format(date);
 	return MONTH_DAY[language].format(date);
@@ -94,7 +106,7 @@ export function formatPollMoment(iso: string, language: LanguageCode, now: numbe
 	const day = formatPollDay(iso, language, now);
 	const clock = formatClock(date);
 	if (language === 'zh') return `${day} ${clock}`;
-	const days = Math.abs(differenceInCalendarDays(date, now));
+	const days = Math.abs(calendarDaysBetween(date, now));
 	if (days <= 1) return `${day} at ${clock}`;
 	return days <= 6 ? `${day} ${clock}` : `${day}, ${clock}`;
 }

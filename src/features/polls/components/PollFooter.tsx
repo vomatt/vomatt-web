@@ -15,7 +15,7 @@ import {
 	Share,
 } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { toPayloadLocale } from '@/lib/locale';
+import { toLocaleTag } from '@/lib/locale';
 import { META_GAP } from '@/lib/rich';
 import { pollHref } from '@/lib/routes';
 
@@ -73,7 +73,7 @@ export function PollFooter({
 	const meta = [
 		turnout !== undefined &&
 			t('poll.voted', {
-				count: turnout.toLocaleString(toPayloadLocale(currentLanguage)),
+				count: turnout.toLocaleString(toLocaleTag(currentLanguage)),
 			}),
 		!isPublic({ audience }) && t(`poll.audienceMeta.${audience}`),
 	]
@@ -103,7 +103,7 @@ export function PollFooter({
 					>
 						<Heart aria-hidden className="size-[18px]" fill={liked ? 'currentColor' : 'none'} />
 						<span className="tabular-nums">
-							{(likeCount ?? 0).toLocaleString(toPayloadLocale(currentLanguage))}
+							{(likeCount ?? 0).toLocaleString(toLocaleTag(currentLanguage))}
 						</span>
 					</button>
 				)}

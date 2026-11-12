@@ -344,6 +344,13 @@ describe('OwnProfileView', () => {
 		expect(screen.getByRole('region', { name: 'What everyone sees' })).not.toHaveTextContent('Gender');
 	});
 
+	it('says so when the owner has more polls than were loaded', () => {
+		const { rerender } = render(<OwnProfileView profile={me} polls={[]} />);
+		expect(screen.queryByText(/more polls than this page can load/)).not.toBeInTheDocument();
+		rerender(<OwnProfileView profile={me} polls={[]} pollsTruncated />);
+		expect(screen.getByText(/more polls than this page can load/)).toBeInTheDocument();
+	});
+
 	it('leaves out location and points, even ones made public', () => {
 		render(<OwnProfileView profile={me} polls={[]} />);
 

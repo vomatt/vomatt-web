@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const POLL_TITLE_MAX = 200;
 export const POLL_DESCRIPTION_MAX = 1000;
-export const POLL_OPTION_MAX = 100;
+export const POLL_OPTION_MAX = 200;
 export const POLL_OPTIONS_MIN = 2;
 export const POLL_OPTIONS_LIMIT = 10;
 

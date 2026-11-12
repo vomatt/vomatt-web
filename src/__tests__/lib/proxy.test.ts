@@ -353,3 +353,29 @@ describe('proxy matcher', () => {
 		expect(matches('/apiary')).toBe(true);
 	});
 });
+
+describe('proxy language', () => {
+	const languageFor = async (acceptLanguage?: string, cookies: Record<string, string> = {}) => {
+		const res = await proxy(requestFor('/', cookies, acceptLanguage ? { 'accept-language': acceptLanguage } : {}));
+		return res.cookies.get('preferred-language')?.value;
+	};
+
+	it.each([
+		['zh-TW,zh;q=0.9,en;q=0.8', 'zh'],
+		['zh-CN', 'zh'],
+		['en-US,en;q=0.9', 'en'],
+		// The highest q wins, whatever the order
+		['en;q=0.5,zh-TW;q=0.9', 'zh'],
+		['fr-FR,zh;q=0.4,en;q=0.2', 'zh'],
+		['en;q=0,zh;q=0.1', 'zh'],
+		['fr,de', 'en'],
+		['*', 'en'],
+		[undefined, 'en'],
+	])('picks the language for Accept-Language %s', async (header, language) => {
+		expect(await languageFor(header)).toBe(language);
+	});
+
+	it('leaves a language the visitor already chose', async () => {
+		expect(await languageFor('zh-TW', { 'preferred-language': 'en' })).toBeUndefined();
+	});
+});

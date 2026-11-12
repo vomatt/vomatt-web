@@ -1,7 +1,7 @@
 import type { useLanguage } from '@/contexts/LanguageContext';
 import type { LanguageCode } from '@/types';
 
-import { toPayloadLocale } from './locale';
+import { toLocaleTag } from './locale';
 
 export type Translate = ReturnType<typeof useLanguage>['t'];
 
@@ -17,7 +17,7 @@ export function countText(
 	language: LanguageCode,
 	values?: Record<string, string>
 ) {
-	const locale = toPayloadLocale(language);
+	const locale = toLocaleTag(language);
 	const one = new Intl.PluralRules(locale).select(count) === 'one';
 	return t(one ? `${key}_one` : key, { ...values, count: count.toLocaleString(locale) });
 }
