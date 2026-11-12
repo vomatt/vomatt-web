@@ -1,7 +1,8 @@
 // The API's rule (UpdateProfileRequest.username), reserved names included
 export const USERNAME_MAX_LENGTH = 50;
 
-// `api`, `me` and `my` are also too short; they stay listed to match the API
+// The API's reserved names (`api`, `me` and `my` are also too short), plus root URLs this site
+// serves or redirects itself: `following`, and `about` and `signup` (see next.config.ts)
 export const RESERVED_USERNAMES = new Set([
 	'search',
 	'account',
@@ -16,6 +17,8 @@ export const RESERVED_USERNAMES = new Set([
 	'my',
 	'admin',
 	'settings',
+	'about',
+	'signup',
 ]);
 
 const USERNAME_PATTERN = new RegExp(`^[a-z0-9_]{3,${USERNAME_MAX_LENGTH}}$`);

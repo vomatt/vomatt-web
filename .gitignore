@@ -70,6 +70,8 @@ yarn.lock
 .env*
 !.env.example
 .worktrees/
+.claude/worktrees/
+.vercel
 
 # TypeScript incremental build cache
 *.tsbuildinfo

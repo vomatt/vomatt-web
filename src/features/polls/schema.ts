@@ -5,7 +5,6 @@ export const POLL_DESCRIPTION_MAX = 1000;
 export const POLL_OPTION_MAX = 100;
 export const POLL_OPTIONS_MIN = 2;
 export const POLL_OPTIONS_LIMIT = 10;
-export const POLL_TAGS_LIMIT = 5;
 
 const DateTime = z.string().datetime({ offset: true });
 
@@ -233,61 +232,7 @@ export const PollSchema = z.object({
 	tags: z.array(TagDtoSchema).nullish(),
 });
 
-export const SortSchema = z.object({
-	empty: z.boolean(),
-	sorted: z.boolean(),
-	unsorted: z.boolean(),
-});
-
-export const PageableSchema = z.object({
-	pageNumber: z.number().int(),
-	pageSize: z.number().int(),
-	offset: z.number().int(),
-	paged: z.boolean(),
-	unpaged: z.boolean(),
-	sort: SortSchema,
-});
-
-export const PollPageSchema = z.object({
-	content: z.array(PollSchema),
-	empty: z.boolean(),
-	first: z.boolean(),
-	last: z.boolean(),
-	number: z.number().int(),
-	numberOfElements: z.number().int(),
-	size: z.number().int(),
-	totalElements: z.number().int(),
-	totalPages: z.number().int(),
-	pageable: PageableSchema,
-	sort: SortSchema,
-});
-
-export const CreatePollOptionSchema = z.object({
-	text: z.string().max(200),
-	description: z.string().max(500).default(''),
-	displayOrder: z.number().int().default(0),
-});
-
-/** Request body for POST /api/v1/votes and PUT /api/v1/votes/{id}. */
-export const CreatePollRequestSchema = z.object({
-	title: z.string().max(POLL_TITLE_MAX),
-	description: z.string().max(POLL_DESCRIPTION_MAX).optional(),
-	options: z.array(CreatePollOptionSchema).min(POLL_OPTIONS_MIN),
-	startTime: DateTime,
-	endTime: DateTime,
-	/** Every Poll is single choice; the API rejects `true`. */
-	allowMultipleChoices: z.literal(false),
-	/** @deprecated Sent as `voterVisibility === 'nobody'` until backend 2 ships. */
-	anonymous: z.boolean(),
-	voterVisibility: VoterVisibilitySchema,
-	tagIds: z.array(z.string().uuid()).max(POLL_TAGS_LIMIT).optional(),
-});
-
 export const CreateCommentRequestSchema = z.object({
-	text: z.string().min(1).max(2000),
-});
-
-export const UpdateCommentRequestSchema = z.object({
 	text: z.string().min(1).max(2000),
 });
 
@@ -322,26 +267,19 @@ export interface PollInput {
 	 * Invitees, so pass every Invitee to keep.
 	 */
 	invitees?: InviteesInput;
+	/** On edit the list replaces the Poll's tags, so pass the ones to keep. Omitted: none on create. */
+	tagIds?: string[];
 }
 
 export type Comment = z.infer<typeof CommentSchema>;
 export type ThreadComment = z.infer<typeof ThreadCommentSchema>;
-export type PollOption = z.infer<typeof PollOptionSchema>;
 export type TagDto = z.infer<typeof TagDtoSchema>;
 export type VoterVisibility = z.infer<typeof VoterVisibilitySchema>;
 export type Audience = z.infer<typeof AudienceSchema>;
 export type Invitee = z.infer<typeof InviteeSchema>;
 export type Voter = z.infer<typeof VoterSchema>;
 export type PollResults = z.infer<typeof PollResultsSchema>;
-export type UserVoteStatus = z.infer<typeof UserVoteStatusSchema>;
 export type Poll = z.infer<typeof PollSchema>;
-export type Sort = z.infer<typeof SortSchema>;
-export type Pageable = z.infer<typeof PageableSchema>;
-export type PollPage = z.infer<typeof PollPageSchema>;
-export type CreatePollOption = z.infer<typeof CreatePollOptionSchema>;
-export type CreatePollRequest = z.infer<typeof CreatePollRequestSchema>;
-export type CreateCommentRequest = z.infer<typeof CreateCommentRequestSchema>;
-export type UpdateCommentRequest = z.infer<typeof UpdateCommentRequestSchema>;
 export type ReportCommentRequest = z.infer<typeof ReportCommentRequestSchema>;
 /** A Poll report has the same shape as a Comment report. */
 export type ReportPollRequest = ReportCommentRequest;

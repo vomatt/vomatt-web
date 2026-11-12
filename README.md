@@ -39,14 +39,16 @@ pnpm dev
 
 Run it locally (see its README; Postgres + Redis via `docker compose up -d`), then set
 `API_URL=http://localhost:8080` and `SESSION_SECRET` to the API's `JWT_SECRET`.
-Sign-in codes are emailed; with email disabled locally, read the code from Redis
-(`otp:email:<address>`).
+Sign-in codes are emailed. With email disabled locally the code can't be read from Redis: the API
+stores only an HMAC of it (under `otp:email:<sha256 of the address>`), never the code.
+`.claude/skills/verify-vomatt-web/scripts/vv otp <address>` recovers the code from that hash for the
+stack it runs (`vv up`; see that skill's `SKILL.md`).
 
 ## Environment variables
 
 | Variable | Required | Example | What it's for |
 |----------|----------|---------|---------------|
-| `NEXT_PUBLIC_SANITY_PROJECT_ID` | Yes | `abc123de` | Sanity project. Also used to allow Sanity CDN images. |
+| `NEXT_PUBLIC_SANITY_PROJECT_ID` | Yes | `abc123de` | Sanity project. |
 | `NEXT_PUBLIC_SANITY_DATASET` | Yes | `production` | Sanity dataset. |
 | `API_URL` | Yes | `https://api.vomatt.com` | vomatt-api **origin only** — no path, **no trailing slash**. Called from the server only. |
 | `SESSION_SECRET` | Yes | 64 random chars | **Must equal the API's `JWT_SECRET`.** Used to verify access tokens. A mismatch signs everyone out on every request. Server-only; never prefix with `NEXT_PUBLIC_`. |
@@ -61,8 +63,8 @@ Sign-in codes are emailed; with email disabled locally, read the code from Redis
 Not needed (leave unset): `DATABASE_URL`, `PAYLOAD_SECRET` (Payload was removed);
 `SANITY_API_READ_TOKEN` (the site reads only published content, without a token); `SANITY_STUDIO_PREVIEW_ORIGIN` (the Presentation
 tool was removed);
-`NEXT_PUBLIC_API_URL` (the followers/following sheet calls this site's own `/api` routes when it is
-unset).
+`NEXT_PUBLIC_API_URL` (nothing reads it; the browser never calls the API, and the followers/following
+lists use Server Actions).
 
 On **vomatt-api**, set at least `JWT_SECRET` (same value as `SESSION_SECRET`), `CLIENT_IP_SECRET` (same value as here), the database and
 Redis settings, and email (`EMAIL_ENABLED=true` + SMTP) — sign-in is email-code only.
@@ -93,15 +95,15 @@ Before the first production deploy, run through [docs/release/release-checklist.
 ```bash
 pnpm dev                  # dev server (Turbopack, port 3002)
 pnpm build                # production build
-pnpm start:web            # serve the production build locally
-pnpm start                # run through `vercel dev` (needs the Vercel CLI and a linked project)
+pnpm start                # serve the production build locally
+pnpm start:vercel         # run through `vercel dev` (needs the Vercel CLI and a linked project)
 pnpm lint                 # ESLint
 pnpm test                 # Jest (tests in src/__tests__/)
 pnpm test:watch           # Jest in watch mode
 pnpm test:coverage        # Jest with coverage
 pnpm exec jest <path>     # one test file
 pnpm exec tsc --noEmit    # type-check
-pnpm generate:openapi     # regenerate openapi.json from the Zod schemas
+pnpm generate:icons       # regenerate the favicon and app icons from src/lib/brand/mark.ts
 ```
 
 ## Project docs
@@ -112,7 +114,7 @@ pnpm generate:openapi     # regenerate openapi.json from the Zod schemas
 | [PRODUCT.md](PRODUCT.md) | Users, brand, product principles |
 | [CLAUDE.md](CLAUDE.md) | Architecture notes: route groups, data layer, auth/token refresh, i18n |
 | [api-docs.json](api-docs.json) | vomatt-api contract (what the API serves at `/v3/api-docs`) |
-| [docs/release/](docs/release) | Release checklist, API integration notes, open backend requests |
+| [docs/release/](docs/release) | Release checklist, API integration notes, launch review |
 
 ## Troubleshooting
 

@@ -1,4 +1,3 @@
-import { cn } from '@/lib/utils';
 
 /** The wordmark's letters in reading order (v, o, m, a, t, t), one path each. */
 const WORDMARK_LETTERS = [
@@ -17,7 +16,7 @@ interface LogoProps {
 export default function BrandLogo({ className }: LogoProps) {
 	return (
 		<svg
-			className={cn('svg-vomatt', className)}
+			className={className}
 			viewBox="0 0 152 32"
 			fill="currentColor"
 			xmlns="http://www.w3.org/2000/svg"

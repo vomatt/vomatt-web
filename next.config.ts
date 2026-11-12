@@ -1,5 +1,4 @@
 import type { NextConfig } from 'next';
-import * as path from 'path';
 
 import { ABOUT_SITE_MOVED, ABOUT_SITE_SLUGS,aboutHref } from './src/lib/aboutSite';
 
@@ -10,15 +9,12 @@ const nextConfig: NextConfig = {
 	experimental: {
 		agentUpgrade: 'security',
 	},
-	sassOptions: {
-		includePaths: [path.join(__dirname, 'styles')],
-	},
 	poweredByHeader: false,
 	async redirects() {
 		// Sign-up and log-in are one form now
 		return [
 			{ source: '/signup', destination: '/login', permanent: true },
-			// Profiles moved to the root, next to Sanity pages
+			// Profiles moved to the root
 			{ source: '/profile/:username', destination: '/:username', permanent: true },
 			// Official accounts were renamed community accounts
 			{

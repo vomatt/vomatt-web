@@ -60,7 +60,6 @@ export const NotificationSchema = z.discriminatedUnion('kind', [
 ]);
 
 export type Notification = z.infer<typeof NotificationSchema>;
-export type NotificationKind = Notification['kind'];
 
 export const NotificationPreferencesSchema = z.object({
 	resultsIn: z.boolean(),

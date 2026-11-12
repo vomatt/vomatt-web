@@ -19,10 +19,6 @@ function DialogPortal({ ...props }: DialogPrimitive.Portal.Props) {
 	return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />;
 }
 
-function DialogClose({ ...props }: DialogPrimitive.Close.Props) {
-	return <DialogPrimitive.Close data-slot="dialog-close" {...props} />;
-}
-
 function DialogOverlay({
 	className,
 	...props
@@ -43,14 +39,16 @@ function DialogContent({
 	className,
 	children,
 	showCloseButton = true,
-	closeLabel = 'Close',
+	closeLabel,
 	overlay = 'default',
 	...props
 }: DialogPrimitive.Popup.Props & {
-	showCloseButton?: boolean;
-	closeLabel?: string;
 	overlay?: 'default' | 'strong';
-}) {
+} & (
+		// The close button's name is required whenever the button is shown
+		| { showCloseButton?: true; closeLabel: string }
+		| { showCloseButton: false; closeLabel?: undefined }
+	)) {
 	return (
 		<DialogPortal>
 			<DialogOverlay className={cn(overlay === 'strong' && 'bg-overlay-strong backdrop-blur-md')} />
@@ -171,7 +169,6 @@ function DialogDescription({
 export {
 	Dialog,
 	DialogBody,
-	DialogClose,
 	DialogContent,
 	DialogDescription,
 	DialogFooter,

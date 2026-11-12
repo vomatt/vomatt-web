@@ -14,6 +14,7 @@ import type { ActionResult } from '@/lib/api/action';
 import type { CursorPage } from '@/lib/api/cursor';
 import { mergeById } from '@/lib/api/cursor';
 import { apiErrorText } from '@/lib/api/error-text';
+import { settle } from '@/lib/api/settle';
 import type { UserDto } from '@/schemas/user';
 
 type UserRelationPanelProps = {
@@ -61,7 +62,7 @@ export function UserRelationPanel({ ns, action, load, remove }: UserRelationPane
 	const loadMore = async () => {
 		if (!nextCursor) return;
 		setLoadingMore(true);
-		const result = await load(nextCursor);
+		const result = await settle(load(nextCursor));
 		setLoadingMore(false);
 		if (!result.ok) {
 			toast.error(apiErrorText(t, result, `${ns}.loadFailed`), {
@@ -75,7 +76,7 @@ export function UserRelationPanel({ ns, action, load, remove }: UserRelationPane
 
 	const undo = async (user: UserDto) => {
 		setPendingId(user.id);
-		const result = await remove(user.id);
+		const result = await settle(remove(user.id));
 		setPendingId(null);
 		if (!result.ok) {
 			toast.error(apiErrorText(t, result, `${ns}.${action}Failed`), {

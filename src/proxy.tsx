@@ -22,31 +22,9 @@ import {
 	verifyAccessToken,
 } from '@/lib/api/tokens';
 import { getSafeRedirectPath } from '@/lib/routes';
-import { AuthTokens, LanguageCode } from '@/types';
+import { AuthTokens } from '@/types';
 
-import { i18n, SUPPORTED_LANGUAGES } from './i18n-config';
-
-function parseAcceptLanguage(acceptLanguage: string): LanguageCode[] {
-	return acceptLanguage
-		.split(',')
-		.map((lang) => {
-			const [code, quality = 'q=1'] = lang.trim().split(';');
-			const q = parseFloat(quality.replace('q=', ''));
-			return { code: code.split('-')[0] as LanguageCode, quality: q };
-		})
-		.sort((a, b) => b.quality - a.quality)
-		.map((lang) => lang.code)
-		.filter((code) => Object.keys(SUPPORTED_LANGUAGES).includes(code));
-}
-
-function detectLanguageFromHeaders(request: NextRequest): LanguageCode {
-	const acceptLanguage = request.headers.get('accept-language');
-
-	if (!acceptLanguage) return i18n.defaultLocale;
-
-	const preferredLanguages = parseAcceptLanguage(acceptLanguage);
-	return preferredLanguages[0] || i18n.defaultLocale;
-}
+import { i18n } from './i18n-config';
 
 function getLocale(request: NextRequest): string | undefined {
 	// Negotiator expects plain object so we need to transform headers
@@ -215,23 +193,12 @@ export async function proxy(request: NextRequest) {
 			sameSite: 'lax',
 			path: '/', // Available on all paths
 		});
-
-		// Add header for initial server-side rendering
-		response.headers.set('x-detected-language', locale);
 	}
-
-	// Add current language to headers for server components
-	const currentLanguage =
-		savedLanguage && Object.keys(SUPPORTED_LANGUAGES).includes(savedLanguage)
-			? savedLanguage
-			: detectLanguageFromHeaders(request);
-
-	response.headers.set('x-current-language', currentLanguage);
 
 	return response;
 }
 export const config = {
 	// Static avatars skip it: each image would otherwise run a token refresh.
 	// .well-known files are fetched by Apple's CDN and need no cookies or language.
-	matcher: ['/((?!api|_next/static|_next/image|favicon.ico|avatars/|\\.well-known/).*)'],
+	matcher: ['/((?!api/|_next/static|_next/image|favicon.ico|avatars/|\\.well-known/).*)'],
 };

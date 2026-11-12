@@ -1,6 +1,6 @@
 # Launch review (2026-11-04)
 
-A second pre-launch pass over vomatt-web and vomatt-about: flows and logic, risk and legal, and a phone walk-through of both sites in a real browser. It follows [launch-review.md](launch-review.md) (2026-10-28), whose placeholder table is now out of date: the published legal pages have no bracketed placeholders left.
+A second pre-launch pass over vomatt-web and vomatt-about: flows and logic, risk and legal, and a phone walk-through of both sites in a real browser. It follows the 2026-10-28 launch review (since deleted), whose placeholder table was out of date: the published legal pages have no bracketed placeholders left.
 
 ## Fixed in this pass
 
@@ -21,7 +21,7 @@ A second pre-launch pass over vomatt-web and vomatt-about: flows and logic, risk
 - **Accessibility.** Policy links were announced as "Go to https://about.vomatt.com/…" instead of their text (WCAG 2.5.3).
 - **Docs.** [docs/legal/launch-pages-draft.md](../legal/launch-pages-draft.md) drafts the missing pages (Community Guidelines, Reporting and appeals, Your data) and exact edits to Privacy, Cookies and the sign-up message, in English and 繁體中文.
 
-Checks: 1325 tests pass, lint has 0 errors, `next build` succeeds, and `tsc` shows only the existing `PublicKeyCredentialJSON` errors. The phone fixes were measured in the running app before and after.
+Checks: 1325 tests pass, lint has 0 errors, `next build` succeeds, and `tsc` shows only the existing `PublicKeyCredentialJSON` errors (since fixed: `tsc` is clean). The phone fixes were measured in the running app before and after.
 
 ### vomatt-about (branch `claude/vomatt-web-review-launch-fd4967`)
 
@@ -55,7 +55,7 @@ Checks: 1325 tests pass, lint has 0 errors, `next build` succeeds, and `tsc` sho
 - **`PROFILES_ACTIVE=prod`** on the API. It defaults to `dev`, which with mail off writes sign-in codes to the logs instead of sending them.
 - **Mail.** It defaults to `smtp.gmail.com`, whose daily cap would stop sign-in codes at launch volume. Use a transactional provider (Resend is supported via `EMAIL_PROVIDER`).
 - **`SITE_URL`** unset makes every page 500 on both sites.
-- **Next security upgrade.** `next dev` printed an advisory suggesting `next upgrade --agent=security`. Not run; check it before launch.
+- **Next security upgrade.** `next dev` printed an advisory suggesting `next upgrade --agent=security`. Since handled: `next.config.ts` sets `experimental.agentUpgrade: 'security'`.
 
 ## Not fixed, should follow soon
 
@@ -66,7 +66,7 @@ Web, ranked:
 3. The unread badge doesn't come back after signing out and in again in the same tab.
 4. Poll drafts live in localStorage under one key, invitee emails included, and survive sign-out and account deletion. On a shared computer the next person sees them.
 5. No error monitoring (Sentry or `instrumentation.ts`) and no Content-Security-Policy on either site.
-6. No site-wide meta description; profiles have no Open Graph; no `loading.tsx` for Explore and Settings.
+6. No site-wide meta description; profiles have no Open Graph; ~~no `loading.tsx` for Explore and Settings~~ (resolved: both have one).
 7. At 768px (iPad portrait) controls drop to desktop sizes below 44px. Consider `pointer: coarse` sizing.
 8. The "Replying to @x" pill is 22px tall; a bigger hit area needs a layout change.
 9. Remaining copy and dead code from the 2026-10-28 list.

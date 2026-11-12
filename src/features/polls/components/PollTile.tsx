@@ -6,6 +6,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { toPayloadLocale } from '@/lib/locale';
 import { richList } from '@/lib/rich';
 import { META_GAP } from '@/lib/rich';
+import { pollHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
 import type { Poll } from '../schema';
@@ -54,7 +55,7 @@ export function PollTile({ poll }: { poll: Poll }) {
 			<h2 className="text-title-3 text-balance line-clamp-3 wrap-anywhere text-foreground">
 				{/* Stretched over the tile: one tab stop, its focus ring around the whole tile */}
 				<Link
-					href={`/poll/${poll.id}`}
+					href={pollHref(poll.id)}
 					className="outline-none after:absolute after:inset-0 after:rounded-2xl focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-solid focus-visible:after:outline-ring"
 				>
 					{poll.title}

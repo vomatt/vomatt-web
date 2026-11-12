@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { apiErrorText } from '@/lib/api/error-text';
+import { settle } from '@/lib/api/settle';
 
 import { startCheckout } from './service';
 
@@ -16,7 +17,7 @@ export function UpgradeButton(props: Omit<ComponentProps<typeof Button>, 'onClic
 
 	const upgrade = async () => {
 		setBusy(true);
-		const result = await startCheckout();
+		const result = await settle(startCheckout());
 		if (result.ok) {
 			window.location.assign(result.data);
 			return;

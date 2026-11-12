@@ -64,6 +64,13 @@ describe('PasskeysPanel', () => {
 		await waitFor(() => expect(items()).toHaveLength(2));
 	});
 
+	it('offers Try again when the list request rejects', async () => {
+		mockGetPasskeys.mockRejectedValueOnce(new Error('network'));
+		render(<PasskeysPanel />);
+		fireEvent.click(await screen.findByRole('button', { name: 'Try again' }));
+		await waitFor(() => expect(items()).toHaveLength(2));
+	});
+
 	it('removes a passkey only after confirming, then drops it from the list', async () => {
 		render(<PasskeysPanel />);
 		fireEvent.click(await screen.findByRole('button', { name: 'Remove iPhone' }));
@@ -98,6 +105,17 @@ describe('PasskeysPanel', () => {
 		expect(items()).toHaveLength(2);
 		expect(items()[0]).toHaveTextContent('iPhone');
 		expect(toast.success).not.toHaveBeenCalled();
+	});
+
+	it('shows the error and closes the dialog when the remove request rejects', async () => {
+		mockDeletePasskey.mockRejectedValue(new Error('network'));
+		render(<PasskeysPanel />);
+		fireEvent.click(await screen.findByRole('button', { name: 'Remove iPhone' }));
+		fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Remove' }));
+
+		await waitFor(() => expect(toast.error).toHaveBeenCalledTimes(1));
+		await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+		expect(items()).toHaveLength(2);
 	});
 
 	it('reloads the list after a passkey is added', async () => {

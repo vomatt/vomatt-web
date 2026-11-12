@@ -27,6 +27,7 @@ import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { formatDate } from '@/features/polls/format';
 import type { ActionResult } from '@/lib/api/action';
 import { apiErrorText } from '@/lib/api/error-text';
+import { settle } from '@/lib/api/settle';
 import { META_GAP } from '@/lib/rich';
 import { cn } from '@/lib/utils';
 
@@ -90,7 +91,7 @@ export function CommunityMembers({
 	/** Runs a change; true when it went through. */
 	const run = async <T,>({ request, after, done }: Omit<Step<T>, 'confirm'>) => {
 		setBusy(true);
-		const result = await request();
+		const result = await settle(request());
 		setBusy(false);
 		if (!result.ok) {
 			// Every limit this page can hit is the other member's: they'd become an owner

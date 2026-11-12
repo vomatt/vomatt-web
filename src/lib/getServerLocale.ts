@@ -1,4 +1,4 @@
-import { cookies, headers } from 'next/headers';
+import { cookies } from 'next/headers';
 
 import en from '@/locales/en.json';
 import zh from '@/locales/zh.json';
@@ -18,17 +18,9 @@ export async function getServerLocale(): Promise<{
 
 	try {
 		const cookieStore = await cookies();
-		const headersList = await headers();
-
 		const cookieLanguage = cookieStore.get('preferred-language')?.value;
-		if (cookieLanguage) {
-			lang = cookieLanguage.startsWith('zh') ? 'zh' : 'en';
-		} else {
-			const detectedLanguage = headersList.get('x-detected-language');
-			if (detectedLanguage) {
-				lang = detectedLanguage.startsWith('zh') ? 'zh' : 'en';
-			}
-		}
+		// On a first visit the proxy sets this cookie on the response; Next shows it to cookies() too
+		if (cookieLanguage) lang = cookieLanguage.startsWith('zh') ? 'zh' : 'en';
 	} catch {
 		// fallback to 'en'
 	}

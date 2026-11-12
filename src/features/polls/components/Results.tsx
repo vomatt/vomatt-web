@@ -127,7 +127,7 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }:
 	}
 
 	const participants =
-		turnout ?? results?.totalParticipants ?? rows.reduce((sum, row) => sum + row.votes, 0);
+		results?.totalParticipants ?? turnout ?? rows.reduce((sum, row) => sum + row.votes, 0);
 	const winners = getWinners(rows);
 	const support = (votes: number) =>
 		participants === 0 ? 0 : Math.round((votes / participants) * 100);

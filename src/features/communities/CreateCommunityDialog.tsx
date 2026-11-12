@@ -12,6 +12,7 @@ import { isValidUsername, RESERVED_USERNAMES, USERNAME_MAX_LENGTH } from '@/feat
 import { UpgradeButton } from '@/features/billing/UpgradeButton';
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
 import { apiErrorText } from '@/lib/api/error-text';
+import { settle } from '@/lib/api/settle';
 import { cn } from '@/lib/utils';
 
 import { communityMembersHref } from './schema';
@@ -94,7 +95,7 @@ function CreateForm({ onCancel, onCreated }: { onCancel: () => void; onCreated: 
 		}
 		setBusy(true);
 		setFailure(null);
-		const result = await createCommunity(username, name);
+		const result = await settle(createCommunity(username, name));
 		setBusy(false);
 		if (result.ok) {
 			onCreated(result.data.id, result.data.username);

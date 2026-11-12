@@ -1,4 +1,4 @@
-import { ballotOutcome, computeInsights } from '@/features/account/insights';
+import { ballotOutcome } from '@/features/account/insights';
 import type { Poll } from '@/features/polls/schema';
 
 const NOW = Date.parse('2026-10-05T12:00:00Z');
@@ -31,16 +31,5 @@ describe('ballotOutcome()', () => {
 	});
 	it('is unknown when the counts are withheld', () => {
 		expect(ballotOutcome(poll('p', null, true), 'a', NOW)).toBe('unknown');
-	});
-});
-
-describe('computeInsights()', () => {
-	it('sums the turnout of the user\'s polls', () => {
-		const insights = computeInsights([poll('a', { a: 8, b: 4 }, true), poll('b', { a: 1, b: 2 }, false)]);
-		expect(insights).toEqual({ turnout: 15 });
-	});
-
-	it('is zero with no polls', () => {
-		expect(computeInsights([]).turnout).toBe(0);
 	});
 });

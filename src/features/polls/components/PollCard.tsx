@@ -12,6 +12,7 @@ import { useActing } from '@/features/communities/ActingProvider';
 import { UserChip } from '@/features/profiles/UserChip';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
+import { pollHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
 import { formatAge } from '../format';
@@ -200,7 +201,7 @@ export function PollCard({
 							{title}
 						</Heading>
 					) : (
-						<Link href={`/poll/${id}`} className="after:absolute after:inset-0 after:rounded-2xl">
+						<Link href={pollHref(id)} className="after:absolute after:inset-0 after:rounded-2xl">
 							<Heading
 									className="text-title-3 text-balance wrap-anywhere text-foreground hover:text-muted-foreground transition-colors md:text-title-2"
 							>

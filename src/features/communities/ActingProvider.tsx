@@ -32,17 +32,19 @@ export function ActingProvider({ state, children }: { state: ActingState; childr
 	const { t } = useLanguage();
 	const router = useRouter();
 	const [busy, setBusy] = useState(false);
-	const [loaded, setLoaded] = useState<{ for: ActingState; communities: MyCommunity[] } | null>(null);
+	const [loaded, setLoaded] = useState<{ for: string; communities: MyCommunity[] } | null>(null);
 	// Fetched in the background when the layout didn't need them (the user acts as nobody)
-	const needsList = state.communities === null && !!state.me;
+	// Keyed by the user: `state` is a new object on every server render of the layout
+	const username = state.me?.username;
+	const needsList = state.communities === null && !!username;
 	useEffect(() => {
 		if (!needsList) return;
 		let current = true;
-		void loadMyCommunities().then((result) => current && result.ok && setLoaded({ for: state, communities: result.data }));
+		void loadMyCommunities().then((result) => current && result.ok && setLoaded({ for: username, communities: result.data }));
 		return () => {
 			current = false;
 		};
-	}, [needsList, state]);
+	}, [needsList, username]);
 	// The cookie names an account they can no longer act as (removed, or the role changed): go back to the user, once
 	useEffect(() => {
 		if (!state.stale) return;
@@ -52,7 +54,7 @@ export function ActingProvider({ state, children }: { state: ActingState; childr
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [state.stale, router]);
 
-	const communities = state.communities ?? (loaded?.for === state ? loaded.communities : null);
+	const communities = state.communities ?? (loaded && loaded.for === username ? loaded.communities : null);
 	const value = useMemo(() => ({ ...state, communities, busy, setBusy }), [state, communities, busy]);
 	return <ActingContext.Provider value={value}>{children}</ActingContext.Provider>;
 }

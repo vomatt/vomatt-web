@@ -7,8 +7,6 @@ import { clientHeaders } from '@/lib/api/client-ip';
 import { API_BASE_PATH } from '@/lib/api/constants';
 import { getServerLocale } from '@/lib/getServerLocale';
 
-export { API_BASE_PATH } from '@/lib/api/constants';
-
 interface ApiFetchOptions extends RequestInit {
 	isFormData?: boolean;
 	/** 'optional' sends the request without a token when signed out instead of throwing. */

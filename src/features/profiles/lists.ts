@@ -1,6 +1,6 @@
 import { ballotOutcome } from '@/features/account/insights';
 import type { Poll } from '@/features/polls/schema';
-import { derivePollStatus, getTurnout, getWinners, isCancelled, isRevealed } from '@/features/polls/status';
+import { derivePollStatus, getTurnout, getWinners, holdsBallot, isCancelled, isRevealed } from '@/features/polls/status';
 
 /** Asked: Scheduled and Open polls first (what happens next), then Ended ones. */
 export function splitAsked(polls: Poll[], now = Date.now()) {
@@ -17,9 +17,6 @@ export function splitVoted(polls: Poll[], now = Date.now()) {
 	for (const poll of polls) (isRevealed(poll, now) ? decided : sealed).push(poll);
 	return { sealed, decided };
 }
-
-/** Whether the viewer holds a Ballot in the Poll. A sealed Anonymous Ballot has no option left, only its flag. */
-const holdsBallot = (poll: Poll) => !!poll.myOptionId || poll.myBallotAnonymous != null;
 
 /** The owner's Polls they voted in but didn't ask, from My Polls (which mixes both, and Invitations). */
 export const votedPolls = (polls: Poll[], viewerId: string) =>
