@@ -1044,7 +1044,8 @@
 				"invalid": "Invalid phone number. Use a Taiwan mobile number starting with 09 or a number with a country code (e.g. +886912345678)"
 			},
 			"sms": {
-				"send_failed": "SMS delivery failed: {0}"
+				"send_failed": "SMS delivery failed: {0}",
+				"unavailable": "SMS verification is currently unavailable"
 			},
 			"refresh_token": {
 				"invalid": "Refresh token is invalid or has expired"
