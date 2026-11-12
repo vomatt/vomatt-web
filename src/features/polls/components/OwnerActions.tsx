@@ -21,6 +21,7 @@ import { menuItemClassName, menuPopupClassName } from '@/components/ui/menu';
 import { Ellipsis, Pencil, Share, SquareStop, Trash2, Users } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { apiErrorText } from '@/lib/api/error-text';
+import { settle } from '@/lib/api/settle';
 import { cn } from '@/lib/utils';
 
 import { useSharePoll } from '../hooks/useSharePoll';
@@ -78,7 +79,7 @@ export function OwnerActions({
 	const { canEdit, canDelete, canEnd, canInvite } = getOwnerActions(poll, status);
 
 	const remove = async () => {
-		const result = await deletePoll(poll.id);
+		const result = await settle(deletePoll(poll.id));
 		if (!result.ok) {
 			// The API explains a passed delete window
 			toast.error(apiErrorText(t, result, 'poll.deleteFailed'));
@@ -89,7 +90,7 @@ export function OwnerActions({
 	};
 
 	const end = async () => {
-		const result = await closePoll(poll.id);
+		const result = await settle(closePoll(poll.id));
 		if (result.ok) onChanged();
 		else toast.error(apiErrorText(t, result, 'poll.endFailed'));
 	};

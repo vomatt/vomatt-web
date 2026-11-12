@@ -71,8 +71,6 @@ export function visibilityLevel(poll: Pick<Poll, 'voterVisibility' | 'audience'>
 		: poll.voterVisibility;
 }
 
-export type VisibilityLevel = ReturnType<typeof visibilityLevel>;
-
 /**
  * Only the owner and its Invitees can see an Invite-only Poll, so any other
  * viewer of one is an Invitee. The API has no flag for it (integration note R2).
@@ -96,6 +94,10 @@ export function getWinners<T extends { votes: number }>(rows: T[]): T[] {
 	const top = Math.max(0, ...rows.map((row) => row.votes));
 	return top > 0 ? rows.filter((row) => row.votes === top) : [];
 }
+
+/** Whether the viewer holds a Ballot in the Poll. A sealed Anonymous Ballot has no option left, only its flag. */
+export const holdsBallot = (poll: Pick<Poll, 'myOptionId' | 'myBallotAnonymous'>) =>
+	!!poll.myOptionId || poll.myBallotAnonymous != null;
 
 /** Turnout: how many people hold a Ballot. Visible in every state. */
 export function getTurnout(poll: Pick<Poll, 'participantCount' | 'totalVotes'>) {

@@ -22,7 +22,7 @@ import { countText } from '@/lib/count';
 import { toPayloadLocale } from '@/lib/locale';
 import { rich } from '@/lib/rich';
 import { META_GAP } from '@/lib/rich';
-import { commentHash, profileHref, replyHash } from '@/lib/routes';
+import { commentHash, pollHref, profileHref, replyHash } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
 import type { Notification, PollSummary } from './schema';
@@ -213,7 +213,6 @@ function ActorName({ actor, onOpen }: { actor: NameParts & { avatarUrl?: string 
 	);
 }
 
-const pollHref = (pollId: string) => `/poll/${pollId}`;
 
 /** How the viewer's pick fared once the Poll Ended; null without a Ballot to compare. */
 function pickOutcome({ myOptionId, winningOptionIds, tie }: PollSummary): DecidedOutcome | null {

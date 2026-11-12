@@ -1,7 +1,6 @@
 import { apiClient, ApiError, publicFetch } from '@/lib/api/client';
 import {
   deleteMyAccount,
-  deleteUser,
   editProfile,
   getUserProfile,
   searchUsers,
@@ -35,7 +34,6 @@ jest.mock('@/lib/api/client', () => ({
     }
   },
   AuthError: class AuthError extends Error {},
-  API_BASE_PATH: '/api',
 }));
 
 const mockApiClient = apiClient as jest.MockedFunction<typeof apiClient>;
@@ -132,15 +130,6 @@ describe('editProfile()', () => {
     mockApiClient.mockRejectedValueOnce(new Error('Username taken'));
     expect(await editProfile({ username: 'bob' })).toEqual({ ok: false, message: 'Username taken' });
     expect(mockRevalidateTag).not.toHaveBeenCalled();
-  });
-});
-
-describe('deleteUser()', () => {
-  it('sends DELETE to /users/{userId}', async () => {
-    await deleteUser('user-123');
-    expect(mockApiClient).toHaveBeenCalledWith('/users/user-123', {
-      method: 'DELETE',
-    });
   });
 });
 

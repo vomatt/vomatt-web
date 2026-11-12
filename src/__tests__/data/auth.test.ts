@@ -17,7 +17,8 @@ jest.mock('next/headers', () => ({
 }));
 jest.mock('next/navigation', () => ({ redirect: jest.fn() }));
 let actingId: string | null = null;
-jest.mock('@/lib/api/auth', () => ({ decodeToken: async () => ({ sub: 'u1' }), getActingCommunityId: async () => actingId }));
+jest.mock('@/lib/api/auth', () => ({ getActingCommunityId: async () => actingId }));
+jest.mock('@/lib/api/tokens', () => ({ verifyAccessToken: async () => ({ sub: 'u1' }) }));
 jest.mock('@/features/communities/service', () => ({ listMyCommunities: jest.fn() }));
 jest.mock('@/lib/api/client', () => ({ ...jest.requireActual('@/lib/api/client'), apiClient: jest.fn() }));
 jest.mock('@/lib/api/services/users', () => ({ getMyProfile: jest.fn() }));

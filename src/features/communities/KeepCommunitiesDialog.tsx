@@ -11,6 +11,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { formatDate } from '@/features/polls/format';
 import { apiErrorText } from '@/lib/api/error-text';
+import { settle } from '@/lib/api/settle';
 import { cn } from '@/lib/utils';
 import type { CommunityQuota } from '@/types/user';
 
@@ -82,7 +83,7 @@ function KeepForm({
 		event.preventDefault();
 		if (!full || busy) return;
 		setBusy(true);
-		const result = await keepCommunities([...chosen]);
+		const result = await settle(keepCommunities([...chosen]));
 		setBusy(false);
 		if (!result.ok) {
 			setFailure(apiErrorText(t, result, 'communities.keep.failed'));

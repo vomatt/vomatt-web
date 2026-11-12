@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/Input';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
 import { apiErrorText } from '@/lib/api/error-text';
+import { settle } from '@/lib/api/settle';
 import { cn } from '@/lib/utils';
 
 import type { MyCommunity } from './schema';
@@ -44,7 +45,7 @@ export function DeleteCommunity({ community }: { community: MyCommunity }) {
 			return;
 		}
 		setIsDeleting(true);
-		const result = await deleteCommunity(community.communityId);
+		const result = await settle(deleteCommunity(community.communityId));
 		setIsDeleting(false);
 		if (!result.ok) {
 			toast.error(apiErrorText(t, result, 'communities.deleteFailed'), { duration: Infinity });

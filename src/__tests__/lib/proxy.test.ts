@@ -340,3 +340,16 @@ describe('proxy auth', () => {
 		expect(fetchMock).not.toHaveBeenCalled();
 	});
 });
+
+describe('proxy matcher', () => {
+	const { config } = require('@/proxy') as typeof import('@/proxy');
+	const matches = (path: string) => config.matcher.some((source) => new RegExp(`^${source}$`).test(path));
+
+	it('skips the API routes', () => {
+		expect(matches('/api/revalidate')).toBe(false);
+	});
+
+	it('runs for a profile whose username starts with "api"', () => {
+		expect(matches('/apiary')).toBe(true);
+	});
+});

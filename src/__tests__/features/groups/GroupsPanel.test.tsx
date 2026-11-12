@@ -91,8 +91,9 @@ describe('GroupsPanel', () => {
 				emails: ['dave@example.com'],
 			})
 		);
-		expect(await within(dialog).findByText('dave@example.com')).toBeInTheDocument();
-		expect(screen.getByText('2 members')).toBeInTheDocument();
+		// The count first: until the add lands, the address is still a chip in the picker
+		expect(await screen.findByText('2 members')).toBeInTheDocument();
+		expect(within(dialog).getByText('dave@example.com')).toBeInTheDocument();
 	});
 
 	it('leaves people already in the list out of the username search, and says so', async () => {

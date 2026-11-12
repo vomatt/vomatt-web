@@ -4,12 +4,9 @@
 		"busy": "Another change is in progress. Try again in a moment.",
 		"home": "Home",
 		"createPoll": "Create a poll",
-		"myPolls": "My Polls",
 		"explore": "Explore",
 		"notifications": "Notifications",
-		"login": "login",
 		"email": "Email",
-		"welcome": "Welcome",
 		"loading": "Loading",
 		"signingIn": "Signing you in",
 		"error": "Something went wrong",
@@ -22,10 +19,6 @@
 		"optional": "optional",
 		"required": "required",
 		"loadMore": "Load more",
-		"votes": "votes",
-		"comments": "comments",
-		"active": "Active",
-		"ended": "Ended",
 		"invalidEmailAddress": "Invalid email address",
 		"errorBody": "Please try again. If it keeps happening, come back in a few minutes.",
 		"tryAgain": "Try again",
@@ -38,7 +31,6 @@
 		"home": "Home",
 		"profile": "Profile",
 		"settings": "Settings",
-		"logout": "Logout",
 		"howCountsTitle": "How vomatt counts",
 		"howCountsBody": "One vote per person. Ballots stay sealed while a poll is open, so nobody votes with the crowd.",
 		"more": "More",
@@ -55,14 +47,6 @@
 		"submit": "Submit",
 		"sent": "Thanks. We got your report.",
 		"failed": "Couldn’t send your report. Try again."
-	},
-	"user": {
-		"profile": {
-			"title": "User Profile",
-			"name": "Name",
-			"email": "Email",
-			"bio": "Biography"
-		}
 	},
 	"loginPrompt": {
 		"title": "Log in or sign up for Vomatt",
@@ -111,14 +95,10 @@
 		"done": "Phone number verified"
 	},
 	"myPolls": {
-		"title": "My Polls",
-		"tabActive": "Active",
 		"tabDrafts": "Drafts",
 		"tabEnded": "Ended",
 		"empty": "No polls here yet.",
-		"actionEdit": "Edit",
 		"actionDelete": "Delete",
-		"actionEnd": "End Poll",
 		"draftContinue": "Continue",
 		"draftSavedAt": "Saved {date}",
 		"draftNoEnd": "no end date yet",
@@ -159,7 +139,6 @@
 	},
 	"pollDetail": {
 		"about": "About this poll",
-		"share": "Share",
 		"notFound": "Poll not found.",
 		"notFoundBody": "It may have been deleted, or the link is wrong.",
 		"notFoundExplore": "Explore polls",
@@ -170,7 +149,6 @@
 		"resultsIn": "Voting has closed. Results are in.",
 		"noEnd": "No end time set",
 		"topics": "Topics",
-		"sealedExplainer": "Votes stay sealed until the poll ends, so no one is swayed by the running count. You can change or withdraw your vote until then.",
 		"ruleSealed": "Ballots are sealed. Counts are revealed only when the poll ends.",
 		"ruleOneVote": "One vote per person. You can change it until the end.",
 		"endedEarly": "Ended early. It was set to close {date}.",
@@ -204,8 +182,6 @@
 		"statTurnout": "Votes received",
 		"editProfile": "Edit profile",
 		"bio": "Bio",
-		"joinedAt": "Joined",
-		"totalVotes": "Votes",
 		"displayName": "Display name",
 		"saveChanges": "Save changes",
 		"displayNamePlaceholder": "Your display name",
@@ -576,8 +552,6 @@
 		"endNowBody": "Voting stops and the results are revealed. This can’t be undone.",
 		"endFailed": "Couldn’t end the poll. Try again.",
 		"audience": {
-			"public": "Public",
-			"unlisted": "Unlisted",
 			"invite-only": "Invite only"
 		},
 		"audienceMeta": {
@@ -679,17 +653,10 @@
 		"usernameConfirmCta": "Change username",
 		"turnout_one": "{count} vote on your polls",
 		"privacyTitle": "What others see",
-		"privacyBody": "Choose which profile details appear on your public profile.",
 		"anonymousDefault": "Vote anonymously by default",
 		"anonymousDefaultBody": "Leaves your name out of voter lists. You can change it on each vote, and it doesn’t touch votes you’ve already cast.",
-		"fieldVisible": "{field} is now visible to others.",
-		"fieldHidden": "{field} is now hidden from others.",
 		"anonymousDefaultOn": "New votes are anonymous by default.",
 		"anonymousDefaultOff": "New votes show your name by default.",
-		"field": {
-			"displayName": "Display name",
-			"bio": "Bio"
-		},
 		"saveFailed": "Couldn’t save. Try again.",
 		"signOutTitle": "Signed in as",
 		"signOut": "Log out",
@@ -1266,10 +1233,7 @@
 		"confirmUnfollow": "Unfollow @{username}?",
 		"unfollowFailed": "Couldn’t unfollow. Try again.",
 		"follow": "Follow",
-		"followed": "Following @{username}",
-		"manage": "Manage who you follow",
 		"followFailed": "Couldn’t follow. Try again.",
-		"notFound": "Couldn’t find that user to follow.",
 		"following": "Following",
 		"listFailed": "Couldn’t load this list.",
 		"listEmptyFollowers": "No followers yet.",

@@ -19,6 +19,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { formatFromNow, formatPollDate } from '@/features/polls/format';
 import { apiErrorText } from '@/lib/api/error-text';
+import { settle } from '@/lib/api/settle';
 import { META_GAP } from '@/lib/rich';
 import { loginHref } from '@/lib/routes';
 import type { SignedInSession } from '@/types/user';
@@ -49,7 +50,7 @@ export function SessionsPanel() {
 
 	useEffect(() => {
 		let ignore = false;
-		getSessions().then((result) => {
+		settle(getSessions()).then((result) => {
 			if (ignore) return;
 			if (!result.ok && result.errorCode === 'auth.session_revoked') {
 				goToLogin();
@@ -64,13 +65,11 @@ export function SessionsPanel() {
 		};
 	}, [loadCount]);
 
-	const signOut = async (event: React.MouseEvent) => {
-		// Keep the dialog open (and the button loading) until the request settles
-		event.preventDefault();
+	const signOut = async () => {
 		if (!confirming || isSigningOut) return;
 		setIsSigningOut(true);
 		const target = confirming;
-		const result = target === 'others' ? await revokeOtherSessions() : await revokeSession(target.sessionId);
+		const result = await settle(target === 'others' ? revokeOtherSessions() : revokeSession(target.sessionId));
 		setIsSigningOut(false);
 		setConfirming(null);
 		if (!result.ok && result.errorCode === 'auth.session_revoked') {

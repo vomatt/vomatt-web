@@ -17,8 +17,6 @@ const buttonVariantClasses = cva(
 					'bg-create text-create-foreground hover:bg-create-hover [&_svg]:text-create-icon disabled:bg-secondary disabled:text-muted-foreground disabled:opacity-100 disabled:[&_svg]:text-muted-foreground',
 				outline:
 					'border-border-strong bg-card hover:bg-surface-soft hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground',
-				secondary:
-					'bg-secondary text-secondary-foreground hover:bg-secondary/80 aria-expanded:bg-secondary aria-expanded:text-secondary-foreground',
 				ghost:
 					'hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50',
 				// A ghost that stays red on hover, for a delete that still needs confirming
@@ -41,7 +39,6 @@ const buttonVariantClasses = cva(
 				'icon-xs': 'size-11 rounded-full md:size-8',
 				'icon-sm':
 					'size-11 in-data-[slot=button-group]:rounded-lg md:size-9',
-				'icon-lg': 'size-12',
 			},
 		},
 		// After the size classes, so a link lines up with the text beside it

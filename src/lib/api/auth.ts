@@ -5,21 +5,11 @@ import { cache } from 'react';
 import { z } from 'zod';
 
 import { ACCESS_TOKEN, ACT_AS, REFRESH_TOKEN } from '@/data/constants';
-import {
-	AccessTokenPayload,
-	buildAuthCookies,
-	verifyAccessToken,
-} from '@/lib/api/tokens';
+import { buildAuthCookies } from '@/lib/api/tokens';
 import { AuthTokens } from '@/types';
 
 // Server-only on purpose: as a 'use server' module every export here would be
 // a Server Action, and getTokens() would hand httpOnly tokens to any caller.
-
-export async function decodeToken(
-	token: string
-): Promise<AccessTokenPayload | null> {
-	return verifyAccessToken(token);
-}
 
 export async function getTokens(): Promise<{
 	accessToken: string;

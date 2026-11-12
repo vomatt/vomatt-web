@@ -11,10 +11,6 @@ jest.mock('next/navigation', () => ({
 	useRouter: () => ({ refresh: jest.fn() }),
 }));
 
-jest.mock('@/hooks/use-mobile', () => ({
-	useIsMobile: () => false,
-}));
-
 jest.mock('@/contexts/LanguageContext', () => ({
 	useLanguage: () => ({ t: (key: string) => key, currentLanguage: 'en', setLanguage: jest.fn() }),
 }));

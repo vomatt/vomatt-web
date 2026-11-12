@@ -47,7 +47,7 @@ describe('Base UI wrappers', () => {
 		const onOpenChange = jest.fn();
 		render(
 			<Dialog open onOpenChange={onOpenChange}>
-				<DialogContent>
+				<DialogContent closeLabel="Close">
 					<DialogTitle>Title</DialogTitle>
 				</DialogContent>
 			</Dialog>

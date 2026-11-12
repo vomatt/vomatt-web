@@ -8,7 +8,7 @@ import { Main } from '@/components/layout/Main';
 import { TabBar } from '@/components/layout/TabBar';
 import { MotionProvider } from '@/components/MotionProvider';
 import { ReloadWhenSessionUnconfirmed, SessionRetry } from '@/components/SessionRetry';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/Sidebar';
+import { SidebarProvider } from '@/components/ui/Sidebar';
 import { getLoginHref, getUserSession, loadActingState, loadMyProfile } from '@/data/auth';
 import { ActingBanner } from '@/features/communities/ActingBanner';
 import { ActingProvider } from '@/features/communities/ActingProvider';

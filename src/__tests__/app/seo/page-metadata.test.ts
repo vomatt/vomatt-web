@@ -40,9 +40,9 @@ describe('profile page metadata', () => {
 		expect((await profileFor('Alice')).alternates).toEqual({ canonical: '/alice' });
 	});
 
-	it('adds nothing for an unknown profile', async () => {
+	it('titles an unknown profile as not found', async () => {
 		mockGetUserProfile.mockResolvedValue(null);
-		expect(await profileFor('nobody')).toEqual({});
+		expect(await profileFor('nobody')).toEqual({ title: 'Page not found' });
 	});
 });
 

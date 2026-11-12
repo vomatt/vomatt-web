@@ -3,6 +3,7 @@
 import { toast } from 'sonner';
 
 import { useLanguage } from '@/contexts/LanguageContext';
+import { settle } from '@/lib/api/settle';
 
 import { sharePoll } from '../service';
 import { pollUrl } from '../url';
@@ -22,7 +23,7 @@ export function useSharePoll() {
 				() => true,
 				(error: unknown) => (error instanceof DOMException && error.name === 'AbortError' ? false : null)
 			);
-			if (shared) void sharePoll(id, 'NATIVE');
+			if (shared) void settle(sharePoll(id, 'NATIVE'));
 			if (shared !== null) return;
 		}
 		const copied = await navigator.clipboard.writeText(url).then(
@@ -33,7 +34,7 @@ export function useSharePoll() {
 			toast.error(t('poll.linkCopyFailed'));
 			return;
 		}
-		void sharePoll(id, 'COPY_LINK');
+		void settle(sharePoll(id, 'COPY_LINK'));
 		toast(t('poll.linkCopied'));
 	};
 }

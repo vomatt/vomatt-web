@@ -23,6 +23,7 @@ import { EMPTY_INVITEES, isSelectionEmpty, personKey, userIdsOf } from '@/featur
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
 import type { ActionResult } from '@/lib/api/action';
 import { apiErrorText } from '@/lib/api/error-text';
+import { settle } from '@/lib/api/settle';
 import { countText } from '@/lib/count';
 
 import { type Group, GROUP_NAME_MAX,type GroupMember } from './schema';
@@ -52,7 +53,7 @@ export function GroupsPanel() {
 
 	useEffect(() => {
 		let ignore = false;
-		getGroups().then((result) => {
+		settle(getGroups()).then((result) => {
 			if (ignore) return;
 			setRetrying(false);
 			if (result.ok) {
@@ -84,7 +85,7 @@ export function GroupsPanel() {
 			return;
 		}
 		setIsCreating(true);
-		const result = await createGroup(trimmed);
+		const result = await settle(createGroup(trimmed));
 		setIsCreating(false);
 		if (!result.ok) {
 			toast.error(apiErrorText(t, result, 'groups.saveFailed'), { duration: Infinity });
@@ -96,7 +97,9 @@ export function GroupsPanel() {
 	};
 
 	const update = (group: Group) =>
-		setGroups((list) => list?.map((g) => (g.id === group.id ? group : g)) ?? null);
+		setGroups(
+			(list) => list?.map((g) => (g.id === group.id ? group : g)).sort((a, b) => a.name.localeCompare(b.name)) ?? null
+		);
 
 	const removeFromList = (id: string) => {
 		setOpenId(null);
@@ -227,7 +230,7 @@ function GroupDialog({
 
 	useEffect(() => {
 		let ignore = false;
-		getGroupMembers(group.id).then((result) => {
+		settle(getGroupMembers(group.id)).then((result) => {
 			if (ignore) return;
 			setRetrying(false);
 			if (result.ok) {
@@ -252,7 +255,7 @@ function GroupDialog({
 	/** Runs one change; `key` marks what is busy. Resolves to the data, or null after a toast. */
 	const run = async <T,>(key: string, request: () => Promise<ActionResult<T>>) => {
 		setPending(key);
-		const result = await request();
+		const result = await settle(request());
 		setPending(null);
 		if (result.ok) return result.data;
 		toast.error(apiErrorText(t, result, 'groups.saveFailed'), { duration: Infinity });

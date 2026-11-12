@@ -13,9 +13,9 @@ import type { Passkey } from '@/types/user';
 
 type AuthFailure = { status: 'ERROR'; error: AuthErrorKey };
 
-function toFailure(error: unknown): AuthFailure {
+function toFailure(error: unknown, badRequest?: AuthErrorKey): AuthFailure {
 	if (error instanceof ApiError) {
-		return { status: 'ERROR', error: toAuthErrorKey(error.data?.errorCode, error.statusCode, { badRequest: 'invalidEmail' }) };
+		return { status: 'ERROR', error: toAuthErrorKey(error.data?.errorCode, error.statusCode, { badRequest }) };
 	}
 	return { status: 'ERROR', error: 'serverError' };
 }
@@ -43,7 +43,7 @@ export async function requestOtp(
 		return { status: 'SUCCESS' };
 	} catch (error) {
 		const seconds = error instanceof ApiError ? cooldownSeconds(error.data?.errorCode, error.message) : undefined;
-		return seconds ? { status: 'COOLDOWN', seconds } : toFailure(error);
+		return seconds ? { status: 'COOLDOWN', seconds } : toFailure(error, 'invalidEmail');
 	}
 }
 
@@ -66,7 +66,7 @@ export async function verifyOtp(
 		const username = typeof data?.user?.username === 'string' ? data.user.username : undefined;
 		return { status: 'SUCCESS', isNewUser: data?.isNewUser === true, username };
 	} catch (error) {
-		return toFailure(error);
+		return toFailure(error, 'invalidCode');
 	}
 }
 

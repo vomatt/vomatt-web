@@ -1,5 +1,5 @@
 import type { Poll } from '@/features/polls/schema';
-import { getTurnout, getWinners, isRevealed } from '@/features/polls/status';
+import { getWinners, isRevealed } from '@/features/polls/status';
 
 export type BallotOutcome = 'pending' | 'won' | 'tied' | 'lost' | 'unknown';
 
@@ -15,13 +15,4 @@ export function ballotOutcome(poll: Poll, optionId: string, now = Date.now()): B
 /** The text of the option the viewer picked; empty when it is gone. */
 export function ballotChoice(poll: Poll): string {
 	return poll.options.find((option) => option.id === poll.myOptionId)?.text ?? '';
-}
-
-export type Insights = {
-	/** People who voted on the user's polls. */
-	turnout: number;
-};
-
-export function computeInsights(myPolls: Poll[]): Insights {
-	return { turnout: myPolls.reduce((sum, poll) => sum + (getTurnout(poll) ?? 0), 0) };
 }

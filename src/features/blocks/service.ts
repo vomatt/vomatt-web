@@ -1,8 +1,11 @@
 'use server';
 
+import { revalidateTag } from 'next/cache';
+
 import type { ActionResult } from '@/lib/api/action';
 import { attempt } from '@/lib/api/action';
 import { apiClient } from '@/lib/api/client';
+import { PROFILES_TAG } from '@/lib/api/constants';
 import { type CursorPage, cursorPageSchema, pageParams } from '@/lib/api/cursor';
 import type { UserDto } from '@/schemas/user';
 import { UserDtoSchema } from '@/schemas/user';
@@ -20,6 +23,8 @@ export async function getBlockedUsers(cursor?: string): Promise<ActionResult<Cur
 export async function blockUser(userId: string): Promise<ActionResult> {
 	return attempt(async () => {
 		await apiClient(blockPath(userId), { method: 'POST' });
+		// Blocking also removes the caller's follow, which the cached profiles count
+		revalidateTag(PROFILES_TAG, { expire: 0 });
 	});
 }
 

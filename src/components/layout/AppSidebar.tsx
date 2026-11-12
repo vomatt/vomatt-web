@@ -21,7 +21,6 @@ import {
 	Bell,
 	Home,
 	Lock,
-	LogOut,
 	PlusCircle,
 	Search,
 	User,

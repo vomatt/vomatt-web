@@ -6,7 +6,7 @@ import { sharePoll } from '@/features/polls/service';
 
 jest.mock('sonner', () => ({ toast: Object.assign(jest.fn(), { error: jest.fn() }) }));
 jest.mock('@/contexts/LanguageContext', () => ({ useLanguage: () => ({ t: (key: string) => key }) }));
-jest.mock('@/features/polls/service', () => ({ sharePoll: jest.fn() }));
+jest.mock('@/features/polls/service', () => ({ sharePoll: jest.fn().mockResolvedValue({ ok: true, data: 1 }) }));
 
 const poll = { id: 'poll-1', title: 'Which day?' };
 

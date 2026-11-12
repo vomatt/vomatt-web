@@ -10,7 +10,7 @@ import { getUserProfile } from '@/lib/api/services/users';
 import { getServerMessages } from '@/lib/getServerLocale';
 import { interpolate } from '@/lib/interpolate';
 import { profileHref } from '@/lib/routes';
-import { profileJsonLd, profileName } from '@/lib/structuredData';
+import { profileJsonLd, profileTitle } from '@/lib/structuredData';
 
 import { OwnProfile, ProfileSkeleton, PublicProfile } from './_components/Profile';
 
@@ -29,8 +29,8 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 		username ? loadProfile(username).catch(() => null) : null,
 		getServerMessages(),
 	]);
-	if (!profile) return {};
-	const name = profileName(profile);
+	if (!profile) return { title: messages.common.notFoundTitle };
+	const name = profileTitle(profile);
 	return {
 		title: name,
 		description: profile.bio || interpolate(messages.meta.profileDescription, { name }),
@@ -57,7 +57,8 @@ export default async function PageSlugRoute(props: Props) {
 
 	// Started now so polls load alongside the profile lookup
 	const polls = getUserPolls(username).catch(() => null);
-	// Checked before streaming so an unknown slug still answers 404. Signed in, the
+	// Checked before the page streams, so an unknown slug gets the not-found page (the layout's
+	// Suspense has already sent a 200 by then; Next adds noindex). Signed in, the
 	// profile also says whether the viewer follows or blocked them, so it isn't cached
 	const profile = await loadProfile(username);
 	if (!profile) notFound();

@@ -18,6 +18,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { formatPollDate } from '@/features/polls/format';
 import { apiErrorText } from '@/lib/api/error-text';
+import { settle } from '@/lib/api/settle';
 import { META_GAP } from '@/lib/rich';
 import type { Passkey } from '@/types/user';
 
@@ -43,7 +44,7 @@ export function PasskeysPanel() {
 
 	useEffect(() => {
 		let ignore = false;
-		getPasskeys().then((result) => {
+		settle(getPasskeys()).then((result) => {
 			if (ignore) return;
 			setLoadFailed(!result.ok);
 			if (result.ok) setPasskeys(result.data);
@@ -56,7 +57,7 @@ export function PasskeysPanel() {
 	const remove = async () => {
 		if (!confirming) return;
 		setIsDeleting(true);
-		const result = await deletePasskey(confirming.id);
+		const result = await settle(deletePasskey(confirming.id));
 		setIsDeleting(false);
 		setConfirming(null);
 		if (!result.ok) {

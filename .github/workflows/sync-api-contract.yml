@@ -55,7 +55,7 @@ jobs:
           fetch-depth: 0
           token: ${{ env.GH_TOKEN }}
 
-      # CLAUDE.md reads the contract from ../vomatt-api
+      # CLAUDE.md reads the contract from api-docs.json at the repo root; vomatt-api is checked out (linked at ../vomatt-api below) for the sync to read
       - uses: actions/checkout@v4
         with:
           repository: vomatt/vomatt-api

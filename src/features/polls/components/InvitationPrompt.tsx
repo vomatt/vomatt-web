@@ -7,6 +7,7 @@ import { Lock } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { type NameParts, shownName } from '@/features/profiles/name';
+import { pollHref } from '@/lib/routes';
 
 type InvitationPromptProps = {
 	creator: NameParts & { avatarUrl: string | null };
@@ -18,7 +19,7 @@ type InvitationPromptProps = {
 /** An Invitation link to an Invite-only Poll the viewer can't open yet. */
 export function InvitationPrompt({ creator, pollId, switchAccount }: InvitationPromptProps) {
 	const { t } = useLanguage();
-	const login = `/login?${new URLSearchParams({ redirect: `/poll/${pollId}` })}`;
+	const login = `/login?${new URLSearchParams({ redirect: pollHref(pollId) })}`;
 
 	return (
 		<section className="flex w-full max-w-[640px] flex-col items-center gap-3 rounded-2xl border border-border bg-card px-8 py-10 text-center">
