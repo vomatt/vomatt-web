@@ -13,7 +13,6 @@ import { type Follow, FollowButton } from '@/features/follows/FollowButton';
 import type { MyProfile } from '@/types/user';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
-jest.mock('@/features/billing/service', () => ({ startCheckout: jest.fn() }));
 jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn(), info: jest.fn() } }));
 const mockRefresh = jest.fn();
 jest.mock('@/features/communities/service', () => ({ unlockCommunity: jest.fn() }));

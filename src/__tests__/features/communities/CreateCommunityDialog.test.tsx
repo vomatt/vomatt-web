@@ -9,7 +9,6 @@ jest.mock('@/features/communities/service', () => ({
 	createCommunity: (...args: unknown[]) => mockCreate(...args),
 }));
 
-jest.mock('@/features/billing/service', () => ({ startCheckout: jest.fn() }));
 jest.mock('sonner', () => ({ toast: { success: jest.fn() } }));
 const mockPush = jest.fn();
 jest.mock('next/navigation', () => ({ useRouter: () => ({ push: mockPush }) }));

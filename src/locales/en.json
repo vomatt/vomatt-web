@@ -1216,9 +1216,6 @@
 			"keep": {
 				"invalid": "Choose exactly as many accounts as asked, all ones you own."
 			}
-		},
-		"billing": {
-			"unavailable": "Pro is coming soon."
 		}
 	},
 	"blocks": {
@@ -1484,7 +1481,6 @@
 		},
 		"quota": "{owned} of {limit} community accounts owned",
 		"upgrade": "Upgrade to Pro",
-		"comingSoon": "Pro is coming soon.",
-		"upgradeFailed": "Couldn’t start the upgrade. Please try again."
+		"comingSoon": "Pro is coming soon."
 	}
 }

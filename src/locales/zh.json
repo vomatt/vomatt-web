@@ -1204,9 +1204,6 @@
 			"keep": {
 				"invalid": "請選擇剛好所要求數量的帳號，且都必須是你擁有的。"
 			}
-		},
-		"billing": {
-			"unavailable": "Pro 方案即將推出。"
 		}
 	},
 	"blocks": {
@@ -1470,7 +1467,6 @@
 		},
 		"quota": "已擁有 {owned} 個社群帳號，上限 {limit} 個",
 		"upgrade": "升級 Pro",
-		"comingSoon": "Pro 方案即將推出。",
-		"upgradeFailed": "無法開始升級，請再試一次。"
+		"comingSoon": "Pro 方案即將推出。"
 	}
 }
