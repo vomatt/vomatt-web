@@ -18,7 +18,7 @@ import { PollCardSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import type { Poll } from '@/features/polls/schema';
 import { getInviteOnlyCreator, getPoll, getUserPolls } from '@/features/polls/service';
 import { shareDescription } from '@/features/polls/sharePreview';
-import { derivePollStatus, isCancelled, isInvitee, isPublic } from '@/features/polls/status';
+import { derivePollStatus, holdsBallot, isCancelled, isInvitee, isPublic } from '@/features/polls/status';
 import { AuthError } from '@/lib/api/client';
 import { pollHref } from '@/lib/routes';
 import { pollJsonLd } from '@/lib/structuredData';
@@ -105,18 +105,18 @@ async function PollDetail({ id }: { id: string }) {
 				switchAccount={user ? switchAccount.bind(null, id) : undefined}
 			/>
 		) : (
-			<LoginPrompt className="mx-auto w-full max-w-[520px]" redirectTo={`/poll/${id}`} forPoll sessionExpired />
+			<LoginPrompt className="mx-auto w-full max-w-[520px]" redirectTo={pollHref(id)} forPoll sessionExpired />
 		);
 	}
 
 	const { poll } = lookup;
 	const ended = derivePollStatus(poll) === 'ended';
-	// An Invitee has an Invitation until the Poll Ends; then the owner, Participants
-	// and Invitees get the Ended Notification (not for a Cancelled Poll)
+	// An Invitee has an Invitation until the Poll Ends; then the owner, Participants, Invitees
+	// and people who bookmarked it get the Ended Notification (not for a Cancelled Poll)
 	const invited = !!user && isInvitee(poll, user.sub);
 	const hasNotification =
 		!!user &&
-		(ended ? !isCancelled(poll) && (poll.creatorId === user.sub || invited || !!poll.myOptionId) : invited);
+		(ended ? !isCancelled(poll) && (poll.creatorId === user.sub || invited || holdsBallot(poll) || !!poll.bookmarked) : invited);
 
 	return (
 		<div className="flex flex-col gap-6">

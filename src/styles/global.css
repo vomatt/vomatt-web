@@ -66,7 +66,6 @@
 	--background: oklch(0.964 0.003 265);
 	--foreground: oklch(0.25 0.05 262.5);
 	--card: oklch(1 0 265);
-	--card-foreground: var(--foreground);
 	--popover: oklch(1 0 265);
 	--popover-foreground: var(--foreground);
 	--primary: var(--foreground);
@@ -77,8 +76,6 @@
 	--secondary-foreground: var(--foreground);
 	--muted: oklch(0.945 0.004 265);
 	--muted-foreground: oklch(0.48 0.03 266);
-	--accent: var(--muted);
-	--accent-foreground: var(--foreground);
 	--destructive: oklch(0.501 0.178 28.7);
 	/* Alert: a count or marker asking to be looked at (unread). White on red, never a button or a status */
 	--alert: oklch(0.55 0.20 27);
@@ -130,8 +127,6 @@
 	/* The sidebar is one step deeper than the canvas; everything else aliases the base */
 	--sidebar: var(--muted);
 	--sidebar-foreground: var(--foreground);
-	--sidebar-primary: var(--primary);
-	--sidebar-primary-foreground: var(--primary-foreground);
 	--sidebar-accent: var(--card);
 	--sidebar-accent-foreground: var(--foreground);
 	--sidebar-border: var(--border);
@@ -193,7 +188,6 @@ html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 	--background: oklch(0.155 0.012 265);
 	--foreground: oklch(0.925 0.006 265);
 	--card: oklch(0.215 0.012 265);
-	--card-foreground: oklch(0.925 0.006 265);
 	--popover: oklch(0.215 0.012 265);
 	--popover-foreground: oklch(0.925 0.006 265);
 	--primary: oklch(0.94 0.006 265);
@@ -203,8 +197,6 @@ html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 	--secondary-foreground: oklch(0.925 0.006 265);
 	--muted: oklch(0.26 0.012 265);
 	--muted-foreground: oklch(0.745 0.018 265);
-	--accent: oklch(0.26 0.012 265);
-	--accent-foreground: oklch(0.925 0.006 265);
 	--destructive: oklch(0.771 0.104 25);
 	--alert: oklch(0.55 0.19 27);
 	--alert-foreground: oklch(0.985 0.002 265);
@@ -236,8 +228,6 @@ html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 	--elected: oklch(0.66 0.2 27);
 	--sidebar: oklch(0.135 0.012 265);
 	--sidebar-foreground: var(--foreground);
-	--sidebar-primary: var(--primary);
-	--sidebar-primary-foreground: var(--primary-foreground);
 	--sidebar-accent: var(--card);
 	--sidebar-accent-foreground: var(--foreground);
 	--sidebar-border: var(--border);
@@ -254,10 +244,6 @@ html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 	--text-display-1--line-height: 1.1;
 	--text-display-1--font-weight: 500;
 	--text-display-1--letter-spacing: -0.03em;
-	--text-display-2: 2.25rem;
-	--text-display-2--line-height: 1.1;
-	--text-display-2--font-weight: 500;
-	--text-display-2--letter-spacing: -0.03em;
 
 	--text-title-1: 1.75rem;
 	--text-title-1--line-height: 1.3;
@@ -293,16 +279,11 @@ html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 @theme inline {
 
 	--font-sans: var(--font-geist-sans), 'PingFang TC', 'Microsoft JhengHei', 'Noto Sans TC', system-ui, sans-serif;
-	--font-family-default: Helvetica, Arial, sans-serif;
-	--font-family-serif: ui-serif, New York Small, New York, Georgia, Times New Roman, Times, serif;
-	--font-chinese-traditional: PingFang TC, Microsoft JhengHei;
 
 	--color-sidebar-ring: var(--sidebar-ring);
 	--color-sidebar-border: var(--sidebar-border);
 	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
 	--color-sidebar-accent: var(--sidebar-accent);
-	--color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-	--color-sidebar-primary: var(--sidebar-primary);
 	--color-sidebar-foreground: var(--sidebar-foreground);
 	--color-sidebar: var(--sidebar);
 	--color-ring: var(--ring);
@@ -311,7 +292,6 @@ html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 	--color-destructive: var(--destructive);
 	--color-alert: var(--alert);
 	--color-alert-foreground: var(--alert-foreground);
-	--color-accent-foreground: var(--accent-foreground);
 	--color-muted-foreground: var(--muted-foreground);
 	--color-muted: var(--muted);
 	--color-secondary-foreground: var(--secondary-foreground);
@@ -320,7 +300,6 @@ html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 	--color-primary: var(--primary);
 	--color-popover-foreground: var(--popover-foreground);
 	--color-popover: var(--popover);
-	--color-card-foreground: var(--card-foreground);
 	--color-card: var(--card);
 	--color-foreground: var(--foreground);
 	--color-background: var(--background);
@@ -367,9 +346,6 @@ html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 	--ease-header: cubic-bezier(0.32, 0.72, 0, 1);
 	--z-index-header: 48;
 	--z-index-tabbar: 48;
-	--z-index-overlay: 49;
-	--z-index-dialog: 50;
-	--z-index-popover: 50;
 }
 
 
@@ -425,16 +401,6 @@ html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 @utility pt-header-space-* {
 	padding-top: calc(var(--header-height) + var(--announcement-height, 0) + --value(number) * var(--spacing));
 	padding-top: calc(var(--header-height) + var(--announcement-height, 0) + --value([*]));
-}
-
-@utility mt-header-space-* {
-	margin-top: calc(var(--header-height) + var(--announcement-height, 0) + --value(number) * var(--spacing));
-	margin-top: calc(var(--header-height) + var(--announcement-height, 0) + --value([*]));
-}
-
-@utility top-header-space-* {
-	top: calc(var(--header-height) + var(--announcement-height, 0) + --value(number) * var(--spacing));
-	top: calc(var(--header-height) + var(--announcement-height, 0) + --value([*]));
 }
 
 /* With `sticky`: a bar that sits under the phone Header and slides away with it (Home's topics, line tabs); top of the page from md up.
@@ -509,51 +475,6 @@ html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 	}
 }
 
-@utility p-fill {
-	position: absolute;
-	width: 100%;
-	height: 100%;
-	top: 0;
-	left: 0;
-}
-
-@utility p-center {
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	transform: translate3d(-50%, -50%, 0);
-}
-
-@utility no-text-space {
-	font-size: 0;
-	line-height: 0;
-}
-
-/* Long-form CMS text (editor pages, the Editorial module); its size goes beside it */
-@utility cms-prose {
-	/* Through --tw-leading, so the text-* size beside it keeps this leading */
-	@apply leading-relaxed;
-
-	& a {
-		@apply underline underline-offset-2;
-	}
-	& > * + * {
-		@apply mt-4;
-	}
-	& h2 {
-		@apply mt-8 text-title-2;
-	}
-	& li {
-		@apply mt-1;
-	}
-	& ol {
-		@apply list-decimal pl-5;
-	}
-	& ul {
-		@apply list-disc pl-5;
-	}
-}
-
 @utility empty-state {
 	@apply rounded-xl border border-dashed border-border-strong bg-surface-soft px-5 py-8 text-body-4 text-muted-foreground;
 }
@@ -592,29 +513,5 @@ html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 	/* Firefox */
 	.no-scrollbar {
 		scrollbar-width: none;
-	}
-
-
-	/* Other */
-	.increase-target-size {
-		--target-size: 5px;
-		position: relative;
-	}
-
-	.increase-target-size::before {
-		content: '';
-		display: block;
-		position: absolute;
-		width: calc(100% + var(--target-size) * 2);
-		height: calc(100% + var(--target-size) * 2);
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-	}
-
-	.custom-touch-manipulation {
-		@media (hover: none) and (pointer: coarse) {
-			touch-action: manipulation;
-		}
 	}
 }

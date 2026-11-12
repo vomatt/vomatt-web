@@ -18,7 +18,7 @@ import { Count } from './Count';
 import { MutualFollowersLine } from './MutualFollowers';
 import { profileName } from './name';
 
-// Matches the route's max-age, so an edited profile shows within a minute
+// Matches the profile fetch's 60s revalidate, so an edited profile shows within a minute
 const PROFILE_TTL_MS = 60_000;
 
 /** `profile` is set once the request is in; null for a username no one uses. */

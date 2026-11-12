@@ -42,7 +42,7 @@ import {
 	type Voter,
 	VoterSchema,
 } from './schema';
-import { derivePollStatus, isRevealed } from './status';
+import { derivePollStatus, holdsBallot, isRevealed } from './status';
 
 const PollPage = cursorPageSchema(PollSchema);
 
@@ -56,6 +56,7 @@ function toRequestBody(input: PollInput) {
 		allowMultipleChoices: false,
 		voterVisibility: toApiVoterVisibility(input.voterVisibility),
 		audience: input.audience && toApiAudience(input.audience),
+		tagIds: input.tagIds,
 		// Other Audiences send no lists: the API rejects them, and switching away removes the Invitees
 		...(input.audience === 'invite-only' &&
 			input.invitees && {
@@ -139,7 +140,7 @@ export async function getResultsInFeed(cursor?: string | null, size = 10): Promi
 			const page = await getMyPolls('ended', pageCursor, size);
 			// A Poll still sealed past its end (before `revealAt`) has no results in yet
 			const items = page.items.filter(
-				(poll) => (!!poll.myOptionId || poll.myBallotAnonymous != null) && isRevealed(poll)
+				(poll) => holdsBallot(poll) && isRevealed(poll)
 			);
 			return { ...page, items };
 		},

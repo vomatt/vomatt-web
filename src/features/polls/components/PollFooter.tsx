@@ -17,6 +17,7 @@ import {
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toPayloadLocale } from '@/lib/locale';
 import { META_GAP } from '@/lib/rich';
+import { pollHref } from '@/lib/routes';
 
 import { useSharePoll } from '../hooks/useSharePoll';
 import type { Audience } from '../schema';
@@ -85,7 +86,7 @@ export function PollFooter({
 		<div className="flex flex-wrap items-center gap-x-4 border-t border-border px-5 py-1 text-body-4 text-muted-foreground md:px-8">
 			{meta && <span className="tabular-nums">{meta}</span>}
 			<Link
-				href={isPage ? '#discussion' : `/poll/${pollId}#discussion`}
+				href={isPage ? '#discussion' : `${pollHref(pollId)}#discussion`}
 				className={commentsClassName}
 			>
 				<MessageSquare className="size-[18px]" />

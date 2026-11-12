@@ -11,6 +11,7 @@ import { ChevronRight } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { apiErrorText } from '@/lib/api/error-text';
+import { settle } from '@/lib/api/settle';
 import { cn } from '@/lib/utils';
 
 import { useSwitchAccount } from './ActingProvider';
@@ -71,7 +72,7 @@ function UnlockButton({ community }: { community: MyCommunity }) {
 	const [busy, setBusy] = useState(false);
 	const unlock = async () => {
 		setBusy(true);
-		const result = await unlockCommunity(community.communityId);
+		const result = await settle(unlockCommunity(community.communityId));
 		setBusy(false);
 		if (!result.ok) {
 			toast.error(apiErrorText(t, result, 'communities.unlockFailed'), { duration: Infinity });

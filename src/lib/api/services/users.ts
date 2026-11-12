@@ -38,7 +38,7 @@ export async function searchUsers(username: string, cursor?: string, limit = 20)
   return UserSearchPage.parse(await apiClient(`/users/search?${params}`));
 }
 
-export async function deleteUser(userId: string) {
+async function deleteUser(userId: string) {
   return apiClient(`/users/${userId}`, { method: 'DELETE' });
 }
 

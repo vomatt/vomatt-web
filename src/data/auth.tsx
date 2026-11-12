@@ -7,9 +7,10 @@ import { cache } from 'react';
 import { ACCESS_TOKEN } from '@/data/constants';
 import { canActAs, type CommunityRole, type MyCommunity } from '@/features/communities/schema';
 import { listMyCommunities } from '@/features/communities/service';
-import { decodeToken, getActingCommunityId } from '@/lib/api/auth';
+import { getActingCommunityId } from '@/lib/api/auth';
 import { apiClient, ApiError, AuthError } from '@/lib/api/client';
 import { getMyProfile as fetchMyProfile } from '@/lib/api/services/users';
+import { verifyAccessToken } from '@/lib/api/tokens';
 import { loginHref } from '@/lib/routes';
 import { MyProfile } from '@/types/user';
 
@@ -34,7 +35,7 @@ export interface Session {
 export const getTokenSession = cache(async (): Promise<Session | null> => {
 	const accessTokenCookie = (await cookies()).get(ACCESS_TOKEN);
 	if (accessTokenCookie?.value) {
-		const payload = await decodeToken(accessTokenCookie.value);
+		const payload = await verifyAccessToken(accessTokenCookie.value);
 		if (payload?.sub) {
 			return { sub: payload.sub, exp: payload.exp, iat: payload.iat };
 		}

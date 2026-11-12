@@ -86,7 +86,8 @@ export function useBallot(poll: Poll, { isAuthed, anonymousByDefault, onPollEnde
 				.then((fresh) => {
 					if (!ignore && !hasActed.current) setAnonymousFlag(fresh?.myBallotAnonymous ?? null);
 				});
-		});
+		// A failed lookup leaves the Ballot unknown; casting asks again
+		}, () => {});
 		return () => {
 			ignore = true;
 		};
@@ -106,14 +107,16 @@ export function useBallot(poll: Poll, { isAuthed, anonymousByDefault, onPollEnde
 			setSelected(next);
 			const previousAnonymous = anonymous;
 
-			let previous: string | null;
-			let turnoutDelta: number;
+			let previous = myOptionId;
+			let turnoutDelta = 0;
 			let result: ActionResult<Poll | void>;
 			// Nothing in flight may leave the Ballot busy
 			try {
 				// Right after sign-in the existing Ballot isn't loaded yet; Turnout depends on it
-				previous = isBallotKnown ? myOptionId : await getMyBallot(poll.id);
-				setIsBallotKnown(true);
+				if (!isBallotKnown) {
+					previous = await getMyBallot(poll.id);
+					setIsBallotKnown(true);
+				}
 				turnoutDelta = (next ? 1 : 0) - (previous ? 1 : 0);
 				setTurnout((count) => shiftCount(count, turnoutDelta));
 
@@ -128,6 +131,9 @@ export function useBallot(poll: Poll, { isAuthed, anonymousByDefault, onPollEnde
 				result = await send();
 				// Busy means nothing was recorded; the API asks for one retry
 				if (isBusy(result)) result = await send();
+			} catch (error) {
+				// The Ballot lookup itself failed: nothing was sent, so undo the optimistic pick
+				result = { ok: false, message: error instanceof Error ? error.message : 'Request failed' };
 			} finally {
 				setPendingAction(null);
 			}

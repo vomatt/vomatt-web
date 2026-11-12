@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/Button';
 import { Dialog, DialogBody, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
@@ -12,6 +13,7 @@ import { CommunityBadge } from '@/features/profiles/CommunityBadge';
 import { profileName } from '@/features/profiles/name';
 import { ProfileHoverCard, rememberFollowing } from '@/features/profiles/ProfileHoverCard';
 import { mergeById } from '@/lib/api/cursor';
+import { settle } from '@/lib/api/settle';
 import { META_GAP } from '@/lib/rich';
 import { profileHref } from '@/lib/routes';
 
@@ -83,13 +85,16 @@ function People({ username, list, ...rowProps }: RowProps & { username: string; 
 
 	const load = async (cursor?: string) => {
 		setLoading(true);
-		receive(await lists[list].load(username, cursor), cursor);
+		const result = await settle(lists[list].load(username, cursor));
+		// With rows already listed there is no failed state to show
+		if (cursor && !result.ok) toast.error(t('follows.listFailed'));
+		receive(result, cursor);
 	};
 
 	// The first page, once per list (the dialog keys this by list)
 	useEffect(() => {
 		let ignore = false;
-		lists[list].load(username).then((result) => !ignore && receive(result));
+		settle(lists[list].load(username)).then((result) => !ignore && receive(result));
 		return () => {
 			ignore = true;
 		};

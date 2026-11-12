@@ -10,7 +10,7 @@ export const isChromeless = (pathname: string) => pathname === '/login';
 /** An absolute URL on this site, for metadata that crawlers read off-site. */
 export const siteUrl = (path = '') => `${process.env.SITE_URL}${path}`;
 
-/** A user's profile; it shares the root with Sanity pages. */
+/** A user's profile; profiles live at the root. */
 export const profileHref = (username: string) => `/${encodeURIComponent(username)}`;
 
 /** The viewer's profile; /account redirects there, so link to it directly when the username is known and it shows as current. */

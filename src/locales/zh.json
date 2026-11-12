@@ -4,12 +4,9 @@
 		"busy": "目前有其他變更正在進行，請稍後再試。",
 		"home": "首頁",
 		"createPoll": "建立投票",
-		"myPolls": "我的投票",
 		"explore": "探索",
 		"notifications": "通知",
-		"login": "登入",
 		"email": "電子郵件",
-		"welcome": "歡迎",
 		"loading": "載入中",
 		"signingIn": "正在登入",
 		"error": "發生錯誤",
@@ -22,10 +19,6 @@
 		"optional": "選填",
 		"required": "必填",
 		"loadMore": "載入更多",
-		"votes": "票",
-		"comments": "留言",
-		"active": "進行中",
-		"ended": "已結束",
 		"invalidEmailAddress": "信箱格式錯誤",
 		"errorBody": "請再試一次。如果問題持續發生，請過幾分鐘再回來。",
 		"tryAgain": "再試一次",
@@ -38,7 +31,6 @@
 		"home": "首頁",
 		"profile": "個人資料",
 		"settings": "設定",
-		"logout": "登出",
 		"howCountsTitle": "vomatt 如何計票",
 		"howCountsBody": "每人一票。投票進行中選票保持密封，沒有人會跟著群眾投票。",
 		"more": "更多",
@@ -55,14 +47,6 @@
 		"submit": "送出",
 		"sent": "謝謝，我們已收到你的回報。",
 		"failed": "無法送出回報，請再試一次。"
-	},
-	"user": {
-		"profile": {
-			"title": "使用者資料",
-			"name": "姓名",
-			"email": "電子郵件",
-			"bio": "個人簡介"
-		}
 	},
 	"loginPrompt": {
 		"title": "登入或註冊 Vomatt",
@@ -89,7 +73,6 @@
 		"subtitle": "我們已將 6 位數驗證碼寄至",
 		"resendVerificationCode": "重新寄送驗證碼",
 		"codeSent": "新的驗證碼已寄出。",
-		"invalidVerificationCode": "驗證碼錯誤",
 		"useAnotherEmail": "使用其他電子郵件",
 		"resendIn": "{time} 後可重新寄送",
 		"inputLabel": "6 位數驗證碼",
@@ -112,14 +95,10 @@
 		"done": "手機號碼已驗證"
 	},
 	"myPolls": {
-		"title": "我的投票",
-		"tabActive": "進行中",
 		"tabDrafts": "草稿",
 		"tabEnded": "已結束",
 		"empty": "這裡還沒有投票。",
-		"actionEdit": "編輯",
 		"actionDelete": "刪除",
-		"actionEnd": "結束投票",
 		"draftContinue": "繼續編輯",
 		"draftSavedAt": "{date}儲存",
 		"draftNoEnd": "尚未設定結束時間",
@@ -159,7 +138,6 @@
 	},
 	"pollDetail": {
 		"about": "關於這個投票",
-		"share": "分享",
 		"notFound": "找不到投票。",
 		"notFoundBody": "它可能已被刪除，或連結有誤。",
 		"notFoundExplore": "探索投票",
@@ -170,7 +148,6 @@
 		"resultsIn": "投票已結束，結果出爐。",
 		"noEnd": "未設定結束時間",
 		"topics": "主題",
-		"sealedExplainer": "投票結束前結果保持密封，避免大家被即時票數影響。結束前你都可以更改或撤回你的票。",
 		"ruleSealed": "選票保持密封，投票結束後才公開票數。",
 		"ruleOneVote": "每人一票。結束前都可以更改。",
 		"endedEarly": "已提前結束，原定於 {date} 截止。",
@@ -570,8 +547,6 @@
 		"endNowBody": "投票會停止並公開結果，且無法復原。",
 		"endFailed": "無法結束投票，請再試一次。",
 		"audience": {
-			"public": "公開",
-			"unlisted": "不公開列出",
 			"invite-only": "僅限受邀者"
 		},
 		"audienceMeta": {
@@ -672,17 +647,10 @@
 		"usernameConfirmBody": "你的個人頁將移到 {newPath}。指向 {oldPath} 的連結會失效，包括你分享過的連結。",
 		"usernameConfirmCta": "變更使用者名稱",
 		"privacyTitle": "他人可見的資訊",
-		"privacyBody": "選擇哪些個人資料會顯示在你的公開個人頁。",
 		"anonymousDefault": "預設匿名投票",
 		"anonymousDefaultBody": "在投票者名單中隱藏你的名字。每次投票都可以另外調整，已投出的票不受影響。",
-		"fieldVisible": "他人現在看得到{field}。",
-		"fieldHidden": "他人現在看不到{field}。",
 		"anonymousDefaultOn": "新的投票預設為匿名。",
 		"anonymousDefaultOff": "新的投票預設會顯示你的名字。",
-		"field": {
-			"displayName": "顯示名稱",
-			"bio": "自我介紹"
-		},
 		"saveFailed": "儲存失敗，請再試一次。",
 		"signOutTitle": "目前登入",
 		"signOut": "登出",
@@ -1262,10 +1230,7 @@
 		"confirmUnfollow": "要取消追蹤 @{username} 嗎？",
 		"unfollowFailed": "無法取消追蹤，請再試一次。",
 		"follow": "追蹤",
-		"followed": "已追蹤 @{username}",
-		"manage": "管理追蹤中的人",
 		"followFailed": "無法追蹤，請再試一次。",
-		"notFound": "找不到要追蹤的使用者。",
 		"following": "追蹤中",
 		"listFailed": "無法載入名單。",
 		"listEmptyFollowers": "還沒有追蹤者。",

@@ -45,7 +45,7 @@ export function profileJsonLd(profile: UserProfile): JsonLd {
 		dateCreated: profile.joinedAt,
 		mainEntity: {
 			'@type': 'Person',
-			name: profileName(profile),
+			name: profileTitle(profile),
 			alternateName: `@${profile.username}`,
 			identifier: profile.id,
 			...(profile.bio && { description: profile.bio }),
@@ -58,7 +58,7 @@ export function profileJsonLd(profile: UserProfile): JsonLd {
 }
 
 /** How the app titles a person: their display name, else their @username. */
-export const profileName = (profile: Pick<UserProfile, 'displayName' | 'username'>) =>
+export const profileTitle = (profile: Pick<UserProfile, 'displayName' | 'username'>) =>
 	profile.displayName || `@${profile.username}`;
 
 export function websiteJsonLd({ name, description }: { name: string; description: string }): JsonLd {

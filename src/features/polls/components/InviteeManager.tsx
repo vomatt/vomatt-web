@@ -16,6 +16,7 @@ import { Label } from '@/components/ui/Label';
 import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { apiErrorText } from '@/lib/api/error-text';
+import { settle } from '@/lib/api/settle';
 
 import { EMPTY_INVITEES, isSelectionEmpty, personKey, selectionToInput, userIdsOf } from '../invitees';
 import type { Invitee } from '../schema';
@@ -47,7 +48,7 @@ export function InviteeManager({ pollId, open, onOpenChange, onChanged }: Invite
 	useEffect(() => {
 		if (!open) return;
 		let ignore = false;
-		getInvitees(pollId).then((result) => {
+		settle(getInvitees(pollId)).then((result) => {
 			if (ignore) return;
 			if (result.ok) setInvitees(result.data);
 			else setLoadFailed(true);
@@ -59,7 +60,7 @@ export function InviteeManager({ pollId, open, onOpenChange, onChanged }: Invite
 
 	const add = async () => {
 		setIsAdding(true);
-		const result = await addInvitees(pollId, selectionToInput(selection));
+		const result = await settle(addInvitees(pollId, selectionToInput(selection)));
 		setIsAdding(false);
 		if (!result.ok) {
 			toast.error(apiErrorText(t, result, 'invitees.addFailed'));
@@ -72,7 +73,7 @@ export function InviteeManager({ pollId, open, onOpenChange, onChanged }: Invite
 
 	const remove = async (invitee: Invitee) => {
 		setRemoving(personKey(invitee));
-		const result = await removeInvitee(pollId, invitee);
+		const result = await settle(removeInvitee(pollId, invitee));
 		setRemoving(null);
 		if (!result.ok) {
 			toast.error(apiErrorText(t, result, 'invitees.removeFailed'));

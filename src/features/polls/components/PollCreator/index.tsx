@@ -53,6 +53,8 @@ import { useActing } from '@/features/communities/ActingProvider';
 import { accountName } from '@/features/communities/schema';
 import { useVisualViewport } from '@/hooks/useVisualViewport';
 import { apiErrorText } from '@/lib/api/error-text';
+import { settle } from '@/lib/api/settle';
+import { pollHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
 import { deleteDraft, type PollDraft, saveDraft } from '../../drafts';
@@ -341,9 +343,10 @@ export function PollCreator({
 		async (values: PollFormValues) => {
 			const preset = END_PRESETS.find(({ key }) => key === endPreset);
 			const input = formToInput(values, preset?.ms);
-			const result = isEdit
-				? await updatePoll(poll.id, input)
-				: await createPoll(input);
+			const result = await settle(
+				// An edit replaces the tags, and this form has none to offer: keep the Poll's own
+				isEdit ? updatePoll(poll.id, { ...input, tagIds: poll.tags?.map((tag) => tag.id) }) : createPoll(input)
+			);
 			if (!result.ok) {
 				setError('root', { message: apiErrorText(t, result) });
 				return;
@@ -353,7 +356,7 @@ export function PollCreator({
 			close();
 			onSaved?.();
 			// A new poll's first job is collecting votes: land on it, next to the share button
-			if (!isEdit && result.data?.id) router.push(`/poll/${result.data.id}`);
+			if (!isEdit && result.data?.id) router.push(pollHref(result.data.id));
 		},
 		// Something changed since review (e.g. the end passed): back to writing, errors visible
 		() => {

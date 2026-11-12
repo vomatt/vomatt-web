@@ -665,6 +665,18 @@ describe('PollCreator', () => {
 		expect(screen.getByText('How voters will see it')).toBeInTheDocument();
 	});
 
+	it('stays on review and shows the error when the publish request rejects', async () => {
+		mockCreatePoll.mockRejectedValue(new Error('network'));
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		fillPoll();
+		await toReview();
+		publish();
+
+		await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Something went wrong'));
+		expect(screen.getByText('How voters will see it')).toBeInTheDocument();
+	});
+
 	it('announces the same publish error again on a second failure', async () => {
 		mockCreatePoll.mockResolvedValue({ ok: false, message: 'Something went wrong' });
 		render(<PollCreator triggerChildren={TRIGGER} />);

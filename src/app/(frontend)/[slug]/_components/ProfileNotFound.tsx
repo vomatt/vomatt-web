@@ -9,7 +9,7 @@ import { buttonVariants } from '@/components/ui/Button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { isValidUsername, usernameFromSlug } from '@/features/account/username';
 
-/** A root URL that is neither a Sanity page nor a profile, e.g. an old username. */
+/** A root URL that is no profile, e.g. an old username. */
 export default function ProfileNotFound() {
 	const { t } = useLanguage();
 	const slug = usernameFromSlug(usePathname().split('/')[1] ?? '');

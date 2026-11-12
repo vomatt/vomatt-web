@@ -10,6 +10,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import type { Group } from '@/features/groups/schema';
 import { getGroups } from '@/features/groups/service';
+import { settle } from '@/lib/api/settle';
 
 import { useUserSearch } from '../hooks/useUserSearch';
 import type { InviteeSelection, PickedUser } from '../invitees';
@@ -60,7 +61,7 @@ export function InviteePicker({
 	useEffect(() => {
 		if (!withGroups) return;
 		let ignore = false;
-		getGroups().then((result) => {
+		settle(getGroups()).then((result) => {
 			if (!ignore && result.ok) setGroups(result.data);
 		});
 		return () => {

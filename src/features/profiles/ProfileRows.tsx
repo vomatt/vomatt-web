@@ -17,6 +17,7 @@ import { derivePollStatus, isCancelled, isRevealed, type PollStatus, revealTime 
 import { pollTiming } from '@/features/polls/timing';
 import { toPayloadLocale } from '@/lib/locale';
 import { META_GAP } from '@/lib/rich';
+import { pollHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
 
@@ -125,7 +126,7 @@ export function AskedRow({
 	if (!isOwn) {
 		return (
 			<li>
-				<Link href={`/poll/${poll.id}`} className={cn(profileRowClassName, linkFocus)}>
+				<Link href={pollHref(poll.id)} className={cn(profileRowClassName, linkFocus)}>
 					{text}
 					<StatusChip status={status} poll={poll} time="elsewhere" />
 				</Link>
@@ -135,7 +136,7 @@ export function AskedRow({
 
 	return (
 		<li className={profileRowClassName}>
-			<Link href={`/poll/${poll.id}`} className={cn('flex min-w-0 flex-1 rounded-md', linkFocus)}>
+			<Link href={pollHref(poll.id)} className={cn('flex min-w-0 flex-1 rounded-md', linkFocus)}>
 				{text}
 			</Link>
 			<StatusChip status={status} poll={poll} time="elsewhere" />
@@ -168,7 +169,7 @@ export function VotedRow({ poll }: { poll: Poll }) {
 		return (
 			<li>
 				<Link
-					href={`/poll/${poll.id}`}
+					href={pollHref(poll.id)}
 					className={cn(profileRowClassName, linkFocus, 'border-tide-line bg-tide-tint hover:border-tide')}
 				>
 					<SealMark />
@@ -191,7 +192,7 @@ export function VotedRow({ poll }: { poll: Poll }) {
 	const outcome = isCancelled(poll) || !poll.myOptionId ? null : ballotOutcome(poll, poll.myOptionId);
 	return (
 		<li>
-			<Link href={`/poll/${poll.id}`} className={cn(profileRowClassName, linkFocus)}>
+			<Link href={pollHref(poll.id)} className={cn(profileRowClassName, linkFocus)}>
 				<span className="flex min-w-0 flex-1 flex-col gap-0.5">
 					<RowTitle unread={poll.unread}>{poll.title}</RowTitle>
 					<span className="text-caption-2 text-muted-foreground">

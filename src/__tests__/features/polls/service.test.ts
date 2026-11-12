@@ -65,7 +65,6 @@ jest.mock('@/lib/api/client', () => {
 		publicFetch: jest.fn(),
 		ApiError,
 		AuthError,
-		API_BASE_PATH: '/api/v1',
 	};
 });
 
@@ -529,6 +528,11 @@ describe('createPoll() and updatePoll()', () => {
 		expect(JSON.parse(init!.body as string)).not.toHaveProperty('anonymous');
 		expect(revalidateTag).toHaveBeenCalledWith('poll:poll-1', { expire: 0 });
 		expect(revalidateTag).toHaveBeenCalledWith('polls-feed', { expire: 0 });
+	});
+
+	it('sends the tags to keep, since an edit replaces them', async () => {
+		await updatePoll('poll-1', { ...input, tagIds: ['tag-1'] });
+		expect(JSON.parse(mockApiClient.mock.calls[0][1]!.body as string)).toMatchObject({ tagIds: ['tag-1'] });
 	});
 
 	it('returns the failure message', async () => {

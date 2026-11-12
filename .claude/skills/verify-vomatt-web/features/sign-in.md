@@ -8,11 +8,11 @@ A visitor signs in or signs up with one email-code flow: enter an email, enter t
 - `signin-existing` signs an existing account in without the profile step.
 - `signin-redirect` returns the user to the protected page they asked for.
 - `signin-bad-code` rejects a wrong code with an error.
-- `signin-signout` signs out from the profile Settings tab.
+- `signin-signout` signs out from the Settings page.
 
 ## How to get to it (user POV)
 
-- Open `/login` directly, or choose `Sign in` at the bottom of the desktop sidebar.
+- Open `/login` directly, or choose `Log in` at the bottom of the desktop sidebar.
 - Open a protected page (`/notifications`, `/account`, which then redirects to the profile) while signed out: redirected to `/login?redirect=<path>`.
 - Choose `Vote` or `Post` on a poll while signed out: a `Log in or sign up` dialog opens with the same flow.
 
@@ -24,11 +24,11 @@ Preconditions:
 
 - **Email step.** Run `vv b goto $W/login`, `vv b fill '#authEmail' verify-$RUN_ID@example.test`, `vv b click 'role=button[name="Continue with email"]'`. Heading `Check your email` appears with the address in bold.
 - **Code step.** Run `vv b fill 'role=textbox[name="6-digit verification code"]' "$(vv otp verify-$RUN_ID@example.test)"`. Six digits submit automatically; heading `What's your name?` appears with empty `First name` and `Last name` fields.
-- **Profile step.** Run `vv b fill '#authFirstName' Verify`, then `vv b click 'role=button[name="Finish"]'`. URL becomes `$W/` and the sidebar shows `Notifications` and a profile card instead of `Sign in`.
+- **Profile step.** Run `vv b fill '#authFirstName' Verify`, then `vv b click 'role=button[name="Finish"]'`. URL becomes `$W/` and the sidebar shows `Notifications` and a profile card instead of `Log in`.
 - **One-shot.** `vv login <email>` runs the three steps above and prints the landing URL.
 - **Bad code.** On the code step, fill `000000`. The text `That code is not right. Check the email and try again.` appears and the URL stays `/login`.
 - **Redirect.** Signed out, run `vv b goto $W/notifications`. URL becomes `/login?redirect=%2Fnotifications`; after the email and code steps it lands on `/notifications` with heading `Notifications`.
-- **Sign out.** Run `vv b goto $W/account` (redirects to `/<username>`), `vv b click 'role=tab[name="Settings"]'`, `vv b click 'role=button[name="Log out"]'`. URL becomes `$W/` and the sidebar shows `Sign in` again.
+- **Sign out.** Run `vv b goto $W/settings`, `vv b click 'role=button[name="Log out"]'` (in the Account section, beside `Signed in as`). URL becomes `$W/` and the sidebar shows `Log in` again.
 - **Proof.** `vv b cookies` lists `accessToken` and `refreshToken` after sign-in and neither after sign-out (do not copy their values into evidence). `vv sql "select email, display_name from vomatt.users"` shows the new account.
 
 ## Gotchas

@@ -12,13 +12,12 @@ pnpm test             # Jest (jsdom)
 pnpm test:watch       # Jest watch mode
 pnpm test:coverage    # Jest with coverage
 pnpm exec tsc --noEmit  # Type-check without emitting
-pnpm generate:openapi # Regenerate OpenAPI schema
 pnpm generate:icons   # Regenerate favicon and app icons from src/lib/brand/mark.ts
 ```
 
 Tests live in `src/__tests__/` and match `**/*.test.{ts,tsx}`. Run a single file:
 ```bash
-pnpm exec jest src/__tests__/components/PollCard.test.tsx
+pnpm exec jest src/__tests__/features/polls/PollCard.test.tsx
 ```
 
 ## Architecture
@@ -52,20 +51,20 @@ Render Portable Text with `@/components/CustomPortableText`; build image URLs wi
 - **`auth.ts`** — `server-only` cookie helpers (`getTokens`, `setAuthTokens`, `clearAuthTokens`). Never make it `'use server'`: every export would become a callable Server Action.
 - **Refresh happens only in `src/proxy.tsx`**, which writes rotated cookies to both the request and the response. The backend ends the session when a used refresh token comes back after its grace window, so nothing else may refresh.
 - **`client.ts`** — `apiClient<T>()` (authenticated; throws `AuthError` on 401, `ApiError` with `data.errorCode` otherwise; `auth: 'optional'` falls back to `publicFetch`) and `publicFetch<T>()`. Both unwrap the `ApiResponse` envelope.
-- **`services/`** — `auth.ts` (`requestOtp`, `verifyOtp`, `signout`) and `users.ts` are Server Actions (`'use server'`). Domain actions live in `src/features/<domain>/service.ts` (polls — incl. ballots, comments, invitees — groups, avatars, notifications) and return `ActionResult` (via `attempt()` in `lib/api/action.ts`) instead of throwing.
+- **`services/`** — `auth.ts` (`requestOtp`, `verifyOtp`, `signout`) and `users.ts` are Server Actions (`'use server'`). Domain actions live in `src/features/<domain>/service.ts` (polls — incl. ballots, comments, invitees — avatars, billing, blocks, communities, feedback, follows, groups, notifications, passkeys, sessions) and return `ActionResult` (via `attempt()` in `lib/api/action.ts`) instead of throwing.
 
-The backend is `vomatt-api` (sibling repo): prefix `/api`; the contract is `api-docs.json` at the repo root (what the deployed API at `API_URL` serves from `/v3/api-docs`; flow docs in `vomatt-api/docs/frontend/`). When checking or diffing `api-docs.json`, skip the admin endpoints (`/api/admin/**`, tags `Admin - Lookup` and `Admin Tag`): this app doesn't call them. Lists are cursor-paged: `{ items, nextCursor }` with `limit`/`cursor` params (`lib/api/cursor.ts`). Open questions from the integration are in `docs/release/api-integration-notes.md`; older backend gaps in `docs/release/backend-requests.md`.
+The backend is `vomatt-api` (sibling repo): prefix `/api`; the contract is `api-docs.json` at the repo root (what the deployed API at `API_URL` serves from `/v3/api-docs`; flow docs in `vomatt-api/docs/frontend/`). When checking or diffing `api-docs.json`, skip the admin endpoints (`/api/admin/**`, tags `Admin - Lookup` and `Admin Tag`): this app doesn't call them. Lists are cursor-paged: `{ items, nextCursor }` with `limit`/`cursor` params (`lib/api/cursor.ts`). Open questions from the integration are in `docs/release/api-integration-notes.md`.
 
 ### Internationalization
 
-Locales: `en`, `zh` (Traditional Chinese; default `en`), strings in `src/locales/{en,zh}.json`. Config at `src/i18n-config.ts`. Language is detected in `src/proxy.tsx` middleware via `negotiator` + `@formatjs/intl-localematcher` and stored in the `USER_LANG` cookie. In components, use the `useLanguage()` context hook and call `t('key')`.
+Locales: `en`, `zh` (Traditional Chinese; default `en`), strings in `src/locales/{en,zh}.json`. Config at `src/i18n-config.ts`. Language is detected in `src/proxy.tsx` middleware via `negotiator` + `@formatjs/intl-localematcher` and stored in the `preferred-language` cookie. In components, use the `useLanguage()` context hook and call `t('key')`.
 
 ### State & UI Conventions
 
 - **Before any UI work, read `DESIGN.md`** (tokens, type, building blocks, don'ts) and `PRODUCT.md` (users, brand, principles).
 - **Server Components** for data fetching; **Client Components** (`'use client'`) for interaction.
-- UI primitives are shadcn/ui (new-york style, zinc base) in `src/components/ui/`.
-- Layout uses a collapsible sidebar (`SidebarProvider` + `AppSidebar`) visible on all routes except `/login`. Mobile gets a `TabBar` instead.
+- UI primitives are shadcn/ui (new-york style, zinc base), built on Base UI (`@base-ui/react`), in `src/components/ui/`.
+- Layout uses a sidebar (`SidebarProvider` + `AppSidebar`) visible on all routes except `/login`. Mobile gets a `TabBar` instead.
 - Fonts: Geist for everything (counts and times use `tabular-nums`), loaded with `next/font` in the root layout. Sizes come only from the type scale in `global.css` (`text-display-*`, `text-title-*`, `text-body-*`, `text-caption-*`; see `DESIGN.md`); ESLint rejects arbitrary and default Tailwind sizes.
 - Design tokens in `src/styles/global.css` use OKLCh color space with Tailwind CSS v4.
 - Next.js cache: `revalidatePath(path, 'page')` requires the second arg; use `updateTag(tag)` for single-tag revalidation.
@@ -79,6 +78,7 @@ Locales: `en`, `zh` (Traditional Chinese; default `en`), strings in `src/locales
 ```
 NEXT_PUBLIC_SANITY_PROJECT_ID  # Sanity project
 NEXT_PUBLIC_SANITY_DATASET     # Sanity dataset
+NEXT_PUBLIC_SANITY_API_VERSION # Optional: Sanity API version; defaults to 2025-08-08
 SESSION_SECRET   # Must equal the API's JWT_SECRET (HMAC-SHA)
 SITE_URL         # Frontend URL, no trailing slash; required (metadataBase)
 NEXT_PUBLIC_ABOUT_URL  # Optional: the about site's origin; defaults to https://about.vomatt.com
@@ -86,6 +86,7 @@ API_URL          # vomatt-api origin, no path (e.g. http://localhost:8080)
 SANITY_REVALIDATE_SECRET  # Production only; same value as the invalidate-tags function's. Set in production: publish expires the cache, hourly fallback. Unset or not production: 60s refresh; unset also makes /api/revalidate reject all calls
 API_LOG          # Optional API request/response log: 0 silences it in dev, 1 enables it in a deployment
 CLIENT_IP_SECRET # Same value as the API's; sent with each user's IP (lib/api/client-ip.ts) so its rate limits and OTP lockouts are per user, not per server
+IOS_APP_IDS      # Optional iOS universal links: comma-separated <TeamID>.<bundle ID>, served in /.well-known/apple-app-site-association; unset, that file 404s
 ```
 
 Template and Vercel setup: `.env.example`, `README.md`.
