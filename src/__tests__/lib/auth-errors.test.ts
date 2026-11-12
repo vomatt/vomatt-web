@@ -21,6 +21,7 @@ describe('toAuthErrorKey', () => {
 
 	it('maps codes that read the same wherever they come', () => {
 		expect(toAuthErrorKey('auth.sms.send_failed', 400)).toBe('smsSendFailed');
+		expect(toAuthErrorKey('auth.sms.unavailable', 503)).toBe('apiError.auth.sms.unavailable');
 		expect(toAuthErrorKey('user.phone.taken', 409)).toBe('phoneTaken');
 	});
 });

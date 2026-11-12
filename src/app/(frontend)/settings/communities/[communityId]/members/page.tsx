@@ -7,9 +7,9 @@ import { getMyCommunities, getMyProfile, getTokenSession, redirectToLogin } from
 import { CommunityMembers } from '@/features/communities/CommunityMembers';
 import { CommunityProfileCard } from '@/features/communities/CommunityProfileCard';
 import { DeleteCommunity } from '@/features/communities/DeleteCommunity';
-import { canDelete } from '@/features/communities/permissions';
+import { canDelete, canManageMembers } from '@/features/communities/permissions';
 import { communityMembersHref } from '@/features/communities/schema';
-import { listMembers } from '@/features/communities/service';
+import { listInvitations, listMembers } from '@/features/communities/service';
 import { getUserProfile } from '@/lib/api/services/users';
 import { getServerMessages } from '@/lib/getServerLocale';
 
@@ -36,7 +36,11 @@ export default async function CommunityMembersPage({ params }: Props) {
 	const community = communities.ok ? communities.data.find((o) => o.communityId === communityId) : undefined;
 	// Not a member (removed, never was, or the account is gone): 403 `community.not_member`
 	const notMember = (communities.ok && !community) || (!members.ok && members.errorCode === 'community.not_member');
-	const publicProfile = community ? await getUserProfile(community.username).catch(() => null) : null;
+	// Only an OWNER or ADMIN can list them; without them the page still works
+	const [invitations, publicProfile] = await Promise.all([
+		community && canManageMembers(community.role) ? listInvitations(communityId) : null,
+		community ? getUserProfile(community.username).catch(() => null) : null,
+	]);
 
 	return (
 		<PageShell>
@@ -45,7 +49,12 @@ export default async function CommunityMembersPage({ params }: Props) {
 				{community && members.ok ? (
 					<>
 						<CommunityProfileCard community={community} bio={publicProfile?.bio ?? null} />
-						<CommunityMembers community={community} viewerId={token.sub} members={members.data} />
+						<CommunityMembers
+							community={community}
+							viewerId={token.sub}
+							members={members.data}
+							invitations={invitations?.ok ? invitations.data : undefined}
+						/>
 						{canDelete(community.role) && <DeleteCommunity community={community} />}
 					</>
 				) : notMember ? (

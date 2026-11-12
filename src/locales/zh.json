@@ -287,6 +287,11 @@
 		"liked": "{name} 喜歡你在 {title} 的留言",
 		"pollLiked": "{name} 喜歡你的投票 {title}",
 		"communityLocked": "{name} 已被鎖定，因為期限前沒有選擇要保留的社群帳號",
+		"communityInvitation": "{name} 邀請你以{role}身分加入",
+		"accept": "接受",
+		"decline": "婉拒",
+		"invitationAccepted": "你已加入 {name}",
+		"invitationDeclined": "已婉拒 {name} 的邀請",
 		"categoryLabel": "分類",
 		"category": {
 			"CONVERSATION": "對話",
@@ -1027,7 +1032,8 @@
 				"invalid": "手機號碼格式錯誤，請輸入 09 開頭的台灣手機號碼或含國碼的號碼（例如 +886912345678）"
 			},
 			"sms": {
-				"send_failed": "簡訊發送失敗：{0}"
+				"send_failed": "簡訊發送失敗：{0}",
+				"unavailable": "簡訊驗證目前無法使用"
 			},
 			"refresh_token": {
 				"invalid": "Refresh token 無效或已過期"
@@ -1184,6 +1190,10 @@
 			"not_member": "你已不是這個帳號的成員。",
 			"username_immutable": "社群帳號的使用者名稱無法變更。",
 			"role_forbidden": "你在這個社群帳號的角色無法執行此操作。擁有者與管理員管理帳號與成員，主編可修改任何投票與留言，編輯只能修改自己發布的，分析師只能查看結果報告。",
+			"invitation": {
+				"not_found": "這個邀請已失效或不存在。",
+				"exists": "對方已有尚未失效的邀請。"
+			},
 			"member": {
 				"exists": "對方已經是成員。",
 				"invalid": "無法將對方加入這個帳號。",
@@ -1194,9 +1204,6 @@
 			"keep": {
 				"invalid": "請選擇剛好所要求數量的帳號，且都必須是你擁有的。"
 			}
-		},
-		"billing": {
-			"unavailable": "Pro 方案即將推出。"
 		}
 	},
 	"blocks": {
@@ -1324,10 +1331,10 @@
 	"communities": {
 		"title": "社群帳號",
 		"members": "成員",
-		"add": "新增成員",
-		"addTitle": "新增成員",
-		"searchLabel": "以使用者名稱搜尋",
-		"searchPlaceholder": "以使用者名稱搜尋",
+		"invite": "邀請成員",
+		"inviteTitle": "邀請成員",
+		"searchLabel": "使用者名稱或電子郵件",
+		"searchPlaceholder": "以使用者名稱搜尋，或輸入電子郵件",
 		"role": "角色",
 		"rolesTitle": "各角色可以做的事",
 		"roles": {
@@ -1364,7 +1371,15 @@
 		"leaveTitle": "要離開 {community} 嗎？",
 		"leaveBody": "你將無法再以這個帳號的身分操作，已發布的內容會保留。只有擁有者或管理員能再把你加回來。",
 		"leave": "離開",
-		"added": "已新增 @{name}",
+		"invited": "已邀請 {name}",
+		"inviteEmail": "邀請 {email}",
+		"inviteEmailHint": "若對方還沒有帳號，會收到邀請註冊的電子郵件。",
+		"invitationsTitle": "待回覆的邀請",
+		"invitationExpires": "{date} 到期",
+		"invitationExpired": "已到期",
+		"invitationMore": "更多：對 {name} 的邀請",
+		"revoke": "撤回邀請",
+		"revoked": "已撤回對 {name} 的邀請",
 		"roleChanged": "已變更 @{name} 的角色",
 		"transferred": "@{name} 已成為擁有者",
 		"removed": "已移除 @{name}",
@@ -1452,7 +1467,6 @@
 		},
 		"quota": "已擁有 {owned} 個社群帳號，上限 {limit} 個",
 		"upgrade": "升級 Pro",
-		"comingSoon": "Pro 方案即將推出。",
-		"upgradeFailed": "無法開始升級，請再試一次。"
+		"comingSoon": "Pro 方案即將推出。"
 	}
 }

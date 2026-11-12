@@ -11,8 +11,6 @@ const mockSetTheme = jest.fn();
 jest.mock('next-themes', () => ({ useTheme: () => ({ theme: 'system', setTheme: mockSetTheme }) }));
 jest.mock('@/features/groups/GroupsPanel', () => ({ GroupsPanel: () => <p>Groups panel</p> }));
 jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn(), info: jest.fn() } }));
-const mockStartCheckout = jest.fn();
-jest.mock('@/features/billing/service', () => ({ startCheckout: () => mockStartCheckout() }));
 jest.mock('@/lib/api/services/auth', () => ({ signout: jest.fn() }));
 const mockReportProblem = jest.fn();
 jest.mock('@/features/feedback/service', () => ({ reportProblem: (...args: unknown[]) => mockReportProblem(...args) }));
@@ -442,7 +440,6 @@ describe('AccountSettings', () => {
 	});
 
 	it('turns Create into an upgrade once a Free user owns their limit, and says Pro is coming soon', async () => {
-		mockStartCheckout.mockResolvedValue({ ok: false, status: 503, errorCode: 'billing.unavailable', message: 'raw' });
 		render(
 			<AccountSettings profile={{ ...myProfile, plan: 'FREE', communityQuota: quota(1, 1) }} inviteListCount={3} notificationPreferences={preferences} communities={[]} />
 		);
