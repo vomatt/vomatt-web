@@ -47,7 +47,14 @@ import {
 import { changeRole, inviteMember, removeMember, revokeInvitation, transferOwner } from './service';
 
 // The list is stale after these: someone else changed it, or the viewer's role
-const REFRESH_CODES = ['community.member.not_found', 'community.invitation.not_found', 'community.role_forbidden', 'community.not_member'];
+const REFRESH_CODES = [
+	'community.member.not_found',
+	'community.member.exists',
+	'community.invitation.not_found',
+	'community.invitation.exists',
+	'community.role_forbidden',
+	'community.not_member',
+];
 
 const ICONS: Record<MemberAction, React.ReactNode> = {
 	changeRole: <Pencil aria-hidden />,

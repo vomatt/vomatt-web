@@ -536,7 +536,10 @@ function CommunityInvitationRow({ entry, onOpen }: RowProps<Extract<Entry, { kin
 		if (!result.ok) {
 			toast.error(apiErrorText(t, result), { duration: Infinity });
 			// Revoked, expired or answered elsewhere: nothing left to answer
-			if (result.errorCode === 'community.invitation.not_found') setAnswered(true);
+			if (result.errorCode === 'community.invitation.not_found') {
+				setAnswered(true);
+				refresh();
+			}
 			return;
 		}
 		toast.success(t(choice === 'accept' ? 'notifications.invitationAccepted' : 'notifications.invitationDeclined', { name: actorName(actor) }));
