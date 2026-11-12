@@ -74,10 +74,10 @@ type Step<T = unknown> = {
 	confirm?: { title: string; body: string; cta: string };
 };
 
-/** A community account's members, with what the viewer's role lets them change. */
 // Stable default so the prop-resync check doesn't see a new array on every render
 const NO_INVITATIONS: CommunityInvitation[] = [];
 
+/** A community account's members, with what the viewer's role lets them change. */
 export function CommunityMembers({
 	community,
 	viewerId,

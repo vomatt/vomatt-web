@@ -53,7 +53,7 @@ export default async function CommunityMembersPage({ params }: Props) {
 							community={community}
 							viewerId={token.sub}
 							members={members.data}
-							invitations={invitations?.ok ? invitations.data : []}
+							invitations={invitations?.ok ? invitations.data : undefined}
 						/>
 						{canDelete(community.role) && <DeleteCommunity community={community} />}
 					</>

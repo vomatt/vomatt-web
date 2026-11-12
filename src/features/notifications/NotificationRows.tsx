@@ -534,7 +534,7 @@ function CommunityInvitationRow({ entry, onOpen }: RowProps<Extract<Entry, { kin
 		const result = await (choice === 'accept' ? acceptCommunityInvitation : declineCommunityInvitation)(communityInvitation.id);
 		setBusy(null);
 		if (!result.ok) {
-			toast.error(apiErrorText(t, result), { duration: Infinity });
+			toast.error(apiErrorText(t, result));
 			// Revoked, expired or answered elsewhere: nothing left to answer
 			if (result.errorCode === 'community.invitation.not_found') {
 				setAnswered(true);
