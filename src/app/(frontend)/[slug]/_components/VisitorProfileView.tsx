@@ -68,6 +68,7 @@ export function VisitorProfileView({
 
 	return (
 		<PageShell
+			className="pt-4 md:pt-12"
 			rail={
 				// What following does, for every visitor: signed out too, before they can follow
 				!preview && (

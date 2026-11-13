@@ -1,8 +1,11 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 
 import { EmptyCard } from '@/components/EmptyCard';
 import { PageShell } from '@/components/layout/PageShell';
+import { rowLinkClassName, RowText, SettingsCard } from '@/components/SettingsCard';
 import { T } from '@/components/T';
+import { ChevronRight } from '@/components/ui/SvgIcons';
 import { getMyCommunities, getMyProfile, getTokenSession, loadActingState, redirectToLogin } from '@/data/auth';
 import { CommunityMembers } from '@/features/communities/CommunityMembers';
 import { CommunityProfileCard } from '@/features/communities/CommunityProfileCard';
@@ -50,9 +53,9 @@ export default async function CommunityMembersPage({ params }: Props) {
 				<SettingsSubpageHeader
 					title={community ? community.displayName || community.username : <T k="communities.members" />}
 					// Acting as this account, Settings is the person's own; the way back is the account's profile
-					backToProfile={
+					back={
 						acting?.communityId === communityId
-							? { href: profileHref(acting.username), name: accountName(acting) }
+							? { href: profileHref(acting.username), to: 'profile', name: accountName(acting) }
 							: undefined
 					}
 				/>
@@ -65,6 +68,15 @@ export default async function CommunityMembersPage({ params }: Props) {
 							members={members.data}
 							invitations={invitations?.ok ? invitations.data : undefined}
 						/>
+						{/* Blocks are the caller's, so only while acting as this account is that page its list */}
+						{acting?.communityId === communityId && canManageMembers(community.role) && (
+							<SettingsCard>
+								<Link href="/settings/blocked" className={rowLinkClassName}>
+									<RowText title={<T k="blocks.title" />} body={<T k="communities.blockedBody" />} />
+									<ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+								</Link>
+							</SettingsCard>
+						)}
 						{canDelete(community.role) && <DeleteCommunity community={community} />}
 					</>
 				) : notMember ? (

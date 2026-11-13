@@ -1323,6 +1323,7 @@
 	"communities": {
 		"title": "社群帳號",
 		"members": "成員",
+		"blockedBody": "查看並解除封鎖這個帳號封鎖過的人。",
 		"invite": "邀請成員",
 		"inviteTitle": "邀請成員",
 		"searchLabel": "使用者名稱或電子郵件",
@@ -1410,6 +1411,7 @@
 			"banner": "你正以 {name} 的身分操作，你發布的投票與留言會顯示它的名稱。",
 			"switchBack": "切換回自己",
 			"backToProfile": "回到 {name} 的個人頁",
+			"backToMembers": "回到 {name} 的成員",
 			"actAs": "切換",
 			"actAsLabel": "以 {name} 的身分操作",
 			"switched": "你正以 {name} 的身分操作",

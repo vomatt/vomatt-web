@@ -1,6 +1,7 @@
 import '@/styles/global.css';
 
 import type { SanityImageSource } from '@sanity/image-url';
+import { Analytics } from '@vercel/analytics/next';
 import type { Viewport } from 'next';
 import { Geist } from 'next/font/google';
 import { headers } from 'next/headers';
@@ -130,6 +131,7 @@ export default async function RootLayout({
 						)}
 					</LanguageProvider>
 				</ThemeProvider>
+				<Analytics />
 			</body>
 		</html>
 	);

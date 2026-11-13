@@ -15,8 +15,9 @@ import type { MyProfile } from '@/types/user';
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn(), info: jest.fn() } }));
 const mockRefresh = jest.fn();
+const mockPush = jest.fn();
 jest.mock('@/features/communities/service', () => ({ unlockCommunity: jest.fn() }));
-jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh: mockRefresh }), usePathname: () => '/' }));
+jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh: mockRefresh, push: mockPush }), usePathname: () => '/' }));
 jest.mock('@/hooks/use-mobile', () => ({ useIsMobile: () => false }));
 
 const community = (communityId: string, role: CommunityRole): MyCommunity => ({
@@ -30,7 +31,10 @@ const me = { username: 'klaus', displayName: 'Klaus', avatarUrl: null };
 const renderWith = (state: Partial<ActingState>, ui: React.ReactNode) =>
 	render(<ActingProvider state={{ acting: null, me, communities: [], stale: false, ...state }}>{ui}</ActingProvider>);
 
-beforeEach(() => jest.clearAllMocks());
+beforeEach(() => {
+	jest.clearAllMocks();
+	window.history.replaceState(null, '', '/');
+});
 
 describe('AccountSwitcher', () => {
 	it('stays hidden for someone in no community account', () => {
@@ -145,6 +149,34 @@ describe('ActingBanner', () => {
 		await waitFor(() => expect(actAsCommunity).toHaveBeenCalledWith(null));
 	});
 
+	it('goes to the user’s profile when switching back from the account’s', async () => {
+		window.history.replaceState(null, '', '/c1');
+		const acting = community('c1', 'OWNER');
+		renderWith({ acting, communities: [acting] }, <ActingBanner />);
+
+		fireEvent.click(screen.getByRole('button', { name: 'Switch back to you' }));
+		await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/klaus'));
+	});
+
+	it.each(['/c1/', '/C1'])('also goes to the user’s profile from %s, the same profile', async (path) => {
+		window.history.replaceState(null, '', path);
+		const acting = community('c1', 'OWNER');
+		renderWith({ acting, communities: [acting] }, <ActingBanner />);
+
+		fireEvent.click(screen.getByRole('button', { name: 'Switch back to you' }));
+		await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/klaus'));
+	});
+
+	it('stays on any other page when switching back', async () => {
+		window.history.replaceState(null, '', '/poll/p1');
+		const acting = community('c1', 'OWNER');
+		renderWith({ acting, communities: [acting] }, <ActingBanner />);
+
+		fireEvent.click(screen.getByRole('button', { name: 'Switch back to you' }));
+		await waitFor(() => expect(mockRefresh).toHaveBeenCalled());
+		expect(mockPush).not.toHaveBeenCalled();
+	});
+
 	it('is absent while the user acts as themself', () => {
 		renderWith({}, <ActingBanner />);
 		expect(screen.queryByRole('status')).not.toBeInTheDocument();
@@ -185,11 +217,19 @@ describe('CommunityAccountsCard', () => {
 		await waitFor(() => expect(actAsCommunity).toHaveBeenCalledWith('c1'));
 	});
 
+	it('opens the account’s profile once acting as it', async () => {
+		renderWith({}, <CommunityAccountsCard communities={[community('c1', 'ADMIN')]} />);
+
+		fireEvent.click(screen.getByRole('button', { name: 'Act as Community c1' }));
+		await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/c1'));
+	});
+
 	it('says so when switching fails', async () => {
 		(actAsCommunity as jest.Mock).mockResolvedValueOnce({ ok: false, message: 'down' });
 		renderWith({}, <CommunityAccountsCard communities={[community('c1', 'ADMIN')]} />);
 
 		fireEvent.click(screen.getByRole('button', { name: 'Act as Community c1' }));
 		await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Couldn’t switch accounts. Please try again.'));
+		expect(mockPush).not.toHaveBeenCalled();
 	});
 });

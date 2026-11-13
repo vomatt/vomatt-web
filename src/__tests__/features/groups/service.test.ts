@@ -1,3 +1,5 @@
+import { revalidatePath } from 'next/cache';
+
 import {
 	addGroupMembers,
 	createGroup,
@@ -10,6 +12,7 @@ import {
 import { apiClient, ApiError } from '@/lib/api/client';
 
 jest.mock('next/navigation', () => ({ unstable_rethrow: jest.fn() }));
+jest.mock('next/cache', () => ({ revalidatePath: jest.fn() }));
 jest.mock('@/lib/api/client', () => {
 	class ApiError extends Error {
 		constructor(
@@ -63,6 +66,16 @@ it('deletes', async () => {
 	mockApiClient.mockResolvedValue(undefined);
 	expect(await deleteGroup('g1')).toEqual({ ok: true, data: undefined });
 	expect(mockApiClient).toHaveBeenCalledWith('/invite-lists/g1', { method: 'DELETE' });
+});
+
+it('refreshes Settings’ count of lists after creating or deleting one', async () => {
+	mockApiClient.mockResolvedValue(group);
+	await createGroup('Book club');
+	expect(revalidatePath).toHaveBeenCalledWith('/settings', 'page');
+	(revalidatePath as jest.Mock).mockClear();
+	mockApiClient.mockResolvedValue(undefined);
+	await deleteGroup('g1');
+	expect(revalidatePath).toHaveBeenCalledWith('/settings', 'page');
 });
 
 it('lists and adds members', async () => {

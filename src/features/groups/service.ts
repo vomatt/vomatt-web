@@ -1,5 +1,6 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
 import { personPath } from '@/features/polls/invitees';
@@ -21,11 +22,14 @@ export async function getGroups(): Promise<ActionResult<Group[]>> {
 
 /** At most 50 Groups per owner (`invite_list.max_reached`). */
 export async function createGroup(name: string): Promise<ActionResult<Group>> {
-	return attempt(async () =>
-		GroupSchema.parse(
+	return attempt(async () => {
+		const created = GroupSchema.parse(
 			await apiClient('/invite-lists', { method: 'POST', body: JSON.stringify({ name }) })
-		)
-	);
+		);
+		// Settings shows how many there are; Back to it shouldn't show the old count
+		revalidatePath('/settings', 'page');
+		return created;
+	});
 }
 
 export async function renameGroup(groupId: string, name: string): Promise<ActionResult<Group>> {
@@ -40,6 +44,7 @@ export async function renameGroup(groupId: string, name: string): Promise<Action
 export async function deleteGroup(groupId: string): Promise<ActionResult> {
 	return attempt(async () => {
 		await apiClient(groupPath(groupId), { method: 'DELETE' });
+		revalidatePath('/settings', 'page');
 	});
 }
 

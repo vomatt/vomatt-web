@@ -100,6 +100,7 @@ export function OwnProfileView({
 
 	return (
 		<PageShell
+			className="pt-4 md:pt-12"
 			rail={
 				<aside className="flex flex-col gap-3 xl:sticky xl:top-8">
 					<PublicPreview profile={profile} className="max-xl:hidden" />
