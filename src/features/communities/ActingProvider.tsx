@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { ActingState } from '@/data/auth';
 import { apiErrorText } from '@/lib/api/error-text';
+import { profileHref } from '@/lib/routes';
 
 import { actAsCommunity, loadMyCommunities } from './acting';
 import { accountName, type MyCommunity } from './schema';
@@ -63,20 +64,33 @@ export function useActing() {
 	return useContext(ActingContext);
 }
 
-/** Switches to a community account, or with null back to the user; every page then reloads as that account. */
+// The same profile in any case or with a trailing slash
+const isProfilePath = (pathname: string, username: string) =>
+	decodeURIComponent(pathname).replace(/\/+$/, '').toLowerCase() === `/${username.toLowerCase()}`;
+
+/**
+ * Switches to a community account, or with null back to the user; every page then reloads as that account.
+ * A successful switch from the profile of the account being left opens the new account's profile instead,
+ * and `then` opens that page instead.
+ */
 export function useSwitchAccount() {
 	const { t } = useLanguage();
 	const router = useRouter();
-	const { busy, setBusy } = useActing();
+	const { busy, setBusy, acting, me } = useActing();
 
-	const switchTo = async (community: MyCommunity | null) => {
+	const switchTo = async (community: MyCommunity | null, then?: string) => {
 		if (busy) return;
 		setBusy(true);
 		const result = await actAsCommunity(community?.communityId ?? null);
 		if (!result.ok) toast.error(apiErrorText(t, result, 'communities.acting.switchFailed'));
 		else if (community) toast.success(t('communities.acting.switched', { name: accountName(community) }));
 		else toast.success(t('communities.acting.switchedBack'));
-		router.refresh();
+		const leaving = acting ?? me;
+		const arriving = community ?? me;
+		const onLeavingProfile = leaving && arriving && isProfilePath(window.location.pathname, leaving.username);
+		const destination = then ?? (onLeavingProfile ? profileHref(arriving.username) : null);
+		if (result.ok && destination) router.push(destination);
+		else router.refresh();
 		// A switch remounts the tree on the new account; a failed one stays here and can be tried again
 		setBusy(false);
 	};

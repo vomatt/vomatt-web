@@ -68,6 +68,7 @@ export function VisitorProfileView({
 
 	return (
 		<PageShell
+			className="pt-4 md:pt-12"
 			rail={
 				// What following does, for every visitor: signed out too, before they can follow
 				!preview && (
@@ -106,6 +107,7 @@ export function VisitorProfileView({
 					profile={{ ...profile, followersCount }}
 					onOpenList={viewerId ? setList : undefined}
 					actions={canAct && <VisitorActions profile={profile} follow={follow} />}
+					actionsAt="end"
 					mutuals={canAct && <MutualFollowersLine profile={profile} onOpen={() => setList('mutuals')} />}
 				/>
 				{viewerId && (

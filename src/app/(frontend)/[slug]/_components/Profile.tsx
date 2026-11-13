@@ -24,7 +24,14 @@ export async function PublicProfile({
 	preview?: boolean;
 }) {
 	const polls = await pollsPromise;
-	return <VisitorProfileView profile={profile} polls={polls} viewerId={viewerId} preview={preview} />;
+	return (
+		<VisitorProfileView
+			profile={profile}
+			polls={polls}
+			viewerId={viewerId}
+			preview={preview}
+		/>
+	);
 }
 
 /** The signed-in user's own profile: their Asked and Voted lists come from every page of My Polls. */
@@ -37,7 +44,10 @@ export async function OwnProfile({
 	initialTab?: ProfileTab;
 	openEdit?: boolean;
 }) {
-	const mine = await Promise.all([getAllMyPolls('open'), getAllMyPolls('ended')]).then(
+	const mine = await Promise.all([
+		getAllMyPolls('open'),
+		getAllMyPolls('ended'),
+	]).then(
 		(sets) => ({
 			polls: sets.flatMap((set) => set.polls),
 			truncated: sets.some((set) => set.truncated),
@@ -59,7 +69,10 @@ export async function OwnProfile({
 /** `rail={false}` for the owner's public preview, which has no rail. */
 export function ProfileSkeleton({ rail = true }: { rail?: boolean }) {
 	return (
-		<PageShell rail={rail && <Skeleton className="h-28 rounded-2xl" />}>
+		<PageShell
+			className="pt-4 md:pt-8"
+			rail={rail && <Skeleton className="h-28 rounded-2xl" />}
+		>
 			<div className="space-y-6">
 				<div className="flex items-start gap-5">
 					<Skeleton className="size-18 rounded-full md:size-22" />

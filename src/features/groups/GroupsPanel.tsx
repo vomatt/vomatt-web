@@ -37,7 +37,7 @@ import {
 	renameGroup,
 } from './service';
 
-/** The Account page's Groups tab: private, reusable invite lists for Invite-only Polls. */
+/** The Invite lists page Settings opens: private, reusable invite lists for Invite-only Polls. */
 export function GroupsPanel() {
 	const { t, currentLanguage } = useLanguage();
 	const [groups, setGroups] = useState<Group[] | null>(null);
