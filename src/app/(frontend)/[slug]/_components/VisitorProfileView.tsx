@@ -106,6 +106,7 @@ export function VisitorProfileView({
 					profile={{ ...profile, followersCount }}
 					onOpenList={viewerId ? setList : undefined}
 					actions={canAct && <VisitorActions profile={profile} follow={follow} />}
+					actionsAt="end"
 					mutuals={canAct && <MutualFollowersLine profile={profile} onOpen={() => setList('mutuals')} />}
 				/>
 				{viewerId && (

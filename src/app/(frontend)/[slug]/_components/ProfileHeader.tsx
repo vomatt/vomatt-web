@@ -47,10 +47,13 @@ export default function ProfileHeader({
 	hiddenFields = [],
 	onOpenList,
 	mutuals,
+	actionsAt = 'below',
 }: {
 	profile: HeaderProfile;
 	/** Edit profile and Settings for the owner; Follow and ••• for a visitor. */
 	actions?: ReactNode;
+	/** From `sm`: under the details (the owner's tools) or at the top right (a visitor's Follow and •••). */
+	actionsAt?: 'below' | 'end';
 	isOwn?: boolean;
 	/** Fields visitors don't see; only the owner's header passes them */
 	hiddenFields?: readonly string[];
@@ -97,7 +100,13 @@ export default function ProfileHeader({
 	};
 
 	return (
-		<header className="flex flex-wrap items-start gap-5">
+		// Phones: avatar and actions on one row, details under both. Wider: actions under the details, in line with the name, or at the top right
+		<header
+			className={cn(
+				'grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-5 gap-y-4',
+				actionsAt === 'end' && 'sm:grid-cols-[auto_minmax(0,1fr)_auto]'
+			)}
+		>
 			{isOwn ? (
 				<AvatarDialog
 					username={profile.username}
@@ -111,7 +120,7 @@ export default function ProfileHeader({
 					className="size-18 md:size-22"
 				/>
 			)}
-			<div className="min-w-0 flex-[1_1_20rem] max-sm:order-last max-sm:basis-full">
+			<div className="col-span-2 min-w-0 sm:col-span-1 sm:col-start-2 sm:row-start-1">
 				<h1 className="wrap-anywhere text-title-3">
 					{name.primary}
 					{profile.community && <CommunityBadge className="ml-2 size-4" />}
@@ -158,8 +167,12 @@ export default function ProfileHeader({
 				</div>
 				{mutuals && <div className="mt-2 empty:hidden">{mutuals}</div>}
 			</div>
-			{/* Beside the avatar on phones, with the details under both */}
-			<div className="flex gap-2 empty:hidden max-sm:ml-auto max-sm:self-center">
+			<div
+				className={cn(
+					'col-start-2 row-start-1 flex flex-wrap justify-end gap-2 self-center justify-self-end empty:hidden sm:self-start',
+					actionsAt === 'end' ? 'sm:col-start-3' : 'sm:row-start-2 sm:justify-start sm:justify-self-start'
+				)}
+			>
 				{actions}
 			</div>
 		</header>
