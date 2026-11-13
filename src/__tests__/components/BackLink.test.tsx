@@ -3,7 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { BackLink } from '@/components/BackLink';
 
 const back = jest.fn();
-jest.mock('next/navigation', () => ({ useRouter: () => ({ back }) }));
+jest.mock('next/navigation', () => ({ useRouter: () => ({ back, refresh: jest.fn() }) }));
 
 function setCanGoBack(canGoBack: boolean | undefined) {
 	Object.defineProperty(window, 'navigation', {
@@ -50,5 +50,27 @@ describe('BackLink', () => {
 		clickBack();
 
 		expect(back).not.toHaveBeenCalled();
+	});
+
+	it('with strict, follows its href unless the previous page is that href', () => {
+		Object.defineProperty(window, 'navigation', {
+			configurable: true,
+			value: {
+				canGoBack: true,
+				currentEntry: { index: 1 },
+				entries: () => [{ url: 'http://localhost/notifications' }, { url: 'http://localhost/settings' }],
+				addEventListener: jest.fn(),
+			},
+		});
+		render(
+			<BackLink href="/me" strict>
+				Back
+			</BackLink>
+		);
+
+		const event = clickBack();
+
+		expect(back).not.toHaveBeenCalled();
+		expect(event.defaultPrevented).toBe(false);
 	});
 });
