@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { toast } from 'sonner';
 
+import { ActingProvider, useActing } from '@/features/communities/ActingProvider';
 import { CommunityMembers } from '@/features/communities/CommunityMembers';
 import type { CommunityMember, CommunityRole,MyCommunity } from '@/features/communities/schema';
 
@@ -17,6 +18,19 @@ jest.mock('@/features/communities/service', () => ({
 	removeMember: jest.fn(),
 	transferOwner: jest.fn(),
 }));
+
+const mockLoadCommunities = jest.fn();
+jest.mock('@/features/communities/acting', () => ({
+	actAsCommunity: jest.fn(),
+	loadMyCommunities: (...a: unknown[]) => mockLoadCommunities(...a),
+}));
+const Accounts = () => <p>{`${useActing().communities?.length ?? 0} community accounts`}</p>;
+const withAccounts = (ui: React.ReactNode) => (
+	<ActingProvider state={{ acting: null, me: { username: 'me', displayName: 'Me', avatarUrl: null }, communities: null, stale: false }}>
+		<Accounts />
+		{ui}
+	</ActingProvider>
+);
 
 const member = (userId: string, role: CommunityRole): CommunityMember => ({
 	userId,
@@ -95,6 +109,19 @@ describe('CommunityMembers', () => {
 		expect(moreButton('adam')).not.toBeInTheDocument();
 		const menu = await openMenu('ed');
 		expect(menu.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Leave']);
+	});
+
+	it('drops the account from the user’s accounts once they leave', async () => {
+		const { removeMember } = jest.requireMock('@/features/communities/service');
+		removeMember.mockResolvedValue({ ok: true, data: undefined });
+		mockLoadCommunities.mockResolvedValueOnce({ ok: true, data: [{ communityId: 'c1', username: 'c1', displayName: 'C1', avatarUrl: null, role: 'OWNER' as const }] }).mockResolvedValueOnce({ ok: true, data: [] });
+		const community: MyCommunity = { communityId: 'off1', username: 'sunrise', displayName: 'Sunrise', avatarUrl: null, role: 'EDITOR' };
+		render(withAccounts(<CommunityMembers community={community} viewerId="ed" members={members} />));
+		expect(await screen.findByText('1 community accounts')).toBeInTheDocument();
+		fireEvent.click((await openMenu('ed')).getByRole('menuitem', { name: 'Leave' }));
+		fireEvent.click(await screen.findByRole('button', { name: 'Leave' }));
+		expect(await screen.findByText('0 community accounts')).toBeInTheDocument();
+		expect(mockReplace).toHaveBeenCalledWith('/settings#communities');
 	});
 
 	it('says ownership must be handed over when the last owner leaves', async () => {

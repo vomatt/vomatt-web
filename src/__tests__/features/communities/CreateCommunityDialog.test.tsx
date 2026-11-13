@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { toast } from 'sonner';
 
+import { ActingProvider, useActing } from '@/features/communities/ActingProvider';
 import { CreateCommunityDialog } from '@/features/communities/CreateCommunityDialog';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
@@ -12,6 +13,19 @@ jest.mock('@/features/communities/service', () => ({
 jest.mock('sonner', () => ({ toast: { success: jest.fn() } }));
 const mockPush = jest.fn();
 jest.mock('next/navigation', () => ({ useRouter: () => ({ push: mockPush }) }));
+
+const mockLoadCommunities = jest.fn();
+jest.mock('@/features/communities/acting', () => ({
+	actAsCommunity: jest.fn(),
+	loadMyCommunities: (...a: unknown[]) => mockLoadCommunities(...a),
+}));
+const Accounts = () => <p>{`${useActing().communities?.length ?? 0} community accounts`}</p>;
+const withAccounts = (ui: React.ReactNode) => (
+	<ActingProvider state={{ acting: null, me: { username: 'me', displayName: 'Me', avatarUrl: null }, communities: null, stale: false }}>
+		<Accounts />
+		{ui}
+	</ActingProvider>
+);
 
 const onOpenChange = jest.fn();
 
@@ -36,6 +50,16 @@ describe('CreateCommunityDialog', () => {
 		expect(mockCreate).toHaveBeenCalledWith('sunrise_tower', 'Sunrise Tower');
 		expect(onOpenChange).toHaveBeenCalledWith(false);
 		expect(toast.success).toHaveBeenCalled();
+	});
+
+	it('adds the new account to the user’s accounts without reloading the page', async () => {
+		mockLoadCommunities.mockResolvedValueOnce({ ok: true, data: [] }).mockResolvedValueOnce({ ok: true, data: [{ communityId: 'c1', username: 'c1', displayName: 'C1', avatarUrl: null, role: 'OWNER' as const }] });
+		mockCreate.mockResolvedValue({ ok: true, data: { id: 'c1', username: 'club_one' } });
+		render(withAccounts(<CreateCommunityDialog open onOpenChange={onOpenChange} />));
+		expect(await screen.findByText('0 community accounts')).toBeInTheDocument();
+		await waitFor(() => expect(mockLoadCommunities).toHaveBeenCalledTimes(1));
+		fill('Club One', 'club_one');
+		expect(await screen.findByText('1 community accounts')).toBeInTheDocument();
 	});
 
 	it('refuses a blank name and an invalid or reserved username without sending', () => {

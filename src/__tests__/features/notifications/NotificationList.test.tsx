@@ -1,6 +1,6 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 
-import { ActingProvider } from '@/features/communities/ActingProvider';
+import { ActingProvider, useActing } from '@/features/communities/ActingProvider';
 import { dayGroup, NotificationList, NotificationSettingsLink } from '@/features/notifications/NotificationList';
 import type { Notification } from '@/features/notifications/schema';
 import { META_GAP } from '@/lib/rich';
@@ -41,6 +41,11 @@ jest.mock('@/features/communities/service', () => ({
 	declineCommunityInvitation: jest.fn(),
 }));
 jest.mock('sonner', () => ({ toast: { error: (...a: unknown[]) => mockToastError(...a), success: jest.fn() } }));
+const mockLoadCommunities = jest.fn();
+jest.mock('@/features/communities/acting', () => ({
+	actAsCommunity: jest.fn(),
+	loadMyCommunities: (...a: unknown[]) => mockLoadCommunities(...a),
+}));
 const mockRefresh = jest.fn();
 let mockUnreadCount = 0;
 jest.mock('@/features/notifications/UnreadCountProvider', () => ({
@@ -309,6 +314,40 @@ describe('NotificationList rows', () => {
 		await waitFor(() => expect(screen.queryByText(/invited you to join/)).not.toBeInTheDocument());
 		expect(mockAccept).toHaveBeenCalledWith('i1');
 		expect(mockRefresh).toHaveBeenCalled();
+	});
+
+	it('adds the joined community to the user’s accounts without reloading the page', async () => {
+		mockAccept.mockResolvedValue({ ok: true, data: {} });
+		const club = { communityId: 'c1', username: 'robotics', displayName: 'Robotics Club', avatarUrl: null, role: 'EDITOR' as const };
+		mockLoadCommunities.mockResolvedValueOnce({ ok: true, data: [] }).mockResolvedValueOnce({ ok: true, data: [club] });
+		const Accounts = () => <p>{`${useActing().communities?.length ?? 0} community accounts`}</p>;
+		render(
+			<ActingProvider state={{ acting: null, me: { username: 'mei', displayName: 'Mei', avatarUrl: null }, communities: null, stale: false }}>
+				<Accounts />
+				<NotificationList
+					initialPage={{
+						items: [
+							{
+								id: 'community_invitation_i1',
+								kind: 'COMMUNITY_INVITATION',
+								createdAt: iso(-HOUR),
+								read: false,
+								actor: { ...person('robotics', 'Robotics Club'), community: true },
+								communityInvitation: { id: 'i1', role: 'EDITOR', expiresAt: iso(24 * HOUR) },
+							},
+						],
+						nextCursor: null,
+					}}
+					unreadIds={null}
+					viewerUsername="mei"
+				/>
+			</ActingProvider>
+		);
+		await waitFor(() => expect(mockLoadCommunities).toHaveBeenCalled());
+		expect(screen.getByText('0 community accounts')).toBeInTheDocument();
+
+		fireEvent.click(within(rowOf('Robotics Club')).getByRole('button', { name: 'Accept' }));
+		expect(await screen.findByText('1 community accounts')).toBeInTheDocument();
 	});
 
 	it('keeps the category pills on one sticky row that runs to the screen edges on phones', () => {

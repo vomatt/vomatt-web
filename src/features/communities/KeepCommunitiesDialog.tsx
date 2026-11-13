@@ -15,6 +15,7 @@ import { settle } from '@/lib/api/settle';
 import { cn } from '@/lib/utils';
 import type { CommunityQuota } from '@/types/user';
 
+import { useActing } from './ActingProvider';
 import { LockedChip } from './LockedChip';
 import { accountName, type MyCommunity } from './schema';
 import { keepCommunities } from './service';
@@ -66,6 +67,7 @@ function KeepForm({
 }) {
 	const { t, currentLanguage } = useLanguage();
 	const router = useRouter();
+	const { reloadCommunities } = useActing();
 	const required = Math.min(quota.limit, owned.length);
 	const [chosen, setChosen] = useState<ReadonlySet<string>>(new Set());
 	const [busy, setBusy] = useState(false);
@@ -92,6 +94,7 @@ function KeepForm({
 		toast.success(t('communities.keep.done'));
 		onKept();
 		router.refresh();
+		reloadCommunities();
 	};
 
 	return (
