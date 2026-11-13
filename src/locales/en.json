@@ -1422,6 +1422,7 @@
 			"actingAs": "Acting as",
 			"banner": "You’re acting as {name}. Polls and comments you post will show its name.",
 			"switchBack": "Switch back to you",
+			"backToProfile": "Back to {name}’s profile",
 			"actAs": "Act as",
 			"actAsLabel": "Act as {name}",
 			"switched": "You’re acting as {name}",

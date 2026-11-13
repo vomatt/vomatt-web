@@ -1409,6 +1409,7 @@
 			"actingAs": "目前身分",
 			"banner": "你正以 {name} 的身分操作，你發布的投票與留言會顯示它的名稱。",
 			"switchBack": "切換回自己",
+			"backToProfile": "回到 {name} 的個人頁",
 			"actAs": "切換",
 			"actAsLabel": "以 {name} 的身分操作",
 			"switched": "你正以 {name} 的身分操作",
