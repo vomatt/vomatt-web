@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 
 import BlockedPage from '@/app/(frontend)/settings/blocked/page';
 
+jest.mock('next/navigation', () => ({ useRouter: () => ({ back: jest.fn() }) }));
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 jest.mock('@/lib/getServerLocale', () => ({ getServerMessages: jest.fn() }));
 jest.mock('@/features/blocks/BlockedUsersPanel', () => ({ BlockedUsersPanel: () => <p>Blocked panel</p> }));

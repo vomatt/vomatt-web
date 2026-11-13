@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 
+import { useReturnTo } from '@/components/BackLink';
 import { StickyBar } from '@/components/StickyBar';
 import { ChevronLeft } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -15,10 +16,14 @@ export function SettingsSubpageHeader({
 	back?: { href: string; to: 'profile' | 'members'; name: string };
 }) {
 	const { t } = useLanguage();
+	const href = back?.href ?? '/settings';
+	const returnTo = useReturnTo(href);
+
 	return (
 		<StickyBar data-sticky-bar className="flex items-center gap-2">
 			<Link
-				href={back?.href ?? '/settings'}
+				href={href}
+				onClick={returnTo}
 				aria-label={
 					back
 						? t(back.to === 'profile' ? 'communities.acting.backToProfile' : 'communities.acting.backToMembers', {
