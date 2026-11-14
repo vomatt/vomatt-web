@@ -23,6 +23,7 @@ import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
 import { cn } from '@/lib/utils';
 
+import { useActing } from './ActingProvider';
 import type { MyCommunity } from './schema';
 import { deleteCommunity } from './service';
 
@@ -31,6 +32,7 @@ const STALE_MEMBERSHIP_CODES = ['community.role_forbidden', 'community.not_membe
 export function DeleteCommunity({ community }: { community: MyCommunity }) {
 	const { t } = useLanguage();
 	const router = useRouter();
+	const { reloadCommunities } = useActing();
 	const { username } = community;
 	const [open, setOpen] = useState(false);
 	const [confirmation, setConfirmation] = useState('');
@@ -56,6 +58,7 @@ export function DeleteCommunity({ community }: { community: MyCommunity }) {
 			return;
 		}
 		toast.success(t('communities.deleted', { name: username }));
+		reloadCommunities();
 		router.replace('/settings#communities');
 	};
 

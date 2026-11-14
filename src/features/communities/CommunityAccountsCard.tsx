@@ -15,7 +15,7 @@ import { settle } from '@/lib/api/settle';
 import { profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
-import { useSwitchAccount } from './ActingProvider';
+import { useActing, useSwitchAccount } from './ActingProvider';
 import { LockedChip } from './LockedChip';
 import { accountName, canActAs, communityMembersHref, type MyCommunity } from './schema';
 import { unlockCommunity } from './service';
@@ -71,6 +71,7 @@ export function CommunityAccountsCard({ communities, canUnlock = false }: { comm
 function UnlockButton({ community }: { community: MyCommunity }) {
 	const { t } = useLanguage();
 	const router = useRouter();
+	const { reloadCommunities } = useActing();
 	const [busy, setBusy] = useState(false);
 	const unlock = async () => {
 		setBusy(true);
@@ -82,6 +83,7 @@ function UnlockButton({ community }: { community: MyCommunity }) {
 		}
 		toast.success(t('communities.unlocked', { name: accountName(community) }));
 		router.refresh();
+		reloadCommunities();
 	};
 	return (
 		<Button

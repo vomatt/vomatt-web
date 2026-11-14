@@ -32,6 +32,7 @@ import { settle } from '@/lib/api/settle';
 import { META_GAP } from '@/lib/rich';
 import { cn } from '@/lib/utils';
 
+import { useActing } from './ActingProvider';
 import { InviteMemberDialog } from './InviteMemberDialog';
 import { LockedChip } from './LockedChip';
 import { canManageMembers, grantableRoles, type MemberAction, memberActions } from './permissions';
@@ -92,6 +93,7 @@ export function CommunityMembers({
 }) {
 	const { t, currentLanguage } = useLanguage();
 	const router = useRouter();
+	const { reloadCommunities } = useActing();
 	const viewer = { userId: viewerId, role: community.role };
 	const communityName = community.displayName || community.username;
 	const [members, setMembers] = useState(initialMembers);
@@ -150,7 +152,10 @@ export function CommunityMembers({
 			transferOwner: {
 				request: () => transferOwner(id, member.userId),
 				// The viewer is an ADMIN now: their menus change with the server's answer
-				after: () => router.refresh(),
+				after: () => {
+					router.refresh();
+					reloadCommunities();
+				},
 				done: t('communities.transferred', vars),
 				confirm: copy('communities.transferTitle', 'communities.transferBody', 'communities.transfer'),
 			},
@@ -162,7 +167,10 @@ export function CommunityMembers({
 			},
 			leave: {
 				request: () => removeMember(id, member.userId),
-				after: () => router.replace('/settings#communities'),
+				after: () => {
+					reloadCommunities();
+					router.replace('/settings#communities');
+				},
 				done: t('communities.left', vars),
 				confirm: copy('communities.leaveTitle', 'communities.leaveBody', 'communities.leave'),
 			},

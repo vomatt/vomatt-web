@@ -15,6 +15,7 @@ import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
 import { cn } from '@/lib/utils';
 
+import { useActing } from './ActingProvider';
 import { communityMembersHref } from './schema';
 import { createCommunity } from './service';
 
@@ -68,6 +69,7 @@ export function CreateCommunityDialog({
 
 function CreateForm({ onCancel, onCreated }: { onCancel: () => void; onCreated: (communityId: string, username: string) => void }) {
 	const { t } = useLanguage();
+	const { reloadCommunities } = useActing();
 	const [displayName, setDisplayName] = useState('');
 	const [username, setUsername] = useState('');
 	const [usernameError, setUsernameError] = useState<string | null>(null);
@@ -98,6 +100,7 @@ function CreateForm({ onCancel, onCreated }: { onCancel: () => void; onCreated: 
 		const result = await settle(createCommunity(username, name));
 		setBusy(false);
 		if (result.ok) {
+			reloadCommunities();
 			onCreated(result.data.id, result.data.username);
 		} else if (result.errorCode === 'user.username.taken') {
 			setUsernameError(apiErrorText(t, result));

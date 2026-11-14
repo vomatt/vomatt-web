@@ -101,6 +101,8 @@
 	--tide-line: oklch(0.834 0.075 185);
 	--tide-foreground: oklch(0.439 0.073 186);
 	--highlight-tint: oklch(0.977 0.050 114.6);
+	/* The line around the viewer's own option (chosen ballot row, their result row): ink by day, deep Volt by night */
+	--chosen-line: var(--foreground);
 	/* The create action: ink with a Volt icon on light, a Volt button on dark */
 	--create: var(--primary);
 	--create-hover: var(--primary-hover);
@@ -208,12 +210,14 @@ html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 	--overlay: oklch(0.1 0.01 265 / 0.6);
 	--overlay-strong: oklch(0.1 0.01 265 / 0.8);
 	--field: oklch(0.26 0.012 265);
-	--highlight: oklch(0.86 0.165 118);
+	--highlight: oklch(0.86 0.15 118);
 	--highlight-foreground: oklch(0.155 0.012 265);
-	--highlight-tint: oklch(0.275 0.04 120);
+	--highlight-tint: oklch(0.255 0.028 118);
+	/* An off-white line would be the loudest edge on the card; deep Volt keeps it in the tint's family, 4.4:1 on it */
+	--chosen-line: oklch(0.62 0.11 118);
 	--tide: oklch(0.74 0.09 185);
-	--tide-tint: oklch(0.245 0.025 190);
-	--tide-line: oklch(0.40 0.05 185);
+	--tide-tint: oklch(0.235 0.016 190);
+	--tide-line: oklch(0.34 0.03 185);
 	/* White words in the Seal; the teal stays on its ring and line */
 	--tide-foreground: var(--foreground);
 	--create: var(--highlight);
@@ -224,7 +228,7 @@ html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 	--status-open: oklch(0.30 0.045 145.4);
 	--status-closing: oklch(0.30 0.045 50.7);
 	--status-ended: oklch(0.34 0.008 265);
-	--status-open-ends: oklch(0.30 0.045 354.5);
+	--status-open-ends: oklch(0.285 0.028 354.5);
 	--elected: oklch(0.66 0.2 27);
 	--sidebar: oklch(0.135 0.012 265);
 	--sidebar-foreground: var(--foreground);
@@ -312,6 +316,7 @@ html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 	--color-highlight: var(--highlight);
 	--color-highlight-foreground: var(--highlight-foreground);
 	--color-highlight-tint: var(--highlight-tint);
+	--color-chosen-line: var(--chosen-line);
 	--color-tide: var(--tide);
 	--color-tide-tint: var(--tide-tint);
 	--color-tide-line: var(--tide-line);

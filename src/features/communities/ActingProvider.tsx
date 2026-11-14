@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { type ComponentProps, createContext, type ReactNode, useContext, useEffect, useMemo, useState } from 'react';
+import { type ComponentProps, createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/Button';
@@ -17,6 +17,8 @@ type ActingContextValue = ActingState & {
 	/** A switch is under way, from any of the buttons that start one. */
 	busy: boolean;
 	setBusy: (busy: boolean) => void;
+	/** Loads the user's community accounts again after joining or creating one. */
+	reloadCommunities: () => void;
 };
 
 const ActingContext = createContext<ActingContextValue>({
@@ -26,6 +28,7 @@ const ActingContext = createContext<ActingContextValue>({
 	stale: false,
 	busy: false,
 	setBusy: () => {},
+	reloadCommunities: () => {},
 });
 
 /** Who the signed-in user is acting as, for the switcher, the banner and what a community can't do. */
@@ -36,6 +39,9 @@ export function ActingProvider({ state, children }: { state: ActingState; childr
 	const [loaded, setLoaded] = useState<{ for: string; communities: MyCommunity[] } | null>(null);
 	// Fetched in the background when the layout didn't need them (the user acts as nobody)
 	// Keyed by the user: `state` is a new object on every server render of the layout
+	// `version` loads it again after the user joins or creates one; the last list stays shown meanwhile
+	const [version, setVersion] = useState(0);
+	const reloadCommunities = useCallback(() => setVersion((v) => v + 1), []);
 	const username = state.me?.username;
 	const needsList = state.communities === null && !!username;
 	useEffect(() => {
@@ -45,7 +51,7 @@ export function ActingProvider({ state, children }: { state: ActingState; childr
 		return () => {
 			current = false;
 		};
-	}, [needsList, username]);
+	}, [needsList, username, version]);
 	// The cookie names an account they can no longer act as (removed, or the role changed): go back to the user, once
 	useEffect(() => {
 		if (!state.stale) return;
@@ -56,7 +62,10 @@ export function ActingProvider({ state, children }: { state: ActingState; childr
 	}, [state.stale, router]);
 
 	const communities = state.communities ?? (loaded && loaded.for === username ? loaded.communities : null);
-	const value = useMemo(() => ({ ...state, communities, busy, setBusy }), [state, communities, busy]);
+	const value = useMemo(
+		() => ({ ...state, communities, busy, setBusy, reloadCommunities }),
+		[state, communities, busy, reloadCommunities]
+	);
 	return <ActingContext.Provider value={value}>{children}</ActingContext.Provider>;
 }
 

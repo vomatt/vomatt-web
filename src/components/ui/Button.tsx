@@ -18,12 +18,12 @@ const buttonVariantClasses = cva(
 				outline:
 					'border-border-strong bg-card hover:bg-surface-soft hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground',
 				ghost:
-					'hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50',
+					'hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground',
 				// A ghost that stays red on hover, for a delete that still needs confirming
 				'ghost-destructive':
-					'text-destructive hover:bg-muted hover:text-destructive dark:hover:bg-muted/50',
+					'text-destructive hover:bg-muted hover:text-destructive',
 				destructive:
-					'bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40',
+					'bg-destructive/10 text-destructive hover:bg-destructive/15 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/25 dark:focus-visible:ring-destructive/40',
 				// Underlined at rest so it never reads as a link by colour alone
 				link: 'text-primary underline underline-offset-4',
 			},

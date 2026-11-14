@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { Button, buttonVariants } from '@/components/ui/Button';
 import { Ban, Clock } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useActing } from '@/features/communities/ActingProvider';
 import { acceptCommunityInvitation, declineCommunityInvitation } from '@/features/communities/service';
 import { FollowButton, useFollow } from '@/features/follows/FollowButton';
 import { FollowListDialog } from '@/features/follows/FollowListDialog';
@@ -523,6 +524,7 @@ function CommunityLockedRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: '
 function CommunityInvitationRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'COMMUNITY_INVITATION' }>>) {
 	const { t } = useLanguage();
 	const { refresh } = useUnreadCount();
+	const { reloadCommunities } = useActing();
 	const { actor, communityInvitation } = entry;
 	const [busy, setBusy] = useState<'accept' | 'decline' | null>(null);
 	const [answered, setAnswered] = useState(false);
@@ -545,6 +547,7 @@ function CommunityInvitationRow({ entry, onOpen }: RowProps<Extract<Entry, { kin
 		toast.success(t(choice === 'accept' ? 'notifications.invitationAccepted' : 'notifications.invitationDeclined', { name: actorName(actor) }));
 		setAnswered(true);
 		refresh();
+		if (choice === 'accept') reloadCommunities();
 	};
 
 	return (
