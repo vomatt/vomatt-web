@@ -258,8 +258,10 @@ function KeepRow({ quota, communities }: { quota: CommunityQuota; communities: M
 function CreateCommunityRow({ profile: { plan, communityQuota: quota } }: { profile: MyProfile }) {
 	const { t } = useLanguage();
 	const [open, setOpen] = useState(false);
+	// Over the limit, the Keep row above already says so
+	if (quota?.selectionRequired) return null;
 	const owned = quota && (
-		<span className="block tabular-nums">{t('plan.quota', { owned: quota.owned, limit: quota.limit })}</span>
+		<span className="block tabular-nums">{t('communities.quota', { owned: quota.owned, limit: quota.limit })}</span>
 	);
 	if (quota && quota.owned >= quota.limit) {
 		const free = plan === 'FREE';
@@ -282,8 +284,15 @@ function CreateCommunityRow({ profile: { plan, communityQuota: quota } }: { prof
 	}
 	return (
 		<SettingsCard>
-			<button type="button" onClick={() => setOpen(true)} className={cn(rowLinkClassName, 'w-full text-left')}>
+			<button
+				type="button"
+				onClick={() => setOpen(true)}
+				aria-labelledby="create-community-label"
+				aria-describedby="create-community-body"
+				className={cn(rowLinkClassName, 'w-full text-left')}
+			>
 				<RowText
+					id="create-community"
 					title={t('communities.createTitle')}
 					body={
 						<>

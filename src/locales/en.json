@@ -1458,7 +1458,8 @@
 			"failed": "Couldn’t save your choice. Please try again.",
 			"rowTitle": "You own more community accounts than your plan allows",
 			"choose": "Choose"
-		}
+		},
+		"quota": "{owned} of {limit} community accounts owned"
 	},
 	"meta": {
 		"siteDescription": "Ask a question, vote on other people’s polls, and see what everyone really thinks. Ballots stay sealed until a poll ends, so nobody votes with the crowd.",
@@ -1466,7 +1467,6 @@
 		"profileDescription": "See the polls {name} has asked."
 	},
 	"plan": {
-		"quota": "{owned} of {limit} community accounts owned",
 		"upgrade": "Upgrade to Pro",
 		"comingSoon": "Pro is coming soon."
 	}
