@@ -104,7 +104,9 @@ export function useBallot(poll: Poll, { isAuthed, anonymousByDefault, onPollEnde
 			setPendingAction(action);
 			setOptionBeforeAction(myOptionId);
 			setMyOptionId(next);
-			setSelected(next);
+			// Recasting for the name keeps the option, and may come mid-change: the viewer's new pick stays
+			const keepsPick = action === 'anonymous';
+			if (!keepsPick) setSelected(next);
 			const previousAnonymous = anonymous;
 
 			let previous = myOptionId;
@@ -145,7 +147,7 @@ export function useBallot(poll: Poll, { isAuthed, anonymousByDefault, onPollEnde
 			}
 
 			setMyOptionId(previous);
-			setSelected(previous);
+			if (!keepsPick) setSelected(previous);
 			setAnonymousFlag(previousAnonymous);
 			setTurnout((count) => shiftCount(count, -turnoutDelta));
 			if (isPollEnded(result)) {

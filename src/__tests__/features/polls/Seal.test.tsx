@@ -4,6 +4,13 @@ import { Seal, SealMark } from '@/features/polls/components/Seal';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 
+// False stands in for the server render and hydration
+let mockHydrated = true;
+jest.mock('@/hooks/useHydrated', () => ({ useHydrated: () => mockHydrated }));
+afterEach(() => {
+	mockHydrated = true;
+});
+
 const HOUR = 3600_000;
 const iso = (offset: number) => new Date(Date.now() + offset).toISOString();
 
@@ -22,23 +29,27 @@ describe('SealMark', () => {
 });
 
 describe('Seal', () => {
-	it('thanks the voter and says when the results open', () => {
+	it('says when the results open and how to change the vote', () => {
 		render(
 			<Seal endTime={iso(3 * HOUR)}>
 				<button type="button">Withdraw vote</button>
 			</Seal>
 		);
-		expect(screen.getByText('Sealed. Thank you.')).toBeInTheDocument();
-		expect(screen.getByText(/^Results are sealed until .+\. We’ll notify you when they’re in\.$/)).toBeInTheDocument();
+		expect(screen.getByText(/^Sealed until (?!the poll ends).+$/)).toBeInTheDocument();
 		expect(screen.getByText('Pick another option to change your vote.')).toBeInTheDocument();
 		expect(screen.getByRole('button', { name: 'Withdraw vote' })).toBeInTheDocument();
 	});
 
+	it('says the vote is sealed before the viewer clock is known, with no blank title', () => {
+		mockHydrated = false;
+		render(<Seal endTime={iso(3 * HOUR)}>{null}</Seal>);
+		expect(screen.getByText('Sealed')).toBeVisible();
+		expect(screen.queryByText(/^Sealed until /)).not.toBeInTheDocument();
+	});
+
 	it('says the results open at the end for a Poll without an end time', () => {
 		render(<Seal endTime={null}>{null}</Seal>);
-		expect(
-			screen.getByText('Results are sealed until the poll ends. We’ll notify you when they’re in.')
-		).toBeInTheDocument();
+		expect(screen.getByText('Sealed until the poll ends')).toBeInTheDocument();
 	});
 
 	it('says neither who sees the choice nor the turnout', () => {

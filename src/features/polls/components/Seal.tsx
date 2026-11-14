@@ -29,10 +29,25 @@ export function SealMark({ size = 'sm' }: { size?: keyof typeof MARK_SIZES }) {
 	return (
 		<span
 			aria-hidden
-			className={cn('relative grid shrink-0 place-items-center rounded-full border-2 border-tide', ring)}
+			className={cn(
+				'relative grid shrink-0 place-items-center rounded-full border-2 border-tide',
+				ring
+			)}
 		>
-			{dashed && <span className={cn('absolute rounded-full border-dashed border-tide', dashed)} />}
-			<span className={cn('grid place-items-center rounded-full bg-highlight text-highlight-foreground', disc)}>
+			{dashed && (
+				<span
+					className={cn(
+						'absolute rounded-full border-dashed border-tide',
+						dashed
+					)}
+				/>
+			)}
+			<span
+				className={cn(
+					'grid place-items-center rounded-full bg-highlight text-highlight-foreground',
+					disc
+				)}
+			>
 				<svg
 					viewBox="0 0 24 24"
 					fill="none"
@@ -56,8 +71,6 @@ type SealProps = {
 	endTime: string | null;
 	/** Withdraw vote. */
 	children: React.ReactNode;
-	/** A full-width strip along the bottom of the panel. */
-	footer?: React.ReactNode;
 };
 
 /** An Ended Poll whose counts stay sealed until its `revealAt`, for every viewer; Turnout shows in the footer. */
@@ -65,13 +78,20 @@ export function SealedUntilReveal({ revealAt }: { revealAt: string }) {
 	const { t } = useLanguage();
 	const clock = useViewerClock();
 	// The date needs the viewer's time zone, so the line holds its space until hydration
-	const date = clock ? formatPollMoment(revealAt, clock.language, clock.now) : '';
+	const date = clock
+		? formatPollMoment(revealAt, clock.language, clock.now)
+		: '';
 	return (
 		<TidePanel>
 			{/* A Tide lock, not the SealMark: its Volt check means the viewer's own vote */}
 			<div className="flex items-center gap-3 py-3.5 pr-3.5 pl-4">
 				<Lock aria-hidden className="size-[18px] shrink-0 text-tide" />
-				<p className={cn('text-body-4 font-medium leading-5 text-foreground', !clock && 'invisible')}>
+				<p
+					className={cn(
+						'text-body-4 font-medium leading-5 text-foreground',
+						!clock && 'invisible'
+					)}
+				>
 					{t('poll.sealedUntilReveal', { date })}
 				</p>
 			</div>
@@ -80,38 +100,45 @@ export function SealedUntilReveal({ revealAt }: { revealAt: string }) {
 }
 
 /** What a cast Ballot becomes: the Seal, saying when the results open, with the vote's actions. */
-export function Seal({ popKey = 0, endTime, children, footer }: SealProps) {
+export function Seal({ popKey = 0, endTime, children }: SealProps) {
 	const { t } = useLanguage();
 	const clock = useViewerClock();
-	// The date needs the viewer's time zone, so a dated line holds its space until hydration
-	const date = endTime && clock ? formatPollMoment(endTime, clock.language, clock.now) : '';
-	const waiting = !!endTime && !clock;
-	const line = endTime ? t('poll.sealed', { date }) : t('poll.sealedNoEnd');
+	// The date needs the viewer's time zone, so until hydration the title says only that the vote is sealed
+	const line = !endTime
+		? t('poll.sealedNoEnd')
+		: clock
+			? t('poll.sealed', {
+					date: formatPollMoment(endTime, clock.language, clock.now),
+				})
+			: t('poll.sealedShort');
 
 	return (
 		<TidePanel>
-			<div className="flex items-center gap-3 py-3.5 pr-3.5 pl-3.5 md:gap-4 md:pl-4">
+			<div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 py-2.5 pr-3.5 pl-3.5 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-4 md:pl-4">
 				<m.span
 					key={popKey}
-					className="shrink-0"
+					className="row-span-2 md:row-span-1"
 					initial={popKey ? { scale: 0.4, opacity: 0 } : false}
 					animate={{ scale: 1, opacity: 1 }}
 					transition={{ type: 'spring', stiffness: 420, damping: 18 }}
 				>
 					<SealMark size="md" />
 				</m.span>
-				<div className="flex min-w-0 flex-1 flex-col gap-0.5">
-					<div className="flex items-center justify-between gap-2">
-						<p className="min-w-0 text-body-4 font-medium leading-5 text-foreground">{t('poll.sealedTitle')}</p>
-						{/* On the title's line, not a row of its own: the Seal shares its slot with the Vote pane, and every
-						    line it adds is room the card keeps empty before a vote. The margin keeps the 44px target off the line */}
-						<div className="-my-3 -mr-2 flex shrink-0 items-center gap-1.5">{children}</div>
-					</div>
-					<p className={cn('text-caption-1 leading-snug', waiting && 'invisible')}>{line}</p>
-					<p className="text-caption-1 leading-snug">{t('poll.changeHint')}</p>
+				{/* Two lines, no more: every line the Seal has is room an unvoted card keeps empty above its divider */}
+				<div className="flex flex-col gap-0.5">
+					<p className="text-body-4 font-medium leading-5 text-foreground">
+						{line}
+					</p>
+					<p className="text-caption-1 leading-snug text-pretty">
+						{t('poll.changeHint')}
+					</p>
+				</div>
+				{/* A column of its own, so no line of text runs up against it. Phones have no room for one: there it sits
+				    under the text, which frees the title's line instead. The margins keep the 44px target off the lines */}
+				<div className="-my-2 -ml-2 flex items-center gap-1.5 justify-self-start md:-my-3 md:-mr-2 md:ml-0">
+					{children}
 				</div>
 			</div>
-			{footer}
 		</TidePanel>
 	);
 }
