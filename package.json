@@ -21,6 +21,7 @@
 		"@sanity/client": "^8.9.0",
 		"@sanity/image-url": "^2.1.1",
 		"@vercel/analytics": "^2.0.1",
+		"@vercel/speed-insights": "^2.1.0",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
 		"groq": "^6.20.0",

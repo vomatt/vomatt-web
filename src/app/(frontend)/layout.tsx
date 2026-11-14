@@ -16,11 +16,15 @@ import { ThemedToaster } from '@/components/ThemedToaster';
 import { ThemeProvider } from '@/components/ui/ThemeProvider';
 import { TooltipProvider } from '@/components/ui/Tooltip';
 import { LanguageProvider } from '@/contexts/LanguageContext';
-import { DEFAULT_SITE_NAME, SESSION_UNCONFIRMED_HEADER } from '@/data/constants';
+import {
+	DEFAULT_SITE_NAME,
+	SESSION_UNCONFIRMED_HEADER,
+} from '@/data/constants';
 import { htmlLang } from '@/i18n-config';
 import { getServerMessages } from '@/lib/getServerLocale';
 import { getSiteSettings } from '@/lib/siteSettings';
 import { buildShareImageUrl, imageBuilder } from '@/sanity/lib/image';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 // Server Actions run under the page's limit, and vomatt-api can take over 10s
 // (Vercel's old default) on a cold start. A limit below that kills the action
@@ -33,7 +37,10 @@ export const viewport: Viewport = { viewportFit: 'cover' };
 const geistSans = Geist({ subsets: ['latin'], variable: '--font-geist-sans' });
 
 export async function generateMetadata() {
-	const [{ language, messages }, data] = await Promise.all([getServerMessages(), getSiteSettings()]);
+	const [{ language, messages }, data] = await Promise.all([
+		getServerMessages(),
+		getSiteSettings(),
+	]);
 	const { favicon, faviconLight, shareGraphic, shareVideo } = data || {};
 	const siteTitle = data?.siteTitle || DEFAULT_SITE_NAME;
 
@@ -41,7 +48,9 @@ export async function generateMetadata() {
 		imageBuilder.image(icon).width(256).height(256).url();
 	// A favicon set in Sanity wins; without one, the icon files in app/ apply
 	const siteFaviconUrl = favicon ? faviconUrl(favicon) : null;
-	const siteFaviconLightUrl = faviconLight ? faviconUrl(faviconLight) : siteFaviconUrl;
+	const siteFaviconLightUrl = faviconLight
+		? faviconUrl(faviconLight)
+		: siteFaviconUrl;
 	const shareGraphicUrl = shareGraphic?.asset
 		? buildShareImageUrl(shareGraphic.asset)
 		: null;
@@ -73,7 +82,10 @@ export async function generateMetadata() {
 			? {
 					icon: [
 						{ url: siteFaviconUrl, media: '(prefers-color-scheme: light)' },
-						{ url: siteFaviconLightUrl ?? siteFaviconUrl, media: '(prefers-color-scheme: dark)' },
+						{
+							url: siteFaviconLightUrl ?? siteFaviconUrl,
+							media: '(prefers-color-scheme: dark)',
+						},
 					],
 				}
 			: undefined,
@@ -85,15 +97,16 @@ export default async function RootLayout({
 }: {
 	children: ReactNode;
 }) {
-	const [{ language, messages: translations }, settings, requestHeaders] = await Promise.all([
-		getServerMessages(),
-		getSiteSettings(),
-		headers(),
-	]);
+	const [{ language, messages: translations }, settings, requestHeaders] =
+		await Promise.all([getServerMessages(), getSiteSettings(), headers()]);
 
 	return (
 		// next-themes sets the theme class on <html> before React hydrates
-		<html lang={htmlLang(language)} className={geistSans.variable} suppressHydrationWarning>
+		<html
+			lang={htmlLang(language)}
+			className={geistSans.variable}
+			suppressHydrationWarning
+		>
 			<body className="text-foreground font-sans antialiased">
 				<ServerClock />
 				<ThemeProvider>
@@ -117,14 +130,21 @@ export default async function RootLayout({
 									position="bottom-right"
 									// Above the TabBar on phones and the cookie banner while it shows; the right edge lines up with the banner's
 									offset={{
-										bottom: 'max(calc(var(--tabbar-space) + 24px), calc(var(--cookie-banner-space, 0px) + 12px))',
+										bottom:
+											'max(calc(var(--tabbar-space) + 24px), calc(var(--cookie-banner-space, 0px) + 12px))',
 										right: 'max(16px, env(safe-area-inset-right))',
 									}}
 									mobileOffset={{
-										bottom: 'max(calc(var(--tabbar-space) + 16px), calc(var(--cookie-banner-space, 0px) + 12px))',
+										bottom:
+											'max(calc(var(--tabbar-space) + 16px), calc(var(--cookie-banner-space, 0px) + 12px))',
 									}}
 									// The 20px close button keeps its look; its hit area grows to 44px (13px past its 1px border)
-									toastOptions={{ classNames: { closeButton: "before:absolute before:-inset-[13px] before:content-['']" } }}
+									toastOptions={{
+										classNames: {
+											closeButton:
+												"before:absolute before:-inset-[13px] before:content-['']",
+										},
+									}}
 								/>
 								<CookieConsent integrations={settings?.integrations} />
 							</Suspense>
@@ -132,6 +152,7 @@ export default async function RootLayout({
 					</LanguageProvider>
 				</ThemeProvider>
 				<Analytics />
+				<SpeedInsights />
 			</body>
 		</html>
 	);
