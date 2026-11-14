@@ -62,20 +62,28 @@ function DialogOverlay({
 /** Mounted only while open, so closed dialogs don't watch the viewport. */
 function DialogPopup({ style, ...props }: DialogPrimitive.Popup.Props) {
 	const pressStartedInside = React.useContext(PressStartedInside);
-	const popup = React.useRef<HTMLDivElement>(null);
 	React.useEffect(() => {
 		if (!pressStartedInside) return;
 		// Every press starts on the popup or the backdrop: capture sees it before anything can stop it
 		const record = (event: PointerEvent) => {
-			pressStartedInside.current = !!popup.current?.contains(event.target as Node);
+			pressStartedInside.current = !!(event.target as Element).closest?.('[data-slot="dialog-content"]');
 		};
-		document.addEventListener('pointerdown', record, true);
-		return () => {
-			document.removeEventListener('pointerdown', record, true);
+		// The press ends with its click, which bubbles here after the outside-press check (in capture), or with a cancel.
+		// A later click with no press of its own (assistive technology) then dismisses as usual.
+		const clear = () => {
 			pressStartedInside.current = false;
 		};
+		document.addEventListener('pointerdown', record, true);
+		document.addEventListener('pointercancel', clear, true);
+		document.addEventListener('click', clear);
+		return () => {
+			document.removeEventListener('pointerdown', record, true);
+			document.removeEventListener('pointercancel', clear, true);
+			document.removeEventListener('click', clear);
+			clear();
+		};
 	}, [pressStartedInside]);
-	return <DialogPrimitive.Popup ref={popup} {...props} {...useKeyboardInset(style)} />;
+	return <DialogPrimitive.Popup {...props} {...useKeyboardInset(style)} />;
 }
 
 function DialogContent({

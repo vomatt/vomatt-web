@@ -114,6 +114,18 @@ describe('Dialog outside press', () => {
 		expect(screen.getByRole('dialog')).toBeInTheDocument();
 	});
 
+	it('closes on a press-less backdrop click once an earlier tap inside has ended', async () => {
+		const { onOpenChange, backdrop } = setup();
+		const field = screen.getByLabelText('Name');
+		fireEvent.pointerDown(field, { button: 0, pointerType: 'touch' });
+		fireEvent.pointerUp(field, { button: 0, pointerType: 'touch' });
+		fireEvent.click(field);
+		await act(() => new Promise((resolve) => setTimeout(resolve, 10)));
+		// Assistive technology activates the backdrop: a click with no pointer press
+		fireEvent.click(backdrop);
+		expect(onOpenChange).toHaveBeenCalledWith(false, expect.objectContaining({ reason: 'outside-press' }));
+	});
+
 	it('still closes on a press on the backdrop', () => {
 		const { onOpenChange, backdrop } = setup();
 		fireEvent.pointerDown(backdrop, { button: 0, pointerType: 'touch' });
@@ -167,5 +179,33 @@ describe('Dialog with an on-screen keyboard and a field below what is visible', 
 			field.focus();
 		});
 		await waitFor(() => expect(scrollTop).toBe(256));
+	});
+
+	it('reveals the field above the keyboard when the scroll box runs under it (PollCreator from sm)', async () => {
+		render(
+			<Dialog open>
+				<DialogContent closeLabel="Close" initialFocus={false}>
+					<DialogTitle>Edit</DialogTitle>
+					<div data-testid="scroller" style={{ overflowY: 'auto' }}>
+						<input aria-label="Name" />
+					</div>
+				</DialogContent>
+			</Dialog>
+		);
+		const scroller = screen.getByTestId('scroller');
+		const field = screen.getByLabelText('Name');
+		let scrollTop = 0;
+		Object.defineProperties(scroller, {
+			scrollHeight: { value: 1200 },
+			clientHeight: { value: 700 },
+			scrollTop: { get: () => scrollTop, set: (value: number) => (scrollTop = value) },
+		});
+		// The box is 700px tall, but the keyboard leaves only the top 400px visible
+		scroller.getBoundingClientRect = () => rect(0, 700);
+		field.getBoundingClientRect = () => rect(500 - scrollTop, 540 - scrollTop);
+
+		act(() => field.focus());
+		resize(400, 0);
+		await waitFor(() => expect(scrollTop).toBe(156));
 	});
 });

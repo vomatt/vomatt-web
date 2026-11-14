@@ -66,32 +66,48 @@ describe('TabBar', () => {
 		expect(explore.querySelector('.text-muted-foreground')).not.toBeNull();
 	});
 
-	it('stays behind an on-screen keyboard instead of riding up above it, and returns when it closes', () => {
+	describe('with a text field focused and the visible viewport getting shorter', () => {
 		const original = Object.getOwnPropertyDescriptor(window, 'visualViewport');
-		const viewport = Object.assign(new EventTarget(), { width: 375, height: window.innerHeight, offsetTop: 0, scale: 1 });
-		Object.defineProperty(window, 'visualViewport', { value: viewport, configurable: true });
-		const field = document.body.appendChild(document.createElement('textarea'));
+		const viewport = Object.assign(new EventTarget(), { width: 375, height: 0, offsetTop: 0, scale: 1 });
+		let field: HTMLTextAreaElement;
 		const resize = (height: number) =>
 			act(() => {
 				viewport.height = height;
 				viewport.dispatchEvent(new Event('resize'));
 			});
-		try {
-			render(<TabBar userSession={{}} />);
-			const bar = document.querySelector('[data-tabbar]')!;
-			expect(bar).toHaveClass('data-keyboard:invisible');
-			expect(bar).not.toHaveAttribute('data-keyboard');
+		const bar = () => document.querySelector('[data-tabbar]')!;
 
-			act(() => field.focus());
-			resize(400);
-			expect(bar).toHaveAttribute('data-keyboard');
-
-			resize(window.innerHeight);
-			expect(bar).not.toHaveAttribute('data-keyboard');
-		} finally {
+		beforeEach(() => {
+			viewport.height = window.innerHeight;
+			Object.defineProperty(window, 'visualViewport', { value: viewport, configurable: true });
+			field = document.body.appendChild(document.createElement('textarea'));
+		});
+		afterEach(() => {
 			field.remove();
 			if (original) Object.defineProperty(window, 'visualViewport', original);
 			else delete (window as { visualViewport?: unknown }).visualViewport;
-		}
+			delete (window as { matchMedia?: unknown }).matchMedia;
+		});
+
+		it('stays behind an on-screen keyboard instead of riding up above it, and returns when it closes', () => {
+			render(<TabBar userSession={{}} />);
+			expect(bar()).toHaveClass('data-keyboard:invisible');
+			expect(bar()).not.toHaveAttribute('data-keyboard');
+
+			act(() => field.focus());
+			resize(400);
+			expect(bar()).toHaveAttribute('data-keyboard');
+
+			resize(window.innerHeight);
+			expect(bar()).not.toHaveAttribute('data-keyboard');
+		});
+
+		it('stays shown with a mouse, where a shorter window is not a keyboard (DevTools docked below)', () => {
+			window.matchMedia = jest.fn((query: string) => ({ matches: query === '(pointer: fine)' }) as MediaQueryList);
+			render(<TabBar userSession={{}} />);
+			act(() => field.focus());
+			resize(400);
+			expect(bar()).not.toHaveAttribute('data-keyboard');
+		});
 	});
 });
