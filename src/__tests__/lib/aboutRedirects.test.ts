@@ -6,6 +6,7 @@ describe('redirects to the about site', () => {
 		const destination = (source: string) => redirects.find((redirect) => redirect.source === source)?.destination;
 
 		expect(destination('/privacy-policy')).toBe('https://about.vomatt.com/privacy-policy');
+		expect(destination('/contact')).toBe('https://about.vomatt.com/contact');
 		expect(destination('/cookies-policy')).toBe('https://about.vomatt.com/privacy-policy');
 	});
 });

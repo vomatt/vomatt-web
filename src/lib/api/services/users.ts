@@ -42,8 +42,9 @@ async function deleteUser(userId: string) {
   return apiClient(`/users/${encodeURIComponent(userId)}`, { method: 'DELETE' });
 }
 
-export async function getMyProfile(): Promise<MyProfile> {
-  return apiClient<MyProfile>('/users/me');
+/** `asPerson`: the person, even while they act as a community account. A Server Action: only a boolean crosses from the client. */
+export async function getMyProfile(asPerson?: boolean): Promise<MyProfile> {
+  return apiClient<MyProfile>('/users/me', asPerson === true ? { actAs: false } : undefined);
 }
 
 /** Omitted fields stay as they are. */

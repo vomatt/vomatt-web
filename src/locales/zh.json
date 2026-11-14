@@ -66,7 +66,8 @@
 		"sessionExpired": "登入已過期，請重新登入。",
 		"dialogDescription": "使用電子郵件登入或註冊以繼續",
 		"sessionRevoked": "為了你的帳號安全，已登出這個裝置，請重新登入。",
-		"signedOutHere": "你已在這個裝置登出，請重新登入。"
+		"signedOutHere": "你已在這個裝置登出，請重新登入。",
+		"communityInvitation": "請用收到邀請的電子郵件地址註冊或登入。"
 	},
 	"verificationCode": {
 		"title": "請查看你的信箱",
@@ -1446,7 +1447,26 @@
 			"rowTitle": "你擁有的社群帳號超過方案上限",
 			"choose": "選擇"
 		},
-		"quota": "已擁有 {owned} 個社群帳號，上限 {limit} 個"
+		"quota": "已擁有 {owned} 個社群帳號，上限 {limit} 個",
+		"invitationPage": {
+			"title": "社群帳號邀請",
+			"pendingTitle": "你受邀加入 {name}",
+			"role": "加入後的角色：{role}",
+			"invitedBy": "由 {name} 邀請",
+			"expires": "{date} 到期",
+			"joinedTitle": "你已以{role}身分加入 {name}",
+			"alreadyMemberTitle": "你已是 {name} 的{role}",
+			"joinedBody": "切換到 {name}，即可用它的名義發布投票和留言。",
+			"switchTo": "切換到 {name}",
+			"viewProfile": "查看個人頁",
+			"locked": "{name} 目前已鎖定，暫時無法加入新成員。擁有者解鎖後即可接受邀請。",
+			"declinedTitle": "已婉拒邀請",
+			"declinedBody": "你不會加入 {name}。",
+			"unavailableTitle": "無法開啟這個邀請",
+			"unavailableBody": "邀請可能已過期、被撤回或已回覆，也可能是寄到其他電子郵件地址。",
+			"signedInAs": "你目前登入的帳號是 {account}。",
+			"useDifferentAccount": "改用其他帳號"
+		}
 	},
 	"meta": {
 		"siteDescription": "提出問題、參與他人的投票，看看大家真正的想法。投票結束前票數保持密封，沒有人會跟風投票。",

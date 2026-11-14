@@ -13,6 +13,8 @@ import { type UserDto, UserDtoSchema } from '@/schemas/user';
 
 import {
 	type CommunityInvitation,
+	type CommunityInvitationDetail,
+	CommunityInvitationDetailSchema,
 	CommunityInvitationSchema,
 	type CommunityMember,
 	CommunityMemberSchema,
@@ -75,6 +77,18 @@ export async function revokeInvitation(communityId: string, invitationId: string
 	return attempt(async () => {
 		await apiClient(`${invitationsPath(communityId)}/${encodeURIComponent(invitationId)}`, { method: 'DELETE' });
 	});
+}
+
+/**
+ * For the invitee, as the person. 404 `community.invitation.not_found` when it isn't theirs, has expired, was withdrawn
+ * or answered, or its community is suspended: the API doesn't say which.
+ */
+export async function getCommunityInvitation(invitationId: string): Promise<ActionResult<CommunityInvitationDetail>> {
+	return attempt(async () =>
+		CommunityInvitationDetailSchema.parse(
+			await apiClient(`/community-invitations/${encodeURIComponent(invitationId)}`, { actAs: false })
+		)
+	);
 }
 
 /**

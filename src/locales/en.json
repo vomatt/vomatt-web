@@ -66,7 +66,8 @@
 		"sessionExpired": "Your session expired. Please log in again.",
 		"dialogDescription": "Log in or sign up with your email to continue",
 		"sessionRevoked": "For your security, you were signed out on this device. Please log in again.",
-		"signedOutHere": "You were signed out on this device. Please log in again."
+		"signedOutHere": "You were signed out on this device. Please log in again.",
+		"communityInvitation": "Sign up or log in with the email address the invitation was sent to."
 	},
 	"verificationCode": {
 		"title": "Check your email",
@@ -1459,7 +1460,26 @@
 			"rowTitle": "You own more community accounts than your plan allows",
 			"choose": "Choose"
 		},
-		"quota": "{owned} of {limit} community accounts owned"
+		"quota": "{owned} of {limit} community accounts owned",
+		"invitationPage": {
+			"title": "Community invitation",
+			"pendingTitle": "You’re invited to join {name}",
+			"role": "You’d join as {role}",
+			"invitedBy": "Invited by {name}",
+			"expires": "Expires {date}",
+			"joinedTitle": "You joined {name} as {role}",
+			"alreadyMemberTitle": "You’re already in {name} as {role}",
+			"joinedBody": "Switch to {name} to post polls and comments under its name.",
+			"switchTo": "Switch to {name}",
+			"viewProfile": "View profile",
+			"locked": "{name} is locked for now, so it can’t take new members. You can accept once an owner unlocks it.",
+			"declinedTitle": "Invitation declined",
+			"declinedBody": "You won’t join {name}.",
+			"unavailableTitle": "This invitation isn’t available",
+			"unavailableBody": "It may have expired, been withdrawn or answered already, or been sent to a different email address.",
+			"signedInAs": "You’re signed in as {account}.",
+			"useDifferentAccount": "Use a different account"
+		}
 	},
 	"meta": {
 		"siteDescription": "Ask a question, vote on other people’s polls, and see what everyone really thinks. Ballots stay sealed until a poll ends, so nobody votes with the crowd.",

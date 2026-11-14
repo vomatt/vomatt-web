@@ -19,10 +19,10 @@ import { getInviteOnlyCreator, getPoll, getUserPolls } from '@/features/polls/se
 import { shareDescription } from '@/features/polls/sharePreview';
 import { derivePollStatus, holdsBallot, isCancelled, isInvitee, isPublic } from '@/features/polls/status';
 import { AuthError } from '@/lib/api/client';
-import { pollHref } from '@/lib/routes';
+import { signout } from '@/lib/api/services/auth';
+import { loginHref, pollHref } from '@/lib/routes';
 import { pollJsonLd } from '@/lib/structuredData';
 
-import { switchAccount } from './actions';
 import { PollDiscussion } from './PollDiscussion';
 
 type Lookup =
@@ -101,7 +101,7 @@ async function PollDetail({ id }: { id: string }) {
 			<InvitationPrompt
 				creator={lookup.creator}
 				pollId={id}
-				switchAccount={user ? switchAccount.bind(null, id) : undefined}
+				switchAccount={user ? signout.bind(null, loginHref({ redirect: pollHref(id) })) : undefined}
 			/>
 		) : (
 			<LoginPrompt className="mx-auto w-full max-w-[520px]" redirectTo={pollHref(id)} forPoll sessionExpired />

@@ -520,6 +520,7 @@ describe('NotificationList rows', () => {
 		]);
 		const row = rowOf('@robotics');
 		expect(row).toHaveTextContent('@robotics invited you to join as Editor');
+		expect(row.querySelector('a[href="/notifications/community-invitations/i1"]')).toBeInTheDocument();
 		expect(
 			within(row).getByRole('button', { name: 'Decline' })
 		).toBeInTheDocument();

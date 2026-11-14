@@ -8,6 +8,7 @@ import { Button, buttonVariants } from '@/components/ui/Button';
 import { Ban, Clock } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useActing } from '@/features/communities/ActingProvider';
+import { communityInvitationHref } from '@/features/communities/schema';
 import { acceptCommunityInvitation, declineCommunityInvitation } from '@/features/communities/service';
 import { FollowButton, useFollow } from '@/features/follows/FollowButton';
 import { FollowListDialog } from '@/features/follows/FollowListDialog';
@@ -22,6 +23,7 @@ import { handle } from '@/features/profiles/name';
 import { rememberFollowing } from '@/features/profiles/ProfileHoverCard';
 import { ProfileAvatar, ProfileName } from '@/features/profiles/UserChip';
 import { apiErrorText } from '@/lib/api/error-text';
+import { settle } from '@/lib/api/settle';
 import { countText } from '@/lib/count';
 import { toLocaleTag } from '@/lib/locale';
 import { rich } from '@/lib/rich';
@@ -531,7 +533,7 @@ function CommunityInvitationRow({ entry, onOpen }: RowProps<Extract<Entry, { kin
 
 	const answer = async (choice: 'accept' | 'decline') => {
 		setBusy(choice);
-		const result = await (choice === 'accept' ? acceptCommunityInvitation : declineCommunityInvitation)(communityInvitation.id);
+		const result = await settle<unknown>((choice === 'accept' ? acceptCommunityInvitation : declineCommunityInvitation)(communityInvitation.id));
 		setBusy(null);
 		if (!result.ok) {
 			toast.error(apiErrorText(t, result));
@@ -550,6 +552,7 @@ function CommunityInvitationRow({ entry, onOpen }: RowProps<Extract<Entry, { kin
 
 	return (
 		<RowShell
+			href={communityInvitationHref(communityInvitation.id)}
 			onOpen={onOpen}
 			unread={!entry.read}
 			icon={<ProfileAvatar username={actor.username} avatarUrl={actor.avatarUrl} className="size-9" />}
