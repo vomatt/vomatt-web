@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 
 import { InviteePicker } from '@/features/polls/components/InviteePicker';
 
@@ -69,5 +69,21 @@ describe('InviteePicker', () => {
 			emails: [],
 			groups: [],
 		});
+	});
+
+	it('lists every match on the first page of 20, not just the first few', async () => {
+		jest.useFakeTimers();
+		mockSearchUsers.mockResolvedValue({
+			items: Array.from({ length: 20 }, (_, i) => ({ id: `u${i}`, username: `mate${i}` })),
+		});
+		render(<InviteePicker value={{ users: [], emails: [], groups: [] }} onChange={jest.fn()} />);
+		fireEvent.change(screen.getByPlaceholderText('Username or email'), { target: { value: 'mate' } });
+		await act(async () => {
+			await jest.runAllTimersAsync();
+		});
+		jest.useRealTimers();
+
+		expect(mockSearchUsers).toHaveBeenLastCalledWith('mate', undefined, 20);
+		expect(within(screen.getByRole('list', { name: 'Matching people' })).getAllByRole('button')).toHaveLength(20);
 	});
 });

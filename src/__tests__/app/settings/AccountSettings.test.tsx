@@ -412,21 +412,18 @@ describe('AccountSettings', () => {
 
 	const quota = (owned: number, limit: number) => ({ owned, limit, selectionRequired: false, selectionDeadline: null });
 
-	it('shows the plan and how many community accounts it allows', () => {
+	it('shows how many community accounts the plan allows next to Create', () => {
 		const { rerender } = render(
 			<AccountSettings profile={{ ...myProfile, plan: 'FREE', communityQuota: quota(0, 1) }} inviteListCount={3} notificationPreferences={preferences} communities={[]} />
 		);
-		const plan = screen.getByRole('region', { name: 'Plan' });
-		expect(plan).toHaveTextContent('Free plan');
-		expect(plan).toHaveTextContent('0 of 1 community accounts owned');
-		expect(within(plan).getByRole('button', { name: 'Upgrade to Pro' })).toBeInTheDocument();
+		const section = screen.getByRole('region', { name: 'Community accounts' });
+		expect(within(section).getByRole('button', { name: /Create a community account/ })).toHaveTextContent('0 of 1 community accounts owned');
 
 		rerender(
 			<AccountSettings profile={{ ...myProfile, plan: 'PRO', communityQuota: quota(2, 3) }} inviteListCount={3} notificationPreferences={preferences} communities={[]} />
 		);
-		expect(plan).toHaveTextContent('Pro plan');
-		expect(plan).toHaveTextContent('2 of 3 community accounts owned');
-		expect(within(plan).queryByRole('button', { name: 'Upgrade to Pro' })).not.toBeInTheDocument();
+		expect(within(section).getByRole('button', { name: /Create a community account/ })).toHaveTextContent('2 of 3 community accounts owned');
+		expect(within(section).queryByRole('button', { name: 'Upgrade to Pro' })).not.toBeInTheDocument();
 	});
 
 	it('turns Create into an upgrade once a Free user owns their limit, and says Pro is coming soon', async () => {
@@ -467,10 +464,10 @@ describe('AccountSettings', () => {
 		render(
 			<AccountSettings profile={{ ...myProfile, plan: 'FREE', communityQuota: selection }} inviteListCount={3} notificationPreferences={preferences} communities={[{ ...locked, locked: false }]} />
 		);
-		const plan = screen.getByRole('region', { name: 'Plan' });
-		expect(plan).toHaveTextContent('You own more community accounts than your plan allows');
-		expect(plan).toHaveTextContent('Choose by Nov 18, 2026');
-		fireEvent.click(within(plan).getByRole('button', { name: 'Choose' }));
+		const section = screen.getByRole('region', { name: 'Community accounts' });
+		expect(section).toHaveTextContent('You own more community accounts than your plan allows');
+		expect(section).toHaveTextContent('Choose by Nov 18, 2026');
+		fireEvent.click(within(section).getByRole('button', { name: 'Choose' }));
 		expect(screen.getByRole('dialog', { name: 'Choose which community accounts to keep' })).toBeInTheDocument();
 	});
 

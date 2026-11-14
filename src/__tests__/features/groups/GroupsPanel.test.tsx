@@ -112,7 +112,7 @@ describe('GroupsPanel', () => {
 		render(<GroupsPanel />);
 		const dialog = await openBookClub();
 		fireEvent.change(within(dialog).getByPlaceholderText('Username or email'), { target: { value: 'bob' } });
-		await waitFor(() => expect(searchUsers).toHaveBeenCalledWith('bob'));
+		await waitFor(() => expect(searchUsers).toHaveBeenCalledWith('bob', undefined, 20));
 		expect(within(dialog).queryByRole('button', { name: '@bob' })).not.toBeInTheDocument();
 	});
 

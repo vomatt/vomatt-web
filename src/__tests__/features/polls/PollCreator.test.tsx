@@ -614,7 +614,7 @@ describe('PollCreator', () => {
 		const field = screen.getByLabelText('Invite people');
 		fireEvent.change(field, { target: { value: 'bo' } });
 		fireEvent.click(await screen.findByRole('button', { name: /bob/ }));
-		expect(mockSearchUsers).toHaveBeenCalledWith('bo');
+		expect(mockSearchUsers).toHaveBeenCalledWith('bo', undefined, 20);
 		fireEvent.change(field, { target: { value: ' Carol@Example.com ' } });
 		fireEvent.keyDown(field, { key: 'Enter' });
 		expect(screen.getByText('carol@example.com')).toBeInTheDocument();

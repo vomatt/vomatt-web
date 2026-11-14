@@ -1466,11 +1466,6 @@
 		"profileDescription": "See the polls {name} has asked."
 	},
 	"plan": {
-		"title": "Plan",
-		"names": {
-			"FREE": "Free plan",
-			"PRO": "Pro plan"
-		},
 		"quota": "{owned} of {limit} community accounts owned",
 		"upgrade": "Upgrade to Pro",
 		"comingSoon": "Pro is coming soon."

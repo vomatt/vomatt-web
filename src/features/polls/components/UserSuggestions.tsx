@@ -36,7 +36,7 @@ export function UserSuggestions({
 			</p>
 		);
 	return (
-		<ul aria-label={t('invitees.suggestions')}>
+		<ul aria-label={t('invitees.suggestions')} className="max-h-64 overflow-y-auto">
 			{search.users.map((user) => (
 				<li key={user.id}>
 					<button
