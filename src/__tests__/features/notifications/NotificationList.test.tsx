@@ -1,46 +1,92 @@
-import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import {
+	act,
+	cleanup,
+	fireEvent,
+	render,
+	screen,
+	waitFor,
+	within,
+} from '@testing-library/react';
 
-import { ActingProvider, useActing } from '@/features/communities/ActingProvider';
-import { dayGroup, NotificationList, NotificationSettingsLink } from '@/features/notifications/NotificationList';
+import {
+	ActingProvider,
+	useActing,
+} from '@/features/communities/ActingProvider';
+import {
+	dayGroup,
+	NotificationList,
+	NotificationSettingsLink,
+} from '@/features/notifications/NotificationList';
 import type { Notification } from '@/features/notifications/schema';
 import { META_GAP } from '@/lib/rich';
 
 import { visibleText } from '../../helpers/visibleText';
 
 jest.mock('next/link', () => {
-	return function MockLink({ children, href, onClick, ...rest }: React.ComponentProps<'a'> & { onClick?: () => void }) {
+	return function MockLink({
+		children,
+		href,
+		onClick,
+		...rest
+	}: React.ComponentProps<'a'> & { onClick?: () => void }) {
 		return (
-			<a href={href} {...rest} onClick={(e) => { e.preventDefault(); onClick?.(); }}>
+			<a
+				href={href}
+				{...rest}
+				onClick={(e) => {
+					e.preventDefault();
+					onClick?.();
+				}}
+			>
 				{children}
 			</a>
 		);
 	};
 });
-jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
-jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh: jest.fn() }) }));
+jest.mock('@/contexts/LanguageContext', () =>
+	require('../../helpers/mockLanguage')
+);
+jest.mock('next/navigation', () => ({
+	useRouter: () => ({ refresh: jest.fn() }),
+}));
 jest.mock('@/features/polls/service', () => ({}));
 const mockMarkAllRead = jest.fn();
 jest.mock('@/features/notifications/service', () => ({
 	getNotifications: jest.fn(),
 	markAllNotificationsRead: (...a: unknown[]) => mockMarkAllRead(...a),
 }));
-jest.mock('@/features/follows/service', () => ({ followUser: jest.fn().mockResolvedValue({ ok: true, data: undefined }) }));
+jest.mock('@/features/follows/service', () => ({
+	followUser: jest.fn().mockResolvedValue({ ok: true, data: undefined }),
+}));
 jest.mock('@/features/follows/FollowListDialog', () => ({
-	FollowListDialog: ({ username, list }: { username: string; list: string | null }) =>
-		list && <div role="dialog">{`${list} of ${username}`}</div>,
+	FollowListDialog: ({
+		username,
+		list,
+	}: {
+		username: string;
+		list: string | null;
+	}) => list && <div role="dialog">{`${list} of ${username}`}</div>,
 }));
 jest.mock('@/features/profiles/ProfileHoverCard', () => ({
 	ProfileHoverCard: ({ children }: { children: React.ReactNode }) => children,
 	rememberFollowing: jest.fn(),
 }));
-jest.mock('@/features/profiles/UserChip', () => ({ ...jest.requireActual('@/features/profiles/UserChip'), ProfileAvatar: () => null }));
+jest.mock('@/features/profiles/UserChip', () => ({
+	...jest.requireActual('@/features/profiles/UserChip'),
+	ProfileAvatar: () => null,
+}));
 const mockToastError = jest.fn();
 const mockAccept = jest.fn();
 jest.mock('@/features/communities/service', () => ({
 	acceptCommunityInvitation: (...a: unknown[]) => mockAccept(...a),
 	declineCommunityInvitation: jest.fn(),
 }));
-jest.mock('sonner', () => ({ toast: { error: (...a: unknown[]) => mockToastError(...a), success: jest.fn() } }));
+jest.mock('sonner', () => ({
+	toast: {
+		error: (...a: unknown[]) => mockToastError(...a),
+		success: jest.fn(),
+	},
+}));
 const mockLoadCommunities = jest.fn();
 jest.mock('@/features/communities/acting', () => ({
 	actAsCommunity: jest.fn(),
@@ -49,7 +95,11 @@ jest.mock('@/features/communities/acting', () => ({
 const mockRefresh = jest.fn();
 let mockUnreadCount = 0;
 jest.mock('@/features/notifications/UnreadCountProvider', () => ({
-	useUnreadCount: () => ({ count: mockUnreadCount, isLoaded: true, refresh: mockRefresh }),
+	useUnreadCount: () => ({
+		count: mockUnreadCount,
+		isLoaded: true,
+		refresh: mockRefresh,
+	}),
 }));
 
 const MINUTE = 60_000;
@@ -104,7 +154,11 @@ const invitation: Extract<Notification, { kind: 'INVITATION' }> = {
 	},
 };
 
-const follow = (username: string, minutesAgo: number, overrides: Partial<Extract<Notification, { kind: 'FOLLOWED' }>> = {}): Notification => ({
+const follow = (
+	username: string,
+	minutesAgo: number,
+	overrides: Partial<Extract<Notification, { kind: 'FOLLOWED' }>> = {}
+): Notification => ({
 	id: `follow_${username}`,
 	kind: 'FOLLOWED',
 	createdAt: iso(-minutesAgo * MINUTE),
@@ -119,8 +173,19 @@ const comment: Notification = {
 	createdAt: iso(-9 * HOUR),
 	read: true,
 	actor: person('rosa'),
-	poll: { id: 'p3', title: 'Saturday market', startTime: iso(-48 * HOUR), endTime: iso(48 * HOUR), status: 'OPEN', turnout: 40 },
-	comment: { id: 'c1', parentId: null, excerpt: 'The riverside has parking, the high street has foot traffic.' },
+	poll: {
+		id: 'p3',
+		title: 'Saturday market',
+		startTime: iso(-48 * HOUR),
+		endTime: iso(48 * HOUR),
+		status: 'OPEN',
+		turnout: 40,
+	},
+	comment: {
+		id: 'c1',
+		parentId: null,
+		excerpt: 'The riverside has parking, the high street has foot traffic.',
+	},
 };
 
 const closingSoon: Notification = {
@@ -129,7 +194,14 @@ const closingSoon: Notification = {
 	createdAt: iso(-11 * HOUR),
 	read: true,
 	actor: person('kim'),
-	poll: { id: 'p4', title: 'Bike lane on Minsheng Road', startTime: iso(-48 * HOUR), endTime: iso(6 * HOUR), status: 'OPEN', turnout: 342 },
+	poll: {
+		id: 'p4',
+		title: 'Bike lane on Minsheng Road',
+		startTime: iso(-48 * HOUR),
+		endTime: iso(6 * HOUR),
+		status: 'OPEN',
+		turnout: 342,
+	},
 };
 
 const cancelled: Notification = {
@@ -138,12 +210,26 @@ const cancelled: Notification = {
 	createdAt: iso(-10 * HOUR),
 	read: true,
 	actor: person('rosa'),
-	poll: { id: 'p5', title: 'Night bus on Sundays?', startTime: iso(-10 * HOUR), endTime: iso(-10 * HOUR), status: 'ENDED', turnout: 0 },
+	poll: {
+		id: 'p5',
+		title: 'Night bus on Sundays?',
+		startTime: iso(-10 * HOUR),
+		endTime: iso(-10 * HOUR),
+		status: 'ENDED',
+		turnout: 0,
+	},
 };
 
 const renderList = (items: Notification[], unreadIds: string[] | null = null) =>
-	render(<NotificationList initialPage={{ items, nextCursor: null }} unreadIds={unreadIds} viewerUsername="mei" />);
-const rowOf = (text: string) => screen.getByText(text, { exact: false }).closest('li')!;
+	render(
+		<NotificationList
+			initialPage={{ items, nextCursor: null }}
+			unreadIds={unreadIds}
+			viewerUsername="mei"
+		/>
+	);
+const rowOf = (text: string) =>
+	screen.getByText(text, { exact: false }).closest('li')!;
 
 beforeEach(() => {
 	jest.clearAllMocks();
@@ -156,26 +242,49 @@ afterEach(() => jest.useRealTimers());
 describe('dayGroup()', () => {
 	const now = new Date(2026, 9, 25, 15, 0);
 	it('reads today, yesterday and earlier from the local calendar', () => {
-		expect(dayGroup(new Date(2026, 9, 25, 0, 5).toISOString(), now)).toBe('today');
-		expect(dayGroup(new Date(2026, 9, 24, 23, 59).toISOString(), now)).toBe('yesterday');
-		expect(dayGroup(new Date(2026, 9, 23, 12, 0).toISOString(), now)).toBe('earlier');
+		expect(dayGroup(new Date(2026, 9, 25, 0, 5).toISOString(), now)).toBe(
+			'today'
+		);
+		expect(dayGroup(new Date(2026, 9, 24, 23, 59).toISOString(), now)).toBe(
+			'yesterday'
+		);
+		expect(dayGroup(new Date(2026, 9, 23, 12, 0).toISOString(), now)).toBe(
+			'earlier'
+		);
 	});
 });
 
 describe('NotificationList rows', () => {
-	it('says a result is in, with the outcome and the viewer\'s pick', () => {
+	it("says a result is in, with the outcome and the viewer's pick", () => {
 		renderList([result]);
 		const row = rowOf('Keep the library');
-		expect(row).toHaveTextContent(`Results are in${META_GAP}Keep the library open until 22:00?`, { normalizeWhitespace: false });
-		expect(visibleText(row)).toContain(`Yes won${META_GAP}2,061 voted${META_GAP}4h`);
+		expect(row).toHaveTextContent(
+			`Results are in${META_GAP}Keep the library open until 22:00?`,
+			{ normalizeWhitespace: false }
+		);
+		expect(visibleText(row)).toContain(
+			`Yes won${META_GAP}2,061 voted${META_GAP}4h`
+		);
 		expect(row).toHaveTextContent('Your pick won');
 		expect(row.querySelectorAll('strong svg[aria-hidden]')).toHaveLength(1);
 	});
 
-	it('names every option that shares the most votes, and says the viewer\'s pick tied', () => {
-		renderList([{ ...result, poll: { ...result.poll, winningOptionIds: ['a', 'b'], winningOptionLabels: ['Yes', 'No'], tie: true } }]);
+	it("names every option that shares the most votes, and says the viewer's pick tied", () => {
+		renderList([
+			{
+				...result,
+				poll: {
+					...result.poll,
+					winningOptionIds: ['a', 'b'],
+					winningOptionLabels: ['Yes', 'No'],
+					tie: true,
+				},
+			},
+		]);
 		const row = rowOf('Keep the library');
-		expect(visibleText(row)).toContain(`Tie between Yes and No${META_GAP}2,061 voted`);
+		expect(visibleText(row)).toContain(
+			`Tie between Yes and No${META_GAP}2,061 voted`
+		);
 		expect(row).toHaveTextContent('Tied for first');
 		expect(row.querySelectorAll('strong svg[aria-hidden]')).toHaveLength(2);
 	});
@@ -190,82 +299,160 @@ describe('NotificationList rows', () => {
 	it('says the pick lost, and leaves the outcome out when no Ballot named an option', () => {
 		renderList([
 			{ ...result, poll: { ...result.poll, myOptionId: 'b' } },
-			{ ...result, id: 'result_p9', poll: { ...result.poll, id: 'p9', title: 'Nobody came', turnout: 0, myOptionId: null, winningOptionIds: [], winningOptionLabels: [] } },
+			{
+				...result,
+				id: 'result_p9',
+				poll: {
+					...result.poll,
+					id: 'p9',
+					title: 'Nobody came',
+					turnout: 0,
+					myOptionId: null,
+					winningOptionIds: [],
+					winningOptionLabels: [],
+				},
+			},
 		]);
 		expect(rowOf('Keep the library')).toHaveTextContent('Outvoted');
 		const empty = rowOf('Nobody came');
-		expect(empty).toHaveTextContent(`0 voted${META_GAP}4h`, { normalizeWhitespace: false });
+		expect(empty).toHaveTextContent(`0 voted${META_GAP}4h`, {
+			normalizeWhitespace: false,
+		});
 		expect(empty).not.toHaveTextContent(/won|Tie|Outvoted/);
 	});
 
 	it('offers the vote on an invitation', () => {
 		renderList([invitation]);
 		const row = rowOf('Which stall');
-		expect(row).toHaveTextContent(`@amira invited you${META_GAP}Which stall should get the corner spot?`, { normalizeWhitespace: false });
-		expect(row).toHaveTextContent(`Invite only${META_GAP}ends Wed 15:00${META_GAP}6h`, { normalizeWhitespace: false });
-		expect(within(row).getByRole('link', { name: 'Vote' })).toHaveAttribute('href', '/poll/p2');
+		expect(row).toHaveTextContent(
+			`@amira invited you${META_GAP}Which stall should get the corner spot?`,
+			{ normalizeWhitespace: false }
+		);
+		expect(row).toHaveTextContent(
+			`Invite only${META_GAP}ends Wed 15:00${META_GAP}6h`,
+			{ normalizeWhitespace: false }
+		);
+		expect(within(row).getByRole('link', { name: 'Vote' })).toHaveAttribute(
+			'href',
+			'/poll/p2'
+		);
 	});
 
 	it('offers Follow back to a new follower by their @handle, or shows Following once followed back', () => {
 		renderList([
-			follow('jtan', 120, { actor: { ...person('jtan', 'Jun Tan'), followsYou: true } }),
+			follow('jtan', 120, {
+				actor: { ...person('jtan', 'Jun Tan'), followsYou: true },
+			}),
 			comment,
-			follow('tpark', 600, { read: true, actor: { ...person('tpark'), isFollowing: true, followsYou: true } }),
+			follow('tpark', 600, {
+				read: true,
+				actor: { ...person('tpark'), isFollowing: true, followsYou: true },
+			}),
 		]);
 		const jtan = rowOf('@jtan');
 		expect(jtan).toHaveTextContent('@jtan followed you');
 		expect(jtan).not.toHaveTextContent('Jun Tan');
-		expect(within(jtan).getByRole('button', { name: 'Follow back' })).toBeInTheDocument();
-		expect(within(rowOf('@tpark')).getByRole('button', { name: /Following/ })).toHaveAttribute('aria-haspopup', 'dialog');
+		expect(
+			within(jtan).getByRole('button', { name: 'Follow back' })
+		).toBeInTheDocument();
+		expect(
+			within(rowOf('@tpark')).getByRole('button', { name: /Following/ })
+		).toHaveAttribute('aria-haspopup', 'dialog');
 	});
 
 	it('quotes a comment and replies under it on the poll page', () => {
 		renderList([comment]);
 		const row = rowOf('Saturday market');
 		expect(row).toHaveTextContent('@rosa made the case under Saturday market');
-		expect(row).toHaveTextContent(`“The riverside has parking, the high street has foot traffic.”${META_GAP}9h`, { normalizeWhitespace: false });
-		expect(within(row).getByRole('link', { name: 'Reply' })).toHaveAttribute('href', '/poll/p3#reply-c1');
+		expect(row).toHaveTextContent(
+			`“The riverside has parking, the high street has foot traffic.”${META_GAP}9h`,
+			{ normalizeWhitespace: false }
+		);
+		expect(within(row).getByRole('link', { name: 'Reply' })).toHaveAttribute(
+			'href',
+			'/poll/p3#reply-c1'
+		);
 	});
 
 	it('words a reply as one and links it under the comment it answers', () => {
-		renderList([{ ...comment, comment: { ...comment.comment, id: 'r7', parentId: 'c1' } }]);
+		renderList([
+			{ ...comment, comment: { ...comment.comment, id: 'r7', parentId: 'c1' } },
+		]);
 		const row = rowOf('Saturday market');
 		expect(row).toHaveTextContent('@rosa replied in Saturday market');
-		expect(within(row).getByRole('link', { name: 'Saturday market' })).toHaveAttribute('href', '/poll/p3#comment-c1/r7');
-		expect(within(row).getByRole('link', { name: 'Reply' })).toHaveAttribute('href', '/poll/p3#reply-c1/r7');
+		expect(
+			within(row).getByRole('link', { name: 'Saturday market' })
+		).toHaveAttribute('href', '/poll/p3#comment-c1/r7');
+		expect(within(row).getByRole('link', { name: 'Reply' })).toHaveAttribute(
+			'href',
+			'/poll/p3#reply-c1/r7'
+		);
 	});
 
 	it('offers View on an invitation the viewer already voted in, or one not open yet', () => {
 		renderList([
 			{ ...invitation, poll: { ...invitation.poll, myOptionId: 'a' } },
-			{ ...invitation, id: 'invitation_p6', poll: { ...invitation.poll, id: 'p6', title: 'Later', startTime: iso(24 * HOUR), status: 'SCHEDULED' } },
+			{
+				...invitation,
+				id: 'invitation_p6',
+				poll: {
+					...invitation.poll,
+					id: 'p6',
+					title: 'Later',
+					startTime: iso(24 * HOUR),
+					status: 'SCHEDULED',
+				},
+			},
 		]);
-		expect(within(rowOf('Which stall')).getByRole('link', { name: 'View' })).toBeInTheDocument();
+		expect(
+			within(rowOf('Which stall')).getByRole('link', { name: 'View' })
+		).toBeInTheDocument();
 		const later = rowOf('Later');
-		expect(later).toHaveTextContent(`Invite only${META_GAP}Opens tomorrow at 15:00${META_GAP}6h`, { normalizeWhitespace: false });
-		expect(within(later).getByRole('link', { name: 'View' })).toBeInTheDocument();
+		expect(later).toHaveTextContent(
+			`Invite only${META_GAP}Opens tomorrow at 15:00${META_GAP}6h`,
+			{ normalizeWhitespace: false }
+		);
+		expect(
+			within(later).getByRole('link', { name: 'View' })
+		).toBeInTheDocument();
 	});
 
 	it('nudges a poll closing soon with the turnout alone', () => {
 		renderList([closingSoon]);
 		const row = rowOf('Bike lane');
 		expect(row).toHaveTextContent('Bike lane on Minsheng Road ends in 6h');
-		expect(row).toHaveTextContent(`You haven’t voted${META_GAP}342 voted so far${META_GAP}11h`, { normalizeWhitespace: false });
-		expect(within(row).getByRole('link', { name: 'Vote' })).toHaveAttribute('href', '/poll/p4');
+		expect(row).toHaveTextContent(
+			`You haven’t voted${META_GAP}342 voted so far${META_GAP}11h`,
+			{ normalizeWhitespace: false }
+		);
+		expect(within(row).getByRole('link', { name: 'Vote' })).toHaveAttribute(
+			'href',
+			'/poll/p4'
+		);
 	});
 
 	it('words a mention and links to the comment', () => {
-		renderList([{ ...comment, id: 'mention_c1', kind: 'MENTION', read: false }]);
+		renderList([
+			{ ...comment, id: 'mention_c1', kind: 'MENTION', read: false },
+		]);
 		const row = rowOf('Saturday market');
 		expect(row).toHaveTextContent('@rosa mentioned you in Saturday market');
-		expect(within(row).getByRole('link', { name: 'Reply' })).toHaveAttribute('href', '/poll/p3#reply-c1');
+		expect(within(row).getByRole('link', { name: 'Reply' })).toHaveAttribute(
+			'href',
+			'/poll/p3#reply-c1'
+		);
 	});
 
 	it('words a like and links to the liked comment', () => {
 		renderList([{ ...comment, id: 'like_c1', kind: 'LIKE', read: false }]);
 		const row = rowOf('Saturday market');
-		expect(row).toHaveTextContent('@rosa liked your comment in Saturday market');
-		expect(within(row).getByRole('link', { name: 'Reply' })).toHaveAttribute('href', '/poll/p3#reply-c1');
+		expect(row).toHaveTextContent(
+			'@rosa liked your comment in Saturday market'
+		);
+		expect(within(row).getByRole('link', { name: 'Reply' })).toHaveAttribute(
+			'href',
+			'/poll/p3#reply-c1'
+		);
 	});
 
 	it('words a like of the viewer’s poll and links to the poll', () => {
@@ -273,27 +460,46 @@ describe('NotificationList rows', () => {
 		renderList([{ ...rest, id: 'pl1', kind: 'POLL_LIKE', read: false }]);
 		const row = rowOf('Saturday market');
 		expect(row).toHaveTextContent('@rosa liked your poll Saturday market');
-		expect(within(row).getByRole('link', { name: 'Saturday market' })).toHaveAttribute('href', '/poll/p3');
+		expect(
+			within(row).getByRole('link', { name: 'Saturday market' })
+		).toHaveAttribute('href', '/poll/p3');
 	});
 
 	it('words a cancelled poll without an action', () => {
 		renderList([cancelled]);
 		const row = rowOf('Night bus');
-		expect(row).toHaveTextContent('Night bus on Sundays? was cancelled by @rosa');
+		expect(row).toHaveTextContent(
+			'Night bus on Sundays? was cancelled by @rosa'
+		);
 		expect(within(row).queryByRole('button')).not.toBeInTheDocument();
 		expect(within(row).getAllByRole('link')).toHaveLength(1);
 	});
 
 	it('says a community account was locked at the deadline and links to Settings to unlock it', () => {
 		renderList([
-			{ id: 'community_locked_a1', kind: 'COMMUNITY_LOCKED', createdAt: iso(-HOUR), read: false, actor: { ...person('robotics', 'Robotics Club'), community: true } },
+			{
+				id: 'community_locked_a1',
+				kind: 'COMMUNITY_LOCKED',
+				createdAt: iso(-HOUR),
+				read: false,
+				actor: { ...person('robotics', 'Robotics Club'), community: true },
+			},
 		]);
 		const row = rowOf('@robotics');
-		expect(row).toHaveTextContent('@robotics was locked because no choice was made before the deadline');
-		expect(within(row).getByRole('link', { name: '@robotics' })).toHaveAttribute('href', '/robotics');
+		expect(row).toHaveTextContent(
+			'@robotics was locked because no choice was made before the deadline'
+		);
+		expect(
+			within(row).getByRole('link', { name: '@robotics' })
+		).toHaveAttribute('href', '/robotics');
 		expect(row).not.toHaveTextContent('Robotics Club');
-		expect(within(row).getByRole('link', { name: 'View' })).toHaveAttribute('href', '/settings#communities');
-		expect(screen.getByRole('button', { name: 'Community' })).toBeInTheDocument();
+		expect(within(row).getByRole('link', { name: 'View' })).toHaveAttribute(
+			'href',
+			'/settings#communities'
+		);
+		expect(
+			screen.getByRole('button', { name: 'Community' })
+		).toBeInTheDocument();
 	});
 
 	it('lets the person accept a community invitation in the feed, then drops the row', async () => {
@@ -305,25 +511,50 @@ describe('NotificationList rows', () => {
 				createdAt: iso(-HOUR),
 				read: false,
 				actor: { ...person('robotics', 'Robotics Club'), community: true },
-				communityInvitation: { id: 'i1', role: 'EDITOR', expiresAt: iso(24 * HOUR) },
+				communityInvitation: {
+					id: 'i1',
+					role: 'EDITOR',
+					expiresAt: iso(24 * HOUR),
+				},
 			},
 		]);
 		const row = rowOf('@robotics');
 		expect(row).toHaveTextContent('@robotics invited you to join as Editor');
-		expect(within(row).getByRole('button', { name: 'Decline' })).toBeInTheDocument();
+		expect(
+			within(row).getByRole('button', { name: 'Decline' })
+		).toBeInTheDocument();
 		fireEvent.click(within(row).getByRole('button', { name: 'Accept' }));
-		await waitFor(() => expect(screen.queryByText(/invited you to join/)).not.toBeInTheDocument());
+		await waitFor(() =>
+			expect(screen.queryByText(/invited you to join/)).not.toBeInTheDocument()
+		);
 		expect(mockAccept).toHaveBeenCalledWith('i1');
 		expect(mockRefresh).toHaveBeenCalled();
 	});
 
 	it('adds the joined community to the user’s accounts without reloading the page', async () => {
 		mockAccept.mockResolvedValue({ ok: true, data: {} });
-		const club = { communityId: 'c1', username: 'robotics', displayName: 'Robotics Club', avatarUrl: null, role: 'EDITOR' as const };
-		mockLoadCommunities.mockResolvedValueOnce({ ok: true, data: [] }).mockResolvedValueOnce({ ok: true, data: [club] });
-		const Accounts = () => <p>{`${useActing().communities?.length ?? 0} community accounts`}</p>;
+		const club = {
+			communityId: 'c1',
+			username: 'robotics',
+			displayName: 'Robotics Club',
+			avatarUrl: null,
+			role: 'EDITOR' as const,
+		};
+		mockLoadCommunities
+			.mockResolvedValueOnce({ ok: true, data: [] })
+			.mockResolvedValueOnce({ ok: true, data: [club] });
+		const Accounts = () => (
+			<p>{`${useActing().communities?.length ?? 0} community accounts`}</p>
+		);
 		render(
-			<ActingProvider state={{ acting: null, me: { username: 'mei', displayName: 'Mei', avatarUrl: null }, communities: null, stale: false }}>
+			<ActingProvider
+				state={{
+					acting: null,
+					me: { username: 'mei', displayName: 'Mei', avatarUrl: null },
+					communities: null,
+					stale: false,
+				}}
+			>
 				<Accounts />
 				<NotificationList
 					initialPage={{
@@ -333,8 +564,15 @@ describe('NotificationList rows', () => {
 								kind: 'COMMUNITY_INVITATION',
 								createdAt: iso(-HOUR),
 								read: false,
-								actor: { ...person('robotics', 'Robotics Club'), community: true },
-								communityInvitation: { id: 'i1', role: 'EDITOR', expiresAt: iso(24 * HOUR) },
+								actor: {
+									...person('robotics', 'Robotics Club'),
+									community: true,
+								},
+								communityInvitation: {
+									id: 'i1',
+									role: 'EDITOR',
+									expiresAt: iso(24 * HOUR),
+								},
 							},
 						],
 						nextCursor: null,
@@ -347,28 +585,47 @@ describe('NotificationList rows', () => {
 		await waitFor(() => expect(mockLoadCommunities).toHaveBeenCalled());
 		expect(screen.getByText('0 community accounts')).toBeInTheDocument();
 
-		fireEvent.click(within(rowOf('@robotics')).getByRole('button', { name: 'Accept' }));
+		fireEvent.click(
+			within(rowOf('@robotics')).getByRole('button', { name: 'Accept' })
+		);
 		expect(await screen.findByText('1 community accounts')).toBeInTheDocument();
 	});
 
 	it('keeps the category pills on one sticky row that runs to the screen edges on phones', () => {
 		renderList([cancelled]);
 		const pills = screen.getByRole('group', { name: 'Category' });
-		expect(pills).toHaveClass('max-md:flex-nowrap', 'max-md:overflow-x-auto', 'max-md:bleed-x');
+		expect(pills).toHaveClass(
+			'max-md:flex-nowrap',
+			'max-md:overflow-x-auto',
+			'max-md:bleed-x'
+		);
 		expect(pills).not.toHaveClass('flex-nowrap');
-		expect(pills.closest('.sticky')).toHaveAttribute('data-sticky-bar', 'pills');
+		expect(pills.closest('.sticky')).toHaveAttribute(
+			'data-sticky-bar',
+			'pills'
+		);
 	});
 
 	it('marks only unread rows with a dot', () => {
 		renderList([result, comment]);
-		expect(within(rowOf('Keep the library')).getByText('Unread')).toBeInTheDocument();
-		expect(within(rowOf('Saturday market')).queryByText('Unread')).not.toBeInTheDocument();
+		expect(
+			within(rowOf('Keep the library')).getByText('Unread')
+		).toBeInTheDocument();
+		expect(
+			within(rowOf('Saturday market')).queryByText('Unread')
+		).not.toBeInTheDocument();
 	});
 });
 
 describe('NotificationList follows', () => {
 	it('folds consecutive follows into one row that opens the followers list', () => {
-		renderList([follow('bkim', 10), follow('jtan', 20), follow('tpark', 30), result, follow('rosa', 300)]);
+		renderList([
+			follow('bkim', 10),
+			follow('jtan', 20),
+			follow('tpark', 30),
+			result,
+			follow('rosa', 300),
+		]);
 
 		const group = rowOf('@bkim');
 		expect(group).toHaveTextContent('@bkim and 2 others followed you');
@@ -376,7 +633,9 @@ describe('NotificationList follows', () => {
 		// A follow after another kind starts its own row
 		expect(rowOf('@rosa')).toHaveTextContent('@rosa followed you');
 
-		fireEvent.click(within(group).getByRole('button', { name: 'See followers' }));
+		fireEvent.click(
+			within(group).getByRole('button', { name: 'See followers' })
+		);
 		expect(screen.getByRole('dialog')).toHaveTextContent('followers of mei');
 		expect(within(group).queryByText('Unread')).not.toBeInTheDocument();
 	});
@@ -395,10 +654,23 @@ describe('NotificationList read state', () => {
 	});
 
 	it('reads nothing while acting as a locked community account, which the API would refuse', async () => {
-		const acting = { communityId: 'c1', username: 'robotics', displayName: 'Robotics Club', avatarUrl: null, role: 'OWNER' as const, locked: true };
+		const acting = {
+			communityId: 'c1',
+			username: 'robotics',
+			displayName: 'Robotics Club',
+			avatarUrl: null,
+			role: 'OWNER' as const,
+			locked: true,
+		};
 		render(
-			<ActingProvider state={{ acting, me: null, communities: [], stale: false }}>
-				<NotificationList initialPage={{ items: [invitation], nextCursor: null }} unreadIds={null} viewerUsername="robotics" />
+			<ActingProvider
+				state={{ acting, me: null, communities: [], stale: false }}
+			>
+				<NotificationList
+					initialPage={{ items: [invitation], nextCursor: null }}
+					unreadIds={null}
+					viewerUsername="robotics"
+				/>
 			</ActingProvider>
 		);
 		await act(async () => {});
@@ -409,29 +681,50 @@ describe('NotificationList read state', () => {
 	it('keeps the dots for this visit, until a row is opened', async () => {
 		renderList([invitation, result]);
 		await waitFor(() => expect(mockRefresh).toHaveBeenCalled());
-		expect(within(rowOf('Keep the library')).getByText('Unread')).toBeInTheDocument();
+		expect(
+			within(rowOf('Keep the library')).getByText('Unread')
+		).toBeInTheDocument();
 
 		fireEvent.click(screen.getByText(invitation.poll.title));
-		expect(within(rowOf('Which stall')).queryByText('Unread')).not.toBeInTheDocument();
-		expect(within(rowOf('Keep the library')).getByText('Unread')).toBeInTheDocument();
+		expect(
+			within(rowOf('Which stall')).queryByText('Unread')
+		).not.toBeInTheDocument();
+		expect(
+			within(rowOf('Keep the library')).getByText('Unread')
+		).toBeInTheDocument();
 		expect(mockMarkAllRead).toHaveBeenCalledTimes(1);
 	});
 
 	it('keeps the dot on what was unread when the page opened, on pages fetched after read-all', async () => {
-		const { getNotifications } = jest.requireMock('@/features/notifications/service');
-		getNotifications.mockResolvedValueOnce({ items: [{ ...comment, read: true }], nextCursor: null });
+		const { getNotifications } = jest.requireMock(
+			'@/features/notifications/service'
+		);
+		getNotifications.mockResolvedValueOnce({
+			items: [{ ...comment, read: true }],
+			nextCursor: null,
+		});
 		renderList([{ ...invitation, read: true }], [invitation.id, comment.id]);
-		expect(within(rowOf('Which stall')).getByText('Unread')).toBeInTheDocument();
+		expect(
+			within(rowOf('Which stall')).getByText('Unread')
+		).toBeInTheDocument();
 
 		fireEvent.click(screen.getByRole('button', { name: 'Conversation' }));
-		await waitFor(() => expect(getNotifications).toHaveBeenCalledWith(null, 'CONVERSATION'));
-		await waitFor(() => expect(within(rowOf(comment.comment.excerpt)).getByText('Unread')).toBeInTheDocument());
+		await waitFor(() =>
+			expect(getNotifications).toHaveBeenCalledWith(null, 'CONVERSATION')
+		);
+		await waitFor(() =>
+			expect(
+				within(rowOf(comment.comment.excerpt)).getByText('Unread')
+			).toBeInTheDocument()
+		);
 	});
 
 	it('clears a dot from before read-all once its row is opened', async () => {
 		renderList([{ ...invitation, read: true }], [invitation.id]);
 		fireEvent.click(screen.getByText(invitation.poll.title));
-		expect(within(rowOf('Which stall')).queryByText('Unread')).not.toBeInTheDocument();
+		expect(
+			within(rowOf('Which stall')).queryByText('Unread')
+		).not.toBeInTheDocument();
 	});
 
 	it('leaves the badge alone when reading fails', async () => {
@@ -442,11 +735,17 @@ describe('NotificationList read state', () => {
 	});
 
 	it('reads nothing when the feed could not be loaded', () => {
-		render(<NotificationList initialPage={null} unreadIds={null} viewerUsername="mei" />);
+		render(
+			<NotificationList
+				initialPage={null}
+				unreadIds={null}
+				viewerUsername="mei"
+			/>
+		);
 		expect(mockMarkAllRead).not.toHaveBeenCalled();
 	});
 
-	it('opens the row\'s target from anywhere on the row', () => {
+	it("opens the row's target from anywhere on the row", () => {
 		renderList([invitation]);
 		const row = rowOf('Which stall');
 		const cover = row.querySelector('a[aria-hidden="true"]')!;
@@ -459,43 +758,72 @@ describe('NotificationList read state', () => {
 
 	it('opens the followers list from anywhere on a group of follows', () => {
 		renderList([follow('bkim', 10), follow('jtan', 20)]);
-		fireEvent.click(rowOf('@bkim').querySelector('button[aria-hidden="true"]')!);
+		fireEvent.click(
+			rowOf('@bkim').querySelector('button[aria-hidden="true"]')!
+		);
 		expect(screen.getByRole('dialog')).toHaveTextContent('followers of mei');
 	});
 
-	it('clears a follower\'s dot when the viewer follows back', async () => {
+	it("clears a follower's dot when the viewer follows back", async () => {
 		renderList([follow('jtan', 10)]);
 		fireEvent.click(screen.getByRole('button', { name: 'Follow back' }));
-		expect(await screen.findByRole('button', { name: /Following/ })).toBeInTheDocument();
-		expect(within(rowOf('@jtan')).queryByText('Unread')).not.toBeInTheDocument();
+		expect(
+			await screen.findByRole('button', { name: /Following/ })
+		).toBeInTheDocument();
+		expect(
+			within(rowOf('@jtan')).queryByText('Unread')
+		).not.toBeInTheDocument();
 	});
 });
 
 describe('NotificationList', () => {
 	it('groups by day, newest first', () => {
-		renderList([follow('jtan', 60), { ...comment, createdAt: iso(-20 * HOUR) }, { ...result, createdAt: iso(-72 * HOUR) }]);
-		expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['Today', 'Yesterday', 'Earlier']);
-		expect(screen.getByRole('region', { name: 'Earlier' })).toHaveTextContent('Results are in');
+		renderList([
+			follow('jtan', 60),
+			{ ...comment, createdAt: iso(-20 * HOUR) },
+			{ ...result, createdAt: iso(-72 * HOUR) },
+		]);
+		expect(
+			screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)
+		).toEqual(['Today', 'Yesterday', 'Earlier']);
+		expect(screen.getByRole('region', { name: 'Earlier' })).toHaveTextContent(
+			'Results are in'
+		);
 	});
 
 	it('loads a category tab and keeps its category while paging', async () => {
-		const { getNotifications } = jest.requireMock('@/features/notifications/service');
+		const { getNotifications } = jest.requireMock(
+			'@/features/notifications/service'
+		);
 		const like = { ...comment, id: 'like_c1', kind: 'LIKE' };
-		getNotifications.mockResolvedValueOnce({ items: [like], nextCursor: 'n1' }).mockResolvedValueOnce({ items: [], nextCursor: null });
+		getNotifications
+			.mockResolvedValueOnce({ items: [like], nextCursor: 'n1' })
+			.mockResolvedValueOnce({ items: [], nextCursor: null });
 		renderList([result, comment]);
 
 		fireEvent.click(screen.getByRole('button', { name: 'Likes' }));
-		await waitFor(() => expect(getNotifications).toHaveBeenCalledWith(null, 'LIKE'));
+		await waitFor(() =>
+			expect(getNotifications).toHaveBeenCalledWith(null, 'LIKE')
+		);
 		expect(await screen.findByText(/liked your comment/)).toBeInTheDocument();
-		expect(screen.queryByText('Results are in', { exact: false })).not.toBeInTheDocument();
-		expect(screen.getByRole('button', { name: 'Likes' })).toHaveAttribute('aria-pressed', 'true');
+		expect(
+			screen.queryByText('Results are in', { exact: false })
+		).not.toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Likes' })).toHaveAttribute(
+			'aria-pressed',
+			'true'
+		);
 
 		fireEvent.click(screen.getByRole('button', { name: /Load more/ }));
-		await waitFor(() => expect(getNotifications).toHaveBeenCalledWith('n1', 'LIKE'));
+		await waitFor(() =>
+			expect(getNotifications).toHaveBeenCalledWith('n1', 'LIKE')
+		);
 	});
 
 	it('says so when a category tab is empty, and keeps the tabs', async () => {
-		const { getNotifications } = jest.requireMock('@/features/notifications/service');
+		const { getNotifications } = jest.requireMock(
+			'@/features/notifications/service'
+		);
 		getNotifications.mockResolvedValueOnce({ items: [], nextCursor: null });
 		renderList([result]);
 		fireEvent.click(screen.getByRole('button', { name: 'Follows' }));
@@ -504,94 +832,190 @@ describe('NotificationList', () => {
 	});
 
 	it('stays on the current tab and says so when a category fails to load', async () => {
-		const { getNotifications } = jest.requireMock('@/features/notifications/service');
+		const { getNotifications } = jest.requireMock(
+			'@/features/notifications/service'
+		);
 		getNotifications.mockRejectedValueOnce(new Error('down'));
 		renderList([result]);
 		fireEvent.click(screen.getByRole('button', { name: 'Likes' }));
-		await waitFor(() => expect(mockToastError).toHaveBeenCalledWith('Couldn’t load that tab. Try again.'));
-		expect(screen.getByRole('button', { name: 'Likes' })).toHaveAttribute('aria-pressed', 'false');
-		expect(screen.getByText('Results are in', { exact: false })).toBeInTheDocument();
+		await waitFor(() =>
+			expect(mockToastError).toHaveBeenCalledWith(
+				'Couldn’t load that tab. Try again.'
+			)
+		);
+		expect(screen.getByRole('button', { name: 'Likes' })).toHaveAttribute(
+			'aria-pressed',
+			'false'
+		);
+		expect(
+			screen.getByText('Results are in', { exact: false })
+		).toBeInTheDocument();
 	});
 
 	it('shows the empty state only when there is nothing at all, and keeps the tabs', () => {
 		renderList([]);
-		expect(screen.getByRole('heading', { level: 1, name: 'Notifications' })).toBeInTheDocument();
-		expect(screen.getByRole('heading', { level: 2, name: 'No notifications yet.' })).toBeInTheDocument();
+		expect(
+			screen.getByRole('heading', { level: 1, name: 'Notifications' })
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole('heading', { level: 2, name: 'No notifications yet.' })
+		).toBeInTheDocument();
 		expect(screen.getByRole('button', { name: 'Follows' })).toBeInTheDocument();
 	});
 
 	it('writes the tab into the address, and opens on the one it names', async () => {
-		const { getNotifications } = jest.requireMock('@/features/notifications/service');
+		const { getNotifications } = jest.requireMock(
+			'@/features/notifications/service'
+		);
 		getNotifications.mockResolvedValueOnce({ items: [], nextCursor: null });
 		renderList([result]);
 		fireEvent.click(screen.getByRole('button', { name: 'Follows' }));
 		await waitFor(() => expect(window.location.search).toBe('?tab=follow'));
 		cleanup();
 
-		render(<NotificationList initialPage={{ items: [], nextCursor: 'n1' }} initialCategory="LIKE" unreadIds={null} viewerUsername="mei" />);
-		expect(screen.getByRole('button', { name: 'Likes' })).toHaveAttribute('aria-pressed', 'true');
+		render(
+			<NotificationList
+				initialPage={{ items: [], nextCursor: 'n1' }}
+				initialCategory="LIKE"
+				unreadIds={null}
+				viewerUsername="mei"
+			/>
+		);
+		expect(screen.getByRole('button', { name: 'Likes' })).toHaveAttribute(
+			'aria-pressed',
+			'true'
+		);
 		fireEvent.click(screen.getByRole('button', { name: /Load more/ }));
-		await waitFor(() => expect(getNotifications).toHaveBeenCalledWith('n1', 'LIKE'));
+		await waitFor(() =>
+			expect(getNotifications).toHaveBeenCalledWith('n1', 'LIKE')
+		);
 		window.history.replaceState(null, '', '/');
 	});
 
 	it('leaves the address alone when a notification was opened while the tab loaded', async () => {
-		const { getNotifications } = jest.requireMock('@/features/notifications/service');
+		const { getNotifications } = jest.requireMock(
+			'@/features/notifications/service'
+		);
 		let respond!: (page: unknown) => void;
-		getNotifications.mockReturnValueOnce(new Promise((resolve) => (respond = resolve)));
+		getNotifications.mockReturnValueOnce(
+			new Promise((resolve) => (respond = resolve))
+		);
 		window.history.replaceState(null, '', '/notifications');
 		renderList([result]);
 		fireEvent.click(screen.getByRole('button', { name: 'Follows' }));
 		window.history.pushState(null, '', '/poll/p3');
 		respond({ items: [], nextCursor: null });
-		await waitFor(() => expect(screen.getByRole('button', { name: 'Follows' })).toHaveAttribute('aria-pressed', 'true'));
+		await waitFor(() =>
+			expect(screen.getByRole('button', { name: 'Follows' })).toHaveAttribute(
+				'aria-pressed',
+				'true'
+			)
+		);
 		expect(window.location.pathname + window.location.search).toBe('/poll/p3');
 		window.history.replaceState(null, '', '/');
 	});
 
 	it('keeps address parameters that are not the tab', async () => {
-		const { getNotifications } = jest.requireMock('@/features/notifications/service');
+		const { getNotifications } = jest.requireMock(
+			'@/features/notifications/service'
+		);
 		getNotifications.mockResolvedValue({ items: [], nextCursor: null });
 		window.history.replaceState(null, '', '/notifications?utm_source=mail');
 		renderList([result]);
 		fireEvent.click(screen.getByRole('button', { name: 'Follows' }));
-		await waitFor(() => expect(window.location.search).toBe('?utm_source=mail&tab=follow'));
+		await waitFor(() =>
+			expect(window.location.search).toBe('?utm_source=mail&tab=follow')
+		);
 		fireEvent.click(screen.getByRole('button', { name: 'All' }));
-		await waitFor(() => expect(window.location.search).toBe('?utm_source=mail'));
+		await waitFor(() =>
+			expect(window.location.search).toBe('?utm_source=mail')
+		);
 		window.history.replaceState(null, '', '/');
 	});
 
 	it('offers no read-all or unread filter', () => {
 		renderList([invitation, comment]);
-		expect(screen.queryByRole('button', { name: 'Mark all read' })).not.toBeInTheDocument();
-		expect(screen.queryByRole('button', { name: /Unread/ })).not.toBeInTheDocument();
+		expect(
+			screen.queryByRole('button', { name: 'Mark all read' })
+		).not.toBeInTheDocument();
+		expect(
+			screen.queryByRole('button', { name: /Unread/ })
+		).not.toBeInTheDocument();
 	});
 
 	it('says when the feed could not be loaded', () => {
-		render(<NotificationList initialPage={null} unreadIds={null} viewerUsername="mei" />);
-		expect(screen.getByText('Couldn’t load notifications.')).toBeInTheDocument();
+		render(
+			<NotificationList
+				initialPage={null}
+				unreadIds={null}
+				viewerUsername="mei"
+			/>
+		);
+		expect(
+			screen.getByText('Couldn’t load notifications.')
+		).toBeInTheDocument();
 	});
 });
 
 describe('NotificationSettingsLink', () => {
 	it('sums up the switches and links to them in Settings', () => {
-		render(<NotificationSettingsLink preferences={{ resultsIn: true, invitations: true, comments: true, mentions: true, likes: true, closingSoon: false }} />);
+		render(
+			<NotificationSettingsLink
+				preferences={{
+					resultsIn: true,
+					invitations: true,
+					comments: true,
+					mentions: true,
+					likes: true,
+					closingSoon: false,
+				}}
+			/>
+		);
 		const link = screen.getByRole('link', { name: /Notification settings/ });
 		expect(link).toHaveAttribute('href', '/settings#notifications');
-		expect(link).toHaveTextContent(`Results, invitations, comments, mentions, likes on${META_GAP}closing soon off`, { normalizeWhitespace: false });
+		expect(link).toHaveTextContent(
+			`Results, invitations, comments, mentions, likes on${META_GAP}closing soon off`,
+			{ normalizeWhitespace: false }
+		);
 	});
 
 	it('names only what is on, or only what is off', () => {
 		const { rerender } = render(
-			<NotificationSettingsLink preferences={{ resultsIn: true, invitations: true, comments: true, mentions: true, likes: true, closingSoon: true }} />
+			<NotificationSettingsLink
+				preferences={{
+					resultsIn: true,
+					invitations: true,
+					comments: true,
+					mentions: true,
+					likes: true,
+					closingSoon: true,
+				}}
+			/>
 		);
-		expect(screen.getByRole('link')).toHaveTextContent('Results, invitations, comments, mentions, likes, closing soon on');
-		rerender(<NotificationSettingsLink preferences={{ resultsIn: false, invitations: false, comments: false, mentions: false, likes: false, closingSoon: false }} />);
-		expect(screen.getByRole('link')).toHaveTextContent('Results, invitations, comments, mentions, likes, closing soon off');
+		expect(screen.getByRole('link')).toHaveTextContent(
+			'Results, invitations, comments, mentions, likes, closing soon on'
+		);
+		rerender(
+			<NotificationSettingsLink
+				preferences={{
+					resultsIn: false,
+					invitations: false,
+					comments: false,
+					mentions: false,
+					likes: false,
+					closingSoon: false,
+				}}
+			/>
+		);
+		expect(screen.getByRole('link')).toHaveTextContent(
+			'Results, invitations, comments, mentions, likes, closing soon off'
+		);
 	});
 
 	it('leaves the summary out when the switches could not be loaded', () => {
 		render(<NotificationSettingsLink preferences={null} />);
-		expect(screen.getByRole('link')).toHaveTextContent(/^Notification settings$/);
+		expect(screen.getByRole('link')).toHaveTextContent(
+			/^Notification settings$/
+		);
 	});
 });
