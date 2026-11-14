@@ -32,7 +32,7 @@ pnpm exec jest src/__tests__/features/polls/PollCard.test.tsx
 
 ### Sanity CMS
 
-Schemas live in vomatt-admin `src/sanity/schemaTypes/`. This app reads only `settingsGeneral`, `settingsIntegration` (shared with the about site) and `pSignUp`; the about site owns `pGeneral`, `pHome`, the global modules and the page builder. GROQ queries here depend on those schemas, so check both when a schema changes. Read side here: `src/sanity/{env.ts,lib/client.ts,lib/live.ts,lib/image.ts,lib/queries.ts}` on `@sanity/client` + `groq` (not `next-sanity`, which pulls in the Studio). Content is not localized.
+Schemas live in vomatt-admin `src/sanity/schemaTypes/`. This app reads only `settingsGeneral`, `settingsIntegration` (shared with the about site), `pSignUp` and `gAnnouncement` (the announcement bar in `features/announcement/`; dismissing it stores the document's `_rev` in the `announcement-dismissed` cookie, so each publish shows it again); the about site owns `pGeneral`, `pHome`, the other global modules and the page builder. GROQ queries here depend on those schemas, so check both when a schema changes. Read side here: `src/sanity/{env.ts,lib/client.ts,lib/live.ts,lib/image.ts,lib/queries.ts}` on `@sanity/client` + `groq` (not `next-sanity`, which pulls in the Studio). Content is not localized, except the announcement's optional Chinese message (`messageZh`).
 
 Fetch pattern (published content, cached per Sanity sync tag, expired on publish — no read token):
 ```ts
