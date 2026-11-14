@@ -53,7 +53,6 @@ import { accountName } from '@/features/communities/schema';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
 import { pollHref } from '@/lib/routes';
-import { cn } from '@/lib/utils';
 
 import { deleteDraft, type PollDraft, saveDraft } from '../../drafts';
 import { joinSentences } from '../../format';

@@ -1,7 +1,7 @@
 import { type CSSProperties, useEffect, useState } from 'react';
 
 /** The part of the page left visible beside an on-screen keyboard. */
-export type VisualViewportBox = { top: number; height: number };
+type VisualViewportBox = { top: number; height: number };
 
 // Keyboards are taller than this; the browser's toolbars collapsing is not
 const KEYBOARD_MIN = 150;
@@ -22,7 +22,7 @@ const isTextEntry = (el: Element | null) =>
  * The keyboard counts only while a text field is focused: iOS may send no resize after it
  * closes, or one from mid-animation, so a size alone can stay stuck at "keyboard up".
  */
-export function useVisualViewport(): VisualViewportBox | null {
+function useVisualViewport(): VisualViewportBox | null {
 	const [box, setBox] = useState<VisualViewportBox | null>(null);
 
 	useEffect(() => {
@@ -70,6 +70,10 @@ export function useVisualViewport(): VisualViewportBox | null {
 
 	return box;
 }
+
+/** While the keyboard is up (`useKeyboardInset`) a popup centers in what it leaves visible. Beats the base `top`/`max-h`/translate, not a dialog's `sm:`/`md:` overrides. */
+export const keyboardInsetClasses =
+	'data-keyboard:top-(--visible-center) data-keyboard:max-h-[calc(var(--visible-height)-2rem)] data-keyboard:-translate-y-1/2';
 
 /**
  * Props that keep a dialog popup inside what the keyboard leaves visible, and nothing once it closes,

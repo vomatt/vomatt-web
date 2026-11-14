@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/Input';
 import { Plus, X } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
-import { UserSuggestions } from '@/features/polls/components/UserSuggestions';
+import { keepFieldFocused, UserSuggestions } from '@/features/polls/components/UserSuggestions';
 import { useUserSearch } from '@/features/polls/hooks/useUserSearch';
 import type { UserDto } from '@/schemas/user';
 
@@ -105,6 +105,7 @@ function InviteMemberForm({ roles, excludeIds, busy, onInvite, onClose }: FormPr
 						{isEmail && (
 							<button
 								type="button"
+								onMouseDown={keepFieldFocused}
 								onClick={() => setPicked({ email })}
 								className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-body-4 hover:bg-muted"
 							>

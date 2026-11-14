@@ -8,11 +8,7 @@ import type { UserDto } from '@/schemas/user';
 
 import type { UserSearch } from '../hooks/useUserSearch';
 
-/**
- * For a pick button under a text field: a tap leaves the field focused, so a phone's keyboard stays up.
- * Were it to close on the pick and reopen on the next tap, iOS shifts the dialog mid-tap and the tap's
- * click can land outside it, closing the dialog.
- */
+/** On a pick button under a text field: keeps the field focused so the keyboard stays up (else iOS shifts the dialog mid-tap and the next tap can dismiss it). */
 export const keepFieldFocused = (event: React.MouseEvent) => event.preventDefault();
 
 /**

@@ -5,15 +5,8 @@ import * as React from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { X } from '@/components/ui/SvgIcons';
-import { useKeyboardInset } from '@/hooks/useVisualViewport';
+import { keyboardInsetClasses, useKeyboardInset } from '@/hooks/useVisualViewport';
 import { cn } from '@/lib/utils';
-
-/**
- * While an on-screen keyboard is up (`useKeyboardInset`) a popup centers in what it leaves visible
- * and scrolls within it; these win over a dialog's own `top`, `max-h` and translate.
- */
-const keyboardInsetClasses =
-	'data-keyboard:top-(--visible-center) data-keyboard:max-h-[calc(var(--visible-height)-2rem)] data-keyboard:-translate-y-1/2';
 
 function Dialog({ ...props }: DialogPrimitive.Root.Props) {
 	return <DialogPrimitive.Root data-slot="dialog" {...props} />;
@@ -192,5 +185,4 @@ export {
 	DialogTitle,
 	dialogTitleClasses,
 	DialogTrigger,
-	keyboardInsetClasses,
 };

@@ -4,8 +4,8 @@ import { AlertDialog as AlertDialogPrimitive } from '@base-ui/react/alert-dialog
 import * as React from 'react';
 
 import { Button } from '@/components/ui/Button';
-import { dialogTitleClasses, keyboardInsetClasses } from '@/components/ui/Dialog';
-import { useKeyboardInset } from '@/hooks/useVisualViewport';
+import { dialogTitleClasses } from '@/components/ui/Dialog';
+import { keyboardInsetClasses, useKeyboardInset } from '@/hooks/useVisualViewport';
 import { cn } from '@/lib/utils';
 
 function AlertDialog({ ...props }: AlertDialogPrimitive.Root.Props) {
