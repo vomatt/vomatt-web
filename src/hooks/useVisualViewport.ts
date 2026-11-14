@@ -33,6 +33,8 @@ function watch(viewport: VisualViewport) {
 	let width = 0;
 	let tallest = 0;
 	let watchingRemovals = false;
+	// A mouse means no on-screen keyboard: a window made shorter (DevTools docked below) isn't one
+	const finePointer = window.matchMedia?.('(pointer: fine)');
 	const update = () => {
 		const seen = viewport.height * viewport.scale;
 		const seenWidth = Math.round(viewport.width * viewport.scale);
@@ -41,7 +43,7 @@ function watch(viewport: VisualViewport) {
 			tallest = 0;
 		}
 		tallest = Math.max(tallest, seen, window.innerHeight, document.documentElement.clientHeight);
-		const keyboard = tallest - seen > KEYBOARD_MIN && isTextEntry(document.activeElement);
+		const keyboard = !finePointer?.matches && tallest - seen > KEYBOARD_MIN && isTextEntry(document.activeElement);
 		// Removing the focused field (a picker swapping its field for the pick) sends no focusout;
 		// watched only while the keyboard is up
 		if (keyboard !== watchingRemovals) {
@@ -54,7 +56,10 @@ function watch(viewport: VisualViewport) {
 		box = next;
 		listeners.forEach((listener) => listener());
 	};
-	const removals = new MutationObserver(update);
+	// Other DOM changes while typing (lists re-rendering) can't close the keyboard, so they skip the measuring
+	const removals = new MutationObserver(() => {
+		if (!isTextEntry(document.activeElement)) update();
+	});
 	// focusout runs before focus lands anywhere, so it measures once that settles
 	let settle: ReturnType<typeof setTimeout> | undefined;
 	const updateSoon = () => {
@@ -102,22 +107,29 @@ const REVEAL_MARGIN = 16;
  */
 function revealFocusedField() {
 	const field = document.activeElement;
-	if (!isTextEntry(field)) return;
+	if (!isTextEntry(field) || !box) return;
 	const popup = field.closest('[data-slot="dialog-content"], [data-slot="alert-dialog-content"]');
 	if (!popup) return;
-	for (let box = field.parentElement; box && popup.contains(box); box = box.parentElement) {
-		if (!/auto|scroll/.test(getComputedStyle(box).overflowY) || box.scrollHeight <= box.clientHeight) continue;
-		const outer = box.getBoundingClientRect();
+	for (let scroller = field.parentElement; scroller && popup.contains(scroller); scroller = scroller.parentElement) {
+		if (!/auto|scroll/.test(getComputedStyle(scroller).overflowY) || scroller.scrollHeight <= scroller.clientHeight) continue;
+		const outer = scroller.getBoundingClientRect();
+		// Only what's above the keyboard counts: a popup taller than that (PollCreator from sm) runs under it
+		const top = Math.max(outer.top, box.top);
+		const bottom = Math.min(outer.bottom, box.top + box.height);
 		const rect = field.getBoundingClientRect();
-		const above = outer.top + REVEAL_MARGIN - rect.top;
-		const below = rect.bottom + REVEAL_MARGIN - outer.bottom;
+		const above = top + REVEAL_MARGIN - rect.top;
+		const below = rect.bottom + REVEAL_MARGIN - bottom;
 		// A field taller than the box shows its top
-		if (above > 0) box.scrollTop -= above;
-		else if (below > 0) box.scrollTop += Math.min(below, -above);
+		if (above > 0) scroller.scrollTop -= above;
+		else if (below > 0) scroller.scrollTop += Math.min(below, -above);
 	}
 }
 
-/** While the keyboard is up (`useKeyboardInset`) a popup centers in what it leaves visible. Beats the base `top`/`max-h`/translate, not a dialog's `sm:`/`md:` overrides. */
+/**
+ * While the keyboard is up (`useKeyboardInset`) a popup centers in what it leaves visible. The `[data-keyboard]`
+ * selectors outrank the base `top`/`max-h`/translate and a dialog's own `sm:`/`md:` ones (AuthDialog's
+ * `md:top-[120px]`), so a dialog that wants other keyboard layout says so with `data-keyboard:` (PollCreator).
+ */
 export const keyboardInsetClasses =
 	'data-keyboard:top-(--visible-center) data-keyboard:max-h-[calc(var(--visible-height)-2rem)] data-keyboard:-translate-y-1/2';
 
