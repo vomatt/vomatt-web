@@ -166,7 +166,6 @@
 		"pollsLoadFailed": "無法載入投票。",
 		"pollsTruncated": "你的投票太多，這個頁面無法全部載入，清單和數字並不完整。",
 		"cardFailed": "無法載入個人資料。",
-		"community": "社群帳號",
 		"joined": "{date} 加入",
 		"followers": "追蹤者",
 		"following": "追蹤中",

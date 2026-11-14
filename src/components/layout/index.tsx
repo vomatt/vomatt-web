@@ -13,6 +13,7 @@ import { getLoginHref, getUserSession, loadActingState, loadMyProfile } from '@/
 import { ActingBanner } from '@/features/communities/ActingBanner';
 import { ActingProvider } from '@/features/communities/ActingProvider';
 import { KeepCommunitiesPrompt } from '@/features/communities/KeepCommunitiesPrompt';
+import { PendingFollow } from '@/features/follows/FollowButton';
 import { UnreadCountProvider } from '@/features/notifications/UnreadCountProvider';
 
 interface LayoutProps {
@@ -51,6 +52,7 @@ export async function Layout({ children }: LayoutProps) {
 					{/* Wraps the nav too: the poll creator opens from the sidebar and TabBar */}
 					<MotionProvider>
 						<ReloadWhenSessionUnconfirmed />
+						<PendingFollow />
 						{/* Acting, the profile is the community account's; the person is asked once they're back */}
 						{!acting.acting && profile?.communityQuota?.selectionRequired && <KeepCommunitiesPrompt quota={profile.communityQuota} />}
 						<AdaSkip />

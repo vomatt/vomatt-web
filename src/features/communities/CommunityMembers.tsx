@@ -26,6 +26,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { formatDate } from '@/features/polls/format';
 import { useViewerClock } from '@/features/polls/hooks/useViewerClock';
+import { handle } from '@/features/profiles/name';
+import { ProfileAvatar, ProfileName } from '@/features/profiles/UserChip';
 import type { ActionResult } from '@/lib/api/action';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
@@ -216,15 +218,13 @@ export function CommunityMembers({
 						const isViewer = member.userId === viewerId;
 						return (
 							<li key={member.userId} className={cn(rowClassName, 'gap-3')}>
-								<UserAvatar username={member.username} avatarUrl={member.avatarUrl} className="size-9" />
+								<ProfileAvatar username={member.username} avatarUrl={member.avatarUrl} className="size-9" />
 								<div className="min-w-0 flex-1">
 									<p className="truncate font-medium">
-										{member.displayName || member.username}
+										<ProfileName username={member.username} avatarUrl={member.avatarUrl} className="hover:underline" />
 										{isViewer && <span className="text-muted-foreground"> {t('communities.you')}</span>}
 									</p>
 									<p className="truncate text-caption-2 text-muted-foreground">
-										@{member.username}
-										{META_GAP}
 										{t(`communities.roles.${member.role}`)}
 										{META_GAP}
 										<span suppressHydrationWarning>
@@ -275,7 +275,7 @@ export function CommunityMembers({
 					</h2>
 					<SettingsCard as="ul">
 						{invitations.map((invitation) => {
-							const name = invitation.username ? `@${invitation.username}` : (invitation.email ?? '');
+							const name = invitation.username ? handle(invitation.username) : (invitation.email ?? '');
 							const expired = !!clock && new Date(invitation.expiresAt).getTime() <= clock.now;
 							return (
 								<li key={invitation.id} className={cn(rowClassName, 'gap-3')}>
@@ -283,14 +283,8 @@ export function CommunityMembers({
 										<UserAvatar username={invitation.username} avatarUrl={invitation.avatarUrl} className="size-9" />
 									)}
 									<div className="min-w-0 flex-1">
-										<p className="truncate font-medium">{invitation.displayName || name}</p>
+										<p className="truncate font-medium">{name}</p>
 										<p className="truncate text-caption-2 text-muted-foreground">
-											{invitation.displayName && invitation.username && (
-												<>
-													{name}
-													{META_GAP}
-												</>
-											)}
 											{t(`communities.roles.${invitation.role}`)}
 											{META_GAP}
 											<span suppressHydrationWarning>

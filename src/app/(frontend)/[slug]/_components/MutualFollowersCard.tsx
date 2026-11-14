@@ -1,14 +1,10 @@
 'use client';
 
-import Link from 'next/link';
 import { useId } from 'react';
 
 import { useLanguage } from '@/contexts/LanguageContext';
-import { UserAvatar } from '@/features/avatars/UserAvatar';
-import { profileName } from '@/features/profiles/name';
-import { ProfileHoverCard } from '@/features/profiles/ProfileHoverCard';
+import { UserChip } from '@/features/profiles/UserChip';
 import { countText } from '@/lib/count';
-import { profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 import type { UserProfile } from '@/types/user';
 
@@ -41,18 +37,11 @@ export function MutualFollowersCard({
 				<ul className="flex flex-col gap-0.5">
 					{people.map((user) => (
 						<li key={user.id}>
-							<ProfileHoverCard username={user.username} avatarUrl={user.avatarUrl}>
-								<Link
-									href={profileHref(user.username)}
-									className={cn('flex items-center gap-2.5 rounded-[10px] p-2 transition-colors hover:bg-surface-soft', focusRing)}
-								>
-									<UserAvatar username={user.username} avatarUrl={user.avatarUrl} />
-									<span className="flex min-w-0 flex-col">
-										<span className="truncate text-body-4 font-medium">{profileName(user).primary}</span>
-										<span className="truncate text-caption-2 text-muted-foreground">@{user.username}</span>
-									</span>
-								</Link>
-							</ProfileHoverCard>
+							<UserChip
+								username={user.username}
+								avatarUrl={user.avatarUrl}
+								className={cn('flex gap-2.5 rounded-[10px] p-2 text-body-4 font-medium transition-colors hover:bg-surface-soft', focusRing)}
+							/>
 						</li>
 					))}
 				</ul>

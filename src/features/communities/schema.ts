@@ -20,18 +20,16 @@ export const MyCommunitySchema = z.object({
 export const CommunityMemberSchema = z.object({
 	userId: z.string(),
 	username: z.string(),
-	displayName: z.string().nullish(),
 	avatarUrl: z.string().nullish(),
 	role: CommunityRoleSchema,
 	joinedAt: z.string(),
 });
 
-/** A pending invitation to join, sent by id (`userId` and the names) or by address (`email`); the invitee is a member only after accepting. */
+/** A pending invitation to join, sent by id (`userId` and username) or by address (`email`); the invitee is a member only after accepting. */
 export const CommunityInvitationSchema = z.object({
 	id: z.string(),
 	userId: z.string().nullish(),
 	username: z.string().nullish(),
-	displayName: z.string().nullish(),
 	avatarUrl: z.string().nullish(),
 	email: z.string().nullish(),
 	role: CommunityRoleSchema,

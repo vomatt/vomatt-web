@@ -9,7 +9,7 @@ const creator = { username: 'alice', avatarUrl: 'bot:boba' };
 describe('InvitationPrompt', () => {
 	it('names who invited a signed-out visitor and offers sign-in back to the Poll', () => {
 		render(<InvitationPrompt creator={creator} pollId="poll-1" />);
-		expect(screen.getByRole('heading', { level: 1, name: 'alice invited you to a poll' })).toBeInTheDocument();
+		expect(screen.getByRole('heading', { level: 1, name: '@alice invited you to a poll' })).toBeInTheDocument();
 		expect(screen.getByText('Invite only')).toBeInTheDocument();
 		expect(screen.getByRole('link', { name: 'Log in' })).toHaveAttribute(
 			'href',

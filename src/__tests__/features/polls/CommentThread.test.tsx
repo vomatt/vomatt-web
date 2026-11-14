@@ -120,16 +120,10 @@ describe('CommentThread', () => {
 		expect(article.querySelector('img')).toHaveAttribute('src', '/avatars/bear.svg');
 	});
 
-	it('badges a comment written under a community account', async () => {
-		service.getComments.mockResolvedValue({
-			ok: true,
-			data: { items: [mine, { ...theirs, authorCommunity: true }], nextCursor: null },
-		});
+	it('names each author by @handle, linking to their profile', async () => {
 		render(<Harness />);
-		const theirArticle = (await screen.findByText('Theirs')).closest('article')!;
-		expect(within(theirArticle).getByRole('img', { name: 'Community account' })).toBeInTheDocument();
-		const myArticle = screen.getByText('Mine').closest('article')!;
-		expect(within(myArticle).queryByRole('img', { name: 'Community account' })).not.toBeInTheDocument();
+		const article = (await screen.findByText('Theirs')).closest('article')!;
+		expect(within(article).getByRole('link', { name: '@mei' })).toHaveAttribute('href', '/mei');
 	});
 
 	it("offers edit and delete on the viewer's own comments, report and block on others'", async () => {
@@ -815,11 +809,11 @@ describe('CommentThread', () => {
 			fireEvent.submit(box.closest('form')!);
 			const posted = (await screen.findByText('Still me')).closest('article')!;
 
-			expect(within(posted).getByText('klaus')).toBeInTheDocument();
+			expect(within(posted).getByText('@klaus')).toBeInTheDocument();
 			expect(within(posted).getByText('You')).toBeInTheDocument();
 		});
 
-		it('leads with the name the viewer shows, under it their handle, as the saved comment will', async () => {
+		it('names the viewer by username alone, as the saved comment will', async () => {
 			service.postComment.mockReturnValue(new Promise(() => {}));
 			function SignedIn() {
 				const thread = useComments('poll-1', { enabled: true });
@@ -828,7 +822,7 @@ describe('CommentThread', () => {
 						thread={thread}
 						pollId="poll-1"
 						viewerId="me"
-						viewer={{ username: 'klaus', avatarUrl: 'bot:owl', firstName: 'Klaus', lastName: 'Chin' }}
+						viewer={{ username: 'klaus', avatarUrl: 'bot:owl' }}
 						requireAuth={(action) => action()}
 					/>
 				);
@@ -841,7 +835,6 @@ describe('CommentThread', () => {
 			fireEvent.submit(box.closest('form')!);
 			const posted = (await screen.findByText('Named')).closest('article')!;
 
-			expect(within(posted).getByText('Klaus Chin')).toBeInTheDocument();
 			expect(within(posted).getByText('@klaus')).toBeInTheDocument();
 		});
 

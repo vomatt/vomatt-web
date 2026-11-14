@@ -37,7 +37,7 @@ describe('InviteePicker', () => {
 		jest.useRealTimers();
 
 		expect(screen.queryByRole('button', { name: 'ann' })).not.toBeInTheDocument();
-		expect(screen.getByRole('button', { name: 'anna' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: '@anna' })).toBeInTheDocument();
 	});
 
 	it("shows a community account in the results but won't invite it, and Enter skips it", async () => {

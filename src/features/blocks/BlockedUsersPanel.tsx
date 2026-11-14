@@ -8,8 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
-import { shownName } from '@/features/profiles/name';
-import { NameAndHandle } from '@/features/profiles/UserChip';
+import { handle } from '@/features/profiles/name';
 import { mergeById } from '@/lib/api/cursor';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
@@ -106,9 +105,7 @@ export function BlockedUsersPanel() {
 					{users.map((user) => (
 						<li key={user.id} className={rowClassName}>
 							<UserAvatar username={user.username} avatarUrl={user.avatarUrl} className="size-9" />
-							<p className="flex min-w-0 flex-1 font-medium">
-								<NameAndHandle name={shownName(user)} username={user.username} fallback={`@${user.username}`} />
-							</p>
+							<p className="min-w-0 flex-1 truncate font-medium">{handle(user.username)}</p>
 							<Button
 								variant="outline"
 								size="xs"

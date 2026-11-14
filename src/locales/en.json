@@ -167,7 +167,6 @@
 		"pollsLoadFailed": "Couldn’t load polls.",
 		"pollsTruncated": "You have more polls than this page can load. Some are missing from these lists and counts.",
 		"cardFailed": "Couldn’t load this profile.",
-		"community": "Community account",
 		"joined": "Joined {date}",
 		"followers": "Followers",
 		"following": "Following",

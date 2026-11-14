@@ -15,12 +15,12 @@ const cy = { id: 'u2', username: 'cy', displayName: null, avatarUrl: null };
 
 beforeEach(() => jest.resetAllMocks());
 
-it('lists each person by the name they show, then their handle, leaving the title to the page', async () => {
+it('lists each person by their @handle alone, leaving the title to the page', async () => {
 	mockGet.mockResolvedValue({ ok: true, data: { items: [bob, cy], nextCursor: null } });
 	render(<BlockedUsersPanel />);
 
 	const items = await screen.findAllByRole('listitem');
-	expect(items.map((item) => item.textContent)).toEqual(['Bob @bobUnblock', '@cyUnblock']);
+	expect(items.map((item) => item.textContent)).toEqual(['@bobUnblock', '@cyUnblock']);
 	expect(screen.queryByRole('heading')).not.toBeInTheDocument();
 });
 

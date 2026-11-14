@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -8,14 +7,10 @@ import { Button } from '@/components/ui/Button';
 import { Dialog, DialogBody, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { UserAvatar } from '@/features/avatars/UserAvatar';
-import { CommunityBadge } from '@/features/profiles/CommunityBadge';
-import { profileName } from '@/features/profiles/name';
-import { ProfileHoverCard, rememberFollowing } from '@/features/profiles/ProfileHoverCard';
+import { rememberFollowing } from '@/features/profiles/ProfileHoverCard';
+import { UserChip } from '@/features/profiles/UserChip';
 import { mergeById } from '@/lib/api/cursor';
 import { settle } from '@/lib/api/settle';
-import { META_GAP } from '@/lib/rich';
-import { profileHref } from '@/lib/routes';
 
 import { FollowButton, useFollow } from './FollowButton';
 import type { FollowUserDto } from './schema';
@@ -152,24 +147,16 @@ function PersonRow({ user, viewerId, onFollowChange }: RowProps & { user: Follow
 
 	return (
 		<li className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2.5 transition-colors hover:border-border-strong">
-			<ProfileHoverCard username={user.username} avatarUrl={user.avatarUrl}>
-				<Link
-					href={profileHref(user.username)}
-					className="flex min-w-0 flex-1 items-center gap-3 rounded-md outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
-				>
-					<UserAvatar username={user.username} avatarUrl={user.avatarUrl} />
-					<span className="flex min-w-0 flex-col gap-0.5">
-						<span className="flex min-w-0 items-center gap-1 text-body-4 font-medium">
-							<span className="truncate">{profileName(user).primary}</span>
-							{user.community && <CommunityBadge />}
-						</span>
-						<span className="truncate text-caption-2 text-muted-foreground">
-							@{user.username}
-							{user.followsYou && `${META_GAP}${t('follows.followsYou')}`}
-						</span>
-					</span>
-				</Link>
-			</ProfileHoverCard>
+			<UserChip
+				username={user.username}
+				avatarUrl={user.avatarUrl}
+				caption={
+					user.followsYou && (
+						<span className="truncate text-caption-2 font-normal text-muted-foreground">{t('follows.followsYou')}</span>
+					)
+				}
+				className="flex flex-1 gap-3 rounded-md text-body-4 font-medium outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
+			/>
 			<FollowButton follow={follow} username={user.username} avatarUrl={user.avatarUrl} size="xs" />
 		</li>
 	);

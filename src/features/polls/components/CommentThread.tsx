@@ -29,8 +29,8 @@ import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { BlockUserDialog } from '@/features/blocks/BlockUserDialog';
 import { useActing } from '@/features/communities/ActingProvider';
 import { accountName } from '@/features/communities/schema';
-import { type NameParts, shownName } from '@/features/profiles/name';
-import { NameAndHandle, ProfileAvatar, ProfileName } from '@/features/profiles/UserChip';
+import { handle } from '@/features/profiles/name';
+import { ProfileAvatar, ProfileName } from '@/features/profiles/UserChip';
 import { useHydrated } from '@/hooks/useHydrated';
 import { apiErrorText } from '@/lib/api/error-text';
 import { commentHash, profileHref } from '@/lib/routes';
@@ -63,8 +63,8 @@ const pillClassName =
 const repliesActionClassName =
 	"relative mt-0.5 inline-flex h-8 items-center px-0.5 text-caption-2 font-medium text-muted-foreground before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-[''] hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring";
 
-/** The signed-in viewer, whose avatar sits beside the composers; the names are those others see. */
-type Viewer = NameParts & { avatarUrl: string | null };
+/** The signed-in viewer, whose avatar sits beside the composers. */
+type Viewer = { username: string; avatarUrl: string | null };
 
 /** Guests get the plain account icon. */
 function ViewerAvatar({ viewer, className }: { viewer?: Viewer; className: string }) {
@@ -214,9 +214,6 @@ export function CommentThread({ thread, pollId, viewerId, viewer, requireAuth, r
 	const me: PendingAuthor = {
 		author: viewer?.username ?? t('comments.you'),
 		authorAvatarUrl: viewer?.avatarUrl,
-		authorDisplayName: viewer?.displayName,
-		authorFirstName: viewer?.firstName,
-		authorLastName: viewer?.lastName,
 		userId: viewerId,
 	};
 
@@ -866,17 +863,11 @@ function CommentBody({
 		>
 			<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-caption-3 text-muted-foreground">
 				{isPending ? (
-					<span className="text-caption-1 font-medium text-foreground">
-						<NameAndHandle name={shownName({ username: author, displayName: comment.authorDisplayName, firstName: comment.authorFirstName, lastName: comment.authorLastName })} username={author} fallback={author} />
-					</span>
+					<span className="text-caption-1 font-medium text-foreground">{handle(author)}</span>
 				) : (
 					<ProfileName
 						username={author}
 						avatarUrl={comment.authorAvatarUrl}
-						displayName={comment.authorDisplayName}
-						firstName={comment.authorFirstName}
-						lastName={comment.authorLastName}
-						community={comment.authorCommunity}
 						className="text-caption-1 font-medium text-foreground hover:underline"
 					/>
 				)}

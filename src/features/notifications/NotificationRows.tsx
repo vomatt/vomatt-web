@@ -18,9 +18,9 @@ import { formatAge, formatDuration } from '@/features/polls/format';
 import { useViewerClock } from '@/features/polls/hooks/useViewerClock';
 import { derivePollStatus } from '@/features/polls/status';
 import { pollTiming } from '@/features/polls/timing';
-import { type NameParts, shownName } from '@/features/profiles/name';
-import { ProfileHoverCard, rememberFollowing } from '@/features/profiles/ProfileHoverCard';
-import { ProfileAvatar } from '@/features/profiles/UserChip';
+import { handle } from '@/features/profiles/name';
+import { rememberFollowing } from '@/features/profiles/ProfileHoverCard';
+import { ProfileAvatar, ProfileName } from '@/features/profiles/UserChip';
 import { apiErrorText } from '@/lib/api/error-text';
 import { countText } from '@/lib/count';
 import { toLocaleTag } from '@/lib/locale';
@@ -205,17 +205,15 @@ function RowLink({ href, onOpen, className, children }: { href: string; onOpen: 
 	);
 }
 
-/** What a notification calls its actor: the name they show, else their @handle. */
-const actorName = (actor: NameParts) => shownName(actor) ?? `@${actor.username}`;
-
-/** The actor's name as a profile link with the hover card. */
-function ActorName({ actor, onOpen }: { actor: NameParts & { avatarUrl?: string | null }; onOpen: () => void }) {
+/** The actor's @handle as a profile link with the hover card. */
+function ActorName({ actor, onOpen }: { actor: { username: string; avatarUrl?: string | null }; onOpen: () => void }) {
 	return (
-		<ProfileHoverCard username={actor.username} avatarUrl={actor.avatarUrl}>
-			<Link href={profileHref(actor.username)} onClick={onOpen} className={rowLink}>
-				{strong(actorName(actor))}
-			</Link>
-		</ProfileHoverCard>
+		<ProfileName
+			username={actor.username}
+			avatarUrl={actor.avatarUrl}
+			onClick={onOpen}
+			className={cn(rowLink, 'font-semibold')}
+		/>
 	);
 }
 
@@ -282,7 +280,7 @@ function CancelledRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'CANCEL
 						{poll.title}
 					</RowLink>
 				),
-				name: actorName(entry.actor),
+				name: handle(entry.actor.username),
 			})}
 			meta={[useAge(entry.createdAt)]}
 		/>
@@ -310,7 +308,7 @@ function InvitationRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'INVIT
 			icon={<ProfileAvatar username={actor.username} avatarUrl={actor.avatarUrl} className="size-9" />}
 			line={
 				<>
-					{rich(t('notifications.invitedYou'), { name: strong(actorName(actor)) })}{META_GAP}
+					{rich(t('notifications.invitedYou'), { name: strong(handle(actor.username)) })}{META_GAP}
 					<RowLink href={href} onOpen={onOpen} className="font-medium">
 						{poll.title}
 					</RowLink>
@@ -345,7 +343,7 @@ function FollowedRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'FOLLOWE
 			line={rich(t('notifications.followedYou'), {
 				name: <ActorName actor={actor} onOpen={onOpen} />,
 			})}
-			meta={[useAge(entry.createdAt), shownName(actor) && `@${actor.username}`]}
+			meta={[useAge(entry.createdAt)]}
 			action={<FollowButton follow={follow} username={actor.username} avatarUrl={actor.avatarUrl} size="xs" />}
 		/>
 	);
@@ -395,7 +393,7 @@ function PollLikeRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'POLL_LI
 			unread={!entry.read}
 			icon={<ProfileAvatar username={actor.username} avatarUrl={actor.avatarUrl} className="size-9" />}
 			line={rich(t('notifications.pollLiked'), {
-				name: strong(actorName(actor)),
+				name: strong(handle(actor.username)),
 				title: (
 					<RowLink href={href} onOpen={onOpen} className="font-medium">
 						{poll.title}
@@ -426,7 +424,7 @@ function CommentRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'COMMENT'
 			icon={<ProfileAvatar username={actor.username} avatarUrl={actor.avatarUrl} className="size-9" />}
 			// The API doesn't say whose comment a reply answers: on the viewer's poll it may be someone else's
 			line={rich(t(entry.kind === 'COMMENT' && comment.parentId ? 'notifications.replied' : COMMENT_ROW_LINE[entry.kind]), {
-				name: strong(actorName(actor)),
+				name: strong(handle(actor.username)),
 				title: (
 					<RowLink href={href} onOpen={onOpen} className="font-medium">
 						{poll.title}
@@ -544,7 +542,7 @@ function CommunityInvitationRow({ entry, onOpen }: RowProps<Extract<Entry, { kin
 			}
 			return;
 		}
-		toast.success(t(choice === 'accept' ? 'notifications.invitationAccepted' : 'notifications.invitationDeclined', { name: actorName(actor) }));
+		toast.success(t(choice === 'accept' ? 'notifications.invitationAccepted' : 'notifications.invitationDeclined', { name: handle(actor.username) }));
 		setAnswered(true);
 		refresh();
 		if (choice === 'accept') reloadCommunities();

@@ -33,7 +33,7 @@ jest.mock('@/features/profiles/ProfileHoverCard', () => ({
 	ProfileHoverCard: ({ children }: { children: React.ReactNode }) => children,
 	rememberFollowing: jest.fn(),
 }));
-jest.mock('@/features/profiles/UserChip', () => ({ ProfileAvatar: () => null }));
+jest.mock('@/features/profiles/UserChip', () => ({ ...jest.requireActual('@/features/profiles/UserChip'), ProfileAvatar: () => null }));
 const mockToastError = jest.fn();
 const mockAccept = jest.fn();
 jest.mock('@/features/communities/service', () => ({
@@ -206,15 +206,15 @@ describe('NotificationList rows', () => {
 		expect(within(row).getByRole('link', { name: 'Vote' })).toHaveAttribute('href', '/poll/p2');
 	});
 
-	it('offers Follow back to a new follower by the name they show, or shows Following once followed back', () => {
+	it('offers Follow back to a new follower by their @handle, or shows Following once followed back', () => {
 		renderList([
 			follow('jtan', 120, { actor: { ...person('jtan', 'Jun Tan'), followsYou: true } }),
 			comment,
 			follow('tpark', 600, { read: true, actor: { ...person('tpark'), isFollowing: true, followsYou: true } }),
 		]);
 		const jtan = rowOf('@jtan');
-		expect(jtan).toHaveTextContent('Jun Tan followed you');
-		expect(jtan).toHaveTextContent(`2h${META_GAP}@jtan`, { normalizeWhitespace: false });
+		expect(jtan).toHaveTextContent('@jtan followed you');
+		expect(jtan).not.toHaveTextContent('Jun Tan');
 		expect(within(jtan).getByRole('button', { name: 'Follow back' })).toBeInTheDocument();
 		expect(within(rowOf('@tpark')).getByRole('button', { name: /Following/ })).toHaveAttribute('aria-haspopup', 'dialog');
 	});
@@ -288,9 +288,10 @@ describe('NotificationList rows', () => {
 		renderList([
 			{ id: 'community_locked_a1', kind: 'COMMUNITY_LOCKED', createdAt: iso(-HOUR), read: false, actor: { ...person('robotics', 'Robotics Club'), community: true } },
 		]);
-		const row = rowOf('Robotics Club');
-		expect(row).toHaveTextContent('Robotics Club was locked because no choice was made before the deadline');
-		expect(within(row).getByRole('link', { name: 'Robotics Club' })).toHaveAttribute('href', '/robotics');
+		const row = rowOf('@robotics');
+		expect(row).toHaveTextContent('@robotics was locked because no choice was made before the deadline');
+		expect(within(row).getByRole('link', { name: '@robotics' })).toHaveAttribute('href', '/robotics');
+		expect(row).not.toHaveTextContent('Robotics Club');
 		expect(within(row).getByRole('link', { name: 'View' })).toHaveAttribute('href', '/settings#communities');
 		expect(screen.getByRole('button', { name: 'Community' })).toBeInTheDocument();
 	});
@@ -307,8 +308,8 @@ describe('NotificationList rows', () => {
 				communityInvitation: { id: 'i1', role: 'EDITOR', expiresAt: iso(24 * HOUR) },
 			},
 		]);
-		const row = rowOf('Robotics Club');
-		expect(row).toHaveTextContent('Robotics Club invited you to join as Editor');
+		const row = rowOf('@robotics');
+		expect(row).toHaveTextContent('@robotics invited you to join as Editor');
 		expect(within(row).getByRole('button', { name: 'Decline' })).toBeInTheDocument();
 		fireEvent.click(within(row).getByRole('button', { name: 'Accept' }));
 		await waitFor(() => expect(screen.queryByText(/invited you to join/)).not.toBeInTheDocument());
@@ -346,7 +347,7 @@ describe('NotificationList rows', () => {
 		await waitFor(() => expect(mockLoadCommunities).toHaveBeenCalled());
 		expect(screen.getByText('0 community accounts')).toBeInTheDocument();
 
-		fireEvent.click(within(rowOf('Robotics Club')).getByRole('button', { name: 'Accept' }));
+		fireEvent.click(within(rowOf('@robotics')).getByRole('button', { name: 'Accept' }));
 		expect(await screen.findByText('1 community accounts')).toBeInTheDocument();
 	});
 

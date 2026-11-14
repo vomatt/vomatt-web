@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/Textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { getFollowing } from '@/features/follows/service';
-import { shownName } from '@/features/profiles/name';
+import { handle } from '@/features/profiles/name';
 import { searchUsers } from '@/lib/api/services/users';
 import { cn } from '@/lib/utils';
 import type { UserDto } from '@/schemas/user';
@@ -205,31 +205,25 @@ export function MentionTextarea({
 					}}
 					className="fixed z-50 overflow-y-auto rounded-xl bg-popover p-1.5 text-popover-foreground shadow-md ring-1 ring-foreground/10"
 				>
-					{users.map((user, index) => {
-						const name = shownName(user);
-						return (
-							<li
-								key={user.id}
-								id={`${listId}-${index}`}
-								role="option"
-								aria-selected={index === active}
-								// Keeps focus (and the caret) in the field
-								onMouseDown={(event) => event.preventDefault()}
-								onClick={() => choose(user)}
-								onMouseMove={() => setHighlighted(index)}
-								className={cn(
-									'flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-3 py-2',
-									index === active && 'bg-muted'
-								)}
-							>
-								<UserAvatar username={user.username} avatarUrl={user.avatarUrl} className="size-8 shrink-0" />
-								<span className="flex min-w-0 flex-col">
-									<span className="truncate text-body-4 font-medium">{user.username}</span>
-									{name && <span className="truncate text-caption-2 text-muted-foreground">{name}</span>}
-								</span>
-							</li>
-						);
-					})}
+					{users.map((user, index) => (
+						<li
+							key={user.id}
+							id={`${listId}-${index}`}
+							role="option"
+							aria-selected={index === active}
+							// Keeps focus (and the caret) in the field
+							onMouseDown={(event) => event.preventDefault()}
+							onClick={() => choose(user)}
+							onMouseMove={() => setHighlighted(index)}
+							className={cn(
+								'flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-3 py-2',
+								index === active && 'bg-muted'
+							)}
+						>
+							<UserAvatar username={user.username} avatarUrl={user.avatarUrl} className="size-8 shrink-0" />
+							<span className="truncate text-body-4 font-medium">{handle(user.username)}</span>
+						</li>
+					))}
 				</ul>
 			)}
 		</>

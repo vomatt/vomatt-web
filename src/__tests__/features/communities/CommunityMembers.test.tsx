@@ -35,7 +35,6 @@ const withAccounts = (ui: React.ReactNode) => (
 const member = (userId: string, role: CommunityRole): CommunityMember => ({
 	userId,
 	username: userId,
-	displayName: null,
 	avatarUrl: null,
 	role,
 	joinedAt: '2026-11-09T10:00:00+08:00',
@@ -59,10 +58,10 @@ async function openMenu(name: string) {
 describe('CommunityMembers', () => {
 	beforeEach(() => jest.clearAllMocks());
 
-	it('lists every member with role and username', () => {
+	it('lists every member by username, linking to their profile, with their role', () => {
 		renderAs('ed');
 		const rows = screen.getAllByRole('listitem').slice(0, 3);
-		expect(rows[0]).toHaveTextContent('@olive');
+		expect(within(rows[0]).getByRole('link', { name: '@olive' })).toHaveAttribute('href', '/olive');
 		expect(rows[0]).toHaveTextContent('Owner');
 		expect(rows[2]).toHaveTextContent('Editor');
 		// Every role is explained, Chief editor included
@@ -215,7 +214,7 @@ describe('CommunityMembers', () => {
 		await waitFor(() => expect(screen.queryByText('Pending invitations')).not.toBeInTheDocument());
 	});
 
-	it('shows community accounts in the search, badged, but not pickable', async () => {
+	it('shows community accounts in the search, unbadged and not pickable, saying why', async () => {
 		const { searchUsers } = jest.requireMock('@/lib/api/services/users');
 		searchUsers.mockResolvedValue({
 			items: [
@@ -229,7 +228,8 @@ describe('CommunityMembers', () => {
 		fireEvent.change(await screen.findByRole('textbox', { name: 'Username or email' }), { target: { value: 'ci' } });
 		const community = await screen.findByRole('button', { name: /cityhall/ });
 		expect(community).toBeDisabled();
-		expect(within(community).getByRole('img', { name: 'Community account' })).toBeInTheDocument();
+		expect(community).toHaveAccessibleDescription('Community accounts can’t be members of another account.');
+		expect(within(community).queryByRole('img', { name: 'Community account' })).not.toBeInTheDocument();
 		expect(screen.getByRole('button', { name: /cindy/ })).toBeEnabled();
 	});
 });

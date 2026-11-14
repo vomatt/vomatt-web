@@ -1,48 +1,47 @@
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
-import { CommunityBadge } from './CommunityBadge';
-import { type NameParts, shownName } from './name';
+import { handle } from './name';
 import { ProfileHoverCard } from './ProfileHoverCard';
 
-/** The names are those the person's visibility settings let the API send; hidden ones are null. */
-type Person = NameParts & { avatarUrl?: string | null };
-/** A community account gets the badge after its name. */
-type Community = { community?: boolean | null };
+type Person = { username: string; avatarUrl?: string | null };
 
 /**
- * A person's avatar and name as one unit: a link to their profile, with a
- * profile card on hover. A public name leads, then the @handle; with none, `label`
- * (the username by default) stands alone.
+ * A person's avatar and @handle as one unit: a link to their profile, with a
+ * profile card on hover. Names show only in that card; `caption` goes under the handle.
  * Pass `link={false}` inside another link (a poll row); there that row link is
  * what keyboard users reach, and the card is for mouse hover only.
  */
 export function UserChip({
 	username,
 	avatarUrl,
-	displayName,
-	firstName,
-	lastName,
-	label = username,
-	community,
+	caption,
 	link = true,
 	className,
 	avatarClassName,
-}: Person & Community & {
-	label?: string;
+}: Person & {
+	caption?: ReactNode;
 	link?: boolean;
 	className?: string;
 	avatarClassName?: string;
 }) {
 	const classes = cn('inline-flex min-w-0 items-center gap-1.5', className);
+	const label = <span className="truncate">{handle(username)}</span>;
 	const content = (
 		<>
 			<UserAvatar username={username} avatarUrl={avatarUrl} className={avatarClassName} />
-			<NameAndHandle name={shownName({ username, displayName, firstName, lastName })} username={username} fallback={label} />
-			{community && <CommunityBadge />}
+			{caption ? (
+				<span className="flex min-w-0 flex-col gap-0.5">
+					{label}
+					{caption}
+				</span>
+			) : (
+				label
+			)}
 		</>
 	);
 	return (
@@ -70,33 +69,18 @@ export function ProfileAvatar({ username, avatarUrl, className }: Person & { cla
 	);
 }
 
-/** The name alone as a profile link with the hover card; see `ProfileAvatar`. */
+/** The @handle alone as a profile link with the hover card; see `ProfileAvatar`. */
 export function ProfileName({
 	username,
 	avatarUrl,
-	displayName,
-	firstName,
-	lastName,
-	community,
 	className,
-}: Person & Community & { className?: string }) {
+	onClick,
+}: Person & { className?: string; onClick?: () => void }) {
 	return (
 		<ProfileHoverCard username={username} avatarUrl={avatarUrl}>
-			<Link href={profileHref(username)} className={cn(community && 'inline-flex items-center gap-1', className)}>
-				<NameAndHandle name={shownName({ username, displayName, firstName, lastName })} username={username} fallback={username} />
-				{community && <CommunityBadge />}
+			<Link href={profileHref(username)} onClick={onClick} className={className}>
+				{handle(username)}
 			</Link>
 		</ProfileHoverCard>
-	);
-}
-
-/** A public name with the @handle under it; with no public name, `fallback` alone on one line. */
-export function NameAndHandle({ name, username, fallback }: { name: string | null; username: string; fallback: string }) {
-	if (!name) return <span className="truncate">{fallback}</span>;
-	return (
-		<span className="inline-flex min-w-0 flex-col">
-			<span className="truncate">{name}</span>{' '}
-			<span className="truncate text-caption-2 font-normal text-muted-foreground">@{username}</span>
-		</span>
 	);
 }

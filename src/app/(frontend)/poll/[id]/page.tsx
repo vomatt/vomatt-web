@@ -9,7 +9,6 @@ import { LoginPrompt } from '@/components/LoginPrompt';
 import { T } from '@/components/T';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { getMyProfile, getUserSession } from '@/data/auth';
-import { publicNames } from '@/features/account/visibility';
 import { MarkNotificationRead } from '@/features/notifications/MarkNotificationRead';
 import { InvitationPrompt } from '@/features/polls/components/InvitationPrompt';
 import { MoreFromAuthor } from '@/features/polls/components/MoreFromAuthor';
@@ -128,7 +127,7 @@ async function PollDetail({ id }: { id: string }) {
 				pollId={poll.id}
 				commentCount={poll.commentCount}
 				viewerId={user?.sub}
-				viewer={profile ? { username: profile.username, avatarUrl: profile.avatarUrl, ...publicNames(profile) } : undefined}
+				viewer={profile ? { username: profile.username, avatarUrl: profile.avatarUrl } : undefined}
 			/>
 		</div>
 	);

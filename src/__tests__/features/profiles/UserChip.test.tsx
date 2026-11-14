@@ -12,7 +12,17 @@ jest.mock('next/link', () => {
 		);
 	};
 });
+// jsdom can't leave the page, but it does follow a hash-only URL, so the login URL lands in the hash
+jest.mock('@/lib/routes', () => {
+	const actual = jest.requireActual('@/lib/routes');
+	return { ...actual, loginHref: (options: object) => `#${actual.loginHref(options)}` };
+});
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
+let mockMe: { username: string } | null = null;
+jest.mock('@/features/communities/ActingProvider', () => ({
+	...jest.requireActual('@/features/communities/ActingProvider'),
+	useActing: () => ({ acting: null, me: mockMe, communities: [], stale: false }),
+}));
 const mockFollow = jest.fn();
 const mockUnfollow = jest.fn();
 const mockGetMutualFollowers = jest.fn();
@@ -47,66 +57,61 @@ const json = (body: unknown, status = 200) => ({ ok: status < 400, status, json:
 const fetchMock = jest.fn();
 
 beforeEach(() => {
+	mockMe = { username: 'viewer' };
 	fetchMock.mockReset();
 	mockUnfollow.mockClear();
+	mockFollow.mockClear();
+	sessionStorage.clear();
 	global.fetch = fetchMock;
 });
 
 describe('UserChip', () => {
 	it('links the avatar and username to the profile as one', () => {
 		render(<UserChip username="mei" avatarUrl="bot:bear" />);
-		const link = screen.getByRole('link', { name: 'mei' });
+		const link = screen.getByRole('link', { name: '@mei' });
 		expect(link).toHaveAttribute('href', '/mei');
 		expect(link.querySelector('img')).toHaveAttribute('src', '/avatars/bear.svg');
 	});
 
-	it('leads with the name the person shows, then their @handle', () => {
-		render(<UserChip username="ruby" firstName="Ruby" lastName="Ho" displayName="rubes" />);
-		expect(screen.getByRole('link', { name: 'Ruby Ho @ruby' })).toHaveAttribute('href', '/ruby');
+	it('links the names in the card to the profile', async () => {
+		fetchMock.mockResolvedValueOnce(json({ ...profile, username: 'ruth', displayName: 'Ruth Wu' }));
+		render(<UserChip username="ruth" link={false} />);
+		await userEvent.hover(screen.getByText('@ruth'));
+		expect(await screen.findByRole('link', { name: 'Ruth Wu @ruth' })).toHaveAttribute('href', '/ruth');
 	});
 
-	it('leads with the display name when the real name is hidden', () => {
-		render(<UserChip username="mei" displayName="Mei Lin" firstName={null} lastName={null} />);
-		expect(screen.getByRole('link', { name: 'Mei Lin @mei' })).toBeInTheDocument();
+	it('offers a signed-out visitor Follow in the card, through log in and back to the same page', async () => {
+		mockMe = null;
+		window.history.pushState(null, '', '/?tag=food#feed');
+		fetchMock.mockResolvedValueOnce(json({ ...profile, username: 'otto' }));
+		render(<UserChip username="otto" />);
+		await userEvent.hover(screen.getByRole('link', { name: '@otto' }));
+		await userEvent.click(await screen.findByRole('button', { name: 'Follow' }));
+		expect(sessionStorage.getItem('vomatt:pending-follow')).toBe('u1');
+		expect(window.location.hash).toBe('#/login?redirect=%2F%3Ftag%3Dfood%23feed');
+		expect(mockFollow).not.toHaveBeenCalled();
 	});
 
-	it('shows only the username when no name is public', () => {
-		render(<UserChip username="mei" label="@mei" displayName={null} />);
-		expect(screen.getByRole('link', { name: '@mei' })).toBeInTheDocument();
-	});
-
-	it('names a comment author by their shown name, then their @handle', () => {
-		render(<ProfileName username="ruby" firstName="Ruby" lastName="Ho" />);
-		expect(screen.getByRole('link', { name: 'Ruby Ho @ruby' })).toBeInTheDocument();
-	});
-
-	it('names a comment author by username when no name is public', () => {
+	it('names a comment author by username', () => {
 		render(<ProfileName username="ruby" />);
-		expect(screen.getByRole('link', { name: 'ruby' })).toBeInTheDocument();
+		expect(screen.getByRole('link', { name: '@ruby' })).toHaveAttribute('href', '/ruby');
 	});
 
-	it('badges a community account after its name, and in its card', async () => {
+	it('shows no community badge, inline or in the card', async () => {
 		fetchMock.mockResolvedValueOnce(json({ ...profile, username: 'council', community: true }));
-		render(<UserChip username="council" community />);
-		const link = screen.getByRole('link', { name: 'council Community account' });
-		await userEvent.hover(link);
-		const card = (await screen.findByText('@council')).closest('div')!.parentElement!;
-		expect(within(card).getByRole('img', { name: 'Community account' })).toBeInTheDocument();
-	});
-
-	it('shows no badge for a personal account', () => {
-		render(<UserChip username="mei" />);
+		render(<UserChip username="council" />);
+		await userEvent.hover(screen.getByRole('link', { name: '@council' }));
+		expect(await screen.findByText('Asks about lunch')).toBeInTheDocument();
 		expect(screen.queryByRole('img', { name: 'Community account' })).not.toBeInTheDocument();
 	});
 
 	it('shows only the public profile fields on hover', async () => {
 		fetchMock.mockResolvedValueOnce(json(profile));
 		render(<UserChip username="mei" avatarUrl="bot:bear" />);
-		await userEvent.hover(screen.getByRole('link', { name: 'mei' }));
+		await userEvent.hover(screen.getByRole('link', { name: '@mei' }));
 
 		expect(await screen.findByText('Asks about lunch')).toBeInTheDocument();
-		expect(screen.getByText('Mei Lin')).toBeInTheDocument();
-		expect(screen.getByText('@mei')).toBeInTheDocument();
+		expect(screen.getByRole('link', { name: 'Mei Lin @mei' })).toHaveAttribute('href', '/mei');
 		// Location, points and membership are hidden (null), so only the join date is listed
 		expect(screen.getByText(/^Joined /)).toBeInTheDocument();
 		expect(screen.queryByText(/points/)).not.toBeInTheDocument();
@@ -116,7 +121,7 @@ describe('UserChip', () => {
 	it('closes the card once a scroll carries the chip away, so it never rides over the sticky bars', async () => {
 		fetchMock.mockResolvedValueOnce(json(profile));
 		render(<UserChip username="mei" avatarUrl="bot:bear" />);
-		const chip = screen.getByRole('link', { name: 'mei' });
+		const chip = screen.getByRole('link', { name: '@mei' });
 		await userEvent.hover(chip);
 		expect(await screen.findByText('Asks about lunch')).toBeInTheDocument();
 
@@ -131,26 +136,25 @@ describe('UserChip', () => {
 	it('leads with the real name on hover, then the display name, as the profile does', async () => {
 		fetchMock.mockResolvedValueOnce(json({ ...profile, username: 'ruby', firstName: 'Ruby', lastName: 'Ho', displayName: 'rubes' }));
 		render(<UserChip username="ruby" />);
-		await userEvent.hover(screen.getByRole('link', { name: 'ruby' }));
+		await userEvent.hover(screen.getByRole('link', { name: '@ruby' }));
 
 		expect(await screen.findByText('Ruby Ho')).toHaveTextContent('Ruby Ho rubes');
 	});
 
-	it('counts their followers in the stats line, with no Follow signed out', async () => {
+	it('counts their followers in the stats line', async () => {
 		fetchMock.mockResolvedValueOnce(json({ ...profile, username: 'ana' }));
 		render(<UserChip username="ana" />);
-		await userEvent.hover(screen.getByRole('link', { name: 'ana' }));
+		await userEvent.hover(screen.getByRole('link', { name: '@ana' }));
 
 		expect(await screen.findByText('1,204')).toHaveClass('tabular-nums');
 		expect(screen.getByText('1,204').parentElement).toHaveTextContent('1,204 followers');
-		expect(screen.queryByRole('button')).not.toBeInTheDocument();
 	});
 
 	it('offers Follow back to someone who follows the viewer, counting the follow at once', async () => {
 		mockFollow.mockResolvedValue({ ok: true });
 		fetchMock.mockResolvedValueOnce(json({ ...profile, username: 'jtan', isFollowing: false, followsYou: true, isBlocked: false }));
 		render(<UserChip username="jtan" />);
-		await userEvent.hover(screen.getByRole('link', { name: 'jtan' }));
+		await userEvent.hover(screen.getByRole('link', { name: '@jtan' }));
 
 		await userEvent.click(await screen.findByRole('button', { name: 'Follow back' }));
 		expect(mockFollow).toHaveBeenCalledWith('u1');
@@ -162,7 +166,7 @@ describe('UserChip', () => {
 		mockUnfollow.mockResolvedValue({ ok: true });
 		fetchMock.mockResolvedValueOnce(json({ ...profile, username: 'jtan', isFollowing: true, followsYou: false, isBlocked: false }));
 		render(<UserChip username="jtan" />);
-		await userEvent.hover(screen.getByRole('link', { name: 'jtan' }));
+		await userEvent.hover(screen.getByRole('link', { name: '@jtan' }));
 
 		await userEvent.click(await screen.findByRole('button', { name: 'Following' }));
 		expect(mockUnfollow).not.toHaveBeenCalled();
@@ -174,12 +178,12 @@ describe('UserChip', () => {
 	it('hands focus back to the chip when the confirm is cancelled from the card', async () => {
 		fetchMock.mockResolvedValueOnce(json({ ...profile, username: 'kai', isFollowing: true, followsYou: false, isBlocked: false }));
 		render(<UserChip username="kai" />);
-		await userEvent.hover(screen.getByRole('link', { name: 'kai' }));
+		await userEvent.hover(screen.getByRole('link', { name: '@kai' }));
 
 		await userEvent.click(await screen.findByRole('button', { name: 'Following' }));
 		await userEvent.click(await screen.findByRole('button', { name: 'Cancel' }));
 		await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
-		expect(screen.getByRole('link', { name: 'kai' })).toHaveFocus();
+		expect(screen.getByRole('link', { name: '@kai' })).toHaveFocus();
 		expect(mockUnfollow).not.toHaveBeenCalled();
 	});
 
@@ -195,7 +199,7 @@ describe('UserChip', () => {
 				<UserChip username="amira" />
 			</div>
 		);
-		await userEvent.hover(screen.getByRole('link', { name: 'amira' }));
+		await userEvent.hover(screen.getByRole('link', { name: '@amira' }));
 
 		await userEvent.click(await screen.findByRole('button', { name: 'Followed by @jtan' }));
 		expect(await screen.findByRole('dialog', { name: 'Followers you know' })).toBeInTheDocument();
@@ -207,7 +211,7 @@ describe('UserChip', () => {
 	it('names no followers in common signed out', async () => {
 		fetchMock.mockResolvedValueOnce(json({ ...profile, username: 'noa' }));
 		render(<UserChip username="noa" />);
-		await userEvent.hover(screen.getByRole('link', { name: 'noa' }));
+		await userEvent.hover(screen.getByRole('link', { name: '@noa' }));
 		expect(await screen.findByText('Asks about lunch')).toBeInTheDocument();
 		expect(screen.queryByText(/^Followed by/)).not.toBeInTheDocument();
 	});
@@ -215,14 +219,14 @@ describe('UserChip', () => {
 	it('puts the @handle under the name even without a display name', async () => {
 		fetchMock.mockResolvedValueOnce(json({ ...profile, username: 'jo', displayName: null }));
 		render(<UserChip username="jo" />);
-		await userEvent.hover(screen.getByRole('link', { name: 'jo' }));
-		expect(await screen.findByText('@jo')).toBeInTheDocument();
+		await userEvent.hover(screen.getByRole('link', { name: '@jo' }));
+		expect(await screen.findByRole('link', { name: 'jo @jo' })).toHaveAttribute('href', '/jo');
 	});
 
 	it('says so when the profile could not load', async () => {
 		fetchMock.mockResolvedValueOnce(json(null, 500));
 		render(<UserChip username="lin" />);
-		await userEvent.hover(screen.getByRole('link', { name: 'lin' }));
+		await userEvent.hover(screen.getByRole('link', { name: '@lin' }));
 		expect(await screen.findByText("Couldn’t load this profile.")).toBeInTheDocument();
 	});
 
@@ -234,14 +238,14 @@ describe('UserChip', () => {
 				<UserChip username="kai" link={false} />
 			</div>
 		);
-		await userEvent.hover(screen.getByText('kai'));
+		await userEvent.hover(screen.getByText('@kai'));
 		await userEvent.click(await screen.findByText('Asks about lunch'));
 		expect(onRowClick).not.toHaveBeenCalled();
 	});
 
 	it('shows no bot name tooltip on the avatar', async () => {
 		render(<UserChip username="mei" avatarUrl="bot:bear" />);
-		await userEvent.hover(screen.getByRole('link', { name: 'mei' }).querySelector('img')!);
+		await userEvent.hover(screen.getByRole('link', { name: '@mei' }).querySelector('img')!);
 		expect(screen.queryByText('Black Bear')).not.toBeInTheDocument();
 	});
 });
