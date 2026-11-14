@@ -184,7 +184,7 @@ function RowShell({
 					))}
 				</span>
 			</span>
-			{action && <span className={cn(raised, 'col-start-2 flex items-center sm:col-start-3 sm:row-start-1')}>{action}</span>}
+			{action && <span className={cn(raised, 'col-start-2 flex items-center gap-2 sm:col-start-3 sm:row-start-1')}>{action}</span>}
 		</li>
 	);
 }
@@ -559,17 +559,10 @@ function CommunityInvitationRow({ entry, onOpen }: RowProps<Extract<Entry, { kin
 			meta={[age]}
 			action={
 				<>
-					<Button size="xs" loading={busy === 'accept'} disabled={busy !== null} onClick={() => answer('accept')} className={rowLink}>
+					<Button size="xs" loading={busy === 'accept'} disabled={busy !== null} onClick={() => answer('accept')}>
 						{t('notifications.accept')}
 					</Button>
-					<Button
-						size="xs"
-						variant="outline"
-						loading={busy === 'decline'}
-						disabled={busy !== null}
-						onClick={() => answer('decline')}
-						className={rowLink}
-					>
+					<Button size="xs" variant="outline" loading={busy === 'decline'} disabled={busy !== null} onClick={() => answer('decline')}>
 						{t('notifications.decline')}
 					</Button>
 				</>

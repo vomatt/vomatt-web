@@ -183,22 +183,12 @@ export default function AccountSettings({
 				<ReportProblemDialog open={reportOpen} onOpenChange={setReportOpen} />
 			</Section>
 
-			{profile.plan && profile.communityQuota && (
-				<Section id="plan" title={t('plan.title')}>
-					<SettingsCard>
-						<div className={cn(rowClassName, 'flex-wrap')}>
-							<RowText
-								title={t(`plan.names.${profile.plan}`)}
-								body={<span className="tabular-nums">{t('plan.quota', { owned: profile.communityQuota.owned, limit: profile.communityQuota.limit })}</span>}
-							/>
-							{profile.plan === 'FREE' && <UpgradeButton variant="outline" />}
-						</div>
-						{profile.communityQuota.selectionRequired && <KeepRow quota={profile.communityQuota} communities={communities} />}
-					</SettingsCard>
-				</Section>
-			)}
-
 			<Section id="communities" title={t('communities.title')}>
+				{profile.communityQuota?.selectionRequired && (
+					<SettingsCard>
+						<KeepRow quota={profile.communityQuota} communities={communities} />
+					</SettingsCard>
+				)}
 				{communities.length > 0 && (
 					<CommunityAccountsCard
 						communities={communities}
@@ -268,12 +258,23 @@ function KeepRow({ quota, communities }: { quota: CommunityQuota; communities: M
 function CreateCommunityRow({ profile: { plan, communityQuota: quota } }: { profile: MyProfile }) {
 	const { t } = useLanguage();
 	const [open, setOpen] = useState(false);
+	const owned = quota && (
+		<span className="block tabular-nums">{t('plan.quota', { owned: quota.owned, limit: quota.limit })}</span>
+	);
 	if (quota && quota.owned >= quota.limit) {
 		const free = plan === 'FREE';
 		return (
 			<SettingsCard>
 				<div className={cn(rowClassName, 'flex-wrap')}>
-					<RowText title={t('communities.limitTitle')} body={t(free ? 'communities.limitBodyFree' : 'communities.limitBodyPro')} />
+					<RowText
+						title={t('communities.limitTitle')}
+						body={
+							<>
+								{t(free ? 'communities.limitBodyFree' : 'communities.limitBodyPro')}
+								{owned}
+							</>
+						}
+					/>
 					{free && <UpgradeButton />}
 				</div>
 			</SettingsCard>
@@ -282,7 +283,15 @@ function CreateCommunityRow({ profile: { plan, communityQuota: quota } }: { prof
 	return (
 		<SettingsCard>
 			<button type="button" onClick={() => setOpen(true)} className={cn(rowLinkClassName, 'w-full text-left')}>
-				<RowText title={t('communities.createTitle')} body={t('communities.createBody')} />
+				<RowText
+					title={t('communities.createTitle')}
+					body={
+						<>
+							{t('communities.createBody')}
+							{owned}
+						</>
+					}
+				/>
 				<ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
 			</button>
 			<CreateCommunityDialog open={open} onOpenChange={setOpen} />

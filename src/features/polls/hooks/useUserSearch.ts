@@ -7,7 +7,7 @@ import type { UserDto } from '@/schemas/user';
 
 import { SEARCH_DEBOUNCE_MS } from '../constants';
 
-const MAX_SUGGESTIONS = 5;
+const MAX_SUGGESTIONS = 20;
 
 /** Search results, tagged with the term they answer so stale ones never show. */
 type Results = { term: string; users: UserDto[]; failed?: boolean };
@@ -36,7 +36,7 @@ export function useUserSearch(term: string, excludeIds: readonly string[] | null
 		let ignore = false;
 		const timer = setTimeout(async () => {
 			try {
-				const page = await searchUsers(term);
+				const page = await searchUsers(term, undefined, MAX_SUGGESTIONS);
 				if (ignore) return;
 				answeredTerm.current = term;
 				setResults({ term, users: page.items });
@@ -54,7 +54,7 @@ export function useUserSearch(term: string, excludeIds: readonly string[] | null
 	const users = answered ? results.users.filter((user) => !excludeIds.includes(user.id)) : [];
 	return {
 		term,
-		users: users.slice(0, MAX_SUGGESTIONS),
+		users,
 		isLoading: !!term && !answered,
 		failed: answered && !!results.failed,
 		allExcluded: answered && results.users.length > 0 && users.length === 0,

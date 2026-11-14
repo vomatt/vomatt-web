@@ -1453,11 +1453,6 @@
 		"profileDescription": "看看 {name} 發起的投票。"
 	},
 	"plan": {
-		"title": "方案",
-		"names": {
-			"FREE": "免費方案",
-			"PRO": "Pro 方案"
-		},
 		"quota": "已擁有 {owned} 個社群帳號，上限 {limit} 個",
 		"upgrade": "升級 Pro",
 		"comingSoon": "Pro 方案即將推出。"
