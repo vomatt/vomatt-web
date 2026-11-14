@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers';
 import React, { ReactNode } from 'react';
 
 import { MarkLoader } from '@/components/BrandPulse';
@@ -10,6 +11,9 @@ import { MotionProvider } from '@/components/MotionProvider';
 import { ReloadWhenSessionUnconfirmed, SessionRetry } from '@/components/SessionRetry';
 import { SidebarProvider } from '@/components/ui/Sidebar';
 import { getLoginHref, getUserSession, loadActingState, loadMyProfile } from '@/data/auth';
+import { AnnouncementBar } from '@/features/announcement/AnnouncementBar';
+import { getAnnouncement } from '@/features/announcement/data';
+import { ANNOUNCEMENT_DISMISSED_COOKIE } from '@/features/announcement/schema';
 import { ActingBanner } from '@/features/communities/ActingBanner';
 import { ActingProvider } from '@/features/communities/ActingProvider';
 import { KeepCommunitiesPrompt } from '@/features/communities/KeepCommunitiesPrompt';
@@ -21,11 +25,13 @@ interface LayoutProps {
 }
 
 export async function Layout({ children }: LayoutProps) {
-	const [session, { profile, error }, loginLink, acting] = await Promise.all([
+	const [session, { profile, error }, loginLink, acting, announcement, cookieStore] = await Promise.all([
 		getUserSession(),
 		loadMyProfile(),
 		getLoginHref(),
 		loadActingState(),
+		getAnnouncement(),
+		cookies(),
 	]);
 	// The API didn't answer, so whether they're signed in is unknown: wait for it rather than show them signed out
 	if (error) {
@@ -59,6 +65,8 @@ export async function Layout({ children }: LayoutProps) {
 						<AppSidebar userSession={session} profile={profile} loginLink={loginLink} />
 						<Header signedIn={!!session} loginLink={loginLink} username={profile?.username} avatarUrl={profile?.avatarUrl} />
 						<Main>
+							{/* Decided here from the cookie, so a dismissed announcement never flashes before hydration */}
+							<AnnouncementBar announcement={announcement?.id === cookieStore.get(ANNOUNCEMENT_DISMISSED_COOKIE)?.value ? null : announcement} />
 							<ActingBanner />
 							{children}
 						</Main>
