@@ -58,6 +58,25 @@ describe('LogIn', () => {
 		expect(screen.queryByText(/session expired/)).not.toBeInTheDocument();
 	});
 
+	it('asks for the invited address when a community invitation sent them here', () => {
+		mockSearch = 'redirect=%2Fnotifications%2Fcommunity-invitations%2Fi1';
+		render(<LogIn />);
+		expect(screen.getByText('Sign up or log in with the email address the invitation was sent to.')).toBeInTheDocument();
+	});
+
+	it('shows only why the session ended when an invitation sent a signed-out visitor here', () => {
+		mockSearch = 'redirect=%2Fnotifications%2Fcommunity-invitations%2Fi1&session_expired=revoked';
+		render(<LogIn />);
+		expect(screen.getByText('You were signed out on this device. Please log in again.')).toBeInTheDocument();
+		expect(screen.queryByText(/the invitation was sent to/)).not.toBeInTheDocument();
+	});
+
+	it('leaves the invitation note out for any other redirect', () => {
+		mockSearch = 'redirect=%2Fnotifications';
+		render(<LogIn />);
+		expect(screen.queryByText(/the invitation was sent to/)).not.toBeInTheDocument();
+	});
+
 	it('shows the sign-up terms under the email step', () => {
 		mockSearch = '';
 		render(

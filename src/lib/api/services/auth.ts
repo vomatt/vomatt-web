@@ -9,6 +9,7 @@ import { type AuthErrorKey, cooldownSeconds, toAuthErrorKey } from '@/lib/api/au
 import { apiClient, ApiError, publicFetch } from '@/lib/api/client';
 import { clientHeaders } from '@/lib/api/client-ip';
 import { readAuthTokens } from '@/lib/api/tokens';
+import { getSafeRedirectPath } from '@/lib/routes';
 import type { Passkey } from '@/types/user';
 
 type AuthFailure = { status: 'ERROR'; error: AuthErrorKey };
@@ -72,9 +73,10 @@ export async function verifyOtp(
 
 /**
  * Revokes the refresh token on the backend, then clears the cookies. The
- * cookies are cleared even when the backend can't be reached.
+ * cookies are cleared even when the backend can't be reached. Then opens
+ * `then` (a same-origin path), or Home.
  */
-export async function signout() {
+export async function signout(then?: string) {
 	const refreshToken = (await getTokens())?.refreshToken;
 	if (refreshToken) {
 		await postJson('/auth/logout', { refreshToken }).catch((error) => {
@@ -82,7 +84,8 @@ export async function signout() {
 		});
 	}
 	await clearAuthTokens();
-	redirect('/');
+	// A Server Action: `then` comes from the client, or is the FormData of a form that uses it as its action
+	redirect(getSafeRedirectPath(typeof then === 'string' ? then : null));
 }
 
 /**

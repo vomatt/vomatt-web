@@ -74,6 +74,7 @@ describe('apple-app-site-association', () => {
 		'/sanity',
 		'/api',
 		'/about',
+		'/contact',
 		'/privacy-policy',
 		'/terms-of-service',
 		'/cookies-policy',
