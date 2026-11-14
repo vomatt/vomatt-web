@@ -1,6 +1,7 @@
 'use client';
 
-import { type RefObject, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { type RefObject, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import {
@@ -19,6 +20,7 @@ import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { useActing } from '@/features/communities/ActingProvider';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
+import { loginHref } from '@/lib/routes';
 
 import { followUser, unfollowUser } from './service';
 
@@ -76,6 +78,7 @@ export function useFollow(
 	};
 
 	return {
+		userId,
 		state: followState({ ...relation, isFollowing: following }, isSelf),
 		toggle,
 		isPending,
@@ -87,12 +90,52 @@ export function useFollow(
 
 export type Follow = ReturnType<typeof useFollow>;
 
+// The person a signed-out visitor tapped Follow on, followed once they're back from logging in
+const PENDING_FOLLOW_KEY = 'vomatt:pending-follow';
+
+/** Sends a signed-out visitor to log in and back to this exact page, remembering whom to follow. */
+function followAfterLogin(userId: string) {
+	try {
+		sessionStorage.setItem(PENDING_FOLLOW_KEY, userId);
+	} catch {
+		// Storage blocked: they still get to log in, and tap Follow again after
+	}
+	const { pathname, search, hash } = window.location;
+	window.location.assign(loginHref({ redirect: `${pathname}${search}${hash}` }));
+}
+
+/** Mounted once in the layout: follows whomever a visitor tapped Follow on before logging in. */
+export function PendingFollow() {
+	const { t } = useLanguage();
+	const { acting, me } = useActing();
+	const router = useRouter();
+	useEffect(() => {
+		if (!me || acting) return;
+		let userId: string | null = null;
+		try {
+			userId = sessionStorage.getItem(PENDING_FOLLOW_KEY);
+			sessionStorage.removeItem(PENDING_FOLLOW_KEY);
+		} catch {
+			return;
+		}
+		if (!userId) return;
+		settle(followUser(userId)).then((result) => {
+			if (result.ok) router.refresh();
+			else toast.error(apiErrorText(t, result, 'follows.followFailed'));
+		});
+		// Once per sign-in; t and router are new each render
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [me, acting]);
+	return null;
+}
+
 /**
  * The one Follow button, wherever a person is. Ink while not following, as
  * Follow back when they follow the viewer; once following it drops to outline
  * (the page's primary action stays Create) and tapping it opens the unfollow
- * confirm. Blocked once the viewer blocked them; nothing signed out, on the
- * viewer's own entry, or while acting as a community account (it doesn't follow).
+ * confirm. Blocked once the viewer blocked them. Signed out, Follow goes to log in
+ * and follows them on the way back. Nothing on the viewer's own entry, before the
+ * person is known, or while acting as a community account (it doesn't follow).
  * `size`: `sm` (36px) in a profile header, `xs` (32px) on the hover card and in rows.
  * `withConfirm={false}` when the host renders `UnfollowDialog` itself.
  */
@@ -112,11 +155,17 @@ export function FollowButton({
 	withConfirm?: boolean;
 }) {
 	const { t } = useLanguage();
-	const { acting } = useActing();
+	const { acting, me } = useActing();
 	if (acting) return null;
 
 	switch (follow.state) {
 		case null:
+			return me || !follow.userId ? null : (
+				<Button size={size} onClick={() => followAfterLogin(follow.userId)} className={className}>
+					<Plus aria-hidden />
+					{t('follows.follow')}
+				</Button>
+			);
 		case 'self':
 			return null;
 		case 'blocked':

@@ -5,7 +5,7 @@ import { Fragment, useId } from 'react';
 
 import { useLanguage } from '@/contexts/LanguageContext';
 import { NewMark, UnreadDot } from '@/features/notifications/UnreadDot';
-import { toPayloadLocale } from '@/lib/locale';
+import { toLocaleTag } from '@/lib/locale';
 import { META_GAP } from '@/lib/rich';
 import { pollHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
@@ -69,7 +69,7 @@ export function PollSideCard({ kind, polls }: PollSideCardProps) {
 function PollSideText({ kind, poll }: { kind: SideCardKind; poll: Poll }) {
 	const { t, currentLanguage } = useLanguage();
 	const clock = useViewerClock();
-	const turnout = t('poll.voted', { count: (getTurnout(poll) ?? 0).toLocaleString(toPayloadLocale(currentLanguage)) });
+	const turnout = t('poll.voted', { count: (getTurnout(poll) ?? 0).toLocaleString(toLocaleTag(currentLanguage)) });
 	// The time waits for the browser's clock; the turnout alone until then
 	const when =
 		kind === 'closingSoon' && clock ? pollTiming(poll, derivePollStatus(poll, clock.now), clock).when : null;

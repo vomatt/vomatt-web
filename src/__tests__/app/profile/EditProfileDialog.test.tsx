@@ -247,22 +247,11 @@ describe('EditProfileDialog', () => {
 		expect(document.querySelector('[data-slot="dialog-overlay"]')).toHaveClass('bg-overlay-strong', 'backdrop-blur-md');
 	});
 
-	it('fits the dialog into what an on-screen keyboard leaves visible', () => {
-		const viewport = Object.assign(new EventTarget(), { offsetTop: 0, height: 800 });
-		Object.defineProperty(window, 'visualViewport', { configurable: true, value: viewport });
-		try {
-			open();
-			const popup = document.querySelector<HTMLElement>('[data-slot="dialog-content"]')!;
-			expect(popup.style.top).toBe('400px');
-			act(() => {
-				Object.assign(viewport, { offsetTop: 100, height: 400 });
-				viewport.dispatchEvent(new Event('resize'));
-			});
-			expect(popup.style.top).toBe('300px');
-			expect(popup.style.maxHeight).toBe('calc(400px - 2rem)');
-		} finally {
-			Object.defineProperty(window, 'visualViewport', { configurable: true, value: undefined });
-		}
+	it('gives a phone keyboard the room by stepping the Save row aside while it is up', () => {
+		open();
+		expect(screen.getByRole('button', { name: 'Save changes' }).closest('[data-slot="dialog-footer"]')).toHaveClass(
+			'max-sm:in-data-keyboard:hidden'
+		);
 	});
 });
 

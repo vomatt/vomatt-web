@@ -16,7 +16,11 @@ jest.mock('@/features/polls/service', () => ({
 	loadFeed: jest.fn(),
 }));
 jest.mock('@/features/polls/components/PollCard', () => ({ PollCard: () => null }));
-jest.mock('react-intersection-observer', () => ({ useInView: () => ({ ref: () => {} }) }));
+// jsdom has no IntersectionObserver; here the sentinel never comes into view
+global.IntersectionObserver = class {
+	observe() {}
+	disconnect() {}
+} as unknown as typeof IntersectionObserver;
 
 describe('PollFeedList', () => {
 	it('points an empty Following feed to Explore', () => {

@@ -1,4 +1,4 @@
-import { profileName, shownName } from '@/features/profiles/name';
+import { profileName } from '@/features/profiles/name';
 
 describe('profileName', () => {
 	it('leads with the real name and follows it with the display name', () => {
@@ -47,15 +47,5 @@ describe('profileName', () => {
 
 	it('falls back to the username', () => {
 		expect(profileName({ username: 'mei', displayName: null })).toEqual({ primary: 'mei', secondary: null });
-	});
-
-	describe('shownName', () => {
-		it('is the name a profile leads with', () => {
-			expect(shownName({ username: 'ruby', firstName: 'Ruby', lastName: 'Ho', displayName: 'rubes' })).toBe('Ruby Ho');
-		});
-
-		it('is null when only the username is public', () => {
-			expect(shownName({ username: 'ruby', displayName: null, firstName: null, lastName: null })).toBeNull();
-		});
 	});
 });

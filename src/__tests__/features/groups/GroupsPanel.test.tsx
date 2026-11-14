@@ -78,7 +78,7 @@ describe('GroupsPanel', () => {
 		mockService.addGroupMembers.mockResolvedValue({ ok: true, data: [bob, dave] });
 		render(<GroupsPanel />);
 		const dialog = await openBookClub();
-		expect(await within(dialog).findByText('bob')).toBeInTheDocument();
+		expect(await within(dialog).findByText('@bob')).toBeInTheDocument();
 
 		const field = within(dialog).getByLabelText('Add people');
 		fireEvent.change(field, { target: { value: 'dave@example.com' } });
@@ -100,7 +100,7 @@ describe('GroupsPanel', () => {
 		jest.mocked(searchUsers).mockResolvedValue({ items: [{ id: 'u1', username: 'bob' }], nextCursor: null } as never);
 		render(<GroupsPanel />);
 		const dialog = await openBookClub();
-		await within(dialog).findByText('bob');
+		await within(dialog).findByText('@bob');
 		fireEvent.change(within(dialog).getByPlaceholderText('Username or email'), { target: { value: 'bob' } });
 		expect(await within(dialog).findByText('Everyone with that username is already added.')).toBeInTheDocument();
 		expect(within(dialog).queryByRole('list', { name: 'Matching people' })).not.toBeInTheDocument();
@@ -113,7 +113,7 @@ describe('GroupsPanel', () => {
 		const dialog = await openBookClub();
 		fireEvent.change(within(dialog).getByPlaceholderText('Username or email'), { target: { value: 'bob' } });
 		await waitFor(() => expect(searchUsers).toHaveBeenCalledWith('bob'));
-		expect(within(dialog).queryByRole('button', { name: 'bob' })).not.toBeInTheDocument();
+		expect(within(dialog).queryByRole('button', { name: '@bob' })).not.toBeInTheDocument();
 	});
 
 	it('removes a member', async () => {

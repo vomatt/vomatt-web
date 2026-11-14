@@ -66,7 +66,8 @@
 		"sessionExpired": "登入已過期，請重新登入。",
 		"dialogDescription": "使用電子郵件登入或註冊以繼續",
 		"sessionRevoked": "為了你的帳號安全，已登出這個裝置，請重新登入。",
-		"signedOutHere": "你已在這個裝置登出，請重新登入。"
+		"signedOutHere": "你已在這個裝置登出，請重新登入。",
+		"communityInvitation": "請用收到邀請的電子郵件地址註冊或登入。"
 	},
 	"verificationCode": {
 		"title": "請查看你的信箱",
@@ -161,24 +162,15 @@
 		"pageNotFoundBody": "連結可能有誤，或頁面已移除。",
 		"notFoundExplore": "探索投票",
 		"notFoundHome": "回首頁",
-		"polls": "投票",
 		"noPollsYet": "還沒有投票。",
 		"noPollsYetOwn": "你的投票開放後會顯示在這裡。",
 		"pollsLoadFailed": "無法載入投票。",
+		"pollsTruncated": "你的投票太多，這個頁面無法全部載入，清單和數字並不完整。",
 		"cardFailed": "無法載入個人資料。",
-		"community": "社群帳號",
 		"joined": "{date} 加入",
 		"followers": "追蹤者",
 		"following": "追蹤中",
-		"noFollowers": "尚無追蹤者。",
-		"noFollowing": "尚未追蹤任何人。",
-		"listFailed": "無法載入此清單。",
 		"onlyYou": "只有你看得到",
-		"onlyYouSee": "只有你看得到：{items}。",
-		"onlyYouSettings": "到設定中變更",
-		"statVoted": "參與的公開投票",
-		"statCreated": "發起的公開投票",
-		"statTurnout": "總參與人次",
 		"editProfile": "編輯個人資料",
 		"bio": "自我介紹",
 		"displayName": "顯示名稱",
@@ -1331,6 +1323,7 @@
 	"communities": {
 		"title": "社群帳號",
 		"members": "成員",
+		"blockedBody": "查看並解除封鎖這個帳號封鎖過的人。",
 		"invite": "邀請成員",
 		"inviteTitle": "邀請成員",
 		"searchLabel": "使用者名稱或電子郵件",
@@ -1377,7 +1370,6 @@
 		"invitationsTitle": "待回覆的邀請",
 		"invitationExpires": "{date} 到期",
 		"invitationExpired": "已到期",
-		"invitationMore": "更多：對 {name} 的邀請",
 		"revoke": "撤回邀請",
 		"revoked": "已撤回對 {name} 的邀請",
 		"roleChanged": "已變更 @{name} 的角色",
@@ -1418,6 +1410,8 @@
 			"actingAs": "目前身分",
 			"banner": "你正以 {name} 的身分操作，你發布的投票與留言會顯示它的名稱。",
 			"switchBack": "切換回自己",
+			"backToProfile": "回到 {name} 的個人頁",
+			"backToMembers": "回到 {name} 的成員",
 			"actAs": "切換",
 			"actAsLabel": "以 {name} 的身分操作",
 			"switched": "你正以 {name} 的身分操作",
@@ -1452,6 +1446,26 @@
 			"failed": "無法儲存你的選擇，請再試一次。",
 			"rowTitle": "你擁有的社群帳號超過方案上限",
 			"choose": "選擇"
+		},
+		"quota": "已擁有 {owned} 個社群帳號，上限 {limit} 個",
+		"invitationPage": {
+			"title": "社群帳號邀請",
+			"pendingTitle": "你受邀加入 {name}",
+			"role": "加入後的角色：{role}",
+			"invitedBy": "由 {name} 邀請",
+			"expires": "{date} 到期",
+			"joinedTitle": "你已以{role}身分加入 {name}",
+			"alreadyMemberTitle": "你已是 {name} 的{role}",
+			"joinedBody": "切換到 {name}，即可用它的名義發布投票和留言。",
+			"switchTo": "切換到 {name}",
+			"viewProfile": "查看個人頁",
+			"locked": "{name} 目前已鎖定，暫時無法加入新成員。擁有者解鎖後即可接受邀請。",
+			"declinedTitle": "已婉拒邀請",
+			"declinedBody": "你不會加入 {name}。",
+			"unavailableTitle": "無法開啟這個邀請",
+			"unavailableBody": "邀請可能已過期、被撤回或已回覆，也可能是寄到其他電子郵件地址。",
+			"signedInAs": "你目前登入的帳號是 {account}。",
+			"useDifferentAccount": "改用其他帳號"
 		}
 	},
 	"meta": {
@@ -1460,12 +1474,6 @@
 		"profileDescription": "看看 {name} 發起的投票。"
 	},
 	"plan": {
-		"title": "方案",
-		"names": {
-			"FREE": "免費方案",
-			"PRO": "Pro 方案"
-		},
-		"quota": "已擁有 {owned} 個社群帳號，上限 {limit} 個",
 		"upgrade": "升級 Pro",
 		"comingSoon": "Pro 方案即將推出。"
 	}

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ActionResult } from '@/lib/api/action';
 import { mergeById } from '@/lib/api/cursor';
 import { settle } from '@/lib/api/settle';
+import { serverNow } from '@/lib/clock';
 
 import type { Comment, ThreadComment } from '../schema';
 import {
@@ -28,10 +29,7 @@ export type ReplyList = {
 };
 
 /** Who a pending Comment is shown as until the saved one replaces it. */
-export type PendingAuthor = Pick<
-	Comment,
-	'author' | 'authorAvatarUrl' | 'authorDisplayName' | 'authorFirstName' | 'authorLastName' | 'userId'
->;
+export type PendingAuthor = Pick<Comment, 'author' | 'authorAvatarUrl' | 'userId'>;
 
 const NO_REPLIES: ReplyList = { items: [], nextCursor: null, status: 'ready' };
 
@@ -175,7 +173,8 @@ export function useComments(
 				id: tempId,
 				...author,
 				text,
-				createdAt: new Date().toISOString(),
+				// The server's clock, like the times it is shown against
+				createdAt: new Date(serverNow()).toISOString(),
 				parentId: rootId ?? null,
 			};
 			// The list the new Comment goes into: its thread's Replies, or the top level

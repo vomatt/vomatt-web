@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { toast } from 'sonner';
 
+import { ActingProvider, useActing } from '@/features/communities/ActingProvider';
 import { CommunityMembers } from '@/features/communities/CommunityMembers';
 import type { CommunityMember, CommunityRole,MyCommunity } from '@/features/communities/schema';
 
@@ -18,10 +19,22 @@ jest.mock('@/features/communities/service', () => ({
 	transferOwner: jest.fn(),
 }));
 
+const mockLoadCommunities = jest.fn();
+jest.mock('@/features/communities/acting', () => ({
+	actAsCommunity: jest.fn(),
+	loadMyCommunities: (...a: unknown[]) => mockLoadCommunities(...a),
+}));
+const Accounts = () => <p>{`${useActing().communities?.length ?? 0} community accounts`}</p>;
+const withAccounts = (ui: React.ReactNode) => (
+	<ActingProvider state={{ acting: null, me: { username: 'me', displayName: 'Me', avatarUrl: null }, communities: null, stale: false }}>
+		<Accounts />
+		{ui}
+	</ActingProvider>
+);
+
 const member = (userId: string, role: CommunityRole): CommunityMember => ({
 	userId,
 	username: userId,
-	displayName: null,
 	avatarUrl: null,
 	role,
 	joinedAt: '2026-11-09T10:00:00+08:00',
@@ -45,10 +58,10 @@ async function openMenu(name: string) {
 describe('CommunityMembers', () => {
 	beforeEach(() => jest.clearAllMocks());
 
-	it('lists every member with role and username', () => {
+	it('lists every member by username, linking to their profile, with their role', () => {
 		renderAs('ed');
 		const rows = screen.getAllByRole('listitem').slice(0, 3);
-		expect(rows[0]).toHaveTextContent('@olive');
+		expect(within(rows[0]).getByRole('link', { name: '@olive' })).toHaveAttribute('href', '/olive');
 		expect(rows[0]).toHaveTextContent('Owner');
 		expect(rows[2]).toHaveTextContent('Editor');
 		// Every role is explained, Chief editor included
@@ -95,6 +108,19 @@ describe('CommunityMembers', () => {
 		expect(moreButton('adam')).not.toBeInTheDocument();
 		const menu = await openMenu('ed');
 		expect(menu.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Leave']);
+	});
+
+	it('drops the account from the user’s accounts once they leave', async () => {
+		const { removeMember } = jest.requireMock('@/features/communities/service');
+		removeMember.mockResolvedValue({ ok: true, data: undefined });
+		mockLoadCommunities.mockResolvedValueOnce({ ok: true, data: [{ communityId: 'c1', username: 'c1', displayName: 'C1', avatarUrl: null, role: 'OWNER' as const }] }).mockResolvedValueOnce({ ok: true, data: [] });
+		const community: MyCommunity = { communityId: 'off1', username: 'sunrise', displayName: 'Sunrise', avatarUrl: null, role: 'EDITOR' };
+		render(withAccounts(<CommunityMembers community={community} viewerId="ed" members={members} />));
+		expect(await screen.findByText('1 community accounts')).toBeInTheDocument();
+		fireEvent.click((await openMenu('ed')).getByRole('menuitem', { name: 'Leave' }));
+		fireEvent.click(await screen.findByRole('button', { name: 'Leave' }));
+		expect(await screen.findByText('0 community accounts')).toBeInTheDocument();
+		expect(mockReplace).toHaveBeenCalledWith('/settings#communities');
 	});
 
 	it('says ownership must be handed over when the last owner leaves', async () => {
@@ -188,7 +214,7 @@ describe('CommunityMembers', () => {
 		await waitFor(() => expect(screen.queryByText('Pending invitations')).not.toBeInTheDocument());
 	});
 
-	it('shows community accounts in the search, badged, but not pickable', async () => {
+	it('shows community accounts in the search, unbadged and not pickable, saying why', async () => {
 		const { searchUsers } = jest.requireMock('@/lib/api/services/users');
 		searchUsers.mockResolvedValue({
 			items: [
@@ -202,7 +228,8 @@ describe('CommunityMembers', () => {
 		fireEvent.change(await screen.findByRole('textbox', { name: 'Username or email' }), { target: { value: 'ci' } });
 		const community = await screen.findByRole('button', { name: /cityhall/ });
 		expect(community).toBeDisabled();
-		expect(within(community).getByRole('img', { name: 'Community account' })).toBeInTheDocument();
+		expect(community).toHaveAccessibleDescription('Community accounts can’t be members of another account.');
+		expect(within(community).queryByRole('img', { name: 'Community account' })).not.toBeInTheDocument();
 		expect(screen.getByRole('button', { name: /cindy/ })).toBeEnabled();
 	});
 });

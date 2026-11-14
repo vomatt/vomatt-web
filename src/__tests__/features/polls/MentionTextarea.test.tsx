@@ -69,11 +69,11 @@ describe('insertMention()', () => {
 });
 
 describe('MentionTextarea', () => {
-	it('suggests the people the viewer follows on a bare @', async () => {
+	it('suggests the people the viewer follows on a bare @, by username alone', async () => {
 		render(<Field />);
 		await type('@');
 		expect(mockGetFollowing).toHaveBeenCalledWith('klaus');
-		expect(screen.getAllByRole('option').map((o) => o.textContent)).toEqual(['fi00123Percy Jack', 'wanan_chiang蔣萬安']);
+		expect(screen.getAllByRole('option').map((o) => o.textContent)).toEqual(['@fi00123', '@wanan_chiang']);
 	});
 
 	it('searches by what follows the @', async () => {

@@ -9,7 +9,7 @@ jest.mock('@/features/polls/service', () => ({
 jest.mock('@/lib/api/client', () => ({ AuthError: class AuthError extends Error {} }));
 jest.mock('@/features/notifications/MarkNotificationRead', () => ({ MarkNotificationRead: () => null }));
 jest.mock('@/data/auth', () => ({ getMyProfile: jest.fn(), getUserSession: jest.fn() }));
-jest.mock('@/app/(frontend)/poll/[id]/actions', () => ({ switchAccount: jest.fn() }));
+jest.mock('@/lib/api/services/auth', () => ({ signout: jest.fn() }));
 jest.mock('@/app/(frontend)/poll/[id]/PollDiscussion', () => ({ PollDiscussion: () => null }));
 jest.mock('@/features/polls/sharePreview', () => ({ shareDescription: () => 'description' }));
 

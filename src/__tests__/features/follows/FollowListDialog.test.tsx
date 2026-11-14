@@ -2,7 +2,6 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 
 import { FollowListDialog } from '@/features/follows/FollowListDialog';
 import { followUser, getFollowers, getMutualFollowers } from '@/features/follows/service';
-import { META_GAP } from '@/lib/rich';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 jest.mock('sonner', () => ({ toast: { error: jest.fn() } }));
@@ -35,20 +34,19 @@ const rowOf = async (name: string | RegExp) => (await screen.findByRole('link', 
 
 beforeEach(() => jest.clearAllMocks());
 
-it('lists each person as a link with their name over their @handle', async () => {
+it('lists each person as a link by username alone, without the name they show', async () => {
 	showList([bob, cy]);
 
-	const row = await screen.findByRole('link', { name: 'Bob Chen @bob' });
-	expect(row).toHaveAttribute('href', '/bob');
-	// Without a display name the username stands in, the handle still beneath it
-	expect(screen.getByRole('link', { name: 'cy @cy' })).toHaveAttribute('href', '/cy');
+	expect(await screen.findByRole('link', { name: '@bob' })).toHaveAttribute('href', '/bob');
+	expect(screen.getByRole('link', { name: '@cy' })).toHaveAttribute('href', '/cy');
+	expect(screen.queryByText('Bob Chen')).not.toBeInTheDocument();
 	expect(mockGetFollowers).toHaveBeenCalledWith('mei');
 });
 
 it('offers Follow back, and says so, to someone who follows the viewer', async () => {
 	showList([jtan]);
 
-	const row = await rowOf(`Jun Tan @jtan${META_GAP}follows you`);
+	const row = await rowOf(/^@jtan\s*follows you$/);
 	const button = within(row).getByRole('button', { name: 'Follow back' });
 	// Follow back is ink like Follow, but without the plus
 	expect(button.querySelector('svg')).toBeNull();
@@ -57,14 +55,14 @@ it('offers Follow back, and says so, to someone who follows the viewer', async (
 it('shows Following for someone the viewer follows, and Follow for anyone else', async () => {
 	showList([rosa, bob]);
 
-	expect(within(await rowOf(/^Rosa Ortega/)).getByRole('button', { name: 'Following' })).toHaveTextContent('Following');
-	expect(within(await rowOf(/^Bob Chen/)).getByRole('button', { name: 'Follow' })).toBeInTheDocument();
+	expect(within(await rowOf('@rosa')).getByRole('button', { name: 'Following' })).toHaveTextContent('Following');
+	expect(within(await rowOf('@bob')).getByRole('button', { name: 'Follow' })).toBeInTheDocument();
 	expect(screen.queryByText(/follows you/)).not.toBeInTheDocument();
 });
 
 it("gives the viewer's own row no button", async () => {
 	showList([me]);
-	expect(within(await rowOf('Mei @mei')).queryByRole('button')).not.toBeInTheDocument();
+	expect(within(await rowOf('@mei')).queryByRole('button')).not.toBeInTheDocument();
 });
 
 it('follows from the row at once, and tells the page each change, the going back too', async () => {
@@ -72,7 +70,7 @@ it('follows from the row at once, and tells the page each change, the going back
 	const onFollowChange = jest.fn();
 	showList([jtan], onFollowChange);
 
-	fireEvent.click(within(await rowOf(/^Jun Tan/)).getByRole('button', { name: 'Follow back' }));
+	fireEvent.click(within(await rowOf(/^@jtan/)).getByRole('button', { name: 'Follow back' }));
 	expect(mockFollowUser).toHaveBeenCalledWith('u3');
 	expect(onFollowChange).toHaveBeenNthCalledWith(1, true);
 	// Refused: back to Follow back, and the page hears it
@@ -85,7 +83,7 @@ it('lists the followers the viewer follows under its own title', async () => {
 	render(<FollowListDialog username="amira" list="mutuals" onOpenChange={jest.fn()} />);
 
 	expect(screen.getByRole('dialog', { name: 'Followers you know' })).toBeInTheDocument();
-	expect(within(await rowOf('Rosa Ortega @rosa')).getByRole('button', { name: 'Following' })).toHaveTextContent('Following');
+	expect(within(await rowOf('@rosa')).getByRole('button', { name: 'Following' })).toHaveTextContent('Following');
 	expect(mockGetMutualFollowers).toHaveBeenCalledWith('amira');
 	expect(mockGetFollowers).not.toHaveBeenCalled();
 });

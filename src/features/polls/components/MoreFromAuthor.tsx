@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useId } from 'react';
 
 import { useLanguage } from '@/contexts/LanguageContext';
-import { toPayloadLocale } from '@/lib/locale';
+import { toLocaleTag } from '@/lib/locale';
 import { META_GAP } from '@/lib/rich';
 import { pollHref } from '@/lib/routes';
 
@@ -26,7 +26,7 @@ export function MoreFromAuthor({ username, polls }: { username: string; polls: P
 			</h2>
 			<ul className="-mx-2 -my-1.5">
 				{polls.map((poll) => {
-					const turnout = t('poll.voted', { count: (getTurnout(poll) ?? 0).toLocaleString(toPayloadLocale(currentLanguage)) });
+					const turnout = t('poll.voted', { count: (getTurnout(poll) ?? 0).toLocaleString(toLocaleTag(currentLanguage)) });
 					// The status and time wait for the browser's clock; the turnout alone until then
 					const status = clock ? derivePollStatus(poll, clock.now) : null;
 					const when =

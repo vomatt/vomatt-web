@@ -5,6 +5,7 @@ import { useSyncExternalStore } from 'react';
 import { HeadTrackingCode, Integrations } from '@/components/layout/HeadTrackingCode';
 import { Button } from '@/components/ui/Button';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useKeyboardOpen } from '@/hooks/useVisualViewport';
 import { aboutHref } from '@/lib/aboutSite';
 
 export const CONSENT_COOKIE = 'cookie-consent';
@@ -45,6 +46,7 @@ export function CookieConsent({ integrations }: { integrations?: Integrations | 
 	const { t, currentLanguage } = useLanguage();
 	// undefined on the server, so the banner doesn't flash for returning visitors
 	const consent = useSyncExternalStore(subscribe, readConsent, () => undefined);
+	const keyboardOpen = useKeyboardOpen();
 
 	const hasAnalytics = !!(integrations?.gaIDs?.some(Boolean) || integrations?.gtmIDs?.some(Boolean));
 	if (!hasAnalytics) return null;
@@ -61,7 +63,9 @@ export function CookieConsent({ integrations }: { integrations?: Integrations | 
 		<section
 			ref={reserveBannerSpace}
 			aria-label={t('cookieConsent.label')}
-			className="fixed inset-x-3 bottom-[calc(64px+env(safe-area-inset-bottom)+0.75rem)] z-50 rounded-lg border border-border bg-card p-4 shadow-lg md:inset-x-auto md:right-[max(--spacing(4),env(safe-area-inset-right))] md:bottom-[max(--spacing(4),env(safe-area-inset-bottom))] md:max-w-sm"
+			// Like the TabBar it sits on, it stays behind a keyboard instead of riding up above it
+			data-keyboard={keyboardOpen || undefined}
+			className="data-keyboard:invisible fixed inset-x-3 bottom-[calc(64px+env(safe-area-inset-bottom)+0.75rem)] z-50 rounded-lg border border-border bg-card p-4 shadow-lg md:inset-x-auto md:right-[max(--spacing(4),env(safe-area-inset-right))] md:bottom-[max(--spacing(4),env(safe-area-inset-bottom))] md:max-w-sm"
 		>
 			<p className="text-caption-1">
 				{t('cookieConsent.message')}{' '}

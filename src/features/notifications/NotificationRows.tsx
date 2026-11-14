@@ -7,6 +7,8 @@ import { toast } from 'sonner';
 import { Button, buttonVariants } from '@/components/ui/Button';
 import { Ban, Clock } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useActing } from '@/features/communities/ActingProvider';
+import { communityInvitationHref } from '@/features/communities/schema';
 import { acceptCommunityInvitation, declineCommunityInvitation } from '@/features/communities/service';
 import { FollowButton, useFollow } from '@/features/follows/FollowButton';
 import { FollowListDialog } from '@/features/follows/FollowListDialog';
@@ -17,12 +19,13 @@ import { formatAge, formatDuration } from '@/features/polls/format';
 import { useViewerClock } from '@/features/polls/hooks/useViewerClock';
 import { derivePollStatus } from '@/features/polls/status';
 import { pollTiming } from '@/features/polls/timing';
-import { type NameParts, shownName } from '@/features/profiles/name';
-import { ProfileHoverCard, rememberFollowing } from '@/features/profiles/ProfileHoverCard';
-import { ProfileAvatar } from '@/features/profiles/UserChip';
+import { handle } from '@/features/profiles/name';
+import { rememberFollowing } from '@/features/profiles/ProfileHoverCard';
+import { ProfileAvatar, ProfileName } from '@/features/profiles/UserChip';
 import { apiErrorText } from '@/lib/api/error-text';
+import { settle } from '@/lib/api/settle';
 import { countText } from '@/lib/count';
-import { toPayloadLocale } from '@/lib/locale';
+import { toLocaleTag } from '@/lib/locale';
 import { rich } from '@/lib/rich';
 import { META_GAP } from '@/lib/rich';
 import { commentHash, pollHref, profileHref, replyHash } from '@/lib/routes';
@@ -183,7 +186,7 @@ function RowShell({
 					))}
 				</span>
 			</span>
-			{action && <span className={cn(raised, 'col-start-2 flex items-center sm:col-start-3 sm:row-start-1')}>{action}</span>}
+			{action && <span className={cn(raised, 'col-start-2 flex items-center gap-2 sm:col-start-3 sm:row-start-1')}>{action}</span>}
 		</li>
 	);
 }
@@ -204,17 +207,15 @@ function RowLink({ href, onOpen, className, children }: { href: string; onOpen: 
 	);
 }
 
-/** What a notification calls its actor: the name they show, else their @handle. */
-const actorName = (actor: NameParts) => shownName(actor) ?? `@${actor.username}`;
-
-/** The actor's name as a profile link with the hover card. */
-function ActorName({ actor, onOpen }: { actor: NameParts & { avatarUrl?: string | null }; onOpen: () => void }) {
+/** The actor's @handle as a profile link with the hover card. */
+function ActorName({ actor, onOpen }: { actor: { username: string; avatarUrl?: string | null }; onOpen: () => void }) {
 	return (
-		<ProfileHoverCard username={actor.username} avatarUrl={actor.avatarUrl}>
-			<Link href={profileHref(actor.username)} onClick={onOpen} className={rowLink}>
-				{strong(actorName(actor))}
-			</Link>
-		</ProfileHoverCard>
+		<ProfileName
+			username={actor.username}
+			avatarUrl={actor.avatarUrl}
+			onClick={onOpen}
+			className={cn(rowLink, 'font-semibold')}
+		/>
 	);
 }
 
@@ -251,7 +252,7 @@ function ResultRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'RESULT' }
 					<DecidedText key="outcome" winners={poll.winningOptionLabels} tie={!!poll.tie} />
 				),
 				<span key="turnout" className="tabular-nums">
-					{t('poll.voted', { count: (poll.turnout ?? 0).toLocaleString(toPayloadLocale(currentLanguage)) })}
+					{t('poll.voted', { count: (poll.turnout ?? 0).toLocaleString(toLocaleTag(currentLanguage)) })}
 				</span>,
 				useAge(entry.createdAt),
 			]}
@@ -281,7 +282,7 @@ function CancelledRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'CANCEL
 						{poll.title}
 					</RowLink>
 				),
-				name: actorName(entry.actor),
+				name: handle(entry.actor.username),
 			})}
 			meta={[useAge(entry.createdAt)]}
 		/>
@@ -309,7 +310,7 @@ function InvitationRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'INVIT
 			icon={<ProfileAvatar username={actor.username} avatarUrl={actor.avatarUrl} className="size-9" />}
 			line={
 				<>
-					{rich(t('notifications.invitedYou'), { name: strong(actorName(actor)) })}{META_GAP}
+					{rich(t('notifications.invitedYou'), { name: strong(handle(actor.username)) })}{META_GAP}
 					<RowLink href={href} onOpen={onOpen} className="font-medium">
 						{poll.title}
 					</RowLink>
@@ -344,7 +345,7 @@ function FollowedRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'FOLLOWE
 			line={rich(t('notifications.followedYou'), {
 				name: <ActorName actor={actor} onOpen={onOpen} />,
 			})}
-			meta={[useAge(entry.createdAt), shownName(actor) && `@${actor.username}`]}
+			meta={[useAge(entry.createdAt)]}
 			action={<FollowButton follow={follow} username={actor.username} avatarUrl={actor.avatarUrl} size="xs" />}
 		/>
 	);
@@ -394,7 +395,7 @@ function PollLikeRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'POLL_LI
 			unread={!entry.read}
 			icon={<ProfileAvatar username={actor.username} avatarUrl={actor.avatarUrl} className="size-9" />}
 			line={rich(t('notifications.pollLiked'), {
-				name: strong(actorName(actor)),
+				name: strong(handle(actor.username)),
 				title: (
 					<RowLink href={href} onOpen={onOpen} className="font-medium">
 						{poll.title}
@@ -425,7 +426,7 @@ function CommentRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'COMMENT'
 			icon={<ProfileAvatar username={actor.username} avatarUrl={actor.avatarUrl} className="size-9" />}
 			// The API doesn't say whose comment a reply answers: on the viewer's poll it may be someone else's
 			line={rich(t(entry.kind === 'COMMENT' && comment.parentId ? 'notifications.replied' : COMMENT_ROW_LINE[entry.kind]), {
-				name: strong(actorName(actor)),
+				name: strong(handle(actor.username)),
 				title: (
 					<RowLink href={href} onOpen={onOpen} className="font-medium">
 						{poll.title}
@@ -481,7 +482,7 @@ function ClosingSoonRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'CLOS
 			meta={[
 				t('notifications.notVoted'),
 				<span key="turnout" className="tabular-nums">
-					{t('notifications.votedSoFar', { count: (poll.turnout ?? 0).toLocaleString(toPayloadLocale(currentLanguage)) })}
+					{t('notifications.votedSoFar', { count: (poll.turnout ?? 0).toLocaleString(toLocaleTag(currentLanguage)) })}
 				</span>,
 				useAge(entry.createdAt),
 			]}
@@ -523,6 +524,7 @@ function CommunityLockedRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: '
 function CommunityInvitationRow({ entry, onOpen }: RowProps<Extract<Entry, { kind: 'COMMUNITY_INVITATION' }>>) {
 	const { t } = useLanguage();
 	const { refresh } = useUnreadCount();
+	const { reloadCommunities } = useActing();
 	const { actor, communityInvitation } = entry;
 	const [busy, setBusy] = useState<'accept' | 'decline' | null>(null);
 	const [answered, setAnswered] = useState(false);
@@ -531,7 +533,7 @@ function CommunityInvitationRow({ entry, onOpen }: RowProps<Extract<Entry, { kin
 
 	const answer = async (choice: 'accept' | 'decline') => {
 		setBusy(choice);
-		const result = await (choice === 'accept' ? acceptCommunityInvitation : declineCommunityInvitation)(communityInvitation.id);
+		const result = await settle<unknown>((choice === 'accept' ? acceptCommunityInvitation : declineCommunityInvitation)(communityInvitation.id));
 		setBusy(null);
 		if (!result.ok) {
 			toast.error(apiErrorText(t, result));
@@ -542,13 +544,15 @@ function CommunityInvitationRow({ entry, onOpen }: RowProps<Extract<Entry, { kin
 			}
 			return;
 		}
-		toast.success(t(choice === 'accept' ? 'notifications.invitationAccepted' : 'notifications.invitationDeclined', { name: actorName(actor) }));
+		toast.success(t(choice === 'accept' ? 'notifications.invitationAccepted' : 'notifications.invitationDeclined', { name: handle(actor.username) }));
 		setAnswered(true);
 		refresh();
+		if (choice === 'accept') reloadCommunities();
 	};
 
 	return (
 		<RowShell
+			href={communityInvitationHref(communityInvitation.id)}
 			onOpen={onOpen}
 			unread={!entry.read}
 			icon={<ProfileAvatar username={actor.username} avatarUrl={actor.avatarUrl} className="size-9" />}
@@ -558,17 +562,10 @@ function CommunityInvitationRow({ entry, onOpen }: RowProps<Extract<Entry, { kin
 			meta={[age]}
 			action={
 				<>
-					<Button size="xs" loading={busy === 'accept'} disabled={busy !== null} onClick={() => answer('accept')} className={rowLink}>
+					<Button size="xs" loading={busy === 'accept'} disabled={busy !== null} onClick={() => answer('accept')}>
 						{t('notifications.accept')}
 					</Button>
-					<Button
-						size="xs"
-						variant="outline"
-						loading={busy === 'decline'}
-						disabled={busy !== null}
-						onClick={() => answer('decline')}
-						className={rowLink}
-					>
+					<Button size="xs" variant="outline" loading={busy === 'decline'} disabled={busy !== null} onClick={() => answer('decline')}>
 						{t('notifications.decline')}
 					</Button>
 				</>

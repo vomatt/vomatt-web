@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 
 import { TabBar } from '@/components/layout/TabBar';
 
@@ -64,5 +64,34 @@ describe('TabBar', () => {
 		const explore = screen.getByRole('link', { name: 'Explore' });
 		expect(explore.querySelector('[data-pending]')).toBeNull();
 		expect(explore.querySelector('.text-muted-foreground')).not.toBeNull();
+	});
+
+	it('stays behind an on-screen keyboard instead of riding up above it, and returns when it closes', () => {
+		const original = Object.getOwnPropertyDescriptor(window, 'visualViewport');
+		const viewport = Object.assign(new EventTarget(), { width: 375, height: window.innerHeight, offsetTop: 0, scale: 1 });
+		Object.defineProperty(window, 'visualViewport', { value: viewport, configurable: true });
+		const field = document.body.appendChild(document.createElement('textarea'));
+		const resize = (height: number) =>
+			act(() => {
+				viewport.height = height;
+				viewport.dispatchEvent(new Event('resize'));
+			});
+		try {
+			render(<TabBar userSession={{}} />);
+			const bar = document.querySelector('[data-tabbar]')!;
+			expect(bar).toHaveClass('data-keyboard:invisible');
+			expect(bar).not.toHaveAttribute('data-keyboard');
+
+			act(() => field.focus());
+			resize(400);
+			expect(bar).toHaveAttribute('data-keyboard');
+
+			resize(window.innerHeight);
+			expect(bar).not.toHaveAttribute('data-keyboard');
+		} finally {
+			field.remove();
+			if (original) Object.defineProperty(window, 'visualViewport', original);
+			else delete (window as { visualViewport?: unknown }).visualViewport;
+		}
 	});
 });

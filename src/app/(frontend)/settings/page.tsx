@@ -39,10 +39,10 @@ export default async function SettingsPage() {
 			}
 		>
 			{/* Phones reach Settings from the profile and have no sidebar to leave by */}
-			<BackLink href={profileHref(profile.username)} className="md:hidden">
+			<BackLink href={profileHref(profile.username)} strict className="md:hidden">
 				<T k="common.back" />
 			</BackLink>
-			<h1 className="mt-8 mb-8 text-title-1 text-foreground md:mt-0">
+			<h1 className="mt-4 mb-8 text-title-1 text-foreground md:mt-0">
 				<T k="navigation.settings" />
 			</h1>
 			{acting ? (

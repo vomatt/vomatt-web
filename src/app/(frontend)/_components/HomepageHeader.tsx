@@ -10,7 +10,12 @@ import { Button, buttonVariants } from '@/components/ui/Button';
 import { Check, Plus } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UnreadDot } from '@/features/notifications/UnreadDot';
-import { FEED_KINDS, type FeedKind, FEEDS, isRailFeed } from '@/features/polls/feeds';
+import {
+	FEED_KINDS,
+	type FeedKind,
+	FEEDS,
+	isRailFeed,
+} from '@/features/polls/feeds';
 import type { TagDto } from '@/features/polls/schema';
 import { followTag, unfollowTag } from '@/features/polls/service';
 import { apiErrorText } from '@/lib/api/error-text';
@@ -32,7 +37,13 @@ type HomepageHeaderProps = {
 	resultsUnread?: Promise<boolean>;
 };
 
-type PillLink = { label: string; href: string; isActive?: boolean; className?: string; dot?: Promise<boolean> };
+type PillLink = {
+	label: string;
+	href: string;
+	isActive?: boolean;
+	className?: string;
+	dot?: Promise<boolean>;
+};
 
 /** Feed and topic pills over the feed. Each is a link, so a feed or topic can be shared and server-rendered. */
 export function HomepageHeader({
@@ -44,7 +55,9 @@ export function HomepageHeader({
 	resultsUnread,
 }: HomepageHeaderProps) {
 	const { t } = useLanguage();
-	const feeds: PillLink[] = FEED_KINDS.filter((kind) => signedIn || kind === 'forYou').map((kind) => {
+	const feeds: PillLink[] = FEED_KINDS.filter(
+		(kind) => signedIn || kind === 'forYou'
+	).map((kind) => {
 		const isActive = kind === feed && !activeTag;
 		return {
 			label: t(FEEDS[kind].label),
@@ -105,7 +118,7 @@ export function HomepageHeader({
 			{/* Its pills sit at its bottom, with the room above them inside it, so it sticks where it rests and never moves */}
 			<StickyBar data-sticky-bar="feed" className="-mx-1 max-md:mx-0">
 				<nav aria-label={t('homePage.topics')}>
-					<ul className="flex gap-2 overflow-x-auto h-(--feed-bar-height) items-end px-1 pb-2 scrollbar-none max-md:bleed-x">
+					<ul className="flex gap-2 overflow-x-auto h-(--feed-bar-height) items-end px-1 py-2 scrollbar-none max-md:bleed-x">
 						{feeds.map(renderLink)}
 						{topics.map(renderLink)}
 					</ul>

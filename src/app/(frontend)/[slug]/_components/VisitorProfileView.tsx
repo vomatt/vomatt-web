@@ -27,7 +27,7 @@ import { useCursorList } from '@/hooks/useCursorList';
 import type { CursorPage } from '@/lib/api/cursor';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
-import { toPayloadLocale } from '@/lib/locale';
+import { toLocaleTag } from '@/lib/locale';
 import { profileHref } from '@/lib/routes';
 import type { UserProfile } from '@/types/user';
 
@@ -68,6 +68,7 @@ export function VisitorProfileView({
 
 	return (
 		<PageShell
+			className="pt-4 md:pt-12"
 			rail={
 				// What following does, for every visitor: signed out too, before they can follow
 				!preview && (
@@ -106,6 +107,7 @@ export function VisitorProfileView({
 					profile={{ ...profile, followersCount }}
 					onOpenList={viewerId ? setList : undefined}
 					actions={canAct && <VisitorActions profile={profile} follow={follow} />}
+					actionsAt="end"
 					mutuals={canAct && <MutualFollowersLine profile={profile} onOpen={() => setList('mutuals')} />}
 				/>
 				{viewerId && (
@@ -210,7 +212,7 @@ function AskedList({
 				<h2 className="relative inline-flex h-11 items-center gap-1.5 text-body-3 font-medium after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-foreground">
 					{t('profile.tabAsked')}
 					<span className="tabular-nums text-muted-foreground">
-						{total.toLocaleString(toPayloadLocale(currentLanguage))}
+						{total.toLocaleString(toLocaleTag(currentLanguage))}
 					</span>
 				</h2>
 				<FilterPills

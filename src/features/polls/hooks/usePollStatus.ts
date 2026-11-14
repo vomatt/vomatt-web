@@ -1,5 +1,7 @@
 import { useEffect, useEffectEvent, useState } from 'react';
 
+import { serverNow } from '@/lib/clock';
+
 import { derivePollStatus, isRevealed, nextStatusChange, type PollStatus, type StatusFields } from '../status';
 
 // A longer setTimeout fires at once; the tick after it waits again
@@ -14,11 +16,11 @@ export function usePollStatus(
 	poll: StatusFields,
 	onEnded?: () => void
 ): { status: PollStatus; sealedUntil: string | null } {
-	const [now, setNow] = useState(Date.now);
+	const [now, setNow] = useState(serverNow);
 	const next = nextStatusChange(poll, now);
 
 	const tick = useEffectEvent(() => {
-		const time = Date.now();
+		const time = serverNow();
 		const wasEnded = derivePollStatus(poll, now) === 'ended';
 		setNow(time);
 		if (!wasEnded && derivePollStatus(poll, time) === 'ended') onEnded?.();
@@ -26,7 +28,7 @@ export function usePollStatus(
 
 	useEffect(() => {
 		if (next === null) return;
-		const timer = setTimeout(tick, Math.min(next - Date.now(), MAX_TIMEOUT_MS));
+		const timer = setTimeout(tick, Math.min(next - serverNow(), MAX_TIMEOUT_MS));
 		return () => clearTimeout(timer);
 	}, [next, now]);
 

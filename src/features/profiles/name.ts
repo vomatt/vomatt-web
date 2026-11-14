@@ -32,11 +32,8 @@ export function profileName(profile: NameParts) {
 	};
 }
 
-/** The name a person leads with beside their @handle in a list or byline; null when only the username is public. */
-export function shownName(person: NameParts) {
-	const { primary } = profileName(person);
-	return primary === person.username ? null : primary;
-}
+/** How the site writes a person wherever it names them: their @handle. */
+export const handle = (username: string) => `@${username}`;
 
 /** The gender as the viewer's language words it. */
 export function genderLabel(t: (key: string) => string, gender: Gender) {

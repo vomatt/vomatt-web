@@ -1,17 +1,21 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 
 import { EmptyCard } from '@/components/EmptyCard';
 import { PageShell } from '@/components/layout/PageShell';
+import { rowLinkClassName, RowText, SettingsCard } from '@/components/SettingsCard';
 import { T } from '@/components/T';
-import { getMyCommunities, getMyProfile, getTokenSession, redirectToLogin } from '@/data/auth';
+import { ChevronRight } from '@/components/ui/SvgIcons';
+import { getMyCommunities, getMyProfile, getTokenSession, loadActingState, redirectToLogin } from '@/data/auth';
 import { CommunityMembers } from '@/features/communities/CommunityMembers';
 import { CommunityProfileCard } from '@/features/communities/CommunityProfileCard';
 import { DeleteCommunity } from '@/features/communities/DeleteCommunity';
 import { canDelete, canManageMembers } from '@/features/communities/permissions';
-import { communityMembersHref } from '@/features/communities/schema';
+import { accountName, communityMembersHref } from '@/features/communities/schema';
 import { listInvitations, listMembers } from '@/features/communities/service';
 import { getUserProfile } from '@/lib/api/services/users';
 import { getServerMessages } from '@/lib/getServerLocale';
+import { profileHref } from '@/lib/routes';
 
 import { SettingsSubpageHeader } from '../../../_components/SettingsSubpageHeader';
 
@@ -24,12 +28,13 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function CommunityMembersPage({ params }: Props) {
 	const { communityId } = await params;
-	const [profile, token, communities, members] = await Promise.all([
+	const [profile, token, communities, members, { acting }] = await Promise.all([
 		getMyProfile(),
 		// The person, not the account they may be acting as: their own row is the one they can leave
 		getTokenSession(),
 		getMyCommunities(),
 		listMembers(communityId),
+		loadActingState(),
 	]);
 	if (!profile || !token) return redirectToLogin(communityMembersHref(communityId));
 
@@ -45,7 +50,15 @@ export default async function CommunityMembersPage({ params }: Props) {
 	return (
 		<PageShell>
 			<div className="flex flex-col gap-8">
-				<SettingsSubpageHeader title={community ? community.displayName || community.username : <T k="communities.members" />} />
+				<SettingsSubpageHeader
+					title={community ? community.displayName || community.username : <T k="communities.members" />}
+					// Acting as this account, Settings is the person's own; the way back is the account's profile
+					back={
+						acting?.communityId === communityId
+							? { href: profileHref(acting.username), to: 'profile', name: accountName(acting) }
+							: undefined
+					}
+				/>
 				{community && members.ok ? (
 					<>
 						<CommunityProfileCard community={community} bio={publicProfile?.bio ?? null} />
@@ -55,6 +68,15 @@ export default async function CommunityMembersPage({ params }: Props) {
 							members={members.data}
 							invitations={invitations?.ok ? invitations.data : undefined}
 						/>
+						{/* Blocks are the caller's, so only while acting as this account is that page its list */}
+						{acting?.communityId === communityId && canManageMembers(community.role) && (
+							<SettingsCard>
+								<Link href="/settings/blocked" className={rowLinkClassName}>
+									<RowText title={<T k="blocks.title" />} body={<T k="communities.blockedBody" />} />
+									<ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+								</Link>
+							</SettingsCard>
+						)}
 						{canDelete(community.role) && <DeleteCommunity community={community} />}
 					</>
 				) : notMember ? (

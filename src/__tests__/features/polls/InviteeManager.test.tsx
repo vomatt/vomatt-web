@@ -38,7 +38,7 @@ beforeEach(() => {
 describe('InviteeManager', () => {
 	it('lists Invitees by username or email, with who has voted', async () => {
 		setup();
-		expect(await screen.findByText('bob')).toBeInTheDocument();
+		expect(await screen.findByText('@bob')).toBeInTheDocument();
 		expect(screen.getByText('dave@example.com')).toBeInTheDocument();
 		expect(screen.getByText('2 invited, 1 voted')).toBeInTheDocument();
 		// Someone who voted can't be removed
@@ -55,10 +55,10 @@ describe('InviteeManager', () => {
 			nextCursor: null,
 		} as never);
 		setup();
-		await screen.findByText('bob');
+		await screen.findByText('@bob');
 		fireEvent.change(screen.getByPlaceholderText('Username or email'), { target: { value: 'bob' } });
-		expect(await screen.findByRole('button', { name: 'bobby' })).toBeInTheDocument();
-		expect(screen.queryByRole('button', { name: 'bob' })).not.toBeInTheDocument();
+		expect(await screen.findByRole('button', { name: '@bobby' })).toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: '@bob' })).not.toBeInTheDocument();
 	});
 
 	it('removes an Invitee who hasn\'t voted', async () => {
@@ -74,7 +74,7 @@ describe('InviteeManager', () => {
 		const carol = { ...dave, email: 'carol@example.com' };
 		mockAddInvitees.mockResolvedValue({ ok: true, data: [bob, dave, carol] });
 		const { onChanged } = setup();
-		await screen.findByText('bob');
+		await screen.findByText('@bob');
 		const invite = screen.getByRole('button', { name: 'Invite' });
 		expect(invite).toBeDisabled();
 

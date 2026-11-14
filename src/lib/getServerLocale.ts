@@ -4,15 +4,15 @@ import en from '@/locales/en.json';
 import zh from '@/locales/zh.json';
 import type { LanguageCode } from '@/types';
 
-import { toPayloadLocale } from './locale';
+import { toLocaleTag } from './locale';
 
 /**
  * Reads the user's preferred language from cookies/headers
- * and returns both the frontend code and the Payload locale.
+ * and returns both the frontend code and its locale tag.
  */
 export async function getServerLocale(): Promise<{
 	language: LanguageCode;
-	payloadLocale: string;
+	localeTag: string;
 }> {
 	let lang: LanguageCode = 'en';
 
@@ -27,7 +27,7 @@ export async function getServerLocale(): Promise<{
 
 	return {
 		language: lang,
-		payloadLocale: toPayloadLocale(lang),
+		localeTag: toLocaleTag(lang),
 	};
 }
 

@@ -7,7 +7,6 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { isFieldPublic, type VisibilityField } from '@/features/account/visibility';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { formatMonthYear } from '@/features/polls/format';
-import { CommunityBadge } from '@/features/profiles/CommunityBadge';
 import { Count } from '@/features/profiles/Count';
 import { genderLabel, profileName } from '@/features/profiles/name';
 import { countText } from '@/lib/count';
@@ -45,7 +44,6 @@ export function PublicPreview({ profile, className }: { profile: MyProfile; clas
 					<div className="min-w-0">
 						<p className="truncate text-title-4 leading-tight">
 							{name.primary}
-							{profile.community && <CommunityBadge className="ml-1.5 size-3.5" />}
 							{name.secondary && <span className="text-muted-foreground"> {name.secondary}</span>}
 						</p>
 						<p className="truncate text-caption-2 text-muted-foreground">@{profile.username}</p>

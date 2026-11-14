@@ -296,13 +296,14 @@ describe('VisitorProfileView', () => {
 		expect(mockGetMutualFollowers).toHaveBeenCalledWith('amira');
 	});
 
-	it('lists those people in the rail, each linking to their profile, then all their followers', async () => {
+	it('lists those people in the rail by username, each linking to their profile, then all their followers', async () => {
 		mockGetFollowers.mockResolvedValue({ ok: true, data: { items: [], nextCursor: null } });
 		render(<VisitorProfileView profile={withMutuals} polls={{ items: [], nextCursor: null }} viewerId="u1" />);
 
 		const card = screen.getByRole('region', { name: 'Followers you know' });
-		expect(within(card).getByRole('link', { name: 'Jun Tan @jtan' })).toHaveAttribute('href', '/jtan');
-		expect(within(card).getByRole('link', { name: 'rosa @rosa' })).toHaveAttribute('href', '/rosa');
+		expect(within(card).getByRole('link', { name: '@jtan' })).toHaveAttribute('href', '/jtan');
+		expect(within(card).getByRole('link', { name: '@rosa' })).toHaveAttribute('href', '/rosa');
+		expect(card).not.toHaveTextContent('Jun Tan');
 		fireEvent.click(within(card).getByRole('button', { name: 'All 1,204 followers' }));
 		expect(await screen.findByRole('dialog', { name: 'Followers' })).toBeInTheDocument();
 	});
@@ -342,6 +343,13 @@ describe('OwnProfileView', () => {
 		render(<OwnProfileView profile={{ ...me, gender: 'MALE' }} polls={[]} />);
 		expect(screen.getByRole('banner')).toHaveTextContent('Gender: Male(Only you can see this)');
 		expect(screen.getByRole('region', { name: 'What everyone sees' })).not.toHaveTextContent('Gender');
+	});
+
+	it('says so when the owner has more polls than were loaded', () => {
+		const { rerender } = render(<OwnProfileView profile={me} polls={[]} />);
+		expect(screen.queryByText(/more polls than this page can load/)).not.toBeInTheDocument();
+		rerender(<OwnProfileView profile={me} polls={[]} pollsTruncated />);
+		expect(screen.getByText(/more polls than this page can load/)).toBeInTheDocument();
 	});
 
 	it('leaves out location and points, even ones made public', () => {
@@ -572,11 +580,12 @@ describe('community account profile', () => {
 		community: true,
 	};
 
-	it('marks the group, shows its followers and offers Follow, without following or personal details', () => {
+	it('names the group without a badge, shows its followers and offers Follow, without following or personal details', () => {
 		render(<VisitorProfileView profile={community} polls={{ items: [], nextCursor: null }} viewerId="u1" />);
 
 		const header = screen.getByRole('banner');
-		expect(screen.getByRole('heading', { level: 1, name: 'Robotics Club Community account' })).toBeInTheDocument();
+		expect(screen.getByRole('heading', { level: 1, name: 'Robotics Club' })).toBeInTheDocument();
+		expect(screen.queryByRole('img', { name: 'Community account' })).not.toBeInTheDocument();
 		expect(within(header).getByRole('button', { name: '1,204 followers' })).toBeInTheDocument();
 		expect(header).not.toHaveTextContent(/following/i);
 		expect(header).not.toHaveTextContent(/Ro Bot|Gender/);
@@ -598,7 +607,8 @@ describe('community account profile', () => {
 		render(<OwnProfileView profile={own} polls={[]} />);
 
 		const preview = screen.getByRole('region', { name: 'What everyone sees' });
-		expect(within(preview).getByRole('img', { name: 'Community account' })).toBeInTheDocument();
+		expect(preview).toHaveTextContent('Robotics Club');
+		expect(within(preview).queryByRole('img', { name: 'Community account' })).not.toBeInTheDocument();
 		expect(preview).not.toHaveTextContent(/Ro Bot|Gender/);
 		expect(screen.getByRole('banner')).not.toHaveTextContent(/following/i);
 	});

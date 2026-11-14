@@ -160,7 +160,7 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }:
 							key={row.id}
 							className={cn(
 								'relative overflow-hidden rounded-xl text-body-2',
-								row === myRow ? 'border-[1.5px] border-foreground' : 'border border-border'
+								row === myRow ? 'border-[1.5px] border-chosen-line' : 'border border-border'
 							)}
 						>
 							{/* One neutral for every bar: the winner is marked by its stamp, not its fill */}

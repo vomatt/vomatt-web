@@ -170,11 +170,6 @@ export function PollCard({
 						<UserChip
 							username={creatorUsername}
 							avatarUrl={poll.creatorAvatarUrl}
-							displayName={poll.creatorDisplayName}
-							firstName={poll.creatorFirstName}
-							lastName={poll.creatorLastName}
-							label={`@${creatorUsername}`}
-							community={poll.creatorCommunity}
 							// 44px tall hit area without growing the header row
 							className="relative z-10 -my-2.5 min-h-11 gap-2.5 font-medium text-foreground transition-colors hover:text-muted-foreground"
 							avatarClassName="size-7"

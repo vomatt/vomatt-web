@@ -99,13 +99,13 @@ export function BallotBoxIcon({ className }: { className?: string }) {
 	);
 }
 
-/** The 1.5px ink line and Volt tint behind the chosen option. Slides between options and dims while a request is out. */
+/** The 1.5px chosen line and Volt tint behind the chosen option. Slides between options and dims while a request is out. */
 export function SelectionHighlight({ layoutId, inTransit = false }: { layoutId: string; inTransit?: boolean }) {
 	return (
 		<m.span
 			layoutId={layoutId}
 			aria-hidden
-			className="absolute inset-0 rounded-xl border-[1.5px] border-primary bg-highlight-tint"
+			className="absolute inset-0 rounded-xl border-[1.5px] border-chosen-line bg-highlight-tint"
 			animate={{ opacity: inTransit ? 0.55 : 1 }}
 			transition={{ layout: INK, opacity: { duration: 0.15 } }}
 		/>

@@ -3,10 +3,36 @@ import { z } from 'zod';
 /** One page of a list endpoint. A null `nextCursor` means the last page. */
 export type CursorPage<T> = { items: T[]; nextCursor: string | null };
 
-/** The API's `CursorResponse<T>`: `{ items, nextCursor }`, no totals, no page jumps. */
-export function cursorPageSchema<T extends z.ZodTypeAny>(item: T) {
+/**
+ * The items that pass `item`. The ones that fail are left out and logged once per page; a page where
+ * every item fails throws, so a list the app can't read shows as failed, not as empty.
+ */
+function keepValid<T extends z.ZodTypeAny>(item: T) {
+	return (raws: unknown[]): z.output<T>[] => {
+		const results = raws.map((raw) => item.safeParse(raw));
+		const failed = results.flatMap((result, i) => (result.success ? [] : [{ raw: raws[i], error: result.error }]));
+		if (failed.length === 0) return results.map((result) => result.data);
+		if (failed.length === raws.length) throw failed[0].error;
+		// Ids and the first item's issues only: the items themselves may hold personal data
+		console.error(`Left out ${failed.length} of ${raws.length} list items that failed validation:`, {
+			ids: failed.map(({ raw }) => (raw as { id?: unknown } | null)?.id),
+			issues: failed[0].error.issues,
+		});
+		return results.flatMap((result) => (result.success ? [result.data] : []));
+	};
+}
+
+/**
+ * The API's `CursorResponse<T>`: `{ items, nextCursor }`, no totals, no page jumps.
+ * `skipInvalid`: an item that fails validation is left out (see keepValid) instead of failing the list.
+ * Only for lists where a missing row misleads nobody.
+ */
+export function cursorPageSchema<T extends z.ZodTypeAny>(item: T, { skipInvalid = false } = {}) {
 	return z
-		.object({ items: z.array(item), nextCursor: z.string().nullish() })
+		.object({
+			items: skipInvalid ? z.array(z.unknown()).transform(keepValid(item)) : z.array(item),
+			nextCursor: z.string().nullish(),
+		})
 		.transform((page) => ({
 			items: page.items,
 			nextCursor: page.nextCursor ?? null,

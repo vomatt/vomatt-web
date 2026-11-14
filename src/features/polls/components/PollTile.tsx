@@ -3,7 +3,7 @@
 import Link from 'next/link';
 
 import { useLanguage } from '@/contexts/LanguageContext';
-import { toPayloadLocale } from '@/lib/locale';
+import { toLocaleTag } from '@/lib/locale';
 import { richList } from '@/lib/rich';
 import { META_GAP } from '@/lib/rich';
 import { pollHref } from '@/lib/routes';
@@ -79,7 +79,7 @@ export function PollTile({ poll }: { poll: Poll }) {
 				{/* A Scheduled Poll takes no Ballots yet, so it shows no turnout */}
 				{ended ? <EndedMeta poll={poll} /> : status !== 'scheduled' && <Turnout poll={poll} />}
 				{status !== 'scheduled' && topics.length > 0 && META_GAP}
-				{topics.length > 0 && richList(topics, toPayloadLocale(currentLanguage), (name) => name)}
+				{topics.length > 0 && richList(topics, toLocaleTag(currentLanguage), (name) => name)}
 			</p>
 		</li>
 	);

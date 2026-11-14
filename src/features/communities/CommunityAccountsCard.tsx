@@ -12,16 +12,18 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
+import { profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
-import { useSwitchAccount } from './ActingProvider';
+import { useActing, useSwitchAccount } from './ActingProvider';
 import { LockedChip } from './LockedChip';
 import { accountName, canActAs, communityMembersHref, type MyCommunity } from './schema';
 import { unlockCommunity } from './service';
 
 /**
  * Settings' community accounts: each one the user belongs to, opening its members page,
- * with Act as beside it (the way in on phones, which have no sidebar switcher). A locked one the user owns can be
+ * with Act as beside it (the way in on phones, which have no sidebar switcher). Act as lands on the account's profile,
+ * since Settings itself is the person's. A locked one the user owns can be
  * unlocked while their plan has room (`canUnlock`).
  */
 export function CommunityAccountsCard({ communities, canUnlock = false }: { communities: MyCommunity[]; canUnlock?: boolean }) {
@@ -32,7 +34,7 @@ export function CommunityAccountsCard({ communities, canUnlock = false }: { comm
 			{communities.map((community) => {
 				const name = accountName(community);
 				return (
-					<li key={community.communityId} className="flex items-center">
+					<li key={community.communityId} className="flex items-center transition-colors has-[>a:hover]:bg-surface-soft">
 						<Link href={communityMembersHref(community.communityId)} className={cn(rowLinkClassName, 'min-w-0 flex-1')}>
 							<UserAvatar username={community.username} avatarUrl={community.avatarUrl} className="size-9" />
 							<RowText
@@ -54,7 +56,7 @@ export function CommunityAccountsCard({ communities, canUnlock = false }: { comm
 								className="me-4.5 shrink-0"
 								aria-label={t('communities.acting.actAsLabel', { name })}
 								aria-disabled={busy}
-								onClick={() => switchTo(community)}
+								onClick={() => switchTo(community, profileHref(community.username))}
 							>
 								{t('communities.acting.actAs')}
 							</Button>
@@ -69,6 +71,7 @@ export function CommunityAccountsCard({ communities, canUnlock = false }: { comm
 function UnlockButton({ community }: { community: MyCommunity }) {
 	const { t } = useLanguage();
 	const router = useRouter();
+	const { reloadCommunities } = useActing();
 	const [busy, setBusy] = useState(false);
 	const unlock = async () => {
 		setBusy(true);
@@ -80,6 +83,7 @@ function UnlockButton({ community }: { community: MyCommunity }) {
 		}
 		toast.success(t('communities.unlocked', { name: accountName(community) }));
 		router.refresh();
+		reloadCommunities();
 	};
 	return (
 		<Button

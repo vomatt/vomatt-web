@@ -15,7 +15,7 @@ import { useViewerClock } from '@/features/polls/hooks/useViewerClock';
 import type { Poll } from '@/features/polls/schema';
 import { derivePollStatus, isCancelled, isRevealed, type PollStatus, revealTime } from '@/features/polls/status';
 import { pollTiming } from '@/features/polls/timing';
-import { toPayloadLocale } from '@/lib/locale';
+import { toLocaleTag } from '@/lib/locale';
 import { META_GAP } from '@/lib/rich';
 import { pollHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
@@ -51,7 +51,7 @@ export function ProfileSection({
 				{count !== undefined && (
 					<>
 						{META_GAP}
-						<span className="tabular-nums">{count.toLocaleString(toPayloadLocale(currentLanguage))}</span>
+						<span className="tabular-nums">{count.toLocaleString(toLocaleTag(currentLanguage))}</span>
 					</>
 				)}
 				{note && `${META_GAP}${note}`}

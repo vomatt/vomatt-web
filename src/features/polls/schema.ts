@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const POLL_TITLE_MAX = 200;
 export const POLL_DESCRIPTION_MAX = 1000;
-export const POLL_OPTION_MAX = 100;
+export const POLL_OPTION_MAX = 200;
 export const POLL_OPTIONS_MIN = 2;
 export const POLL_OPTIONS_LIMIT = 10;
 
@@ -19,10 +19,6 @@ export const CommentSchema = z.object({
 	userId: z.string().nullish(),
 	author: z.string().nullable(),
 	authorAvatarUrl: z.string().nullish(),
-	/** The author's names as their visibility settings allow; null when hidden or never set. */
-	authorDisplayName: z.string().nullish(),
-	authorFirstName: z.string().nullish(),
-	authorLastName: z.string().nullish(),
 	text: z.string().nullable(),
 	createdAt: DateTime,
 	updatedAt: DateTime.nullish(),
@@ -34,8 +30,6 @@ export const CommentSchema = z.object({
 	deleted: z.boolean().optional(),
 	/** The users the server resolved as @mentions, in order of first appearance; absent on older Comments. */
 	mentions: z.array(z.object({ userId: z.string(), username: z.string() })).optional(),
-	/** Written under a community account's name. */
-	authorCommunity: z.boolean().optional(),
 });
 
 /**
@@ -188,10 +182,6 @@ export const PollSchema = z.object({
 	creatorId: z.string(),
 	creatorUsername: z.string(),
 	creatorAvatarUrl: z.string().nullish(),
-	/** The owner's names as their visibility settings allow; null when hidden or never set. */
-	creatorDisplayName: z.string().nullish(),
-	creatorFirstName: z.string().nullish(),
-	creatorLastName: z.string().nullish(),
 	createdAt: DateTime,
 	updatedAt: DateTime.nullish(),
 	startTime: DateTime,
@@ -224,8 +214,6 @@ export const PollSchema = z.object({
 	pro: z.boolean().optional(),
 	/** Results stay Sealed after the Poll Ended until this time; null when they open at `endTime`. */
 	revealAt: DateTime.nullish(),
-	/** Whether the Poll belongs to a community account. */
-	creatorCommunity: z.boolean().optional(),
 	/** Whether the signed-in viewer bookmarked the Poll; null when signed out. */
 	bookmarked: z.boolean().nullish(),
 	options: z.array(PollOptionSchema),

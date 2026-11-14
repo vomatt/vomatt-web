@@ -17,6 +17,33 @@ describe('cursorPageSchema()', () => {
 		expect(Page.parse({ items: [] }).nextCursor).toBeNull();
 	});
 
+	it('rejects a page with an item that fails validation', () => {
+		expect(() => Page.parse({ items: [{ id: 'a' }, { id: 7 }] })).toThrow();
+	});
+
+	describe('with skipInvalid', () => {
+		const Lenient = cursorPageSchema(Item, { skipInvalid: true });
+
+		it('leaves out the items that fail validation, keeps the rest and logs once', () => {
+			const logged = jest.spyOn(console, 'error').mockImplementation(() => {});
+			expect(Lenient.parse({ items: [{ id: 'a' }, { id: 7 }, { id: 'c' }, { id: 8 }], nextCursor: 'xyz' })).toEqual({
+				items: [{ id: 'a' }, { id: 'c' }],
+				nextCursor: 'xyz',
+			});
+			expect(logged).toHaveBeenCalledTimes(1);
+			expect(logged.mock.calls[0][1].ids).toEqual([7, 8]);
+			logged.mockRestore();
+		});
+
+		it('rejects a page where every item fails, so it never reads as an empty list', () => {
+			expect(() => Lenient.parse({ items: [{ id: 7 }, { id: 8 }] })).toThrow();
+		});
+
+		it('parses an empty page', () => {
+			expect(Lenient.parse({ items: [] }).items).toEqual([]);
+		});
+	});
+
 	it('rejects other shapes', () => {
 		expect(() => Page.parse({ data: [] })).toThrow();
 		// The old offset page is gone from the API

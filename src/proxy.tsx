@@ -1,5 +1,3 @@
-import { match as matchLocale } from '@formatjs/intl-localematcher';
-import Negotiator from 'negotiator';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
@@ -24,24 +22,24 @@ import {
 import { getSafeRedirectPath } from '@/lib/routes';
 import { AuthTokens } from '@/types';
 
-import { i18n } from './i18n-config';
+import { i18n, type Locale } from './i18n-config';
 
-function getLocale(request: NextRequest): string | undefined {
-	// Negotiator expects plain object so we need to transform headers
-	const negotiatorHeaders: Record<string, string> = {};
-	request.headers.forEach((value, key) => (negotiatorHeaders[key] = value));
-
-	// @ts-ignore locales are readonly
-	const locales: string[] = i18n.locales;
-
-	// Use negotiator and intl-localematcher to get best locale
-	let languages = new Negotiator({ headers: negotiatorHeaders }).languages(
-		locales
-	);
-
-	const locale = matchLocale(languages, locales, i18n.defaultLocale);
-
-	return locale || i18n.defaultLocale;
+/** The first supported language in Accept-Language, by q-value; a regional tag (zh-TW) matches its language. */
+function getLocale(request: NextRequest): Locale {
+	const ranked = (request.headers.get('accept-language') ?? '')
+		.split(',')
+		.map((part) => {
+			const [tag, ...params] = part.trim().toLowerCase().split(';');
+			const q = params.find((param) => param.trim().startsWith('q='));
+			return { tag, q: q ? Number(q.trim().slice(2)) : 1 };
+		})
+		.filter(({ q }) => q > 0)
+		.sort((a, b) => b.q - a.q);
+	for (const { tag } of ranked) {
+		const locale = i18n.locales.find((supported) => tag === supported || tag.startsWith(`${supported}-`));
+		if (locale) return locale;
+	}
+	return i18n.defaultLocale;
 }
 
 const protectedPaths = ['/account', '/notifications', '/settings', ...SIGNED_IN_FEED_ROOTS.map((root) => `/${root}`)];
@@ -185,7 +183,7 @@ export async function proxy(request: NextRequest) {
 	const savedLanguage = request.cookies.get('preferred-language')?.value;
 
 	if (!savedLanguage) {
-		const locale = getLocale(request) || i18n.defaultLocale;
+		const locale = getLocale(request);
 		response.cookies.set('preferred-language', locale, {
 			maxAge: 365 * 24 * 60 * 60, // 1 year
 			httpOnly: false, // Allow client-side JavaScript access

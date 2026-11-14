@@ -8,11 +8,10 @@ import React, {
 	useState,
 } from 'react';
 
-import { htmlLang, SUPPORTED_LANGUAGES } from '@/i18n-config';
+import { htmlLang } from '@/i18n-config';
 import { interpolate, type TranslationValues } from '@/lib/interpolate';
 import { LanguageCode } from '@/types';
 
-const RTL_LANGUAGES: string[] = ['ar', 'he', 'fa'];
 export interface Translations {
 	[key: string]: string | Translations;
 }
@@ -21,8 +20,6 @@ interface LanguageContextType {
 	currentLanguage: LanguageCode;
 	setLanguage: (language: LanguageCode) => void;
 	t: (key: string, fallbackOrValues?: string | TranslationValues) => string;
-	isLoading: boolean;
-	isInitialized: boolean;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(
@@ -41,34 +38,6 @@ export const useLanguage = () => {
 	return context;
 };
 
-// Detect browser language
-const detectBrowserLanguage = (): LanguageCode => {
-	if (typeof window === 'undefined') return 'en';
-
-	const browserLang = navigator.language.split('-')[0] as LanguageCode;
-	return Object.keys(SUPPORTED_LANGUAGES).includes(browserLang)
-		? browserLang
-		: 'en';
-};
-
-const getLanguageFromCookie = (): LanguageCode | null => {
-	if (typeof document === 'undefined') return null;
-
-	const cookies = document.cookie.split(';');
-	const languageCookie = cookies.find((cookie) =>
-		cookie.trim().startsWith('preferred-language=')
-	);
-
-	if (languageCookie) {
-		const language = languageCookie.split('=')[1] as LanguageCode;
-		return Object.keys(SUPPORTED_LANGUAGES).includes(language)
-			? language
-			: null;
-	}
-
-	return null;
-};
-
 // Set language cookie
 const setLanguageCookie = (language: LanguageCode) => {
 	const maxAge = 365 * 24 * 60 * 60; // 1 year in seconds
@@ -77,21 +46,18 @@ const setLanguageCookie = (language: LanguageCode) => {
 
 interface LanguageProviderProps {
 	children: ReactNode;
-	defaultTranslations?: Translations;
-	initialLanguage?: LanguageCode;
+	defaultTranslations: Translations;
+	initialLanguage: LanguageCode;
 }
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({
 	children,
-	defaultTranslations = {},
+	defaultTranslations,
 	initialLanguage,
 }) => {
-	const hasPreloaded = Object.keys(defaultTranslations).length > 0;
-	const [isInitialized, setIsInitialized] = useState(hasPreloaded);
-	const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>(initialLanguage ?? 'en');
+	const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>(initialLanguage);
 	const [translations, setTranslations] =
 		useState<Translations>(defaultTranslations);
-	const [isLoading, setIsLoading] = useState(!hasPreloaded);
 	const setLanguage = (language: LanguageCode) => {
 		setCurrentLanguage(language);
 		setLanguageCookie(language); // Use cookie instead of localStorage
@@ -99,7 +65,6 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
 	};
 	// Load translations for a specific language
 	const loadTranslations = async (language: LanguageCode) => {
-		setIsLoading(true);
 		try {
 			// Import translations dynamically
 			const translationModule = await import(`../locales/${language}.json`);
@@ -116,27 +81,11 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
 				console.error('Failed to load fallback translations');
 				setTranslations({});
 			}
-		} finally {
-			setIsLoading(false);
 		}
 	};
-	// Without server-provided translations, pick the language on the client:
-	// Cookie > Browser Detection > Default. The effect below syncs the DOM attributes.
-	useEffect(() => {
-		if (hasPreloaded) return;
-		const detectedLanguage = getLanguageFromCookie() || detectBrowserLanguage();
-		// eslint-disable-next-line react-hooks/set-state-in-effect -- the cookie and browser language are only readable after hydration
-		setCurrentLanguage(detectedLanguage);
-		loadTranslations(detectedLanguage);
-		setIsInitialized(true);
-	}, [hasPreloaded]);
-
 	// Update HTML attributes when language changes
 	useEffect(() => {
 		document.documentElement.lang = htmlLang(currentLanguage);
-		document.documentElement.dir = RTL_LANGUAGES.includes(currentLanguage)
-			? 'rtl'
-			: 'ltr';
 	}, [currentLanguage]);
 
 	// Set language and persist to localStorage
@@ -161,8 +110,6 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
 		currentLanguage,
 		setLanguage,
 		t,
-		isLoading,
-		isInitialized,
 	};
 
 	return (

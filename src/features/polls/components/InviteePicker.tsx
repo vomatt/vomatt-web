@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { emailSchema } from '@/components/auth/auth-schemas';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { X } from '@/components/ui/SvgIcons';
+import { Plus, X } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import type { Group } from '@/features/groups/schema';
@@ -14,7 +14,7 @@ import { settle } from '@/lib/api/settle';
 
 import { useUserSearch } from '../hooks/useUserSearch';
 import type { InviteeSelection, PickedUser } from '../invitees';
-import { UserSuggestions } from './UserSuggestions';
+import { keepFieldFocused, UserSuggestions } from './UserSuggestions';
 
 type InviteePickerProps = {
 	value: InviteeSelection;
@@ -154,7 +154,7 @@ export function InviteePicker({
 				</div>
 			)}
 
-			<div className="space-y-1">
+			<div className="space-y-2">
 				<Input
 					id={id}
 					type="text"
@@ -169,17 +169,23 @@ export function InviteePicker({
 					onChange={(e) => setQuery(e.target.value)}
 					onKeyDown={handleKeyDown}
 				/>
-				{isEmail && (
-					<button
-						type="button"
-						onClick={addEmail}
-						className="flex min-h-11 w-full items-center rounded-lg px-3 text-left text-body-4 hover:bg-muted"
-					>
-						{t('invitees.inviteEmail', { email })}
-					</button>
-				)}
-				{/* Community accounts don't vote, so the API refuses them as Invitees: shown, but not pickable */}
-				<UserSuggestions search={search} onPick={addUser} communityNote={t('invitees.communityNotAllowed')} />
+				<div className="rounded-xl border border-border p-1 empty:hidden">
+					{isEmail && (
+						<button
+							type="button"
+							onMouseDown={keepFieldFocused}
+							onClick={addEmail}
+							className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-body-4 hover:bg-muted"
+						>
+							<span aria-hidden className="avatar-frame grid place-items-center bg-muted text-muted-foreground">
+								<Plus className="size-4" />
+							</span>
+							<span className="min-w-0 flex-1 truncate">{t('invitees.inviteEmail', { email })}</span>
+						</button>
+					)}
+					{/* Community accounts don't vote, so the API refuses them as Invitees: shown, but not pickable */}
+					<UserSuggestions search={search} onPick={addUser} communityNote={t('invitees.communityNotAllowed')} />
+				</div>
 			</div>
 
 			{chips.length > 0 && (

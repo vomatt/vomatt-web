@@ -9,7 +9,6 @@ const mockRefresh = jest.fn();
 jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh: mockRefresh }) }));
 const mockSetTheme = jest.fn();
 jest.mock('next-themes', () => ({ useTheme: () => ({ theme: 'system', setTheme: mockSetTheme }) }));
-jest.mock('@/features/groups/GroupsPanel', () => ({ GroupsPanel: () => <p>Groups panel</p> }));
 jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn(), info: jest.fn() } }));
 jest.mock('@/lib/api/services/auth', () => ({ signout: jest.fn() }));
 const mockReportProblem = jest.fn();
@@ -97,28 +96,19 @@ describe('AccountSettings', () => {
 		expect(screen.getByRole('dialog', { name: 'Add your phone number' })).toBeInTheDocument();
 	});
 
-	it('shows how many invite lists there are and opens them from Voting', () => {
+	it('shows how many invite lists there are and links to their page from Voting', () => {
 		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} communities={[]} />);
-		const row = screen.getByRole('button', { name: /Invite lists/ });
+		const row = screen.getByRole('link', { name: /Invite lists/ });
+		expect(row).toHaveAttribute('href', '/settings/invite-lists');
 		expect(row).toHaveTextContent('3 lists');
-		fireEvent.click(row);
-		expect(screen.getByText('Groups panel')).toBeInTheDocument();
 	});
 
 	it('counts one invite list in the singular, and leaves the count out when it could not load', () => {
 		const { rerender } = render(<AccountSettings profile={myProfile} inviteListCount={1} notificationPreferences={preferences} communities={[]} />);
-		expect(screen.getByRole('button', { name: /Invite lists/ })).toHaveTextContent('1 list');
+		expect(screen.getByRole('link', { name: /Invite lists/ })).toHaveTextContent('1 list');
 
 		rerender(<AccountSettings profile={myProfile} inviteListCount={null} notificationPreferences={preferences} communities={[]} />);
-		expect(screen.getByRole('button', { name: /Invite lists/ })).not.toHaveTextContent(/\d list/);
-	});
-
-	it('refreshes the invite list count once the lists are closed', async () => {
-		mockRefresh.mockClear();
-		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} communities={[]} />);
-		fireEvent.click(screen.getByRole('button', { name: /Invite lists/ }));
-		fireEvent.click(screen.getByRole('button', { name: 'Close' }));
-		await waitFor(() => expect(mockRefresh).toHaveBeenCalled());
+		expect(screen.getByRole('link', { name: /Invite lists/ })).not.toHaveTextContent(/\d list/);
 	});
 
 	it('links Language to its own page, naming the current one', () => {
@@ -422,21 +412,18 @@ describe('AccountSettings', () => {
 
 	const quota = (owned: number, limit: number) => ({ owned, limit, selectionRequired: false, selectionDeadline: null });
 
-	it('shows the plan and how many community accounts it allows', () => {
+	it('shows how many community accounts the plan allows next to Create', () => {
 		const { rerender } = render(
 			<AccountSettings profile={{ ...myProfile, plan: 'FREE', communityQuota: quota(0, 1) }} inviteListCount={3} notificationPreferences={preferences} communities={[]} />
 		);
-		const plan = screen.getByRole('region', { name: 'Plan' });
-		expect(plan).toHaveTextContent('Free plan');
-		expect(plan).toHaveTextContent('0 of 1 community accounts owned');
-		expect(within(plan).getByRole('button', { name: 'Upgrade to Pro' })).toBeInTheDocument();
+		const section = screen.getByRole('region', { name: 'Community accounts' });
+		expect(within(section).getByRole('button', { name: 'Create a community account' })).toHaveAccessibleDescription(/0 of 1 community accounts owned/);
 
 		rerender(
 			<AccountSettings profile={{ ...myProfile, plan: 'PRO', communityQuota: quota(2, 3) }} inviteListCount={3} notificationPreferences={preferences} communities={[]} />
 		);
-		expect(plan).toHaveTextContent('Pro plan');
-		expect(plan).toHaveTextContent('2 of 3 community accounts owned');
-		expect(within(plan).queryByRole('button', { name: 'Upgrade to Pro' })).not.toBeInTheDocument();
+		expect(within(section).getByRole('button', { name: 'Create a community account' })).toHaveAccessibleDescription(/2 of 3 community accounts owned/);
+		expect(within(section).queryByRole('button', { name: 'Upgrade to Pro' })).not.toBeInTheDocument();
 	});
 
 	it('turns Create into an upgrade once a Free user owns their limit, and says Pro is coming soon', async () => {
@@ -477,10 +464,11 @@ describe('AccountSettings', () => {
 		render(
 			<AccountSettings profile={{ ...myProfile, plan: 'FREE', communityQuota: selection }} inviteListCount={3} notificationPreferences={preferences} communities={[{ ...locked, locked: false }]} />
 		);
-		const plan = screen.getByRole('region', { name: 'Plan' });
-		expect(plan).toHaveTextContent('You own more community accounts than your plan allows');
-		expect(plan).toHaveTextContent('Choose by Nov 18, 2026');
-		fireEvent.click(within(plan).getByRole('button', { name: 'Choose' }));
+		const section = screen.getByRole('region', { name: 'Community accounts' });
+		expect(section).toHaveTextContent('You own more community accounts than your plan allows');
+		expect(section).toHaveTextContent('Choose by Nov 18, 2026');
+		expect(section).not.toHaveTextContent('You own as many community accounts as your plan allows');
+		fireEvent.click(within(section).getByRole('button', { name: 'Choose' }));
 		expect(screen.getByRole('dialog', { name: 'Choose which community accounts to keep' })).toBeInTheDocument();
 	});
 

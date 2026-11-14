@@ -6,6 +6,7 @@ import {
 	acceptCommunityInvitation,
 	createCommunity,
 	declineCommunityInvitation,
+	getCommunityInvitation,
 	inviteMember,
 	listInvitations,
 	revokeInvitation,
@@ -49,6 +50,26 @@ describe('invitations', () => {
 		mockApiClient.mockResolvedValue(undefined);
 		await revokeInvitation('c1', 'i1');
 		expect(mockApiClient).toHaveBeenLastCalledWith('/communities/c1/invitations/i1', { method: 'DELETE' });
+	});
+
+	it('reads one invitation as the person, with its community and inviter', async () => {
+		const detail = {
+			id: 'i1',
+			role: 'EDITOR',
+			expiresAt: '2026-11-21T10:00:00Z',
+			community: { id: 'c1', username: 'robotics', displayName: 'Robotics Club', avatarUrl: null, community: true },
+			inviter: { id: 'u1', username: 'ada', displayName: null, avatarUrl: null },
+			locked: true,
+			member: false,
+		};
+		mockApiClient.mockResolvedValue(detail);
+		expect(await getCommunityInvitation('i/1')).toEqual({ ok: true, data: detail });
+		expect(mockApiClient).toHaveBeenLastCalledWith('/community-invitations/i%2F1', { actAs: false });
+	});
+
+	it('refuses an invitation without its community', async () => {
+		mockApiClient.mockResolvedValue({ id: 'i1', role: 'EDITOR', expiresAt: 'b', inviter: null });
+		expect((await getCommunityInvitation('i1')).ok).toBe(false);
 	});
 
 	it('accepts as the person and refreshes the layout; declines as the person', async () => {

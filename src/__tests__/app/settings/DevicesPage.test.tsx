@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 
 import DevicesPage from '@/app/(frontend)/settings/devices/page';
 
+jest.mock('next/navigation', () => ({ useRouter: () => ({ back: jest.fn() }) }));
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 jest.mock('@/lib/getServerLocale', () => ({ getServerMessages: jest.fn() }));
 jest.mock('@/features/sessions/SessionsPanel', () => ({ SessionsPanel: () => <p>Sessions panel</p> }));

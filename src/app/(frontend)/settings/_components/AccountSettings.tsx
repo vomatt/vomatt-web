@@ -19,7 +19,6 @@ import {
 	AlertDialogTitle,
 } from '@/components/ui/AlertDialog';
 import { Button } from '@/components/ui/Button';
-import { Dialog, DialogBody, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { Input } from '@/components/ui/Input';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { Check, ChevronRight } from '@/components/ui/SvgIcons';
@@ -33,7 +32,6 @@ import { CreateCommunityDialog } from '@/features/communities/CreateCommunityDia
 import { KeepCommunitiesDialog } from '@/features/communities/KeepCommunitiesDialog';
 import type { MyCommunity } from '@/features/communities/schema';
 import { ReportProblemDialog } from '@/features/feedback/ReportProblemDialog';
-import { GroupsPanel } from '@/features/groups/GroupsPanel';
 import { NOTIFICATION_SWITCHES } from '@/features/notifications/preferences';
 import type { NotificationPreferences } from '@/features/notifications/schema';
 import { updateNotificationPreferences } from '@/features/notifications/service';
@@ -81,11 +79,9 @@ export default function AccountSettings({
 	communities: MyCommunity[];
 }) {
 	const { t, currentLanguage } = useLanguage();
-	const router = useRouter();
 	const [anonymousDefault, setAnonymousDefault] = useState(profile.anonymousBallotByDefault);
 	// The last value the server confirmed; quick toggles can answer out of order
 	const savedAnonymousDefault = useRef(profile.anonymousBallotByDefault);
-	const [invitesOpen, setInvitesOpen] = useState(false);
 	const [reportOpen, setReportOpen] = useState(false);
 	const deviceCount = useDeviceCount();
 	// Read out by screen readers after each save; the switch itself shows the change
@@ -123,7 +119,7 @@ export default function AccountSettings({
 							onCheckedChange={toggleAnonymousDefault}
 						/>
 					</label>
-					<button type="button" onClick={() => setInvitesOpen(true)} className={cn(rowLinkClassName, 'w-full text-left')}>
+					<Link href="/settings/invite-lists" className={rowLinkClassName}>
 						<RowText title={t('account.tabGroups')} body={t('settings.inviteListsBody')} />
 						{inviteListCount !== null && (
 							<span className="text-body-4 whitespace-nowrap text-muted-foreground">
@@ -131,25 +127,8 @@ export default function AccountSettings({
 							</span>
 						)}
 						<ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
-					</button>
+					</Link>
 				</SettingsCard>
-				<Dialog
-					open={invitesOpen}
-					onOpenChange={(open) => {
-						setInvitesOpen(open);
-						// The lists may have changed inside; the count comes from the server page
-						if (!open) router.refresh();
-					}}
-				>
-					<DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-lg" closeLabel={t('common.close')}>
-						<DialogHeader>
-							<DialogTitle>{t('account.tabGroups')}</DialogTitle>
-						</DialogHeader>
-						<DialogBody>
-							<GroupsPanel />
-						</DialogBody>
-					</DialogContent>
-				</Dialog>
 			</Section>
 
 			<Section id="notifications" title={t('notifications.title')}>
@@ -204,22 +183,12 @@ export default function AccountSettings({
 				<ReportProblemDialog open={reportOpen} onOpenChange={setReportOpen} />
 			</Section>
 
-			{profile.plan && profile.communityQuota && (
-				<Section id="plan" title={t('plan.title')}>
-					<SettingsCard>
-						<div className={cn(rowClassName, 'flex-wrap')}>
-							<RowText
-								title={t(`plan.names.${profile.plan}`)}
-								body={<span className="tabular-nums">{t('plan.quota', { owned: profile.communityQuota.owned, limit: profile.communityQuota.limit })}</span>}
-							/>
-							{profile.plan === 'FREE' && <UpgradeButton variant="outline" />}
-						</div>
-						{profile.communityQuota.selectionRequired && <KeepRow quota={profile.communityQuota} communities={communities} />}
-					</SettingsCard>
-				</Section>
-			)}
-
 			<Section id="communities" title={t('communities.title')}>
+				{profile.communityQuota?.selectionRequired && (
+					<SettingsCard>
+						<KeepRow quota={profile.communityQuota} communities={communities} />
+					</SettingsCard>
+				)}
 				{communities.length > 0 && (
 					<CommunityAccountsCard
 						communities={communities}
@@ -289,12 +258,25 @@ function KeepRow({ quota, communities }: { quota: CommunityQuota; communities: M
 function CreateCommunityRow({ profile: { plan, communityQuota: quota } }: { profile: MyProfile }) {
 	const { t } = useLanguage();
 	const [open, setOpen] = useState(false);
+	// Over the limit, the Keep row above already says so
+	if (quota?.selectionRequired) return null;
+	const owned = quota && (
+		<span className="block tabular-nums">{t('communities.quota', { owned: quota.owned, limit: quota.limit })}</span>
+	);
 	if (quota && quota.owned >= quota.limit) {
 		const free = plan === 'FREE';
 		return (
 			<SettingsCard>
 				<div className={cn(rowClassName, 'flex-wrap')}>
-					<RowText title={t('communities.limitTitle')} body={t(free ? 'communities.limitBodyFree' : 'communities.limitBodyPro')} />
+					<RowText
+						title={t('communities.limitTitle')}
+						body={
+							<>
+								{t(free ? 'communities.limitBodyFree' : 'communities.limitBodyPro')}
+								{owned}
+							</>
+						}
+					/>
 					{free && <UpgradeButton />}
 				</div>
 			</SettingsCard>
@@ -302,8 +284,23 @@ function CreateCommunityRow({ profile: { plan, communityQuota: quota } }: { prof
 	}
 	return (
 		<SettingsCard>
-			<button type="button" onClick={() => setOpen(true)} className={cn(rowLinkClassName, 'w-full text-left')}>
-				<RowText title={t('communities.createTitle')} body={t('communities.createBody')} />
+			<button
+				type="button"
+				onClick={() => setOpen(true)}
+				aria-labelledby="create-community-label"
+				aria-describedby="create-community-body"
+				className={cn(rowLinkClassName, 'w-full text-left')}
+			>
+				<RowText
+					id="create-community"
+					title={t('communities.createTitle')}
+					body={
+						<>
+							{t('communities.createBody')}
+							{owned}
+						</>
+					}
+				/>
 				<ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
 			</button>
 			<CreateCommunityDialog open={open} onOpenChange={setOpen} />

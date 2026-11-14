@@ -1,6 +1,7 @@
 'use client';
 
 import { PreviewCard } from '@base-ui/react/preview-card';
+import Link from 'next/link';
 import { type ReactElement, useRef, useState } from 'react';
 
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -11,9 +12,9 @@ import { FollowListDialog } from '@/features/follows/FollowListDialog';
 import { formatMonthYear } from '@/features/polls/format';
 import { useCloseOnScrollAway } from '@/hooks/useCloseOnScrollAway';
 import { countText } from '@/lib/count';
+import { profileHref } from '@/lib/routes';
 import type { UserProfile } from '@/types/user';
 
-import { CommunityBadge } from './CommunityBadge';
 import { Count } from './Count';
 import { MutualFollowersLine } from './MutualFollowers';
 import { profileName } from './name';
@@ -174,14 +175,13 @@ function ProfileCardBody({
 		<div className="space-y-3">
 			<div className="flex items-start gap-3">
 				<UserAvatar username={username} avatarUrl={avatarUrl} className="size-12" />
-				<div className="min-w-0 flex-1">
-					<p className="truncate text-title-4 leading-tight">
+				<Link href={profileHref(username)} className="group min-w-0 flex-1">
+					<p className="truncate text-title-4 leading-tight group-hover:underline">
 						{name.primary}
-						{profile?.community && <CommunityBadge className="ml-1" />}
 						{name.secondary && <span className="text-muted-foreground"> {name.secondary}</span>}
 					</p>
 					<p className="truncate text-caption-2 text-muted-foreground">@{username}</p>
-				</div>
+				</Link>
 				<FollowButton follow={follow} username={username} avatarUrl={avatarUrl} size="xs" withConfirm={false} />
 			</div>
 			{state.status === 'loading' && (

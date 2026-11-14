@@ -7,7 +7,7 @@ import type { UserDto } from '@/schemas/user';
 
 import { SEARCH_DEBOUNCE_MS } from '../constants';
 
-const MAX_SUGGESTIONS = 5;
+const MAX_SUGGESTIONS = 20;
 
 /** Search results, tagged with the term they answer so stale ones never show. */
 type Results = { term: string; users: UserDto[]; failed?: boolean };
