@@ -26,7 +26,7 @@ Preconditions:
 - **Cast.** Run `vv b click 'role=button[name="Vote"]'` and `vv b wait 'role=button[name="Withdraw vote"]'`. The `Tabs` option shows `Voted`, the footer reads `1 voted`, and the notice `Results are sealed until …` appears. No per-option counts are shown.
 - **Persistence.** Run `vv b reload`. `Withdraw vote` and the `Voted` stamp on `Tabs` are still there.
 - **Update.** Run `vv b click 'label >> text="Spaces"'` and `vv b click 'role=button[name="Update vote"]'`. The stamp moves to `Spaces`; the footer still reads `1 voted`.
-- **Withdraw.** Run `vv b click 'role=button[name="Withdraw vote"]'`, then `vv b click 'role=group[name="Withdraw vote"] >> role=button[name="Withdraw"]'`. The `Vote` button returns and the footer reads `0 voted`.
+- **Withdraw.** Run `vv b click 'role=button[name="Withdraw vote"]'`, then `vv b click 'role=alertdialog[name="Withdraw your vote?"] >> role=button[name="Withdraw"]'`. The `Vote` button returns and the footer reads `0 voted`.
 - **Proof.** Snapshot after each step (`vv b snapshot > $E/vote-<step>.aria.txt`) and check the row: `vv sql "select o.text from vomatt.user_votes uv join vomatt.vote_options o on o.id = uv.option_id"` returns the current choice (no row after withdraw).
 
 ## Gotchas
@@ -35,3 +35,4 @@ Preconditions:
 - Open polls never show counts; asserting a percentage on an open poll is a wrong expectation, not a bug.
 - `vote-results` needs an ended poll: as its creator, use `End now` on the poll page (confirm dialog), then reload.
 - Before voting, a line under the options has a `Hide my name` / `Show my name` button: `vv b click 'role=button[name="Hide my name"]'` (the line then reads `You’ll be counted, but left out of the voter list.`). After voting the same button sits in the Seal. Neither shows when the poll's voter visibility is `Nobody`.
+- The card is as tall in every Ballot state (unvoted, picked, voted, updating, withdrawn). Check with `vv b js 'Math.round(document.querySelector("article").getBoundingClientRect().height)'` after each step, at desktop and at `vv b viewport 390x844`: the number must not change.

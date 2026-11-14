@@ -1,8 +1,18 @@
 'use client';
 
-import { m, useAnimate } from 'motion/react';
-import { useId, useState } from 'react';
+import { useAnimate } from 'motion/react';
+import { useId, useRef, useState } from 'react';
 
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from '@/components/ui/AlertDialog';
 import { Button } from '@/components/ui/Button';
 import { Eye, EyeOff, Lock } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -27,23 +37,26 @@ type BallotProps = {
 	isActing: boolean;
 };
 
-/** What the viewer is doing with a cast Ballot. Without a Ballot the card shows the Vote row instead. */
-type SealedMode =
-	/** The Seal in full, right after a cast here */
-	| { kind: 'moment' }
-	/** The Seal folded to a row, on later visits */
-	| { kind: 'row' }
-	/** Choosing an option to replace `from` */
-	| { kind: 'updating'; from: string }
-	| { kind: 'withdrawing' };
+/** What the viewer is doing with a cast Ballot. Without a Ballot the card shows the Vote pane instead. */
+type SealedMode = { kind: 'sealed' } | { kind: 'updating'; from: string };
+
+/** The footer states that swap in place. They share one grid cell, so the card is as tall in each. */
+const PANES = ['vote', 'sealed', 'updating'] as const;
+type Pane = (typeof PANES)[number];
 
 /** Card states A (no Ballot), B (has Ballot), C (Scheduled) and acting. Never shows counts. */
 export function Ballot({ poll, status, ballot, requireAuth, isOwner, isActing }: BallotProps) {
 	const { t, currentLanguage } = useLanguage();
 	const isHydrated = useHydrated();
-	const [mode, setMode] = useState<SealedMode>({ kind: 'row' });
+	const [mode, setMode] = useState<SealedMode>({ kind: 'sealed' });
+	// A dialog over the page, not a mode: the Seal stays put under it, so the card keeps its height
+	const [confirmingWithdraw, setConfirmingWithdraw] = useState(false);
+	// Once withdrawn, Withdraw vote is in a hidden pane, so the dialog hands focus to the options instead
+	const withdrew = useRef(false);
 	// Read out once a cast is saved, from a live region that is always mounted
 	const [announcement, setAnnouncement] = useState('');
+	// Counts casts saved here; each one pops the SealMark in
+	const [casts, setCasts] = useState(0);
 	const { myOptionId, savedOptionId, selected, setSelected, anonymous, setAnonymous, isPending, pendingAction } = ballot;
 	const isScheduled = status === 'scheduled';
 	// A first vote in flight already has a Ballot; its Vote button stays (busy) until it is in
@@ -75,7 +88,7 @@ export function Ballot({ poll, status, ballot, requireAuth, isOwner, isActing }:
 
 	const cancelUpdate = () => {
 		setSelected(myOptionId);
-		setMode({ kind: 'row' });
+		setMode({ kind: 'sealed' });
 	};
 
 	const castSelected = () => {
@@ -85,7 +98,8 @@ export function Ballot({ poll, status, ballot, requireAuth, isOwner, isActing }:
 			navigator.vibrate?.(12);
 			const outcome = await ballot.cast(selected);
 			if (outcome === 'saved') {
-				setMode({ kind: 'moment' });
+				setMode({ kind: 'sealed' });
+				setCasts((count) => count + 1);
 				setAnnouncement(t(ballot.replacedBallot() ? 'poll.voteUpdated' : 'poll.voteCast'));
 			} else if (outcome === 'failed') {
 				shake();
@@ -94,7 +108,9 @@ export function Ballot({ poll, status, ballot, requireAuth, isOwner, isActing }:
 	};
 
 	const withdraw = async () => {
-		setMode({ kind: 'row' });
+		withdrew.current = true;
+		setConfirmingWithdraw(false);
+		setMode({ kind: 'sealed' });
 		setAnnouncement('');
 		const outcome = await ballot.retract();
 		if (outcome === 'saved') setAnnouncement(t('poll.voteWithdrawn'));
@@ -103,11 +119,14 @@ export function Ballot({ poll, status, ballot, requireAuth, isOwner, isActing }:
 
 	const sealActions = (
 		<Button
-			size="md"
+			size="xs"
 			variant="ghost"
 			className="text-tide-foreground hover:text-tide-foreground"
 			disabled={isPending}
-			onClick={() => setMode({ kind: 'withdrawing' })}
+			onClick={() => {
+				withdrew.current = false;
+				setConfirmingWithdraw(true);
+			}}
 		>
 			{t('poll.withdrawVote')}
 		</Button>
@@ -119,57 +138,66 @@ export function Ballot({ poll, status, ballot, requireAuth, isOwner, isActing }:
 		</p>
 	);
 
-	let actions: React.ReactNode;
-	if (view === 'acting') {
-		actions = (
-			<div className="flex flex-col gap-3">
-				{isScheduled && opensHint}
-				<CommunityCantVote />
-			</div>
-		);
-	} else if (view === 'scheduled') {
-		actions = opensHint;
-	} else if (view === 'vote') {
-		actions = (
-			<div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
-				<p className="flex min-w-0 items-center gap-2.5 text-body-4 leading-5 text-tide-foreground">
-					<Lock aria-hidden className="size-[18px] shrink-0 text-tide" />
-					{t('poll.revealHint')}
-				</p>
-				<Button
-					disabled={isPending || !selected}
-					loading={pendingAction === 'vote'}
-					loadingIcon={<BallotBoxIcon className="size-4" />}
-					onClick={castSelected}
-					className="ml-auto min-w-[132px] transition-transform active:scale-95"
-				>
-					{t('poll.vote')}
-				</Button>
-			</div>
-		);
-	} else if (view === 'moment' || view === 'row') {
-		// Once cast, the choice applies at once, so it reads as where the name stands
-		const nameLine = canHideName && (
-			<NameLine
-				hidden={anonymous}
-				status={anonymous ? t('poll.nameHidden') : t('poll.nameListed')}
-				isPending={isPending}
-				onToggle={() => setAnonymous(!anonymous)}
-				className="border-t border-tide-line py-1 pr-2 pl-4"
-			/>
-		);
-		actions = (
-			<Seal variant={view} endTime={revealTime(poll)} footer={nameLine}>
+	// What an Update would replace: the vote being changed, or the current one, which sizes the pane while it waits
+	const replacing = mode.kind === 'updating' ? mode.from : myOptionId;
+	const replacingText = poll.options.find((option) => option.id === replacing)?.text ?? '';
+
+	const panes: Record<Pane, React.ReactNode> = {
+		vote: (
+			<>
+				<div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+					<p className="flex min-w-0 items-center gap-2.5 text-body-4 leading-5 text-tide-foreground">
+						<Lock aria-hidden className="size-[18px] shrink-0 text-tide" />
+						{t('poll.revealHint')}
+					</p>
+					<Button
+						disabled={isPending || !selected}
+						loading={pendingAction === 'vote'}
+						loadingIcon={<BallotBoxIcon className="size-4" />}
+						onClick={castSelected}
+						className="ml-auto min-w-[132px] transition-transform active:scale-95"
+					>
+						{t('poll.vote')}
+					</Button>
+				</div>
+				{/* The same line the Seal keeps after the vote. Before it, the choice only rides along with the vote,
+				    so it says what the vote will do: who sees the name, or that it is counted unnamed */}
+				{canHideName && (
+					<NameLine
+						hidden={anonymous}
+						status={anonymous ? t('poll.anonymousHidden') : t(`poll.visibility.${visibilityLevel(poll)}`)}
+						isPending={isPending}
+						onToggle={() => setAnonymous(!anonymous)}
+						className="mt-3 text-muted-foreground"
+					/>
+				)}
+			</>
+		),
+		sealed: (
+			<Seal
+				endTime={revealTime(poll)}
+				popKey={casts}
+				footer={
+					// Once cast, the choice applies at once, so it reads as where the name stands
+					canHideName && (
+						<NameLine
+							hidden={anonymous}
+							status={anonymous ? t('poll.nameHidden') : t('poll.nameListed')}
+							isPending={isPending}
+							onToggle={() => setAnonymous(!anonymous)}
+							className="border-t border-tide-line py-1 pr-2 pl-4"
+						/>
+					)
+				}
+			>
 				{sealActions}
 			</Seal>
-		);
-	} else if (mode.kind === 'updating') {
-		const previous = poll.options.find((option) => option.id === mode.from)?.text ?? '';
-		actions = (
+		),
+		updating: (
 			<div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
 				<p className="flex min-w-0 items-center gap-2.5 text-body-4 leading-5 text-muted-foreground">
 					<RefreshIcon className="size-[18px] shrink-0 text-input" />
-					{t('poll.updatingHint', { option: previous })}
+					{t('poll.updatingHint', { option: replacingText })}
 				</p>
 				<div className="ml-auto flex shrink-0 items-center gap-1.5">
 					<Button variant="ghost" className="text-muted-foreground" disabled={isPending} onClick={cancelUpdate}>
@@ -177,7 +205,7 @@ export function Ballot({ poll, status, ballot, requireAuth, isOwner, isActing }:
 					</Button>
 					<Button
 						className="min-w-[132px]"
-						disabled={isPending || !selected || selected === mode.from}
+						disabled={isPending || !selected || selected === replacing}
 						loading={pendingAction === 'update'}
 						loadingIcon={<BallotBoxIcon className="size-4" />}
 						onClick={castSelected}
@@ -186,32 +214,8 @@ export function Ballot({ poll, status, ballot, requireAuth, isOwner, isActing }:
 					</Button>
 				</div>
 			</div>
-		);
-	} else {
-		actions = (
-			<div
-				role="group"
-				aria-labelledby={`withdraw-${poll.id}`}
-				className="flex flex-wrap items-center gap-4 rounded-xl border border-border bg-surface-soft py-3.5 pr-3.5 pl-5"
-			>
-				<div className="flex min-w-0 flex-[1_1_200px] flex-col gap-0.5">
-					<p id={`withdraw-${poll.id}`} className="text-body-4 font-medium leading-5 text-foreground">
-						{t('poll.withdrawTitle')}
-					</p>
-					<p className="text-caption-1 leading-snug text-muted-foreground">{t('poll.withdrawBody')}</p>
-				</div>
-				<div className="flex shrink-0 items-center gap-1.5">
-					{/* Withdraw vote went away under the pointer; the safe answer takes the focus */}
-					<Button size="md" variant="outline" autoFocus onClick={() => setMode({ kind: 'row' })}>
-						{t('poll.keep')}
-					</Button>
-					<Button size="md" variant="destructive" onClick={withdraw}>
-						{t('poll.withdraw')}
-					</Button>
-				</div>
-			</div>
-		);
-	}
+		),
+	};
 
 	return (
 		<div className="flex flex-col gap-4 md:gap-5">
@@ -223,7 +227,9 @@ export function Ballot({ poll, status, ballot, requireAuth, isOwner, isActing }:
 					disabled={isScheduled || isActing || isPending}
 					// A short name: the question is the heading right above, so naming the group by it reads it twice
 					aria-label={t('poll.options')}
-					className="isolate space-y-2.5"
+					// Takes the focus after a withdrawal, while the radios are still disabled by the request
+					tabIndex={-1}
+					className="isolate space-y-2.5 outline-none"
 				>
 					{poll.options.map((option) => {
 						// The user's own vote stays in this state after switching; the community has none
@@ -258,33 +264,57 @@ export function Ballot({ poll, status, ballot, requireAuth, isOwner, isActing }:
 				</fieldset>
 			</form>
 
-			{/* The same line the Seal keeps after the vote. Before it, the choice only rides along with the vote,
-			    so it says what the vote will do: who sees the name, or that it is counted unnamed */}
-			{canHideName && view === 'vote' && (
-				<NameLine
-					hidden={anonymous}
-					status={anonymous ? t('poll.anonymousHidden') : t(`poll.visibility.${visibilityLevel(poll)}`)}
-					isPending={isPending}
-					onToggle={() => setAnonymous(!anonymous)}
-					className="-my-1 text-muted-foreground"
-				/>
+			{view === 'acting' || view === 'scheduled' ? (
+				<div className="border-t border-border pt-4 md:pt-5">
+					{view === 'acting' ? (
+						<div className="flex flex-col gap-3">
+							{isScheduled && opensHint}
+							<CommunityCantVote />
+						</div>
+					) : (
+						opensHint
+					)}
+				</div>
+			) : (
+				<div className={cn('grid grid-cols-[minmax(0,1fr)]', awaitsConfirm && 'follow-tabbar')}>
+					{PANES.map((pane) => {
+						const active = pane === view;
+						return (
+							<div
+								key={pane}
+								inert={!active}
+								// Inline, so the hidden panes are hidden wherever the stylesheet isn't (tests, a failed load)
+								style={{ visibility: active ? 'visible' : 'hidden', opacity: active ? 1 : 0 }}
+								// Bottom-aligned with their divider, so a shorter pane's spare room opens above the line
+								className="col-start-1 row-start-1 self-end border-t border-border pt-4 motion-safe:transition-[opacity,visibility] motion-safe:duration-200 md:pt-5"
+							>
+								{panes[pane]}
+							</div>
+						);
+					})}
+					{awaitsConfirm && <span data-sticky-fade aria-hidden />}
+				</div>
 			)}
-
-			<div className={cn('border-t border-border pt-4 md:pt-5', awaitsConfirm && 'follow-tabbar')}>
-				{/* Each mode fades in as it takes over; the first render, from the server, stays still */}
-				<m.div
-					key={view}
-					initial={isHydrated ? { opacity: 0, y: 4 } : false}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.2, ease: 'easeOut' }}
-				>
-					{actions}
-				</m.div>
-				{awaitsConfirm && <span data-sticky-fade aria-hidden />}
-			</div>
 			<p role="status" aria-live="polite" className="sr-only">
 				{announcement}
 			</p>
+			<AlertDialog open={confirmingWithdraw} onOpenChange={setConfirmingWithdraw}>
+				<AlertDialogContent
+					className="sm:max-w-[440px]"
+					finalFocus={() => (withdrew.current ? optionsRef.current : true)}
+				>
+					<AlertDialogHeader>
+						<AlertDialogTitle>{t('poll.withdrawTitle')}</AlertDialogTitle>
+						<AlertDialogDescription className="text-body-4">{t('poll.withdrawBody')}</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>{t('poll.keep')}</AlertDialogCancel>
+						<AlertDialogAction variant="destructive" onClick={withdraw}>
+							{t('poll.withdraw')}
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</div>
 	);
 }

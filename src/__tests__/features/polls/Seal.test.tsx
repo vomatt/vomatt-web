@@ -14,23 +14,17 @@ describe('SealMark', () => {
 		expect(container.querySelector('.border-dashed')).toBeNull();
 	});
 
-	it('draws a 40px ring with the dashed inner ring for the Seal row', () => {
+	it('draws the dashed inner ring for the Seal, 32px on phones and 40px from md', () => {
 		const { container } = render(<SealMark size="md" />);
-		expect(container.firstChild).toHaveClass('size-10');
-		expect(container.querySelector('.border-dashed')).not.toBeNull();
-	});
-
-	it('draws the 72px ring with the dashed inner ring for the Seal moment', () => {
-		const { container } = render(<SealMark size="lg" />);
-		expect(container.firstChild).toHaveClass('size-[72px]');
+		expect(container.firstChild).toHaveClass('size-8', 'md:size-10');
 		expect(container.querySelector('.border-dashed')).not.toBeNull();
 	});
 });
 
 describe('Seal', () => {
-	it.each(['moment', 'row'] as const)('as a %s, thanks the voter and says when the results open', (variant) => {
+	it('thanks the voter and says when the results open', () => {
 		render(
-			<Seal variant={variant} endTime={iso(3 * HOUR)}>
+			<Seal endTime={iso(3 * HOUR)}>
 				<button type="button">Withdraw vote</button>
 			</Seal>
 		);
@@ -41,14 +35,14 @@ describe('Seal', () => {
 	});
 
 	it('says the results open at the end for a Poll without an end time', () => {
-		render(<Seal variant="row" endTime={null}>{null}</Seal>);
+		render(<Seal endTime={null}>{null}</Seal>);
 		expect(
 			screen.getByText('Results are sealed until the poll ends. We’ll notify you when they’re in.')
 		).toBeInTheDocument();
 	});
 
 	it('says neither who sees the choice nor the turnout', () => {
-		render(<Seal variant="moment" endTime={iso(3 * HOUR)}>{null}</Seal>);
+		render(<Seal endTime={iso(3 * HOUR)}>{null}</Seal>);
 		expect(screen.queryByText(/can see what you chose/)).not.toBeInTheDocument();
 		expect(screen.queryByText(/voted/)).not.toBeInTheDocument();
 	});
