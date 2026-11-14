@@ -8,6 +8,9 @@ import type { UserDto } from '@/schemas/user';
 
 import type { UserSearch } from '../hooks/useUserSearch';
 
+/** On a pick button under a text field: keeps the field focused, so the keyboard stays up while picking several people and the dialog doesn't jump between picks. */
+export const keepFieldFocused = (event: React.MouseEvent) => event.preventDefault();
+
 /**
  * A `useUserSearch`'s answer: a spinner, the people to pick, or why there are none.
  * Community accounts are listed but can't be picked; `communityNote` says why.
@@ -43,6 +46,7 @@ export function UserSuggestions({
 						type="button"
 						disabled={user.community}
 						aria-describedby={user.community ? `${user.id}-community` : undefined}
+						onMouseDown={keepFieldFocused}
 						onClick={() => onPick(user)}
 						// Inset, so the list's scroll box can't clip it
 						className="flex min-h-11 w-full outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring items-center gap-3 rounded-lg px-3 text-left text-body-4 enabled:hover:bg-muted disabled:text-muted-foreground"

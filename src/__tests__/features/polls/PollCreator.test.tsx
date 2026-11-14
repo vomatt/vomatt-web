@@ -708,9 +708,11 @@ describe('PollCreator', () => {
 	describe('with an on-screen keyboard', () => {
 		const original = Object.getOwnPropertyDescriptor(window, 'visualViewport');
 		const viewport = Object.assign(new EventTarget(), { width: 375, height: 0, offsetTop: 0, scale: 1 });
-		const footer = () => screen.getByRole('button', { name: 'Save draft' }).closest('.border-t');
+		// The footer steps aside (max-sm:in-data-keyboard:hidden) while the popup is marked
+		const keyboardUp = () => document.querySelector('[data-slot="dialog-content"]')!.hasAttribute('data-keyboard');
 		const show = (height: number, scale = 1) =>
 			act(() => {
+				screen.getByLabelText(QUESTION).focus();
 				Object.assign(viewport, { height, scale, width: 375 / scale });
 				viewport.dispatchEvent(new Event('resize'));
 			});
@@ -727,13 +729,17 @@ describe('PollCreator', () => {
 		it('steps the footer aside on a phone while it is up, and back when it closes', async () => {
 			render(<PollCreator triggerChildren={TRIGGER} />);
 			await openDialog();
-			expect(footer()).not.toHaveClass('max-sm:hidden');
+			expect(keyboardUp()).toBe(false);
 
 			show(400);
-			expect(footer()).toHaveClass('max-sm:hidden');
+			expect(keyboardUp()).toBe(true);
+			const popup = document.querySelector('[data-slot="dialog-content"]')!;
+			// Phones fill what's visible and hide the footer; from sm it stays a centered dialog
+			expect(popup).toHaveClass('data-keyboard:max-h-(--visible-height)', 'sm:data-keyboard:top-1/2', 'sm:data-keyboard:max-h-[90dvh]');
+			expect(screen.getByRole('button', { name: 'Save draft' }).closest('.border-t')).toHaveClass('max-sm:in-data-keyboard:hidden');
 
 			show(window.innerHeight);
-			expect(footer()).not.toHaveClass('max-sm:hidden');
+			expect(keyboardUp()).toBe(false);
 		});
 
 		it('keeps the footer when the page is only pinch-zoomed', async () => {
@@ -741,7 +747,7 @@ describe('PollCreator', () => {
 			await openDialog();
 
 			show(window.innerHeight / 2, 2);
-			expect(footer()).not.toHaveClass('max-sm:hidden');
+			expect(keyboardUp()).toBe(false);
 		});
 
 		it('still notices it while pinch-zoomed, where iOS scales innerHeight', async () => {
@@ -751,7 +757,7 @@ describe('PollCreator', () => {
 			try {
 				Object.defineProperty(window, 'innerHeight', { value: innerHeight / 2, configurable: true });
 				show((innerHeight - 300) / 2, 2);
-				expect(footer()).toHaveClass('max-sm:hidden');
+				expect(keyboardUp()).toBe(true);
 			} finally {
 				Object.defineProperty(window, 'innerHeight', { value: innerHeight, configurable: true });
 			}

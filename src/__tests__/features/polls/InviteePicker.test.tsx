@@ -1,5 +1,8 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { useState } from 'react';
 
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/Dialog';
 import { InviteePicker } from '@/features/polls/components/InviteePicker';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
@@ -88,5 +91,40 @@ describe('InviteePicker', () => {
 
 		expect(mockSearchUsers).toHaveBeenLastCalledWith('mate');
 		expect(within(screen.getByRole('list', { name: 'Matching people' })).getAllByRole('button')).toHaveLength(20);
+	});
+
+	it('keeps the field focused through a pick, so tapping it again on a phone leaves the dialog open', async () => {
+		jest.useFakeTimers();
+		mockSearchUsers.mockResolvedValue({ items: [{ id: 'u1', username: 'ann' }, { id: 'u2', username: 'anna' }] });
+		const onOpenChange = jest.fn();
+		function Harness() {
+			const [value, setValue] = useState({ users: [], emails: [], groups: [] } as React.ComponentProps<typeof InviteePicker>['value']);
+			return (
+				<Dialog open onOpenChange={onOpenChange}>
+					<DialogContent closeLabel="Close">
+						<DialogTitle>Book club</DialogTitle>
+						<InviteePicker value={value} onChange={setValue} />
+					</DialogContent>
+				</Dialog>
+			);
+		}
+		render(<Harness />);
+		const input = screen.getByPlaceholderText('Username or email');
+		fireEvent.change(input, { target: { value: 'ann' } });
+		await act(async () => {
+			await jest.runAllTimersAsync();
+		});
+		jest.useRealTimers();
+
+		const user = userEvent.setup();
+		await user.click(input);
+		// A pick that took focus would close the keyboard, and reopening it shifts the dialog mid-tap
+		await user.click(screen.getByRole('button', { name: '@ann' }));
+		expect(screen.getByRole('list', { name: 'Invited' })).toHaveTextContent('ann');
+		expect(input).toHaveFocus();
+
+		await user.click(input);
+		expect(onOpenChange).not.toHaveBeenCalled();
+		expect(screen.getByRole('dialog')).toBeInTheDocument();
 	});
 });

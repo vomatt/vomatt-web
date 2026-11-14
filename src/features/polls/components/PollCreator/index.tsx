@@ -9,7 +9,6 @@ import {
 } from 'motion/react';
 import { useRouter } from 'next/navigation';
 import {
-	type CSSProperties,
 	type FormEvent,
 	type KeyboardEvent,
 	ReactElement,
@@ -51,11 +50,9 @@ import { ENTER, EXIT, Unfold } from '@/components/Unfold';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useActing } from '@/features/communities/ActingProvider';
 import { accountName } from '@/features/communities/schema';
-import { useVisualViewport } from '@/hooks/useVisualViewport';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
 import { pollHref } from '@/lib/routes';
-import { cn } from '@/lib/utils';
 
 import { deleteDraft, type PollDraft, saveDraft } from '../../drafts';
 import { joinSentences } from '../../format';
@@ -205,7 +202,6 @@ export function PollCreator({
 	const isEdit = !!poll;
 	const [internalOpen, setInternalOpen] = useState(false);
 	const open = openProp ?? internalOpen;
-	const visible = useVisualViewport(open);
 	// Built once: they read the clock, and useForm only needs the first value
 	const [defaults] = useState(() => initialValues(poll, draft));
 	const initialPreset = isEdit || draft ? null : '3d';
@@ -429,9 +425,9 @@ export function PollCreator({
 					showCloseButton={false}
 					finalFocus={finalFocus}
 					initialFocus={() => document.getElementById('title')}
-					// On phones it fills what's visible, so the footer stays above the keyboard
-					style={visible ? ({ '--visible-center': `${visible.top + visible.height / 2}px`, '--visible-height': `${visible.height}px` } as CSSProperties) : undefined}
-					className="top-[var(--visible-center,50%)] flex h-[var(--visible-height,100dvh)] max-h-[var(--visible-height,100dvh)] max-w-none flex-col overflow-hidden rounded-none border-0 bg-background ring-0 sm:top-1/2 sm:h-auto sm:max-h-[90dvh] sm:max-w-2xl sm:rounded-[20px] sm:ring-1"
+					// On phones it fills what the keyboard leaves visible (DialogContent sets the variables), so the footer stays above it;
+					// from sm it stays a centered dialog, as a 90dvh popup can't fit the strip above a landscape or iPad keyboard
+					className="flex h-[var(--visible-height,100dvh)] max-h-dvh max-w-none flex-col overflow-hidden rounded-none border-0 bg-background ring-0 data-keyboard:max-h-(--visible-height) sm:h-auto sm:max-h-[90dvh] sm:data-keyboard:top-1/2 sm:data-keyboard:max-h-[90dvh] sm:max-w-2xl sm:rounded-[20px] sm:ring-1"
 				>
 					<div className="flex flex-none items-start gap-3 p-4 sm:p-5">
 						<div className="min-w-0 flex-1 space-y-1">
@@ -930,12 +926,7 @@ export function PollCreator({
 						</div>
 
 						{/* On a phone the keyboard leaves little room: give it all to the field being typed in until it closes */}
-						<div
-							className={cn(
-								'flex-none border-t p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:p-5',
-								visible?.keyboard && 'max-sm:hidden'
-							)}
-						>
+						<div className="flex-none border-t p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] max-sm:in-data-keyboard:hidden sm:p-5">
 							{/* Rendered empty first, so a failed publish is announced every time, the same error included */}
 							<p
 								role="alert"
