@@ -35,7 +35,6 @@ import { isFieldPublic, visibilityChanges } from '@/features/account/visibility'
 import { pillClassName, VisibilityPill } from '@/features/account/VisibilityPill';
 import { genderLabel } from '@/features/profiles/name';
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
-import { useVisualViewport } from '@/hooks/useVisualViewport';
 import { apiErrorText } from '@/lib/api/error-text';
 import { editProfile, updateVisibility } from '@/lib/api/services/users';
 import { profileHref } from '@/lib/routes';
@@ -73,7 +72,6 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 	};
 	const savedVisibility = profile.visibilitySettings ?? {};
 	const [open, setOpen] = useState(defaultOpen);
-	const visible = useVisualViewport(open);
 	const [values, setValues] = useState(initial);
 	const [visibility, setVisibility] = useState(savedVisibility);
 	const [birthdayError, setBirthdayError] = useState(false);
@@ -207,8 +205,6 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 			<DialogTrigger render={<Button variant="outline" size="sm" />}>{t('profile.editProfile')}</DialogTrigger>
 			<DialogContent
 				className="grid-rows-[auto_minmax(0,1fr)_auto] sm:max-w-[560px]"
-				// Centered in what's visible, so the Save row stays above a phone's keyboard
-				style={visible ? { top: visible.top + visible.height / 2, maxHeight: `calc(${visible.height}px - 2rem)` } : undefined}
 				overlay="strong"
 				closeLabel={t('common.close')}
 			>
@@ -375,7 +371,7 @@ export default function EditProfileDialog({ profile, defaultOpen = false }: { pr
 				</form>
 				</DialogBody>
 				{/* On a phone the keyboard leaves little room: give it all to the field being typed in until it closes */}
-				<DialogFooter className={cn('flex-row items-center', visible?.keyboard && 'max-sm:hidden')}>
+				<DialogFooter className="flex-row items-center max-sm:in-data-keyboard:hidden">
 					<p className="mr-auto hidden text-caption-2 text-muted-foreground sm:block">{t('profile.visibilitySavesHint')}</p>
 					<Button variant="outline" size="md" className="flex-1 sm:flex-none" onClick={() => setOpen(false)} disabled={isPending}>
 						{t('common.cancel')}

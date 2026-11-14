@@ -5,7 +5,15 @@ import * as React from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { X } from '@/components/ui/SvgIcons';
+import { useKeyboardInset } from '@/hooks/useVisualViewport';
 import { cn } from '@/lib/utils';
+
+/**
+ * While an on-screen keyboard is up (`useKeyboardInset`) a popup centers in what it leaves visible
+ * and scrolls within it; these win over a dialog's own `top`, `max-h` and translate.
+ */
+const keyboardInsetClasses =
+	'data-keyboard:top-(--visible-center) data-keyboard:max-h-[calc(var(--visible-height)-2rem)] data-keyboard:-translate-y-1/2';
 
 function Dialog({ ...props }: DialogPrimitive.Root.Props) {
 	return <DialogPrimitive.Root data-slot="dialog" {...props} />;
@@ -35,6 +43,11 @@ function DialogOverlay({
 	);
 }
 
+/** Mounted only while open, so closed dialogs don't watch the viewport. */
+function DialogPopup({ style, ...props }: DialogPrimitive.Popup.Props) {
+	return <DialogPrimitive.Popup {...props} {...useKeyboardInset(style)} />;
+}
+
 function DialogContent({
 	className,
 	children,
@@ -52,10 +65,11 @@ function DialogContent({
 	return (
 		<DialogPortal>
 			<DialogOverlay className={cn(overlay === 'strong' && 'bg-overlay-strong backdrop-blur-md')} />
-			<DialogPrimitive.Popup
+			<DialogPopup
 				data-slot="dialog-content"
 				className={cn(
 					'fixed top-1/2 left-1/2 z-50 grid max-h-[calc(100dvh-2rem)] w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 grid-cols-[minmax(0,1fr)] rounded-xl border border-transparent bg-popover text-caption-1 text-popover-foreground ring-1 ring-foreground/10 duration-100 overflow-y-auto outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 motion-safe:data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 motion-safe:data-closed:zoom-out-95',
+					keyboardInsetClasses,
 					className
 				)}
 				{...props}
@@ -76,7 +90,7 @@ function DialogContent({
 						<span className="sr-only">{closeLabel}</span>
 					</DialogPrimitive.Close>
 				)}
-			</DialogPrimitive.Popup>
+			</DialogPopup>
 		</DialogPortal>
 	);
 }
@@ -178,4 +192,5 @@ export {
 	DialogTitle,
 	dialogTitleClasses,
 	DialogTrigger,
+	keyboardInsetClasses,
 };

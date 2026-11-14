@@ -4,7 +4,8 @@ import { AlertDialog as AlertDialogPrimitive } from '@base-ui/react/alert-dialog
 import * as React from 'react';
 
 import { Button } from '@/components/ui/Button';
-import { dialogTitleClasses } from '@/components/ui/Dialog';
+import { dialogTitleClasses, keyboardInsetClasses } from '@/components/ui/Dialog';
+import { useKeyboardInset } from '@/hooks/useVisualViewport';
 import { cn } from '@/lib/utils';
 
 function AlertDialog({ ...props }: AlertDialogPrimitive.Root.Props) {
@@ -33,6 +34,11 @@ function AlertDialogOverlay({
 	);
 }
 
+/** Mounted only while open, so closed dialogs don't watch the viewport. */
+function AlertDialogPopup({ style, ...props }: AlertDialogPrimitive.Popup.Props) {
+	return <AlertDialogPrimitive.Popup {...props} {...useKeyboardInset(style)} />;
+}
+
 function AlertDialogContent({
 	className,
 	...props
@@ -40,10 +46,11 @@ function AlertDialogContent({
 	return (
 		<AlertDialogPortal>
 			<AlertDialogOverlay />
-			<AlertDialogPrimitive.Popup
+			<AlertDialogPopup
 				data-slot="alert-dialog-content"
 				className={cn(
 					'bg-popover data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 motion-safe:data-closed:zoom-out-95 motion-safe:data-open:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid max-h-[calc(100dvh-2rem)] w-full max-w-[calc(100%-2rem)] overflow-y-auto translate-x-[-50%] translate-y-[-50%] grid-cols-[minmax(0,1fr)] gap-4 rounded-xl border border-transparent p-6 ring-1 ring-foreground/10 duration-200 data-closed:duration-150 sm:max-w-lg',
+					keyboardInsetClasses,
 					className
 				)}
 				{...props}

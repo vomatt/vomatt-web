@@ -14,7 +14,7 @@ import { settle } from '@/lib/api/settle';
 
 import { useUserSearch } from '../hooks/useUserSearch';
 import type { InviteeSelection, PickedUser } from '../invitees';
-import { UserSuggestions } from './UserSuggestions';
+import { keepFieldFocused, UserSuggestions } from './UserSuggestions';
 
 type InviteePickerProps = {
 	value: InviteeSelection;
@@ -173,6 +173,7 @@ export function InviteePicker({
 					{isEmail && (
 						<button
 							type="button"
+							onMouseDown={keepFieldFocused}
 							onClick={addEmail}
 							className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-body-4 hover:bg-muted"
 						>
