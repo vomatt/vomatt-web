@@ -75,6 +75,28 @@ function useVisualViewport(): VisualViewportBox | null {
 	return box;
 }
 
+// Room kept between the field and its scroll box's edge
+const REVEAL_MARGIN = 16;
+
+/**
+ * Scrolls each scroll box around the focused text field just enough to show it, innermost first.
+ * Only `overflow: auto/scroll` boxes move: not the page, nor the fixed popup's position.
+ */
+function revealFocusedField() {
+	const field = document.activeElement;
+	if (!isTextEntry(field)) return;
+	for (let box = field!.parentElement; box && box !== document.body; box = box.parentElement) {
+		if (!/auto|scroll/.test(getComputedStyle(box).overflowY) || box.scrollHeight <= box.clientHeight) continue;
+		const outer = box.getBoundingClientRect();
+		const rect = field!.getBoundingClientRect();
+		const above = outer.top + REVEAL_MARGIN - rect.top;
+		const below = rect.bottom + REVEAL_MARGIN - outer.bottom;
+		// A field taller than the box shows its top
+		if (above > 0) box.scrollTop -= above;
+		else if (below > 0) box.scrollTop += Math.min(below, -above);
+	}
+}
+
 /** While the keyboard is up (`useKeyboardInset`) a popup centers in what it leaves visible. Beats the base `top`/`max-h`/translate, not a dialog's `sm:`/`md:` overrides. */
 export const keyboardInsetClasses =
 	'data-keyboard:top-(--visible-center) data-keyboard:max-h-[calc(var(--visible-height)-2rem)] data-keyboard:-translate-y-1/2';
@@ -86,6 +108,26 @@ export const keyboardInsetClasses =
  */
 export function useKeyboardInset<State>(style: CSSProperties | ((state: State) => CSSProperties | undefined) | undefined) {
 	const box = useVisualViewport();
+	const height = box?.height;
+
+	// The popup just shrank to what's visible (or a field took focus while it is): bring the field back
+	// into its scroll boxes. Not on viewport scrolls, so a visitor scrolling the dialog isn't pulled back.
+	useEffect(() => {
+		if (height === undefined) return;
+		let frame = 0;
+		// After the new max-height has laid out
+		const reveal = () => {
+			cancelAnimationFrame(frame);
+			frame = requestAnimationFrame(revealFocusedField);
+		};
+		reveal();
+		document.addEventListener('focusin', reveal);
+		return () => {
+			cancelAnimationFrame(frame);
+			document.removeEventListener('focusin', reveal);
+		};
+	}, [height]);
+
 	if (!box) return { style };
 	const inset = {
 		'--visible-center': `${box.top + box.height / 2}px`,
