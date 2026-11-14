@@ -42,6 +42,11 @@ describe('isValidUsername', () => {
 		}
 	});
 
+	it('rejects the root pages that redirect to the about site', () => {
+		expect(isValidUsername('about')).toBe(false);
+		expect(isValidUsername('contact')).toBe(false);
+	});
+
 	it('accepts names that only start with a reserved name', () => {
 		expect(isValidUsername('searcher')).toBe(true);
 		expect(isValidUsername('admins')).toBe(true);
