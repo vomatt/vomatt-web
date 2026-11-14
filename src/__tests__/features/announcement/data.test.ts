@@ -29,6 +29,16 @@ describe('getAnnouncement', () => {
 		await expect(getAnnouncement()).resolves.toBeNull();
 	});
 
+	it('returns null when the English message is only blank lines', async () => {
+		mockSanityFetch.mockResolvedValue({ data: { id: 'rev1', message: [block(''), block('  ')], messageZh: null } });
+		await expect(getAnnouncement()).resolves.toBeNull();
+	});
+
+	it('treats a blank Chinese message as none', async () => {
+		mockSanityFetch.mockResolvedValue({ data: { id: 'rev1', message: [block('Hello')], messageZh: [block('')] } });
+		await expect(getAnnouncement()).resolves.toEqual({ id: 'rev1', message: [block('Hello')], messageZh: null });
+	});
+
 	it('returns null when Sanity fails', async () => {
 		jest.spyOn(console, 'error').mockImplementation(() => {});
 		mockSanityFetch.mockRejectedValue(new Error('down'));

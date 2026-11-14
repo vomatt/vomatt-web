@@ -12,9 +12,13 @@ type AnnouncementDoc = {
 	messageZh: PortableTextBlock[] | null;
 } | null;
 
+// The Studio can keep an empty paragraph after the text is cleared
+const hasText = (blocks: PortableTextBlock[] | null): blocks is PortableTextBlock[] =>
+	!!blocks?.some((block) => block.children?.some((child) => typeof child.text === 'string' && child.text.trim()));
+
 function toAnnouncement(doc: AnnouncementDoc): Announcement | null {
-	if (!doc?.message?.length) return null;
-	return { id: doc.id, message: doc.message, messageZh: doc.messageZh?.length ? doc.messageZh : null };
+	if (!doc || !hasText(doc.message)) return null;
+	return { id: doc.id, message: doc.message, messageZh: hasText(doc.messageZh) ? doc.messageZh : null };
 }
 
 /** The announcement to show, fetched once per request; null when it is off, empty, or Sanity fails. */
