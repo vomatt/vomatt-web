@@ -195,7 +195,15 @@ describe('ActingProvider', () => {
 });
 
 describe('FollowButton while acting', () => {
-	const follow = { state: 'follow', toggle: jest.fn(), isPending: false, confirming: false, setConfirming: jest.fn(), delta: 0 } as Follow;
+	const follow: Follow = {
+		userId: 'ann',
+		state: 'follow',
+		toggle: jest.fn(),
+		isPending: false,
+		confirming: false,
+		setConfirming: jest.fn(),
+		delta: 0,
+	};
 
 	it('offers Follow to the user themself', () => {
 		renderWith({}, <FollowButton follow={follow} username="ann" />);
