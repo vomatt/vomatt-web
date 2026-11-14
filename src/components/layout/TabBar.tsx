@@ -6,6 +6,7 @@ import { buttonVariants } from '@/components/ui/Button';
 import { Home, Plus, Search } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { CreatePollTrigger } from '@/features/polls/components/CreatePollTrigger';
+import { useKeyboardOpen } from '@/hooks/useVisualViewport';
 import { isActivePath, isChromeless } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
@@ -24,6 +25,7 @@ const cellClassName =
 export function TabBar({ className, userSession, loginLink = '/login' }: TabBarProps) {
 	const pathname = usePathname();
 	const { t } = useLanguage();
+	const keyboardOpen = useKeyboardOpen();
 	const home = { title: t('navigation.home'), href: '/', icon: <Home className="size-6" /> };
 	const explore = { title: t('common.explore'), href: '/explore', icon: <Search className="size-6" /> };
 
@@ -46,8 +48,10 @@ export function TabBar({ className, userSession, loginLink = '/login' }: TabBarP
 	return (
 		<nav
 			data-tabbar
+			// iOS 26 Safari carries fixed bottom bars up above the keyboard; it stays behind the keyboard instead
+			data-keyboard={keyboardOpen || undefined}
 			className={cn(
-				'[--tabbar-height:64px] fixed bottom-0 z-tabbar w-full flex justify-between items-center h-[calc(var(--tabbar-height)+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] bg-card border-t border-border md:hidden',
+				'data-keyboard:invisible [--tabbar-height:64px] fixed bottom-0 z-tabbar w-full flex justify-between items-center h-[calc(var(--tabbar-height)+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] bg-card border-t border-border md:hidden',
 				className
 			)}
 		>

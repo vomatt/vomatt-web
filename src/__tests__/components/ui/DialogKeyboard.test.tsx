@@ -121,3 +121,51 @@ describe('Dialog outside press', () => {
 		expect(onOpenChange).toHaveBeenCalledWith(false, expect.objectContaining({ reason: 'outside-press' }));
 	});
 });
+
+describe('Dialog with an on-screen keyboard and a field below what is visible', () => {
+	const rect = (top: number, bottom: number) => ({ top, bottom, left: 0, right: 300, width: 300, height: bottom - top, x: 0, y: top, toJSON() {} }) as DOMRect;
+
+	it('scrolls the field back into its scroll box once the keyboard is up, and leaves manual scrolling alone', async () => {
+		render(
+			<Dialog open>
+				<DialogContent closeLabel="Close" initialFocus={false}>
+					<DialogTitle>Edit</DialogTitle>
+					<div data-testid="scroller" style={{ overflowY: 'auto' }}>
+						<input aria-label="Name" />
+					</div>
+				</DialogContent>
+			</Dialog>
+		);
+		const scroller = screen.getByTestId('scroller');
+		const field = screen.getByLabelText('Name');
+		let scrollTop = 0;
+		Object.defineProperties(scroller, {
+			scrollHeight: { value: 800 },
+			clientHeight: { value: 300 },
+			scrollTop: { get: () => scrollTop, set: (value: number) => (scrollTop = value) },
+		});
+		scroller.getBoundingClientRect = () => rect(0, 300);
+		// The field sits below the box's visible part until the box scrolls
+		field.getBoundingClientRect = () => rect(500 - scrollTop, 540 - scrollTop);
+
+		act(() => field.focus());
+		resize(400, 0);
+		await waitFor(() => expect(scrollTop).toBe(256));
+
+		// The visitor scrolls the dialog back up; the viewport scrolling with it moves nothing
+		scrollTop = 0;
+		act(() => {
+			Object.assign(viewport, { offsetTop: 40 });
+			viewport.dispatchEvent(new Event('scroll'));
+		});
+		await act(() => new Promise((resolve) => requestAnimationFrame(resolve)));
+		expect(scrollTop).toBe(0);
+
+		// Focusing a field again while the keyboard is up reveals it
+		act(() => {
+			field.blur();
+			field.focus();
+		});
+		await waitFor(() => expect(scrollTop).toBe(256));
+	});
+});
