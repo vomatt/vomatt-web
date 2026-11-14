@@ -36,7 +36,7 @@ export function useUserSearch(term: string, excludeIds: readonly string[] | null
 		let ignore = false;
 		const timer = setTimeout(async () => {
 			try {
-				const page = await searchUsers(term, undefined, MAX_SUGGESTIONS);
+				const page = await searchUsers(term);
 				if (ignore) return;
 				answeredTerm.current = term;
 				setResults({ term, users: page.items });
@@ -54,7 +54,7 @@ export function useUserSearch(term: string, excludeIds: readonly string[] | null
 	const users = answered ? results.users.filter((user) => !excludeIds.includes(user.id)) : [];
 	return {
 		term,
-		users,
+		users: users.slice(0, MAX_SUGGESTIONS),
 		isLoading: !!term && !answered,
 		failed: answered && !!results.failed,
 		allExcluded: answered && results.users.length > 0 && users.length === 0,

@@ -1445,7 +1445,8 @@
 			"failed": "無法儲存你的選擇，請再試一次。",
 			"rowTitle": "你擁有的社群帳號超過方案上限",
 			"choose": "選擇"
-		}
+		},
+		"quota": "已擁有 {owned} 個社群帳號，上限 {limit} 個"
 	},
 	"meta": {
 		"siteDescription": "提出問題、參與他人的投票，看看大家真正的想法。投票結束前票數保持密封，沒有人會跟風投票。",
@@ -1453,7 +1454,6 @@
 		"profileDescription": "看看 {name} 發起的投票。"
 	},
 	"plan": {
-		"quota": "已擁有 {owned} 個社群帳號，上限 {limit} 個",
 		"upgrade": "升級 Pro",
 		"comingSoon": "Pro 方案即將推出。"
 	}

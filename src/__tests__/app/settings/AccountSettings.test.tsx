@@ -417,12 +417,12 @@ describe('AccountSettings', () => {
 			<AccountSettings profile={{ ...myProfile, plan: 'FREE', communityQuota: quota(0, 1) }} inviteListCount={3} notificationPreferences={preferences} communities={[]} />
 		);
 		const section = screen.getByRole('region', { name: 'Community accounts' });
-		expect(within(section).getByRole('button', { name: /Create a community account/ })).toHaveTextContent('0 of 1 community accounts owned');
+		expect(within(section).getByRole('button', { name: 'Create a community account' })).toHaveAccessibleDescription(/0 of 1 community accounts owned/);
 
 		rerender(
 			<AccountSettings profile={{ ...myProfile, plan: 'PRO', communityQuota: quota(2, 3) }} inviteListCount={3} notificationPreferences={preferences} communities={[]} />
 		);
-		expect(within(section).getByRole('button', { name: /Create a community account/ })).toHaveTextContent('2 of 3 community accounts owned');
+		expect(within(section).getByRole('button', { name: 'Create a community account' })).toHaveAccessibleDescription(/2 of 3 community accounts owned/);
 		expect(within(section).queryByRole('button', { name: 'Upgrade to Pro' })).not.toBeInTheDocument();
 	});
 
@@ -467,6 +467,7 @@ describe('AccountSettings', () => {
 		const section = screen.getByRole('region', { name: 'Community accounts' });
 		expect(section).toHaveTextContent('You own more community accounts than your plan allows');
 		expect(section).toHaveTextContent('Choose by Nov 18, 2026');
+		expect(section).not.toHaveTextContent('You own as many community accounts as your plan allows');
 		fireEvent.click(within(section).getByRole('button', { name: 'Choose' }));
 		expect(screen.getByRole('dialog', { name: 'Choose which community accounts to keep' })).toBeInTheDocument();
 	});

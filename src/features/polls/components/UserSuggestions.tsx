@@ -44,7 +44,8 @@ export function UserSuggestions({
 						disabled={user.community}
 						aria-describedby={user.community ? `${user.id}-community` : undefined}
 						onClick={() => onPick(user)}
-						className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-body-4 enabled:hover:bg-muted disabled:text-muted-foreground"
+						// Inset, so the list's scroll box can't clip it
+						className="flex min-h-11 w-full outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring items-center gap-3 rounded-lg px-3 text-left text-body-4 enabled:hover:bg-muted disabled:text-muted-foreground"
 					>
 						<UserAvatar username={user.username} avatarUrl={user.avatarUrl} />
 						<span className="flex min-w-0 flex-col">
