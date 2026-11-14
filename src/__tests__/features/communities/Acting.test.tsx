@@ -144,7 +144,7 @@ describe('ActingBanner', () => {
 		renderWith({ acting, communities: [acting] }, <ActingBanner />);
 
 		expect(screen.getByRole('status')).toHaveTextContent('You’re acting as Community c1.');
-		expect(screen.getByText('Community c1').tagName).toBe('STRONG');
+		expect(screen.getByRole('link', { name: 'Community c1' })).toHaveAttribute('href', '/c1');
 		fireEvent.click(screen.getByRole('button', { name: 'Switch back to you' }));
 		await waitFor(() => expect(actAsCommunity).toHaveBeenCalledWith(null));
 	});

@@ -7,7 +7,7 @@ import { PillGroup } from '@/components/PillGroup';
 import { Button } from '@/components/ui/Button';
 import { Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { Input } from '@/components/ui/Input';
-import { X } from '@/components/ui/SvgIcons';
+import { Plus, X } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { UserSuggestions } from '@/features/polls/components/UserSuggestions';
@@ -90,7 +90,7 @@ function InviteMemberForm({ roles, excludeIds, busy, onInvite, onClose }: FormPr
 					</Button>
 				</div>
 			) : (
-				<div className="space-y-1">
+				<div className="space-y-2">
 					<Input
 						type="text"
 						autoComplete="off"
@@ -101,17 +101,22 @@ function InviteMemberForm({ roles, excludeIds, busy, onInvite, onClose }: FormPr
 						value={query}
 						onChange={(e) => setQuery(e.target.value)}
 					/>
-					{/* A community account can't belong to another (`community.member.invalid`): shown, but not pickable */}
-					{isEmail && (
-						<button
-							type="button"
-							onClick={() => setPicked({ email })}
-							className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-body-4 hover:bg-muted"
-						>
-							<span className="min-w-0 flex-1 truncate">{t('communities.inviteEmail', { email })}</span>
-						</button>
-					)}
-					<UserSuggestions search={search} onPick={(user) => setPicked({ user })} communityNote={t('communities.communityNotAllowed')} />
+					<div className="rounded-xl border border-border p-1 empty:hidden">
+						{isEmail && (
+							<button
+								type="button"
+								onClick={() => setPicked({ email })}
+								className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-body-4 hover:bg-muted"
+							>
+								<span aria-hidden className="avatar-frame grid place-items-center bg-muted text-muted-foreground">
+									<Plus className="size-4" />
+								</span>
+								<span className="min-w-0 flex-1 truncate">{t('communities.inviteEmail', { email })}</span>
+							</button>
+						)}
+						{/* A community account can't belong to another (`community.member.invalid`): shown, but not pickable */}
+						<UserSuggestions search={search} onPick={(user) => setPicked({ user })} communityNote={t('communities.communityNotAllowed')} />
+					</div>
 				</div>
 			)}
 			{picked && 'email' in picked && <p className="text-caption-2 text-muted-foreground">{t('communities.inviteEmailHint')}</p>}
