@@ -246,6 +246,13 @@ describe('EditProfileDialog', () => {
 		expect(body).not.toContainElement(screen.getByRole('button', { name: 'Save changes' }));
 		expect(document.querySelector('[data-slot="dialog-overlay"]')).toHaveClass('bg-overlay-strong', 'backdrop-blur-md');
 	});
+
+	it('gives a phone keyboard the room by stepping the Save row aside while it is up', () => {
+		open();
+		expect(screen.getByRole('button', { name: 'Save changes' }).closest('[data-slot="dialog-footer"]')).toHaveClass(
+			'max-sm:in-data-keyboard:hidden'
+		);
+	});
 });
 
 describe('EditProfileDialog gender', () => {

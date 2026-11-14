@@ -8,8 +8,31 @@ import { X } from '@/components/ui/SvgIcons';
 import { keyboardInsetClasses, useKeyboardInset } from '@/hooks/useVisualViewport';
 import { cn } from '@/lib/utils';
 
-function Dialog({ ...props }: DialogPrimitive.Root.Props) {
-	return <DialogPrimitive.Root data-slot="dialog" {...props} />;
+/** Set by the open popup: whether the current press started inside it. */
+const PressStartedInside = React.createContext<React.RefObject<boolean> | null>(null);
+
+/**
+ * A press that starts in the popup never dismisses it, wherever its click lands. On iOS the
+ * keyboard opening or closing mid-tap shifts the popup, and the tap's click can then hit the
+ * backdrop or an ancestor of the popup, which Base UI treats as an outside press.
+ */
+function Dialog({ onOpenChange, ...props }: DialogPrimitive.Root.Props) {
+	const pressStartedInside = React.useRef(false);
+	return (
+		<PressStartedInside value={pressStartedInside}>
+			<DialogPrimitive.Root
+				data-slot="dialog"
+				onOpenChange={(open, details) => {
+					if (details.reason === 'outside-press' && pressStartedInside.current) {
+						details.cancel();
+						return;
+					}
+					onOpenChange?.(open, details);
+				}}
+				{...props}
+			/>
+		</PressStartedInside>
+	);
 }
 
 function DialogTrigger({ ...props }: DialogPrimitive.Trigger.Props) {
@@ -38,7 +61,21 @@ function DialogOverlay({
 
 /** Mounted only while open, so closed dialogs don't watch the viewport. */
 function DialogPopup({ style, ...props }: DialogPrimitive.Popup.Props) {
-	return <DialogPrimitive.Popup {...props} {...useKeyboardInset(style)} />;
+	const pressStartedInside = React.useContext(PressStartedInside);
+	const popup = React.useRef<HTMLDivElement>(null);
+	React.useEffect(() => {
+		if (!pressStartedInside) return;
+		// Every press starts on the popup or the backdrop: capture sees it before anything can stop it
+		const record = (event: PointerEvent) => {
+			pressStartedInside.current = !!popup.current?.contains(event.target as Node);
+		};
+		document.addEventListener('pointerdown', record, true);
+		return () => {
+			document.removeEventListener('pointerdown', record, true);
+			pressStartedInside.current = false;
+		};
+	}, [pressStartedInside]);
+	return <DialogPrimitive.Popup ref={popup} {...props} {...useKeyboardInset(style)} />;
 }
 
 function DialogContent({

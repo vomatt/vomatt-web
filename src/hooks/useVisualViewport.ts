@@ -58,7 +58,11 @@ function useVisualViewport(): VisualViewportBox | null {
 		viewport.addEventListener('scroll', update);
 		document.addEventListener('focusin', update);
 		document.addEventListener('focusout', updateSoon);
+		// Removing the focused field (a picker swapping its field for the pick) sends no focusout
+		const removals = new MutationObserver(update);
+		removals.observe(document.body, { childList: true, subtree: true });
 		return () => {
+			removals.disconnect();
 			clearTimeout(settle);
 			viewport.removeEventListener('resize', update);
 			viewport.removeEventListener('scroll', update);

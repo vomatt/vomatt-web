@@ -425,8 +425,9 @@ export function PollCreator({
 					showCloseButton={false}
 					finalFocus={finalFocus}
 					initialFocus={() => document.getElementById('title')}
-					// On phones it fills what the keyboard leaves visible (DialogContent sets the variables), so the footer stays above it
-					className="flex h-[var(--visible-height,100dvh)] max-h-dvh max-w-none flex-col overflow-hidden rounded-none border-0 bg-background ring-0 data-keyboard:max-h-(--visible-height) sm:h-auto sm:max-h-[90dvh] sm:max-w-2xl sm:rounded-[20px] sm:ring-1"
+					// On phones it fills what the keyboard leaves visible (DialogContent sets the variables), so the footer stays above it;
+					// from sm it stays a centered dialog, as a 90dvh popup can't fit the strip above a landscape or iPad keyboard
+					className="flex h-[var(--visible-height,100dvh)] max-h-dvh max-w-none flex-col overflow-hidden rounded-none border-0 bg-background ring-0 data-keyboard:max-h-(--visible-height) sm:h-auto sm:max-h-[90dvh] sm:data-keyboard:top-1/2 sm:data-keyboard:max-h-[90dvh] sm:max-w-2xl sm:rounded-[20px] sm:ring-1"
 				>
 					<div className="flex flex-none items-start gap-3 p-4 sm:p-5">
 						<div className="min-w-0 flex-1 space-y-1">

@@ -733,6 +733,10 @@ describe('PollCreator', () => {
 
 			show(400);
 			expect(keyboardUp()).toBe(true);
+			const popup = document.querySelector('[data-slot="dialog-content"]')!;
+			// Phones fill what's visible and hide the footer; from sm it stays a centered dialog
+			expect(popup).toHaveClass('data-keyboard:max-h-(--visible-height)', 'sm:data-keyboard:top-1/2', 'sm:data-keyboard:max-h-[90dvh]');
+			expect(screen.getByRole('button', { name: 'Save draft' }).closest('.border-t')).toHaveClass('max-sm:in-data-keyboard:hidden');
 
 			show(window.innerHeight);
 			expect(keyboardUp()).toBe(false);

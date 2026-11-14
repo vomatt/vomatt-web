@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import { AlertDialog, AlertDialogContent, AlertDialogTitle } from '@/components/ui/AlertDialog';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/Dialog';
@@ -83,5 +83,41 @@ describe.each([
 		resize(400, 0);
 		expect(popup().style.zIndex).toBe('60');
 		expect(popup().style.getPropertyValue('--visible-height')).toBe('400px');
+	});
+});
+
+describe('Dialog outside press', () => {
+	const setup = () => {
+		const onOpenChange = jest.fn();
+		render(
+			<Dialog open onOpenChange={onOpenChange}>
+				<DialogContent closeLabel="Close">
+					<DialogTitle>Edit</DialogTitle>
+					<input aria-label="Name" />
+				</DialogContent>
+			</Dialog>
+		);
+		const backdrop = document.querySelector('[data-slot="dialog-overlay"]')!;
+		return { onOpenChange, backdrop };
+	};
+
+	it('stays open when a tap that began inside sends its click to the backdrop', async () => {
+		// iOS: the keyboard opening or closing mid-tap shifts the popup, and the click, which comes
+		// after touchend, hits the backdrop
+		const { onOpenChange, backdrop } = setup();
+		const field = screen.getByLabelText('Name');
+		fireEvent.pointerDown(field, { button: 0, pointerType: 'touch' });
+		fireEvent.pointerUp(field, { button: 0, pointerType: 'touch' });
+		await act(() => new Promise((resolve) => setTimeout(resolve, 10)));
+		fireEvent.click(backdrop);
+		expect(onOpenChange).not.toHaveBeenCalled();
+		expect(screen.getByRole('dialog')).toBeInTheDocument();
+	});
+
+	it('still closes on a press on the backdrop', () => {
+		const { onOpenChange, backdrop } = setup();
+		fireEvent.pointerDown(backdrop, { button: 0, pointerType: 'touch' });
+		fireEvent.click(backdrop);
+		expect(onOpenChange).toHaveBeenCalledWith(false, expect.objectContaining({ reason: 'outside-press' }));
 	});
 });

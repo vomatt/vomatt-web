@@ -8,7 +8,7 @@ import type { UserDto } from '@/schemas/user';
 
 import type { UserSearch } from '../hooks/useUserSearch';
 
-/** On a pick button under a text field: keeps the field focused so the keyboard stays up (else iOS shifts the dialog mid-tap and the next tap can dismiss it). */
+/** On a pick button under a text field: keeps the field focused, so the keyboard stays up while picking several people and the dialog doesn't jump between picks. */
 export const keepFieldFocused = (event: React.MouseEvent) => event.preventDefault();
 
 /**
