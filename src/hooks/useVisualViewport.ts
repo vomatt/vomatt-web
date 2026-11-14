@@ -32,6 +32,7 @@ function useVisualViewport(): VisualViewportBox | null {
 		// pixels: iOS scales innerHeight with pinch zoom, and some browsers shrink it for the keyboard
 		let width = 0;
 		let tallest = 0;
+		const removals = new MutationObserver(() => update());
 		const update = () => {
 			const seen = viewport.height * viewport.scale;
 			const seenWidth = Math.round(viewport.width * viewport.scale);
@@ -41,6 +42,10 @@ function useVisualViewport(): VisualViewportBox | null {
 			}
 			tallest = Math.max(tallest, seen, window.innerHeight, document.documentElement.clientHeight);
 			const keyboard = tallest - seen > KEYBOARD_MIN && isTextEntry(document.activeElement);
+			// Removing the focused field (a picker swapping its field for the pick) sends no focusout;
+			// watched only while the keyboard is up
+			if (keyboard) removals.observe(document.body, { childList: true, subtree: true });
+			else removals.disconnect();
 			setBox((current) => {
 				if (!keyboard) return null;
 				const next = { top: viewport.offsetTop, height: viewport.height };
@@ -58,9 +63,6 @@ function useVisualViewport(): VisualViewportBox | null {
 		viewport.addEventListener('scroll', update);
 		document.addEventListener('focusin', update);
 		document.addEventListener('focusout', updateSoon);
-		// Removing the focused field (a picker swapping its field for the pick) sends no focusout
-		const removals = new MutationObserver(update);
-		removals.observe(document.body, { childList: true, subtree: true });
 		return () => {
 			removals.disconnect();
 			clearTimeout(settle);
@@ -73,6 +75,11 @@ function useVisualViewport(): VisualViewportBox | null {
 	}, []);
 
 	return box;
+}
+
+/** Whether an on-screen keyboard is up (a text field is focused and the keyboard covers part of the page). */
+export function useKeyboardOpen() {
+	return useVisualViewport() !== null;
 }
 
 // Room kept between the field and its scroll box's edge
