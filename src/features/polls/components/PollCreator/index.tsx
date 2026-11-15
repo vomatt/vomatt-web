@@ -442,9 +442,11 @@ export function PollCreator({
 					finalFocus={finalFocus}
 					initialFocus={() => document.getElementById('title')}
 					overlay={sheet ? 'sheet' : 'default'}
-					// On phones it fills what the keyboard leaves visible (DialogContent sets the variables), so the footer stays above it;
-					// from sm it stays a centered dialog, as a 90dvh popup can't fit the strip above a landscape or iPad keyboard
-					className="flex h-[var(--visible-height,100dvh)] max-h-dvh max-w-none flex-col overflow-hidden rounded-none border-0 bg-background ring-0 data-keyboard:max-h-(--visible-height) sm:h-auto sm:max-h-[90dvh] sm:data-keyboard:top-1/2 sm:data-keyboard:max-h-[90dvh] sm:max-w-2xl sm:rounded-[20px] sm:ring-1"
+					// On phones it fills the screen. While the keyboard is up (DialogContent sets the variables) it runs from the visible
+					// top on under the keyboard and Safari's bars, which iOS 26+ draws as glass over the page, and --keyboard-covered is
+					// what they cover, the scroller's padding. From sm it stays a centered dialog, as a 90dvh popup can't fit the strip
+					// above a landscape or iPad keyboard
+					className="flex h-dvh max-h-dvh max-w-none flex-col overflow-hidden rounded-none border-0 bg-background ring-0 max-sm:data-keyboard:top-(--visible-top) max-sm:data-keyboard:h-lvh max-sm:data-keyboard:max-h-none max-sm:data-keyboard:translate-y-0 max-sm:data-keyboard:[--keyboard-covered:calc(100lvh-var(--visible-height))] sm:h-auto sm:max-h-[90dvh] sm:data-keyboard:top-1/2 sm:data-keyboard:max-h-[90dvh] sm:max-w-2xl sm:rounded-[20px] sm:ring-1"
 				>
 					<div className="flex flex-none items-start gap-3 p-4 sm:p-5">
 						<div className="min-w-0 flex-1 space-y-1">
@@ -506,7 +508,10 @@ export function PollCreator({
 						}}
 					>
 						{/* relative: the leaving step is laid over the arriving one while both animate */}
-						<div ref={scrollRef} className="relative min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain">
+						<div
+							ref={scrollRef}
+							className="relative min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain pb-(--keyboard-covered)"
+						>
 							<AnimatePresence
 								initial={false}
 								mode="popLayout"
@@ -942,7 +947,8 @@ export function PollCreator({
 							</AnimatePresence>
 						</div>
 
-						{/* On a phone the keyboard leaves little room: give it all to the field being typed in until it closes */}
+						{/* On a phone the keyboard leaves little room: give it all to the field being typed in until it closes.
+						    Hidden, it also leaves the scroller ending at the popup's bottom, which --keyboard-covered assumes */}
 						<div className="flex-none border-t p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] max-sm:in-data-keyboard:hidden sm:p-5">
 							{/* Rendered empty first, so a failed publish is announced every time, the same error included */}
 							<p
