@@ -17,6 +17,7 @@ import {
 	useEffect,
 	useRef,
 	useState,
+	useSyncExternalStore,
 } from 'react';
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -153,6 +154,19 @@ export interface PollCreatorProps {
 	finalFocus?: RefObject<HTMLElement | null>;
 }
 
+// Below Tailwind's sm, where the popup's classes make it fill the screen
+const SHEET_QUERY = '(width < 40rem)';
+
+function subscribeSheet(onChange: () => void) {
+	const query = window.matchMedia?.(SHEET_QUERY);
+	query?.addEventListener('change', onChange);
+	return () => query?.removeEventListener('change', onChange);
+}
+
+/** Whether the creator is a full-screen sheet rather than a centered dialog. */
+const useIsSheet = () =>
+	useSyncExternalStore(subscribeSheet, () => !!window.matchMedia?.(SHEET_QUERY).matches, () => false);
+
 function initialValues(poll?: Poll, draft?: PollDraft) {
 	if (poll) return pollToForm(poll);
 	return draft?.values ?? emptyPollForm();
@@ -248,6 +262,7 @@ export function PollCreator({
 	const titleRef = useRef<HTMLHeadingElement>(null);
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const reduceMotion = useReducedMotion();
+	const sheet = useIsSheet();
 
 	// Each step starts at its top. The write form unmounts on review; land on the step title so it is announced
 	useEffect(() => {
@@ -417,7 +432,8 @@ export function PollCreator({
 
 	return (
 		<>
-			<Dialog open={open} onOpenChange={handleOpenChange}>
+			{/* A sheet hides the page behind it (iOS 26 Safari's bars float over that backdrop), so a press there isn't outside */}
+			<Dialog open={open} onOpenChange={handleOpenChange} disablePointerDismissal={sheet}>
 				{!isEdit && triggerChildren && (
 					<DialogTrigger render={triggerChildren} />
 				)}
@@ -425,6 +441,7 @@ export function PollCreator({
 					showCloseButton={false}
 					finalFocus={finalFocus}
 					initialFocus={() => document.getElementById('title')}
+					overlay={sheet ? 'sheet' : 'default'}
 					// On phones it fills what the keyboard leaves visible (DialogContent sets the variables), so the footer stays above it;
 					// from sm it stays a centered dialog, as a 90dvh popup can't fit the strip above a landscape or iPad keyboard
 					className="flex h-[var(--visible-height,100dvh)] max-h-dvh max-w-none flex-col overflow-hidden rounded-none border-0 bg-background ring-0 data-keyboard:max-h-(--visible-height) sm:h-auto sm:max-h-[90dvh] sm:data-keyboard:top-1/2 sm:data-keyboard:max-h-[90dvh] sm:max-w-2xl sm:rounded-[20px] sm:ring-1"

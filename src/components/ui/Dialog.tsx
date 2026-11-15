@@ -94,7 +94,11 @@ function DialogContent({
 	overlay = 'default',
 	...props
 }: DialogPrimitive.Popup.Props & {
-	overlay?: 'default' | 'strong';
+	/**
+	 * `sheet` while the popup fills the screen: an opaque backdrop, as iOS 26 Safari's toolbar, and its
+	 * URL pill and form bar above the keyboard, float over the page outside the popup.
+	 */
+	overlay?: 'default' | 'strong' | 'sheet';
 } & (
 		// The close button's name is required whenever the button is shown
 		| { showCloseButton?: true; closeLabel: string }
@@ -102,7 +106,12 @@ function DialogContent({
 	)) {
 	return (
 		<DialogPortal>
-			<DialogOverlay className={cn(overlay === 'strong' && 'bg-overlay-strong backdrop-blur-md')} />
+			<DialogOverlay
+				className={cn(
+					overlay === 'strong' && 'bg-overlay-strong backdrop-blur-md',
+					overlay === 'sheet' && 'bg-background'
+				)}
+			/>
 			<DialogPopup
 				data-slot="dialog-content"
 				className={cn(
