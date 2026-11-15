@@ -79,6 +79,40 @@ describe.each([
 		expect(popup()).not.toHaveAttribute('data-keyboard');
 	});
 
+	it('scrolls the page back to where it was when the dialog opened while the keyboard is up, and not after', async () => {
+		const scrollY = Object.getOwnPropertyDescriptor(window, 'scrollY');
+		const scrollTo = jest.spyOn(window, 'scrollTo').mockImplementation(() => {});
+		const scrollPage = (y: number) =>
+			act(() => {
+				Object.defineProperty(window, 'scrollY', { value: y, configurable: true });
+				window.dispatchEvent(new Event('scroll'));
+			});
+		try {
+			scrollPage(40);
+			render(ui({}));
+			await focusesField();
+			scrollPage(60);
+			expect(scrollTo).not.toHaveBeenCalled();
+
+			// iOS scrolls before the keyboard counts as up: undone as soon as it does
+			scrollPage(253);
+			resize(400, 0);
+			expect(scrollTo).toHaveBeenLastCalledWith(0, 40);
+			scrollPage(300);
+			expect(scrollTo).toHaveBeenLastCalledWith(0, 40);
+
+			act(() => popup().focus());
+			await waitFor(() => expect(popup()).not.toHaveAttribute('data-keyboard'));
+			scrollTo.mockClear();
+			scrollPage(90);
+			expect(scrollTo).not.toHaveBeenCalled();
+		} finally {
+			scrollTo.mockRestore();
+			if (scrollY) Object.defineProperty(window, 'scrollY', scrollY);
+			else delete (window as { scrollY?: number }).scrollY;
+		}
+	});
+
 	it("keeps the dialog's own style", async () => {
 		render(ui({ style: { zIndex: 60 } }));
 		await focusesField();
