@@ -764,6 +764,42 @@ describe('PollCreator', () => {
 		});
 	});
 
+	describe('backdrop', () => {
+		const original = window.matchMedia;
+		const atWidth = (phone: boolean) => {
+			window.matchMedia = jest.fn((query: string) => ({
+				matches: phone && query === '(width < 40rem)',
+				addEventListener: jest.fn(),
+				removeEventListener: jest.fn(),
+			})) as unknown as typeof window.matchMedia;
+		};
+		const backdrop = () => document.querySelector('[data-slot="dialog-overlay"]')!;
+		afterEach(() => {
+			window.matchMedia = original;
+		});
+
+		it('hides the page and ignores presses on a phone, where the creator fills the screen', async () => {
+			atWidth(true);
+			render(<PollCreator triggerChildren={TRIGGER} />);
+			await openDialog();
+			expect(backdrop()).toHaveClass('bg-background');
+
+			fireEvent.click(backdrop());
+			await act(() => new Promise((resolve) => setTimeout(resolve, 10)));
+			expect(screen.getByRole('dialog')).toBeInTheDocument();
+		});
+
+		it('dims the page and closes on a press from sm, where the creator is a centered dialog', async () => {
+			atWidth(false);
+			render(<PollCreator triggerChildren={TRIGGER} />);
+			await openDialog();
+			expect(backdrop()).not.toHaveClass('bg-background');
+
+			fireEvent.click(backdrop());
+			await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+		});
+	});
+
 	it('offers to keep unsaved work as a draft on close', async () => {
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();
