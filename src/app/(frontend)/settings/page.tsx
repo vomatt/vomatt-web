@@ -9,6 +9,7 @@ import { getGroups } from '@/features/groups/service';
 import { getNotificationPreferences } from '@/features/notifications/service';
 import { getServerMessages } from '@/lib/getServerLocale';
 import { profileHref } from '@/lib/routes';
+import { getSiteSettings } from '@/lib/siteSettings';
 
 import AccountSettings, { SettingsNav } from './_components/AccountSettings';
 
@@ -18,12 +19,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function SettingsPage() {
-	const [profile, groups, notificationPreferences, communities, { acting }] = await Promise.all([
+	const [profile, groups, notificationPreferences, communities, { acting }, siteSettings] = await Promise.all([
 		getMyProfile(),
 		getGroups(),
 		getNotificationPreferences().catch(() => null),
 		getMyCommunities(),
 		loadActingState(),
+		getSiteSettings(),
 	]);
 	if (!profile) return redirectToLogin('/settings');
 
@@ -53,6 +55,7 @@ export default async function SettingsPage() {
 					inviteListCount={groups.ok ? groups.data.length : null}
 					notificationPreferences={notificationPreferences}
 					communities={communities.ok ? communities.data : []}
+					integrations={siteSettings?.integrations}
 				/>
 			)}
 		</PageShell>
