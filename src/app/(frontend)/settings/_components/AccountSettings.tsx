@@ -6,6 +6,8 @@ import { useTheme } from 'next-themes';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
+import { CookieChoiceRow } from '@/components/layout/CookieConsent';
+import type { Integrations } from '@/components/layout/HeadTrackingCode';
 import { LegalLinks } from '@/components/layout/LegalLinks';
 import { rowClassName, rowLinkClassName, RowText, SettingsCard } from '@/components/SettingsCard';
 import {
@@ -69,6 +71,7 @@ export default function AccountSettings({
 	inviteListCount,
 	notificationPreferences,
 	communities,
+	integrations,
 }: {
 	profile: MyProfile;
 	/** How many invite lists the user has; null when they couldn't be loaded. */
@@ -77,6 +80,8 @@ export default function AccountSettings({
 	notificationPreferences: NotificationPreferences | null;
 	/** The community accounts the user belongs to; the section shows only with some. */
 	communities: MyCommunity[];
+	/** Sanity's analytics IDs; the cookie choice row shows only with one. */
+	integrations?: Integrations | null;
 }) {
 	const { t, currentLanguage } = useLanguage();
 	const [anonymousDefault, setAnonymousDefault] = useState(profile.anonymousBallotByDefault);
@@ -170,6 +175,7 @@ export default function AccountSettings({
 						<RowText title={t('blocks.title')} body={t('settings.blockedBody')} />
 						<ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
 					</Link>
+					<CookieChoiceRow integrations={integrations} />
 				</SettingsCard>
 			</Section>
 

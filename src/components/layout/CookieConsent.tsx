@@ -3,18 +3,21 @@
 import { useSyncExternalStore } from 'react';
 
 import { HeadTrackingCode, Integrations } from '@/components/layout/HeadTrackingCode';
+import { rowClassName, RowText } from '@/components/SettingsCard';
 import { Button } from '@/components/ui/Button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useKeyboardOpen } from '@/hooks/useVisualViewport';
 import { aboutHref } from '@/lib/aboutSite';
+import { cn } from '@/lib/utils';
 
 export const CONSENT_COOKIE = 'cookie-consent';
 type Consent = 'granted' | 'denied';
 
 /** The consent cookie, set on vomatt.com so the app and about.vomatt.com share one answer. Mirrors vomatt-about's. */
-export function consentCookie(value: Consent, hostname: string) {
+export function consentCookie(value: Consent | '', hostname: string) {
 	const shared = hostname === 'vomatt.com' || hostname.endsWith('.vomatt.com');
-	return `${CONSENT_COOKIE}=${value}; path=/; max-age=${365 * 24 * 60 * 60}; samesite=lax${shared ? '; domain=vomatt.com' : ''}`;
+	const maxAge = value ? 365 * 24 * 60 * 60 : 0;
+	return `${CONSENT_COOKIE}=${value}; path=/; max-age=${maxAge}; samesite=lax${shared ? '; domain=vomatt.com' : ''}`;
 }
 
 function readConsent(): Consent | null {
@@ -27,6 +30,9 @@ function subscribe(listener: () => void) {
 	listeners.add(listener);
 	return () => listeners.delete(listener);
 }
+
+const hasAnalytics = (integrations?: Integrations | null) =>
+	!!(integrations?.gaIDs?.some(Boolean) || integrations?.gtmIDs?.some(Boolean));
 
 /** Publishes the room the banner takes from the viewport's bottom, so the Toaster (root layout) stacks toasts above it */
 function reserveBannerSpace(banner: HTMLElement) {
@@ -48,8 +54,7 @@ export function CookieConsent({ integrations }: { integrations?: Integrations | 
 	const consent = useSyncExternalStore(subscribe, readConsent, () => undefined);
 	const keyboardOpen = useKeyboardOpen();
 
-	const hasAnalytics = !!(integrations?.gaIDs?.some(Boolean) || integrations?.gtmIDs?.some(Boolean));
-	if (!hasAnalytics) return null;
+	if (!hasAnalytics(integrations)) return null;
 
 	const choose = (value: Consent) => {
 		document.cookie = consentCookie(value, window.location.hostname);
@@ -82,5 +87,40 @@ export function CookieConsent({ integrations }: { integrations?: Integrations | 
 				</Button>
 			</div>
 		</section>
+	);
+}
+
+const CHOICE_TEXT = {
+	granted: 'settings.analyticsCookiesGranted',
+	denied: 'settings.analyticsCookiesDenied',
+	null: 'settings.analyticsCookiesUnset',
+} as const;
+
+/** A Settings row showing the analytics cookie choice, with a way to make it again; nothing when no analytics ID is set. */
+export function CookieChoiceRow({ integrations }: { integrations?: Integrations | null }) {
+	const { t } = useLanguage();
+	const consent = useSyncExternalStore(subscribe, readConsent, () => undefined);
+
+	if (!hasAnalytics(integrations)) return null;
+
+	const askAgain = () => {
+		document.cookie = consentCookie('', window.location.hostname);
+		// Loaded analytics scripts stay until the page reloads
+		if (consent === 'granted') window.location.reload();
+		else listeners.forEach((listener) => listener());
+	};
+
+	return (
+		<div className={cn(rowClassName, 'flex-wrap')}>
+			<RowText
+				title={t('settings.analyticsCookies')}
+				body={consent !== undefined && t(CHOICE_TEXT[`${consent}`])}
+			/>
+			{consent && (
+				<Button variant="outline" size="md" onClick={askAgain}>
+					{t('settings.analyticsCookiesChange')}
+				</Button>
+			)}
+		</div>
 	);
 }

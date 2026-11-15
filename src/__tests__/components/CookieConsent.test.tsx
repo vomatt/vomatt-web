@@ -5,7 +5,7 @@ jest.mock('@/components/layout/HeadTrackingCode', () => ({
 	HeadTrackingCode: () => <div data-testid="tracking" />,
 }));
 
-import { consentCookie, CookieConsent } from '@/components/layout/CookieConsent';
+import { consentCookie, CookieChoiceRow, CookieConsent } from '@/components/layout/CookieConsent';
 
 const integrations = { gaIDs: ['G-TEST'] };
 
@@ -54,8 +54,37 @@ describe('consentCookie', () => {
 		expect(consentCookie('granted', 'about.vomatt.com')).toContain('; domain=vomatt.com');
 	});
 
+	it('clears the shared cookie when given no choice', () => {
+		expect(consentCookie('', 'vomatt.com')).toBe('cookie-consent=; path=/; max-age=0; samesite=lax; domain=vomatt.com');
+	});
+
 	it('stays on the host elsewhere, where vomatt.com is not a valid cookie domain', () => {
 		expect(consentCookie('granted', 'localhost')).not.toContain('domain=');
 		expect(consentCookie('granted', 'vomatt-git-dev.vercel.app')).not.toContain('domain=');
+	});
+});
+
+describe('CookieChoiceRow', () => {
+	it('renders nothing when no analytics ID is set', () => {
+		document.cookie = 'cookie-consent=denied; path=/';
+		const { container } = render(<CookieChoiceRow integrations={{ gaIDs: [], gtmIDs: [] }} />);
+		expect(container).toBeEmptyDOMElement();
+	});
+
+	it('shows the choice and makes the banner ask again after a Decline', () => {
+		render(
+			<>
+				<CookieConsent integrations={integrations} />
+				<CookieChoiceRow integrations={integrations} />
+			</>
+		);
+		fireEvent.click(screen.getByRole('button', { name: /decline/i }));
+		expect(screen.getByText(/declined analytics cookies/i)).toBeInTheDocument();
+
+		fireEvent.click(screen.getByRole('button', { name: 'Change' }));
+		expect(screen.getByRole('button', { name: /accept/i })).toBeInTheDocument();
+		expect(document.cookie).not.toContain('cookie-consent=');
+		expect(screen.getByText('Choose in the cookie banner.')).toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Change' })).not.toBeInTheDocument();
 	});
 });

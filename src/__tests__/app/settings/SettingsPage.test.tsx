@@ -13,6 +13,7 @@ jest.mock('@/data/auth', () => ({
 	getMyCommunities: jest.fn().mockResolvedValue({ ok: true, data: [] }),
 	redirectToLogin: jest.fn(),
 }));
+jest.mock('@/lib/siteSettings', () => ({ getSiteSettings: jest.fn().mockResolvedValue(null) }));
 jest.mock('@/features/groups/service', () => ({ getGroups: jest.fn().mockResolvedValue({ ok: true, data: [] }) }));
 jest.mock('@/features/notifications/service', () => ({ getNotificationPreferences: jest.fn().mockResolvedValue(null) }));
 jest.mock('@/app/(frontend)/settings/_components/AccountSettings', () => ({
