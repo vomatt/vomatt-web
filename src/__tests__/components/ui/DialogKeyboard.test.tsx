@@ -79,6 +79,36 @@ describe.each([
 		expect(popup()).not.toHaveAttribute('data-keyboard');
 	});
 
+	it('scrolls the page back when iOS scrolls it to reveal a field while the keyboard is up, and not after', async () => {
+		const scrollTo = jest.spyOn(window, 'scrollTo').mockImplementation(() => {});
+		const scrollPage = (y: number) =>
+			act(() => {
+				Object.defineProperty(window, 'scrollY', { value: y, configurable: true });
+				window.dispatchEvent(new Event('scroll'));
+			});
+		try {
+			scrollPage(40);
+			render(ui({}));
+			await focusesField();
+			scrollPage(60);
+			expect(scrollTo).not.toHaveBeenCalled();
+
+			scrollPage(40);
+			resize(400, 0);
+			scrollPage(253);
+			expect(scrollTo).toHaveBeenLastCalledWith(0, 40);
+
+			act(() => popup().focus());
+			await waitFor(() => expect(popup()).not.toHaveAttribute('data-keyboard'));
+			scrollTo.mockClear();
+			scrollPage(90);
+			expect(scrollTo).not.toHaveBeenCalled();
+		} finally {
+			scrollTo.mockRestore();
+			Object.defineProperty(window, 'scrollY', { value: 0, configurable: true });
+		}
+	});
+
 	it("keeps the dialog's own style", async () => {
 		render(ui({ style: { zIndex: 60 } }));
 		await focusesField();

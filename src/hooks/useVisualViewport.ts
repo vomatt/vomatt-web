@@ -175,6 +175,21 @@ export function useKeyboardInset<State>(style: CSSProperties | ((state: State) =
 		};
 	}, [height]);
 
+	// iOS reveals a focused field (a tap low in the form, or the form bar's next/previous arrows) by scrolling the page
+	// under the scroll lock. The popup follows what's visible, so the field never comes into view and iOS keeps going,
+	// until the popup's bottom passes the layout viewport's, where nothing fixed paints: the page shows above the
+	// keyboard. Scroll it back; the reveal above shows the field in the popup's own scroll boxes instead.
+	const keyboardUp = box !== null;
+	useEffect(() => {
+		if (!keyboardUp) return;
+		const restY = window.scrollY;
+		const restore = () => {
+			if (window.scrollY !== restY) window.scrollTo(window.scrollX, restY);
+		};
+		window.addEventListener('scroll', restore);
+		return () => window.removeEventListener('scroll', restore);
+	}, [keyboardUp]);
+
 	if (!box) return { style };
 	const inset = {
 		'--visible-top': `${box.top}px`,
