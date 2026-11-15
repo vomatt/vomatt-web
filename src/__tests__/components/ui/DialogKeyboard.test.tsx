@@ -62,6 +62,8 @@ describe.each([
 		expect(popup().style.getPropertyValue('--visible-center')).toBe('300px');
 		expect(popup().style.getPropertyValue('--visible-height')).toBe('400px');
 		expect(popup()).toHaveClass('data-keyboard:top-(--visible-center)', 'data-keyboard:max-h-[calc(var(--visible-height)-2rem)]');
+		// Its fields are revealed a frame after it resizes, so the resize can't animate
+		expect(popup()).toHaveClass('transition-none');
 
 		// The field loses focus as the keyboard goes, and iOS may send no resize after that.
 		// (Focus moves to the popup: jsdom has no layout, so Base UI would hand a plain blur back to the "hidden" field.)
@@ -207,5 +209,38 @@ describe('Dialog with an on-screen keyboard and a field below what is visible', 
 		act(() => field.focus());
 		resize(400, 0);
 		await waitFor(() => expect(scrollTop).toBe(156));
+	});
+
+	// Most browsers measure rects where fixed boxes are placed; iOS 26 Safari measures them from the visible top,
+	// so there the backdrop (fixed, `top: 0`) reads as -offsetTop and the popup, centered in what's visible, reads as 0
+	it.each([
+		['from where fixed boxes are placed', 0, 270],
+		['from the visible top (iOS 26 Safari)', -270, 0],
+	])('reveals the field when rects are measured %s', async (_, fixedTop, popupTop) => {
+		render(
+			<Dialog open>
+				<DialogContent closeLabel="Close" initialFocus={false}>
+					<DialogTitle>Edit</DialogTitle>
+					<div data-testid="scroller" style={{ overflowY: 'auto' }}>
+						<input aria-label="Name" />
+					</div>
+				</DialogContent>
+			</Dialog>
+		);
+		document.querySelector('[data-slot="dialog-overlay"]')!.getBoundingClientRect = () => rect(fixedTop, fixedTop + 714);
+		const scroller = screen.getByTestId('scroller');
+		const field = screen.getByLabelText('Name');
+		let scrollTop = 0;
+		Object.defineProperties(scroller, {
+			scrollHeight: { value: 800 },
+			clientHeight: { value: 300 },
+			scrollTop: { get: () => scrollTop, set: (value: number) => (scrollTop = value) },
+		});
+		scroller.getBoundingClientRect = () => rect(popupTop, popupTop + 300);
+		field.getBoundingClientRect = () => rect(popupTop + 320 - scrollTop, popupTop + 360 - scrollTop);
+
+		act(() => field.focus());
+		resize(377, 270);
+		await waitFor(() => expect(scrollTop).toBe(76));
 	});
 });

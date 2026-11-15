@@ -102,6 +102,14 @@ export const useKeyboardOpen = () => useSyncExternalStore(subscribe, () => box !
 const REVEAL_MARGIN = 16;
 
 /**
+ * Where a fixed box's `top: 0` lands in getBoundingClientRect's coordinates, read off a dialog backdrop
+ * (`fixed inset-0`; a nested dialog has none, its parent's serves). Usually 0, but iOS 26 Safari measures
+ * rects from the visible top while the keyboard is up, so there it is -offsetTop.
+ */
+const fixedOrigin = () =>
+	document.querySelector('[data-slot="dialog-overlay"], [data-slot="alert-dialog-overlay"]')?.getBoundingClientRect().top ?? 0;
+
+/**
  * Scrolls each scroll box around the focused text field just enough to show it, innermost first.
  * Only `overflow: auto/scroll` boxes inside the field's dialog popup move, the popup included: never the page.
  */
@@ -110,12 +118,13 @@ function revealFocusedField() {
 	if (!isTextEntry(field) || !box) return;
 	const popup = field.closest('[data-slot="dialog-content"], [data-slot="alert-dialog-content"]');
 	if (!popup) return;
+	const visibleTop = fixedOrigin() + box.top;
 	for (let scroller = field.parentElement; scroller && popup.contains(scroller); scroller = scroller.parentElement) {
 		if (!/auto|scroll/.test(getComputedStyle(scroller).overflowY) || scroller.scrollHeight <= scroller.clientHeight) continue;
 		const outer = scroller.getBoundingClientRect();
 		// Only what's above the keyboard counts: a popup taller than that (PollCreator from sm) runs under it
-		const top = Math.max(outer.top, box.top);
-		const bottom = Math.min(outer.bottom, box.top + box.height);
+		const top = Math.max(outer.top, visibleTop);
+		const bottom = Math.min(outer.bottom, visibleTop + box.height);
 		const rect = field.getBoundingClientRect();
 		const above = top + REVEAL_MARGIN - rect.top;
 		const below = rect.bottom + REVEAL_MARGIN - bottom;
@@ -129,6 +138,7 @@ function revealFocusedField() {
  * While the keyboard is up (`useKeyboardInset`) a popup centers in what it leaves visible. The `[data-keyboard]`
  * selectors outrank the base `top`/`max-h`/translate and a dialog's own `sm:`/`md:` ones (AuthDialog's
  * `md:top-[120px]`), so a dialog that wants other keyboard layout says so with `data-keyboard:` (PollCreator).
+ * Popups using them must not transition (`transition-none`): the focused field is revealed a frame after the popup resizes.
  */
 export const keyboardInsetClasses =
 	'data-keyboard:top-(--visible-center) data-keyboard:max-h-[calc(var(--visible-height)-2rem)] data-keyboard:-translate-y-1/2';

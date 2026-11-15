@@ -44,6 +44,18 @@ export const siteSharingQuery = defineQuery(`
 	}
 `);
 
+export const announcementQuery = defineQuery(`
+	*[_type == "gAnnouncement" && enabled == true][0]{
+		"id": _rev,
+		message[]{
+			${portableTextContentFields}
+		},
+		messageZh[]{
+			${portableTextContentFields}
+		}
+	}
+`);
+
 export const pSignUpDataQuery = defineQuery(`
 	*[_type == "pSignUp"][0]{
 		policyMessage[]{

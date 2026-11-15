@@ -666,6 +666,10 @@
 		"tabGroups": "Invite lists",
 		"deleteCtaEllipsis": "Delete account…"
 	},
+	"announcement": {
+		"label": "Announcement",
+		"dismiss": "Dismiss announcement"
+	},
 	"cookieConsent": {
 		"label": "Cookie consent",
 		"message": "We’d like to use analytics cookies to understand how vomatt is used. Sign-in and language cookies are always on.",
