@@ -79,7 +79,8 @@ describe.each([
 		expect(popup()).not.toHaveAttribute('data-keyboard');
 	});
 
-	it('scrolls the page back when iOS scrolls it to reveal a field while the keyboard is up, and not after', async () => {
+	it('scrolls the page back to where it was when the dialog opened while the keyboard is up, and not after', async () => {
+		const scrollY = Object.getOwnPropertyDescriptor(window, 'scrollY');
 		const scrollTo = jest.spyOn(window, 'scrollTo').mockImplementation(() => {});
 		const scrollPage = (y: number) =>
 			act(() => {
@@ -93,9 +94,11 @@ describe.each([
 			scrollPage(60);
 			expect(scrollTo).not.toHaveBeenCalled();
 
-			scrollPage(40);
-			resize(400, 0);
+			// iOS scrolls before the keyboard counts as up: undone as soon as it does
 			scrollPage(253);
+			resize(400, 0);
+			expect(scrollTo).toHaveBeenLastCalledWith(0, 40);
+			scrollPage(300);
 			expect(scrollTo).toHaveBeenLastCalledWith(0, 40);
 
 			act(() => popup().focus());
@@ -105,7 +108,8 @@ describe.each([
 			expect(scrollTo).not.toHaveBeenCalled();
 		} finally {
 			scrollTo.mockRestore();
-			Object.defineProperty(window, 'scrollY', { value: 0, configurable: true });
+			if (scrollY) Object.defineProperty(window, 'scrollY', scrollY);
+			else delete (window as { scrollY?: number }).scrollY;
 		}
 	});
 

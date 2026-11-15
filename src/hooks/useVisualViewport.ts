@@ -19,6 +19,20 @@ let box: VisualViewportBox | null = null;
 const listeners = new Set<() => void>();
 let stop: (() => void) | undefined;
 
+/** Open keyboard-inset popups, and where the page sat under their scroll lock when the first one opened. */
+let popups = 0;
+let restY = 0;
+
+/**
+ * iOS reveals a focused field (a tap low in the form, or the form bar's next/previous arrows) by scrolling the page
+ * under the scroll lock. A popup follows what's visible, so the field never comes into view and iOS keeps going,
+ * until the popup's bottom passes the layout viewport's, where nothing fixed paints: the page shows above the
+ * keyboard. While the keyboard is up, scroll it back; `useKeyboardInset` reveals the field in the popup instead.
+ */
+function restorePage() {
+	if (box && popups && window.scrollY !== restY) window.scrollTo(window.scrollX, restY);
+}
+
 /**
  * Keeps `box` at what an on-screen keyboard leaves visible while it is up, else null.
  * iOS Safari keeps `dvh` and fixed positioning on the full screen when the keyboard opens,
@@ -54,6 +68,8 @@ function watch(viewport: VisualViewport) {
 		const next = keyboard ? { top: viewport.offsetTop, height: viewport.height } : null;
 		if (next?.top === box?.top && next?.height === box?.height) return;
 		box = next;
+		// iOS may have scrolled the page before the keyboard counted as up
+		restorePage();
 		listeners.forEach((listener) => listener());
 	};
 	// Other DOM changes while typing (lists re-rendering) can't close the keyboard, so they skip the measuring
@@ -71,7 +87,9 @@ function watch(viewport: VisualViewport) {
 	viewport.addEventListener('scroll', update);
 	document.addEventListener('focusin', update);
 	document.addEventListener('focusout', updateSoon);
+	window.addEventListener('scroll', restorePage);
 	return () => {
+		window.removeEventListener('scroll', restorePage);
 		removals.disconnect();
 		clearTimeout(settle);
 		viewport.removeEventListener('resize', update);
@@ -148,6 +166,7 @@ export const keyboardInsetClasses =
  * Props that keep a dialog popup inside what the keyboard leaves visible, and nothing once it closes,
  * so the popup's own layout returns untouched. The popup's classes read `data-keyboard` and the
  * `--visible-top` / `--visible-center` / `--visible-height` variables. `style` is the popup's own, kept on top.
+ * The popup must lock the page's scroll (a modal dialog): while the keyboard is up, any page scroll is undone.
  */
 export function useKeyboardInset<State>(style: CSSProperties | ((state: State) => CSSProperties | undefined) | undefined) {
 	const box = useVisualViewport();
@@ -175,20 +194,13 @@ export function useKeyboardInset<State>(style: CSSProperties | ((state: State) =
 		};
 	}, [height]);
 
-	// iOS reveals a focused field (a tap low in the form, or the form bar's next/previous arrows) by scrolling the page
-	// under the scroll lock. The popup follows what's visible, so the field never comes into view and iOS keeps going,
-	// until the popup's bottom passes the layout viewport's, where nothing fixed paints: the page shows above the
-	// keyboard. Scroll it back; the reveal above shows the field in the popup's own scroll boxes instead.
-	const keyboardUp = box !== null;
+	// Popups using this are modal, so only iOS revealing a field scrolls the page under them (restorePage)
 	useEffect(() => {
-		if (!keyboardUp) return;
-		const restY = window.scrollY;
-		const restore = () => {
-			if (window.scrollY !== restY) window.scrollTo(window.scrollX, restY);
+		if (popups++ === 0) restY = window.scrollY;
+		return () => {
+			popups--;
 		};
-		window.addEventListener('scroll', restore);
-		return () => window.removeEventListener('scroll', restore);
-	}, [keyboardUp]);
+	}, []);
 
 	if (!box) return { style };
 	const inset = {
