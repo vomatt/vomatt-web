@@ -726,7 +726,7 @@ describe('PollCreator', () => {
 			else delete (window as { visualViewport?: unknown }).visualViewport;
 		});
 
-		it('steps the footer aside on a phone while it is up, and back when it closes', async () => {
+		it('runs on under it on a phone with the footer aside, and comes back when it closes', async () => {
 			render(<PollCreator triggerChildren={TRIGGER} />);
 			await openDialog();
 			expect(keyboardUp()).toBe(false);
@@ -734,8 +734,19 @@ describe('PollCreator', () => {
 			show(400);
 			expect(keyboardUp()).toBe(true);
 			const popup = document.querySelector('[data-slot="dialog-content"]')!;
-			// Phones fill what's visible and hide the footer; from sm it stays a centered dialog
-			expect(popup).toHaveClass('data-keyboard:max-h-(--visible-height)', 'sm:data-keyboard:top-1/2', 'sm:data-keyboard:max-h-[90dvh]');
+			// Phones run from the visible top on under the keyboard (each class overrides one of keyboardInsetClasses), padding
+			// the form by what it covers; from sm it stays a centered dialog
+			expect(popup).toHaveClass(
+				'max-sm:data-keyboard:top-(--visible-top)',
+				'max-sm:data-keyboard:h-lvh',
+				'max-sm:data-keyboard:max-h-none',
+				'max-sm:data-keyboard:translate-y-0',
+				'max-sm:data-keyboard:[--keyboard-covered:calc(100lvh-var(--visible-height))]',
+				'sm:data-keyboard:top-1/2',
+				'sm:data-keyboard:max-h-[90dvh]'
+			);
+			expect((popup as HTMLElement).style.getPropertyValue('--visible-top')).toBe('0px');
+			expect(screen.getByLabelText(QUESTION).closest('.overflow-y-auto')).toHaveClass('pb-(--keyboard-covered)');
 			expect(screen.getByRole('button', { name: 'Save draft' }).closest('.border-t')).toHaveClass('max-sm:in-data-keyboard:hidden');
 
 			show(window.innerHeight);

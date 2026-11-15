@@ -95,8 +95,8 @@ function DialogContent({
 	...props
 }: DialogPrimitive.Popup.Props & {
 	/**
-	 * `sheet` while the popup fills the screen: an opaque backdrop, as iOS 26 Safari's toolbar, and its
-	 * URL pill and form bar above the keyboard, float over the page outside the popup.
+	 * `sheet` while the popup fills the screen: an opaque backdrop, as iOS 26 Safari's toolbar floats over
+	 * the page outside the popup (with the keyboard up, PollCreator runs on under Safari's bars itself).
 	 */
 	overlay?: 'default' | 'strong' | 'sheet';
 } & (

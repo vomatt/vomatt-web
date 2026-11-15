@@ -122,7 +122,7 @@ function revealFocusedField() {
 	for (let scroller = field.parentElement; scroller && popup.contains(scroller); scroller = scroller.parentElement) {
 		if (!/auto|scroll/.test(getComputedStyle(scroller).overflowY) || scroller.scrollHeight <= scroller.clientHeight) continue;
 		const outer = scroller.getBoundingClientRect();
-		// Only what's above the keyboard counts: a popup taller than that (PollCreator from sm) runs under it
+		// Only what's above the keyboard counts: a popup taller than that (PollCreator, on phones and from sm) runs under it
 		const top = Math.max(outer.top, visibleTop);
 		const bottom = Math.min(outer.bottom, visibleTop + box.height);
 		const rect = field.getBoundingClientRect();
@@ -137,8 +137,9 @@ function revealFocusedField() {
 /**
  * While the keyboard is up (`useKeyboardInset`) a popup centers in what it leaves visible. The `[data-keyboard]`
  * selectors outrank the base `top`/`max-h`/translate and a dialog's own `sm:`/`md:` ones (AuthDialog's
- * `md:top-[120px]`), so a dialog that wants other keyboard layout says so with `data-keyboard:` (PollCreator).
- * Popups using them must not transition (`transition-none`): the focused field is revealed a frame after the popup resizes.
+ * `md:top-[120px]`), so a dialog that wants other keyboard layout says so with `data-keyboard:` (PollCreator). A
+ * breakpoint-scoped one (`max-sm:data-keyboard:`) has the same specificity and wins because Tailwind emits breakpoint
+ * variants later. Popups using them must not transition (`transition-none`): the focused field is revealed a frame after the popup resizes.
  */
 export const keyboardInsetClasses =
 	'data-keyboard:top-(--visible-center) data-keyboard:max-h-[calc(var(--visible-height)-2rem)] data-keyboard:-translate-y-1/2';
@@ -146,14 +147,14 @@ export const keyboardInsetClasses =
 /**
  * Props that keep a dialog popup inside what the keyboard leaves visible, and nothing once it closes,
  * so the popup's own layout returns untouched. The popup's classes read `data-keyboard` and the
- * `--visible-center` / `--visible-height` variables. `style` is the popup's own, kept on top.
+ * `--visible-top` / `--visible-center` / `--visible-height` variables. `style` is the popup's own, kept on top.
  */
 export function useKeyboardInset<State>(style: CSSProperties | ((state: State) => CSSProperties | undefined) | undefined) {
 	const box = useVisualViewport();
 	const height = box?.height;
 	const shown = useRef<number | undefined>(undefined);
 
-	// The popup just shrank to what's visible (or a field took focus while it is): bring the field back
+	// What's visible just shrank (or a field took focus while the keyboard is up): bring the field back
 	// into its scroll boxes. Only when it shrinks: not on viewport scrolls, nor when it grows back (the
 	// suggestion bar hiding), so a visitor scrolling the dialog by hand isn't pulled back.
 	useEffect(() => {
@@ -161,7 +162,7 @@ export function useKeyboardInset<State>(style: CSSProperties | ((state: State) =
 		shown.current = height;
 		if (height === undefined) return;
 		let frame = 0;
-		// After the new max-height has laid out
+		// After the popup's keyboard layout has laid out
 		const reveal = () => {
 			cancelAnimationFrame(frame);
 			frame = requestAnimationFrame(revealFocusedField);
@@ -176,6 +177,7 @@ export function useKeyboardInset<State>(style: CSSProperties | ((state: State) =
 
 	if (!box) return { style };
 	const inset = {
+		'--visible-top': `${box.top}px`,
 		'--visible-center': `${box.top + box.height / 2}px`,
 		'--visible-height': `${box.height}px`,
 	} as CSSProperties;
