@@ -47,7 +47,7 @@ import {
 	type MyCommunity,
 	OFFERED_ROLES,
 } from './schema';
-import { changeRole, inviteMember, removeMember, resendInvitation, revokeInvitation, transferOwner } from './service';
+import { changeRole, inviteMember, removeMember, revokeInvitation, transferOwner } from './service';
 
 // The list is stale after these: someone else changed it, or the viewer's role
 const REFRESH_CODES = [
@@ -57,8 +57,6 @@ const REFRESH_CODES = [
 	'community.invitation.exists',
 	'community.role_forbidden',
 	'community.not_member',
-	// A stale resendAvailableAt
-	'invitation.email.too_soon',
 ];
 
 const ICONS: Record<MemberAction, React.ReactNode> = {
@@ -285,10 +283,6 @@ export function CommunityMembers({
 						{invitations.map((invitation) => {
 							const name = invitation.username ? handle(invitation.username) : (invitation.email ?? '');
 							const expired = !!clock && new Date(invitation.expiresAt).getTime() <= clock.now;
-							// Only an invitation by email is mailed, and only once its window has passed
-							// An ADMIN can't resend one that grants OWNER
-							const resendable = !!invitation.email && !expired && grantable.includes(invitation.role);
-							const windowPassed = !!clock && !!invitation.resendAvailableAt && new Date(invitation.resendAvailableAt).getTime() <= clock.now;
 							return (
 								<li key={invitation.id} className={cn(rowClassName, 'gap-3')}>
 									{invitation.username && (
@@ -306,23 +300,6 @@ export function CommunityMembers({
 											</span>
 										</p>
 									</div>
-									{!community.locked && resendable && (
-										<Button
-											variant="ghost"
-											size="xs"
-											aria-label={t('communities.resend') + ': ' + name}
-											disabled={busy || !windowPassed}
-											onClick={() =>
-												run({
-													request: () => resendInvitation(community.communityId, invitation.id),
-													after: (sent) => setInvitations((list) => list.map((i) => (i.id === sent.id ? sent : i))),
-													done: t('communities.resent', { name }),
-												})
-											}
-										>
-											{t('communities.resend')}
-										</Button>
-									)}
 									{!community.locked && (
 										<Button
 											variant="ghost"

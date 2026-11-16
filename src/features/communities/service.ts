@@ -80,19 +80,6 @@ export async function revokeInvitation(communityId: string, invitationId: string
 }
 
 /**
- * OWNER or ADMIN (only an OWNER for one granting OWNER); emails an unexpired email invitation again, unchanged.
- * 400 `community.invitation.not_email`, 404 `community.invitation.not_found`,
- * 429 `invitation.email.too_soon` (before its `resendAvailableAt`) or `invitation.email.daily_limit`.
- */
-export async function resendInvitation(communityId: string, invitationId: string): Promise<ActionResult<CommunityInvitation>> {
-	return attempt(async () =>
-		CommunityInvitationSchema.parse(
-			await apiClient(`${invitationsPath(communityId)}/${encodeURIComponent(invitationId)}/resend`, { method: 'POST' })
-		)
-	);
-}
-
-/**
  * For the invitee, as the person. 404 `community.invitation.not_found` when it isn't theirs, has expired, was withdrawn
  * or answered, or its community is suspended: the API doesn't say which.
  */
