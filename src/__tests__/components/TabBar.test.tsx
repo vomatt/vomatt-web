@@ -59,6 +59,11 @@ describe('TabBar', () => {
 		]);
 	});
 
+	it('keeps its labels out of search snippets', () => {
+		render(<TabBar />);
+		expect(screen.getByRole('link', { name: 'Home' }).closest('[data-nosnippet]')).not.toBeNull();
+	});
+
 	it('gives guests the same five tabs', () => {
 		render(<TabBar />);
 		const cells = Array.from(document.querySelector('[data-tabbar]')!.children);

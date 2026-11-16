@@ -77,6 +77,11 @@ describe('HomeRail', () => {
 		expect(screen.queryByRole('region', { name: 'Got a question for everyone?' })).not.toBeInTheDocument();
 	});
 
+	it('keeps the how-it-counts card out of search snippets', () => {
+		render(<HomeRail signedIn={false} />);
+		expect(screen.getByRole('region', { name: 'How vomatt counts' })).toHaveAttribute('data-nosnippet');
+	});
+
 	it('holds the Poll cards in one aside with the rest of the rail, from xl only', () => {
 		render(<HomeRail signedIn />);
 		expect(screen.getByRole('complementary')).toHaveTextContent('Poll cards');

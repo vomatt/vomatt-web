@@ -23,6 +23,7 @@ export function LoginPrompt({ className, redirectTo, sessionExpired, forPoll }: 
 
 	return (
 		<div
+			data-nosnippet
 			className={cn(
 				'flex flex-col gap-4 rounded-2xl border border-border bg-card px-6 py-5 sm:flex-row sm:items-center sm:gap-5',
 				className

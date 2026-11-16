@@ -119,6 +119,12 @@ describe('AppSidebar more menu', () => {
 		expect(document.body).not.toHaveStyle({ overflowY: 'hidden' });
 	});
 
+	it('keeps all of its text out of search snippets', () => {
+		renderSidebar(null);
+		expect(screen.getByText('navigation.howCountsBody').closest('[data-nosnippet]')).not.toBeNull();
+		expect(screen.getByRole('button', { name: 'navigation.more' }).closest('[data-nosnippet]')).not.toBeNull();
+	});
+
 	it('offers guests only the theme choices', async () => {
 		renderSidebar(null);
 		await userEvent.click(

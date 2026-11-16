@@ -90,7 +90,8 @@ export function AppSidebar({
 	const accountCurrent = pathname === accountLink ? 'page' : undefined;
 
 	return (
-		<Sidebar className="border-sidebar-border bg-sidebar ps-[env(safe-area-inset-left)]">
+		// Repeated on every page, so search engines take their snippet from the page's own content instead
+		<Sidebar data-nosnippet className="border-sidebar-border bg-sidebar ps-[env(safe-area-inset-left)]">
 			{/* Header */}
 			<SidebarHeader className="px-5 pt-5 pb-5">
 				<BrandLink className="w-24 text-sidebar-foreground hover:text-sidebar-foreground/70 transition-colors" />
