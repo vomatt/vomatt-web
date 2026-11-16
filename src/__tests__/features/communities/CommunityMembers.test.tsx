@@ -214,6 +214,51 @@ describe('CommunityMembers', () => {
 		await waitFor(() => expect(screen.queryByText('Pending invitations')).not.toBeInTheDocument());
 	});
 
+	it('shows a failed invitation in the dialog, under the invitee, until another is picked', async () => {
+		const { inviteMember } = jest.requireMock('@/features/communities/service');
+		inviteMember.mockResolvedValue({ ok: false, status: 409, errorCode: 'community.invitation.exists', message: 'raw' });
+		renderAs('olive');
+		fireEvent.click(screen.getByRole('button', { name: 'Invite member' }));
+		fireEvent.change(await screen.findByRole('textbox', { name: 'Username or email' }), { target: { value: 'new@x.co' } });
+		fireEvent.click(await screen.findByRole('button', { name: 'Invite new@x.co' }));
+		const dialog = await screen.findByRole('dialog');
+		const send = within(dialog).getByRole('button', { name: 'Invite member' });
+		fireEvent.click(send);
+		const error = 'They’re already invited. Revoke the pending invitation to send a new one.';
+		await waitFor(() => expect(send).toHaveAccessibleDescription(error));
+		expect(within(dialog).getByText(error)).toBeInTheDocument();
+		expect(toast.error).not.toHaveBeenCalled();
+		expect(mockRefresh).toHaveBeenCalled();
+		// Sending again, with any role, would get the same answer
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Admin' }));
+		expect(within(dialog).getByText(error)).toBeInTheDocument();
+		expect(send).toBeDisabled();
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Remove new@x.co' }));
+		expect(within(dialog).queryByText(error)).not.toBeInTheDocument();
+	});
+
+	it('keeps a failure that isn’t about the invitee retryable, and clears it when the role changes', async () => {
+		const { inviteMember, searchUsers } = {
+			...jest.requireMock('@/features/communities/service'),
+			...jest.requireMock('@/lib/api/services/users'),
+		};
+		searchUsers.mockResolvedValue({ items: [{ id: 'u8', username: 'cindy', displayName: null, avatarUrl: null }], nextCursor: null });
+		inviteMember.mockResolvedValue({ ok: false, status: 500, message: 'raw' });
+		renderAs('olive');
+		fireEvent.click(screen.getByRole('button', { name: 'Invite member' }));
+		fireEvent.change(await screen.findByRole('textbox', { name: 'Username or email' }), { target: { value: 'ci' } });
+		fireEvent.click(await screen.findByRole('button', { name: /cindy/ }));
+		const dialog = await screen.findByRole('dialog');
+		expect(within(dialog).getByText('They get a notification to accept or decline.')).toBeInTheDocument();
+		const send = within(dialog).getByRole('button', { name: 'Invite member' });
+		fireEvent.click(send);
+		await waitFor(() => expect(send).toHaveAccessibleDescription(/.+/));
+		expect(send).toBeEnabled();
+		expect(toast.error).not.toHaveBeenCalled();
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Admin' }));
+		expect(send).not.toHaveAccessibleDescription(/.+/);
+	});
+
 	it('shows community accounts in the search, unbadged and not pickable, saying why', async () => {
 		const { searchUsers } = jest.requireMock('@/lib/api/services/users');
 		searchUsers.mockResolvedValue({

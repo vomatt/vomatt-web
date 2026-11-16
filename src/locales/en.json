@@ -1204,7 +1204,7 @@
 			"role_forbidden": "Your role in this community account doesn’t allow this. Owners and admins manage the account and its members; chief editors change any poll or comment; editors change only their own; analysts only see result reports.",
 			"invitation": {
 				"not_found": "That invitation is no longer available.",
-				"exists": "They already have an invitation that hasn’t expired."
+				"exists": "They’re already invited. Revoke the pending invitation to send a new one."
 			},
 			"member": {
 				"exists": "They’re already a member.",
@@ -1393,6 +1393,7 @@
 		"leave": "Leave",
 		"invited": "Invited {name}",
 		"inviteEmail": "Invite {email}",
+		"inviteUserHint": "They get a notification to accept or decline.",
 		"inviteEmailHint": "If they have no account yet, they get an email asking them to sign up.",
 		"invitationsTitle": "Pending invitations",
 		"invitationExpires": "expires {date}",

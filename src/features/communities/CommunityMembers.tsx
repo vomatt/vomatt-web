@@ -121,21 +121,27 @@ export function CommunityMembers({
 	const [busy, setBusy] = useState(false);
 	const clock = useViewerClock();
 
-	/** Runs a change; true when it went through. */
-	const run = async <T,>({ request, after, done }: Omit<Step<T>, 'confirm'>) => {
+	/** Sends a change; the error when it didn't go through, null when it did. */
+	const send = async <T,>({ request, after, done }: Omit<Step<T>, 'confirm'>) => {
 		setBusy(true);
 		const result = await settle(request());
 		setBusy(false);
 		if (!result.ok) {
+			if (result.errorCode && REFRESH_CODES.includes(result.errorCode)) router.refresh();
 			// Every limit this page can hit is the other member's: they'd become an owner
 			const text = result.errorCode === 'community.limit_reached' ? t('communities.theirLimitReached') : apiErrorText(t, result);
-			toast.error(text, { duration: Infinity });
-			if (result.errorCode && REFRESH_CODES.includes(result.errorCode)) router.refresh();
-			return false;
+			return { text, code: result.errorCode };
 		}
 		toast.success(done);
 		after(result.data);
-		return true;
+		return null;
+	};
+
+	/** Runs a change, with any error as a toast; true when it went through. */
+	const run = async <T,>(change: Omit<Step<T>, 'confirm'>) => {
+		const error = await send(change);
+		if (error) toast.error(error.text, { duration: Infinity });
+		return !error;
 	};
 
 	const replaceMember = (changed: CommunityMember) =>
@@ -339,7 +345,8 @@ export function CommunityMembers({
 				busy={busy}
 				onInvite={(invitee, role) => {
 					const name = 'user' in invitee ? `@${invitee.user.username}` : invitee.email;
-					return run({
+					// The dialog shows the error itself, next to who was picked
+					return send({
 						request: () => inviteMember(community.communityId, 'user' in invitee ? { userId: invitee.user.id } : invitee, role),
 						// A re-sent invitation replaces the expired one
 						after: (sent) => setInvitations((list) => [...list.filter((i) => i.id !== sent.id && !(sent.username ? i.username === sent.username : !!sent.email && i.email === sent.email)), sent]),

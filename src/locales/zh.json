@@ -1193,7 +1193,7 @@
 			"role_forbidden": "你在這個社群帳號的角色無法執行此操作。擁有者與管理員管理帳號與成員，主編可修改任何投票與留言，編輯只能修改自己發布的，分析師只能查看結果報告。",
 			"invitation": {
 				"not_found": "這個邀請已失效或不存在。",
-				"exists": "對方已有尚未失效的邀請。"
+				"exists": "對方已受邀。如要重新邀請，請先撤回待回覆的邀請。"
 			},
 			"member": {
 				"exists": "對方已經是成員。",
@@ -1380,6 +1380,7 @@
 		"leave": "離開",
 		"invited": "已邀請 {name}",
 		"inviteEmail": "邀請 {email}",
+		"inviteUserHint": "對方會收到通知，可接受或婉拒。",
 		"inviteEmailHint": "若對方還沒有帳號，會收到邀請註冊的電子郵件。",
 		"invitationsTitle": "待回覆的邀請",
 		"invitationExpires": "{date} 到期",
