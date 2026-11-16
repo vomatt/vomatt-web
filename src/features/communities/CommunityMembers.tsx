@@ -47,7 +47,7 @@ import {
 	type MyCommunity,
 	OFFERED_ROLES,
 } from './schema';
-import { changeRole, inviteMember, removeMember, revokeInvitation, transferOwner } from './service';
+import { changeRole, inviteMember, removeMember, resendInvitation, revokeInvitation, transferOwner } from './service';
 
 // The list is stale after these: someone else changed it, or the viewer's role
 const REFRESH_CODES = [
@@ -283,6 +283,9 @@ export function CommunityMembers({
 						{invitations.map((invitation) => {
 							const name = invitation.username ? handle(invitation.username) : (invitation.email ?? '');
 							const expired = !!clock && new Date(invitation.expiresAt).getTime() <= clock.now;
+							// Only an invitation by email is mailed, and only once its window has passed
+							const canResend =
+								!!invitation.email && !expired && !!clock && new Date(invitation.resendAvailableAt ?? 0).getTime() <= clock.now;
 							return (
 								<li key={invitation.id} className={cn(rowClassName, 'gap-3')}>
 									{invitation.username && (
@@ -300,6 +303,23 @@ export function CommunityMembers({
 											</span>
 										</p>
 									</div>
+									{!community.locked && !!invitation.email && !expired && (
+										<Button
+											variant="ghost"
+											size="xs"
+											aria-label={t('communities.resend') + ': ' + name}
+											disabled={busy || !canResend}
+											onClick={() =>
+												run({
+													request: () => resendInvitation(community.communityId, invitation.id),
+													after: (sent) => setInvitations((list) => list.map((i) => (i.id === sent.id ? sent : i))),
+													done: t('communities.resent', { name }),
+												})
+											}
+										>
+											{t('communities.resend')}
+										</Button>
+									)}
 									{!community.locked && (
 										<Button
 											variant="ghost"
