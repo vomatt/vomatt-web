@@ -284,8 +284,8 @@ export function CommunityMembers({
 							const name = invitation.username ? handle(invitation.username) : (invitation.email ?? '');
 							const expired = !!clock && new Date(invitation.expiresAt).getTime() <= clock.now;
 							// Only an invitation by email is mailed, and only once its window has passed
-							const canResend =
-								!!invitation.email && !expired && !!clock && new Date(invitation.resendAvailableAt ?? 0).getTime() <= clock.now;
+							const resendable = !!invitation.email && !expired;
+							const windowPassed = !!clock && new Date(invitation.resendAvailableAt ?? 0).getTime() <= clock.now;
 							return (
 								<li key={invitation.id} className={cn(rowClassName, 'gap-3')}>
 									{invitation.username && (
@@ -303,12 +303,12 @@ export function CommunityMembers({
 											</span>
 										</p>
 									</div>
-									{!community.locked && !!invitation.email && !expired && (
+									{!community.locked && resendable && (
 										<Button
 											variant="ghost"
 											size="xs"
 											aria-label={t('communities.resend') + ': ' + name}
-											disabled={busy || !canResend}
+											disabled={busy || !windowPassed}
 											onClick={() =>
 												run({
 													request: () => resendInvitation(community.communityId, invitation.id),
