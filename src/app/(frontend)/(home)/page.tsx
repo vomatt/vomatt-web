@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 
 import { JsonLd } from '@/components/JsonLd';
 import { PageShell } from '@/components/layout/PageShell';
+import { Refreshable } from '@/components/Refreshable';
 import { getMyProfile, getUserSession } from '@/data/auth';
 import { DEFAULT_SITE_NAME } from '@/data/constants';
 import { getFeed, getFollowedTags, getPopularTags } from '@/features/polls/service';
@@ -18,6 +19,10 @@ import { PollFeedList } from '../_components/PollFeedList';
 import { getRailPolls } from '../_components/RailPolls';
 
 type Props = { searchParams: Promise<{ tag?: string | string[] }> };
+
+// Coming back within 3 minutes shows this page from the browser's cache instead of rendering it and
+// calling the API again. Actions that revalidate drop it; pulling down refetches (`Refreshable`)
+export const unstable_dynamicStaleTime = 180;
 
 // Repeated ?tag= arrives as an array; the feed filters by one topic
 const firstTag = (tag: string | string[] | undefined) => (Array.isArray(tag) ? tag[0] : tag);
@@ -40,13 +45,15 @@ export default async function Page({ searchParams }: Props) {
 					description: messages.meta.siteDescription,
 				})}
 			/>
-			<PageShell className="pt-0" rail={<HomeRail signedIn={!!user} />}>
-				<Suspense
-					fallback={<FeedSkeleton signedIn={!!user} />}
-				>
-					<Feed tag={tag} viewerId={user?.sub} />
-				</Suspense>
-			</PageShell>
+			<Refreshable>
+				<PageShell className="pt-0" rail={<HomeRail signedIn={!!user} />}>
+					<Suspense
+						fallback={<FeedSkeleton signedIn={!!user} />}
+					>
+						<Feed tag={tag} viewerId={user?.sub} />
+					</Suspense>
+				</PageShell>
+			</Refreshable>
 		</>
 	);
 }
@@ -63,8 +70,8 @@ async function Feed({ tag, viewerId }: { tag: string | undefined; viewerId: stri
 
 	return (
 		<PollFeedList
-			// Another topic, or a new poll at the top, starts a fresh list
-			key={`${tag ?? ''}:${firstPage?.items[0]?.id ?? ''}`}
+			// Another topic starts a fresh list
+			key={tag ?? ''}
 			viewerId={viewerId}
 			anonymousByDefault={profile?.anonymousBallotByDefault}
 			initialPage={firstPage}

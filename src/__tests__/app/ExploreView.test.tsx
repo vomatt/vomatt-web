@@ -50,6 +50,17 @@ async function renderView(...args: Parameters<typeof render>) {
 }
 
 describe('ExploreView', () => {
+	it('drops the load error once a refreshed render brings polls', async () => {
+		const view = await renderView(<ExploreView topics={noTopics} initialPage={Promise.resolve(null)} />);
+		expect(screen.getByText(/Couldn’t load polls/)).toBeInTheDocument();
+
+		await act(async () => {
+			view.rerender(<ExploreView topics={noTopics} initialPage={Promise.resolve({ items: [poll('p1', 'Lunch?')], nextCursor: null })} />);
+		});
+		expect(screen.queryByText(/Couldn’t load polls/)).not.toBeInTheDocument();
+		expect(screen.getByText('Lunch?')).toBeInTheDocument();
+	});
+
 	it('shows the server page without refetching it', async () => {
 		await renderView(<ExploreView topics={noTopics} initialPage={Promise.resolve({ items: [poll('p1', 'Lunch?')], nextCursor: null })} />);
 		await act(async () => jest.advanceTimersByTime(1000));

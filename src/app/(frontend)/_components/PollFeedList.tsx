@@ -2,9 +2,10 @@
 
 import { m } from 'motion/react';
 import Link from 'next/link';
-import { useEffect, useEffectEvent, useRef, useState } from 'react';
+import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react';
 
 import { EmptyCard } from '@/components/EmptyCard';
+import { useRefreshGeneration } from '@/components/Refreshable';
 import { Button, buttonVariants } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -13,6 +14,7 @@ import { PollCard } from '@/features/polls/components/PollCard';
 import { type FeedKind, FEEDS } from '@/features/polls/feeds';
 import type { Poll } from '@/features/polls/schema';
 import { loadFeed } from '@/features/polls/service';
+import { useCursorList } from '@/hooks/useCursorList';
 import { mergeById } from '@/lib/api/cursor';
 import { cn } from '@/lib/utils';
 
@@ -37,31 +39,28 @@ export function PollFeedList({
 	header,
 }: PollFeedListProps) {
 	const { t } = useLanguage();
-	// Seeded from the server's first page; a new first page remounts the list (see page.tsx)
-	const [polls, setPolls] = useState(initialPage?.items ?? []);
+	// Starts from the server's first page, and again after a refresh that brought a new one
+	const generation = useRefreshGeneration();
+	const [seed, setSeed] = useState({ generation, page: initialPage });
+	// The newest first page the server sent
+	const [latest, setLatest] = useState(initialPage);
+	const fetchPage = useCallback((cursor: string) => loadFeed(feed, cursor, tag), [feed, tag]);
+	const { items: polls, setItems, hasMore, isLoading, loadFailed, loadMore } = useCursorList(seed.page, fetchPage);
+	if (seed.generation !== generation) {
+		// A refresh that failed brings no new page; the list keeps what it loaded
+		setSeed({ generation, page: initialPage !== latest ? initialPage : seed.page });
+		setLatest(initialPage);
+	} else if (initialPage !== latest) {
+		// Any other new render (a vote revalidates the page, a new poll) updates the polls on its first
+		// page and puts new ones on top, keeping the pages loaded since
+		setLatest(initialPage);
+		if (initialPage) setItems((prev) => mergeById(initialPage.items, prev));
+	}
 	// The server-rendered page shows at once; only cards loaded later fade in
-	const [firstPageCount] = useState(polls.length);
-	const [nextCursor, setNextCursor] = useState(initialPage?.nextCursor ?? null);
-	const [isLoading, setIsLoading] = useState(false);
-	const [loadFailed, setLoadFailed] = useState(false);
-
-	const loadMore = async () => {
-		if (isLoading || !nextCursor) return;
-		setIsLoading(true);
-		setLoadFailed(false);
-		try {
-			const page = await loadFeed(feed, nextCursor, tag);
-			setPolls((prev) => mergeById(prev, page.items));
-			setNextCursor(page.nextCursor);
-		} catch {
-			setLoadFailed(true);
-		} finally {
-			setIsLoading(false);
-		}
-	};
+	const firstPageCount = seed.page?.items.length ?? 0;
 
 	// Not while pages remain: a feed that filters a list can come back empty before its end
-	const isEmpty = initialPage !== null && polls.length === 0 && !nextCursor;
+	const isEmpty = seed.page !== null && polls.length === 0 && !hasMore;
 	const { empty } = FEEDS[feed];
 
 	// Load the next page as the reader nears the end; the button stays as a fallback
@@ -79,7 +78,7 @@ export function PollFeedList({
 		);
 		observer.observe(sentinel);
 		return () => observer.disconnect();
-	}, [nextCursor, isLoading, loadFailed]);
+	}, [polls, isLoading, loadFailed]);
 
 	return (
 		<div
@@ -87,7 +86,7 @@ export function PollFeedList({
 		>
 			{header}
 
-			{initialPage === null && (
+			{seed.page === null && (
 				<div className="py-16 text-center">
 					<p className="mb-4 text-muted-foreground">
 						{t('homePage.feedFailed')}
@@ -149,7 +148,7 @@ export function PollFeedList({
 				))}
 			</div>
 
-			{nextCursor && (
+			{hasMore && (
 				<div ref={sentinelRef} className="flex justify-center py-6">
 					{isLoading ? (
 						<Spinner />

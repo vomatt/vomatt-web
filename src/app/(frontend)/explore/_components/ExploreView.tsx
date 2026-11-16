@@ -244,6 +244,12 @@ const ExploreResults = memo(function ExploreResults({
 	const firstPage = use(initialPage);
 	const [isSearching, setIsSearching] = useState(false);
 	const [searchFailed, setSearchFailed] = useState(firstPage === null);
+	// A new server render (pulling down to refresh) brings a new first page, as `useCursorList` re-seeds
+	const [shownFirstPage, setShownFirstPage] = useState(firstPage);
+	if (firstPage !== shownFirstPage) {
+		setShownFirstPage(firstPage);
+		setSearchFailed(firstPage === null);
+	}
 	const fetchPage = useCallback(
 		(cursor: string) => getPolls(apiQuery, cursor, EXPLORE_PAGE_SIZE, { asViewer: true }),
 		[apiQuery]

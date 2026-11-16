@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 
 import { PageShell } from '@/components/layout/PageShell';
+import { Refreshable } from '@/components/Refreshable';
 import { getMyProfile, getUserSession, redirectToLogin } from '@/data/auth';
 import { type FeedKind, FEEDS } from '@/features/polls/feeds';
 import { getPopularTags } from '@/features/polls/service';
@@ -20,11 +21,13 @@ export async function SignedInFeedPage({ feed }: { feed: SignedInFeed }) {
 	if (!user) return redirectToLogin(FEEDS[feed].href);
 
 	return (
-		<PageShell className="pt-0" rail={<HomeRail signedIn />}>
-			<Suspense fallback={<FeedSkeleton />}>
-				<Feed feed={feed} viewerId={user.sub} />
-			</Suspense>
-		</PageShell>
+		<Refreshable>
+			<PageShell className="pt-0" rail={<HomeRail signedIn />}>
+				<Suspense fallback={<FeedSkeleton />}>
+					<Feed feed={feed} viewerId={user.sub} />
+				</Suspense>
+			</PageShell>
+		</Refreshable>
 	);
 }
 
@@ -38,8 +41,6 @@ async function Feed({ feed, viewerId }: { feed: SignedInFeed; viewerId: string }
 
 	return (
 		<PollFeedList
-			// A new poll at the top starts a fresh list
-			key={firstPage?.items[0]?.id ?? ''}
 			viewerId={viewerId}
 			anonymousByDefault={profile?.anonymousBallotByDefault}
 			initialPage={firstPage}

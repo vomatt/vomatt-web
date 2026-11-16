@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import { PageShell } from '@/components/layout/PageShell';
+import { Refreshable } from '@/components/Refreshable';
 import { EXPLORE_PAGE_SIZE } from '@/features/polls/constants';
 import { getPolls, getTags } from '@/features/polls/service';
 import { getServerMessages } from '@/lib/getServerLocale';
@@ -9,6 +10,10 @@ import { ExploreView } from './_components/ExploreView';
 import { filtersFromParams, toExploreQuery } from './filters';
 
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
+
+// Coming back within 3 minutes shows this page from the browser's cache instead of rendering it and
+// calling the API again. Actions that revalidate drop it; pulling down refetches (`Refreshable`)
+export const unstable_dynamicStaleTime = 180;
 
 // Filtered and searched lists all point to the one Explore page
 export async function generateMetadata(): Promise<Metadata> {
@@ -29,8 +34,10 @@ export default async function ExplorePage({ searchParams }: Props) {
 	// Awaited (cached 5 minutes), so the topic row is there at first paint instead of pushing the grid down
 	const topics = await getTags();
 	return (
-		<PageShell wide>
-			<ExploreView initialPage={firstPage} topics={topics} initial={initial} />
-		</PageShell>
+		<Refreshable>
+			<PageShell wide>
+				<ExploreView initialPage={firstPage} topics={topics} initial={initial} />
+			</PageShell>
+		</Refreshable>
 	);
 }
