@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { toast } from 'sonner';
 
@@ -552,6 +552,24 @@ describe('OwnProfileView', () => {
 
 		drag(0, FAR_ENOUGH);
 		expect(await screen.findByRole('link', { name: /Poll k2/ })).toBeInTheDocument();
+		expect(screen.queryByRole('link', { name: /Poll k1/ })).not.toBeInTheDocument();
+	});
+
+	it('shows the latest saved polls when an earlier load comes back last', async () => {
+		let resolveFirst!: (page: { items: Poll[]; nextCursor: null }) => void;
+		mockGetBookmarked
+			.mockReturnValueOnce(new Promise((resolve) => (resolveFirst = resolve)))
+			.mockResolvedValueOnce({ items: [poll('k2', { creatorId: 'u9' })], nextCursor: null });
+		render(
+			<Refreshable>
+				<OwnProfileView profile={me} polls={[]} initialTab="saved" />
+			</Refreshable>
+		);
+
+		drag(0, FAR_ENOUGH);
+		await screen.findByRole('link', { name: /Poll k2/ });
+		await act(async () => resolveFirst({ items: [poll('k1', { creatorId: 'u9' })], nextCursor: null }));
+		expect(screen.getByRole('link', { name: /Poll k2/ })).toBeInTheDocument();
 		expect(screen.queryByRole('link', { name: /Poll k1/ })).not.toBeInTheDocument();
 	});
 

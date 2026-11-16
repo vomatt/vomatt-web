@@ -30,8 +30,8 @@ import { useUnreadCount } from './UnreadCountProvider';
 
 export type DayGroup = 'today' | 'yesterday' | 'earlier';
 
-/** Server pages this tab has read; the page stays in the browser's cache (`unstable_dynamicStaleTime`). */
-const readPages = new WeakSet<CursorPage<Notification>>();
+/** Server renders this tab has read (`renderId`); the page stays in the browser's cache (`unstable_dynamicStaleTime`). */
+const readRenders = new Set<string>();
 
 /** Which day a moment falls on, in the reader's own calendar. */
 export function dayGroup(iso: string, now = new Date()): DayGroup {
@@ -68,6 +68,7 @@ export function NotificationList({
 	initialCategory = 'all',
 	unreadIds,
 	viewerUsername,
+	renderId,
 }: {
 	/** Null when the feed couldn't be loaded. */
 	initialPage: CursorPage<Notification> | null;
@@ -76,6 +77,8 @@ export function NotificationList({
 	/** The feed's unread ids from before this visit read them all; null when they couldn't be loaded. */
 	unreadIds: string[] | null;
 	viewerUsername: string;
+	/** New on each server render, and the same when the browser's cache brings the page back. */
+	renderId: string;
 }) {
 	const { t } = useLanguage();
 	const { count: unreadCount, refresh } = useUnreadCount();
@@ -87,7 +90,7 @@ export function NotificationList({
 	const list = useCursorList(initialPage, fetchPage);
 	const [category, setCategory] = useState(initialCategory);
 	// The browser's cache brought back a page this tab already read: nothing on it is new
-	const [isRevisit, setIsRevisit] = useState(() => initialPage !== null && readPages.has(initialPage));
+	const [isRevisit, setIsRevisit] = useState(() => initialPage !== null && readRenders.has(renderId));
 	// Kept from the server page's render: pages fetched after read-all come back read
 	const [wasUnread, setWasUnread] = useState<ReadonlySet<string>>(() => new Set(unreadIds));
 	// A fresh server page replaces the list, so the tab goes back to the page's
@@ -110,12 +113,12 @@ export function NotificationList({
 		markAllNotificationsRead().then(
 			(result) => {
 				if (!result.ok) return;
-				readPages.add(initialPage);
+				readRenders.add(renderId);
 				refresh();
 			},
 			(error) => console.error('Marking notifications read failed:', error)
 		);
-	}, [initialPage, isRevisit, locked, refresh]);
+	}, [initialPage, renderId, isRevisit, locked, refresh]);
 
 	// A cached page lists nothing that came in after it: recount, and refetch the page once anything has
 	const refreshPage = useRefreshPage();

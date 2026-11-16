@@ -221,9 +221,18 @@ const cancelled: Notification = {
 	},
 };
 
+let renders = 0;
+const nextRenderId = () => `render-${++renders}`;
+// The one server render a test's revisits bring back from the browser's cache
+let cachedRender: string;
+beforeEach(() => {
+	cachedRender = nextRenderId();
+});
+
 const renderList = (items: Notification[], unreadIds: string[] | null = null) =>
 	render(
 		<NotificationList
+			renderId={nextRenderId()}
 			initialPage={{ items, nextCursor: null }}
 			unreadIds={unreadIds}
 			viewerUsername="mei"
@@ -559,6 +568,7 @@ describe('NotificationList rows', () => {
 			>
 				<Accounts />
 				<NotificationList
+					renderId={nextRenderId()}
 					initialPage={{
 						items: [
 							{
@@ -669,6 +679,7 @@ describe('NotificationList read state', () => {
 				state={{ acting, me: null, communities: [], stale: false }}
 			>
 				<NotificationList
+					renderId={nextRenderId()}
 					initialPage={{ items: [invitation], nextCursor: null }}
 					unreadIds={null}
 					viewerUsername="robotics"
@@ -731,25 +742,39 @@ describe('NotificationList read state', () => {
 
 	it('reads a page the browser cache brings back only once, and shows its rows read', async () => {
 		const page = { items: [invitation, result], nextCursor: null };
-		const first = render(<NotificationList initialPage={page} unreadIds={null} viewerUsername="mei" />);
+		const first = render(<NotificationList initialPage={page} renderId={cachedRender} unreadIds={null} viewerUsername="mei" />);
 		await waitFor(() => expect(mockRefresh).toHaveBeenCalled());
 		first.unmount();
 
-		render(<NotificationList initialPage={page} unreadIds={null} viewerUsername="mei" />);
+		render(<NotificationList initialPage={page} renderId={cachedRender} unreadIds={null} viewerUsername="mei" />);
 		await act(async () => {});
 		expect(mockMarkAllRead).toHaveBeenCalledTimes(1);
 		expect(mockRouterRefresh).not.toHaveBeenCalled();
 		expect(screen.queryByText('Unread')).not.toBeInTheDocument();
 	});
 
+	it('knows a cached page by its server render, even decoded into new objects', async () => {
+		const first = render(
+			<NotificationList initialPage={{ items: [invitation], nextCursor: null }} renderId={cachedRender} unreadIds={null} viewerUsername="mei" />
+		);
+		await waitFor(() => expect(mockRefresh).toHaveBeenCalled());
+		first.unmount();
+
+		render(
+			<NotificationList initialPage={{ items: [invitation], nextCursor: null }} renderId={cachedRender} unreadIds={null} viewerUsername="mei" />
+		);
+		await act(async () => {});
+		expect(mockMarkAllRead).toHaveBeenCalledTimes(1);
+	});
+
 	it('refetches a page the browser cache brings back when new notifications came in since', async () => {
 		const page = { items: [invitation], nextCursor: null };
-		const first = render(<NotificationList initialPage={page} unreadIds={null} viewerUsername="mei" />);
+		const first = render(<NotificationList initialPage={page} renderId={cachedRender} unreadIds={null} viewerUsername="mei" />);
 		await waitFor(() => expect(mockRefresh).toHaveBeenCalled());
 		first.unmount();
 
 		mockUnreadCount = 2;
-		render(<NotificationList initialPage={page} unreadIds={null} viewerUsername="mei" />);
+		render(<NotificationList initialPage={page} renderId={cachedRender} unreadIds={null} viewerUsername="mei" />);
 		await waitFor(() => expect(mockRouterRefresh).toHaveBeenCalledTimes(1));
 		expect(mockMarkAllRead).toHaveBeenCalledTimes(1);
 	});
@@ -760,6 +785,7 @@ describe('NotificationList read state', () => {
 
 		view.rerender(
 			<NotificationList
+				renderId={nextRenderId()}
 				initialPage={{ items: [invitation, comment], nextCursor: null }}
 				unreadIds={[invitation.id]}
 				viewerUsername="mei"
@@ -775,6 +801,7 @@ describe('NotificationList read state', () => {
 
 		view.rerender(
 			<NotificationList
+				renderId={nextRenderId()}
 				initialPage={{ items: [{ ...invitation, read: true }], nextCursor: null }}
 				unreadIds={[]}
 				viewerUsername="mei"
@@ -785,27 +812,27 @@ describe('NotificationList read state', () => {
 
 	it('recounts on a cached revisit and refetches once the badge has something new', async () => {
 		const page = { items: [invitation], nextCursor: null };
-		const first = render(<NotificationList initialPage={page} unreadIds={null} viewerUsername="mei" />);
+		const first = render(<NotificationList initialPage={page} renderId={cachedRender} unreadIds={null} viewerUsername="mei" />);
 		await waitFor(() => expect(mockRefresh).toHaveBeenCalledTimes(1));
 		first.unmount();
 
-		const revisit = render(<NotificationList initialPage={page} unreadIds={null} viewerUsername="mei" />);
+		const revisit = render(<NotificationList initialPage={page} renderId={cachedRender} unreadIds={null} viewerUsername="mei" />);
 		await waitFor(() => expect(mockRefresh).toHaveBeenCalledTimes(2));
 		expect(mockRouterRefresh).not.toHaveBeenCalled();
 
 		mockUnreadCount = 1;
-		revisit.rerender(<NotificationList initialPage={page} unreadIds={null} viewerUsername="mei" />);
+		revisit.rerender(<NotificationList initialPage={page} renderId={cachedRender} unreadIds={null} viewerUsername="mei" />);
 		await waitFor(() => expect(mockRouterRefresh).toHaveBeenCalledTimes(1));
 	});
 
 	it('reads a cached page again when reading it failed the first time', async () => {
 		mockMarkAllRead.mockResolvedValueOnce({ ok: false, message: 'down' });
 		const page = { items: [invitation], nextCursor: null };
-		const first = render(<NotificationList initialPage={page} unreadIds={null} viewerUsername="mei" />);
+		const first = render(<NotificationList initialPage={page} renderId={cachedRender} unreadIds={null} viewerUsername="mei" />);
 		await waitFor(() => expect(mockMarkAllRead).toHaveBeenCalledTimes(1));
 		first.unmount();
 
-		render(<NotificationList initialPage={page} unreadIds={null} viewerUsername="mei" />);
+		render(<NotificationList initialPage={page} renderId={cachedRender} unreadIds={null} viewerUsername="mei" />);
 		await waitFor(() => expect(mockMarkAllRead).toHaveBeenCalledTimes(2));
 		expect(within(rowOf('Which stall')).getByText('Unread')).toBeInTheDocument();
 	});
@@ -820,6 +847,7 @@ describe('NotificationList read state', () => {
 	it('reads nothing when the feed could not be loaded', () => {
 		render(
 			<NotificationList
+				renderId={nextRenderId()}
 				initialPage={null}
 				unreadIds={null}
 				viewerUsername="mei"
@@ -958,6 +986,7 @@ describe('NotificationList', () => {
 
 		render(
 			<NotificationList
+				renderId={nextRenderId()}
 				initialPage={{ items: [], nextCursor: 'n1' }}
 				initialCategory="LIKE"
 				unreadIds={null}
@@ -1029,6 +1058,7 @@ describe('NotificationList', () => {
 	it('says when the feed could not be loaded', () => {
 		render(
 			<NotificationList
+				renderId={nextRenderId()}
 				initialPage={null}
 				unreadIds={null}
 				viewerUsername="mei"

@@ -87,7 +87,15 @@ async function Notifications({
 	viewerUsername: string;
 }) {
 	const [page, ids] = await Promise.all([firstPage, unreadIds]);
-	return <NotificationList initialPage={page} initialCategory={category} unreadIds={ids} viewerUsername={viewerUsername} />;
+	return (
+		<NotificationList
+			initialPage={page}
+			initialCategory={category}
+			unreadIds={ids}
+			viewerUsername={viewerUsername}
+			renderId={crypto.randomUUID()}
+		/>
+	);
 }
 
 async function NotificationsRail({

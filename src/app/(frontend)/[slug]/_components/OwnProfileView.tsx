@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 
 import { EmptyCard } from '@/components/EmptyCard';
 import { FilterPills } from '@/components/FilterPills';
@@ -410,9 +410,16 @@ const fetchSaved = (cursor: string) => getBookmarkedPolls(cursor);
 function SavedList() {
 	const { t } = useLanguage();
 	const [first, setFirst] = useState<CursorPage<Poll> | 'loading' | 'failed'>('loading');
-	// A failed reload keeps the rows already shown
-	const load = () =>
-		getBookmarkedPolls().then(setFirst, () => setFirst((current) => (typeof current === 'object' ? current : 'failed')));
+	// Only the latest load sets the rows, and a failed reload keeps the rows already shown
+	const latestLoad = useRef(0);
+	const load = () => {
+		const request = ++latestLoad.current;
+		const isLatest = () => request === latestLoad.current;
+		getBookmarkedPolls().then(
+			(page) => isLatest() && setFirst(page),
+			() => isLatest() && setFirst((current) => (typeof current === 'object' ? current : 'failed'))
+		);
+	};
 	// Pulling down to refresh the page reloads it too, keeping the rows until the new ones arrive
 	const generation = useRefreshGeneration();
 
