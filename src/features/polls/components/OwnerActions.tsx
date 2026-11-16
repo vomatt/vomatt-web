@@ -175,6 +175,8 @@ export function OwnerActions({
 				<Button
 					size="sm"
 					variant="ghost-destructive"
+					// Alone on the row, its label ends on the card's edge
+					flush={canEnd || canInvite || canEdit ? undefined : 'end'}
 					onClick={() => ask('delete')}
 				>
 					{t('poll.deletePoll')}

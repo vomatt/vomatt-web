@@ -133,9 +133,9 @@ export function PollFooter({
 				{onReport && (
 					<RowMenuRoot>
 						<Menu.Trigger
-							render={<Button variant="ghost" size="icon-xs" />}
+							render={<Button variant="ghost" size="icon-xs" flush="end" />}
 							aria-label={t('poll.moreOptions')}
-							className="-mx-2 data-popup-open:bg-muted"
+							className="-ml-2 data-popup-open:bg-muted"
 						>
 							<Ellipsis aria-hidden />
 						</Menu.Trigger>

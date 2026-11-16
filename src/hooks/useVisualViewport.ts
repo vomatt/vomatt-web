@@ -1,4 +1,4 @@
-import { type CSSProperties, useEffect, useRef, useSyncExternalStore } from 'react';
+import { type CSSProperties, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
 /** The part of the page left visible beside an on-screen keyboard. */
 type VisualViewportBox = { top: number; height: number };
@@ -194,13 +194,15 @@ export function useKeyboardInset<State>(style: CSSProperties | ((state: State) =
 		};
 	}, [height]);
 
+	// Read while rendering, before the popup's initial focus can have iOS scroll the page to the field
+	const [openY] = useState(() => (typeof window === 'undefined' ? 0 : window.scrollY));
 	// Popups using this are modal, so only iOS revealing a field scrolls the page under them (restorePage)
 	useEffect(() => {
-		if (popups++ === 0) restY = window.scrollY;
+		if (popups++ === 0) restY = openY;
 		return () => {
 			popups--;
 		};
-	}, []);
+	}, [openY]);
 
 	if (!box) return { style };
 	const inset = {

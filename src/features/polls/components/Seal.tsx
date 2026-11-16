@@ -135,7 +135,7 @@ export function Seal({ popKey = 0, endTime, children }: SealProps) {
 				</div>
 				{/* A column of its own, so no line of text runs up against it. Phones have no room for one: there it sits
 				    under the text, which frees the title's line instead. The margins keep the 44px target off the lines */}
-				<div className="-my-2 -ml-2 flex items-center gap-1.5 justify-self-start md:-my-3 md:-mr-2 md:ml-0">
+				<div className="-my-2 flex items-center gap-1.5 justify-self-start md:-my-3">
 					{children}
 				</div>
 			</div>

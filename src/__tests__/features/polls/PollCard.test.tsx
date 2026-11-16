@@ -314,6 +314,17 @@ describe('PollCard state B: Open, has Ballot', () => {
 		expect(await screen.findByText('Voted')).toBeInTheDocument();
 	});
 
+	it('holds the Voted pill\'s room after the status chip before the vote, and fills it on voting', async () => {
+		const { container } = render(<PollCard poll={openPoll} viewerId="user-voter" />);
+		const space = container.querySelector('[data-label="Voted"]');
+		expect(space).toBeInTheDocument();
+		vote('Saturday');
+		const pill = await screen.findByText('Voted');
+		expect(pill.parentElement).toBe(space?.parentElement);
+		const chip = screen.getByText(/^Ends/);
+		expect(chip.compareDocumentPosition(pill) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+	});
+
 	it('keeps the vote and Turnout when the poll is saved after voting', async () => {
 		mockBookmarkPoll.mockResolvedValue({ ok: true });
 		render(<PollCard poll={openPoll} viewerId="user-voter" />);

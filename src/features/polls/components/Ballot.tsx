@@ -151,6 +151,7 @@ export function Ballot({
 		<Button
 			size="xs"
 			variant="ghost"
+			flush="start-md-end"
 			className="text-tide-foreground hover:text-tide-foreground"
 			disabled={isPending}
 			onClick={() => {
@@ -426,6 +427,7 @@ function NameLine({
 			<Button
 				size="xs"
 				variant="ghost"
+				flush="end"
 				aria-disabled={isPending}
 				onClick={() => !isPending && onToggle()}
 				className="shrink-0 text-foreground"

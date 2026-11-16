@@ -69,6 +69,18 @@ export function VotedPill({ label }: { label: string }) {
 	);
 }
 
+/**
+ * The Voted pill's room, held before the vote too, so the pill appearing never squeezes what shares its line.
+ * The label is drawn by `::before`, so the space adds no text for queries or screen readers.
+ */
+export function VotedPillSpace({ label }: { label: string }) {
+	return (
+		<span aria-hidden data-label={label} className={cn(chipClassName, 'invisible before:content-[attr(data-label)]')}>
+			<Check size={10} strokeWidth={3} />
+		</span>
+	);
+}
+
 /** A ballot sliding into the box's slot, played once when the notice appears. */
 export function BallotBoxIcon({ className }: { className?: string }) {
 	// Many cards render this at once, so the clip path id must be unique

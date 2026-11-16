@@ -40,9 +40,23 @@ const buttonVariantClasses = cva(
 				'icon-sm':
 					'size-11 in-data-[slot=button-group]:rounded-lg md:size-9',
 			},
+			// Pulls the button out by its own padding, so its label or icon sits on the edge it belongs to while the
+			// hit area keeps its size. `start-md-end`: an action under its text on phones, in a column after it from md
+			flush: {
+				start: '',
+				end: '',
+				'start-md-end': '',
+			},
 		},
-		// After the size classes, so a link lines up with the text beside it
-		compoundVariants: [{ variant: 'link', className: 'px-0' }],
+		compoundVariants: [
+			// After the size classes, so a link lines up with the text beside it
+			{ variant: 'link', className: 'px-0' },
+			{ size: ['xs', 'sm'], flush: 'start', className: '-ml-3' },
+			{ size: ['xs', 'sm'], flush: 'end', className: '-mr-3' },
+			{ size: ['xs', 'sm'], flush: 'start-md-end', className: '-ml-3 md:ml-0 md:-mr-3' },
+			{ size: 'icon-xs', flush: 'start', className: '-ml-3.5 md:-ml-2' },
+			{ size: 'icon-xs', flush: 'end', className: '-mr-3.5 md:-mr-2' },
+		],
 		defaultVariants: {
 			variant: 'default',
 			size: 'default',
@@ -65,6 +79,7 @@ function Button({
 	className,
 	variant = 'default',
 	size = 'default',
+	flush,
 	loading = false,
 	loadingIcon,
 	disabled,
@@ -79,7 +94,7 @@ function Button({
 			aria-busy={loading || undefined}
 			disabled={disabled || loading}
 			focusableWhenDisabled={focusableWhenDisabled || loading}
-			className={cn(buttonVariants({ variant, size, className }))}
+			className={cn(buttonVariants({ variant, size, flush, className }))}
 			{...props}
 		>
 			{children}
