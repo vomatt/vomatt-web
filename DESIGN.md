@@ -50,6 +50,7 @@ Cool canvas, navy ink actions, two signals: Volt (`highlight`) marks what is you
   | `text-caption-3` | 11px | leading 1.33 | Chips (sentence case, medium, via `chipClassName`; on poll cards too), comment meta |
   | `text-caption-4` | 10px | size only | Unread count badges |
 
+- Below `md` the titles drop a step (`global.css` base layer): `title-1` 24px, `title-2` 22px, `title-3` 20px; the table gives the sizes from `md`.
 - A step's weight, leading and tracking are defaults: a `font-*`, `leading-*` or `tracking-*` beside it wins. Leading uses Tailwind's named steps (`leading-tight`, `snug`, `normal`, `relaxed`); tracking adds `tracking-title` (-0.01em, small titles) beside Tailwind's own steps.
 - `cn()` recognizes the scale by pattern (`lib/utils.ts`): new steps in an existing family need nothing, but a new family must be added there, or tailwind-merge reads it as a color and drops it.
 
