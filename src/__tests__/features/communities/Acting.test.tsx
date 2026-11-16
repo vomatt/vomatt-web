@@ -18,7 +18,6 @@ const mockRefresh = jest.fn();
 const mockPush = jest.fn();
 jest.mock('@/features/communities/service', () => ({ unlockCommunity: jest.fn() }));
 jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh: mockRefresh, push: mockPush }), usePathname: () => '/' }));
-jest.mock('@/hooks/use-mobile', () => ({ useIsMobile: () => false }));
 
 const community = (communityId: string, role: CommunityRole): MyCommunity => ({
 	communityId,

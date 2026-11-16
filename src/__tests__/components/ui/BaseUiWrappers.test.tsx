@@ -36,8 +36,8 @@ describe('Base UI wrappers', () => {
 		const button = screen.getByRole('button', { name: 'Save' });
 		expect(button.tagName).toBe('BUTTON');
 		expect(button).toHaveAttribute('data-slot', 'button');
-		// Small buttons keep a 44px touch target and only shrink on wider screens
-		expect(button).toHaveClass('h-11', 'md:h-9');
+		// Small buttons are 36px with a 44px tap target on phones
+		expect(button).toHaveClass('h-9', 'max-md:after:min-h-11');
 
 		fireEvent.click(button);
 		expect(onClick).toHaveBeenCalledTimes(1);

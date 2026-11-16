@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useTheme } from 'next-themes';
 import { useState } from 'react';
 
+import { buttonVariants } from '@/components/ui/Button';
 import { Menu as MenuIcon, Moon, Sun } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ReportProblemDialog } from '@/features/feedback/ReportProblemDialog';
@@ -22,28 +23,51 @@ const themes = [
 const itemClassName =
 	'relative flex w-full items-center min-h-10 px-3 rounded-lg text-body-4 font-medium cursor-pointer select-none transition-colors duration-150 text-muted-foreground data-highlighted:text-popover-foreground outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring';
 
-export function MoreMenu({ signedIn }: { signedIn: boolean }) {
+// The sidebar's footer row opens it upward; the phone Header's icon button opens it downward from its right edge
+const placements = {
+	sidebar: {
+		trigger: cn(
+			'flex items-center gap-3 w-full h-10 px-3 rounded-lg text-body-4 font-medium text-muted-foreground transition-colors duration-150',
+			'hover:text-sidebar-foreground data-popup-open:bg-sidebar-accent data-popup-open:text-sidebar-accent-foreground'
+		),
+		side: 'top',
+		align: 'start',
+		iconOnly: false,
+	},
+	header: {
+		trigger: cn(
+			buttonVariants({ variant: 'ghost', size: 'icon' }),
+			'rounded-full active:bg-muted data-popup-open:bg-muted'
+		),
+		side: 'bottom',
+		align: 'end',
+		iconOnly: true,
+	},
+} as const;
+
+export function MoreMenu({ signedIn, placement = 'sidebar' }: { signedIn: boolean; placement?: keyof typeof placements }) {
 	const { t } = useLanguage();
 	const [reportOpen, setReportOpen] = useState(false);
+	const { trigger, side, align, iconOnly } = placements[placement];
 
 	return (
 		<Menu.Root modal={false}>
 			<Menu.Trigger
+				aria-label={iconOnly ? t('navigation.more') : undefined}
 				className={cn(
-					'flex items-center gap-3 w-full h-10 px-3 rounded-lg text-body-4 font-medium text-muted-foreground transition-colors duration-150',
-					'hover:text-sidebar-foreground data-popup-open:bg-sidebar-accent data-popup-open:text-sidebar-accent-foreground',
+					trigger,
 					'outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring'
 				)}
 			>
 				<MenuIcon className="size-5 shrink-0" />
-				{t('navigation.more')}
+				{!iconOnly && t('navigation.more')}
 			</Menu.Trigger>
 			<Menu.Portal>
 				<Menu.Positioner
-					side="top"
-					align="start"
+					side={side}
+					align={align}
 					sideOffset={8}
-					// Fixed like the sidebar it opens from, so page scroll doesn't carry it
+					// Fixed like the sidebar and Header it opens from, so page scroll doesn't carry it
 					positionMethod="fixed"
 					className="z-50"
 				>

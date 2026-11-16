@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 
 import { ActingProvider } from '@/features/communities/ActingProvider';
 import { CreatePollTrigger } from '@/features/polls/components/CreatePollTrigger';
@@ -24,6 +24,19 @@ describe('CreatePollTrigger', () => {
 		);
 		expect(screen.getByRole('button', { name: 'Create poll' })).toHaveAttribute('aria-haspopup', 'dialog');
 		expect(mockCreator).not.toHaveBeenCalled();
+	});
+
+	it('asks for sign-in first when given requireAuth, and opens the creator once it runs the action', async () => {
+		let resume: (() => void) | undefined;
+		render(
+			<CreatePollTrigger requireAuth={(openCreator) => (resume = openCreator)}>
+				<button>Create poll</button>
+			</CreatePollTrigger>
+		);
+		fireEvent.click(screen.getByRole('button', { name: 'Create poll' }));
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+		act(() => resume?.());
+		expect(await screen.findByRole('dialog')).toHaveTextContent('Creator');
 	});
 
 	it('opens the creator when the trigger is pressed', async () => {

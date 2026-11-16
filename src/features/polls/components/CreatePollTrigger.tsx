@@ -21,8 +21,11 @@ const PollCreator = dynamic(loadPollCreator, { ssr: false });
  */
 export function CreatePollTrigger({
 	children,
+	requireAuth,
 }: {
 	children: ReactElement<ComponentProps<'button'> & { ref?: Ref<HTMLButtonElement> }>;
+	/** For guests: asks them to sign in first, then opens the creator (`useRequireAuth`) */
+	requireAuth?: (openCreator: () => void) => void;
 }) {
 	const { acting } = useActing();
 	const [mounted, setMounted] = useState(false);
@@ -48,8 +51,12 @@ export function CreatePollTrigger({
 				},
 				onClick: (event) => {
 					onClick?.(event);
-					setMounted(true);
-					setOpen(true);
+					const openCreator = () => {
+						setMounted(true);
+						setOpen(true);
+					};
+					if (requireAuth) requireAuth(openCreator);
+					else openCreator();
 				},
 			})}
 			{mounted && <PollCreator open={open} onOpenChange={setOpen} finalFocus={triggerRef} />}

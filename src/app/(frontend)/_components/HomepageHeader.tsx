@@ -115,8 +115,9 @@ export function HomepageHeader({
 					<LegalLinks className="flex flex-wrap gap-x-5 px-1 text-caption-2 text-muted-foreground [&>a]:py-3.5" />
 				</>
 			)}
-			{/* Its pills sit at its bottom, with the room above them inside it, so it sticks where it rests and never moves */}
-			<StickyBar data-sticky-bar="feed" className="-mx-1 max-md:mx-0">
+			{/* Its pills sit at its bottom, with the room above them inside it, so it sticks where it rests and never moves.
+			    Phones scroll it away: the fixed Header and TabBar already take their room */}
+			<StickyBar data-sticky-bar="feed" className="-mx-1 max-md:static max-md:mx-0">
 				<nav aria-label={t('homePage.topics')}>
 					<ul className="flex gap-2 overflow-x-auto h-(--feed-bar-height) items-end px-1 py-2 scrollbar-none max-md:bleed-x">
 						{feeds.map(renderLink)}

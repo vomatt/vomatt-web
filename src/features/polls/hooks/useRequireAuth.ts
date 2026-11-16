@@ -7,7 +7,13 @@ import { useCallback, useRef, useState } from 'react';
  * runs once sign-in succeeds. Reads never go through this.
  */
 export function useRequireAuth(isAuthenticated: boolean) {
+	// Bridges the gap between signing in here and the page's session catching up; a sign-out ends it
 	const [isLocallyAuthed, setIsLocallyAuthed] = useState(false);
+	const [wasAuthenticated, setWasAuthenticated] = useState(isAuthenticated);
+	if (wasAuthenticated !== isAuthenticated) {
+		setWasAuthenticated(isAuthenticated);
+		if (!isAuthenticated) setIsLocallyAuthed(false);
+	}
 	const [open, setOpen] = useState(false);
 	const pendingAction = useRef<(() => void) | null>(null);
 	const isAuthed = isAuthenticated || isLocallyAuthed;

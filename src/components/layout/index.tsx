@@ -63,14 +63,14 @@ export async function Layout({ children }: LayoutProps) {
 						{!acting.acting && profile?.communityQuota?.selectionRequired && <KeepCommunitiesPrompt quota={profile.communityQuota} />}
 						<AdaSkip />
 						<AppSidebar userSession={session} profile={profile} loginLink={loginLink} />
-						<Header signedIn={!!session} loginLink={loginLink} username={profile?.username} avatarUrl={profile?.avatarUrl} />
+						<Header signedIn={!!session} loginLink={loginLink} />
 						<Main>
 							{/* Decided here from the cookie, so a dismissed announcement never flashes before hydration */}
 							<AnnouncementBar announcement={announcement?.id === cookieStore.get(ANNOUNCEMENT_DISMISSED_COOKIE)?.value ? null : announcement} />
 							<ActingBanner />
 							{children}
 						</Main>
-						<TabBar userSession={session} loginLink={loginLink} />
+						<TabBar userSession={session} username={profile?.username} avatarUrl={profile?.avatarUrl} />
 					</MotionProvider>
 				</UnreadCountProvider>
 			</ActingProvider>

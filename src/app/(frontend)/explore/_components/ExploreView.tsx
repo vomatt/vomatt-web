@@ -107,11 +107,13 @@ export function ExploreView({
 		<div className="flex flex-col gap-4">
 			<h1 className="sr-only">{t('explore.title')}</h1>
 
-			<StickyBar className="-mx-1 flex flex-col gap-3 px-1 py-2">
+			{/* From md the search and filters stick as one bar. On phones the bar's box drops out (`contents`) so only the
+			    search sticks under the Header and the filters scroll away with the page */}
+			<StickyBar data-sticky-bar="explore" className="-mx-1 flex flex-col gap-3 px-1 py-2 max-md:contents max-md:[&>[data-sticky-fade]]:hidden">
 				<label htmlFor={searchId} className="sr-only">
 					{t('explore.searchLabel')}
 				</label>
-				<div className="relative">
+				<div className="relative max-md:sticky max-md:follow-header max-md:z-20 max-md:-mx-1 max-md:px-1 max-md:py-2">
 					<Input
 						id={searchId}
 						type="search"
@@ -122,7 +124,7 @@ export function ExploreView({
 						className="bg-card px-4"
 					/>
 					{/* In the stuck bar, so it shows however far the results run; clear of the field's clear button */}
-					<div className="pointer-events-none absolute inset-y-0 right-10 flex items-center">
+					<div className="pointer-events-none absolute inset-y-0 right-10 flex items-center max-md:right-11">
 						{tooShort ? (
 							<p id={searchHintId} className="text-caption-3 text-muted-foreground">
 								{t('explore.searchTooShort')}
@@ -131,9 +133,10 @@ export function ExploreView({
 							pending && <Spinner className="text-muted-foreground" />
 						)}
 					</div>
+					<span data-sticky-fade aria-hidden className="md:hidden" />
 				</div>
 
-				{/* One row that scrolls sideways where it doesn't fit, so the stuck bar stays two rows tall on a phone */}
+				{/* One row that scrolls sideways where it doesn't fit, so it never wraps to a third row */}
 				<div className="-m-1 flex items-center gap-x-4 overflow-x-auto p-1 scrollbar-none max-md:bleed-x">
 					<div className="flex shrink-0 items-center gap-4">
 						<span id={statusLabelId} className="shrink-0 whitespace-nowrap text-caption-1 text-muted-foreground">

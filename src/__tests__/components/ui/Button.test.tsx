@@ -105,19 +105,19 @@ describe('buttonVariants', () => {
 });
 
 describe('Button sizes', () => {
-	// Every size keeps a 44px touch target on phones and only shrinks from md up
+	// Smaller sizes take their own height everywhere; on phones an invisible box keeps the tap target 44px
 	it.each([
-		['md', 'md:h-10'],
-		['sm', 'md:h-9'],
-		['xs', 'md:h-8'],
-	] as const)('%s is 44px on phones and %s from md', (size, desktop) => {
+		['md', 'h-10'],
+		['sm', 'h-9'],
+		['xs', 'h-8'],
+	] as const)('%s is %s with a 44px tap target on phones', (size, height) => {
 		render(<Button size={size}>Save</Button>);
-		expect(screen.getByRole('button', { name: 'Save' })).toHaveClass('h-11', desktop);
+		expect(screen.getByRole('button', { name: 'Save' })).toHaveClass(height, 'max-md:after:min-h-11', 'max-md:after:inset-x-0');
 	});
 
-	it('icon-xs is a 44px circle on phones and 32px from md', () => {
+	it('icon-xs is a 32px circle with a 44px tap target on phones', () => {
 		render(<Button size="icon-xs" aria-label="More" />);
-		expect(screen.getByRole('button', { name: 'More' })).toHaveClass('size-11', 'md:size-8', 'rounded-full');
+		expect(screen.getByRole('button', { name: 'More' })).toHaveClass('size-8', 'rounded-full', 'max-md:after:size-11');
 	});
 
 	it('default stays 44px at every width', () => {

@@ -1,49 +1,96 @@
 'use client';
 import NextLink, { useLinkStatus } from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
+import { AuthDialog } from '@/components/auth/AuthDialog';
 import { buttonVariants } from '@/components/ui/Button';
-import { Home, Plus, Search } from '@/components/ui/SvgIcons';
+import { Bell, CircleUser, Home, Plus, Search } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { UserAvatar } from '@/features/avatars/UserAvatar';
+import { formatUnreadCount, useUnreadCount } from '@/features/notifications/UnreadCountProvider';
+import { UnreadDot } from '@/features/notifications/UnreadDot';
 import { CreatePollTrigger } from '@/features/polls/components/CreatePollTrigger';
+import { useRequireAuth } from '@/features/polls/hooks/useRequireAuth';
 import { useKeyboardOpen } from '@/hooks/useVisualViewport';
-import { isActivePath, isChromeless } from '@/lib/routes';
+import { accountHref, isActivePath, isChromeless } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
 type TabBarProps = {
 	className?: string;
 	userSession?: any;
-	/** Where the signed-out create button goes; carries `session_expired` when the API refused the session. */
-	loginLink?: string;
+	username?: string;
+	avatarUrl?: string | null;
 };
 
-// The center tab is the primary action: the create button as a square, the "Create a poll" action
-const createClassName = cn(buttonVariants({ variant: 'create' }), 'w-13 px-0');
-const cellClassName =
-	'flex-1 h-full flex justify-center items-center outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring';
+type Tab = {
+	title: string;
+	href: string;
+	icon: React.ReactNode;
+	/** `true` keeps the tab current on pages under it that aren't its own page */
+	current: 'page' | 'true' | undefined;
+};
 
-export function TabBar({ className, userSession, loginLink = '/login' }: TabBarProps) {
+// The center tab is the create action: a quiet square that sinks a little under the finger
+const createClassName = cn(
+	buttonVariants({ variant: 'ghost' }),
+	'w-13 px-0 bg-muted text-foreground active:bg-foreground/10 motion-safe:transition-[background-color,scale] motion-safe:duration-150 motion-safe:active:scale-92'
+);
+const cellClassName =
+	'group flex-1 h-full flex justify-center items-center outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring';
+
+export function TabBar({ className, userSession, username, avatarUrl }: TabBarProps) {
 	const pathname = usePathname();
 	const { t } = useLanguage();
+	const { count: unreadCount } = useUnreadCount();
 	const keyboardOpen = useKeyboardOpen();
-	const home = { title: t('navigation.home'), href: '/', icon: <Home className="size-6" /> };
-	const explore = { title: t('common.explore'), href: '/explore', icon: <Search className="size-6" /> };
+	const router = useRouter();
+	const { requireAuth, authDialog } = useRequireAuth(!!userSession);
 
 	if (isChromeless(pathname)) return null;
 
-	const renderLink = ({ href, title, icon }: typeof home) => {
-		const isActive = isActivePath(pathname, href);
-		return (
-			<NextLink
-				href={href}
-				aria-current={isActive ? 'page' : undefined}
-				className={cellClassName}
-			>
-				<TabIcon icon={icon} isActive={isActive} />
-				<span className="sr-only">{title}</span>
-			</NextLink>
-		);
+	const pageTab = (title: string, href: string, icon: React.ReactNode): Tab => ({
+		title,
+		href,
+		icon,
+		current: isActivePath(pathname, href) ? 'page' : undefined,
+	});
+	const home = pageTab(t('navigation.home'), '/', <Home className="size-6" />);
+	const explore = pageTab(t('common.explore'), '/explore', <Search className="size-6" />);
+	const notifications = pageTab(
+		t('common.notifications'),
+		'/notifications',
+		<span className="relative">
+			<Bell className="size-6" />
+			{unreadCount > 0 && (
+				<UnreadDot label={`${formatUnreadCount(unreadCount)} ${t('notifications.unread')}`} className="absolute -right-0.5 -top-0.5" />
+			)}
+		</span>
+	);
+	const profileHref = accountHref(username);
+	const onProfile = isActivePath(pathname, profileHref);
+	const profile: Tab = {
+		title: t('navigation.profile'),
+		href: profileHref,
+		icon: username ? <UserAvatar username={username} avatarUrl={avatarUrl} className="size-6.5" /> : <CircleUser className="size-6" />,
+		// Phones reach Settings from the profile, so the profile stays current there: the section, not the page
+		current: onProfile ? 'page' : isActivePath(pathname, '/settings') ? 'true' : undefined,
 	};
+
+	const renderLink = ({ href, title, icon, current }: Tab) => (
+		<NextLink key={href} href={href} aria-current={current} className={cellClassName}>
+			<TabIcon icon={icon} isActive={!!current} />
+			{/* Text, not aria-label, so the unread count inside the bell is read out too */}
+			<span className="sr-only">{title}</span>
+		</NextLink>
+	);
+	// Guests see the signed-in layout; these tabs ask them to sign in, then go on to the page
+	const renderGuestTab = ({ href, title, icon }: Tab) => (
+		<button key={href} type="button" onClick={() => requireAuth(() => router.push(href))} className={cellClassName}>
+			<span className={tabIconClassName(false)}>{icon}</span>
+			<span className="sr-only">{title}</span>
+		</button>
+	);
+	const renderAccountTab = userSession ? renderLink : renderGuestTab;
 
 	return (
 		<nav
@@ -51,27 +98,23 @@ export function TabBar({ className, userSession, loginLink = '/login' }: TabBarP
 			// iOS 26 Safari carries fixed bottom bars up above the keyboard; it stays behind the keyboard instead
 			data-keyboard={keyboardOpen || undefined}
 			className={cn(
-				'data-keyboard:invisible [--tabbar-height:64px] fixed bottom-0 z-tabbar w-full flex justify-between items-center h-[calc(var(--tabbar-height)+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] bg-card border-t border-border md:hidden',
+				'data-keyboard:invisible [--tabbar-height:64px] fixed bottom-0 z-tabbar w-full flex justify-between items-center h-[calc(var(--tabbar-height)+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] bg-card/80 backdrop-blur-lg border-t border-border md:hidden',
 				className
 			)}
 		>
 			{renderLink(home)}
-			{userSession ? (
-				<div className={cellClassName}>
-					<CreatePollTrigger>
-						<button type="button" aria-label={t('common.createPoll')} className={createClassName}>
-							<Plus className="size-5.5" />
-						</button>
-					</CreatePollTrigger>
-				</div>
-			) : (
-				<NextLink href={loginLink} aria-label={t('common.createPoll')} className={cellClassName}>
-					<span className={createClassName}>
-						<Plus className="size-5.5" />
-					</span>
-				</NextLink>
-			)}
 			{renderLink(explore)}
+			<div className={cellClassName}>
+				{/* One trigger for guests and the signed-in alike, so a guest's press survives sign-in and opens the creator */}
+				<CreatePollTrigger requireAuth={userSession ? undefined : requireAuth}>
+					<button type="button" aria-label={t('common.createPoll')} className={createClassName}>
+						<Plus className="size-5.5" />
+					</button>
+				</CreatePollTrigger>
+			</div>
+			{renderAccountTab(notifications)}
+			{renderAccountTab(profile)}
+			{authDialog.open && <AuthDialog {...authDialog} />}
 		</nav>
 	);
 }
@@ -80,17 +123,18 @@ export function TabBar({ className, userSession, loginLink = '/login' }: TabBarP
 function TabIcon({ icon, isActive }: { icon: React.ReactNode; isActive: boolean }) {
 	const { pending } = useLinkStatus();
 	return (
-		<span
-			data-pending={pending || undefined}
-			className={cn(
-				'flex size-12 items-center justify-center',
-				isActive || pending
-					? // Forced colors drop the shadow bar; the border takes its place
-						'text-foreground shadow-[inset_0_-2px_0_var(--foreground)] forced-colors:border-b-2'
-					: 'text-muted-foreground'
-			)}
-		>
+		<span data-pending={pending || undefined} className={tabIconClassName(isActive || pending)}>
 			{icon}
 		</span>
+	);
+}
+
+function tabIconClassName(isActive: boolean) {
+	return cn(
+		'flex size-12 items-center justify-center motion-safe:transition-[color,scale] motion-safe:duration-150 motion-safe:group-active:scale-88',
+		isActive
+			? // Forced colors drop the shadow bar; the border takes its place
+				'text-foreground shadow-[inset_0_-2px_0_var(--foreground)] forced-colors:border-b-2'
+			: 'text-muted-foreground group-active:text-foreground'
 	);
 }

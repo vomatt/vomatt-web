@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 
 import { TabBar } from '@/components/layout/TabBar';
 
@@ -8,41 +8,148 @@ jest.mock('next/link', () => {
 	const actual = jest.requireActual('next/link');
 	return { __esModule: true, ...actual, useLinkStatus: () => ({ pending: mockPending }) };
 });
+const mockPush = jest.fn();
 jest.mock('next/navigation', () => ({
 	usePathname: () => mockPathname,
+	useRouter: () => ({ push: mockPush }),
+}));
+
+jest.mock('@/components/auth/AuthDialog', () => ({
+	AuthDialog: ({ onAuthSuccess }: { onAuthSuccess: () => void }) => (
+		<div data-testid="auth-dialog">
+			<button type="button" onClick={onAuthSuccess}>
+				Finish sign-in
+			</button>
+		</div>
+	),
 }));
 
 jest.mock('@/contexts/LanguageContext', () => require('../helpers/mockLanguage'));
 
-jest.mock('@/features/polls/components/CreatePollTrigger', () => ({
-	CreatePollTrigger: ({ children }: { children: React.ReactNode }) => children,
+let mockUnreadCount = 0;
+jest.mock('@/features/notifications/UnreadCountProvider', () => ({
+	formatUnreadCount: (count: number) => String(count),
+	useUnreadCount: () => ({ count: mockUnreadCount }),
 }));
+
+jest.mock('@/features/polls/components/PollCreator', () => ({
+	PollCreator: ({ open }: { open: boolean }) => (open ? <div role="dialog">Creator</div> : null),
+}));
+
+const mei = { userSession: {}, username: 'mei', avatarUrl: 'bot:boba' };
+const profileLink = () => screen.getByRole('link', { name: 'Profile' });
 
 beforeEach(() => {
 	mockPathname = '/';
 	mockPending = false;
+	mockUnreadCount = 0;
+	mockPush.mockClear();
 });
 
 describe('TabBar', () => {
-	it('centers Create between Home and Explore', () => {
-		render(<TabBar userSession={{}} />);
+	it('centers Create between Home and Explore on one side, Notifications and the profile on the other', () => {
+		render(<TabBar {...mei} />);
 		const cells = Array.from(document.querySelector('[data-tabbar]')!.children);
 		expect(cells).toEqual([
 			screen.getByRole('link', { name: 'Home' }),
-			screen.getByRole('button', { name: 'Create a poll' }).parentElement,
 			screen.getByRole('link', { name: 'Explore' }),
+			screen.getByRole('button', { name: 'Create a poll' }).parentElement,
+			screen.getByRole('link', { name: 'Notifications' }),
+			profileLink(),
 		]);
 	});
 
-	it('leaves Notifications and the profile to the Header', () => {
-		render(<TabBar userSession={{}} />);
-		expect(screen.queryByRole('link', { name: /Notifications/ })).not.toBeInTheDocument();
-		expect(screen.queryByRole('link', { name: 'Profile' })).not.toBeInTheDocument();
+	it('gives guests the same five tabs', () => {
+		render(<TabBar />);
+		const cells = Array.from(document.querySelector('[data-tabbar]')!.children);
+		expect(cells).toEqual([
+			screen.getByRole('link', { name: 'Home' }),
+			screen.getByRole('link', { name: 'Explore' }),
+			screen.getByRole('button', { name: 'Create a poll' }).parentElement,
+			screen.getByRole('button', { name: 'Notifications' }),
+			screen.getByRole('button', { name: 'Profile' }),
+		]);
 	});
 
-	it('sends guests to log in from Create', () => {
-		render(<TabBar loginLink="/login?session_expired=1" />);
-		expect(screen.getByRole('link', { name: 'Create a poll' })).toHaveAttribute('href', '/login?session_expired=1');
+	it.each(['Create a poll', 'Notifications', 'Profile'])('asks a guest to sign in from %s instead of leaving the page', (name) => {
+		render(<TabBar />);
+		fireEvent.click(screen.getByRole('button', { name }));
+		expect(screen.getByTestId('auth-dialog')).toBeInTheDocument();
+		expect(mockPush).not.toHaveBeenCalled();
+	});
+
+	it.each([
+		['Notifications', '/notifications'],
+		['Profile', '/account'],
+	])('takes a guest on to %s once they sign in', (name, href) => {
+		render(<TabBar />);
+		fireEvent.click(screen.getByRole('button', { name }));
+		fireEvent.click(screen.getByRole('button', { name: 'Finish sign-in' }));
+		expect(mockPush).toHaveBeenCalledWith(href);
+	});
+
+	it('opens the poll creator once a guest who pressed Create has signed in', async () => {
+		const { rerender } = render(<TabBar />);
+		fireEvent.click(screen.getByRole('button', { name: 'Create a poll' }));
+		fireEvent.click(screen.getByRole('button', { name: 'Finish sign-in' }));
+		rerender(<TabBar userSession={{}} />);
+		expect(await screen.findByRole('dialog')).toHaveTextContent('Creator');
+	});
+
+	it('opens the poll creator when the session arrives before sign-in finishes (a new account names itself)', async () => {
+		const { rerender } = render(<TabBar />);
+		fireEvent.click(screen.getByRole('button', { name: 'Create a poll' }));
+		rerender(<TabBar userSession={{}} />);
+		fireEvent.click(screen.getByRole('button', { name: 'Finish sign-in' }));
+		expect(await screen.findByRole('dialog')).toHaveTextContent('Creator');
+	});
+
+	it('asks a guest to sign in again after a sign-out, though they signed in from the tab bar before', () => {
+		const { rerender } = render(<TabBar />);
+		fireEvent.click(screen.getByRole('button', { name: 'Notifications' }));
+		fireEvent.click(screen.getByRole('button', { name: 'Finish sign-in' }));
+		rerender(<TabBar userSession={{}} />);
+		rerender(<TabBar />);
+		mockPush.mockClear();
+
+		fireEvent.click(screen.getByRole('button', { name: 'Create a poll' }));
+		expect(screen.getByTestId('auth-dialog')).toBeInTheDocument();
+		expect(screen.queryByText('Creator')).not.toBeInTheDocument();
+	});
+
+	it('leaves the creator closed for a signed-in person until they press Create', () => {
+		render(<TabBar userSession={{}} />);
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+	});
+
+	it('reads out the unread count on Notifications', () => {
+		mockUnreadCount = 3;
+		render(<TabBar {...mei} />);
+		expect(screen.getByRole('link', { name: '3 Unread Notifications' })).toHaveAttribute('href', '/notifications');
+	});
+
+	it("shows the signed-in person's avatar, linking to their profile", () => {
+		render(<TabBar {...mei} />);
+		expect(profileLink()).toHaveAttribute('href', '/mei');
+		expect(profileLink().querySelector('img')).toHaveAttribute('src', '/avatars/boba.svg');
+	});
+
+	it('shows the account icon, linking to /account, while the profile is not loaded', () => {
+		render(<TabBar userSession={{}} />);
+		expect(profileLink()).toHaveAttribute('href', '/account');
+		expect(profileLink().querySelector('img')).toBeNull();
+	});
+
+	it.each(['/settings', '/settings/language'])('keeps the profile current on %s', (pathname) => {
+		mockPathname = pathname;
+		render(<TabBar {...mei} />);
+		expect(profileLink()).toHaveAttribute('aria-current', 'true');
+	});
+
+	it('marks the profile as the page on the profile itself', () => {
+		mockPathname = '/mei';
+		render(<TabBar {...mei} />);
+		expect(profileLink()).toHaveAttribute('aria-current', 'page');
 	});
 
 	it('marks Explore as the page on /explore', () => {

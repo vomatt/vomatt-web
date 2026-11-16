@@ -136,9 +136,8 @@
 
 	--positive: oklch(0.529 0.106 154.6);
 
-	/* Room the phone Header takes, and where sticky bars sit below it (0 while it slides away); both set below */
+	/* Room the phone Header takes, and where sticky bars sit below it; set below */
 	--header-height: 0px;
-	--header-offset: 0px;
 	--announcement-height: 0px;
 	/* Room the fixed TabBar takes; set below only while it is shown */
 	--tabbar-space: 0px;
@@ -154,32 +153,39 @@
 	}
 	:root:has([data-mobile-header]) {
 		--header-height: 56px;
-		--header-offset: var(--header-height);
-	}
-	:root:has([data-mobile-header][data-hidden]:not(:focus-within)) {
-		--header-offset: 0px;
 	}
 }
 
 /* Keep focused and linked-to targets clear of the phone header and TabBar */
 html {
-	scroll-padding-top: var(--header-offset);
+	scroll-padding-top: var(--header-height);
 	scroll-padding-bottom: var(--tabbar-space);
 }
 /* A sticky tab list or back bar (44px) and its 1.5rem fade sit under it too */
 html:has([data-slot='tabs-list'][data-sticky], [data-sticky-bar]) {
-	scroll-padding-top: calc(var(--header-offset) + 44px + 1.5rem);
+	scroll-padding-top: calc(var(--header-height) + 44px + 1.5rem);
 }
 /* A pill row's bar is taller: 44px pills with 8px above and below on a phone (30px from md) */
 html:has([data-sticky-bar='pills']) {
-	scroll-padding-top: calc(var(--header-offset) + 60px + 1.5rem);
+	scroll-padding-top: calc(var(--header-height) + 60px + 1.5rem);
 	@media (width >= 48rem) {
-		scroll-padding-top: calc(var(--header-offset) + 46px + 1.5rem);
+		scroll-padding-top: calc(var(--header-height) + 46px + 1.5rem);
 	}
 }
-/* Home's pill bar. The repeated attribute matches the generic rule's specificity, so this one, coming later, wins */
+/* Explore's bar: on phones only its search sticks (64px with its padding); from md the search and the filter row
+   under it (112px). The repeated attribute outranks the generic rule, as Home's below */
+html:has([data-sticky-bar='explore'][data-sticky-bar]) {
+	scroll-padding-top: calc(var(--header-height) + 64px + 1.5rem);
+	@media (width >= 48rem) {
+		scroll-padding-top: calc(112px + 1.5rem);
+	}
+}
+/* Home's pill bar, sticky from md only. The repeated attribute matches the generic rule's specificity, so this one, coming later, wins */
 html:has([data-sticky-bar='feed'][data-sticky-bar]) {
-	scroll-padding-top: calc(var(--header-offset) + var(--feed-bar-height) + 1.5rem);
+	scroll-padding-top: var(--header-height);
+	@media (width >= 48rem) {
+		scroll-padding-top: calc(var(--feed-bar-height) + 1.5rem);
+	}
 }
 
 .dark {
@@ -347,8 +353,6 @@ html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 	--container-main: 680px;
 	--container-rail: 300px;
 	--container-page: calc(var(--container-main) + 2.5rem + var(--container-rail));
-	/* The phone Header's slide and the sticky bars that follow it: unhurried, settling softly */
-	--ease-header: cubic-bezier(0.32, 0.72, 0, 1);
 	--z-index-header: 48;
 	--z-index-tabbar: 48;
 }
@@ -408,19 +412,17 @@ html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 	padding-top: calc(var(--header-height) + var(--announcement-height, 0) + --value([*]));
 }
 
-/* With `sticky`: a bar that sits under the phone Header and slides away with it (Home's topics, line tabs); top of the page from md up.
+/* With `sticky`: a bar that sits under the phone Header (Explore's search, line tabs); top of the page from md up.
    Its color runs 20px past its sides so cards don't line up with its edges, and once stuck it fades into what scrolls under it
    instead of cutting it off (browsers without scroll-state queries keep the plain edge) */
 @utility follow-header {
 	top: calc(var(--header-height) + var(--announcement-height, 0));
-	translate: 0 calc(var(--header-offset) - var(--header-height));
 	background-color: var(--background);
 	box-shadow:
 		-1.25rem 0 var(--background),
 		1.25rem 0 var(--background);
 	container-type: scroll-state;
 	@media (prefers-reduced-motion: no-preference) {
-		transition: translate 400ms var(--ease-header);
 		& > [data-sticky-fade] {
 			transition: opacity 150ms;
 		}
