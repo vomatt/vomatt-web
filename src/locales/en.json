@@ -677,6 +677,13 @@
 		"accept": "Accept analytics",
 		"decline": "Decline"
 	},
+	"termsNotice": {
+		"label": "Terms and cookies",
+		"message": "By continuing, you agree to vomatt’s {terms} and {privacy}, which explains how we use cookies.",
+		"terms": "Terms of Service",
+		"privacy": "Privacy Policy",
+		"dismiss": "Dismiss"
+	},
 	"invitees": {
 		"title": "Invitees",
 		"description": "People who can see this poll and vote.",

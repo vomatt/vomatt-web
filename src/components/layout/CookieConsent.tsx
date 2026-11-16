@@ -8,21 +8,18 @@ import { Button } from '@/components/ui/Button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useKeyboardOpen } from '@/hooks/useVisualViewport';
 import { aboutHref } from '@/lib/aboutSite';
+import { readCookie, sharedCookie } from '@/lib/cookies';
 import { cn } from '@/lib/utils';
 
 export const CONSENT_COOKIE = 'cookie-consent';
 type Consent = 'granted' | 'denied';
 
 /** The consent cookie, set on vomatt.com so the app and about.vomatt.com share one answer. Mirrors vomatt-about's. */
-export function consentCookie(value: Consent | '', hostname: string) {
-	const shared = hostname === 'vomatt.com' || hostname.endsWith('.vomatt.com');
-	const maxAge = value ? 365 * 24 * 60 * 60 : 0;
-	return `${CONSENT_COOKIE}=${value}; path=/; max-age=${maxAge}; samesite=lax${shared ? '; domain=vomatt.com' : ''}`;
-}
+export const consentCookie = (value: Consent | '', hostname: string) => sharedCookie(CONSENT_COOKIE, value, hostname);
 
 function readConsent(): Consent | null {
-	const match = document.cookie.match(new RegExp(`(?:^|; )${CONSENT_COOKIE}=(granted|denied)`));
-	return (match?.[1] as Consent) ?? null;
+	const value = readCookie(CONSENT_COOKIE);
+	return value === 'granted' || value === 'denied' ? value : null;
 }
 
 const listeners = new Set<() => void>();
@@ -31,11 +28,14 @@ function subscribe(listener: () => void) {
 	return () => listeners.delete(listener);
 }
 
-const hasAnalytics = (integrations?: Integrations | null) =>
+/** The visitor's analytics choice: null until they make one, undefined on the server. */
+export const useConsent = () => useSyncExternalStore(subscribe, readConsent, () => undefined);
+
+export const hasAnalytics = (integrations?: Integrations | null) =>
 	!!(integrations?.gaIDs?.some(Boolean) || integrations?.gtmIDs?.some(Boolean));
 
-/** Publishes the room the banner takes from the viewport's bottom, so the Toaster (root layout) stacks toasts above it */
-function reserveBannerSpace(banner: HTMLElement) {
+/** Publishes the room a bottom prompt takes from the viewport's bottom, so Main pads for it and the Toaster (root layout) stacks toasts above it */
+export function reserveBannerSpace(banner: HTMLElement) {
 	const root = document.documentElement;
 	const observer = new ResizeObserver(() => {
 		root.style.setProperty('--cookie-banner-space', `${window.innerHeight - banner.getBoundingClientRect().top}px`);
@@ -51,7 +51,7 @@ function reserveBannerSpace(banner: HTMLElement) {
 export function CookieConsent({ integrations }: { integrations?: Integrations | null }) {
 	const { t, currentLanguage } = useLanguage();
 	// undefined on the server, so the banner doesn't flash for returning visitors
-	const consent = useSyncExternalStore(subscribe, readConsent, () => undefined);
+	const consent = useConsent();
 	const keyboardOpen = useKeyboardOpen();
 
 	if (!hasAnalytics(integrations)) return null;
@@ -99,7 +99,7 @@ const CHOICE_TEXT = {
 /** A Settings row showing the analytics cookie choice, with a way to make it again; nothing when no analytics ID is set. */
 export function CookieChoiceRow({ integrations }: { integrations?: Integrations | null }) {
 	const { t } = useLanguage();
-	const consent = useSyncExternalStore(subscribe, readConsent, () => undefined);
+	const consent = useConsent();
 
 	if (!hasAnalytics(integrations)) return null;
 

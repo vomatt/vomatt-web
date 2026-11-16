@@ -667,6 +667,13 @@
 		"accept": "接受分析",
 		"decline": "拒絕"
 	},
+	"termsNotice": {
+		"label": "條款與 Cookie",
+		"message": "繼續使用即表示你同意 vomatt 的{terms}和{privacy}，其中說明我們如何使用 Cookie。",
+		"terms": "服務條款",
+		"privacy": "隱私權政策",
+		"dismiss": "關閉"
+	},
 	"invitees": {
 		"title": "受邀者",
 		"description": "能看到這個投票並參與的人。",

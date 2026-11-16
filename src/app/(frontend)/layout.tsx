@@ -9,7 +9,6 @@ import { ReactNode, Suspense } from 'react';
 
 import { BrandPulse, MarkLoader } from '@/components/BrandPulse';
 import { Layout } from '@/components/layout';
-import { CookieConsent } from '@/components/layout/CookieConsent';
 import { ServerClock } from '@/components/ServerClock';
 import { SessionRetry } from '@/components/SessionRetry';
 import { ThemedToaster } from '@/components/ThemedToaster';
@@ -97,8 +96,8 @@ export default async function RootLayout({
 }: {
 	children: ReactNode;
 }) {
-	const [{ language, messages: translations }, settings, requestHeaders] =
-		await Promise.all([getServerMessages(), getSiteSettings(), headers()]);
+	const [{ language, messages: translations }, requestHeaders] =
+		await Promise.all([getServerMessages(), headers()]);
 
 	return (
 		// next-themes sets the theme class on <html> before React hydrates
@@ -119,7 +118,7 @@ export default async function RootLayout({
 							<SessionRetry loader={<MarkLoader />} />
 						) : (
 							// A Suspense in a layout falls back on the first load only; navigations keep the
-							// current page. The cookie banner waits with the app, so it can't cover the splash.
+							// current page. The cookie banner (in Layout) waits with the app, so it can't cover the splash.
 							<Suspense fallback={<BrandPulse />}>
 								<TooltipProvider>
 									<Layout>{children}</Layout>
@@ -146,7 +145,6 @@ export default async function RootLayout({
 										},
 									}}
 								/>
-								<CookieConsent integrations={settings?.integrations} />
 							</Suspense>
 						)}
 					</LanguageProvider>

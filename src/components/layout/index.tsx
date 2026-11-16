@@ -4,6 +4,7 @@ import React, { ReactNode } from 'react';
 import { MarkLoader } from '@/components/BrandPulse';
 import { AdaSkip } from '@/components/layout/AdaSkip';
 import { AppSidebar } from '@/components/layout/AppSidebar';
+import { BottomPrompt } from '@/components/layout/BottomPrompt';
 import { Header } from '@/components/layout/Header';
 import { Main } from '@/components/layout/Main';
 import { TabBar } from '@/components/layout/TabBar';
@@ -19,24 +20,33 @@ import { ActingProvider } from '@/features/communities/ActingProvider';
 import { KeepCommunitiesPrompt } from '@/features/communities/KeepCommunitiesPrompt';
 import { PendingFollow } from '@/features/follows/FollowButton';
 import { UnreadCountProvider } from '@/features/notifications/UnreadCountProvider';
+import { getSiteSettings } from '@/lib/siteSettings';
 
 interface LayoutProps {
 	children: ReactNode;
 }
 
 export async function Layout({ children }: LayoutProps) {
-	const [session, { profile, error }, loginLink, acting, announcement, cookieStore] = await Promise.all([
+	const [session, { profile, error }, loginLink, acting, announcement, cookieStore, settings] = await Promise.all([
 		getUserSession(),
 		loadMyProfile(),
 		getLoginHref(),
 		loadActingState(),
 		getAnnouncement(),
 		cookies(),
+		getSiteSettings(),
 	]);
+	// Rendered while the app waits too, so analytics still loads for visitors who accepted it
+	const bottomPrompt = <BottomPrompt integrations={settings?.integrations} signedIn={!!session} />;
 	// The API didn't answer, so whether they're signed in is unknown: wait for it rather than show them signed out
 	if (error) {
 		console.error('Could not load the signed-in profile', error);
-		return <SessionRetry loader={<MarkLoader />} />;
+		return (
+			<>
+				<SessionRetry loader={<MarkLoader />} />
+				{bottomPrompt}
+			</>
+		);
 	}
 	// The cookie names an account the user can no longer act as, but requests still carry it: show nothing
 	// until the provider has ended acting and the page reloads as the user
@@ -46,6 +56,7 @@ export async function Layout({ children }: LayoutProps) {
 				<div className="grid min-h-svh place-items-center">
 					<MarkLoader />
 				</div>
+				{bottomPrompt}
 			</ActingProvider>
 		);
 	}
@@ -71,6 +82,7 @@ export async function Layout({ children }: LayoutProps) {
 							{children}
 						</Main>
 						<TabBar userSession={session} username={profile?.username} avatarUrl={profile?.avatarUrl} />
+						{bottomPrompt}
 					</MotionProvider>
 				</UnreadCountProvider>
 			</ActingProvider>

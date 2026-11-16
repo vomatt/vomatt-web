@@ -1,19 +1,26 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 
 jest.mock('@/contexts/LanguageContext', () => require('../helpers/mockLanguage'));
+let mockPathname = '/';
+jest.mock('next/navigation', () => ({ usePathname: () => mockPathname }));
 jest.mock('@/components/layout/HeadTrackingCode', () => ({
 	HeadTrackingCode: () => <div data-testid="tracking" />,
 }));
 
+import { BottomPrompt } from '@/components/layout/BottomPrompt';
 import { consentCookie, CookieChoiceRow, CookieConsent } from '@/components/layout/CookieConsent';
 
 const integrations = { gaIDs: ['G-TEST'] };
 
-function clearConsent() {
+function clearCookies() {
 	document.cookie = 'cookie-consent=; path=/; max-age=0';
+	document.cookie = 'terms-notice-dismissed=; path=/; max-age=0';
 }
 
-beforeEach(clearConsent);
+beforeEach(() => {
+	clearCookies();
+	mockPathname = '/';
+});
 
 describe('CookieConsent', () => {
 	it('renders nothing when no analytics ID is set', () => {
@@ -45,6 +52,44 @@ describe('CookieConsent', () => {
 		document.cookie = 'cookie-consent=granted; path=/';
 		render(<CookieConsent integrations={integrations} />);
 		expect(screen.getByTestId('tracking')).toBeInTheDocument();
+	});
+});
+
+describe('BottomPrompt terms notice', () => {
+	const notice = () => screen.queryByRole('region', { name: 'Terms and cookies' });
+
+	it('tells signed-out visitors which policies they agree to, linked on the about site', () => {
+		render(<BottomPrompt signedIn={false} />);
+		expect(notice()).toHaveTextContent('By continuing, you agree to vomatt’s Terms of Service and Privacy Policy');
+		expect(screen.getByRole('link', { name: 'Terms of Service' })).toHaveAttribute('href', expect.stringMatching(/\/terms-of-service$/));
+		expect(screen.getByRole('link', { name: 'Privacy Policy' })).toHaveAttribute('href', expect.stringMatching(/\/privacy-policy$/));
+	});
+
+	it('stays away once dismissed', () => {
+		const { unmount } = render(<BottomPrompt signedIn={false} />);
+		fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }));
+		expect(notice()).not.toBeInTheDocument();
+		unmount();
+		render(<BottomPrompt signedIn={false} />);
+		expect(notice()).not.toBeInTheDocument();
+	});
+
+	it('is not shown to signed-in users', () => {
+		render(<BottomPrompt signedIn />);
+		expect(notice()).not.toBeInTheDocument();
+	});
+
+	it('is not shown on the login page, which has its own policy line', () => {
+		mockPathname = '/login';
+		render(<BottomPrompt signedIn={false} />);
+		expect(notice()).not.toBeInTheDocument();
+	});
+
+	it('waits for the analytics question, so one prompt shows at a time', () => {
+		render(<BottomPrompt integrations={integrations} signedIn={false} />);
+		expect(notice()).not.toBeInTheDocument();
+		fireEvent.click(screen.getByRole('button', { name: /decline/i }));
+		expect(notice()).toBeInTheDocument();
 	});
 });
 
