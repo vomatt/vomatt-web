@@ -132,10 +132,11 @@ function TabIcon({ icon, isActive }: { icon: React.ReactNode; isActive: boolean 
 
 function tabIconClassName(isActive: boolean) {
 	return cn(
-		'flex size-12 items-center justify-center motion-safe:transition-[color,scale] motion-safe:duration-150 motion-safe:group-active:scale-88',
+		'relative flex size-12 items-center justify-center motion-safe:transition-[color,scale] motion-safe:duration-150 motion-safe:group-active:scale-88',
+		// The current tab's dot: drawn as a border, not a fill, so forced colors keep it
+		'after:absolute after:bottom-1 after:size-1 after:rounded-full after:border-2 after:border-current motion-safe:after:transition-[scale,opacity] motion-safe:after:duration-200',
 		isActive
-			? // Forced colors drop the shadow bar; the border takes its place
-				'text-foreground shadow-[inset_0_-2px_0_var(--foreground)] forced-colors:border-b-2'
-			: 'text-muted-foreground group-active:text-foreground'
+			? 'text-foreground after:scale-100 after:opacity-100'
+			: 'text-muted-foreground group-active:text-foreground after:scale-0 after:opacity-0'
 	);
 }
