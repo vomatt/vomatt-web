@@ -24,6 +24,11 @@ describe('Header', () => {
 		mockPathname = '/';
 	});
 
+	it('keeps its text out of search snippets', () => {
+		render(<Header {...guest} />);
+		expect(screen.getByRole('link', { name: 'vomatt' }).closest('[data-nosnippet]')).not.toBeNull();
+	});
+
 	it('links the logo home', () => {
 		render(<Header {...guest} />);
 		expect(screen.getByRole('link', { name: 'vomatt' })).toHaveAttribute('href', '/');

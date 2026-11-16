@@ -95,6 +95,7 @@ export function TabBar({ className, userSession, username, avatarUrl }: TabBarPr
 	return (
 		<nav
 			data-tabbar
+			data-nosnippet
 			// iOS 26 Safari carries fixed bottom bars up above the keyboard; it stays behind the keyboard instead
 			data-keyboard={keyboardOpen || undefined}
 			className={cn(

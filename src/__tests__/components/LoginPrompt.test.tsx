@@ -21,6 +21,11 @@ describe('LoginPrompt', () => {
 		expect(screen.getByRole('link', { name: 'Log in' })).toHaveAttribute('href', '/login');
 	});
 
+	it('stays out of search snippets', () => {
+		const { container } = render(<LoginPrompt />);
+		expect(container.firstElementChild).toHaveAttribute('data-nosnippet');
+	});
+
 	it('on a poll, says logging in opens it and comes back to it', () => {
 		render(<LoginPrompt forPoll redirectTo="/poll/p1" sessionExpired />);
 		expect(

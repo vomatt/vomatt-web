@@ -24,6 +24,7 @@ export function Header({ signedIn, loginLink }: HeaderProps) {
 	return (
 		<header
 			data-mobile-header
+			data-nosnippet
 			className="fixed inset-x-0 top-0 z-header flex h-header items-center justify-between border-b border-border bg-background/80 backdrop-blur-lg px-contain md:hidden"
 		>
 			<BrandLink className="w-20" />

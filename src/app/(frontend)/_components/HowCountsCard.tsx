@@ -13,6 +13,7 @@ export function HowCountsCard() {
 	return (
 		<section
 			aria-labelledby={headingId}
+			data-nosnippet
 			className="flex flex-col gap-2.5 rounded-2xl border border-border bg-card p-[18px] text-body-4"
 		>
 			<h2 id={headingId} className="flex items-center gap-1.5 font-medium text-foreground">
