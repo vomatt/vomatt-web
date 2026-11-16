@@ -57,6 +57,8 @@ const REFRESH_CODES = [
 	'community.invitation.exists',
 	'community.role_forbidden',
 	'community.not_member',
+	// A stale resendAvailableAt
+	'invitation.email.too_soon',
 ];
 
 const ICONS: Record<MemberAction, React.ReactNode> = {
@@ -284,8 +286,9 @@ export function CommunityMembers({
 							const name = invitation.username ? handle(invitation.username) : (invitation.email ?? '');
 							const expired = !!clock && new Date(invitation.expiresAt).getTime() <= clock.now;
 							// Only an invitation by email is mailed, and only once its window has passed
-							const resendable = !!invitation.email && !expired;
-							const windowPassed = !!clock && new Date(invitation.resendAvailableAt ?? 0).getTime() <= clock.now;
+							// An ADMIN can't resend one that grants OWNER
+							const resendable = !!invitation.email && !expired && grantable.includes(invitation.role);
+							const windowPassed = !!clock && !!invitation.resendAvailableAt && new Date(invitation.resendAvailableAt).getTime() <= clock.now;
 							return (
 								<li key={invitation.id} className={cn(rowClassName, 'gap-3')}>
 									{invitation.username && (
