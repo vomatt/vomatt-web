@@ -1,7 +1,17 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { createContext, type ReactNode, use, useEffect, useEffectEvent, useRef, useState, useTransition } from 'react';
+import {
+	createContext,
+	type ReactNode,
+	use,
+	useCallback,
+	useEffect,
+	useEffectEvent,
+	useRef,
+	useState,
+	useTransition,
+} from 'react';
 
 import { Spinner } from '@/components/ui/Spinner';
 import { RotateCw } from '@/components/ui/SvgIcons';
@@ -18,6 +28,8 @@ const OVERLAYS = '[role="dialog"],[role="alertdialog"],[role="menu"],[role="list
 
 /** How many refreshes have finished; lists re-seed from their first page when it changes. */
 const RefreshGeneration = createContext(0);
+/** Refetches the enclosing `Refreshable` page with its spinner; null outside one. */
+const RefreshPage = createContext<(() => void) | null>(null);
 
 /**
  * A page that refetches on request: pulling down from the top on a touch screen. Pages that stay in
@@ -35,40 +47,48 @@ export function Refreshable({ children }: { children: ReactNode }) {
 		if (!isRefreshing) setGeneration((n) => n + 1);
 	}
 
-	usePullDown({
-		onDrag: setPull,
-		onPulled: () => {
-			if (!isRefreshing) startRefresh(() => router.refresh());
-		},
-	});
+	const refreshPage = useCallback(() => {
+		if (!isRefreshing) startRefresh(() => router.refresh());
+	}, [isRefreshing, router]);
+
+	usePullDown({ onDrag: setPull, onPulled: refreshPage });
 
 	const height = isRefreshing ? REFRESHING_HEIGHT : pull;
 
 	return (
-		<RefreshGeneration value={generation}>
-			<div
-				aria-hidden={!isRefreshing}
-				style={{ height }}
-				className={cn(
-					'flex items-center justify-center overflow-hidden text-muted-foreground',
-					// Eases back when let go; follows the finger while pulled
-					pull === 0 && 'transition-[height] duration-200 motion-reduce:transition-none'
-				)}
-			>
-				{isRefreshing ? (
-					<Spinner className="size-5" />
-				) : (
-					pull > 0 && (
-						<RotateCw
-							className={cn('size-5 transition-opacity', pull < PULL_THRESHOLD && 'opacity-50')}
-							style={{ transform: `rotate(${(pull / PULL_THRESHOLD) * 270}deg)` }}
-						/>
-					)
-				)}
-			</div>
-			{children}
-		</RefreshGeneration>
+		<RefreshPage value={refreshPage}>
+			<RefreshGeneration value={generation}>
+				<div
+					aria-hidden={!isRefreshing}
+					style={{ height }}
+					className={cn(
+						'flex items-center justify-center overflow-hidden text-muted-foreground',
+						// Eases back when let go; follows the finger while pulled
+						pull === 0 && 'transition-[height] duration-200 motion-reduce:transition-none'
+					)}
+				>
+					{isRefreshing ? (
+						<Spinner className="size-5" />
+					) : (
+						pull > 0 && (
+							<RotateCw
+								className={cn('size-5 transition-opacity', pull < PULL_THRESHOLD && 'opacity-50')}
+								style={{ transform: `rotate(${(pull / PULL_THRESHOLD) * 270}deg)` }}
+							/>
+						)
+					)}
+				</div>
+				{children}
+			</RefreshGeneration>
+		</RefreshPage>
 	);
+}
+
+/** Refetches the page: inside a `Refreshable` with its spinner, elsewhere with `router.refresh`. */
+export function useRefreshPage() {
+	const router = useRouter();
+	const fallback = useCallback(() => router.refresh(), [router]);
+	return use(RefreshPage) ?? fallback;
 }
 
 /** Changes each time the enclosing `Refreshable` page finishes a refresh; 0 outside one. */

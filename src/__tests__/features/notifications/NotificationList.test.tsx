@@ -46,8 +46,9 @@ jest.mock('next/link', () => {
 jest.mock('@/contexts/LanguageContext', () =>
 	require('../../helpers/mockLanguage')
 );
+const mockRouterRefresh = jest.fn();
 jest.mock('next/navigation', () => ({
-	useRouter: () => ({ refresh: jest.fn() }),
+	useRouter: () => ({ refresh: mockRouterRefresh }),
 }));
 jest.mock('@/features/polls/service', () => ({}));
 const mockMarkAllRead = jest.fn();
@@ -726,6 +727,87 @@ describe('NotificationList read state', () => {
 		expect(
 			within(rowOf('Which stall')).queryByText('Unread')
 		).not.toBeInTheDocument();
+	});
+
+	it('reads a page the browser cache brings back only once, and shows its rows read', async () => {
+		const page = { items: [invitation, result], nextCursor: null };
+		const first = render(<NotificationList initialPage={page} unreadIds={null} viewerUsername="mei" />);
+		await waitFor(() => expect(mockRefresh).toHaveBeenCalled());
+		first.unmount();
+
+		render(<NotificationList initialPage={page} unreadIds={null} viewerUsername="mei" />);
+		await act(async () => {});
+		expect(mockMarkAllRead).toHaveBeenCalledTimes(1);
+		expect(mockRouterRefresh).not.toHaveBeenCalled();
+		expect(screen.queryByText('Unread')).not.toBeInTheDocument();
+	});
+
+	it('refetches a page the browser cache brings back when new notifications came in since', async () => {
+		const page = { items: [invitation], nextCursor: null };
+		const first = render(<NotificationList initialPage={page} unreadIds={null} viewerUsername="mei" />);
+		await waitFor(() => expect(mockRefresh).toHaveBeenCalled());
+		first.unmount();
+
+		mockUnreadCount = 2;
+		render(<NotificationList initialPage={page} unreadIds={null} viewerUsername="mei" />);
+		await waitFor(() => expect(mockRouterRefresh).toHaveBeenCalledTimes(1));
+		expect(mockMarkAllRead).toHaveBeenCalledTimes(1);
+	});
+
+	it('reads what a refreshed page brings, with its dots', async () => {
+		const view = renderList([comment]);
+		await waitFor(() => expect(mockMarkAllRead).toHaveBeenCalledTimes(1));
+
+		view.rerender(
+			<NotificationList
+				initialPage={{ items: [invitation, comment], nextCursor: null }}
+				unreadIds={[invitation.id]}
+				viewerUsername="mei"
+			/>
+		);
+		await waitFor(() => expect(mockMarkAllRead).toHaveBeenCalledTimes(2));
+		expect(within(rowOf('Which stall')).getByText('Unread')).toBeInTheDocument();
+	});
+
+	it('keeps this visit’s dots when an action re-renders the page', async () => {
+		const view = renderList([invitation], [invitation.id]);
+		await waitFor(() => expect(mockRefresh).toHaveBeenCalled());
+
+		view.rerender(
+			<NotificationList
+				initialPage={{ items: [{ ...invitation, read: true }], nextCursor: null }}
+				unreadIds={[]}
+				viewerUsername="mei"
+			/>
+		);
+		expect(within(rowOf('Which stall')).getByText('Unread')).toBeInTheDocument();
+	});
+
+	it('recounts on a cached revisit and refetches once the badge has something new', async () => {
+		const page = { items: [invitation], nextCursor: null };
+		const first = render(<NotificationList initialPage={page} unreadIds={null} viewerUsername="mei" />);
+		await waitFor(() => expect(mockRefresh).toHaveBeenCalledTimes(1));
+		first.unmount();
+
+		const revisit = render(<NotificationList initialPage={page} unreadIds={null} viewerUsername="mei" />);
+		await waitFor(() => expect(mockRefresh).toHaveBeenCalledTimes(2));
+		expect(mockRouterRefresh).not.toHaveBeenCalled();
+
+		mockUnreadCount = 1;
+		revisit.rerender(<NotificationList initialPage={page} unreadIds={null} viewerUsername="mei" />);
+		await waitFor(() => expect(mockRouterRefresh).toHaveBeenCalledTimes(1));
+	});
+
+	it('reads a cached page again when reading it failed the first time', async () => {
+		mockMarkAllRead.mockResolvedValueOnce({ ok: false, message: 'down' });
+		const page = { items: [invitation], nextCursor: null };
+		const first = render(<NotificationList initialPage={page} unreadIds={null} viewerUsername="mei" />);
+		await waitFor(() => expect(mockMarkAllRead).toHaveBeenCalledTimes(1));
+		first.unmount();
+
+		render(<NotificationList initialPage={page} unreadIds={null} viewerUsername="mei" />);
+		await waitFor(() => expect(mockMarkAllRead).toHaveBeenCalledTimes(2));
+		expect(within(rowOf('Which stall')).getByText('Unread')).toBeInTheDocument();
 	});
 
 	it('leaves the badge alone when reading fails', async () => {

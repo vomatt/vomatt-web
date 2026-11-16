@@ -7,6 +7,7 @@ import { useEffect, useState, useTransition } from 'react';
 import { EmptyCard } from '@/components/EmptyCard';
 import { FilterPills } from '@/components/FilterPills';
 import { PageShell } from '@/components/layout/PageShell';
+import { useRefreshGeneration } from '@/components/Refreshable';
 import { Button, buttonVariants } from '@/components/ui/Button';
 import { CirclePlus, Eye, Lock, Settings, Users } from '@/components/ui/SvgIcons';
 import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from '@/components/ui/Tabs';
@@ -409,11 +410,15 @@ const fetchSaved = (cursor: string) => getBookmarkedPolls(cursor);
 function SavedList() {
 	const { t } = useLanguage();
 	const [first, setFirst] = useState<CursorPage<Poll> | 'loading' | 'failed'>('loading');
-	const load = () => getBookmarkedPolls().then(setFirst, () => setFirst('failed'));
+	// A failed reload keeps the rows already shown
+	const load = () =>
+		getBookmarkedPolls().then(setFirst, () => setFirst((current) => (typeof current === 'object' ? current : 'failed')));
+	// Pulling down to refresh the page reloads it too, keeping the rows until the new ones arrive
+	const generation = useRefreshGeneration();
 
 	useEffect(() => {
 		load();
-	}, []);
+	}, [generation]);
 
 	if (first === 'loading') return <PollRowListSkeleton />;
 	if (first === 'failed') {
