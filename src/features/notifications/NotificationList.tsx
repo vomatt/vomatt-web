@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { EmptyCard } from '@/components/EmptyCard';
 import { FilterPills } from '@/components/FilterPills';
 import { LoadMore } from '@/components/LoadMore';
+import { useRefreshPage } from '@/components/Refreshable';
 import { StickyBar } from '@/components/StickyBar';
 import { ChevronRight } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -28,6 +29,9 @@ import { getNotifications, markAllNotificationsRead } from './service';
 import { useUnreadCount } from './UnreadCountProvider';
 
 export type DayGroup = 'today' | 'yesterday' | 'earlier';
+
+/** Server renders this tab has read (`renderId`); the page stays in the browser's cache (`unstable_dynamicStaleTime`). */
+const readRenders = new Set<string>();
 
 /** Which day a moment falls on, in the reader's own calendar. */
 export function dayGroup(iso: string, now = new Date()): DayGroup {
@@ -64,6 +68,7 @@ export function NotificationList({
 	initialCategory = 'all',
 	unreadIds,
 	viewerUsername,
+	renderId,
 }: {
 	/** Null when the feed couldn't be loaded. */
 	initialPage: CursorPage<Notification> | null;
@@ -72,6 +77,8 @@ export function NotificationList({
 	/** The feed's unread ids from before this visit read them all; null when they couldn't be loaded. */
 	unreadIds: string[] | null;
 	viewerUsername: string;
+	/** New on each server render, and the same when the browser's cache brings the page back. */
+	renderId: string;
 }) {
 	const { t } = useLanguage();
 	const { count: unreadCount, refresh } = useUnreadCount();
@@ -82,30 +89,50 @@ export function NotificationList({
 	);
 	const list = useCursorList(initialPage, fetchPage);
 	const [category, setCategory] = useState(initialCategory);
+	// The browser's cache brought back a page this tab already read: nothing on it is new
+	const [isRevisit, setIsRevisit] = useState(() => initialPage !== null && readRenders.has(renderId));
+	// Kept from the server page's render: pages fetched after read-all come back read
+	const [wasUnread, setWasUnread] = useState<ReadonlySet<string>>(() => new Set(unreadIds));
 	// A fresh server page replaces the list, so the tab goes back to the page's
 	const [seed, setSeed] = useState(initialPage);
 	if (initialPage !== seed) {
 		setSeed(initialPage);
 		setCategory(initialCategory);
+		setIsRevisit(false);
+		// Read-all already ran on what was shown, so a new page's ids add to this visit's dots
+		setWasUnread((current) => new Set([...current, ...(unreadIds ?? [])]));
 	}
 	const [isSwitching, setIsSwitching] = useState(false);
 	// Days follow the reader's clock, so the grouping waits for hydration
 	const isHydrated = useHydrated();
 
-	// Read whenever a feed is shown, including one a refresh recovers; a failed request leaves the badge as it was
-	const hasFeed = initialPage !== null;
+	// Read every server page once; a failed request leaves the badge as it was
 	const locked = !!useActing().acting?.locked;
 	useEffect(() => {
-		if (!hasFeed || locked) return;
+		if (!initialPage || locked || isRevisit) return;
 		markAllNotificationsRead().then(
-			(result) => result.ok && refresh(),
+			(result) => {
+				if (!result.ok) return;
+				readRenders.add(renderId);
+				refresh();
+			},
 			(error) => console.error('Marking notifications read failed:', error)
 		);
-	}, [hasFeed, locked, refresh]);
+	}, [initialPage, renderId, isRevisit, locked, refresh]);
 
-	// Kept from the first render: pages fetched after read-all come back read, and a refreshed server page lists none
-	const [wasUnread, setWasUnread] = useState<ReadonlySet<string>>(() => new Set(unreadIds));
-	const items = list.items.map((item) => (item.read && wasUnread.has(item.id) ? { ...item, read: false } : item));
+	// A cached page lists nothing that came in after it: recount, and refetch the page once anything has
+	const refreshPage = useRefreshPage();
+	useEffect(() => {
+		if (isRevisit && !locked) refresh();
+	}, [isRevisit, locked, refresh]);
+	useEffect(() => {
+		if (isRevisit && !locked && unreadCount > 0) refreshPage();
+	}, [isRevisit, locked, unreadCount, refreshPage]);
+
+	const items = list.items.map((item) => {
+		const unread = !isRevisit && (!item.read || wasUnread.has(item.id));
+		return unread === !item.read ? item : { ...item, read: !unread };
+	});
 
 	// Already read on the server: opening a row only clears its dot
 	const open = (entry: Entry) => {

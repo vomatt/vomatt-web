@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
 import { PageShell } from '@/components/layout/PageShell';
+import { Refreshable } from '@/components/Refreshable';
 import { T } from '@/components/T';
 import { Lock } from '@/components/ui/SvgIcons';
 import { TidePanel } from '@/components/ui/TidePanel';
@@ -25,6 +26,11 @@ import {
 import type { CursorPage } from '@/lib/api/cursor';
 import { getServerMessages } from '@/lib/getServerLocale';
 
+// Coming back within 3 minutes shows this page from the browser's cache instead of rendering it and
+// calling the API again. Actions that revalidate drop it; pulling down refetches (`Refreshable`), and so
+// does an unread badge (`NotificationList`)
+export const unstable_dynamicStaleTime = 180;
+
 export async function generateMetadata(): Promise<Metadata> {
 	const { messages } = await getServerMessages();
 	return { title: messages.notifications.title };
@@ -42,26 +48,28 @@ export default async function NotificationsPage({ searchParams }: { searchParams
 	const unreadIds = getUnreadNotificationIds().catch(() => null);
 
 	return (
-		<PageShell
-			rail={
-				<Suspense fallback={null}>
-					<NotificationsRail firstPage={firstPage} category={category} preferences={preferences} />
-				</Suspense>
-			}
-		>
-			<div className="flex flex-col gap-5">
-				<Suspense
-					fallback={<NotificationsSkeleton />}
-				>
-					<Notifications
-						firstPage={firstPage}
-						unreadIds={unreadIds}
-						category={category}
-						viewerUsername={profile.username}
-					/>
-				</Suspense>
-			</div>
-		</PageShell>
+		<Refreshable>
+			<PageShell
+				rail={
+					<Suspense fallback={null}>
+						<NotificationsRail firstPage={firstPage} category={category} preferences={preferences} />
+					</Suspense>
+				}
+			>
+				<div className="flex flex-col gap-5">
+					<Suspense
+						fallback={<NotificationsSkeleton />}
+					>
+						<Notifications
+							firstPage={firstPage}
+							unreadIds={unreadIds}
+							category={category}
+							viewerUsername={profile.username}
+						/>
+					</Suspense>
+				</div>
+			</PageShell>
+		</Refreshable>
 	);
 }
 
@@ -79,7 +87,15 @@ async function Notifications({
 	viewerUsername: string;
 }) {
 	const [page, ids] = await Promise.all([firstPage, unreadIds]);
-	return <NotificationList initialPage={page} initialCategory={category} unreadIds={ids} viewerUsername={viewerUsername} />;
+	return (
+		<NotificationList
+			initialPage={page}
+			initialCategory={category}
+			unreadIds={ids}
+			viewerUsername={viewerUsername}
+			renderId={crypto.randomUUID()}
+		/>
+	);
 }
 
 async function NotificationsRail({

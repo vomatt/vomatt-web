@@ -1,15 +1,18 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { toast } from 'sonner';
 
 import { OwnProfileView } from '@/app/(frontend)/[slug]/_components/OwnProfileView';
 import { VisitorProfileView } from '@/app/(frontend)/[slug]/_components/VisitorProfileView';
+import { Refreshable } from '@/components/Refreshable';
 import { ActingProvider } from '@/features/communities/ActingProvider';
 import type { MyCommunity } from '@/features/communities/schema';
 import type { Poll } from '@/features/polls/schema';
 import { editProfile } from '@/lib/api/services/users';
 import { META_GAP } from '@/lib/rich';
 import type { MyProfile, UserProfile } from '@/types/user';
+
+import { drag, FAR_ENOUGH } from '../../helpers/pull';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 const mockRefresh = jest.fn();
@@ -534,6 +537,56 @@ describe('OwnProfileView', () => {
 		fireEvent.click(screen.getByRole('tab', { name: /Saved/ }));
 		expect(screen.getByRole('link', { name: /Poll k2/ })).toBeInTheDocument();
 		expect(mockGetBookmarked).toHaveBeenCalledTimes(2);
+	});
+
+	it('reloads saved polls when the page is pulled down to refresh', async () => {
+		mockGetBookmarked
+			.mockResolvedValueOnce({ items: [poll('k1', { creatorId: 'u9' })], nextCursor: null })
+			.mockResolvedValueOnce({ items: [poll('k2', { creatorId: 'u9' })], nextCursor: null });
+		render(
+			<Refreshable>
+				<OwnProfileView profile={me} polls={[]} initialTab="saved" />
+			</Refreshable>
+		);
+		await screen.findByRole('link', { name: /Poll k1/ });
+
+		drag(0, FAR_ENOUGH);
+		expect(await screen.findByRole('link', { name: /Poll k2/ })).toBeInTheDocument();
+		expect(screen.queryByRole('link', { name: /Poll k1/ })).not.toBeInTheDocument();
+	});
+
+	it('shows the latest saved polls when an earlier load comes back last', async () => {
+		let resolveFirst!: (page: { items: Poll[]; nextCursor: null }) => void;
+		mockGetBookmarked
+			.mockReturnValueOnce(new Promise((resolve) => (resolveFirst = resolve)))
+			.mockResolvedValueOnce({ items: [poll('k2', { creatorId: 'u9' })], nextCursor: null });
+		render(
+			<Refreshable>
+				<OwnProfileView profile={me} polls={[]} initialTab="saved" />
+			</Refreshable>
+		);
+
+		drag(0, FAR_ENOUGH);
+		await screen.findByRole('link', { name: /Poll k2/ });
+		await act(async () => resolveFirst({ items: [poll('k1', { creatorId: 'u9' })], nextCursor: null }));
+		expect(screen.getByRole('link', { name: /Poll k2/ })).toBeInTheDocument();
+		expect(screen.queryByRole('link', { name: /Poll k1/ })).not.toBeInTheDocument();
+	});
+
+	it('keeps the saved polls shown when a refresh fails to reload them', async () => {
+		mockGetBookmarked
+			.mockResolvedValueOnce({ items: [poll('k1', { creatorId: 'u9' })], nextCursor: null })
+			.mockRejectedValueOnce(new Error('offline'));
+		render(
+			<Refreshable>
+				<OwnProfileView profile={me} polls={[]} initialTab="saved" />
+			</Refreshable>
+		);
+		await screen.findByRole('link', { name: /Poll k1/ });
+
+		drag(0, FAR_ENOUGH);
+		await waitFor(() => expect(mockGetBookmarked).toHaveBeenCalledTimes(2));
+		expect(screen.getByRole('link', { name: /Poll k1/ })).toBeInTheDocument();
 	});
 
 	it('loads the next page of saved polls on Show more', async () => {

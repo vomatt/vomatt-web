@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { cache, Suspense } from 'react';
 
 import { JsonLd } from '@/components/JsonLd';
+import { Refreshable } from '@/components/Refreshable';
 import { getMyProfile } from '@/data/auth';
 import { isOwnUsername, usernameFromSlug } from '@/features/account/username';
 import { getUserPolls } from '@/features/polls/service';
@@ -16,6 +17,10 @@ import { OwnProfile, ProfileSkeleton, PublicProfile } from './_components/Profil
 
 // Metadata and the page ask once per request; signed in, the lookup is uncached
 const loadProfile = cache(getUserProfile);
+
+// Coming back within 3 minutes shows this page from the browser's cache instead of rendering it and
+// calling the API again. Actions that revalidate drop it; pulling down refetches (`Refreshable`)
+export const unstable_dynamicStaleTime = 180;
 
 type Props = {
 	params: Promise<{ slug: string }>;
@@ -49,9 +54,11 @@ export default async function PageSlugRoute(props: Props) {
 	// `?view=public`: the owner sees their page as everyone else does
 	if (isOwnUsername(me, username) && view !== 'public') {
 		return (
-			<Suspense fallback={<ProfileSkeleton />}>
-				<OwnProfile profile={me} initialTab={tab === 'voted' || tab === 'saved' ? tab : 'asked'} openEdit={edit === '1'} />
-			</Suspense>
+			<Refreshable>
+				<Suspense fallback={<ProfileSkeleton />}>
+					<OwnProfile profile={me} initialTab={tab === 'voted' || tab === 'saved' ? tab : 'asked'} openEdit={edit === '1'} />
+				</Suspense>
+			</Refreshable>
 		);
 	}
 
@@ -66,9 +73,11 @@ export default async function PageSlugRoute(props: Props) {
 	return (
 		<>
 			<JsonLd data={profileJsonLd(profile)} />
-			<Suspense fallback={<ProfileSkeleton rail={!isOwnUsername(me, username)} />}>
-				<PublicProfile profile={profile} polls={polls} viewerId={me?.id ?? null} preview={isOwnUsername(me, username)} />
-			</Suspense>
+			<Refreshable>
+				<Suspense fallback={<ProfileSkeleton rail={!isOwnUsername(me, username)} />}>
+					<PublicProfile profile={profile} polls={polls} viewerId={me?.id ?? null} preview={isOwnUsername(me, username)} />
+				</Suspense>
+			</Refreshable>
 		</>
 	);
 }
