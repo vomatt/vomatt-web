@@ -130,7 +130,7 @@ describe('switching from two places at once', () => {
 		renderWith({ acting, communities: [acting] }, <><ActingBanner /><CommunityAccountsCard communities={[community('c2', 'ADMIN')]} /></>);
 
 		fireEvent.click(screen.getByRole('button', { name: 'Switch back to you' }));
-		fireEvent.click(screen.getByRole('button', { name: 'Act as Community c2' }));
+		fireEvent.click(screen.getByRole('button', { name: /Community c2/ }));
 		finish({ ok: true, data: undefined });
 		await waitFor(() => expect(mockRefresh).toHaveBeenCalled());
 		expect(actAsCommunity).toHaveBeenCalledTimes(1);
@@ -216,26 +216,28 @@ describe('FollowButton while acting', () => {
 });
 
 describe('CommunityAccountsCard', () => {
-	it('lets a member act as the account from Settings, but not an analyst', async () => {
-		renderWith({}, <CommunityAccountsCard communities={[community('c1', 'ADMIN'), community('c2', 'ANALYST')]} />);
-
-		expect(screen.queryByRole('button', { name: 'Act as Community c2' })).not.toBeInTheDocument();
-		fireEvent.click(screen.getByRole('button', { name: 'Act as Community c1' }));
-		await waitFor(() => expect(actAsCommunity).toHaveBeenCalledWith('c1'));
-	});
-
-	it('opens the account’s profile once acting as it', async () => {
+	it('switches to the account picked and opens its profile, as the sidebar does', async () => {
 		renderWith({}, <CommunityAccountsCard communities={[community('c1', 'ADMIN')]} />);
 
-		fireEvent.click(screen.getByRole('button', { name: 'Act as Community c1' }));
-		await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/c1'));
+		const row = screen.getByRole('button', { name: /Community c1/ });
+		expect(row).toHaveAccessibleDescription('Act as Community c1');
+		fireEvent.click(row);
+		await waitFor(() => expect(actAsCommunity).toHaveBeenCalledWith('c1'));
+		expect(mockPush).toHaveBeenCalledWith('/c1');
+	});
+
+	it('links an analyst, who can’t act as the account, to its members page instead', () => {
+		renderWith({}, <CommunityAccountsCard communities={[community('c2', 'ANALYST')]} />);
+
+		expect(screen.getByRole('link', { name: /Community c2/ })).toHaveAttribute('href', '/c2/settings/members');
+		expect(screen.queryByRole('button', { name: /Community c2/ })).not.toBeInTheDocument();
 	});
 
 	it('says so when switching fails', async () => {
 		(actAsCommunity as jest.Mock).mockResolvedValueOnce({ ok: false, message: 'down' });
 		renderWith({}, <CommunityAccountsCard communities={[community('c1', 'ADMIN')]} />);
 
-		fireEvent.click(screen.getByRole('button', { name: 'Act as Community c1' }));
+		fireEvent.click(screen.getByRole('button', { name: /Community c1/ }));
 		await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Couldn’t switch accounts. Please try again.'));
 		expect(mockPush).not.toHaveBeenCalled();
 	});

@@ -37,6 +37,6 @@ describe('Settings page', () => {
 
 		expect(screen.queryByText('Account settings')).not.toBeInTheDocument();
 		expect(screen.getByRole('button', { name: 'Switch back to you' })).toBeInTheDocument();
-		expect(screen.getByRole('link', { name: 'Manage members' })).toHaveAttribute('href', '/settings/communities/c1/members');
+		expect(screen.getByRole('link', { name: 'Manage members' })).toHaveAttribute('href', '/tower/settings/members');
 	});
 });

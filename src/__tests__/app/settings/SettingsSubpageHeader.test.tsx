@@ -37,7 +37,7 @@ function clickBack(init: MouseEventInit = {}) {
 
 describe('SettingsSubpageHeader', () => {
 	it('returns to the Settings entry it was opened from instead of adding another', () => {
-		setHistory(['/me', '/settings#communities', '/settings/communities/c1/members']);
+		setHistory(['/me', '/settings#communities', '/settings/devices']);
 		render(<SettingsSubpageHeader title="Members" />);
 
 		const event = clickBack();
@@ -58,7 +58,7 @@ describe('SettingsSubpageHeader', () => {
 	});
 
 	it('opens the link when the previous entry is the same page with a different query', () => {
-		setHistory(['/acme?tab=votes', '/settings/communities/c1/members']);
+		setHistory(['/acme?tab=votes', '/acme/settings/members']);
 		render(<SettingsSubpageHeader title="Members" back={{ href: '/acme', to: 'profile', name: 'Acme' }} />);
 
 		clickBack();
@@ -77,7 +77,7 @@ describe('SettingsSubpageHeader', () => {
 	});
 
 	it('opens Settings when the page was reached from elsewhere', () => {
-		setHistory(['/notifications', '/settings/communities/c1/members']);
+		setHistory(['/notifications', '/settings/devices']);
 		render(<SettingsSubpageHeader title="Members" />);
 
 		const event = clickBack();
@@ -88,7 +88,7 @@ describe('SettingsSubpageHeader', () => {
 	});
 
 	it('returns to the profile it was opened from when that is the way back', () => {
-		setHistory(['/acme', '/settings/communities/c1/members']);
+		setHistory(['/acme', '/acme/settings/members']);
 		render(<SettingsSubpageHeader title="Members" back={{ href: '/acme', to: 'profile', name: 'Acme' }} />);
 
 		clickBack();

@@ -45,6 +45,7 @@ Status: **B** = blocks or breaks something now · **Q** = question / decision ne
 | W5 | Tokens are refreshed ahead of expiry, only in `proxy.tsx`. A 401 during a Server Action always becomes `AuthError` (sign in again), even with `auth.token.expired`. It's rare because the proxy refreshes early, but it isn't retried. | OK for now |
 | W6 | ~~Mobile has no notifications entry.~~ Resolved in round 3: the TabBar's My Polls tab became Notifications; it has since moved to the phone Header, beside the profile avatar. Previously: The My Polls tab shows a dot when anything is unread, and its Ended tab marks unread polls. `/notifications` is linked from the desktop sidebar only. | **Q** (UX) |
 | W8 | Username changes go through `PATCH /users/me` `{ username }` (3–50 of `[a-z0-9_]`, not `search`; 409 `user.username.taken`). The profile dialog saves username, name and bio in one request. The API doesn't reserve app routes (`explore`, `login`, `account`, …), so such a username would make that profile unreachable at `/{username}`. | **Q** — reserve route names in the API? |
+| W9 | `POST /communities/{communityId}/invitations/{invitationId}/resend` and the invitation's `resendAvailableAt` (vomatt-api #141) are not used, by design: the product plan has no Resend in a community account's Pending invitations. The web added a Resend button in #210 and reverted it in `2bb1cfe` (2026-11-16). Don't add it back in an API sync. | **N** — by design |
 
 ## What changed in the web (for review)
 

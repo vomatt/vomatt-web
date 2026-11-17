@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 
 import { ActingProvider, useActing } from '@/features/communities/ActingProvider';
 import { CommunityMembers } from '@/features/communities/CommunityMembers';
-import type { CommunityMember, CommunityRole,MyCommunity } from '@/features/communities/schema';
+import type { CommunityMember, CommunityRole, MyCommunity } from '@/features/communities/schema';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn() } }));

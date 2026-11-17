@@ -73,7 +73,7 @@ export function PasskeysPanel() {
 	return (
 		<section aria-labelledby="passkeys-title" className="space-y-2.5">
 			<div className="flex flex-wrap items-center gap-4">
-				<span className="min-w-0 flex-1">
+				<span className="min-w-0 grow basis-56">
 					<h3 id="passkeys-title" className="font-medium">
 						{t('passkey.title')}
 					</h3>
@@ -88,7 +88,7 @@ export function PasskeysPanel() {
 			)}
 			{loadFailed && (
 				<div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-					<p className="flex-1 text-caption-1 text-muted-foreground">{t('passkey.loadFailed')}</p>
+					<p className="min-w-0 grow basis-56 text-caption-1 text-muted-foreground">{t('passkey.loadFailed')}</p>
 					<Button
 						variant="outline"
 						size="xs"

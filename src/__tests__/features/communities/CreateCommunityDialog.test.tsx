@@ -46,7 +46,7 @@ describe('CreateCommunityDialog', () => {
 		mockCreate.mockResolvedValue({ ok: true, data: { id: 'off1', username: 'sunrise_tower' } });
 		open();
 		fill('  Sunrise Tower  ', 'Sunrise_Tower');
-		await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/settings/communities/off1/members'));
+		await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/sunrise_tower/settings/members'));
 		expect(mockCreate).toHaveBeenCalledWith('sunrise_tower', 'Sunrise Tower');
 		expect(onOpenChange).toHaveBeenCalledWith(false);
 		expect(toast.success).toHaveBeenCalled();

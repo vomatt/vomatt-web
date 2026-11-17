@@ -140,7 +140,7 @@ export function OwnProfileView({
 											defaultOpen={openEdit}
 										/>
 									)}
-									<Link href={communityMembersHref(acting.communityId)} className={buttonVariants({ variant: 'outline', size: 'sm' })}>
+									<Link href={communityMembersHref(acting.username)} className={buttonVariants({ variant: 'outline', size: 'sm' })}>
 										<Users aria-hidden />
 										{t('communities.acting.manageMembers')}
 									</Link>

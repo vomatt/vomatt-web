@@ -389,7 +389,7 @@ describe('AccountSettings', () => {
 		render(
 			<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} communities={communities} />
 		);
-		expect(screen.getByRole('link', { name: /Sunrise/ })).toHaveAttribute('href', '/settings/communities/off1/members');
+		expect(screen.getByRole('button', { name: /Sunrise/ })).toBeInTheDocument();
 		fireEvent.click(screen.getByRole('button', { name: 'Delete account…' }));
 		fireEvent.change(screen.getByRole('textbox', { name: 'Type your username to confirm' }), { target: { value: 'mei' } });
 		fireEvent.click(screen.getAllByRole('button', { name: 'Delete account' }).at(-1)!);
@@ -445,7 +445,7 @@ describe('AccountSettings', () => {
 			<AccountSettings profile={{ ...myProfile, plan: 'PRO', communityQuota: quota(2, 3) }} inviteListCount={3} notificationPreferences={preferences} communities={[locked]} />
 		);
 		const section = screen.getByRole('region', { name: 'Community accounts' });
-		expect(within(section).getByRole('link', { name: /Harbor/ })).toHaveTextContent('Locked');
+		expect(within(section).getByRole('button', { name: /^Harbor/ })).toHaveTextContent('Locked');
 		fireEvent.click(within(section).getByRole('button', { name: 'Unlock Harbor' }));
 		await waitFor(() => expect(mockUnlock).toHaveBeenCalledWith('off2'));
 		expect(mockRefresh).toHaveBeenCalled();
@@ -455,7 +455,7 @@ describe('AccountSettings', () => {
 		render(
 			<AccountSettings profile={{ ...myProfile, plan: 'FREE', communityQuota: quota(1, 1) }} inviteListCount={3} notificationPreferences={preferences} communities={[locked]} />
 		);
-		expect(screen.getByRole('link', { name: /Harbor/ })).toHaveTextContent('Locked');
+		expect(screen.getByRole('button', { name: /^Harbor/ })).toHaveTextContent('Locked');
 		expect(screen.queryByRole('button', { name: 'Unlock Harbor' })).not.toBeInTheDocument();
 	});
 

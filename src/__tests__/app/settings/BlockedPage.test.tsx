@@ -24,7 +24,7 @@ describe('Blocked people page', () => {
 		render(await BlockedPage());
 		expect(screen.getByRole('link', { name: 'Back to Robotics Club’s members' })).toHaveAttribute(
 			'href',
-			'/settings/communities/c1/members'
+			'/club/settings/members'
 		);
 	});
 });

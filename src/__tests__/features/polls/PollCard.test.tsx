@@ -187,7 +187,7 @@ describe('PollCard state A: Open, no Ballot', () => {
 				<PollCard poll={openPoll} viewerId="c1" />
 			</ActingProvider>
 		);
-		expect(screen.getByText('Community accounts don’t vote. Switch back to you to vote.')).toBeInTheDocument();
+		expect(screen.getByText('Community accounts don’t vote.')).toBeInTheDocument();
 		const options = screen.getAllByRole('radio');
 		expect(options).toHaveLength(openPoll.options.length);
 		options.forEach((option) => expect(option).toBeDisabled());
@@ -216,7 +216,7 @@ describe('PollCard state A: Open, no Ballot', () => {
 			</ActingProvider>
 		);
 		expect(screen.getByText(/Voting opens in/)).toBeInTheDocument();
-		expect(screen.getByText('Community accounts don’t vote. Switch back to you to vote.')).toBeInTheDocument();
+		expect(screen.getByText('Community accounts don’t vote.')).toBeInTheDocument();
 	});
 
 	it('shows Turnout and, beside Vote, that results are revealed at the end, but no Support', () => {

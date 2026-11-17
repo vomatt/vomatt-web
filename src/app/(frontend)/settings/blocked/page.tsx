@@ -23,7 +23,7 @@ export default async function BlockedPage() {
 					title={<T k="blocks.title" />}
 					// While acting these are the account's blocks, reached from its members page; Settings is the person's own
 					back={
-						acting ? { href: communityMembersHref(acting.communityId), to: 'members', name: accountName(acting) } : undefined
+						acting ? { href: communityMembersHref(acting.username), to: 'members', name: accountName(acting) } : undefined
 					}
 				/>
 				<BlockedUsersPanel />

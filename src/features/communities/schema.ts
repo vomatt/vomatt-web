@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { profileHref } from '@/lib/routes';
 import { UserDtoSchema } from '@/schemas/user';
 
 /** Most powerful first; the order members' roles are listed and offered in. */
@@ -68,7 +69,7 @@ export type CommunityInvitation = z.infer<typeof CommunityInvitationSchema>;
 export type CommunityInvitationDetail = z.infer<typeof CommunityInvitationDetailSchema>;
 export type CommunityMember = z.infer<typeof CommunityMemberSchema>;
 
-export const communityMembersHref = (communityId: string) => `/settings/communities/${encodeURIComponent(communityId)}/members`;
+export const communityMembersHref = (username: string) => `${profileHref(username)}/settings/members`;
 
 /** Where an invitation's own page lives; log in names it as the redirect for someone the invitation email sent there. */
 export const COMMUNITY_INVITATIONS_PATH = '/notifications/community-invitations/';

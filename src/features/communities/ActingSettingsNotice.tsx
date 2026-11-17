@@ -26,7 +26,7 @@ export function ActingSettingsNotice() {
 			action={
 				<div className="flex flex-wrap justify-center gap-2">
 					<SwitchBackButton />
-					<Link href={communityMembersHref(acting.communityId)} className={buttonVariants({ variant: 'outline' })}>
+					<Link href={communityMembersHref(acting.username)} className={buttonVariants({ variant: 'outline' })}>
 						{t('communities.acting.manageMembers')}
 					</Link>
 				</div>

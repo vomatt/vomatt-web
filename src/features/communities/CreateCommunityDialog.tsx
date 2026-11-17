@@ -37,10 +37,10 @@ export function CreateCommunityDialog({
 }) {
 	const { t } = useLanguage();
 	const router = useRouter();
-	const onCreated = (communityId: string, username: string) => {
+	const onCreated = (username: string) => {
 		onOpenChange(false);
 		toast.success(t('communities.created', { name: username }));
-		router.push(communityMembersHref(communityId));
+		router.push(communityMembersHref(username));
 	};
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -67,7 +67,7 @@ export function CreateCommunityDialog({
 	);
 }
 
-function CreateForm({ onCancel, onCreated }: { onCancel: () => void; onCreated: (communityId: string, username: string) => void }) {
+function CreateForm({ onCancel, onCreated }: { onCancel: () => void; onCreated: (username: string) => void }) {
 	const { t } = useLanguage();
 	const { reloadCommunities } = useActing();
 	const [displayName, setDisplayName] = useState('');
@@ -101,7 +101,7 @@ function CreateForm({ onCancel, onCreated }: { onCancel: () => void; onCreated: 
 		setBusy(false);
 		if (result.ok) {
 			reloadCommunities();
-			onCreated(result.data.id, result.data.username);
+			onCreated(result.data.username);
 		} else if (result.errorCode === 'user.username.taken') {
 			setUsernameError(apiErrorText(t, result));
 			focusUsername();

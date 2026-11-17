@@ -20,11 +20,13 @@ import { LockedChip } from './LockedChip';
 import { accountName, canActAs, communityMembersHref, type MyCommunity } from './schema';
 import { unlockCommunity } from './service';
 
+const rowClassName = cn(rowLinkClassName, 'min-w-0 flex-1 text-start');
+const switchRowClassName = cn(rowClassName, 'aria-disabled:cursor-wait aria-disabled:opacity-50');
+
 /**
- * Settings' community accounts: each one the user belongs to, opening its members page,
- * with Act as beside it (the way in on phones, which have no sidebar switcher). Act as lands on the account's profile,
- * since Settings itself is the person's. A locked one the user owns can be
- * unlocked while their plan has room (`canUnlock`).
+ * Settings' community accounts: each one the user belongs to. Picking one switches to it and opens its profile,
+ * as the sidebar switcher does (the way in on phones, which have no sidebar); a role that can't act as it (an analyst)
+ * opens its members page instead, where they can leave it. A locked one the user owns can be unlocked while their plan has room (`canUnlock`).
  */
 export function CommunityAccountsCard({ communities, canUnlock = false }: { communities: MyCommunity[]; canUnlock?: boolean }) {
 	const { t } = useLanguage();
@@ -32,35 +34,43 @@ export function CommunityAccountsCard({ communities, canUnlock = false }: { comm
 	return (
 		<SettingsCard as="ul">
 			{communities.map((community) => {
-				const name = accountName(community);
+				const row = (
+					<>
+						<UserAvatar username={community.username} avatarUrl={community.avatarUrl} className="size-9" />
+						<RowText
+							title={
+								<span className="flex items-center gap-2">
+									<span className="truncate">{accountName(community)}</span>
+									{community.locked && <LockedChip />}
+								</span>
+							}
+							body={t('communities.yourRole', { role: t(`communities.roles.${community.role}`) })}
+						/>
+						<ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+					</>
+				);
 				return (
-					<li key={community.communityId} className="flex items-center transition-colors has-[>a:hover]:bg-surface-soft">
-						<Link href={communityMembersHref(community.communityId)} className={cn(rowLinkClassName, 'min-w-0 flex-1')}>
-							<UserAvatar username={community.username} avatarUrl={community.avatarUrl} className="size-9" />
-							<RowText
-								title={
-									<span className="flex items-center gap-2">
-										<span className="truncate">{name}</span>
-										{community.locked && <LockedChip />}
-									</span>
-								}
-								body={t('communities.yourRole', { role: t(`communities.roles.${community.role}`) })}
-							/>
-							<ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
-						</Link>
-						{community.locked && community.role === 'OWNER' && canUnlock && <UnlockButton community={community} />}
-						{canActAs(community.role) && (
-							<Button
-								variant="outline"
-								size="sm"
-								className="me-4.5 shrink-0"
-								aria-label={t('communities.acting.actAsLabel', { name })}
+					<li key={community.communityId} className="flex items-center transition-colors has-[>:first-child:hover]:bg-surface-soft">
+						{canActAs(community.role) ? (
+							<button
+								type="button"
+								className={switchRowClassName}
+								// The row reads as a name; say that picking it changes who the user posts as
+								aria-describedby={`act-as-${community.communityId}`}
 								aria-disabled={busy}
 								onClick={() => switchTo(community, profileHref(community.username))}
 							>
-								{t('communities.acting.actAs')}
-							</Button>
+								{row}
+								<span id={`act-as-${community.communityId}`} className="sr-only">
+									{t('communities.acting.actAsLabel', { name: accountName(community) })}
+								</span>
+							</button>
+						) : (
+							<Link href={communityMembersHref(community.username)} className={rowClassName}>
+								{row}
+							</Link>
 						)}
+						{community.locked && community.role === 'OWNER' && canUnlock && <UnlockButton community={community} />}
 					</li>
 				);
 			})}

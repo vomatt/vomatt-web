@@ -67,7 +67,7 @@ export function DeleteCommunity({ community }: { community: MyCommunity }) {
 			aria-labelledby="delete-community-title"
 			className={cn(rowClassName, 'flex-wrap rounded-2xl border border-destructive/30 bg-card')}
 		>
-			<span className="min-w-0 flex-1">
+			<span className="min-w-0 grow basis-56">
 				<h2 id="delete-community-title" className="font-medium text-destructive">
 					{t('communities.deleteTitle')}
 				</h2>
