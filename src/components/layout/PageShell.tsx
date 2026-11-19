@@ -3,7 +3,7 @@ import { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 /**
- * The one page frame: a main column and, from xl, a rail at the frame's right edge.
+ * The one page frame: a main column and, from xl, a rail at the content area's right edge.
  * The rail column is kept even when empty or still loading, so the main column sits in the
  * same place on every page and its skeleton. Below xl the rail follows the main column.
  */
@@ -23,7 +23,7 @@ export function PageShell({
 	return (
 		// Clipped sideways so `bleed-x` and `bleed-r` rows end at the page's edges; `clip` keeps sticky bars working
 		<div className={cn('overflow-x-clip px-contain pt-8 pb-16', className)}>
-			<div className="mx-auto flex w-full max-w-main flex-col gap-8 xl:grid xl:max-w-frame xl:gap-0 xl:page-grid">
+			<div className="mx-auto flex w-full max-w-main flex-col gap-8 xl:grid xl:max-w-none xl:gap-0 xl:page-grid">
 				<div className={cn('flex min-w-0 flex-col xl:col-start-2', wide && 'xl:col-end-[-1] xl:max-w-page')}>
 					{children}
 				</div>

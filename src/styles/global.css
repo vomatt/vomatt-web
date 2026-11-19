@@ -357,8 +357,6 @@ html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 	--container-main: 680px;
 	--container-rail: 300px;
 	--container-page: calc(var(--container-main) + 2.5rem + var(--container-rail));
-	/* PageShell's frame from xl: the rail sits at its right edge, so this caps how far it drifts from the main column */
-	--container-frame: 1400px;
 	--z-index-header: 48;
 	--z-index-tabbar: 48;
 }
@@ -498,9 +496,9 @@ html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 	}
 }
 
-/* PageShell's grid from xl. The lead track centers the main column on the page, scrollbar excluded: the frame is
-   centered beside the sidebar, so the track takes off the sidebar's width to balance it. It is capped so the last
-   track keeps the rail and 40px; on a narrow window the main column moves left instead */
+/* PageShell's grid from xl, spanning the content area (no max width). The lead track centers the main column on the
+   page, scrollbar excluded: the content area starts at the sidebar's edge, so the track takes off the sidebar's width
+   to balance it. It is capped so the last track keeps the rail and 40px; on a narrow window the main column moves left */
 @utility page-grid {
 	grid-template-columns:
 		max(0px, min((100% - var(--container-main) - var(--sidebar-width, 0px)) / 2, 100% - var(--container-page)))
