@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, ResolvingMetadata } from 'next';
 import { Suspense } from 'react';
 
 import { JsonLd } from '@/components/JsonLd';
@@ -6,8 +6,10 @@ import { PageShell } from '@/components/layout/PageShell';
 import { Refreshable } from '@/components/Refreshable';
 import { getMyProfile, getUserSession } from '@/data/auth';
 import { DEFAULT_SITE_NAME } from '@/data/constants';
-import { getFeed, getFollowedTags, getPopularTags } from '@/features/polls/service';
+import { getFeed, getFollowedTags, getPopularTags, getTagBySlug } from '@/features/polls/service';
 import { getServerMessages } from '@/lib/getServerLocale';
+import { interpolate } from '@/lib/interpolate';
+import { pageOpenGraph } from '@/lib/pageOpenGraph';
 import { topicHref } from '@/lib/routes';
 import { getSiteSettings } from '@/lib/siteSettings';
 import { websiteJsonLd } from '@/lib/structuredData';
@@ -27,9 +29,19 @@ export const unstable_dynamicStaleTime = 180;
 // Repeated ?tag= arrives as an array; the feed filters by one topic
 const firstTag = (tag: string | string[] | undefined) => (Array.isArray(tag) ? tag[0] : tag);
 
-export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+export async function generateMetadata({ searchParams }: Props, parent: ResolvingMetadata): Promise<Metadata> {
 	const tag = firstTag((await searchParams).tag);
-	return { alternates: { canonical: tag ? topicHref(tag) : '/' } };
+	const [topic, { messages }] = await Promise.all([tag ? getTagBySlug(tag) : undefined, getServerMessages()]);
+	// A ?tag= that names no topic shows the home feed's shell, so it is the home page to crawlers
+	const href = topic ? topicHref(topic.slug) : '/';
+	return {
+		...(topic && {
+			title: topic.name,
+			description: topic.description || interpolate(messages.meta.topicDescription, { topic: topic.name }),
+		}),
+		alternates: { canonical: href },
+		openGraph: await pageOpenGraph(parent, { url: href }),
+	};
 }
 
 export default async function Page({ searchParams }: Props) {

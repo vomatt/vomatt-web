@@ -1498,7 +1498,8 @@
 	"meta": {
 		"siteDescription": "Ask a question, vote on other people’s polls, and see what everyone really thinks. Ballots stay sealed until a poll ends, so nobody votes with the crowd.",
 		"exploreDescription": "Browse public polls by topic. Vote on open polls and see the results of polls that have ended.",
-		"profileDescription": "See the polls {name} has asked."
+		"profileDescription": "See the polls {name} has asked.",
+		"topicDescription": "Polls about {topic}. Vote on the open ones and see what everyone thinks."
 	},
 	"plan": {
 		"upgrade": "Upgrade to Pro",

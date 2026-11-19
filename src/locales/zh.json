@@ -1485,7 +1485,8 @@
 	"meta": {
 		"siteDescription": "提出問題、參與他人的投票，看看大家真正的想法。投票結束前票數保持密封，沒有人會跟風投票。",
 		"exploreDescription": "依主題瀏覽公開投票，參與進行中的投票，並查看已結束投票的結果。",
-		"profileDescription": "看看 {name} 發起的投票。"
+		"profileDescription": "看看 {name} 發起的投票。",
+		"topicDescription": "關於「{topic}」的投票。參與進行中的投票，看看大家的想法。"
 	},
 	"plan": {
 		"upgrade": "升級 Pro",

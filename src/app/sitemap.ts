@@ -4,7 +4,7 @@ import type { Poll } from '@/features/polls/schema';
 import { getPolls } from '@/features/polls/service';
 import { isRevealed, revealTime } from '@/features/polls/status';
 import { collectPages, MAX_PAGE_SIZE } from '@/lib/api/cursor';
-import { pollHref, siteUrl } from '@/lib/routes';
+import { pollHref, profileHref, siteUrl, topicHref } from '@/lib/routes';
 
 /** A Poll changed when its counts came out: at its end, or its `revealAt`. */
 function lastModified(poll: Poll) {
@@ -27,9 +27,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		)
 	);
 	const polls = pages.flatMap((page) => page?.items ?? []);
+	// A topic's feed holds Open Polls only, so a topic is listed while one of them has it
+	const topics = [...new Set((pages[0]?.items ?? []).flatMap((poll) => poll.tags?.map((tag) => tag.slug) ?? []))];
+	// The API has no list of people, so profiles are those of the listed Polls' creators
+	const creators = [...new Set(polls.map((poll) => poll.creatorUsername))];
 	return [
 		{ url: siteUrl() },
 		{ url: siteUrl('/explore') },
+		...topics.map((slug) => ({ url: siteUrl(topicHref(slug)) })),
+		...creators.map((username) => ({ url: siteUrl(profileHref(username)) })),
 		...polls.map((poll) => ({ url: siteUrl(pollHref(poll.id)), lastModified: lastModified(poll) })),
 	];
 }

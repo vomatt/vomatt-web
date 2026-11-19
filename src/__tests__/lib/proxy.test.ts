@@ -343,10 +343,21 @@ describe('proxy auth', () => {
 
 describe('proxy matcher', () => {
 	const { config } = require('@/proxy') as typeof import('@/proxy');
-	const matches = (path: string) => config.matcher.some((source) => new RegExp(`^${source}$`).test(path));
+	// Compiled the way Next compiles it, so the tests follow Next's own reading of the pattern
+	const { getMiddlewareMatchers } = require('next/dist/build/analysis/get-page-static-info');
+	const compiled: { regexp: string }[] = getMiddlewareMatchers(config.matcher, {});
+	const matches = (path: string) => compiled.some(({ regexp }) => new RegExp(regexp).test(path));
 
 	it('skips the API routes', () => {
 		expect(matches('/api/revalidate')).toBe(false);
+	});
+
+	it.each(['/robots.txt', '/sitemap.xml'])('skips %s, which crawlers fetch without cookies', (path) => {
+		expect(matches(path)).toBe(false);
+	});
+
+	it('runs for a profile whose username starts with "robots"', () => {
+		expect(matches('/robots.txt.fan')).toBe(true);
 	});
 
 	it('runs for a profile whose username starts with "api"', () => {
