@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, ResolvingMetadata } from 'next';
 import { notFound } from 'next/navigation';
 import { cache, Suspense } from 'react';
 
@@ -20,6 +20,7 @@ import { shareDescription } from '@/features/polls/sharePreview';
 import { derivePollStatus, holdsBallot, isCancelled, isInvitee, isPublic } from '@/features/polls/status';
 import { AuthError } from '@/lib/api/client';
 import { signout } from '@/lib/api/services/auth';
+import { pageOpenGraph } from '@/lib/pageOpenGraph';
 import { loginHref, pollHref } from '@/lib/routes';
 import { pollJsonLd } from '@/lib/structuredData';
 
@@ -54,7 +55,7 @@ const lookupPoll = cache(async (id: string): Promise<Lookup> => {
 
 type Props = { params: Promise<{ id: string }> };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params }: Props, parent: ResolvingMetadata): Promise<Metadata> {
 	const { id } = await params;
 	const { poll } = await lookupPoll(id);
 	if (!poll) return { title: 'Vomatt', robots: { index: false } };
@@ -63,8 +64,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 	return {
 		title: poll.title,
 		description,
-		openGraph: { title: poll.title, description, type: 'article' },
-		twitter: { card: 'summary_large_image', title: poll.title, description },
+		// A Poll is shared by its own image, not the site's video
+		openGraph: await pageOpenGraph(parent, { url: pollHref(poll.id), type: 'article', videos: undefined }),
+		twitter: { card: 'summary_large_image' },
 		alternates: { canonical: pollHref(poll.id) },
 		// Unlisted and invite-only polls are meant only for people with the link
 		...(!isPublic(poll) && { robots: { index: false } }),

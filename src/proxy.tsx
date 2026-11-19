@@ -200,5 +200,6 @@ export async function proxy(request: NextRequest) {
 export const config = {
 	// Static avatars skip it: each image would otherwise run a token refresh.
 	// .well-known files are fetched by Apple's CDN and need no cookies or language.
-	matcher: ['/((?!api/|_next/static|_next/image|favicon.ico|avatars/|\\.well-known/).*)'],
+	// Crawlers fetch robots.txt and sitemap.xml without cookies; neither has a language or a session.
+	matcher: ['/((?!api/|_next/static|_next/image|favicon.ico|robots\\.txt$|sitemap\\.xml$|avatars/|\\.well-known/).*)'],
 };
