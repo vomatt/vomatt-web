@@ -3,7 +3,6 @@ import Link from 'next/link';
 import { Suspense, use, useState } from 'react';
 import { toast } from 'sonner';
 
-import { LegalLinks } from '@/components/layout/LegalLinks';
 import { LoginPrompt } from '@/components/LoginPrompt';
 import { StickyBar } from '@/components/StickyBar';
 import { Button, buttonVariants } from '@/components/ui/Button';
@@ -108,13 +107,7 @@ export function HomepageHeader({
 		<>
 			{/* The feed has no visible title; the page still needs one for headings navigation */}
 			<h1 className="sr-only">{heading}</h1>
-			{!signedIn && (
-				<>
-					<LoginPrompt className="mt-6" />
-					{/* Guests' one way to the legal pages short of starting to log in, at every width; the links' padding makes them 44px tall */}
-					<LegalLinks className="flex flex-wrap gap-x-5 px-1 text-caption-2 text-muted-foreground [&>a]:py-3.5" />
-				</>
-			)}
+			{!signedIn && <LoginPrompt className="mt-6" />}
 			{/* Its pills sit at its bottom, with the room above them inside it, so it sticks where it rests and never moves.
 			    Phones scroll it away: the fixed Header and TabBar already take their room */}
 			<StickyBar data-sticky-bar="feed" className="-mx-1 max-md:static max-md:mx-0">

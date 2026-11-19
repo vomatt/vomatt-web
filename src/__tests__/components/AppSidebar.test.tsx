@@ -125,15 +125,16 @@ describe('AppSidebar more menu', () => {
 		expect(screen.getByRole('button', { name: 'navigation.more' }).closest('[data-nosnippet]')).not.toBeNull();
 	});
 
-	it('offers guests only the theme choices', async () => {
+	it('offers guests the theme choices and the legal pages, no account actions', async () => {
 		renderSidebar(null);
 		await userEvent.click(
 			screen.getByRole('button', { name: 'navigation.more' })
 		);
 		expect(await screen.findAllByRole('menuitemradio')).toHaveLength(3);
-		expect(screen.queryAllByRole('menuitem')).toHaveLength(0);
-		// Nothing follows the theme choices, so no line closes them off
-		expect(screen.queryByRole('separator')).not.toBeInTheDocument();
+		expect(screen.queryAllByRole('menuitem').map((item) => item.textContent)).toEqual([
+			'settings.terms',
+			'settings.privacyPolicy',
+		]);
 	});
 
 	it('has no My polls row: it folded into Profile › Asked', () => {

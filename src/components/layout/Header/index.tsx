@@ -14,7 +14,7 @@ type HeaderProps = {
 	loginLink: string;
 };
 
-/** The phone header, fixed to the top: the logo, and the More menu, or Log in for guests. Desktop has the sidebar. */
+/** The phone header, fixed to the top: the logo, Log in for guests, and the More menu. Desktop has the sidebar. */
 export function Header({ signedIn, loginLink }: HeaderProps) {
 	const pathname = usePathname();
 	const { t } = useLanguage();
@@ -28,16 +28,15 @@ export function Header({ signedIn, loginLink }: HeaderProps) {
 			className="fixed inset-x-0 top-0 z-header flex h-header items-center justify-between border-b border-border bg-background/80 backdrop-blur-lg px-contain md:hidden"
 		>
 			<BrandLink className="w-20" />
-			{signedIn ? (
-				// The menu button's padding sits past the gutter, so its icon lines up with the page
-				<div className="-mr-2.5">
-					<MoreMenu signedIn placement="header" />
-				</div>
-			) : (
-				<NextLink href={loginLink} className={buttonVariants({ size: 'sm' })}>
-					{t('loginPrompt.ctaLabel')}
-				</NextLink>
-			)}
+			{/* The menu button's padding sits past the gutter, so its icon lines up with the page */}
+			<div className="-mr-2.5 flex items-center gap-1">
+				{!signedIn && (
+					<NextLink href={loginLink} className={buttonVariants({ size: 'sm' })}>
+						{t('loginPrompt.ctaLabel')}
+					</NextLink>
+				)}
+				<MoreMenu signedIn={signedIn} placement="header" />
+			</div>
 		</header>
 	);
 }

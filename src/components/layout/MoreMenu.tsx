@@ -10,6 +10,7 @@ import { Menu as MenuIcon, Moon, Sun } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ReportProblemDialog } from '@/features/feedback/ReportProblemDialog';
 import { hoverMarkProps, useHoverMark } from '@/hooks/useHoverMark';
+import { aboutHref } from '@/lib/aboutSite';
 import { signout } from '@/lib/api/services/auth';
 import { cn } from '@/lib/utils';
 
@@ -78,12 +79,8 @@ export function MoreMenu({ signedIn, placement = 'sidebar' }: { signedIn: boolea
 							</Menu.GroupLabel>
 							<ThemeOptions />
 						</Menu.Group>
-						{signedIn && (
-							<>
-								<Menu.Separator className="-mx-1.5 my-1.5 h-px bg-border" />
-								<MoreActions onReport={() => setReportOpen(true)} />
-							</>
-						)}
+						<Menu.Separator className="-mx-1.5 my-1.5 h-px bg-border" />
+						<MoreActions signedIn={signedIn} onReport={() => setReportOpen(true)} />
 					</Menu.Popup>
 				</Menu.Positioner>
 			</Menu.Portal>
@@ -141,8 +138,8 @@ function ThemeOptions() {
 }
 
 /** Mounted only while the popup is open, so hovering re-renders just these rows. */
-function MoreActions({ onReport }: { onReport: () => void }) {
-	const { t } = useLanguage();
+function MoreActions({ signedIn, onReport }: { signedIn: boolean; onReport: () => void }) {
+	const { t, currentLanguage } = useLanguage();
 	const hover = useHoverMark('[role=menuitem]', 'y');
 
 	return (
@@ -162,24 +159,36 @@ function MoreActions({ onReport }: { onReport: () => void }) {
 					)}
 				/>
 			)}
-			<Menu.Item onClick={onReport} className={itemClassName}>
-				{t('navigation.reportProblem')}
-			</Menu.Item>
-			<Menu.LinkItem
-				render={<Link href="/settings" />}
-				className={itemClassName}
-			>
-				{t('navigation.settings')}
+			{signedIn && (
+				<>
+					<Menu.Item onClick={onReport} className={itemClassName}>
+						{t('navigation.reportProblem')}
+					</Menu.Item>
+					<Menu.LinkItem
+						render={<Link href="/settings" />}
+						className={itemClassName}
+					>
+						{t('navigation.settings')}
+					</Menu.LinkItem>
+				</>
+			)}
+			<Menu.LinkItem href={aboutHref('terms-of-service', currentLanguage)} className={itemClassName}>
+				{t('settings.terms')}
 			</Menu.LinkItem>
-			<Menu.Item
-				onClick={() => signout()}
-				className={cn(
-					itemClassName,
-					'text-destructive data-highlighted:text-destructive'
-				)}
-			>
-				{t('account.signOut')}
-			</Menu.Item>
+			<Menu.LinkItem href={aboutHref('privacy-policy', currentLanguage)} className={itemClassName}>
+				{t('settings.privacyPolicy')}
+			</Menu.LinkItem>
+			{signedIn && (
+				<Menu.Item
+					onClick={() => signout()}
+					className={cn(
+						itemClassName,
+						'text-destructive data-highlighted:text-destructive'
+					)}
+				>
+					{t('account.signOut')}
+				</Menu.Item>
+			)}
 		</div>
 	);
 }

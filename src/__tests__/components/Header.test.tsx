@@ -40,10 +40,10 @@ describe('Header', () => {
 		expect(header()).toBeNull();
 	});
 
-	it('offers guests Log in and no More menu', () => {
+	it('offers guests Log in and the More menu, which holds the legal pages', () => {
 		render(<Header {...guest} loginLink="/login?session_expired=1" />);
 		expect(screen.getByRole('link', { name: 'Log in' })).toHaveAttribute('href', '/login?session_expired=1');
-		expect(screen.queryByRole('button', { name: /More/ })).not.toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'More' })).toBeInTheDocument();
 	});
 
 	it('gives the signed-in person the More menu and leaves Notifications and the profile to the TabBar', () => {
