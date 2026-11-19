@@ -23,6 +23,7 @@ import {
 	getReplies,
 	getResults,
 	getResultsInFeed,
+	getTagBySlug,
 	getTags,
 	getUserPolls,
 	getVoters,
@@ -882,5 +883,24 @@ describe('getTags()', () => {
 	it('returns no topics when the API is down', async () => {
 		mockPublicFetch.mockRejectedValue(new Error('down'));
 		expect(await getTags()).toEqual([]);
+	});
+});
+
+// One describe in order: the index outlives a test, as it outlives a request
+describe('getTagBySlug()', () => {
+	const food = { id: 'a', slug: 'food', name: 'Food' };
+
+	it('finds no topic while the API is down, and asks again on the next call', async () => {
+		mockPublicFetch.mockRejectedValue(new Error('down'));
+		expect(await getTagBySlug('food')).toBeUndefined();
+		mockPublicFetch.mockResolvedValue([food]);
+		expect(await getTagBySlug('food')).toMatchObject(food);
+	});
+
+	it('answers later lookups from the list it already has', async () => {
+		mockPublicFetch.mockClear();
+		expect(await getTagBySlug('food')).toMatchObject(food);
+		expect(await getTagBySlug('nope')).toBeUndefined();
+		expect(mockPublicFetch).not.toHaveBeenCalled();
 	});
 });

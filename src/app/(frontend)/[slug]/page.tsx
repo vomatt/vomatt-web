@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, ResolvingMetadata } from 'next';
 import { notFound } from 'next/navigation';
 import { cache, Suspense } from 'react';
 
@@ -10,6 +10,7 @@ import { getUserPolls } from '@/features/polls/service';
 import { getUserProfile } from '@/lib/api/services/users';
 import { getServerMessages } from '@/lib/getServerLocale';
 import { interpolate } from '@/lib/interpolate';
+import { pageOpenGraph } from '@/lib/pageOpenGraph';
 import { profileHref } from '@/lib/routes';
 import { profileJsonLd, profileTitle } from '@/lib/structuredData';
 
@@ -27,7 +28,7 @@ type Props = {
 	searchParams: Promise<{ view?: string; tab?: string; edit?: string }>;
 };
 
-export async function generateMetadata(props: Props): Promise<Metadata> {
+export async function generateMetadata(props: Props, parent: ResolvingMetadata): Promise<Metadata> {
 	const params = await props.params;
 	const username = usernameFromSlug(params.slug);
 	const [profile, { messages }] = await Promise.all([
@@ -40,6 +41,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 		title: name,
 		description: profile.bio || interpolate(messages.meta.profileDescription, { name }),
 		alternates: { canonical: profileHref(profile.username) },
+		openGraph: await pageOpenGraph(parent, { url: profileHref(profile.username), type: 'profile', username: profile.username }),
 	};
 }
 

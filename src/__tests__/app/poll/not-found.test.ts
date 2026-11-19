@@ -1,3 +1,5 @@
+import type { ResolvingMetadata } from 'next';
+
 import { generateMetadata } from '@/app/(frontend)/poll/[id]/page';
 
 const NOT_FOUND = new Error('NEXT_HTTP_ERROR_FALLBACK;404');
@@ -26,7 +28,7 @@ const { AuthError } = jest.requireMock('@/lib/api/client');
 // Metadata and the page share one lookup, so its outcome decides both.
 // Each test uses its own id: the lookup is cached per id
 const pollId = (n: number) => `01a195a4-2a06-7137-a746-2c2ebb8136c${n}`;
-const lookup = (id: string) => generateMetadata({ params: Promise.resolve({ id }) });
+const lookup = (id: string) => generateMetadata({ params: Promise.resolve({ id }) }, Promise.resolve({}) as ResolvingMetadata);
 
 beforeEach(() => {
 	mockGetPoll.mockReset();

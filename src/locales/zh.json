@@ -994,6 +994,12 @@
 		}
 	},
 	"apiError": {
+		"invitation": {
+			"email": {
+				"too_soon": "最近已寄過邀請信到此信箱，請稍後再試。",
+				"daily_limit": "今天的邀請信已達上限，請明天再試。"
+			}
+		},
 		"common": {
 			"bad_request": "請求格式錯誤",
 			"internal_error": "伺服器錯誤，請稍後再試",
@@ -1199,7 +1205,8 @@
 			"role_forbidden": "你在這個社群帳號的角色無法執行此操作。擁有者與管理員管理帳號與成員，主編可修改任何投票與留言，編輯只能修改自己發布的，分析師只能查看結果報告。",
 			"invitation": {
 				"not_found": "這個邀請已失效或不存在。",
-				"exists": "對方已受邀。如要重新邀請，請先撤回待回覆的邀請。"
+				"exists": "對方已受邀。如要重新邀請，請先撤回待回覆的邀請。",
+				"not_email": "只有寄到電子郵件地址的邀請可以重寄。"
 			},
 			"member": {
 				"exists": "對方已經是成員。",
@@ -1393,6 +1400,8 @@
 		"invitationExpired": "已到期",
 		"revoke": "撤回邀請",
 		"revoked": "已撤回對 {name} 的邀請",
+		"resend": "重寄邀請",
+		"resent": "已再次寄出對 {name} 的邀請",
 		"roleChanged": "已變更 @{name} 的角色",
 		"transferred": "@{name} 已成為擁有者",
 		"removed": "已移除 @{name}",
@@ -1491,7 +1500,8 @@
 	"meta": {
 		"siteDescription": "提出問題、參與他人的投票，看看大家真正的想法。投票結束前票數保持密封，沒有人會跟風投票。",
 		"exploreDescription": "依主題瀏覽公開投票，參與進行中的投票，並查看已結束投票的結果。",
-		"profileDescription": "看看 {name} 發起的投票。"
+		"profileDescription": "看看 {name} 發起的投票。",
+		"topicDescription": "關於「{topic}」的投票。參與進行中的投票，看看大家的想法。"
 	},
 	"plan": {
 		"upgrade": "升級 Pro",

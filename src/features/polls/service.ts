@@ -206,6 +206,26 @@ export async function getTags(): Promise<TagDto[]> {
 	}
 }
 
+const TOPIC_INDEX_MS = 5 * 60_000;
+let topicIndex: { expires: number; bySlug: Promise<Map<string, TagDto>> } | undefined;
+
+/**
+ * One topic by its slug. The API has no such lookup, so the full list is indexed once per
+ * 5 minutes on each server instead of being parsed and sorted for every topic page.
+ */
+export async function getTagBySlug(slug: string): Promise<TagDto | undefined> {
+	if (!topicIndex || topicIndex.expires <= Date.now()) {
+		topicIndex = {
+			expires: Date.now() + TOPIC_INDEX_MS,
+			bySlug: getTags().then((tags) => new Map(tags.map((tag) => [tag.slug, tag]))),
+		};
+	}
+	const bySlug = await topicIndex.bySlug;
+	// An empty list is the API being down; ask again on the next request
+	if (bySlug.size === 0) topicIndex = undefined;
+	return bySlug.get(slug);
+}
+
 /** A user's opened Polls (Open and Ended), most recently opened first. */
 export async function getUserPolls(
 	username: string,

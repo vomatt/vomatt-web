@@ -1,3 +1,5 @@
+import type { ResolvingMetadata } from 'next';
+
 import { generateMetadata } from '@/app/(frontend)/poll/[id]/page';
 
 const mockGetPoll = jest.fn();
@@ -15,9 +17,11 @@ jest.mock('@/features/polls/sharePreview', () => ({ shareDescription: () => 'des
 
 const POLL_ID = '01a195a4-2a06-7137-a746-2c2ebb8136cc';
 
+const parent = Promise.resolve({ openGraph: { siteName: 'Vomatt', locale: 'en_US', videos: [{ url: 'https://cdn.example/promo.mp4' }] } }) as unknown as ResolvingMetadata;
+
 const metadataFor = (audience?: string) => {
 	mockGetPoll.mockResolvedValue({ id: POLL_ID, title: 'Market night?', audience });
-	return generateMetadata({ params: Promise.resolve({ id: POLL_ID }) });
+	return generateMetadata({ params: Promise.resolve({ id: POLL_ID }) }, parent);
 };
 
 describe('poll page metadata', () => {
@@ -27,6 +31,19 @@ describe('poll page metadata', () => {
 
 	it.each(['unlisted', 'invite-only'])('keeps a %s poll out of search results', async (audience) => {
 		expect((await metadataFor(audience)).robots).toEqual({ index: false });
+	});
+
+	it('keeps the site name and locale in the share tags and adds the poll URL', async () => {
+		expect((await metadataFor('public')).openGraph).toMatchObject({
+			siteName: 'Vomatt',
+			locale: 'en_US',
+			type: 'article',
+			url: `/poll/${POLL_ID}`,
+		});
+	});
+
+	it('leaves the site\'s video out of a poll\'s share tags', async () => {
+		expect((await metadataFor('public')).openGraph?.videos).toBeUndefined();
 	});
 
 	it('names the poll URL as canonical', async () => {

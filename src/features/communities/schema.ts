@@ -38,6 +38,8 @@ export const CommunityInvitationSchema = z.object({
 	role: CommunityRoleSchema,
 	invitedAt: z.string(),
 	expiresAt: z.string(),
+	/** For an invitation by email: from when it may be emailed again (past means now); null for one by id. */
+	resendAvailableAt: z.string().nullish(),
 });
 
 /** An invitation to the signed-in person, as its own page shows it; the API may not name the inviter. */

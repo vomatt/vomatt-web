@@ -1005,6 +1005,12 @@
 		}
 	},
 	"apiError": {
+		"invitation": {
+			"email": {
+				"too_soon": "That address was emailed an invitation recently. Try again later.",
+				"daily_limit": "You’ve reached today’s invitation email limit. Try again tomorrow."
+			}
+		},
 		"common": {
 			"bad_request": "Bad request format",
 			"internal_error": "Internal server error, please try again later",
@@ -1210,7 +1216,8 @@
 			"role_forbidden": "Your role in this community account doesn’t allow this. Owners and admins manage the account and its members; chief editors change any poll or comment; editors change only their own; analysts only see result reports.",
 			"invitation": {
 				"not_found": "That invitation is no longer available.",
-				"exists": "They’re already invited. Revoke the pending invitation to send a new one."
+				"exists": "They’re already invited. Revoke the pending invitation to send a new one.",
+				"not_email": "Only an invitation sent to an email address can be emailed again."
 			},
 			"member": {
 				"exists": "They’re already a member.",
@@ -1406,6 +1413,8 @@
 		"invitationExpired": "expired",
 		"revoke": "Revoke invitation",
 		"revoked": "Revoked the invitation to {name}",
+		"resend": "Resend invitation",
+		"resent": "Emailed the invitation to {name} again",
 		"roleChanged": "Changed @{name}’s role",
 		"transferred": "@{name} is now an owner",
 		"removed": "Removed @{name}",
@@ -1504,7 +1513,8 @@
 	"meta": {
 		"siteDescription": "Ask a question, vote on other people’s polls, and see what everyone really thinks. Ballots stay sealed until a poll ends, so nobody votes with the crowd.",
 		"exploreDescription": "Browse public polls by topic. Vote on open polls and see the results of polls that have ended.",
-		"profileDescription": "See the polls {name} has asked."
+		"profileDescription": "See the polls {name} has asked.",
+		"topicDescription": "Polls about {topic}. Vote on the open ones and see what everyone thinks."
 	},
 	"plan": {
 		"upgrade": "Upgrade to Pro",
