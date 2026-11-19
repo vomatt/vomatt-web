@@ -9,6 +9,7 @@ import {
 	getCommunityInvitation,
 	inviteMember,
 	listInvitations,
+	resendInvitation,
 	revokeInvitation,
 } from '@/features/communities/service';
 import { apiClient } from '@/lib/api/client';
@@ -50,6 +51,13 @@ describe('invitations', () => {
 		mockApiClient.mockResolvedValue(undefined);
 		await revokeInvitation('c1', 'i1');
 		expect(mockApiClient).toHaveBeenLastCalledWith('/communities/c1/invitations/i1', { method: 'DELETE' });
+	});
+
+	it('emails an invitation again and returns it with its next resend time', async () => {
+		const sent = { id: 'i1', email: 'a@x.co', role: 'EDITOR', invitedAt: '2026-11-11T10:00:00Z', expiresAt: '2026-11-18T10:00:00Z', resendAvailableAt: '2026-11-17T10:00:00Z' };
+		mockApiClient.mockResolvedValue(sent);
+		expect(await resendInvitation('c1', 'i/1')).toEqual({ ok: true, data: sent });
+		expect(mockApiClient).toHaveBeenLastCalledWith('/communities/c1/invitations/i%2F1/resend', { method: 'POST' });
 	});
 
 	it('reads one invitation as the person, with its community and inviter', async () => {
