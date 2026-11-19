@@ -25,6 +25,7 @@ import { settle } from '@/lib/api/settle';
 import { cn } from '@/lib/utils';
 
 import { useSharePoll } from '../hooks/useSharePoll';
+import { everyInviteeVoted } from '../invitees';
 import type { Poll } from '../schema';
 import { closePoll, deletePoll } from '../service';
 import type { PollStatus } from '../status';
@@ -119,9 +120,7 @@ export function OwnerActions({
 					onOpenChange={setIsInviting}
 					// The Poll Ends once every Invitee holds a Ballot; only then refetch it
 					onChanged={(invitees) =>
-						invitees.length > 0 && invitees.every((invitee) => invitee.hasBallot)
-							? onChanged()
-							: onInviteeCount(invitees.length)
+						everyInviteeVoted(invitees) ? onChanged() : onInviteeCount(invitees.length)
 					}
 				/>
 			)}

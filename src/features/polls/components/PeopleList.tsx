@@ -6,7 +6,7 @@ import { X } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserChip } from '@/features/profiles/UserChip';
 
-import { type Person, personKey } from '../invitees';
+import { type Person, personKey, personName } from '../invitees';
 
 type PeopleListProps<P extends Person> = {
 	label: string;
@@ -33,7 +33,7 @@ export function PeopleList<P extends Person>({
 		<ul aria-label={label} className="space-y-1">
 			{people.map((person) => {
 				const key = personKey(person);
-				const name = person.username ?? person.email ?? '';
+				const name = personName(person);
 				const note = noteFor?.(person);
 				return (
 					<li key={key} className="flex min-h-11 items-center gap-3 text-body-4">

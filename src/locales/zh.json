@@ -695,6 +695,11 @@
 		"add": "邀請",
 		"addFailed": "無法邀請，請再試一次。",
 		"removeFailed": "無法移除，請再試一次。",
+		"removeTitle": "要移除 {name} 嗎？",
+		"removeBody": "對方將無法再看到這個投票，也無法投票。",
+		"removeEndsBody": "其他人都已投票，所以投票會立即結束並公開結果，且無法復原。",
+		"removeConfirm": "移除",
+		"removeAndEnd": "移除並結束投票",
 		"communityNotAllowed": "社群帳號不投票，無法邀請。"
 	},
 	"groups": {
@@ -1099,7 +1104,8 @@
 			},
 			"not_allowed": "投票尚未開始或已結束",
 			"ballot": {
-				"community_not_allowed": "社群帳號不投票。"
+				"community_not_allowed": "社群帳號不投票。",
+				"phone_verification_required": "這個投票需要已驗證的手機號碼。請先到設定新增，再回來投票。"
 			},
 			"ended": "投票已結束，無法再投票或撤回",
 			"results": {

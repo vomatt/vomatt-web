@@ -184,7 +184,7 @@ export function useCommentLink(thread: CommentsState) {
 /** Discussion under a Poll. Results stay sealed while it is open, so this is where people argue their case. */
 export function CommentThread({ thread, pollId, viewerId, viewer, requireAuth, replyTo = null }: CommentThreadProps) {
 	const { t } = useLanguage();
-	// One inline Reply composer at a time; the main composer folds while it is open
+	// One inline Reply composer at a time
 	const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(replyTo);
 	const [linkedReply, setLinkedReply] = useState(replyTo);
 	if (replyTo !== linkedReply) {
@@ -346,7 +346,7 @@ function Composer({
 	label: string;
 	placeholder: string;
 	avatar: React.ReactNode;
-	/** Dimmed while a Reply composer is open; it keeps its size, so the comments below stay put. */
+	/** A Reply composer is open: the avatar steps back. The field stays at full strength, since it still works. */
 	collapsed?: boolean;
 	className?: string;
 	/** Set for an inline Reply composer; its reply (if any) is named above the field. */
@@ -408,17 +408,13 @@ function Composer({
 
 	return (
 		<form
-			className={cn(
-				'flex items-start',
-				collapsed && 'opacity-60 transition-opacity focus-within:opacity-100',
-				className
-			)}
+			className={cn('flex items-start', className)}
 			onSubmit={(event) => {
 				event.preventDefault();
 				submit();
 			}}
 		>
-			{avatar}
+			<span className={cn('flex shrink-0 transition-opacity', collapsed && 'opacity-40')}>{avatar}</span>
 			<div className="flex min-w-0 flex-1 flex-col gap-2">
 				<label htmlFor={fieldId} className="sr-only">
 					{label}

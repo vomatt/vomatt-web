@@ -4,6 +4,7 @@ import { useBallot } from '@/features/polls/hooks/useBallot';
 import type { Poll } from '@/features/polls/schema';
 
 jest.mock('@/contexts/LanguageContext', () => require('../helpers/mockLanguage'));
+jest.mock('next/navigation', () => ({ useRouter: () => ({ push: jest.fn() }) }));
 jest.mock('sonner', () => ({ toast: Object.assign(jest.fn(), { error: jest.fn() }) }));
 
 const mockCastBallot = jest.fn();
@@ -66,6 +67,46 @@ describe('useBallot outcomes', () => {
 		});
 		expect(outcome).toBe('failed');
 		await waitFor(() => expect(result.current.myOptionId).toBeNull());
+	});
+
+	it('tells the voter why the API refused the Ballot', async () => {
+		const { toast } = jest.requireMock('sonner');
+		mockCastBallot.mockResolvedValue({
+			ok: false,
+			status: 403,
+			errorCode: 'vote.ballot.phone_verification_required',
+			message: 'Phone verification required',
+		});
+		const { result } = setup();
+		await act(async () => {
+			await result.current.cast('opt-a');
+		});
+		expect(toast.error).toHaveBeenCalledWith(
+			'This poll asks for a verified phone number. Add yours in Settings, then vote.',
+			{ action: expect.objectContaining({ label: 'Add phone number' }) }
+		);
+	});
+
+	it('keeps developer wording out of the toast', async () => {
+		const { toast } = jest.requireMock('sonner');
+		mockCastBallot.mockResolvedValue({ ok: false, status: 401, errorCode: 'auth.token.invalid', message: 'Invalid token' });
+		const { result } = setup();
+		await act(async () => {
+			await result.current.cast('opt-a');
+		});
+		expect(toast.error).toHaveBeenCalledWith('Couldn’t save your vote. Try again.');
+	});
+
+	it('never asks for an Anonymous Ballot on a Pro poll', async () => {
+		mockCastBallot.mockResolvedValue({ ok: true });
+		const proPoll = { ...poll, pro: true };
+		const { result } = renderHook(() =>
+			useBallot(proPoll, { isAuthed: true, anonymousByDefault: true, onPollEnded: jest.fn() })
+		);
+		await act(async () => {
+			await result.current.cast('opt-a');
+		});
+		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-a', undefined);
 	});
 
 	it('tells the voter to slow down when Ballot writes are rate limited', async () => {

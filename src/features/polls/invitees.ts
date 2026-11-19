@@ -1,4 +1,4 @@
-import type { InviteesInput } from './schema';
+import type { Invitee, InviteesInput } from './schema';
 
 export type PickedUser = { id: string; username: string; avatarUrl?: string | null };
 type PickedGroup = { id: string; name: string; memberCount: number };
@@ -27,6 +27,16 @@ export type Person = {
 /** Unique within one list: an email is listed only by that address, even once tied to a user. */
 export function personKey(person: Pick<Person, 'userId' | 'email'>) {
 	return person.email ?? person.userId ?? '';
+}
+
+/** How a list names a person: their username, else the email they were added by. */
+export function personName(person: Pick<Person, 'username' | 'email'>) {
+	return person.username ?? person.email ?? '';
+}
+
+/** The API Ends an Invite-only Poll as soon as every Invitee (at least one) holds a Ballot. */
+export function everyInviteeVoted(invitees: readonly Pick<Invitee, 'hasBallot'>[]) {
+	return invitees.length > 0 && invitees.every((invitee) => invitee.hasBallot);
 }
 
 /**

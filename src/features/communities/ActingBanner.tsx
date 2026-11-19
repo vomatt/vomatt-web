@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { rich } from '@/lib/rich';
 import { isChromeless, profileHref } from '@/lib/routes';
+import { wrapRowText } from '@/lib/utils';
 
 import { SwitchBackButton, useActing } from './ActingProvider';
 import { accountName } from './schema';
@@ -19,7 +20,7 @@ export function ActingBanner() {
 
 	return (
 		<div role="status" className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-border bg-primary/6 px-4 py-2.5 text-caption-1 text-foreground md:px-6">
-			<p className="min-w-0 grow basis-56">
+			<p className={wrapRowText}>
 				{rich(t(acting.locked ? 'communities.acting.bannerLocked' : 'communities.acting.banner'), {
 					name: (
 						<Link href={profileHref(acting.username)} className="font-semibold underline decoration-foreground/30 underline-offset-3 transition-colors hover:decoration-foreground">

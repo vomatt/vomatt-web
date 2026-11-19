@@ -19,7 +19,7 @@ import {
 	tokenFingerprint,
 	verifyAccessToken,
 } from '@/lib/api/tokens';
-import { getSafeRedirectPath } from '@/lib/routes';
+import { getSafeRedirectPath, isProfileSettingsPath } from '@/lib/routes';
 import { AuthTokens } from '@/types';
 
 import { i18n, type Locale } from './i18n-config';
@@ -43,8 +43,6 @@ function getLocale(request: NextRequest): Locale {
 }
 
 const protectedPaths = ['/account', '/notifications', '/settings', ...SIGNED_IN_FEED_ROOTS.map((root) => `/${root}`)];
-// A community account's own settings pages live under its profile: /<username>/settings/…
-const communitySettingsPage = /^\/[^/]+\/settings\/./;
 const authPaths = ['/login'];
 
 type SessionResult =
@@ -101,7 +99,7 @@ export async function proxy(request: NextRequest) {
 
 	const isUnder = (paths: string[]) =>
 		paths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
-	const isProtectedPath = isUnder(protectedPaths) || communitySettingsPage.test(pathname);
+	const isProtectedPath = isUnder(protectedPaths) || isProfileSettingsPath(pathname);
 	const isAuthPath = isUnder(authPaths);
 
 	const resolved = await resolveSession(request);

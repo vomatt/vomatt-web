@@ -20,6 +20,7 @@ import { formatPollDate } from '@/features/polls/format';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
 import { META_GAP } from '@/lib/rich';
+import { cn, wrapRowText } from '@/lib/utils';
 import type { Passkey } from '@/types/user';
 
 import { AddPasskeyButton } from './AddPasskeyButton';
@@ -73,7 +74,7 @@ export function PasskeysPanel() {
 	return (
 		<section aria-labelledby="passkeys-title" className="space-y-2.5">
 			<div className="flex flex-wrap items-center gap-4">
-				<span className="min-w-0 grow basis-56">
+				<span className={wrapRowText}>
 					<h3 id="passkeys-title" className="font-medium">
 						{t('passkey.title')}
 					</h3>
@@ -88,7 +89,7 @@ export function PasskeysPanel() {
 			)}
 			{loadFailed && (
 				<div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-					<p className="min-w-0 grow basis-56 text-caption-1 text-muted-foreground">{t('passkey.loadFailed')}</p>
+					<p className={cn(wrapRowText, 'text-caption-1 text-muted-foreground')}>{t('passkey.loadFailed')}</p>
 					<Button
 						variant="outline"
 						size="xs"

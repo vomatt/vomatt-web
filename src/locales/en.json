@@ -705,6 +705,11 @@
 		"add": "Invite",
 		"addFailed": "Couldn’t invite them. Try again.",
 		"removeFailed": "Couldn’t remove them. Try again.",
+		"removeTitle": "Remove {name}?",
+		"removeBody": "They’ll no longer see this poll or be able to vote.",
+		"removeEndsBody": "Everyone else has voted, so the poll ends now and the results are revealed. This can’t be undone.",
+		"removeConfirm": "Remove",
+		"removeAndEnd": "Remove and end poll",
 		"communityNotAllowed": "Community accounts don’t vote, so they can’t be invited."
 	},
 	"groups": {
@@ -1110,7 +1115,8 @@
 			},
 			"not_allowed": "Voting period has ended or not started",
 			"ballot": {
-				"community_not_allowed": "Community accounts don’t vote."
+				"community_not_allowed": "Community accounts don’t vote.",
+				"phone_verification_required": "This poll asks for a verified phone number. Add yours in Settings, then vote."
 			},
 			"ended": "This poll has ended; ballots can no longer be cast or retracted",
 			"results": {

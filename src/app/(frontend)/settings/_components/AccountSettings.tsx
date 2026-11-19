@@ -49,7 +49,7 @@ import { apiErrorText } from '@/lib/api/error-text';
 import { signout } from '@/lib/api/services/auth';
 import { deleteMyAccount, editProfile } from '@/lib/api/services/users';
 import { countText } from '@/lib/count';
-import { cn } from '@/lib/utils';
+import { cn, wrapRowText } from '@/lib/utils';
 import type { CommunityQuota, MyProfile } from '@/types/user';
 
 /** The page's sections, in order; the On this page list links to each. */
@@ -554,7 +554,7 @@ function DeleteAccount({ username }: { username: string }) {
 			aria-labelledby="delete-title"
 			className={cn(rowClassName, 'flex-wrap rounded-2xl border border-destructive/30 bg-card')}
 		>
-			<span className="min-w-0 grow basis-56">
+			<span className={wrapRowText}>
 				<h2 id="delete-title" className="font-medium text-destructive">
 					{t('account.deleteTitle')}
 				</h2>

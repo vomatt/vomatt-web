@@ -13,6 +13,11 @@ export const siteUrl = (path = '') => `${process.env.SITE_URL}${path}`;
 /** A user's profile; profiles live at the root. */
 export const profileHref = (username: string) => `/${encodeURIComponent(username)}`;
 
+/** A profile's own settings pages (a community account's members page): signed in only, so the proxy protects them. */
+export const profileSettingsHref = (username: string) => `${profileHref(username)}/settings`;
+// Any first segment matches: a page that isn't a profile has no /settings/ below it, so it 404s either way
+export const isProfileSettingsPath = (pathname: string) => /^\/[^/]+\/settings\/./.test(pathname);
+
 /** The viewer's profile; /account redirects there, so link to it directly when the username is known and it shows as current. */
 export const accountHref = (username?: string) => (username ? profileHref(username) : '/account');
 

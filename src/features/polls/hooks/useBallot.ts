@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -10,6 +11,8 @@ import { type ActionResult, isBusy, isPollEnded, isRateLimited } from '../errors
 import type { Poll } from '../schema';
 import { castBallot, getMyBallot, getPoll, retractBallot } from '../service';
 import { derivePollStatus, getTurnout, shiftCount } from '../status';
+
+const PHONE_REQUIRED = 'vote.ballot.phone_verification_required';
 
 export type BallotOutcome = 'saved' | 'failed' | 'ended';
 /** What a request in flight is doing: a first vote, a changed vote, a withdrawal or the anonymity switch. */
@@ -33,6 +36,7 @@ type Options = {
  */
 export function useBallot(poll: Poll, { isAuthed, anonymousByDefault, onPollEnded }: Options) {
 	const { t } = useLanguage();
+	const router = useRouter();
 	const [prevPoll, setPrevPoll] = useState(poll);
 	const [myOptionId, setMyOptionId] = useState(poll.myOptionId ?? null);
 	const [selected, setSelected] = useState(poll.myOptionId ?? null);
@@ -98,7 +102,7 @@ export function useBallot(poll: Poll, { isAuthed, anonymousByDefault, onPollEnde
 			action: BallotAction,
 			request: () => Promise<ActionResult<Poll | void>>,
 			next: string | null,
-			failureMessage: string
+			failureKey: string
 		): Promise<BallotOutcome> => {
 			hasActed.current = true;
 			setPendingAction(action);
@@ -156,24 +160,34 @@ export function useBallot(poll: Poll, { isAuthed, anonymousByDefault, onPollEnde
 				return 'ended';
 			}
 			if (isRateLimited(result)) toast.error(t('poll.tooManyVotes'));
-			// Still busy after the retry: common.conflict shows common.busy
-			else if (isBusy(result)) toast.error(apiErrorText(t, result));
-			else toast.error(failureMessage);
+			// A Pro poll wants a verified phone: say so, with the way to add one (Settings' Account section)
+			else if (result.errorCode === PHONE_REQUIRED) {
+				toast.error(apiErrorText(t, result, failureKey), {
+					action: { label: t('phoneBind.add'), onClick: () => router.push('/settings#account') },
+				});
+			}
+			// The API's reason only where it is written for voters (still busy shows common.busy); its other
+			// codes read as developer wording
+			else if (isBusy(result) || result.errorCode?.startsWith('vote.ballot.')) {
+				toast.error(apiErrorText(t, result, failureKey));
+			} else toast.error(t(failureKey));
 			return 'failed';
 		},
-		[anonymous, isBallotKnown, myOptionId, onPollEnded, poll.id, t]
+		[anonymous, isBallotKnown, myOptionId, onPollEnded, poll.id, router, t]
 	);
 
 	/** Casts a first Ballot or replaces the current one. Resolves to the outcome. */
 	const cast = useCallback(
 		(optionId: string) => {
 			if (myOptionId) {
-				return run('update', () => castBallot(poll.id, optionId), optionId, t('poll.voteFailed'));
+				return run('update', () => castBallot(poll.id, optionId), optionId, 'poll.voteFailed');
 			}
-			// Right after sign-in a Ballot may exist that isn't loaded yet: leave its flag, or the default, to the API
-			const chosen = isBallotKnown ? (draftAnonymous ?? anonymousByDefault) : undefined;
+			// Right after sign-in a Ballot may exist that isn't loaded yet: leave its flag, or the default, to the API.
+			// Otherwise send what the name line shows, so the Ballot is stored as promised. A Pro poll has no name
+			// line and refuses an Anonymous Ballot, so there the API decides
+			const chosen = isBallotKnown && !poll.pro ? (draftAnonymous ?? anonymousByDefault) : undefined;
 			setAnonymousFlag(chosen ?? false);
-			return run('vote', () => castBallot(poll.id, optionId, chosen), optionId, t('poll.voteFailed')).then(
+			return run('vote', () => castBallot(poll.id, optionId, chosen), optionId, 'poll.voteFailed').then(
 				(outcome) => {
 					// A vote after withdrawing starts from the account default again
 					if (outcome === 'saved') setDraftAnonymous(null);
@@ -181,15 +195,15 @@ export function useBallot(poll: Poll, { isAuthed, anonymousByDefault, onPollEnde
 				}
 			);
 		},
-		[anonymousByDefault, draftAnonymous, isBallotKnown, myOptionId, poll.id, run, t]
+		[anonymousByDefault, draftAnonymous, isBallotKnown, myOptionId, poll.id, poll.pro, run]
 	);
 
 	/** Withdraws the current Ballot. Resolves to the outcome. */
 	const retract = useCallback(async (): Promise<BallotOutcome> => {
 		// Nothing to withdraw is already the desired state, not a failure
 		if (!myOptionId) return 'saved';
-		return run('retract', () => retractBallot(poll.id), null, t('poll.withdrawFailed'));
-	}, [myOptionId, poll.id, run, t]);
+		return run('retract', () => retractBallot(poll.id), null, 'poll.withdrawFailed');
+	}, [myOptionId, poll.id, run]);
 
 	/** Recasts the current option to add or drop the Ballot from the voter list; before a vote, only notes the choice. */
 	const setAnonymous = useCallback(
@@ -199,9 +213,9 @@ export function useBallot(poll: Poll, { isAuthed, anonymousByDefault, onPollEnde
 				return Promise.resolve<BallotOutcome>('saved');
 			}
 			setAnonymousFlag(value);
-			return run('anonymous', () => castBallot(poll.id, myOptionId!, value), myOptionId, t('poll.voteFailed'));
+			return run('anonymous', () => castBallot(poll.id, myOptionId!, value), myOptionId, 'poll.voteFailed');
 		},
-		[myOptionId, poll.id, run, t]
+		[myOptionId, poll.id, run]
 	);
 
 	return {

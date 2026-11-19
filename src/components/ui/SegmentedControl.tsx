@@ -34,7 +34,7 @@ export function SegmentedControl<T extends string>({
 			onValueChange={(next) => {
 				if (next !== null) onValueChange(next);
 			}}
-			className={cn('inline-flex rounded-full border border-border bg-muted p-0.5', className)}
+			className={cn('inline-flex rounded-full border border-border bg-muted p-0.5 dark:bg-background', className)}
 		>
 			{options.map((option) => (
 				<Radio.Root
