@@ -232,6 +232,50 @@ describe('CommunityMembers', () => {
 		await waitFor(() => expect(screen.getByRole('button', { name: 'Resend invitation: a@x.co' })).toBeDisabled());
 	});
 
+	it('stops inviting once members and unexpired invitations fill the account, and says how to make room', () => {
+		const base = { role: 'EDITOR' as const, invitedAt: '2026-11-09T10:00:00Z', resendAvailableAt: null };
+		renderAs('olive', [
+			{ id: 'i1', email: 'a@x.co', ...base, expiresAt: '2099-11-16T10:00:00Z' },
+			{ id: 'i2', email: 'b@x.co', ...base, expiresAt: '2099-11-16T10:00:00Z' },
+		]);
+		const full = 'This account has its 5 people, pending invitations included. Revoke an invitation or remove a member to invite someone new.';
+		const invite = screen.getByRole('button', { name: 'Invite member' });
+		expect(invite).toHaveAttribute('aria-disabled', 'true');
+		expect(invite).toHaveAccessibleDescription(full);
+		invite.focus();
+		expect(invite).toHaveFocus();
+		fireEvent.click(invite);
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+	});
+
+	it('frees the seat of an expired invitation', () => {
+		const base = { role: 'EDITOR' as const, invitedAt: '2026-11-09T10:00:00Z', resendAvailableAt: null };
+		renderAs('olive', [
+			{ id: 'i1', email: 'a@x.co', ...base, expiresAt: '2099-11-16T10:00:00Z' },
+			{ id: 'i2', email: 'b@x.co', ...base, expiresAt: '2020-11-16T10:00:00Z' },
+		]);
+		expect(screen.getByRole('button', { name: 'Invite member' })).toBeEnabled();
+		expect(screen.queryByText(/This account has its/)).not.toBeInTheDocument();
+	});
+
+	it('closes the dialog, says the account is full and refreshes the list when another manager took the last seat', async () => {
+		const { inviteMember } = jest.requireMock('@/features/communities/service');
+		inviteMember.mockResolvedValue({ ok: false, status: 409, errorCode: 'community.members.max', message: 'raw' });
+		renderAs('olive');
+		fireEvent.click(screen.getByRole('button', { name: 'Invite member' }));
+		fireEvent.change(await screen.findByRole('textbox', { name: 'Username or email' }), { target: { value: 'new@x.co' } });
+		fireEvent.click(await screen.findByRole('button', { name: 'Invite new@x.co' }));
+		const dialog = await screen.findByRole('dialog');
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Invite member' }));
+		await waitFor(() =>
+			expect(toast.error).toHaveBeenCalledWith('This community account is full. Pending invitations hold a seat until they’re accepted, revoked or expire.', {
+				duration: Infinity,
+			})
+		);
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+		expect(mockRefresh).toHaveBeenCalled();
+	});
+
 	it('shows a failed invitation in the dialog, under the invitee, until another is picked', async () => {
 		const { inviteMember } = jest.requireMock('@/features/communities/service');
 		inviteMember.mockResolvedValue({ ok: false, status: 409, errorCode: 'community.invitation.exists', message: 'raw' });

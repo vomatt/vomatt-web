@@ -6,6 +6,8 @@ import { UserDtoSchema } from '@/schemas/user';
 /** Most powerful first; the order members' roles are listed and offered in. */
 export const COMMUNITY_ROLES = ['OWNER', 'ADMIN', 'CHIEF_EDITOR', 'EDITOR', 'ANALYST'] as const;
 const CommunityRoleSchema = z.enum(COMMUNITY_ROLES);
+/** People in a community account, members and unexpired invitations together. Only this UI holds to it: the API has no limit yet. */
+export const COMMUNITY_MAX_MEMBERS = 5;
 /** The role a new member, or a role change, starts on. */
 export const DEFAULT_ROLE: CommunityRole = 'EDITOR';
 
