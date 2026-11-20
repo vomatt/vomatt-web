@@ -1294,9 +1294,8 @@
 		"appLanguage": "App language",
 		"appLanguageBody": "See buttons, titles and other text on vomatt in your preferred language.",
 		"appLanguageNote": "Polls and comments stay in the language they were written in.",
-		"legal": "Legal",
-		"terms": "Terms",
-		"privacyPolicy": "Privacy",
+		"terms": "Terms of Service",
+		"privacyPolicy": "Privacy Policy",
 		"notifyResultsIn": "Results are in",
 		"notifyResultsInBody": "When a poll you voted in or asked ends. This is the promise on every ballot.",
 		"notifyInvitations": "Invitations",
@@ -1317,7 +1316,9 @@
 		"visibilityNotSet": "Not set",
 		"visibilityOn": "{field} shown to everyone",
 		"visibilityOff": "{field} shown only to you",
-		"visibilityEditDetails": "Edit these details"
+		"visibilityEditDetails": "Edit these details",
+		"about": "About",
+		"aboutVomatt": "About vomatt"
 	},
 	"passkey": {
 		"title": "Passkeys",

@@ -8,7 +8,6 @@ import { toast } from 'sonner';
 
 import { CookieChoiceRow } from '@/components/layout/CookieConsent';
 import type { Integrations } from '@/components/layout/HeadTrackingCode';
-import { LegalLinks } from '@/components/layout/LegalLinks';
 import { rowClassName, rowLinkClassName, RowText, SettingsCard } from '@/components/SettingsCard';
 import {
 	AlertDialog,
@@ -23,7 +22,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
-import { Check, ChevronRight } from '@/components/ui/SvgIcons';
+import { ArrowUpRight, Check, ChevronRight } from '@/components/ui/SvgIcons';
 import { Switch } from '@/components/ui/Switch';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PhoneBindDialog } from '@/features/account/PhoneBindDialog';
@@ -45,6 +44,7 @@ import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
 import { useHydrated } from '@/hooks/useHydrated';
 import { useSavingKeys } from '@/hooks/useSavingKeys';
 import { htmlLang, SUPPORTED_LANGUAGES } from '@/i18n-config';
+import { aboutHref } from '@/lib/aboutSite';
 import { apiErrorText } from '@/lib/api/error-text';
 import { signout } from '@/lib/api/services/auth';
 import { deleteMyAccount, editProfile } from '@/lib/api/services/users';
@@ -53,7 +53,14 @@ import { cn, wrapRowText } from '@/lib/utils';
 import type { CommunityQuota, MyProfile } from '@/types/user';
 
 /** The page's sections, in order; the On this page list links to each. */
-export const SETTINGS_SECTIONS = ['voting', 'notifications', 'appearance', 'privacy', 'help', 'communities', 'account'] as const;
+export const SETTINGS_SECTIONS = ['voting', 'notifications', 'appearance', 'privacy', 'help', 'communities', 'account', 'about'] as const;
+
+/** The about site's pages the About section links to. */
+const ABOUT_PAGES = [
+	{ slug: 'about', labelKey: 'settings.aboutVomatt' },
+	{ slug: 'terms-of-service', labelKey: 'settings.terms' },
+	{ slug: 'privacy-policy', labelKey: 'settings.privacyPolicy' },
+];
 
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
 	return (
@@ -228,10 +235,20 @@ export default function AccountSettings({
 				</SettingsCard>
 			</Section>
 
+			<Section id="about" title={t('settings.about')}>
+				<SettingsCard>
+					{ABOUT_PAGES.map(({ slug, labelKey }) => (
+						<a key={slug} href={aboutHref(slug, currentLanguage)} className={rowLinkClassName}>
+							<RowText title={t(labelKey)} />
+							{/* Another site, not a Settings page */}
+							<ArrowUpRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+						</a>
+					))}
+				</SettingsCard>
+			</Section>
+
 			{/* Kept apart, at the end, and quiet until opened */}
 			<DeleteAccount username={profile.username} />
-
-			<LegalLinks className="flex gap-4.5 text-caption-1 text-muted-foreground" />
 		</div>
 	);
 }
@@ -615,6 +632,7 @@ const SECTION_TITLES: Record<(typeof SETTINGS_SECTIONS)[number], string> = {
 	help: 'settings.help',
 	communities: 'communities.title',
 	account: 'settings.account',
+	about: 'settings.about',
 };
 
 /** On this page: the sections as links, the one in view marked. */

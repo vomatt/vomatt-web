@@ -355,6 +355,17 @@ describe('PollCard state B: Open, has Ballot', () => {
 		expect(mockGetMyBallot).not.toHaveBeenCalled();
 	});
 
+	it('drops the Ballot when the viewer signs out', () => {
+		const { myOptionId, ...guestPoll } = openPoll;
+		const { rerender } = render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerId="user-voter" />);
+		expect(screen.getByLabelText(/Sunday/)).toBeChecked();
+
+		rerender(<PollCard poll={guestPoll} />);
+		expect(screen.getByLabelText(/Sunday/)).not.toBeChecked();
+		expect(screen.queryByText('Voted')).not.toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Withdraw vote' })).not.toBeInTheDocument();
+	});
+
 	it('slides the highlight within one card but never to another card of the same poll', () => {
 		const poll = { ...openPoll, myOptionId: 'opt-sun' };
 		render(

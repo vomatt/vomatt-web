@@ -159,6 +159,17 @@ function MoreActions({ signedIn, onReport }: { signedIn: boolean; onReport: () =
 					)}
 				/>
 			)}
+			{/* Guests can't open Settings, where the signed-in find these */}
+			{!signedIn && (
+				<>
+					<Menu.LinkItem href={aboutHref('terms-of-service', currentLanguage)} className={itemClassName}>
+						{t('settings.terms')}
+					</Menu.LinkItem>
+					<Menu.LinkItem href={aboutHref('privacy-policy', currentLanguage)} className={itemClassName}>
+						{t('settings.privacyPolicy')}
+					</Menu.LinkItem>
+				</>
+			)}
 			{signedIn && (
 				<>
 					<Menu.Item onClick={onReport} className={itemClassName}>
@@ -170,24 +181,16 @@ function MoreActions({ signedIn, onReport }: { signedIn: boolean; onReport: () =
 					>
 						{t('navigation.settings')}
 					</Menu.LinkItem>
+					<Menu.Item
+						onClick={() => signout()}
+						className={cn(
+							itemClassName,
+							'text-destructive data-highlighted:text-destructive'
+						)}
+					>
+						{t('account.signOut')}
+					</Menu.Item>
 				</>
-			)}
-			<Menu.LinkItem href={aboutHref('terms-of-service', currentLanguage)} className={itemClassName}>
-				{t('settings.terms')}
-			</Menu.LinkItem>
-			<Menu.LinkItem href={aboutHref('privacy-policy', currentLanguage)} className={itemClassName}>
-				{t('settings.privacyPolicy')}
-			</Menu.LinkItem>
-			{signedIn && (
-				<Menu.Item
-					onClick={() => signout()}
-					className={cn(
-						itemClassName,
-						'text-destructive data-highlighted:text-destructive'
-					)}
-				>
-					{t('account.signOut')}
-				</Menu.Item>
 			)}
 		</div>
 	);

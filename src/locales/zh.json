@@ -1281,7 +1281,6 @@
 		"appLanguage": "介面語言",
 		"appLanguageBody": "以你偏好的語言顯示 vomatt 上的按鈕、標題及其他文字。",
 		"appLanguageNote": "投票與留言會保留撰寫時使用的語言。",
-		"legal": "法律資訊",
 		"terms": "服務條款",
 		"privacyPolicy": "隱私權政策",
 		"notifyResultsIn": "結果出爐",
@@ -1304,7 +1303,9 @@
 		"visibilityNotSet": "未設定",
 		"visibilityOn": "{field} 已對所有人公開",
 		"visibilityOff": "{field} 僅限你可見",
-		"visibilityEditDetails": "編輯這些資料"
+		"visibilityEditDetails": "編輯這些資料",
+		"about": "關於",
+		"aboutVomatt": "關於 vomatt"
 	},
 	"passkey": {
 		"title": "通行密鑰",

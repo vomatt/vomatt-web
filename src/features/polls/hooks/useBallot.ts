@@ -53,6 +53,18 @@ export function useBallot(poll: Poll, { isAuthed, anonymousByDefault, onPollEnde
 	const hasServerBallot = loadedSignedIn && poll.myOptionId !== undefined;
 	// Whether myOptionId reflects the server; until then the anonymity switch has nothing to show
 	const [isBallotKnown, setIsBallotKnown] = useState(hasServerBallot);
+	// Signing out leaves the Ballot with the last viewer; a guest's Poll carries none to replace it
+	const [wasAuthed, setWasAuthed] = useState(isAuthed);
+	if (wasAuthed !== isAuthed) {
+		setWasAuthed(isAuthed);
+		if (!isAuthed) {
+			setMyOptionId(null);
+			setSelected(null);
+			setAnonymousFlag(null);
+			setDraftAnonymous(null);
+			setIsBallotKnown(false);
+		}
+	}
 	// Whether the viewer has voted or withdrawn here
 	const hasActed = useRef(false);
 	// Whether the last saved cast replaced a Ballot, which right after sign-in myOptionId doesn't know yet

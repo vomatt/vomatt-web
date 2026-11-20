@@ -39,10 +39,10 @@ describe('HomepageHeader', () => {
 		expect(screen.queryByRole('link', { name: 'Following' })).not.toBeInTheDocument();
 	});
 
-	it('leaves the legal pages to the More menu: no links under the login prompt', () => {
+	it('keeps the legal pages out of the login prompt', () => {
 		render(<HomepageHeader tags={tags} />);
 		expect(screen.queryByRole('navigation', { name: 'Legal' })).not.toBeInTheDocument();
-		expect(screen.queryByRole('link', { name: 'Terms' })).not.toBeInTheDocument();
+		expect(screen.queryByRole('link', { name: /Terms/ })).not.toBeInTheDocument();
 	});
 
 	it('runs the topic row out to the screen edges on phones', () => {

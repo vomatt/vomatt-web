@@ -118,11 +118,14 @@ describe('AccountSettings', () => {
 		expect(row).toHaveTextContent('English');
 	});
 
-	it('ends with the Terms and Privacy pages', () => {
+	it('links About, Terms and Privacy on the about site from the About section', () => {
 		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} communities={[]} />);
-		const legal = screen.getByRole('navigation', { name: 'Legal' });
-		expect(within(legal).getByRole('link', { name: 'Terms' })).toHaveAttribute('href', 'https://about.vomatt.com/terms-of-service');
-		expect(within(legal).getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', 'https://about.vomatt.com/privacy-policy');
+		const about = screen.getByRole('region', { name: 'About' });
+		expect(within(about).getAllByRole('link').map((link) => [link.textContent, link.getAttribute('href')])).toEqual([
+			['About vomatt', 'https://about.vomatt.com/about'],
+			['Terms of Service', 'https://about.vomatt.com/terms-of-service'],
+			['Privacy Policy', 'https://about.vomatt.com/privacy-policy'],
+		]);
 	});
 
 	it('picks the theme from a radio group', () => {
@@ -549,7 +552,7 @@ describe('SettingsNav', () => {
 	it('marks the last section at the bottom of the page, though its top never reaches the top', () => {
 		renderNav();
 		scrollTo(2000);
-		expect(marked()).toBe('Account');
+		expect(marked()).toBe('About');
 	});
 
 	it('marks the first section when the whole page fits the viewport', () => {
