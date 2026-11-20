@@ -39,7 +39,6 @@ import { InviteMemberDialog } from './InviteMemberDialog';
 import { LockedChip } from './LockedChip';
 import { canManageMembers, grantableRoles, type MemberAction, memberActions } from './permissions';
 import {
-	COMMUNITY_MAX_MEMBERS,
 	COMMUNITY_ROLES,
 	type CommunityInvitation,
 	type CommunityMember,
@@ -61,7 +60,7 @@ const REFRESH_CODES = [
 	// A stale resendAvailableAt
 	'invitation.email.too_soon',
 	// Another manager took the last seat
-	'community.members.max',
+	'community.member_limit_reached',
 ];
 
 const ICONS: Record<MemberAction, React.ReactNode> = {
@@ -126,8 +125,6 @@ export function CommunityMembers({
 	const [busy, setBusy] = useState(false);
 	const clock = useViewerClock();
 	const canInvite = canManageMembers(community.role) && !community.locked;
-	// Unexpired invitations hold a seat. Unknown until the clock is, like each invitation's expiry below
-	const full = !!clock && members.length + invitations.filter((i) => new Date(i.expiresAt).getTime() > clock.now).length >= COMMUNITY_MAX_MEMBERS;
 
 	/** Sends a change; the error when it didn't go through, null when it did. */
 	const send = async <T,>({ request, after, done }: Omit<Step<T>, 'confirm'>) => {
@@ -223,10 +220,6 @@ export function CommunityMembers({
 						<Button
 							size="md"
 							variant="outline"
-							disabled={full}
-							// Focusable, so the reason it's off is announced
-							focusableWhenDisabled
-							aria-describedby={full ? 'members-full' : undefined}
 							onClick={() => setAdding(true)}
 						>
 							<Plus aria-hidden />
@@ -234,11 +227,6 @@ export function CommunityMembers({
 						</Button>
 					)}
 				</div>
-				{full && canInvite && (
-					<p id="members-full" className="text-caption-1 text-muted-foreground">
-						{t('communities.full', { max: COMMUNITY_MAX_MEMBERS })}
-					</p>
-				)}
 				<SettingsCard as="ul">
 					{members.map((member) => {
 						const actions = memberActions(viewer, member, community.locked);
@@ -394,8 +382,8 @@ export function CommunityMembers({
 						after: (sent) => setInvitations((list) => [...list.filter((i) => i.id !== sent.id && !(sent.username ? i.username === sent.username : !!sent.email && i.email === sent.email)), sent]),
 						done: t('communities.invited', { name }),
 					});
-					// No one else can be invited either: close, and let the refreshed list show the account full
-					if (error?.code === 'community.members.max') {
+					// No one else can be invited either: close, and let the refreshed list show who holds the seats
+					if (error?.code === 'community.member_limit_reached') {
 						toast.error(error.text, { duration: Infinity });
 						return null;
 					}
