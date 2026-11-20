@@ -1007,7 +1007,7 @@
 	"apiError": {
 		"invitation": {
 			"email": {
-				"too_soon": "That address was emailed an invitation recently. Try again later.",
+				"too_soon": "You’ve emailed that address too many invitations in a short time, so you can’t email it for now.",
 				"daily_limit": "You’ve reached today’s invitation email limit. Try again tomorrow."
 			}
 		},
@@ -1219,9 +1219,7 @@
 				"exists": "They’re already invited. Revoke the pending invitation to send a new one.",
 				"not_email": "Only an invitation sent to an email address can be emailed again."
 			},
-			"members": {
-				"max": "This community account is full. Pending invitations hold a seat until they’re accepted, revoked or expire."
-			},
+			"member_limit_reached": "This community account has as many members and pending invitations as its plan allows. Revoke an invitation or remove a member to invite someone new.",
 			"member": {
 				"exists": "They’re already a member.",
 				"invalid": "They can’t be added to this account.",
@@ -1368,7 +1366,6 @@
 		"members": "Members",
 		"blockedBody": "See and unblock the people this account has blocked.",
 		"invite": "Invite member",
-		"full": "This account has its {max} people, pending invitations included. Revoke an invitation or remove a member to invite someone new.",
 		"inviteTitle": "Invite a member",
 		"searchLabel": "Username or email",
 		"searchPlaceholder": "Search by username, or enter an email",
