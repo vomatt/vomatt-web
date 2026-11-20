@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState } from 'react';
 
 import { BrandLink } from '@/components/BrandLink';
 import { MoreMenu } from '@/components/layout/MoreMenu';
@@ -24,6 +25,7 @@ import {
 	PlusCircle,
 	Search,
 	User,
+	X,
 } from '@/components/ui/SvgIcons';
 import { TidePanel } from '@/components/ui/TidePanel';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -36,6 +38,7 @@ import {
 	useUnreadCount,
 } from '@/features/notifications/UnreadCountProvider';
 import { CreatePollTrigger } from '@/features/polls/components/CreatePollTrigger';
+import { HOW_COUNTS_DISMISSED_COOKIE, sharedCookie } from '@/lib/cookies';
 import { accountHref, isActivePath, isChromeless } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 import { MyProfile } from '@/types/user';
@@ -71,17 +74,21 @@ interface AppSidebarProps {
 	profile: MyProfile | null;
 	/** Where Log in goes; carries `session_expired` when the API refused the session. */
 	loginLink?: string;
+	/** The visitor closed How vomatt counts, read from its cookie so it never flashes before hydration. */
+	howCountsDismissed?: boolean;
 }
 
 export function AppSidebar({
 	userSession,
 	profile,
 	loginLink = '/login',
+	howCountsDismissed = false,
 }: AppSidebarProps) {
 	const { t } = useLanguage();
 	const pathname = usePathname();
 	const { count: unreadCount } = useUnreadCount();
 	const { acting } = useActing();
+	const [showHowCounts, setShowHowCounts] = useState(!howCountsDismissed);
 
 	if (isChromeless(pathname)) return null;
 
@@ -201,14 +208,28 @@ export function AppSidebar({
 					</SidebarGroupContent>
 				</SidebarGroup>
 
-				{/* The rules in one line, where every page can see them */}
-				<TidePanel className="mx-1 mt-5 p-3.5 text-caption-2 leading-relaxed">
-					<p className="mb-1 flex items-center gap-1.5 font-medium">
-						<Lock aria-hidden className="size-3.5 shrink-0 text-tide" />
-						{t('navigation.howCountsTitle')}
-					</p>
-					<p>{t('navigation.howCountsBody')}</p>
-				</TidePanel>
+				{/* The rules in one line, where every page can see them until the visitor closes them */}
+				{showHowCounts && (
+					<TidePanel className="relative mx-1 mt-5 p-3.5 text-caption-2 leading-relaxed">
+						<p className="mb-1 flex items-center gap-1.5 pe-6 font-medium">
+							<Lock aria-hidden className="size-3.5 shrink-0 text-tide" />
+							{t('navigation.howCountsTitle')}
+						</p>
+						<p>{t('navigation.howCountsBody')}</p>
+						<Button
+							variant="ghost"
+							size="icon-xs"
+							aria-label={t('navigation.howCountsDismiss')}
+							onClick={() => {
+								document.cookie = sharedCookie(HOW_COUNTS_DISMISSED_COOKIE, '1', window.location.hostname);
+								setShowHowCounts(false);
+							}}
+							className="absolute top-2 right-2 text-tide-foreground"
+						>
+							<X aria-hidden />
+						</Button>
+					</TidePanel>
+				)}
 			</SidebarContent>
 
 			{/* Footer */}

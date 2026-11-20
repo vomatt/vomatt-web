@@ -33,6 +33,7 @@
 		"settings": "設定",
 		"howCountsTitle": "vomatt 如何計票",
 		"howCountsBody": "每人一票。投票進行中選票保持密封，沒有人會跟著群眾投票。",
+		"howCountsDismiss": "關閉「vomatt 如何計票」",
 		"more": "更多",
 		"appearance": "外觀",
 		"themeLight": "淺色",
@@ -120,6 +121,8 @@
 	"explore": {
 		"title": "探索",
 		"searchPlaceholder": "搜尋投票與主題…",
+		"searchPlaceholderPeople": "搜尋投票、主題與使用者名稱…",
+		"people": "使用者",
 		"topics": "主題",
 		"moreOptions": "還有 {count} 個",
 		"searchLabel": "搜尋",

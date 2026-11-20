@@ -85,6 +85,12 @@ export function OwnProfileView({
 	// Follows from the lists move the count until a newer profile arrives with the server's own
 	const [follows, setFollows] = useState({ on: profile, delta: 0 });
 	const followingDelta = follows.on === profile ? follows.delta : 0;
+	const tabsRef = useRef<HTMLDivElement>(null);
+	// From the record's counts: their list, brought into view on a short screen
+	const openTab = (next: ProfileTab) => {
+		setTab(next);
+		tabsRef.current?.scrollIntoView({ block: 'nearest' });
+	};
 
 	const asked = polls ? askedPolls(polls, profile.id) : [];
 	const voted = polls ? votedPolls(polls, profile.id) : [];
@@ -185,9 +191,11 @@ export function OwnProfileView({
 				<ProfileRecord
 					cells={[
 						// The counts of the tabs' lists, not the public totals, which leave out Scheduled, Unlisted and Invite-only polls
-						{ label: t('profile.recordAsked'), value: profile.createdPollCount },
+						{ label: t('profile.recordAsked'), value: profile.createdPollCount, onSelect: () => openTab('asked') },
 						// Not votedPollCount: it counts Ballots on the owner's own polls, which the Voted tab leaves out
-						...(profile.community ? [] : [{ label: t('profile.recordVoted'), value: polls ? voted.length : null }]),
+						...(profile.community
+							? []
+							: [{ label: t('profile.recordVoted'), value: polls ? voted.length : null, onSelect: () => openTab('voted') }]),
 						{
 							label: t('profile.recordVotesReceived'),
 							value: polls ? votesReceived(asked) : null,
@@ -199,7 +207,7 @@ export function OwnProfileView({
 					]}
 				/>
 
-				<Tabs value={tab} onValueChange={(value) => {
+				<Tabs ref={tabsRef} value={tab} onValueChange={(value) => {
 						setTab(value as ProfileTab);
 						if (value === 'saved') setSavedOpened(true);
 					}} className="gap-2">

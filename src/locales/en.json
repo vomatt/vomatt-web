@@ -33,6 +33,7 @@
 		"settings": "Settings",
 		"howCountsTitle": "How vomatt counts",
 		"howCountsBody": "One vote per person. Ballots stay sealed while a poll is open, so nobody votes with the crowd.",
+		"howCountsDismiss": "Close How vomatt counts",
 		"more": "More",
 		"appearance": "Appearance",
 		"themeLight": "Light",
@@ -121,6 +122,8 @@
 	"explore": {
 		"title": "Explore",
 		"searchPlaceholder": "Search polls and topics…",
+		"searchPlaceholderPeople": "Search polls, topics and usernames…",
+		"people": "People",
 		"topics": "Topics",
 		"moreOptions": "+{count} more",
 		"searchLabel": "Search",

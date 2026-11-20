@@ -2,6 +2,7 @@ import { topicsFor } from '@/app/(frontend)/explore/_components/ExploreView';
 import { filtersFromParams, toExploreQuery, toExploreSearch } from '@/app/(frontend)/explore/filters';
 
 jest.mock('@/features/polls/service', () => ({ getPolls: jest.fn() }));
+jest.mock('@/lib/api/services/users', () => ({ searchUsers: jest.fn() }));
 
 describe('toExploreQuery()', () => {
 	it('sends the sort with open polls', () => {

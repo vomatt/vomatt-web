@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useState } from 'react';
 
 import { searchUsers } from '@/lib/api/services/users';
 import type { UserDto } from '@/schemas/user';
@@ -27,18 +27,17 @@ export type UserSearch = {
  */
 export function useUserSearch(term: string, excludeIds: readonly string[] | null): UserSearch {
 	const [results, setResults] = useState<Results>({ term: '', users: [] });
-	// The last term answered successfully; a failed one is looked up again when it comes back
-	const answeredTerm = useRef('');
+	// Read when the term changes, not a dependency: a failure must not refetch on its own
+	const isAnswered = useEffectEvent((next: string) => next === results.term && !results.failed);
 
 	useEffect(() => {
-		// Nothing to look up, or the term already answered (it went empty and came back)
-		if (!term || term === answeredTerm.current) return;
+		// Nothing to look up, or the term already answered (it went empty and came back); a failed one is looked up again
+		if (!term || isAnswered(term)) return;
 		let ignore = false;
 		const timer = setTimeout(async () => {
 			try {
 				const page = await searchUsers(term);
 				if (ignore) return;
-				answeredTerm.current = term;
 				setResults({ term, users: page.items });
 			} catch {
 				if (!ignore) setResults({ term, users: [], failed: true });

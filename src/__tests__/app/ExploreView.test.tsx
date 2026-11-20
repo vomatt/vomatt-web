@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 
 import { ExploreView } from '@/app/(frontend)/explore/_components/ExploreView';
 import { EXPLORE_PAGE_SIZE } from '@/features/polls/constants';
@@ -14,6 +14,9 @@ const mockGetPolls = jest.fn();
 jest.mock('@/features/polls/service', () => ({
 	getPolls: (...args: unknown[]) => mockGetPolls(...args),
 }));
+
+const mockSearchUsers = jest.fn();
+jest.mock('@/lib/api/services/users', () => ({ searchUsers: (...args: unknown[]) => mockSearchUsers(...args) }));
 
 const poll = (id: string, title: string) =>
 	({
@@ -358,5 +361,47 @@ describe('ExploreView', () => {
 		expect(screen.getByText('Lunch?').closest('[aria-busy]')).toHaveAttribute('aria-busy', 'false');
 		expect(screen.queryByRole('status', { name: 'Loading' })).not.toBeInTheDocument();
 		expect(mockGetPolls).toHaveBeenCalledTimes(1);
+	});
+
+	it('finds people by username for a signed-in viewer, each linking to their profile', async () => {
+		mockGetPolls.mockResolvedValue({ items: [], nextCursor: null });
+		mockSearchUsers.mockResolvedValue({ items: [{ id: 'u9', username: 'lunafan', displayName: null, avatarUrl: null }], nextCursor: null });
+		await renderView(<ExploreView topics={noTopics} initialPage={Promise.resolve({ items: [], nextCursor: null })} canSearchPeople />);
+
+		fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'lun' } });
+		await act(async () => jest.advanceTimersByTime(300));
+
+		expect(mockSearchUsers).toHaveBeenCalledWith('lun');
+		const people = screen.getByRole('list', { name: 'People' });
+		expect(within(people).getByRole('link', { name: /@lunafan/ })).toHaveAttribute('href', '/lunafan');
+	});
+
+	it('searches only polls for a guest, whom the API won\'t let search people', async () => {
+		mockGetPolls.mockResolvedValue({ items: [], nextCursor: null });
+		await renderView(<ExploreView topics={noTopics} initialPage={Promise.resolve({ items: [], nextCursor: null })} />);
+
+		fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'lun' } });
+		await act(async () => jest.advanceTimersByTime(300));
+
+		expect(mockSearchUsers).not.toHaveBeenCalled();
+		expect(screen.queryByRole('list', { name: 'People' })).not.toBeInTheDocument();
+	});
+
+	it('shows the people the server found for the search in the address, alongside its polls', async () => {
+		window.history.replaceState(null, '', '/explore?q=lun');
+		await renderView(
+			<ExploreView
+				topics={noTopics}
+				initial={{ query: 'lun', status: 'open', sort: 'newest' }}
+				initialPage={Promise.resolve({ items: [poll('p1', 'Lunch?')], nextCursor: null })}
+				initialPeople={Promise.resolve([{ id: 'u9', username: 'lunafan', displayName: null, avatarUrl: null }])}
+				canSearchPeople
+			/>
+		);
+		await act(async () => jest.advanceTimersByTime(1000));
+
+		expect(within(screen.getByRole('list', { name: 'People' })).getByRole('link', { name: /@lunafan/ })).toBeInTheDocument();
+		expect(mockSearchUsers).not.toHaveBeenCalled();
+		expect(mockGetPolls).not.toHaveBeenCalled();
 	});
 });

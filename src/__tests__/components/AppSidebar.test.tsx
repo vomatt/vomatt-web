@@ -137,6 +137,22 @@ describe('AppSidebar more menu', () => {
 		]);
 	});
 
+	it('closes How vomatt counts and remembers it in a cookie', async () => {
+		renderSidebar();
+		await userEvent.click(screen.getByRole('button', { name: 'navigation.howCountsDismiss' }));
+		expect(screen.queryByText('navigation.howCountsTitle')).not.toBeInTheDocument();
+		expect(document.cookie).toContain('how-counts-dismissed=1');
+	});
+
+	it('leaves How vomatt counts out once it was closed', () => {
+		render(
+			<SidebarProvider>
+				<AppSidebar userSession={{}} profile={null} howCountsDismissed />
+			</SidebarProvider>
+		);
+		expect(screen.queryByText('navigation.howCountsTitle')).not.toBeInTheDocument();
+	});
+
 	it('has no My polls row: it folded into Profile › Asked', () => {
 		renderSidebar();
 		expect(screen.queryByRole('link', { name: 'common.myPolls' })).not.toBeInTheDocument();

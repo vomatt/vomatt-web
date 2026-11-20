@@ -20,6 +20,7 @@ import { ActingProvider } from '@/features/communities/ActingProvider';
 import { KeepCommunitiesPrompt } from '@/features/communities/KeepCommunitiesPrompt';
 import { PendingFollow } from '@/features/follows/FollowButton';
 import { UnreadCountProvider } from '@/features/notifications/UnreadCountProvider';
+import { HOW_COUNTS_DISMISSED_COOKIE } from '@/lib/cookies';
 import { getSiteSettings } from '@/lib/siteSettings';
 
 interface LayoutProps {
@@ -73,7 +74,12 @@ export async function Layout({ children }: LayoutProps) {
 						{/* Acting, the profile is the community account's; the person is asked once they're back */}
 						{!acting.acting && profile?.communityQuota?.selectionRequired && <KeepCommunitiesPrompt quota={profile.communityQuota} />}
 						<AdaSkip />
-						<AppSidebar userSession={session} profile={profile} loginLink={loginLink} />
+						<AppSidebar
+							userSession={session}
+							profile={profile}
+							loginLink={loginLink}
+							howCountsDismissed={cookieStore.get(HOW_COUNTS_DISMISSED_COOKIE) !== undefined}
+						/>
 						<Header signedIn={!!session} loginLink={loginLink} />
 						<Main>
 							{/* Decided here from the cookie, so a dismissed announcement never flashes before hydration */}

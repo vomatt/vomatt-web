@@ -15,9 +15,12 @@ import { PollTile, PollTileGrid } from '@/features/polls/components/PollTile';
 import { EXPLORE_PAGE_SIZE, isSearchable, SEARCH_DEBOUNCE_MS } from '@/features/polls/constants';
 import type { Poll, TagDto } from '@/features/polls/schema';
 import { getPolls, type PollListQuery } from '@/features/polls/service';
+import { UserChip } from '@/features/profiles/UserChip';
 import { useCursorList } from '@/hooks/useCursorList';
 import type { CursorPage } from '@/lib/api/cursor';
+import { searchUsers } from '@/lib/api/services/users';
 import { cn } from '@/lib/utils';
+import type { UserDto } from '@/schemas/user';
 
 import {
 	DEFAULT_EXPLORE_FILTERS,
@@ -62,6 +65,8 @@ export function ExploreView({
 	initialPage,
 	topics,
 	initial = DEFAULT_EXPLORE_FILTERS,
+	canSearchPeople = false,
+	initialPeople = NO_PEOPLE,
 }: {
 	/** The Polls for `initial`; null when the API couldn't be reached. */
 	initialPage: Promise<CursorPage<Poll> | null>;
@@ -69,6 +74,10 @@ export function ExploreView({
 	topics: TagDto[];
 	/** The filters in the address when the page loaded. */
 	initial?: ExploreFilters;
+	/** The search also finds people by username; the API allows it only signed in. */
+	canSearchPeople?: boolean;
+	/** The people whose username matches `initial`'s search; empty without one or when signed out. */
+	initialPeople?: Promise<UserDto[]>;
 }) {
 	const { t } = useLanguage();
 	const searchId = useId();
@@ -119,7 +128,7 @@ export function ExploreView({
 						type="search"
 						value={query}
 						onChange={(e) => setQuery(e.target.value)}
-						placeholder={t('explore.searchPlaceholder')}
+						placeholder={t(canSearchPeople ? 'explore.searchPlaceholderPeople' : 'explore.searchPlaceholder')}
 						aria-describedby={tooShort ? searchHintId : undefined}
 						className="bg-card px-4"
 					/>
@@ -165,7 +174,15 @@ export function ExploreView({
 
 			{/* Filters and search render at once; only the results wait for the server */}
 			<Suspense fallback={<PollTileGridSkeleton />}>
-				<ExploreResults initialPage={initialPage} listed={listed} onListed={setListed} apiQuery={apiQuery} status={status} />
+				<ExploreResults
+					initialPage={initialPage}
+					initialPeople={initialPeople}
+					canSearchPeople={canSearchPeople}
+					listed={listed}
+					onListed={setListed}
+					apiQuery={apiQuery}
+					status={status}
+				/>
 			</Suspense>
 		</div>
 	);
@@ -221,18 +238,57 @@ function TopicPills({
 	);
 }
 
+const NO_PEOPLE: Promise<UserDto[]> = Promise.resolve([]);
+
+/** People whose username matches the search, or none when signed out: the API allows it only signed in. */
+function findPeople(q: string | undefined, canSearchPeople: boolean): Promise<UserDto[]> {
+	if (!canSearchPeople || !q) return NO_PEOPLE;
+	// Without them the polls still show; a failed lookup just lists nobody
+	return searchUsers(q).then((page) => page.items, () => []);
+}
+
+/** Accounts whose username matches the search, each a link to their profile. */
+function PeopleRow({ users }: { users: UserDto[] }) {
+	const { t } = useLanguage();
+	const labelId = useId();
+
+	return (
+		<div className="mb-4 flex items-center gap-4">
+			<span id={labelId} className="shrink-0 text-caption-1 text-muted-foreground">
+				{t('explore.people')}
+			</span>
+			<ul aria-labelledby={labelId} className="-m-1 flex gap-2 overflow-x-auto p-1 scrollbar-none max-md:bleed-r">
+				{users.map((user) => (
+					<li key={user.id} className="shrink-0">
+						<UserChip
+							username={user.username}
+							avatarUrl={user.avatarUrl}
+							className="h-11 rounded-full border border-border bg-card ps-1.5 pe-3.5 text-body-4 font-medium transition-colors hover:bg-accent md:h-9"
+							avatarClassName="size-7 md:size-6"
+						/>
+					</li>
+				))}
+			</ul>
+		</div>
+	);
+}
+
 /**
  * The listed Polls for `apiQuery`; a new query starts from its own first page. Memoized, so
  * keystrokes that don't change the query don't re-render every tile.
  */
 const ExploreResults = memo(function ExploreResults({
 	initialPage,
+	initialPeople,
+	canSearchPeople,
 	listed,
 	onListed,
 	apiQuery,
 	status,
 }: {
 	initialPage: Promise<CursorPage<Poll> | null>;
+	initialPeople: Promise<UserDto[]>;
+	canSearchPeople: boolean;
 	/** The query the listed results answer (at first `initialPage`'s), so it isn't fetched again; null asks for a fetch. */
 	listed: PollListQuery | null;
 	onListed: (query: PollListQuery | null) => void;
@@ -250,6 +306,14 @@ const ExploreResults = memo(function ExploreResults({
 		setShownFirstPage(firstPage);
 		setSearchFailed(firstPage === null);
 	}
+	// Fetched with each page of polls, so both land together, behind one pause in typing
+	const firstPeople = use(initialPeople);
+	const [people, setPeople] = useState(firstPeople);
+	const [shownFirstPeople, setShownFirstPeople] = useState(firstPeople);
+	if (firstPeople !== shownFirstPeople) {
+		setShownFirstPeople(firstPeople);
+		setPeople(firstPeople);
+	}
 	const fetchPage = useCallback(
 		(cursor: string) => getPolls(apiQuery, cursor, EXPLORE_PAGE_SIZE, { asViewer: true }),
 		[apiQuery]
@@ -264,9 +328,13 @@ const ExploreResults = memo(function ExploreResults({
 		let ignore = false;
 		const timer = setTimeout(async () => {
 			setIsSearching(true);
-			const page = await getPolls(apiQuery, null, EXPLORE_PAGE_SIZE, { asViewer: true }).catch(() => null);
+			const [page, found] = await Promise.all([
+				getPolls(apiQuery, null, EXPLORE_PAGE_SIZE, { asViewer: true }).catch(() => null),
+				findPeople(apiQuery.q, canSearchPeople),
+			]);
 			if (ignore) return;
 			if (page) reset(page);
+			setPeople(found);
 			setSearchFailed(!page);
 			setIsSearching(false);
 			onListed(apiQuery);
@@ -276,7 +344,7 @@ const ExploreResults = memo(function ExploreResults({
 			clearTimeout(timer);
 			setIsSearching(false);
 		};
-	}, [apiQuery, listed, onListed, reset]);
+	}, [apiQuery, canSearchPeople, listed, onListed, reset]);
 
 	return (
 		<>
@@ -286,6 +354,7 @@ const ExploreResults = memo(function ExploreResults({
 				inert={isSearching}
 				className={cn('transition-opacity', isSearching && 'opacity-50')}
 			>
+				{people.length > 0 && <PeopleRow users={people} />}
 				{searchFailed ? (
 					<p className="py-12 text-center text-caption-1 text-muted-foreground">
 						{t('explore.loadFailed')}{' '}

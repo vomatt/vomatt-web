@@ -13,6 +13,8 @@ export type RecordCell = {
 	suffix?: string;
 	/** Only the owner sees it: marked with the lock. */
 	private?: boolean;
+	/** Opens the list this count counts; the whole cell is the target. */
+	onSelect?: () => void;
 };
 
 /** The record: a person's counts in one card, a mono number over a short label. */
@@ -20,17 +22,32 @@ export function ProfileRecord({ cells }: { cells: RecordCell[] }) {
 	const { currentLanguage } = useLanguage();
 	return (
 		<dl className="grid grid-cols-2 gap-y-4 rounded-2xl border border-border bg-card px-2 py-4 sm:auto-cols-fr sm:grid-flow-col sm:grid-cols-none sm:divide-x sm:divide-border">
-			{cells.map((cell) => (
-				<div key={cell.label} className="flex flex-col-reverse px-4">
-					<dt className="inline-flex items-center gap-1 text-caption-2 text-muted-foreground">
-						{cell.label}
-						{cell.private && <OnlyYouMarker className="size-3" />}
-					</dt>
-					<dd className="text-title-2 leading-tight tabular-nums">
-						{cell.value === null ? '–' : `${cell.value.toLocaleString(toLocaleTag(currentLanguage))}${cell.suffix ?? ''}`}
-					</dd>
-				</div>
-			))}
+			{cells.map((cell) => {
+				const value =
+					cell.value === null ? '–' : `${cell.value.toLocaleString(toLocaleTag(currentLanguage))}${cell.suffix ?? ''}`;
+				return (
+					<div key={cell.label} className="group relative flex flex-col-reverse px-4">
+						<dt className="inline-flex items-center gap-1 text-caption-2 text-muted-foreground">
+							{cell.label}
+							{cell.private && <OnlyYouMarker className="size-3" />}
+						</dt>
+						<dd className="text-title-2 leading-tight tabular-nums">
+							{cell.onSelect ? (
+								// Stretched over the cell, so the label is part of the target too
+								<button
+									type="button"
+									onClick={cell.onSelect}
+									className="underline-offset-4 outline-none after:absolute after:-inset-y-1 after:inset-x-1 after:rounded-lg focus-visible:after:outline-2 focus-visible:after:outline-ring group-hover:underline"
+								>
+									{value}
+								</button>
+							) : (
+								value
+							)}
+						</dd>
+					</div>
+				);
+			})}
 		</dl>
 	);
 }
