@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/Progress';
 import { Eye, Lock, User } from '@/components/ui/SvgIcons';
 import { TideRule, TideRules } from '@/components/ui/TidePanel';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { accountName } from '@/features/communities/schema';
 import { useHydrated } from '@/hooks/useHydrated';
 import { topicHref } from '@/lib/routes';
 
@@ -25,6 +26,7 @@ export function PollAbout({ poll }: { poll: Poll }) {
 	const clock = useViewerClock();
 	const progress = isHydrated ? timelineProgress(poll) : null;
 	const level = visibilityLevel(poll);
+	const creatorName = accountName({ username: poll.creatorUsername, displayName: poll.creatorDisplayName });
 
 	return (
 		<section aria-labelledby={headingId} className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5">
@@ -79,7 +81,7 @@ export function PollAbout({ poll }: { poll: Poll }) {
 					<TideRules>
 						<TideRule icon={Lock}>{t('pollDetail.ruleSealed')}</TideRule>
 						<TideRule icon={User}>{t('pollDetail.ruleOneVote')}</TideRule>
-						{level && <TideRule icon={Eye}>{t(`poll.visibility.${level}`)}</TideRule>}
+						{level && <TideRule icon={Eye}>{t(`poll.visibility.${level}`, { name: creatorName })}</TideRule>}
 					</TideRules>
 
 					{!!poll.tags?.length && (

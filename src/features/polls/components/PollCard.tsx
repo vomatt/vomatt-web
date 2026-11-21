@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { AuthDialog } from '@/components/auth/AuthDialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useActing } from '@/features/communities/ActingProvider';
+import { canReadResults } from '@/features/communities/permissions';
 import { UserChip } from '@/features/profiles/UserChip';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
@@ -137,7 +138,10 @@ export function PollCard({
 	const isOwner = !!viewerId && viewerId === creatorId;
 	const canSeeVoters =
 		!sealedUntil &&
-		(poll.voterVisibility === 'signed-in' ? isAuthed : poll.voterVisibility === 'owner' && isOwner);
+		(poll.voterVisibility === 'signed-in'
+			? isAuthed
+			: // An unknown role (its account list failed to load) leaves it to the API
+				poll.voterVisibility === 'owner' && isOwner && (!acting?.role || canReadResults(acting.role)));
 	const voters = useVoters(id, isAuthed ? (viewerId ?? 'signed-in') : 'guest');
 	const [votersOption, setVotersOption] = useState<ResultRow | null>(null);
 	const showVoters = (row: ResultRow) => {

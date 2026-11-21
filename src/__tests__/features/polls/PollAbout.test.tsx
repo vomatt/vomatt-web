@@ -28,6 +28,17 @@ const poll: Poll = {
 };
 
 describe('PollAbout', () => {
+	it('names who can see choices on a community account’s “only me” Poll', () => {
+		render(
+			<PollAbout
+				poll={{ ...poll, voterVisibility: 'owner', creatorCommunity: true, creatorUsername: 'tower', creatorDisplayName: 'Tower B' }}
+			/>
+		);
+		expect(
+			screen.getByText('After it ends, Tower B’s owners, admins and analysts can see what you chose.')
+		).toBeInTheDocument();
+	});
+
 	it('says a Poll ended early, with its Deadline', () => {
 		render(<PollAbout poll={{ ...poll, active: false, endTime: iso(-HOUR), deadline: iso(24 * HOUR) }} />);
 		expect(screen.getByText(/^Ended early\. It was set to close/)).toBeInTheDocument();

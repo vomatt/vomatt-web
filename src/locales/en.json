@@ -357,8 +357,8 @@
 			"signed-inHint": "Every signed-in user sees who chose what.",
 			"invited": "Everyone invited",
 			"invitedHint": "Everyone invited sees who chose what.",
-			"community": "Only {name}",
-			"communityHint": "Anyone acting as {name} sees who chose each option. Everyone else sees the totals."
+			"community": "Only {name}’s managers",
+			"communityHint": "{name}’s owners, admins and analysts see who chose each option. Everyone else sees the totals."
 		},
 		"visibilityNote": "Voters are shown this before they vote.",
 		"publish": "Publish poll",
@@ -394,7 +394,7 @@
 			"owner": "Only you will see who chose what once it ends.",
 			"signed-in": "Anyone signed in will see who chose what once it ends.",
 			"invited": "Everyone invited will see who chose what once it ends.",
-			"community": "Only people acting as {name} will see who chose what once it ends."
+			"community": "Only {name}’s owners, admins and analysts will see who chose what once it ends."
 		},
 		"ruleAnonymous": "If anyone votes anonymously, only who took part is listed.",
 		"ruleFixed": "You can’t change this after it opens.",
@@ -528,7 +528,8 @@
 			"nobody": "After it ends, no one can see what you chose.",
 			"owner": "After it ends, only the poll owner can see what you chose.",
 			"signed-in": "After it ends, anyone signed in can see what you chose.",
-			"invited": "After it ends, everyone invited can see what you chose."
+			"invited": "After it ends, everyone invited can see what you chose.",
+			"community": "After it ends, {name}’s owners, admins and analysts can see what you chose."
 		},
 		"edit": "Edit",
 		"keepPoll": "Keep poll",
@@ -1390,7 +1391,7 @@
 			"ADMIN": "Everything except changing or removing owners.",
 			"CHIEF_EDITOR": "Posts, and edits or ends anyone’s polls and comments.",
 			"EDITOR": "Posts polls and comments, and edits their own.",
-			"ANALYST": "Sees result reports; doesn’t post."
+			"ANALYST": "Sees result reports and voter lists; doesn’t post."
 		},
 		"you": "(you)",
 		"joined": "joined {date}",

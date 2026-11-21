@@ -9,6 +9,11 @@ export function canEditProfile(role: CommunityRole) {
 	return role === 'OWNER' || role === 'ADMIN';
 }
 
+/** Reads result reports and the voter lists of the account's "only me" Polls (the API's `canReadReports`). */
+export function canReadResults(role: CommunityRole) {
+	return role === 'OWNER' || role === 'ADMIN' || role === 'ANALYST';
+}
+
 export function canDelete(role: CommunityRole) {
 	return role === 'OWNER';
 }

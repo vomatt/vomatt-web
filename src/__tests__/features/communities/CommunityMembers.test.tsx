@@ -91,11 +91,11 @@ describe('CommunityMembers', () => {
 		const withAnalyst = [...members, member('ana', 'ANALYST')];
 		const community: MyCommunity = { communityId: 'off1', username: 'sunrise', displayName: 'Sunrise', avatarUrl: null, role: 'OWNER' };
 		const { unmount } = render(<CommunityMembers community={community} viewerId="olive" members={members} />);
-		expect(screen.queryByText('Sees result reports; doesn’t post.')).not.toBeInTheDocument();
+		expect(screen.queryByText('Sees result reports and voter lists; doesn’t post.')).not.toBeInTheDocument();
 		unmount();
 
 		render(<CommunityMembers community={community} viewerId="olive" members={withAnalyst} />);
-		expect(screen.getByText('Sees result reports; doesn’t post.')).toBeInTheDocument();
+		expect(screen.getByText('Sees result reports and voter lists; doesn’t post.')).toBeInTheDocument();
 		const menu = await openMenu('ana');
 		fireEvent.click(menu.getByRole('menuitem', { name: 'Change role' }));
 		const dialog = await screen.findByRole('dialog');

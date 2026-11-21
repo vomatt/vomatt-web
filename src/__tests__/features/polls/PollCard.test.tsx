@@ -235,6 +235,18 @@ describe('PollCard state A: Open, no Ballot', () => {
 		expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
 	});
 
+	it('tells a voter on a community account’s “only me” poll which of its members see their choice', () => {
+		render(
+			<PollCard
+				poll={{ ...openPoll, voterVisibility: 'owner', creatorCommunity: true, creatorDisplayName: 'Tower B' }}
+				viewerId="user-voter"
+			/>
+		);
+		expect(
+			screen.getByText('After it ends, Tower B’s owners, admins and analysts can see what you chose.')
+		).toBeInTheDocument();
+	});
+
 	it('offers no name choice to the owner of a poll only its owner sees voters of', () => {
 		render(<PollCard poll={{ ...openPoll, voterVisibility: 'owner' }} viewerId={openPoll.creatorId} />);
 		expect(screen.queryByRole('button', { name: 'Hide my name' })).not.toBeInTheDocument();
@@ -997,6 +1009,16 @@ describe('PollCard state D: Ended', () => {
 
 	it('keeps options plain when Voter Visibility hides voters from the viewer', () => {
 		render(<PollCard poll={endedPoll} viewerId="user-voter" />);
+		expect(screen.queryByRole('button', { name: /Sunday/ })).not.toBeInTheDocument();
+	});
+
+	it('keeps options plain for an editor acting as the community account that owns the poll', () => {
+		const acting = { communityId: 'user-1', username: 'tower', displayName: 'Tower', avatarUrl: null, role: 'EDITOR' as const };
+		render(
+			<ActingProvider state={{ acting, me: null, communities: [acting], stale: false }}>
+				<PollCard poll={{ ...endedPoll, creatorCommunity: true }} viewerId="user-1" />
+			</ActingProvider>
+		);
 		expect(screen.queryByRole('button', { name: /Sunday/ })).not.toBeInTheDocument();
 	});
 

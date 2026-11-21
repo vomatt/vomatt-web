@@ -387,10 +387,12 @@ describe('PollCreator', () => {
 			</ActingProvider>
 		);
 		await openDialog();
-		expect(pill('Only Robotics Club')).toHaveAttribute('aria-pressed', 'true');
+		expect(pill('Only Robotics Club’s managers')).toHaveAttribute('aria-pressed', 'true');
 		expect(screen.queryByRole('button', { name: 'Only me' })).not.toBeInTheDocument();
 		expect(
-			screen.getByText('Anyone acting as Robotics Club sees who chose each option. Everyone else sees the totals.')
+			screen.getByText(
+				'Robotics Club’s owners, admins and analysts see who chose each option. Everyone else sees the totals.'
+			)
 		).toBeInTheDocument();
 	});
 

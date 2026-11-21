@@ -126,6 +126,13 @@ describe('VotersDialog', () => {
 		expect(mockGetVoters).toHaveBeenCalledTimes(1);
 	});
 
+	it('treats a role that may not read the voter list as hidden', async () => {
+		mockGetVoters.mockResolvedValue({ ok: false, status: 403, errorCode: 'community.role_forbidden', message: 'no' });
+		render(<Harness />);
+		fireEvent.click(screen.getByRole('button', { name: 'Tabs' }));
+		expect(await screen.findByText(/The voter list for this poll is hidden/)).toBeInTheDocument();
+	});
+
 	it('says when loading failed', async () => {
 		mockGetVoters.mockResolvedValue({ ok: false, status: 500, message: 'down' });
 		render(<Harness />);
