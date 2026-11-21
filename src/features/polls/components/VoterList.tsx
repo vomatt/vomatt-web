@@ -99,7 +99,9 @@ export function useVoters(pollId: string, viewerKey: string) {
 				});
 			} catch (failure) {
 				if (isStale()) return;
-				const hidden = (failure as { errorCode?: string }).errorCode === 'vote.voters.hidden';
+				const { errorCode } = failure as { errorCode?: string };
+				// community.role_forbidden: the viewer acts as the owning community account in a role that can't read it
+				const hidden = errorCode === 'vote.voters.hidden' || errorCode === 'community.role_forbidden';
 				// 'failed' retries on the next open; 'hidden' is final
 				commit({ ...current, status: hidden ? 'hidden' : 'failed' });
 			}

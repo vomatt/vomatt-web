@@ -65,12 +65,13 @@ export function isCancelled(poll: Pick<Poll, 'startTime' | 'endTime'>) {
 
 /**
  * Voter Visibility as the viewer should read it: on an Invite-only Poll
- * "signed in" covers only the owner and the Invitees.
+ * "signed in" covers only the owner and the Invitees, and on a community
+ * account's Poll "owner" covers the members whose role reads its results.
  */
-export function visibilityLevel(poll: Pick<Poll, 'voterVisibility' | 'audience'>) {
-	return poll.voterVisibility === 'signed-in' && poll.audience === 'invite-only'
-		? 'invited'
-		: poll.voterVisibility;
+export function visibilityLevel(poll: Pick<Poll, 'voterVisibility' | 'audience' | 'creatorCommunity'>) {
+	if (poll.voterVisibility === 'signed-in' && poll.audience === 'invite-only') return 'invited';
+	if (poll.voterVisibility === 'owner' && poll.creatorCommunity) return 'community';
+	return poll.voterVisibility;
 }
 
 /**

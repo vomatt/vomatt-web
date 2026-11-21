@@ -182,6 +182,10 @@ export const PollSchema = z.object({
 	creatorId: z.string(),
 	creatorUsername: z.string(),
 	creatorAvatarUrl: z.string().nullish(),
+	/** Names as the owner's visibility settings allow; null when hidden or never set. */
+	creatorDisplayName: z.string().nullish(),
+	/** Whether the owner is a community account. */
+	creatorCommunity: z.boolean().optional(),
 	createdAt: DateTime,
 	updatedAt: DateTime.nullish(),
 	startTime: DateTime,

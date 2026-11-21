@@ -1,4 +1,11 @@
-import { canDelete, canEditProfile, canManageMembers, grantableRoles, memberActions } from '@/features/communities/permissions';
+import {
+	canDelete,
+	canEditProfile,
+	canManageMembers,
+	canReadResults,
+	grantableRoles,
+	memberActions,
+} from '@/features/communities/permissions';
 import { COMMUNITY_ROLES } from '@/features/communities/schema';
 
 describe('canManageMembers', () => {
@@ -10,6 +17,12 @@ describe('canManageMembers', () => {
 describe('canEditProfile', () => {
 	it('lets only OWNER and ADMIN edit the profile', () => {
 		expect(COMMUNITY_ROLES.filter(canEditProfile)).toEqual(['OWNER', 'ADMIN']);
+	});
+});
+
+describe('canReadResults', () => {
+	it('lets OWNER, ADMIN and ANALYST read reports and “only me” voter lists', () => {
+		expect(COMMUNITY_ROLES.filter(canReadResults)).toEqual(['OWNER', 'ADMIN', 'ANALYST']);
 	});
 });
 

@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/Button';
 import { Eye, EyeOff, Lock } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { CommunityCantVote } from '@/features/communities/CommunityCantVote';
+import { accountName } from '@/features/communities/schema';
 import { useHydrated } from '@/hooks/useHydrated';
 import { cn } from '@/lib/utils';
 
@@ -88,6 +89,7 @@ export function Ballot({
 	// One id per Ballot, not per Poll: the feed card and the Poll page each have a Ballot for the same Poll,
 	// and a shared layoutId flies the highlight from one to the other on navigation
 	const highlightId = useId();
+	const creatorName = accountName({ username: poll.creatorUsername, displayName: poll.creatorDisplayName });
 	// Nobody else sees the voter list on a 'nobody' Poll, or on an 'owner' one its owner votes on: nothing to hide from.
 	// A community account never votes, so it has no name to hide
 	const canHideName =
@@ -330,7 +332,7 @@ export function Ballot({
 							status={
 								anonymous
 									? t('poll.anonymousHidden')
-									: t(`poll.visibility.${visibilityLevel(poll)}`)
+									: t(`poll.visibility.${visibilityLevel(poll)}`, { name: creatorName })
 							}
 							isPending={isPending}
 							onToggle={() => setAnonymous(!anonymous)}
