@@ -131,7 +131,8 @@ function showComment(id: string) {
 		return;
 	}
 	// Flash when the smooth scroll settles. Without scrollend, or when the comment is already in view
-	// (it may not scroll at all), flash after a fixed wait
+	// (it may not scroll at all), flash after a fixed wait; otherwise a longer wait still flashes it
+	// when no scroll happens (a comment taller than the screen, or a page that can't scroll further)
 	const { top, bottom } = el.getBoundingClientRect();
 	const inView = top >= 0 && bottom <= window.innerHeight;
 	let flashed = false;
@@ -142,7 +143,7 @@ function showComment(id: string) {
 		flash();
 	};
 	window.addEventListener('scrollend', once, { once: true });
-	if (!('onscrollend' in window) || inView) setTimeout(once, 600);
+	setTimeout(once, !('onscrollend' in window) || inView ? 600 : 1000);
 	el.scrollIntoView({ block: 'center', behavior: 'smooth' });
 }
 

@@ -25,6 +25,7 @@ import type { ActionResult } from '@/lib/api/action';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
 import { countText } from '@/lib/count';
+import { foldAway } from '@/lib/motion';
 
 import { type Group, GROUP_NAME_MAX,type GroupMember } from './schema';
 import {
@@ -101,8 +102,15 @@ export function GroupsPanel() {
 			(list) => list?.map((g) => (g.id === group.id ? group : g)).sort((a, b) => a.name.localeCompare(b.name)) ?? null
 		);
 
-	const removeFromList = (id: string) => {
+	const removeFromList = async (id: string) => {
 		setOpenId(null);
+		const row = document.querySelector(`[data-group-id="${CSS.escape(id)}"]`);
+		await foldAway(row, 8);
+		// The dialog handed focus back to this row's button, which is about to go: move it to a neighbour, or the name field
+		if (!document.activeElement || document.activeElement === document.body || row?.contains(document.activeElement)) {
+			const neighbour = (row?.nextElementSibling ?? row?.previousElementSibling)?.querySelector('button');
+			(neighbour ?? nameInput.current)?.focus();
+		}
 		setGroups((list) => list?.filter((g) => g.id !== id) ?? null);
 	};
 
@@ -159,7 +167,7 @@ export function GroupsPanel() {
 			{!!groups?.length && (
 				<ul className="space-y-2">
 					{groups.map((group) => (
-						<li key={group.id}>
+						<li key={group.id} data-group-id={group.id}>
 							<button
 								type="button"
 								onClick={() => setOpenId(group.id)}

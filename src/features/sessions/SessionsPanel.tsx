@@ -20,6 +20,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { formatFromNow, formatPollDate } from '@/features/polls/format';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
+import { foldAway } from '@/lib/motion';
 import { META_GAP } from '@/lib/rich';
 import { loginHref } from '@/lib/routes';
 import type { SignedInSession } from '@/types/user';
@@ -83,6 +84,11 @@ export function SessionsPanel() {
 			toast.error(apiErrorText(t, result, 'sessions.signOutFailed'), { duration: Infinity });
 			return;
 		}
+		if (target !== 'others') {
+			await foldAway(document.querySelector(`[data-session-id="${CSS.escape(target.sessionId)}"]`));
+			// Dropped before the reload, so a list that still names it brings a fresh row, not the folded one
+			setSessions((list) => list?.filter((session) => session.sessionId !== target.sessionId) ?? null);
+		}
 		toast.success(t(target === 'others' ? 'sessions.othersSignedOut' : 'sessions.signedOut'));
 		// The list may have changed meanwhile; reload rather than patch it
 		setLoadCount((n) => n + 1);
@@ -97,7 +103,7 @@ export function SessionsPanel() {
 	const others = sessions?.filter((session) => !session.current) ?? [];
 
 	const row = (session: SignedInSession) => (
-		<li key={session.sessionId} className={rowClassName}>
+		<li key={session.sessionId} data-session-id={session.sessionId} className={rowClassName}>
 			<RowText
 				title={nameOf(session)}
 				body={

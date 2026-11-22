@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { X } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { htmlLang } from '@/i18n-config';
+import { foldAway } from '@/lib/motion';
 import { isChromeless } from '@/lib/routes';
 
 import { type Announcement, ANNOUNCEMENT_DISMISSED_COOKIE } from './schema';
@@ -20,8 +21,10 @@ export function AnnouncementBar({ announcement }: { announcement: Announcement |
 	if (!announcement || announcement.id === dismissedId || isChromeless(pathname)) return null;
 
 	const inChinese = currentLanguage === 'zh' && announcement.messageZh !== null;
-	const dismiss = () => {
+	const dismiss = async (event: React.MouseEvent<HTMLButtonElement>) => {
 		document.cookie = `${ANNOUNCEMENT_DISMISSED_COOKIE}=${announcement.id}; max-age=${365 * 24 * 60 * 60}; path=/; samesite=lax`;
+		// Folds up rather than dropping the page out from under the finger
+		await foldAway(event.currentTarget.closest('section'));
 		setDismissedId(announcement.id);
 	};
 

@@ -36,7 +36,7 @@ export function PeopleList<P extends Person>({
 				const name = personName(person);
 				const note = noteFor?.(person);
 				return (
-					<li key={key} className="flex min-h-11 items-center gap-3 text-body-4">
+					<li key={key} data-person={key} className="flex min-h-11 items-center gap-3 text-body-4">
 						{person.username ? (
 							<UserChip
 								username={person.username}

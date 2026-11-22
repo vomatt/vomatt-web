@@ -20,6 +20,7 @@ import { menuItemClassName, menuPopupClassName } from '@/components/ui/menu';
 import { Ellipsis, Trash2 } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { countText } from '@/lib/count';
+import { foldAway } from '@/lib/motion';
 import { META_GAP } from '@/lib/rich';
 import { cn } from '@/lib/utils';
 
@@ -50,6 +51,9 @@ export function DraftList({
 	const [deleting, setDeleting] = useState<PollDraft | null>(null);
 	// Where the deleted draft was, so focus lands on its neighbour instead of the page
 	const deletedAt = useRef<number | null>(null);
+	// The deleted draft's row while it folds away, so focus skips it; left set afterwards, since a
+	// removed row contains no live trigger and clearing it could land before the re-render
+	const foldingRow = useRef<Element | null>(null);
 	const [justDeleted, setJustDeleted] = useState(false);
 	const listRef = useRef<HTMLUListElement>(null);
 	const deletedNote = useRef<HTMLSpanElement>(null);
@@ -136,7 +140,9 @@ export function DraftList({
 				<AlertDialogContent
 					finalFocus={() => {
 						if (deletedAt.current === null) return true;
-						const more = listRef.current?.querySelectorAll<HTMLElement>('[data-draft-more]') ?? [];
+						const more = [...(listRef.current?.querySelectorAll<HTMLElement>('[data-draft-more]') ?? [])].filter(
+							(trigger) => !foldingRow.current?.contains(trigger)
+						);
 						return more[Math.min(deletedAt.current, more.length - 1)] ?? deletedNote.current ?? true;
 					}}
 				>
@@ -150,9 +156,12 @@ export function DraftList({
 							variant="destructive"
 							onClick={() => {
 								if (deleting) {
-									deletedAt.current = drafts.findIndex((draft) => draft.id === deleting.id);
-									setDrafts(deleteDraft(deleting.id));
+									const index = drafts.findIndex((draft) => draft.id === deleting.id);
+									const remaining = deleteDraft(deleting.id);
+									deletedAt.current = index;
+									foldingRow.current = listRef.current?.children[index] ?? null;
 									setJustDeleted(true);
+									void foldAway(foldingRow.current, 8).then(() => setDrafts(remaining));
 								}
 								setDeleting(null);
 							}}
