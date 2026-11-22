@@ -10,17 +10,20 @@ export function foldAway(el: Element | null, gap = 0): Promise<void> {
 	// jsdom has no Element.animate
 	if (!(el instanceof HTMLElement) || typeof el.animate !== 'function') return Promise.resolve();
 	const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
-	const { height, minHeight, paddingTop, paddingBottom, borderTopWidth, borderBottomWidth } = getComputedStyle(el);
-	// The gap to close sits above the row, or below it for the first row; an only row has none
+	const style = getComputedStyle(el);
+	const { height, minHeight, paddingTop, paddingBottom, borderTopWidth, borderBottomWidth } = style;
+	// The gap to close sits above the row, or below it for the first row; an only row has none.
+	// It starts from the row's own margin, so a space-y list (margins, not gap) folds as smoothly as a flex gap
 	const first = !el.previousElementSibling;
 	const margin = first ? 'marginBottom' : 'marginTop';
 	const pull = first && !el.nextElementSibling ? 0 : gap;
+	const own = parseFloat(style[margin]) || 0;
 	const from = reduce
 		? { opacity: 1 }
-		: { opacity: 1, height, minHeight, paddingTop, paddingBottom, borderTopWidth, borderBottomWidth, [margin]: '0px' };
+		: { opacity: 1, height, minHeight, paddingTop, paddingBottom, borderTopWidth, borderBottomWidth, [margin]: `${own}px` };
 	const to = reduce
 		? { opacity: 0 }
-		: { opacity: 0, height: '0px', minHeight: '0px', paddingTop: '0px', paddingBottom: '0px', borderTopWidth: '0px', borderBottomWidth: '0px', [margin]: `${-pull}px` };
+		: { opacity: 0, height: '0px', minHeight: '0px', paddingTop: '0px', paddingBottom: '0px', borderTopWidth: '0px', borderBottomWidth: '0px', [margin]: `${own - pull}px` };
 	el.style.overflow = 'clip';
 	const animation = el.animate([from, to], {
 		duration: 150,

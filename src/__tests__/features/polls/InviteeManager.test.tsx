@@ -4,6 +4,8 @@ import { toast } from 'sonner';
 import { InviteeManager } from '@/features/polls/components/InviteeManager';
 import { searchUsers } from '@/lib/api/services/users';
 
+import { stubFold } from '../../helpers/stubFold';
+
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 jest.mock('sonner', () => ({ toast: Object.assign(jest.fn(), { error: jest.fn() }) }));
 
@@ -87,6 +89,36 @@ describe('InviteeManager', () => {
 		await waitFor(() => expect(screen.queryByText('dave@example.com')).not.toBeInTheDocument());
 		expect(mockRemoveInvitee).toHaveBeenCalledWith('poll-1', dave);
 		expect(onChanged).toHaveBeenCalled();
+	});
+
+	it('folds the removed row away before dropping it', async () => {
+		const fold = stubFold();
+		try {
+			mockRemoveInvitee.mockResolvedValue({ ok: true, data: [bob] });
+			setup();
+			await askToRemoveDave();
+			await confirmRemoval();
+			await waitFor(() => expect(fold.folded).toEqual([screen.getByText('dave@example.com').closest('li')]));
+			fold.finish();
+			await waitFor(() => expect(screen.queryByText('dave@example.com')).not.toBeInTheDocument());
+		} finally {
+			fold.restore();
+		}
+	});
+
+	it('folds nothing when the list that comes back still has them', async () => {
+		const fold = stubFold();
+		try {
+			const { onChanged } = setup();
+			mockRemoveInvitee.mockResolvedValue({ ok: true, data: [bob, dave] });
+			await askToRemoveDave();
+			await confirmRemoval();
+			await waitFor(() => expect(onChanged).toHaveBeenCalled());
+			expect(fold.folded).toEqual([]);
+			expect(screen.getByText('dave@example.com')).toBeInTheDocument();
+		} finally {
+			fold.restore();
+		}
 	});
 
 	it('warns that the Poll ends when everyone left has voted', async () => {

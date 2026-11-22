@@ -6,6 +6,7 @@ import { listDrafts, saveDraft } from '@/features/polls/drafts';
 import { META_GAP } from '@/lib/rich';
 
 import { keepGaps } from '../../helpers/keepGaps';
+import { stubFold } from '../../helpers/stubFold';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 jest.mock('@/features/polls/service', () => ({}));
@@ -90,6 +91,27 @@ describe('DraftList', () => {
 		await userEvent.click(await screen.findByRole('menuitem', { name: 'Delete' }));
 		await userEvent.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Delete' }));
 		await waitFor(() => expect(screen.getByRole('button', { name: /More for Oldest/ })).toHaveFocus());
+	});
+
+	it('skips the folding row when it moves focus, and drops it once folded', async () => {
+		const fold = stubFold();
+		try {
+			saveDraft({ ...values, title: 'Oldest' });
+			saveDraft({ ...values, title: 'Middle' });
+			saveDraft({ ...values, title: 'Newest' });
+			render(<DraftList />);
+			await userEvent.click(screen.getByRole('button', { name: /More for Middle/ }));
+			await userEvent.click(await screen.findByRole('menuitem', { name: 'Delete' }));
+			await userEvent.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Delete' }));
+			// Still folding: the row is there, but focus has gone to its neighbour
+			await waitFor(() => expect(screen.getByRole('button', { name: /More for Oldest/ })).toHaveFocus());
+			expect(fold.folded).toHaveLength(1);
+			expect(screen.getByText('Middle')).toBeInTheDocument();
+			fold.finish();
+			await waitFor(() => expect(screen.queryByText('Middle')).not.toBeInTheDocument());
+		} finally {
+			fold.restore();
+		}
 	});
 
 	it('keeps focus in place and says so when the last draft is deleted', async () => {

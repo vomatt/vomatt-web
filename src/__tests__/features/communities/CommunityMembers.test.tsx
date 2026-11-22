@@ -5,6 +5,8 @@ import { ActingProvider, useActing } from '@/features/communities/ActingProvider
 import { CommunityMembers } from '@/features/communities/CommunityMembers';
 import type { CommunityInvitation, CommunityMember, CommunityRole, MyCommunity } from '@/features/communities/schema';
 
+import { stubFold } from '../../helpers/stubFold';
+
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn() } }));
 const mockRefresh = jest.fn();
@@ -213,6 +215,27 @@ describe('CommunityMembers', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Revoke invitation: new@x.co' }));
 		await waitFor(() => expect(revokeInvitation).toHaveBeenCalledWith('off1', 'i1'));
 		await waitFor(() => expect(screen.queryByText('Pending invitations')).not.toBeInTheDocument());
+	});
+
+	it('stays busy while a revoked invitation folds away', async () => {
+		const { revokeInvitation } = jest.requireMock('@/features/communities/service');
+		revokeInvitation.mockResolvedValue({ ok: true, data: undefined });
+		const base = { role: 'EDITOR' as const, invitedAt: '2026-11-09T10:00:00Z', expiresAt: '2099-11-16T10:00:00Z', resendAvailableAt: null };
+		const fold = stubFold();
+		try {
+			renderAs('olive', [
+				{ id: 'i1', email: 'a@x.co', ...base },
+				{ id: 'i2', email: 'b@x.co', ...base },
+			]);
+			fireEvent.click(screen.getByRole('button', { name: 'Revoke invitation: a@x.co' }));
+			await waitFor(() => expect(fold.folded).toHaveLength(1));
+			expect(screen.getByRole('button', { name: 'Revoke invitation: b@x.co' })).toBeDisabled();
+			fold.finish();
+			await waitFor(() => expect(screen.queryByText('a@x.co')).not.toBeInTheDocument());
+			expect(screen.getByRole('button', { name: 'Revoke invitation: b@x.co' })).toBeEnabled();
+		} finally {
+			fold.restore();
+		}
 	});
 
 	it('resends an email invitation once its window has passed, and not before', async () => {

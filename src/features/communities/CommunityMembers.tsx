@@ -31,6 +31,7 @@ import { ProfileAvatar, ProfileName } from '@/features/profiles/UserChip';
 import type { ActionResult } from '@/lib/api/action';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
+import { foldAway } from '@/lib/motion';
 import { META_GAP } from '@/lib/rich';
 import { cn } from '@/lib/utils';
 
@@ -75,8 +76,8 @@ type Pending = { action: MemberAction; member: CommunityMember };
 /** One row action: the request, what follows its success, the toast, and the confirm dialog's copy (none for Change role, which has its own dialog). */
 type Step<T = unknown> = {
 	request: () => Promise<ActionResult<T>>;
-	// A method, so a step over one data type still fits `Step`
-	after(data: T): void;
+	// A method, so a step over one data type still fits `Step`; a row folding away returns its promise
+	after(data: T): void | Promise<void>;
 	done: string;
 	confirm?: { title: string; body: string; cta: string };
 };
@@ -130,15 +131,17 @@ export function CommunityMembers({
 	const send = async <T,>({ request, after, done }: Omit<Step<T>, 'confirm'>) => {
 		setBusy(true);
 		const result = await settle(request());
-		setBusy(false);
 		if (!result.ok) {
+			setBusy(false);
 			if (result.errorCode && REFRESH_CODES.includes(result.errorCode)) router.refresh();
 			// Every limit this page can hit is the other member's: they'd become an owner
 			const text = result.errorCode === 'community.limit_reached' ? t('communities.theirLimitReached') : apiErrorText(t, result);
 			return { text, code: result.errorCode };
 		}
 		toast.success(done);
-		after(result.data);
+		// Stays busy while a row folds, so it can't be acted on twice
+		await after(result.data);
+		setBusy(false);
 		return null;
 	};
 
@@ -336,13 +339,17 @@ export function CommunityMembers({
 											size="icon-xs"
 											aria-label={t('communities.revoke') + ': ' + name}
 											disabled={busy}
-											onClick={() =>
+											onClick={(event) => {
+												const row = event.currentTarget.closest('li');
 												run({
 													request: () => revokeInvitation(community.communityId, invitation.id),
-													after: () => setInvitations((list) => list.filter((i) => i.id !== invitation.id)),
+													after: async () => {
+														await foldAway(row);
+														setInvitations((list) => list.filter((i) => i.id !== invitation.id));
+													},
 													done: t('communities.revoked', { name }),
-												})
-											}
+												});
+											}}
 										>
 											<Trash2 aria-hidden />
 										</Button>

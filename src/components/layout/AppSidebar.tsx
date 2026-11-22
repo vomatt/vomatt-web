@@ -39,6 +39,7 @@ import {
 } from '@/features/notifications/UnreadCountProvider';
 import { CreatePollTrigger } from '@/features/polls/components/CreatePollTrigger';
 import { HOW_COUNTS_DISMISSED_COOKIE, sharedCookie } from '@/lib/cookies';
+import { foldAway } from '@/lib/motion';
 import { accountHref, isActivePath, isChromeless } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 import { MyProfile } from '@/types/user';
@@ -227,12 +228,13 @@ export function AppSidebar({
 							variant="ghost"
 							size="icon-xs"
 							aria-label={t('navigation.howCountsDismiss')}
-							onClick={() => {
+							onClick={async (event) => {
 								document.cookie = sharedCookie(
 									HOW_COUNTS_DISMISSED_COOKIE,
 									'1',
 									window.location.hostname
 								);
+								await foldAway(event.currentTarget.closest('[data-slot="tide-panel"]'));
 								setShowHowCounts(false);
 							}}
 							className="absolute top-1 right-1 size-6 text-tide-foreground"

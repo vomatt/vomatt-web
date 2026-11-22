@@ -27,6 +27,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
+import { foldAway } from '@/lib/motion';
 
 import {
 	EMPTY_INVITEES,
@@ -112,13 +113,19 @@ export function InviteeManager({ pollId, open, onOpenChange, onChanged }: Invite
 		setIsConfirmOpen(false);
 		setIsRemoving(true);
 		const result = await settle(removeInvitee(pollId, confirming));
-		setIsRemoving(false);
 		if (!result.ok) {
+			setIsRemoving(false);
 			toast.error(apiErrorText(t, result, 'invitees.removeFailed'));
 			// e.g. they voted meanwhile: show the list as it is now
 			refresh();
 			return;
 		}
+		// Stays removing while the row folds, so nothing else can be removed meanwhile
+		const key = personKey(confirming);
+		if (!result.data.some((invitee) => personKey(invitee) === key)) {
+			await foldAway(document.querySelector(`[data-person="${CSS.escape(key)}"]`), 4);
+		}
+		setIsRemoving(false);
 		setInvitees(result.data);
 		onChanged(result.data);
 	};
