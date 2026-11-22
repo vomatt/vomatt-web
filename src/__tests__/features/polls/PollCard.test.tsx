@@ -1014,6 +1014,47 @@ describe('PollCard state D: Ended', () => {
 		expect(await within(dialog).findByRole('link', { name: /klaus/ })).toBeInTheDocument();
 	});
 
+	it('tells a viewer their own anonymous vote is the one left out of the voter list', async () => {
+		const mine: Poll = {
+			...endedPoll,
+			voterVisibility: 'signed-in',
+			myOptionId: 'opt-fri',
+			myBallotAnonymous: true,
+			options: endedPoll.options.map((o) => (o.id === 'opt-fri' ? { ...o, votes: 1 } : o)),
+		};
+		mockGetMyBallot.mockResolvedValue({ ok: true, data: mine });
+		mockGetVoters.mockResolvedValue({ ok: true, data: { items: [], nextCursor: null } });
+		render(<PollCard poll={mine} viewerId="user-voter" />);
+		fireEvent.click(screen.getByRole('button', { name: /Friday/ }));
+		const dialog = await screen.findByRole('dialog');
+		expect(await within(dialog).findByText('You')).toBeInTheDocument();
+	});
+
+	it('counts the voters a list of everyone leaves out against the fetched participant count', async () => {
+		const stale: Poll = { ...endedPoll, participantCount: 2, options: openPoll.options };
+		mockGetResults.mockResolvedValue({
+			ok: true,
+			data: {
+				totalParticipants: 5,
+				options: openPoll.options.map((o, i) => ({ id: o.id, text: o.text, voteCount: i + 1 })),
+			},
+		});
+		mockGetVoters.mockResolvedValue({
+			ok: true,
+			data: {
+				items: [
+					{ userId: 'u2', username: 'klaus', optionId: null, votedAt: iso(-2 * HOUR) },
+					{ userId: 'u3', username: 'mei', optionId: null, votedAt: iso(-2 * HOUR) },
+				],
+				nextCursor: null,
+			},
+		});
+		render(<PollCard poll={stale} viewerId="user-1" />);
+		fireEvent.click(await screen.findByRole('button', { name: /Sunday/ }));
+		const dialog = await screen.findByRole('dialog');
+		expect(await within(dialog).findByText('3 other voters')).toBeInTheDocument();
+	});
+
 	it('keeps options plain when Voter Visibility hides voters from the viewer', () => {
 		render(<PollCard poll={endedPoll} viewerId="user-voter" />);
 		expect(screen.queryByRole('button', { name: /Sunday/ })).not.toBeInTheDocument();

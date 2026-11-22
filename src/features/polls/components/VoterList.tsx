@@ -5,8 +5,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { CountAvatar } from '@/features/avatars/AccountAvatar';
 import { UserChip } from '@/features/profiles/UserChip';
 import { collectPages, mergeById } from '@/lib/api/cursor';
+import { countText } from '@/lib/count';
 
 import type { Voter } from '../schema';
 import { getVoters } from '../service';
@@ -113,8 +115,11 @@ export function useVoters(pollId: string, viewerKey: string) {
 }
 
 type VotersDialogProps = {
-	option: { id: string; text: string; votes: number } | null;
+	/** `participants`: everyone who took part, the total a list of everyone falls short of. */
+	option: { id: string; text: string; votes: number; participants: number } | null;
 	voters: ReturnType<typeof useVoters>;
+	/** The viewer's option when their own Ballot is anonymous, so they're left out too. */
+	myAnonymousOptionId: string | null;
 	onClose: () => void;
 };
 
@@ -122,8 +127,8 @@ type VotersDialogProps = {
  * Who chose one option of an Ended Poll. Only opened when the Poll's Voter
  * Visibility lets this viewer see it; the API still has the final say.
  */
-export function VotersDialog({ option, voters, onClose }: VotersDialogProps) {
-	const { t } = useLanguage();
+export function VotersDialog({ option, voters, myAnonymousOptionId, onClose }: VotersDialogProps) {
+	const { t, currentLanguage } = useLanguage();
 	// Keep the last option while the dialog animates closed
 	const [shown, setShown] = useState(option);
 	if (option && option !== shown) setShown(option);
@@ -134,7 +139,14 @@ export function VotersDialog({ option, voters, onClose }: VotersDialogProps) {
 	const isLoading = voters.status === 'loading' || voters.status === 'idle';
 	const failed = voters.status === 'hidden' || voters.status === 'failed';
 	const truncated = voters.status === 'ready' && isCapped(voters) && (choicesHidden || chose.length < (shown?.votes ?? 0));
-	const empty = voters.status === 'ready' && chose.length === 0 && !truncated;
+	// Anonymous Ballots and removed accounts are counted but never listed; only knowable once every page is in
+	const expected = choicesHidden ? shown?.participants : shown?.votes;
+	const unlisted =
+		voters.status === 'ready' && voters.nextCursor === null && expected !== undefined
+			? Math.max(0, expected - chose.length)
+			: 0;
+	const includesMine = !!myAnonymousOptionId && (choicesHidden || myAnonymousOptionId === shown?.id);
+	const empty = voters.status === 'ready' && chose.length === 0 && !truncated && unlisted === 0;
 
 	return (
 		<Dialog open={!!option} onOpenChange={(open) => !open && onClose()}>
@@ -159,6 +171,30 @@ export function VotersDialog({ option, voters, onClose }: VotersDialogProps) {
 								</li>
 							))}
 						</ul>
+					)}
+					{unlisted > 0 && (
+						<div className="flex min-h-11 items-center gap-3 text-body-4 text-muted-foreground">
+							<CountAvatar count={unlisted} />
+							<span className="flex min-w-0 flex-col gap-0.5">
+								<span>
+									{includesMine && unlisted === 1
+										? t('poll.votersUnlistedYou')
+										: countText(
+												t,
+												chose.length > 0 ? 'poll.votersUnlisted' : 'poll.votersUnlistedAll',
+												unlisted,
+												currentLanguage
+											)}
+								</span>
+								<span className="text-caption-2">
+									{!includesMine
+										? t('poll.votersUnlistedWhy')
+										: unlisted === 1
+											? t('poll.votersUnlistedYouWhy')
+											: t('poll.votersUnlistedMine')}
+								</span>
+							</span>
+						</div>
 					)}
 					{isLoading && (
 						<div className="flex justify-center py-4">

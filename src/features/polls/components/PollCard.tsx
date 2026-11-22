@@ -146,9 +146,9 @@ export function PollCard({
 			: // An unknown role (its account list failed to load) leaves it to the API
 				poll.voterVisibility === 'owner' && isOwner && (!acting?.role || canReadResults(acting.role)));
 	const voters = useVoters(id, isAuthed ? (viewerId ?? 'signed-in') : 'guest');
-	const [votersOption, setVotersOption] = useState<ResultRow | null>(null);
-	const showVoters = (row: ResultRow) => {
-		setVotersOption(row);
+	const [votersOption, setVotersOption] = useState<(ResultRow & { participants: number }) | null>(null);
+	const showVoters = (row: ResultRow, participants: number) => {
+		setVotersOption({ ...row, participants });
 		voters.load(row);
 	};
 
@@ -287,7 +287,12 @@ export function PollCard({
 			{isReporting && <ReportCommentDialog pollId={id} open onOpenChange={setIsReporting} />}
 
 			{canSeeVoters && (
-				<VotersDialog option={votersOption} voters={voters} onClose={() => setVotersOption(null)} />
+				<VotersDialog
+					option={votersOption}
+					voters={voters}
+					myAnonymousOptionId={ballot.anonymous ? ballot.savedOptionId : null}
+					onClose={() => setVotersOption(null)}
+				/>
 			)}
 
 			{authDialog.open && <AuthDialog {...authDialog} />}
