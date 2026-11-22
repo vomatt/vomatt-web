@@ -4,7 +4,7 @@ import { Menu } from '@base-ui/react/menu';
 import Link from 'next/link';
 
 import { RowMenuRoot } from '@/components/RowMenuRoot';
-import { Button } from '@/components/ui/Button';
+import { Button, buttonVariants } from '@/components/ui/Button';
 import { menuItemClassName, menuPopupClassName } from '@/components/ui/menu';
 import {
 	Bookmark,
@@ -68,8 +68,12 @@ export function PollFooter({
 			: commentCount === 1
 				? t('poll.comment')
 				: t('poll.comments', { count: commentCount });
-	const commentsClassName =
-		'flex min-h-11 items-center gap-2 transition-colors hover:text-foreground';
+	// The ••• trigger's ghost circle, as a pill for an action with a label; the footer's 14px regular type
+	const pillClassName = buttonVariants({
+		variant: 'ghost',
+		size: 'xs',
+		className: 'rounded-full px-2 text-body-4 font-normal',
+	});
 	const meta = [
 		turnout !== undefined &&
 			t('poll.voted', {
@@ -81,25 +85,25 @@ export function PollFooter({
 		.join(META_GAP);
 
 	return (
-		// Each item is 44px tall; 4px above and below set the text 16px in. Too narrow for one row
+		// Each row is 44px tall; 4px above and below set the text 16px in. Too narrow for one row
 		// (320px, or a non-Public audience), the actions wrap to a second row on the right
 		<div className="flex flex-wrap items-center gap-x-4 border-t border-border px-5 py-1 text-body-4 text-muted-foreground md:px-8">
-			{meta && <span className="tabular-nums">{meta}</span>}
+			{meta && <span className="flex min-h-11 items-center tabular-nums">{meta}</span>}
 			<Link
 				href={isPage ? '#discussion' : `${pollHref(pollId)}#discussion`}
-				className={commentsClassName}
+				className={`${pillClassName} -ml-2 gap-2`}
 			>
 				<MessageSquare className="size-[18px]" />
 				{commentsLabel}
 			</Link>
-			<div className="ml-auto flex items-center gap-5">
+			<div className="ml-auto flex min-h-11 items-center gap-2">
 				{onToggleLike && (
 					<button
 						type="button"
 						onClick={onToggleLike}
 						aria-pressed={!!liked}
 						aria-label={t(liked ? 'poll.liked' : 'poll.like')}
-						className="flex min-h-11 items-center gap-1.5 transition-colors hover:text-foreground aria-pressed:text-foreground"
+						className={`${pillClassName} aria-pressed:text-foreground`}
 					>
 						<Heart aria-hidden className="size-[18px]" fill={liked ? 'currentColor' : 'none'} />
 						<span className="tabular-nums">
@@ -108,34 +112,35 @@ export function PollFooter({
 					</button>
 				)}
 				{onToggleBookmark && (
-					<button
-						type="button"
+					<Button
+						variant="ghost"
+						size="icon-xs"
 						onClick={onToggleBookmark}
 						aria-pressed={!!bookmarked}
 						aria-label={t(bookmarked ? 'poll.bookmarked' : 'poll.bookmark')}
-						className="-mx-3 flex min-h-11 min-w-11 items-center justify-center transition-colors hover:text-foreground aria-pressed:text-foreground"
+						className="aria-pressed:text-foreground"
 					>
 						<Bookmark
 							aria-hidden
 							className="size-[18px]"
 							fill={bookmarked ? 'currentColor' : 'none'}
 						/>
-					</button>
+					</Button>
 				)}
-				<button
-					type="button"
+				<Button
+					variant="ghost"
+					size="icon-xs"
 					onClick={() => share({ id: pollId, title })}
 					aria-label={t('poll.share')}
-					className="-mx-3 flex min-h-11 min-w-11 items-center justify-center transition-colors hover:text-foreground"
 				>
 					<Share aria-hidden className="size-[18px]" />
-				</button>
+				</Button>
 				{onReport && (
 					<RowMenuRoot>
 						<Menu.Trigger
 							render={<Button variant="ghost" size="icon-xs" flush="end" />}
 							aria-label={t('poll.moreOptions')}
-							className="-ml-2 data-popup-open:bg-muted"
+							className="data-popup-open:bg-muted"
 						>
 							<Ellipsis aria-hidden />
 						</Menu.Trigger>

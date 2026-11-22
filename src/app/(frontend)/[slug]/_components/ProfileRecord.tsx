@@ -26,18 +26,18 @@ export function ProfileRecord({ cells }: { cells: RecordCell[] }) {
 				const value =
 					cell.value === null ? '–' : `${cell.value.toLocaleString(toLocaleTag(currentLanguage))}${cell.suffix ?? ''}`;
 				return (
-					<div key={cell.label} className="group relative flex flex-col-reverse px-4">
+					<div key={cell.label} className="relative flex flex-col-reverse px-4">
 						<dt className="inline-flex items-center gap-1 text-caption-2 text-muted-foreground">
 							{cell.label}
 							{cell.private && <OnlyYouMarker className="size-3" />}
 						</dt>
 						<dd className="text-title-2 leading-tight tabular-nums">
 							{cell.onSelect ? (
-								// Stretched over the cell, so the label is part of the target too
+								// Stretched over the whole cell, on top of its text, so every point in the cell is the target
 								<button
 									type="button"
 									onClick={cell.onSelect}
-									className="underline-offset-4 outline-none after:absolute after:-inset-y-1 after:inset-x-1 after:rounded-lg focus-visible:after:outline-2 focus-visible:after:outline-ring group-hover:underline"
+									className="cursor-pointer outline-none after:absolute after:inset-0 focus-visible:after:rounded-lg focus-visible:after:outline-2 focus-visible:after:outline-ring"
 								>
 									{value}
 								</button>
