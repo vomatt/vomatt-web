@@ -47,7 +47,8 @@ const navRowClassName = cn(
 	'group h-10 rounded-lg border border-transparent px-3 cursor-pointer transition-colors duration-150',
 	'text-muted-foreground hover:text-sidebar-foreground'
 );
-const activeRowClassName = 'bg-card border-border text-foreground hover:bg-card';
+const activeRowClassName =
+	'bg-card border-border text-foreground hover:bg-card';
 
 const navigationItems = [
 	{
@@ -98,7 +99,10 @@ export function AppSidebar({
 
 	return (
 		// Repeated on every page, so search engines take their snippet from the page's own content instead
-		<Sidebar data-nosnippet className="border-sidebar-border bg-sidebar ps-[env(safe-area-inset-left)]">
+		<Sidebar
+			data-nosnippet
+			className="border-sidebar-border bg-sidebar ps-[env(safe-area-inset-left)]"
+		>
 			{/* Header */}
 			<SidebarHeader className="px-5 pt-5 pb-5">
 				<BrandLink className="w-24 text-sidebar-foreground hover:text-sidebar-foreground/70 transition-colors" />
@@ -144,7 +148,10 @@ export function AppSidebar({
 													className="flex items-center gap-3 w-full"
 												/>
 											}
-											className={cn(navRowClassName, isActive && activeRowClassName)}
+											className={cn(
+												navRowClassName,
+												isActive && activeRowClassName
+											)}
 										>
 											<item.icon />
 											<span className="text-body-4 font-medium capitalize">
@@ -221,12 +228,16 @@ export function AppSidebar({
 							size="icon-xs"
 							aria-label={t('navigation.howCountsDismiss')}
 							onClick={() => {
-								document.cookie = sharedCookie(HOW_COUNTS_DISMISSED_COOKIE, '1', window.location.hostname);
+								document.cookie = sharedCookie(
+									HOW_COUNTS_DISMISSED_COOKIE,
+									'1',
+									window.location.hostname
+								);
 								setShowHowCounts(false);
 							}}
-							className="absolute top-2 right-2 text-tide-foreground"
+							className="absolute top-1 right-1 size-6 text-tide-foreground"
 						>
-							<X aria-hidden />
+							<X aria-hidden className="size-3" />
 						</Button>
 					</TidePanel>
 				)}

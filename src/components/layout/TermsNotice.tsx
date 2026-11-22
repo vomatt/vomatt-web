@@ -50,17 +50,17 @@ export function TermsNotice() {
 			aria-label={t('termsNotice.label')}
 			data-keyboard={keyboardOpen || undefined}
 			// A card above the TabBar on phones; from md a bar along the bottom of the content, clear of the sidebar
-			className="data-keyboard:invisible fixed inset-x-3 bottom-[calc(var(--tabbar-space)+0.75rem)] z-50 flex items-center gap-2 rounded-2xl border border-border bg-card py-3 pr-4 pl-2 shadow-lg md:inset-x-auto md:right-0 md:bottom-0 md:left-(--sidebar-width) md:rounded-none md:border-x-0 md:border-b-0 md:pr-6 md:pb-[max(--spacing(3),env(safe-area-inset-bottom))] md:pl-4 md:shadow-none"
+			className="data-keyboard:invisible fixed inset-x-3 bottom-[calc(var(--tabbar-space)+0.75rem)] z-50 flex items-start gap-2 rounded-2xl border border-border bg-card/80 py-3 pr-2 pl-4 shadow-lg backdrop-blur-lg md:inset-x-auto md:right-0 md:bottom-0 md:left-(--sidebar-width) md:items-center md:rounded-none md:border-x-0 md:border-b-0 md:pr-4 md:pb-[max(--spacing(3),env(safe-area-inset-bottom))] md:pl-6 md:shadow-none"
 		>
-			<Button variant="ghost" size="icon-xs" aria-label={t('termsNotice.dismiss')} onClick={dismiss} className="shrink-0">
-				<X aria-hidden />
-			</Button>
-			<p className="min-w-0 flex-1 text-caption-1 md:text-body-4">
+			<p className="min-w-0 flex-1 self-center text-caption-1 md:text-body-4">
 				{rich(t('termsNotice.message'), {
 					terms: link('terms-of-service', t('termsNotice.terms')),
 					privacy: link('privacy-policy', t('termsNotice.privacy')),
 				})}
 			</p>
+			<Button variant="ghost" size="icon-xs" aria-label={t('termsNotice.dismiss')} onClick={dismiss} className="shrink-0">
+				<X aria-hidden />
+			</Button>
 		</section>
 	);
 }
