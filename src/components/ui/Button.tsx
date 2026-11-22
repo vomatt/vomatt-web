@@ -13,19 +13,19 @@ const phoneIconTapTarget =
 	'max-md:after:absolute max-md:after:top-1/2 max-md:after:left-1/2 max-md:after:size-11 max-md:after:-translate-1/2';
 
 const buttonVariantClasses = cva(
-	"group/button relative inline-flex shrink-0 items-center justify-center rounded-(--radius) border border-transparent bg-clip-padding text-caption-1 font-medium whitespace-nowrap transition-[color,background-color,border-color,opacity,translate] outline-none select-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-ring motion-safe:active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-disabled:opacity-50 data-loading:pointer-events-none data-loading:[-webkit-text-fill-color:transparent] data-loading:[&>:not([data-slot=button-loading])]:opacity-0 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+	"group/button relative inline-flex shrink-0 items-center justify-center rounded-(--radius) border border-transparent bg-clip-padding text-caption-1 font-medium whitespace-nowrap transition-[color,background-color,border-color,opacity,scale] duration-160 ease-out-strong outline-none select-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-ring motion-safe:active:not-aria-[haspopup]:scale-[0.97] disabled:pointer-events-none disabled:opacity-50 aria-disabled:opacity-50 data-loading:pointer-events-none data-loading:[-webkit-text-fill-color:transparent] data-loading:[&>:not([data-slot=button-loading])]:opacity-0 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
 	{
 		variants: {
 			variant: {
 				default:
-					'bg-primary text-primary-foreground hover:bg-primary-hover disabled:bg-secondary disabled:text-muted-foreground disabled:opacity-100',
+					'bg-primary text-primary-foreground hover:bg-primary-hover disabled:bg-secondary disabled:text-muted-foreground disabled:opacity-100 aria-[haspopup]:active:bg-primary-hover',
 				// The create action only; its colours per theme are the --create tokens
 				create:
-					'bg-create text-create-foreground hover:bg-create-hover [&_svg]:text-create-icon disabled:bg-secondary disabled:text-muted-foreground disabled:opacity-100 disabled:[&_svg]:text-muted-foreground',
+					'bg-create text-create-foreground hover:bg-create-hover [&_svg]:text-create-icon disabled:bg-secondary disabled:text-muted-foreground disabled:opacity-100 disabled:[&_svg]:text-muted-foreground aria-[haspopup]:active:bg-create-hover',
 				outline:
-					'border-border-strong bg-card hover:bg-surface-soft hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground',
+					'border-border-strong bg-card hover:bg-surface-soft hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground aria-[haspopup]:active:bg-muted aria-[haspopup]:active:text-foreground',
 				ghost:
-					'hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground',
+					'hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground aria-[haspopup]:active:bg-muted aria-[haspopup]:active:text-foreground',
 				// A ghost that stays red on hover, for a delete that still needs confirming
 				'ghost-destructive':
 					'text-destructive hover:bg-muted hover:text-destructive',

@@ -19,6 +19,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { formatPollDate } from '@/features/polls/format';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
+import { foldAway } from '@/lib/motion';
 import { META_GAP } from '@/lib/rich';
 import { cn, wrapRowText } from '@/lib/utils';
 import type { Passkey } from '@/types/user';
@@ -65,6 +66,7 @@ export function PasskeysPanel() {
 			toast.error(apiErrorText(t, result, 'passkey.deleteFailed'), { duration: Infinity });
 			return;
 		}
+		await foldAway(document.querySelector(`[data-passkey-id="${CSS.escape(confirming.id)}"]`), 10);
 		setPasskeys((list) => list?.filter((passkey) => passkey.id !== confirming.id) ?? null);
 		toast.success(t('passkey.deleted'));
 	};
@@ -108,6 +110,7 @@ export function PasskeysPanel() {
 					{passkeys.map((passkey) => (
 						<li
 							key={passkey.id}
+							data-passkey-id={passkey.id}
 							className="flex items-center gap-2.5 rounded-xl border border-border bg-surface-soft px-2.5 py-2"
 						>
 							<span className="min-w-0 flex-1">

@@ -446,7 +446,7 @@ export function PollCreator({
 					// top on under the keyboard and Safari's bars, which iOS 26+ draws as glass over the page, and --keyboard-covered is
 					// what they cover, the scroller's padding. From sm it stays a centered dialog, as a 90dvh popup can't fit the strip
 					// above a landscape or iPad keyboard
-					className="flex h-dvh max-h-dvh max-w-none flex-col overflow-hidden rounded-none border-0 bg-background ring-0 max-sm:data-keyboard:top-(--visible-top) max-sm:data-keyboard:h-lvh max-sm:data-keyboard:max-h-none max-sm:data-keyboard:translate-y-0 max-sm:data-keyboard:[--keyboard-covered:calc(100lvh-var(--visible-height))] sm:h-auto sm:max-h-[90dvh] sm:data-keyboard:top-1/2 sm:data-keyboard:max-h-[90dvh] sm:max-w-2xl sm:rounded-[20px] sm:ring-1"
+					className="flex h-dvh max-h-dvh max-w-none flex-col overflow-hidden rounded-none border-0 bg-background ring-0 max-sm:data-keyboard:top-(--visible-top) max-sm:data-keyboard:h-lvh max-sm:data-keyboard:max-h-none max-sm:data-keyboard:translate-y-0 max-sm:data-keyboard:[--keyboard-covered:calc(100lvh-var(--visible-height))] sm:h-auto sm:max-h-[90dvh] sm:data-keyboard:top-1/2 sm:data-keyboard:max-h-[90dvh] sm:max-w-2xl sm:rounded-[20px] sm:ring-1 max-sm:duration-400 max-sm:data-closed:duration-250 max-sm:ease-drawer max-sm:data-open:fade-in-100 max-sm:data-closed:fade-out-100 max-sm:motion-safe:data-open:zoom-in-100 max-sm:motion-safe:data-closed:zoom-out-100 max-sm:motion-safe:data-open:slide-in-from-bottom max-sm:motion-safe:data-closed:slide-out-to-bottom max-sm:motion-reduce:data-open:fade-in-0 max-sm:motion-reduce:data-closed:fade-out-0"
 				>
 					<div className="flex flex-none items-start gap-3 p-4 sm:p-5">
 						<div className="min-w-0 flex-1 space-y-1">
@@ -732,7 +732,7 @@ export function PollCreator({
 																								)
 																							);
 																						}}
-																						className="absolute inset-y-0 right-0.5 my-auto text-muted-foreground duration-150 animate-in fade-in zoom-in-75 motion-reduce:animate-none hover:bg-transparent hover:text-destructive"
+																						className="absolute inset-y-0 right-0.5 my-auto text-muted-foreground duration-150 ease-out-strong animate-in fade-in motion-safe:zoom-in-95 hover:bg-transparent hover:text-destructive"
 																					>
 																						<X className="size-4" />
 																					</Button>

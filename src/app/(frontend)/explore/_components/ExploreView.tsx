@@ -263,7 +263,7 @@ function PeopleRow({ users }: { users: UserDto[] }) {
 						<UserChip
 							username={user.username}
 							avatarUrl={user.avatarUrl}
-							className="h-11 rounded-full border border-border bg-card ps-1.5 pe-3.5 text-body-4 font-medium transition-colors hover:bg-accent md:h-9"
+							className="h-11 rounded-full border border-border bg-card ps-1.5 pe-3.5 text-body-4 font-medium transition-colors hover:bg-surface-soft active:bg-surface-soft md:h-9"
 							avatarClassName="size-7 md:size-6"
 						/>
 					</li>

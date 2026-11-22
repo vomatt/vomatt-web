@@ -741,6 +741,13 @@ describe('PollCard state B: Open, has Ballot', () => {
 		expect(screen.getByText('Sunday')).toHaveClass('wrap-anywhere');
 	});
 
+	it('shows the final percentages at once when the card loads already ended, without counting up', async () => {
+		render(<PollCard poll={endedPoll} viewerId="user-voter" />);
+		await waitFor(() => expect(screen.getByText('62 votes, 48%')).toBeInTheDocument());
+		expect(screen.getByText('48%')).toBeInTheDocument();
+		expect(screen.queryByText('0%')).not.toBeInTheDocument();
+	});
+
 	it('on vote.ended, toasts and refetches so the card flips to state D', async () => {
 		mockCastBallot.mockResolvedValue({ ok: false, errorCode: 'vote.ended', message: 'ended' });
 		mockGetPoll.mockResolvedValue(endedPoll);

@@ -30,7 +30,7 @@ type HeaderProfile = Pick<
 >;
 
 const detailLink =
-	'rounded-sm transition-colors hover:text-foreground outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring';
+	'rounded-sm transition-colors hover:text-foreground active:text-foreground outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring';
 
 /**
  * The same header for the owner and for visitors. Visitors get only the fields

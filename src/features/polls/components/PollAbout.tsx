@@ -91,7 +91,7 @@ export function PollAbout({ poll }: { poll: Poll }) {
 								<li key={tag.id}>
 									<Link
 										href={topicHref(tag.slug)}
-										className="relative inline-flex items-center rounded-full bg-field px-2.5 py-[5px] text-caption-2 leading-normal font-medium text-foreground transition-colors outline-none before:absolute before:inset-x-0 before:-inset-y-2 before:content-[''] hover:bg-border-strong focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring md:before:hidden"
+										className="relative inline-flex items-center rounded-full bg-field px-2.5 py-[5px] text-caption-2 leading-normal font-medium text-foreground transition-colors outline-none before:absolute before:inset-x-0 before:-inset-y-2 before:content-[''] hover:bg-border-strong active:bg-border-strong focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring md:before:hidden"
 									>
 										{tag.name}
 									</Link>

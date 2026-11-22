@@ -17,11 +17,17 @@ import { Spinner } from '@/components/ui/Spinner';
 import { RotateCw } from '@/components/ui/SvgIcons';
 import { cn } from '@/lib/utils';
 
-/** How far the finger travels per pixel the indicator moves. */
-const RESISTANCE = 0.5;
+/** Soft limit the pull approaches but never reaches. */
+const PULL_LIMIT = 160;
+/** How quickly resistance builds: higher pulls further per finger pixel. */
+const PULL_STIFFNESS = 0.8;
 export const PULL_THRESHOLD = 64;
-const MAX_PULL = 96;
 const REFRESHING_HEIGHT = 48;
+
+/** iOS-style rubber band: follows the finger at first, then resists more the further it goes. */
+function rubberBand(dy: number) {
+	return PULL_LIMIT * (1 - 1 / ((dy * PULL_STIFFNESS) / PULL_LIMIT + 1));
+}
 
 /** Open layers over the page; a drag inside one scrolls or picks in it, never refreshes the page. */
 const OVERLAYS = '[role="dialog"],[role="alertdialog"],[role="menu"],[role="listbox"]';
@@ -53,32 +59,48 @@ export function Refreshable({ children }: { children: ReactNode }) {
 
 	usePullDown({ onDrag: setPull, onPulled: refreshPage });
 
-	const height = isRefreshing ? REFRESHING_HEIGHT : pull;
+	const offset = isRefreshing ? REFRESHING_HEIGHT : pull;
+	const moving = offset > 0;
 
 	return (
 		<RefreshPage value={refreshPage}>
 			<RefreshGeneration value={generation}>
-				<div
-					aria-hidden={!isRefreshing}
-					style={{ height }}
-					className={cn(
-						'flex items-center justify-center overflow-hidden text-muted-foreground',
-						// Eases back when let go; follows the finger while pulled
-						pull === 0 && 'transition-[height] duration-200 motion-reduce:transition-none'
-					)}
-				>
-					{isRefreshing ? (
-						<Spinner className="size-5" />
-					) : (
-						pull > 0 && (
-							<RotateCw
-								className={cn('size-5 transition-opacity', pull < PULL_THRESHOLD && 'opacity-50')}
-								style={{ transform: `rotate(${(pull / PULL_THRESHOLD) * 270}deg)` }}
-							/>
-						)
-					)}
+				<div className="relative">
+					<div
+						aria-hidden={!isRefreshing}
+						style={{
+							height: REFRESHING_HEIGHT,
+							transform: `translateY(${offset - REFRESHING_HEIGHT}px)`,
+							opacity: moving ? 1 : 0,
+						}}
+						className={cn(
+							'pointer-events-none absolute inset-x-0 top-0 flex items-center justify-center text-muted-foreground',
+							pull === 0 && 'transition-[transform,opacity] duration-200 ease-drawer motion-reduce:transition-none'
+						)}
+					>
+						{isRefreshing ? (
+							<Spinner className="size-5" />
+						) : (
+							pull > 0 && (
+								<RotateCw
+									className={cn('size-5 transition-opacity', pull < PULL_THRESHOLD && 'opacity-50')}
+									style={{ transform: `rotate(${(pull / PULL_THRESHOLD) * 270}deg)` }}
+								/>
+							)
+						)}
+					</div>
+					<div
+						// Moved by a transform while pulled; held by in-flow padding while refreshing, so sticky bars
+						// inside keep their offsets if the page scrolls meanwhile
+						style={pull > 0 ? { transform: `translateY(${pull}px)` } : isRefreshing ? { paddingTop: REFRESHING_HEIGHT } : undefined}
+						className={cn(
+							// Eases back when let go (both together, so the hand-off reads as one move); follows the finger while pulled
+							pull === 0 && 'transition-[transform,padding-top] duration-200 ease-drawer motion-reduce:transition-none'
+						)}
+					>
+						{children}
+					</div>
 				</div>
-				{children}
 			</RefreshGeneration>
 		</RefreshPage>
 	);
@@ -141,7 +163,7 @@ function usePullDown({ onDrag, onPulled }: { onDrag: (distance: number) => void;
 				release(false);
 				return;
 			}
-			current.distance = Math.min(dy * RESISTANCE, MAX_PULL);
+			current.distance = rubberBand(dy);
 			handleDrag(current.distance);
 		};
 

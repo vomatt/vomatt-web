@@ -1,6 +1,6 @@
 'use client';
 
-import { m } from 'motion/react';
+import { m, useReducedMotion } from 'motion/react';
 import { useId } from 'react';
 
 import { Check } from '@/components/ui/SvgIcons';
@@ -30,7 +30,7 @@ export function BallotMark({ state }: { state: 'rest' | 'selected' | 'voted' }) 
 			)}
 		>
 			{state !== 'rest' && (
-				<m.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={INK}>
+				<m.span initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={INK}>
 					<Check aria-hidden size={12} strokeWidth={3.5} className="text-highlight" />
 				</m.span>
 			)}
@@ -42,9 +42,9 @@ export function BallotMark({ state }: { state: 'rest' | 'selected' | 'voted' }) 
 export function YourVotePill({ label }: { label: string }) {
 	return (
 		<m.span
-			initial={{ opacity: 0, scale: 0.85 }}
+			initial={{ opacity: 0, scale: 0.95 }}
 			animate={{ opacity: 1, scale: 1 }}
-			exit={{ opacity: 0, scale: 0.85, transition: { duration: 0.15 } }}
+			exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
 			transition={INK}
 			className="relative shrink-0 select-none whitespace-nowrap rounded-full border border-highlight-foreground bg-highlight px-2 py-0.5 text-caption-3 font-semibold leading-4 text-highlight-foreground"
 		>
@@ -57,9 +57,9 @@ export function YourVotePill({ label }: { label: string }) {
 export function VotedPill({ label }: { label: string }) {
 	return (
 		<m.span
-			initial={{ opacity: 0, scale: 0.85 }}
+			initial={{ opacity: 0, scale: 0.95 }}
 			animate={{ opacity: 1, scale: 1 }}
-			exit={{ opacity: 0, scale: 0.85, transition: { duration: 0.15 } }}
+			exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
 			transition={INK}
 			className={cn(chipClassName, 'bg-highlight text-highlight-foreground')}
 		>
@@ -85,6 +85,7 @@ export function VotedPillSpace({ label }: { label: string }) {
 export function BallotBoxIcon({ className }: { className?: string }) {
 	// Many cards render this at once, so the clip path id must be unique
 	const clipId = useId();
+	const reduceMotion = useReducedMotion();
 	return (
 		<svg viewBox="0 0 24 24" fill="none" aria-hidden className={cn('size-5 shrink-0', className)}>
 			<defs>
@@ -100,8 +101,8 @@ export function BallotBoxIcon({ className }: { className?: string }) {
 					rx="1"
 					fill="currentColor"
 					opacity={0.35}
-					initial={{ y: -2 }}
-					animate={{ y: 12 }}
+					initial={reduceMotion ? false : { y: -2 }}
+					animate={{ y: reduceMotion ? 2 : 12 }}
 					transition={{ duration: 0.55, ease: [0.5, 0, 0.75, 0], delay: 0.1 }}
 				/>
 			</g>

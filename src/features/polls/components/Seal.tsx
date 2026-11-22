@@ -118,9 +118,9 @@ export function Seal({ popKey = 0, endTime, children }: SealProps) {
 				<m.span
 					key={popKey}
 					className="row-span-2 md:row-span-1"
-					initial={popKey ? { scale: 0.4, opacity: 0 } : false}
+					initial={popKey ? { scale: 0.9, opacity: 0 } : false}
 					animate={{ scale: 1, opacity: 1 }}
-					transition={{ type: 'spring', stiffness: 420, damping: 18 }}
+					transition={{ type: 'spring', duration: 0.5, bounce: 0.2 }}
 				>
 					<SealMark size="md" />
 				</m.span>

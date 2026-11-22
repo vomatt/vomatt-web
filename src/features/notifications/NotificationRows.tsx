@@ -26,6 +26,7 @@ import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
 import { countText } from '@/lib/count';
 import { toLocaleTag } from '@/lib/locale';
+import { foldAway } from '@/lib/motion';
 import { rich } from '@/lib/rich';
 import { META_GAP } from '@/lib/rich';
 import { commentHash, pollHref, profileHref, replyHash } from '@/lib/routes';
@@ -97,7 +98,7 @@ export function NotificationRow(props: RowProps<Entry>) {
 
 // Above the row's own link, so each keeps its own target
 const rowLink =
-	'relative z-10 rounded-sm outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring';
+	'relative z-10 rounded-sm outline-none transition-opacity active:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring';
 
 const strong = (text: string) => <strong className="font-semibold">{text}</strong>;
 
@@ -145,9 +146,9 @@ function RowShell({
 				'relative isolate grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3.5 gap-y-2.5 rounded-xl border px-4 py-3.5 transition-colors sm:grid-cols-[auto_minmax(0,1fr)_auto]',
 				unread
 					? tide
-						? 'border-tide-line bg-tide-tint'
-						: 'border-border bg-card hover:border-border-strong'
-					: 'border-transparent bg-surface-soft hover:border-border hover:bg-card'
+						? 'border-tide-line bg-tide-tint has-[>a:active,>button:active]:border-tide'
+						: 'border-border bg-card hover:border-border-strong has-[>a:active,>button:active]:border-border-strong'
+					: 'border-transparent bg-surface-soft hover:border-border hover:bg-card has-[>a:active,>button:active]:border-border has-[>a:active,>button:active]:bg-card'
 			)}
 		>
 			{href ? (
@@ -531,20 +532,24 @@ function CommunityInvitationRow({ entry, onOpen }: RowProps<Extract<Entry, { kin
 	const age = useAge(entry.createdAt);
 	if (answered) return null;
 
-	const answer = async (choice: 'accept' | 'decline') => {
+	const answer = async (choice: 'accept' | 'decline', row: Element | null) => {
 		setBusy(choice);
 		const result = await settle<unknown>((choice === 'accept' ? acceptCommunityInvitation : declineCommunityInvitation)(communityInvitation.id));
-		setBusy(null);
+		// The buttons stay busy while the row folds away, so it can't be answered twice
 		if (!result.ok) {
 			toast.error(apiErrorText(t, result));
 			// Revoked, expired or answered elsewhere: nothing left to answer
 			if (result.errorCode === 'community.invitation.not_found') {
+				await foldAway(row, 8);
 				setAnswered(true);
 				refresh();
+			} else {
+				setBusy(null);
 			}
 			return;
 		}
 		toast.success(t(choice === 'accept' ? 'notifications.invitationAccepted' : 'notifications.invitationDeclined', { name: handle(actor.username) }));
+		await foldAway(row, 8);
 		setAnswered(true);
 		refresh();
 		if (choice === 'accept') reloadCommunities();
@@ -562,10 +567,10 @@ function CommunityInvitationRow({ entry, onOpen }: RowProps<Extract<Entry, { kin
 			meta={[age]}
 			action={
 				<>
-					<Button size="xs" loading={busy === 'accept'} disabled={busy !== null} onClick={() => answer('accept')}>
+					<Button size="xs" loading={busy === 'accept'} disabled={busy !== null} onClick={(event) => answer('accept', event.currentTarget.closest('li'))}>
 						{t('notifications.accept')}
 					</Button>
-					<Button size="xs" variant="outline" loading={busy === 'decline'} disabled={busy !== null} onClick={() => answer('decline')}>
+					<Button size="xs" variant="outline" loading={busy === 'decline'} disabled={busy !== null} onClick={(event) => answer('decline', event.currentTarget.closest('li'))}>
 						{t('notifications.decline')}
 					</Button>
 				</>
