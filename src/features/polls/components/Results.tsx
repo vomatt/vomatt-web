@@ -78,8 +78,8 @@ type ResultsProps = {
 	turnout: number | undefined;
 	/** `/results` answered 403: the Poll is still sealed, so refetch it. */
 	onSealed: () => void;
-	/** Set when the viewer may see who voted: options with votes become buttons. */
-	onSelectOption?: (row: ResultRow) => void;
+	/** Set when the viewer may see who voted: options with votes become buttons. Gets the Poll's participant count too. */
+	onSelectOption?: (row: ResultRow, participants: number) => void;
 };
 
 function rowsFromPoll(poll: Poll): ResultRow[] | null {
@@ -172,7 +172,7 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }:
 								transition={{ duration: BAR_DURATION, delay, ease: BAR_EASE }}
 							/>
 							<RowContent
-								onClick={onSelectOption && row.votes > 0 ? () => onSelectOption(row) : undefined}
+								onClick={onSelectOption && row.votes > 0 ? () => onSelectOption(row, participants) : undefined}
 							>
 								{isWinner && <ElectedStamp label={t('poll.elected')} />}
 								{/* Words split only when one is wider than the row, so the count keeps its column; where the option and the pill don't fit side by side, the pill wraps under */}
