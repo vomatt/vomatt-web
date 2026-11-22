@@ -23,7 +23,7 @@ import { cn } from '@/lib/utils';
 
 /** The row frame every profile list shares; hover lifts its line one step. */
 export const profileRowClassName =
-	'flex items-center gap-3.5 rounded-xl border border-border bg-card px-4 py-3.5 transition-colors hover:border-border-strong';
+	'flex items-center gap-3.5 rounded-xl border border-border bg-card px-4 py-3.5 transition-colors hover:border-border-strong active:border-border-strong';
 
 const linkFocus =
 	'outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring';
@@ -170,7 +170,7 @@ export function VotedRow({ poll }: { poll: Poll }) {
 			<li>
 				<Link
 					href={pollHref(poll.id)}
-					className={cn(profileRowClassName, linkFocus, 'border-tide-line bg-tide-tint hover:border-tide')}
+					className={cn(profileRowClassName, linkFocus, 'border-tide-line bg-tide-tint hover:border-tide active:border-tide')}
 				>
 					<SealMark />
 					<span className="flex min-w-0 flex-1 flex-col gap-0.5">

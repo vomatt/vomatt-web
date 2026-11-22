@@ -130,7 +130,7 @@ export function ProfileHoverCard({
 					{/* React events bubble out of portals: keep clicks in the card from reaching a row link around the trigger */}
 					<PreviewCard.Popup
 						onClick={(event) => event.stopPropagation()}
-						className="w-80 origin-(--transform-origin) rounded-2xl border border-border bg-card p-4 text-foreground shadow-lg data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95">
+						className="w-80 origin-(--transform-origin) rounded-2xl border border-border bg-card p-4 text-foreground shadow-lg transition-[opacity,scale] duration-200 ease-out-strong data-starting-style:opacity-0 data-ending-style:opacity-0 motion-safe:data-starting-style:scale-95 motion-safe:data-ending-style:scale-95">
 						<ProfileCardBody
 							username={username}
 							avatarUrl={shownAvatarUrl}

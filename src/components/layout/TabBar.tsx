@@ -33,7 +33,7 @@ type Tab = {
 // The center tab is the create action: a quiet square that sinks a little under the finger
 const createClassName = cn(
 	buttonVariants({ variant: 'ghost' }),
-	'w-13 px-0 bg-muted text-foreground active:bg-foreground/10 motion-safe:transition-[background-color,scale] motion-safe:duration-150 motion-safe:active:scale-92'
+	'w-13 px-0 bg-muted text-foreground active:bg-foreground/10 motion-safe:transition-[background-color,scale] motion-safe:duration-160 motion-safe:ease-out-strong motion-safe:active:scale-[0.97]'
 );
 const cellClassName =
 	'group flex-1 h-full flex justify-center items-center outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring';
@@ -132,11 +132,11 @@ function TabIcon({ icon, isActive }: { icon: React.ReactNode; isActive: boolean 
 
 function tabIconClassName(isActive: boolean) {
 	return cn(
-		'relative flex size-12 items-center justify-center motion-safe:transition-[color,scale] motion-safe:duration-150 motion-safe:group-active:scale-88',
+		'relative flex size-12 items-center justify-center motion-safe:transition-[color,scale] motion-safe:duration-160 motion-safe:ease-out-strong motion-safe:group-active:scale-[0.97]',
 		// The current tab's dot: drawn as a border, not a fill, so forced colors keep it
-		'after:absolute after:bottom-1 after:size-1 after:rounded-full after:border-2 after:border-current motion-safe:after:transition-[scale,opacity] motion-safe:after:duration-200',
+		'after:absolute after:bottom-1 after:size-1 after:rounded-full after:border-2 after:border-current motion-safe:after:transition-[scale,opacity] motion-safe:after:duration-200 motion-safe:after:ease-out-strong',
 		isActive
 			? 'text-foreground after:scale-100 after:opacity-100'
-			: 'text-muted-foreground group-active:text-foreground after:scale-0 after:opacity-0'
+			: 'text-muted-foreground group-active:text-foreground after:scale-90 after:opacity-0'
 	);
 }

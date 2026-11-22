@@ -10,7 +10,6 @@ import {
 	Bookmark,
 	Ellipsis,
 	Flag,
-	Heart,
 	MessageSquare,
 	Share,
 } from '@/components/ui/SvgIcons';
@@ -22,6 +21,7 @@ import { pollHref } from '@/lib/routes';
 import { useSharePoll } from '../hooks/useSharePoll';
 import type { Audience } from '../schema';
 import { isPublic } from '../status';
+import { LikeHeart } from './LikeHeart';
 
 type PollFooterProps = {
 	pollId: string;
@@ -105,7 +105,7 @@ export function PollFooter({
 						aria-label={t(liked ? 'poll.liked' : 'poll.like')}
 						className={`${pillClassName} aria-pressed:text-foreground`}
 					>
-						<Heart aria-hidden className="size-[18px]" fill={liked ? 'currentColor' : 'none'} />
+						<LikeHeart liked={!!liked} className="size-[18px]" />
 						<span className="tabular-nums">
 							{(likeCount ?? 0).toLocaleString(toLocaleTag(currentLanguage))}
 						</span>

@@ -1,6 +1,6 @@
 'use client';
 
-import { m } from 'motion/react';
+import { m, useReducedMotion } from 'motion/react';
 import Link from 'next/link';
 import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react';
 
@@ -16,6 +16,7 @@ import type { Poll } from '@/features/polls/schema';
 import { loadFeed } from '@/features/polls/service';
 import { useCursorList } from '@/hooks/useCursorList';
 import { mergeById } from '@/lib/api/cursor';
+import { EASE_OUT_STRONG } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 
 type PollFeedListProps = {
@@ -39,6 +40,7 @@ export function PollFeedList({
 	header,
 }: PollFeedListProps) {
 	const { t } = useLanguage();
+	const reduceMotion = useReducedMotion();
 	// Starts from the server's first page, and again after a refresh that brought a new one
 	const generation = useRefreshGeneration();
 	const [seed, setSeed] = useState({ generation, page: initialPage });
@@ -136,10 +138,12 @@ export function PollFeedList({
 				{polls.map((poll, index) => (
 					<m.div
 						key={poll.id}
-						initial={index < firstPageCount ? false : { opacity: 0, y: 12 }}
-						animate={{ opacity: 1, y: 0 }}
+						// A full transform string stays off the main thread while the next page renders (motion 12); the raw transform skips MotionConfig's reduced motion, so it is branched here
+						initial={index < firstPageCount ? false : { opacity: 0, transform: reduceMotion ? 'none' : 'translateY(12px)' }}
+						animate={{ opacity: 1, transform: reduceMotion ? 'none' : 'translateY(0px)' }}
 						transition={{
 							duration: 0.3,
+							ease: EASE_OUT_STRONG,
 							delay: Math.min(index % 10, 5) * 0.04,
 						}}
 					>

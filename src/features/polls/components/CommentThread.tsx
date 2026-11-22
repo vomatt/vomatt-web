@@ -1,7 +1,7 @@
 'use client';
 
 import { Menu } from '@base-ui/react/menu';
-import { AnimatePresence, m, useReducedMotion } from 'motion/react';
+import { AnimatePresence, useReducedMotion } from 'motion/react';
 import Link from 'next/link';
 import { useEffect, useId, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -20,7 +20,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { menuItemClassName, menuPopupClassName } from '@/components/ui/menu';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { Ban, Copy, Ellipsis, Heart, Link2, Pencil, Reply, Trash2, TriangleAlert, X } from '@/components/ui/SvgIcons';
+import { Ban, Copy, Ellipsis, Link2, Pencil, Reply, Trash2, TriangleAlert, X } from '@/components/ui/SvgIcons';
 import { Textarea } from '@/components/ui/Textarea';
 import { ENTER, Unfold } from '@/components/Unfold';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -42,6 +42,7 @@ import type { CommentsState, PendingAuthor } from '../hooks/useComments';
 import type { Comment } from '../schema';
 import { CreateCommentRequestSchema } from '../schema';
 import { pollUrl } from '../url';
+import { LikeHeart } from './LikeHeart';
 import { MentionTextarea } from './MentionTextarea';
 import { ReportCommentDialog } from './ReportCommentDialog';
 
@@ -57,11 +58,11 @@ function textMax(addressee: string | null) {
 // Like and Reply are 32px pills (36px on phones); the ::before extends the hit area to 44px, and
 // on phones they are at least 44px wide
 const pillClassName =
-	"relative inline-flex h-9 min-w-11 shrink-0 items-center justify-center gap-1.5 rounded-full px-2.5 md:min-w-0 text-caption-3 font-medium text-muted-foreground transition-colors before:absolute before:inset-x-0 before:-inset-y-1 before:content-[''] hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring md:h-8";
+	"relative inline-flex h-9 min-w-11 shrink-0 items-center justify-center gap-1.5 rounded-full px-2.5 md:min-w-0 text-caption-3 font-medium text-muted-foreground transition-[color,background-color,scale] duration-160 ease-out-strong before:absolute before:inset-x-0 before:-inset-y-1 before:content-[''] hover:bg-muted hover:text-foreground active:bg-muted active:text-foreground motion-safe:active:not-aria-[haspopup]:scale-[0.97] focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring md:h-8";
 
 // View, Hide or retry the Replies: 32px tall; the ::before extends the hit area to 44px
 const repliesActionClassName =
-	"relative mt-0.5 inline-flex h-8 items-center px-0.5 text-caption-2 font-medium text-muted-foreground before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-[''] hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring";
+	"relative mt-0.5 inline-flex h-8 items-center px-0.5 text-caption-2 font-medium text-muted-foreground transition-colors before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-[''] hover:text-foreground active:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring";
 
 /** The signed-in viewer, whose avatar sits beside the composers. */
 type Viewer = { username: string; avatarUrl: string | null };
@@ -114,15 +115,35 @@ function MentionText({ text, mentions }: { text: string; mentions: Comment['ment
 	return parts;
 }
 
-/** Scrolls a comment into view and flashes it, for a copied link or an addressee chip. */
+/** Scrolls a comment into view and flashes it once it's there, for a copied link or an addressee chip. */
 function showComment(id: string) {
 	const el = document.getElementById(`comment-${id}`);
 	if (!el) return;
+	const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false;
+	const flash = () =>
+		el.animate([{ backgroundColor: 'var(--highlight-tint)' }, { backgroundColor: 'transparent' }], {
+			duration: 1200,
+			easing: 'ease-out',
+		});
+	if (reduceMotion) {
+		el.scrollIntoView({ block: 'center', behavior: 'auto' });
+		flash();
+		return;
+	}
+	// Flash when the smooth scroll settles. Without scrollend, or when the comment is already in view
+	// (it may not scroll at all), flash after a fixed wait
+	const { top, bottom } = el.getBoundingClientRect();
+	const inView = top >= 0 && bottom <= window.innerHeight;
+	let flashed = false;
+	const once = () => {
+		window.removeEventListener('scrollend', once);
+		if (flashed) return;
+		flashed = true;
+		flash();
+	};
+	window.addEventListener('scrollend', once, { once: true });
+	if (!('onscrollend' in window) || inView) setTimeout(once, 600);
 	el.scrollIntoView({ block: 'center', behavior: 'smooth' });
-	el.animate([{ backgroundColor: 'var(--highlight-tint)' }, { backgroundColor: 'transparent' }], {
-		duration: 1200,
-		easing: 'ease-out',
-	});
 }
 
 type CommentThreadProps = {
@@ -434,7 +455,7 @@ function Composer({
 							type="button"
 							aria-label={t('comments.cancelReply')}
 							onClick={onCancel}
-							className="ml-auto flex size-7 shrink-0 items-center justify-center rounded-full hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring"
+							className="ml-auto flex size-7 shrink-0 items-center justify-center rounded-full hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring transition-colors active:bg-muted active:text-foreground"
 						>
 							<X className="size-4" />
 						</button>
@@ -922,7 +943,7 @@ function CommentBody({
 							type="button"
 							aria-label={`${t('comments.replyingTo')} ${addressee}`}
 							onClick={() => answered && showComment(answered.id)}
-							className="inline-flex h-[22px] items-center gap-1.5 self-start rounded-full border border-border-strong pr-2 pl-1.5 text-caption-3 font-medium text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring"
+							className="inline-flex h-[22px] items-center gap-1.5 self-start rounded-full border border-border-strong pr-2 pl-1.5 text-caption-3 font-medium text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring transition-colors active:text-foreground"
 						>
 							<Reply aria-hidden className="size-3" strokeWidth={2.2} />
 							{addressee}
@@ -952,15 +973,7 @@ function CommentBody({
 						}
 						className={cn(pillClassName, comment.likedByCurrentUser && 'bg-highlight-tint text-foreground')}
 					>
-						<m.span
-							key={comment.likedByCurrentUser ? 'liked' : 'unliked'}
-							initial={{ scale: comment.likedByCurrentUser ? 0.4 : 1 }}
-							animate={{ scale: 1 }}
-							transition={{ duration: 0.2, ease: [0.25, 1, 0.5, 1] }}
-							className="inline-flex"
-						>
-							<Heart className={cn('size-[15px]', comment.likedByCurrentUser && 'fill-current')} strokeWidth={1.8} />
-						</m.span>
+						<LikeHeart liked={!!comment.likedByCurrentUser} className="size-[15px]" strokeWidth={1.8} />
 						{likes > 0 && <span className="tabular-nums">{likes}</span>}
 					</button>
 

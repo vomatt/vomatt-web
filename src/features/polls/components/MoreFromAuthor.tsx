@@ -35,7 +35,7 @@ export function MoreFromAuthor({ username, polls }: { username: string; polls: P
 						<li key={poll.id}>
 							<Link
 								href={pollHref(poll.id)}
-								className="flex min-h-11 flex-col gap-0.5 rounded-xl px-2 py-1.5 transition-colors outline-none hover:bg-surface-soft focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
+								className="flex min-h-11 flex-col gap-0.5 rounded-xl px-2 py-1.5 transition-colors outline-none hover:bg-surface-soft active:bg-surface-soft focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
 							>
 								<span className="line-clamp-2 text-body-3 leading-snug font-medium tracking-title text-foreground">
 									{poll.title}

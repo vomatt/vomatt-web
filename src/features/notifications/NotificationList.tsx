@@ -16,6 +16,7 @@ import { PollRowListSkeleton } from '@/features/polls/components/PollCardSkeleto
 import { useCursorList } from '@/hooks/useCursorList';
 import { useHydrated } from '@/hooks/useHydrated';
 import type { CursorPage } from '@/lib/api/cursor';
+import { cn } from '@/lib/utils';
 
 import { type Entry, entryItems, groupFollows, NotificationRow } from './NotificationRows';
 import { preferencesSummary } from './preferences';
@@ -105,6 +106,8 @@ export function NotificationList({
 	const [isSwitching, setIsSwitching] = useState(false);
 	// Days follow the reader's clock, so the grouping waits for hydration
 	const isHydrated = useHydrated();
+	// Fades in only after a full load's hydration swap; on client navigation the headings are there from the first frame
+	const [loadedBeforeHydration] = useState(!isHydrated);
 
 	// Read every server page once; a failed request leaves the badge as it was
 	const locked = !!useActing().acting?.locked;
@@ -220,7 +223,13 @@ export function NotificationList({
 				{!isHydrated && rows(groupFollows(items))}
 				{groups.map(({ group, entries }) => (
 					<section key={group} aria-labelledby={`day-${group}`} className="flex flex-col gap-2">
-						<h2 id={`day-${group}`} className="mx-0.5 text-caption-2 font-medium text-muted-foreground">
+						<h2
+							id={`day-${group}`}
+							className={cn(
+								'mx-0.5 text-caption-2 font-medium text-muted-foreground',
+								loadedBeforeHydration && 'transition-opacity duration-200 ease-out-strong starting:opacity-0'
+							)}
+						>
 							{t(`notifications.day.${group}`)}
 						</h2>
 						{rows(entries)}
@@ -238,7 +247,7 @@ export function NotificationSettingsLink({ preferences }: { preferences: Notific
 	return (
 		<Link
 			href="/settings#notifications"
-			className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3.5 transition-colors outline-none hover:border-border-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
+			className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3.5 transition-colors outline-none hover:border-border-strong active:border-border-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
 		>
 			<span className="flex min-w-0 flex-1 flex-col">
 				<span className="text-body-4 font-medium">{t('notifications.settingsTitle')}</span>

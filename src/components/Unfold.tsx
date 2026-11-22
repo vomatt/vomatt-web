@@ -2,9 +2,11 @@
 
 import { m, useIsPresent, useReducedMotion } from 'motion/react';
 
-// Reveals ease out over 250ms and leave in 150ms
-export const ENTER = { duration: 0.25, ease: 'easeOut' } as const;
-export const EXIT = { duration: 0.15, ease: 'easeOut' } as const;
+import { EASE_OUT_STRONG } from '@/lib/motion';
+
+// Reveals ease out (the strong curve) over 250ms and leave in 150ms
+export const ENTER = { duration: 0.25, ease: EASE_OUT_STRONG } as const;
+export const EXIT = { duration: 0.15, ease: EASE_OUT_STRONG } as const;
 
 /**
  * Grows content open from nothing and folds it away; put it in an AnimatePresence.

@@ -166,7 +166,7 @@ export function VotersDialog({ option, voters, myAnonymousOptionId, onClose }: V
 									<UserChip
 										username={voter.username}
 										avatarUrl={voter.avatarUrl}
-										className="-mx-2 flex min-h-11 gap-3 rounded-lg px-2 text-body-4 hover:bg-muted"
+										className="-mx-2 flex min-h-11 gap-3 rounded-lg px-2 text-body-4 hover:bg-muted active:bg-muted"
 									/>
 								</li>
 							))}

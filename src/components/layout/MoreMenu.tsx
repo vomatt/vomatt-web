@@ -72,7 +72,7 @@ export function MoreMenu({ signedIn, placement = 'sidebar' }: { signedIn: boolea
 					positionMethod="fixed"
 					className="z-50"
 				>
-					<Menu.Popup className="w-60 rounded-xl bg-popover p-1.5 text-popover-foreground shadow-md ring-1 ring-foreground/10 outline-none origin-(--transform-origin) data-starting-style:opacity-0 data-ending-style:opacity-0 transition-opacity duration-100">
+					<Menu.Popup className="w-60 rounded-xl bg-popover p-1.5 text-popover-foreground shadow-md ring-1 ring-foreground/10 outline-none origin-(--transform-origin) data-starting-style:scale-95 data-starting-style:opacity-0 data-ending-style:scale-95 data-ending-style:opacity-0 transition-[opacity,scale] duration-150 ease-out-strong">
 						<Menu.Group>
 							<Menu.GroupLabel className="px-3 pt-1.5 pb-2 text-caption-2 text-muted-foreground">
 								{t('navigation.appearance')}

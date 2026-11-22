@@ -82,7 +82,7 @@ export function BackLink({
 			<Link
 				href={href}
 				onClick={goBack}
-				className="inline-flex min-h-11 items-center gap-1 rounded-sm text-body-4 leading-5 text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
+				className="inline-flex min-h-11 items-center gap-1 rounded-sm text-body-4 leading-5 text-muted-foreground transition-colors outline-none hover:text-foreground active:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
 			>
 				<ChevronLeft aria-hidden className="size-3.5 shrink-0" />
 				{children}

@@ -163,7 +163,7 @@ export function GroupsPanel() {
 							<button
 								type="button"
 								onClick={() => setOpenId(group.id)}
-								className="flex w-full items-center gap-3 rounded-xl border border-border bg-card px-4 py-4 text-left transition-colors hover:border-border-strong outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
+								className="flex w-full items-center gap-3 rounded-xl border border-border bg-card px-4 py-4 text-left transition-colors hover:border-border-strong active:border-border-strong outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
 							>
 								<span className="min-w-0 flex-1">
 									<span className="text-title-4 block truncate">{group.name}</span>

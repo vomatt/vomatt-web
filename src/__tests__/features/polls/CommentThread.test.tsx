@@ -437,6 +437,8 @@ describe('CommentThread', () => {
 				await waitFor(() => expect(scrollIntoView).toHaveBeenCalled());
 				expect(service.getReplies).toHaveBeenCalledWith('poll-1', 'c1', 'after-r2');
 				expect(scrollIntoView.mock.contexts[0]).toHaveAttribute('id', 'comment-r3');
+				// The flash follows the scroll (on scrollend, or the 600ms fallback)
+				await waitFor(() => expect(Element.prototype.animate).toHaveBeenCalled());
 			} finally {
 				window.location.hash = '';
 				Element.prototype.scrollIntoView = realScroll;
@@ -460,6 +462,7 @@ describe('CommentThread', () => {
 			expect(await screen.findByRole('textbox', { name: 'Write a reply…' })).toBeInTheDocument();
 			expect(screen.getByText('Replying to')).toBeInTheDocument();
 			expect(screen.getByText('“A reply”')).toBeInTheDocument();
+			await waitFor(() => expect(Element.prototype.animate).toHaveBeenCalled());
 		} finally {
 			window.location.hash = '';
 			Element.prototype.scrollIntoView = realScroll;
@@ -638,6 +641,7 @@ describe('CommentThread', () => {
 			fireEvent.click(screen.getByRole('button', { name: 'Fold' }));
 			await screen.findByText('A reply');
 			expect(scrollIntoView).toHaveBeenCalledTimes(1);
+			await waitFor(() => expect(Element.prototype.animate).toHaveBeenCalled());
 		} finally {
 			window.location.hash = '';
 			Element.prototype.scrollIntoView = realScroll;

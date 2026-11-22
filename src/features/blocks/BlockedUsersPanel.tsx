@@ -12,6 +12,7 @@ import { handle } from '@/features/profiles/name';
 import { mergeById } from '@/lib/api/cursor';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
+import { foldAway } from '@/lib/motion';
 import type { UserDto } from '@/schemas/user';
 
 import { getBlockedUsers, unblockUser } from './service';
@@ -64,16 +65,19 @@ export function BlockedUsersPanel() {
 		setNextCursor(result.data.nextCursor);
 	};
 
-	const unblock = async (user: UserDto) => {
+	const unblock = async (user: UserDto, row: Element | null) => {
 		setPendingId(user.id);
 		const result = await settle(unblockUser(user.id));
-		setPendingId(null);
 		if (!result.ok) {
+			setPendingId(null);
 			toast.error(apiErrorText(t, result, 'blocks.unblockFailed'), {
 				duration: Infinity,
 			});
 			return;
 		}
+		// Stays pending while it folds, so the row can't be unblocked twice
+		await foldAway(row);
+		setPendingId(null);
 		setUsers((list) => list?.filter((u) => u.id !== user.id) ?? null);
 		toast.success(t('blocks.unblocked', { username: user.username }));
 	};
@@ -110,7 +114,7 @@ export function BlockedUsersPanel() {
 								variant="outline"
 								size="xs"
 								loading={pendingId === user.id}
-								onClick={() => unblock(user)}
+								onClick={(event) => unblock(user, event.currentTarget.closest('li'))}
 								aria-label={t('blocks.unblockLabel', { username: user.username })}
 							>
 								{t('blocks.unblock')}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useAnimate } from 'motion/react';
+import { useAnimate, useReducedMotion } from 'motion/react';
 import { useId, useRef, useState } from 'react';
 
 import {
@@ -100,8 +100,10 @@ export function Ballot({
 		!(isOwner && poll.voterVisibility === 'owner');
 
 	const [optionsRef, animateOptions] = useAnimate<HTMLFieldSetElement>();
-	/** The options recoil when a request is rolled back. */
+	const reduceMotion = useReducedMotion();
+	/** The options recoil when a request is rolled back; the toast alone says so under reduced motion. */
 	const shake = () =>
+		!reduceMotion &&
 		animateOptions(
 			optionsRef.current,
 			{ x: [0, -6, 6, -4, 4, 0] },
@@ -196,7 +198,7 @@ export function Ballot({
 						loading={pendingAction === 'vote'}
 						loadingIcon={<BallotBoxIcon className="size-4" />}
 						onClick={castSelected}
-						className="ml-auto min-w-[132px] transition-transform active:scale-95"
+						className="ml-auto min-w-[132px]"
 					>
 						{t('poll.vote')}
 					</Button>

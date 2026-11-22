@@ -31,7 +31,7 @@ export function SettingsSubpageHeader({
 							})
 						: t('settings.backToSettings')
 				}
-				className="-ml-3 inline-flex size-11 shrink-0 items-center justify-center rounded-lg text-foreground transition-colors outline-none hover:bg-surface-soft focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring"
+				className="-ml-3 inline-flex size-11 shrink-0 items-center justify-center rounded-lg text-foreground transition-colors outline-none hover:bg-surface-soft active:bg-surface-soft focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring"
 			>
 				<ChevronLeft aria-hidden className="size-5.5" />
 			</Link>

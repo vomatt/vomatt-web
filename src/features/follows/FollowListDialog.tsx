@@ -146,7 +146,7 @@ function PersonRow({ user, viewerId, onFollowChange }: RowProps & { user: Follow
 	});
 
 	return (
-		<li className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2.5 transition-colors hover:border-border-strong">
+		<li className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2.5 transition-colors hover:border-border-strong active:border-border-strong">
 			<UserChip
 				username={user.username}
 				avatarUrl={user.avatarUrl}

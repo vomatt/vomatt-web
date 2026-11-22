@@ -22,7 +22,7 @@
 			color-mix(in oklch, var(--foreground) 6%, transparent),
 			transparent
 		);
-		animation: shimmer 1.6s ease-in-out infinite;
+		animation: shimmer 1.6s linear infinite;
 	}
 	@media (prefers-reduced-motion: reduce) {
 		&::after {
@@ -48,6 +48,11 @@
 			opacity: 0;
 		}
 	}
+}
+
+/* The phone's sticky Vote row settling in above the TabBar (follow-tabbar) */
+@keyframes dock-rise {
+	from { transform: translateY(0.5rem); opacity: 0.4; }
 }
 
 /* The ui/ components are Base UI, which reports state as presence attributes
@@ -251,6 +256,11 @@ html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 
 /* The type scale (see DESIGN.md, Type): Tailwind's default sizes are cleared; display and title steps carry weight, leading and tracking */
 @theme {
+	/* Strong ease-out for UI enter, exit and press (`ease-out-strong`); Tailwind's `ease-out` is too weak */
+	--ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+	/* iOS-like settle for things let go of: pull-to-refresh (`ease-drawer`) */
+	--ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
 	--text-*: initial;
 
 	--text-display-1: 3rem;
@@ -491,6 +501,13 @@ html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 		@container scroll-state(stuck: bottom) {
 			& > [data-sticky-fade] {
 				opacity: 1;
+			}
+		}
+		@media (prefers-reduced-motion: no-preference) {
+			@container scroll-state(stuck: bottom) {
+				& > :not([data-sticky-fade]) {
+					animation: dock-rise 200ms var(--ease-out-strong);
+				}
 			}
 		}
 	}
