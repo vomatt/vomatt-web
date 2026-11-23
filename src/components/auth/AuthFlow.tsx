@@ -81,8 +81,9 @@ export function AuthFlow({ onDone, onSignedIn, policyMessage, inDialog = false }
 				<EmailStep
 					defaultEmail={flow.email}
 					onSubmit={flow.submitEmail}
+					onPasskeySignIn={onDone}
 					// The login page only: a dialog over another page shouldn't claim its autofill
-					onPasskeySignIn={inDialog ? undefined : onDone}
+					passkeyAutofill={!inDialog}
 				/>
 				{policyMessage && (
 					<div className="text-caption-2 text-muted-foreground">
@@ -116,11 +117,14 @@ function EmailStep({
 	defaultEmail,
 	onSubmit,
 	onPasskeySignIn,
+	passkeyAutofill,
 }: {
 	defaultEmail: string;
 	onSubmit: (email: string) => Promise<AuthResult>;
-	/** Offers passkey sign-in, by button and from the email field's autofill. */
-	onPasskeySignIn?: () => void;
+	/** Called after a passkey sign-in, from the button or the email field's autofill. */
+	onPasskeySignIn: () => void;
+	/** Whether the email field's autofill offers passkeys too. */
+	passkeyAutofill: boolean;
 }) {
 	const { t } = useLanguage();
 	const [error, setError] = useState<AuthErrorKey | null>(null);
@@ -147,7 +151,7 @@ function EmailStep({
 							{...field}
 							type="email"
 							id="authEmail"
-							autoComplete={onPasskeySignIn ? 'username webauthn' : 'email'}
+							autoComplete={passkeyAutofill ? 'username webauthn' : 'email'}
 							autoFocus
 							aria-invalid={fieldState.invalid}
 							aria-describedby={fieldState.invalid ? 'authEmail-error' : undefined}
@@ -168,7 +172,7 @@ function EmailStep({
 			<Button className="w-full" type="submit" loading={form.formState.isSubmitting}>
 				{t('auth.continueWithEmail')}
 			</Button>
-			{onPasskeySignIn && <PasskeyLoginButton onSignedIn={onPasskeySignIn} onError={setError} />}
+			<PasskeyLoginButton onSignedIn={onPasskeySignIn} onError={setError} autofill={passkeyAutofill} />
 			<AuthError error={error} className="mt-3" />
 		</form>
 	);

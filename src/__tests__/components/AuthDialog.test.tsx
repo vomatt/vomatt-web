@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import { AuthDialog } from '@/components/auth/AuthDialog';
+import { AuthFlow } from '@/components/auth/AuthFlow';
 
 // Polyfill APIs missing in jsdom
 if (!document.elementFromPoint) {
@@ -17,10 +18,14 @@ jest.mock('@/contexts/LanguageContext', () => ({
 const mockRequestOtp = jest.fn();
 const mockVerifyOtp = jest.fn();
 const mockUpdateProfile = jest.fn();
+const mockGetPasskeyLoginOptions = jest.fn();
+const mockVerifyPasskeyLogin = jest.fn();
 
 jest.mock('@/lib/api/services/auth', () => ({
 	requestOtp: (...args: unknown[]) => mockRequestOtp(...args),
 	verifyOtp: (...args: unknown[]) => mockVerifyOtp(...args),
+	getPasskeyLoginOptions: (...args: unknown[]) => mockGetPasskeyLoginOptions(...args),
+	verifyPasskeyLogin: (...args: unknown[]) => mockVerifyPasskeyLogin(...args),
 }));
 
 jest.mock('@/lib/api/services/users', () => ({
@@ -244,5 +249,72 @@ describe('AuthDialog', () => {
 
 		await waitFor(() => expect(baseProps.onAuthSuccess).toHaveBeenCalled());
 		expect(mockToastError).toHaveBeenCalledWith('onboarding.saveFailed');
+	});
+});
+
+describe('passkey sign-in', () => {
+	const mockGet = jest.fn();
+	const browser = window as unknown as { PublicKeyCredential?: unknown };
+
+	beforeEach(() => {
+		browser.PublicKeyCredential = {
+			parseCreationOptionsFromJSON: jest.fn(),
+			parseRequestOptionsFromJSON: (options: unknown) => options,
+			isConditionalMediationAvailable: async () => true,
+		};
+		Object.defineProperty(navigator, 'credentials', { configurable: true, value: { create: jest.fn(), get: mockGet } });
+		mockGetPasskeyLoginOptions.mockResolvedValue({ status: 'SUCCESS', options: { challenge: 'abc' } });
+		mockVerifyPasskeyLogin.mockResolvedValue({ status: 'SUCCESS' });
+		// The autofill request stays open until a passkey is picked or it is aborted
+		mockGet.mockImplementation(({ mediation, signal }: CredentialRequestOptions) =>
+			mediation === 'conditional'
+				? new Promise((_, reject) =>
+						signal?.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), { name: 'AbortError' })))
+					)
+				: Promise.resolve({ toJSON: () => ({ id: 'credential-1' }) })
+		);
+	});
+	afterEach(() => {
+		delete browser.PublicKeyCredential;
+		Reflect.deleteProperty(navigator, 'credentials');
+	});
+
+	/** Lets the options load and any autofill request start. */
+	const settled = () => act(async () => {});
+
+	it('offers the passkey button in the dialog without claiming the email field for passkey autofill', async () => {
+		render(<AuthDialog {...baseProps} />);
+		await settled();
+
+		expect(screen.getByRole('button', { name: 'auth.continueWithPasskey' })).toBeInTheDocument();
+		expect(screen.getByLabelText('common.email')).toHaveAttribute('autocomplete', 'email');
+		expect(mockGet).not.toHaveBeenCalled();
+	});
+
+	it('resumes the started action after a passkey sign-in in the dialog', async () => {
+		render(<AuthDialog {...baseProps} />);
+		await settled();
+		fireEvent.click(screen.getByRole('button', { name: 'auth.continueWithPasskey' }));
+
+		await waitFor(() => expect(baseProps.onAuthSuccess).toHaveBeenCalledTimes(1));
+		expect(mockGet).toHaveBeenCalledTimes(1);
+		expect(mockGet.mock.calls[0][0].mediation).toBeUndefined();
+		expect(mockVerifyPasskeyLogin).toHaveBeenCalledWith({ id: 'credential-1' });
+	});
+
+	it('still offers passkeys from the email field on the login page', async () => {
+		render(<AuthFlow onDone={jest.fn()} />);
+		await settled();
+
+		expect(screen.getByLabelText('common.email')).toHaveAttribute('autocomplete', 'username webauthn');
+		expect(mockGet).toHaveBeenCalledWith(expect.objectContaining({ mediation: 'conditional' }));
+	});
+
+	it('leaves the button out where the browser has no WebAuthn', async () => {
+		delete browser.PublicKeyCredential;
+		render(<AuthDialog {...baseProps} />);
+		await settled();
+
+		expect(screen.queryByRole('button', { name: 'auth.continueWithPasskey' })).not.toBeInTheDocument();
 	});
 });
