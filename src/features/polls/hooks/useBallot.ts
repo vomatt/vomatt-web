@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useLanguage } from '@/contexts/LanguageContext';
+import { trackEvent } from '@/lib/analytics';
 import { apiErrorText } from '@/lib/api/error-text';
 
 import { type ActionResult, isBusy, isPollEnded, isRateLimited } from '../errors';
@@ -157,6 +158,8 @@ export function useBallot(poll: Poll, { isAuthed, anonymousByDefault, onPollEnde
 			}
 			if (result.ok) {
 				replacedBallot.current = !!previous && !!next;
+				// Recasting for the name is the same vote
+				if (action === 'vote' || action === 'update') trackEvent('vote_cast', { change: !!previous });
 				setAnonymousFlag(result.data?.myBallotAnonymous ?? null);
 				if (result.data && derivePollStatus(result.data) === 'ended') onPollEnded(result.data);
 				return 'saved';

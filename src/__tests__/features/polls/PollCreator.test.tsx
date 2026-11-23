@@ -30,6 +30,8 @@ MotionGlobalConfig.skipAnimations = true;
 const render = (ui: ReactElement) => rtlRender(ui, { wrapper: MotionProvider });
 
 const mockCreatePoll = createPoll as jest.Mock;
+const mockTrack = jest.fn();
+jest.mock('@vercel/analytics', () => ({ track: (...args: unknown[]) => mockTrack(...args) }));
 const mockUpdatePoll = updatePoll as jest.Mock;
 
 const TRIGGER = <button>Create Poll</button>;
@@ -604,6 +606,7 @@ describe('PollCreator', () => {
 		publish();
 		await waitFor(() => expect(mockCreatePoll).toHaveBeenCalled());
 		expect(mockCreatePoll.mock.calls[0][0]).toMatchObject({ audience: 'unlisted', invitees: undefined });
+		await waitFor(() => expect(mockTrack.mock.calls).toEqual([['poll_created', { audience: 'unlisted' }]]));
 	});
 
 	it('invites people, emails and Groups to an Invite-only poll', async () => {

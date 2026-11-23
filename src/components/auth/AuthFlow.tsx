@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { PortableTextBlock } from '@portabletext/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -13,6 +13,7 @@ import { Field, FieldLabel, FieldMessage } from '@/components/ui/Field';
 import { Input } from '@/components/ui/Input';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PasskeyLoginButton } from '@/features/passkeys/PasskeyLoginButton';
+import { trackEvent } from '@/lib/analytics';
 import type { AuthErrorKey } from '@/lib/api/auth-errors';
 import { cn } from '@/lib/utils';
 
@@ -39,7 +40,10 @@ type AuthFlowProps = {
 
 export function AuthFlow({ onDone, onSignedIn, policyMessage, inDialog = false }: AuthFlowProps) {
 	const { t } = useLanguage();
-	const flow = useAuthFlow();
+	const surface = inDialog ? 'dialog' : 'page';
+	const flow = useAuthFlow(surface);
+	// The flow opens on the email step
+	useEffect(() => trackEvent('sign_in_started', { surface }), [surface]);
 
 	let heading: { title: string; subtitle: React.ReactNode };
 	let body: React.ReactNode;
@@ -81,7 +85,11 @@ export function AuthFlow({ onDone, onSignedIn, policyMessage, inDialog = false }
 				<EmailStep
 					defaultEmail={flow.email}
 					onSubmit={flow.submitEmail}
-					onPasskeySignIn={onDone}
+					onPasskeySignIn={() => {
+						// Only an existing account has a passkey
+						trackEvent('sign_in_completed', { surface, method: 'passkey', newAccount: false });
+						onDone();
+					}}
 					// The login page only: a dialog over another page shouldn't claim its autofill
 					passkeyAutofill={!inDialog}
 				/>

@@ -15,6 +15,9 @@ jest.mock('@/contexts/LanguageContext', () => ({
 	useOptionalTranslate: () => (key: string) => key,
 }));
 
+const mockTrack = jest.fn();
+jest.mock('@vercel/analytics', () => ({ track: (...args: unknown[]) => mockTrack(...args) }));
+
 const mockRequestOtp = jest.fn();
 const mockVerifyOtp = jest.fn();
 const mockUpdateProfile = jest.fn();
@@ -302,6 +305,18 @@ describe('passkey sign-in', () => {
 		expect(mockVerifyPasskeyLogin).toHaveBeenCalledWith({ id: 'credential-1' });
 	});
 
+	it('records a passkey sign-in in the dialog once it is verified', async () => {
+		render(<AuthDialog {...baseProps} />);
+		await settled();
+		fireEvent.click(screen.getByRole('button', { name: 'auth.continueWithPasskey' }));
+
+		await waitFor(() => expect(baseProps.onAuthSuccess).toHaveBeenCalled());
+		expect(mockTrack.mock.calls).toEqual([
+			['sign_in_started', { surface: 'dialog' }],
+			['sign_in_completed', { surface: 'dialog', method: 'passkey', newAccount: false }],
+		]);
+	});
+
 	it('still offers passkeys from the email field on the login page', async () => {
 		render(<AuthFlow onDone={jest.fn()} />);
 		await settled();
@@ -316,5 +331,34 @@ describe('passkey sign-in', () => {
 		await settled();
 
 		expect(screen.queryByRole('button', { name: 'auth.continueWithPasskey' })).not.toBeInTheDocument();
+	});
+});
+
+describe('sign-in events', () => {
+	it('records the email step, the code sent and the sign-in, each once', async () => {
+		mockRequestOtp.mockResolvedValue({ status: 'SUCCESS' });
+		mockVerifyOtp.mockResolvedValue({ status: 'SUCCESS', isNewUser: true });
+		render(<AuthDialog {...baseProps} />);
+		expect(mockTrack.mock.calls).toEqual([['sign_in_started', { surface: 'dialog' }]]);
+
+		await submitEmail();
+		expect(mockTrack).toHaveBeenLastCalledWith('sign_in_code_sent', { surface: 'dialog' });
+		fillOTP('123456');
+		await screen.findByLabelText('profile.firstName');
+
+		expect(mockTrack.mock.calls.map(([name]) => name)).toEqual(['sign_in_started', 'sign_in_code_sent', 'sign_in_completed']);
+		expect(mockTrack).toHaveBeenLastCalledWith('sign_in_completed', { surface: 'dialog', method: 'email', newAccount: true });
+	});
+
+	it('records no code sent while an earlier code is still cooling down, and no sign-in for a wrong code', async () => {
+		mockRequestOtp.mockResolvedValue({ status: 'COOLDOWN', seconds: 60 });
+		mockVerifyOtp.mockResolvedValue({ status: 'ERROR', error: 'invalidCode' });
+		render(<AuthFlow onDone={jest.fn()} />);
+
+		await submitEmail();
+		fillOTP('123456');
+		await waitFor(() => expect(mockVerifyOtp).toHaveBeenCalled());
+		await act(async () => {});
+		expect(mockTrack.mock.calls).toEqual([['sign_in_started', { surface: 'page' }]]);
 	});
 });

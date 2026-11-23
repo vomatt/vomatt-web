@@ -51,6 +51,7 @@ import { ENTER, EXIT, Unfold } from '@/components/Unfold';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useActing } from '@/features/communities/ActingProvider';
 import { accountName } from '@/features/communities/schema';
+import { trackEvent } from '@/lib/analytics';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
 import { pollHref } from '@/lib/routes';
@@ -362,6 +363,7 @@ export function PollCreator({
 				setError('root', { message: apiErrorText(t, result) });
 				return;
 			}
+			if (!isEdit) trackEvent('poll_created', { audience: values.audience });
 			if (draft) deleteDraft(draft.id);
 			toast(t(isEdit ? 'pollCreator.saved' : 'pollCreator.published'));
 			close();

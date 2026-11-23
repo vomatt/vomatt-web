@@ -3,6 +3,7 @@
 import { toast } from 'sonner';
 
 import { useLanguage } from '@/contexts/LanguageContext';
+import { trackEvent } from '@/lib/analytics';
 import { settle } from '@/lib/api/settle';
 
 import { sharePoll } from '../service';
@@ -22,6 +23,7 @@ export function useCopyPollLink() {
 			return;
 		}
 		void settle(sharePoll(id, 'COPY_LINK'));
+		trackEvent('poll_shared', { channel: 'COPY_LINK' });
 		toast(t('poll.linkCopied'));
 	};
 }
@@ -40,7 +42,10 @@ export function useSharePoll() {
 				() => true,
 				(error: unknown) => (error instanceof DOMException && error.name === 'AbortError' ? false : null)
 			);
-			if (shared) void settle(sharePoll(id, 'NATIVE'));
+			if (shared) {
+				void settle(sharePoll(id, 'NATIVE'));
+				trackEvent('poll_shared', { channel: 'NATIVE' });
+			}
 			if (shared !== null) return;
 		}
 		await copyLink(id);

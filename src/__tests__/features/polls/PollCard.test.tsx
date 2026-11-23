@@ -24,6 +24,9 @@ jest.mock('sonner', () => {
 	return { toast };
 });
 
+const mockTrack = jest.fn();
+jest.mock('@vercel/analytics', () => ({ track: (...args: unknown[]) => mockTrack(...args) }));
+
 const mockCastBallot = jest.fn();
 const mockRetractBallot = jest.fn();
 const mockGetMyBallot = jest.fn();
@@ -428,6 +431,35 @@ describe('PollCard state B: Open, has Ballot', () => {
 		expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
 		expect(screen.getByRole('button', { name: 'Withdraw vote' })).toBeInTheDocument();
 		expect(screen.queryByRole('link', { name: /Change vote/ })).not.toBeInTheDocument();
+	});
+
+	it('records a saved first vote, and a replaced one as a change', async () => {
+		const { unmount } = render(<PollCard poll={openPoll} viewerId="user-voter" />);
+		vote('Saturday');
+		expect(mockTrack).not.toHaveBeenCalled();
+		await waitFor(() => expect(mockTrack).toHaveBeenCalledWith('vote_cast', { change: false }));
+		unmount();
+
+		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerId="user-voter" />);
+		fireEvent.click(screen.getByLabelText(/Friday/));
+		fireEvent.click(screen.getByRole('button', { name: 'Update vote' }));
+		await waitFor(() => expect(mockTrack).toHaveBeenLastCalledWith('vote_cast', { change: true }));
+		expect(mockTrack).toHaveBeenCalledTimes(2);
+	});
+
+	it('records no vote when the cast fails or the vote is withdrawn', async () => {
+		mockCastBallot.mockResolvedValue({ ok: false, message: 'down' });
+		const { unmount } = render(<PollCard poll={openPoll} viewerId="user-voter" />);
+		vote('Saturday');
+		await waitFor(() => expect(toast.error).toHaveBeenCalled());
+		unmount();
+
+		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerId="user-voter" />);
+		fireEvent.click(screen.getByRole('button', { name: 'Withdraw vote' }));
+		fireEvent.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Withdraw' }));
+		await waitFor(() => expect(mockRetractBallot).toHaveBeenCalled());
+		await act(async () => {});
+		expect(mockTrack).not.toHaveBeenCalled();
 	});
 
 	it('replaces the Ballot without changing Turnout', async () => {
@@ -1286,6 +1318,7 @@ describe('PollCard signed-out visitor', () => {
 		line.addEventListener('click', (event) => event.preventDefault());
 		fireEvent.click(line);
 		expect(mockSharePoll).toHaveBeenCalledWith(openPoll.id, 'LINE');
+		expect(mockTrack).toHaveBeenCalledWith('poll_shared', { channel: 'LINE' });
 	});
 
 	it("shows the poll's QR code with its title and a way to copy the link", async () => {
@@ -1297,11 +1330,27 @@ describe('PollCard signed-out visitor', () => {
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Show QR code' }));
 
 		const dialog = await screen.findByRole('dialog', { name: openPoll.title });
+		expect(mockTrack.mock.calls).toEqual([['poll_shared', { channel: 'QR' }]]);
 		expect(within(dialog).getByRole('img', { name: 'QR code for this poll’s link' })).toBeInTheDocument();
 		fireEvent.click(within(dialog).getByRole('button', { name: 'Copy link' }));
 		await waitFor(() => expect(toast).toHaveBeenCalledWith('Link copied'));
 		expect(writeText).toHaveBeenCalledWith(`http://localhost/poll/${openPoll.id}`);
 		expect(mockSharePoll).toHaveBeenCalledWith(openPoll.id, 'COPY_LINK');
+		expect(mockTrack).toHaveBeenLastCalledWith('poll_shared', { channel: 'COPY_LINK' });
+	});
+
+	it('records a share from the native sheet once it is sent, not when it is dismissed', async () => {
+		mockSharePoll.mockResolvedValue({ ok: true, data: 1 });
+		const share = jest.fn().mockRejectedValueOnce(new DOMException('dismissed', 'AbortError')).mockResolvedValue(undefined);
+		Object.assign(navigator, { share });
+		render(<PollCard poll={openPoll} />);
+
+		fireEvent.click(screen.getByRole('button', { name: 'Share' }));
+		await act(async () => {});
+		expect(mockTrack).not.toHaveBeenCalled();
+		fireEvent.click(screen.getByRole('button', { name: 'Share' }));
+		await waitFor(() => expect(mockTrack.mock.calls).toEqual([['poll_shared', { channel: 'NATIVE' }]]));
+		Reflect.deleteProperty(navigator, 'share');
 	});
 
 	it('leads Comments down to the discussion on the poll page', () => {

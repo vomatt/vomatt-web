@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 import { menuItemClassName } from '@/components/ui/menu';
 import { ArrowUpRight, QrCode } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { trackEvent } from '@/lib/analytics';
 import { settle } from '@/lib/api/settle';
 
 import { sharePoll } from '../service';
@@ -22,7 +23,13 @@ export function PollShareMenuItems({ pollId, onShowQr }: { pollId: string; onSho
 
 	return (
 		<>
-			<Menu.Item onClick={onShowQr} className={menuItemClassName}>
+			<Menu.Item
+				onClick={() => {
+					trackEvent('poll_shared', { channel: 'QR' });
+					onShowQr();
+				}}
+				className={menuItemClassName}
+			>
 				<QrCode aria-hidden />
 				{t('poll.showQr')}
 			</Menu.Item>
@@ -31,7 +38,10 @@ export function PollShareMenuItems({ pollId, onShowQr }: { pollId: string; onSho
 				target="_blank"
 				rel="noopener noreferrer"
 				// Counted like the other shares; a failure (e.g. signed out) is ignored
-				onClick={() => void settle(sharePoll(pollId, 'LINE'))}
+				onClick={() => {
+					void settle(sharePoll(pollId, 'LINE'));
+					trackEvent('poll_shared', { channel: 'LINE' });
+				}}
 				className={menuItemClassName}
 			>
 				<ArrowUpRight aria-hidden />
