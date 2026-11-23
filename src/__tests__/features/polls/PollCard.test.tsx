@@ -39,6 +39,7 @@ const mockUnbookmarkPoll = jest.fn();
 const mockReportPoll = jest.fn();
 const mockLikePoll = jest.fn();
 const mockUnlikePoll = jest.fn();
+const mockSharePoll = jest.fn();
 
 jest.mock('@/features/blocks/service', () => ({ blockUser: jest.fn() }));
 jest.mock('@/features/polls/service', () => ({
@@ -57,6 +58,7 @@ jest.mock('@/features/polls/service', () => ({
 	reportPoll: (...args: any[]) => mockReportPoll(...args),
 	likePoll: (...args: any[]) => mockLikePoll(...args),
 	unlikePoll: (...args: any[]) => mockUnlikePoll(...args),
+	sharePoll: (...args: any[]) => mockSharePoll(...args),
 }));
 
 // Exposes the layoutId that motion would use to fly the highlight between elements
@@ -1257,12 +1259,49 @@ describe('PollCard signed-out visitor', () => {
 		expect(mockBookmarkPoll).not.toHaveBeenCalled();
 	});
 
-	it('offers Report to everyone but the owner', () => {
+	const openMenu = async () => {
+		fireEvent.click(screen.getByRole('button', { name: 'More options' }));
+		return (await screen.findAllByRole('menuitem')).map((item) => item.textContent);
+	};
+
+	it('offers the QR code and LINE to everyone, and Report to everyone but the owner', async () => {
 		const { unmount } = render(<PollCard poll={openPoll} viewerId="user-1" />);
-		expect(screen.queryByRole('button', { name: 'More options' })).not.toBeInTheDocument();
+		expect(await openMenu()).toEqual(['Show QR code', 'Share on LINE']);
 		unmount();
 		render(<PollCard poll={openPoll} viewerId="user-voter" />);
-		expect(screen.getByRole('button', { name: 'More options' })).toBeInTheDocument();
+		expect(await openMenu()).toEqual(['Show QR code', 'Share on LINE', 'Report poll']);
+	});
+
+	it("opens LINE's share page for the poll's link in a new tab and counts the share", async () => {
+		mockSharePoll.mockResolvedValue({ ok: true, data: 1 });
+		render(<PollCard poll={openPoll} />);
+		await openMenu();
+		const line = screen.getByRole('menuitem', { name: 'Share on LINE' });
+		expect(line).toHaveAttribute(
+			'href',
+			`https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(`http://localhost/poll/${openPoll.id}`)}`
+		);
+		expect(line).toHaveAttribute('target', '_blank');
+		expect(line).toHaveAttribute('rel', 'noopener noreferrer');
+		line.addEventListener('click', (event) => event.preventDefault());
+		fireEvent.click(line);
+		expect(mockSharePoll).toHaveBeenCalledWith(openPoll.id, 'LINE');
+	});
+
+	it("shows the poll's QR code with its title and a way to copy the link", async () => {
+		mockSharePoll.mockResolvedValue({ ok: true, data: 1 });
+		const writeText = jest.fn().mockResolvedValue(undefined);
+		Object.assign(navigator, { clipboard: { writeText } });
+		render(<PollCard poll={openPoll} />);
+		await openMenu();
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Show QR code' }));
+
+		const dialog = await screen.findByRole('dialog', { name: openPoll.title });
+		expect(within(dialog).getByRole('img', { name: 'QR code for this poll’s link' })).toBeInTheDocument();
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Copy link' }));
+		await waitFor(() => expect(toast).toHaveBeenCalledWith('Link copied'));
+		expect(writeText).toHaveBeenCalledWith(`http://localhost/poll/${openPoll.id}`);
+		expect(mockSharePoll).toHaveBeenCalledWith(openPoll.id, 'COPY_LINK');
 	});
 
 	it('leads Comments down to the discussion on the poll page', () => {

@@ -2,6 +2,7 @@
 
 import { Menu } from '@base-ui/react/menu';
 import Link from 'next/link';
+import { useState } from 'react';
 
 import { RowMenuRoot } from '@/components/RowMenuRoot';
 import { Button, buttonVariants } from '@/components/ui/Button';
@@ -22,6 +23,7 @@ import { useSharePoll } from '../hooks/useSharePoll';
 import type { Audience } from '../schema';
 import { isPublic } from '../status';
 import { LikeHeart } from './LikeHeart';
+import { PollQrDialog, PollShareMenuItems } from './PollShareMenuItems';
 
 type PollFooterProps = {
 	pollId: string;
@@ -44,7 +46,7 @@ type PollFooterProps = {
 	onReport?: () => void;
 };
 
-/** Turnout (and a non-Public Audience), comments, save, share and report. Turnout shows in every state. */
+/** Turnout (and a non-Public Audience), comments, save, share and a ••• menu (QR code, LINE, report). Turnout shows in every state. */
 export function PollFooter({
 	pollId,
 	title,
@@ -62,6 +64,7 @@ export function PollFooter({
 	const { t, currentLanguage } = useLanguage();
 
 	const share = useSharePoll();
+	const [showsQr, setShowsQr] = useState(false);
 	const commentsLabel =
 		commentCount === undefined
 			? t('poll.discuss')
@@ -135,32 +138,34 @@ export function PollFooter({
 				>
 					<Share aria-hidden className="size-[18px]" />
 				</Button>
-				{onReport && (
-					<RowMenuRoot>
-						<Menu.Trigger
-							render={<Button variant="ghost" size="icon-xs" flush="end" />}
-							aria-label={t('poll.moreOptions')}
-							className="data-popup-open:bg-muted"
+				<RowMenuRoot>
+					<Menu.Trigger
+						render={<Button variant="ghost" size="icon-xs" flush="end" />}
+						aria-label={t('poll.moreOptions')}
+						className="data-popup-open:bg-muted"
+					>
+						<Ellipsis aria-hidden />
+					</Menu.Trigger>
+					<Menu.Portal>
+						<Menu.Positioner
+							side="top"
+							align="end"
+							sideOffset={4}
+							className="z-50"
 						>
-							<Ellipsis aria-hidden />
-						</Menu.Trigger>
-						<Menu.Portal>
-							<Menu.Positioner
-								side="top"
-								align="end"
-								sideOffset={4}
-								className="z-50"
-							>
-								<Menu.Popup className={menuPopupClassName}>
+							<Menu.Popup className={menuPopupClassName}>
+								<PollShareMenuItems pollId={pollId} onShowQr={() => setShowsQr(true)} />
+								{onReport && (
 									<Menu.Item onClick={onReport} className={menuItemClassName}>
 										<Flag aria-hidden />
 										{t('poll.report')}
 									</Menu.Item>
-								</Menu.Popup>
-							</Menu.Positioner>
-						</Menu.Portal>
-					</RowMenuRoot>
-				)}
+								)}
+							</Menu.Popup>
+						</Menu.Positioner>
+					</Menu.Portal>
+				</RowMenuRoot>
+				{showsQr && <PollQrDialog pollId={pollId} title={title} open onOpenChange={setShowsQr} />}
 			</div>
 		</div>
 	);
