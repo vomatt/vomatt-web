@@ -1000,6 +1000,11 @@
 		}
 	},
 	"apiError": {
+		"invitation": {
+			"email": {
+				"too_soon": "You’ve emailed this address too many times recently. Try again later."
+			}
+		},
 		"common": {
 			"bad_request": "Bad request format",
 			"internal_error": "Internal server error, please try again later",
@@ -1212,6 +1217,7 @@
 				"not_found": "They’re no longer a member. The list has been refreshed."
 			},
 			"limit_reached": "You already own as many community accounts as your plan allows.",
+			"member_limit_reached": "This community account has reached its member limit (members plus pending invitations). Remove a member or revoke an invitation first.",
 			"locked": "This community account is locked, so it can’t do that. Upgrade to Pro, or have an owner with room unlock it.",
 			"keep": {
 				"invalid": "Choose exactly as many accounts as asked, all ones you own."

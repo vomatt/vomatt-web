@@ -845,6 +845,38 @@
         },
         "type" : "object"
       },
+      "ApiResponseCommunityInvitationDetailResponse" : {
+        "description" : "Envelope of every API response, success or error",
+        "properties" : {
+          "data" : {
+            "$ref" : "#/components/schemas/CommunityInvitationDetailResponse"
+          },
+          "error" : {
+            "description" : "Legacy duplicate of `message` on errors; null on success. Use `message` instead",
+            "example" : "Poll not found",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "errorCode" : {
+            "description" : "Stable machine-readable error code (lowercase, dot-separated); branch on this, not on `message`. Null on success",
+            "example" : "vote.not_found",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "message" : {
+            "description" : "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",
+            "example" : "Operation completed",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "success" : {
+            "description" : "true on success, false on error",
+            "example" : true,
+            "type" : "boolean"
+          }
+        },
+        "type" : "object"
+      },
       "ApiResponseCommunityInvitationResponse" : {
         "description" : "Envelope of every API response, success or error",
         "properties" : {
@@ -1209,6 +1241,43 @@
             "description" : "Response payload; null on errors (a few business errors carry structured data) and on operations without a result",
             "items" : {
               "$ref" : "#/components/schemas/CommunityMemberResponse"
+            },
+            "nullable" : true,
+            "type" : "array"
+          },
+          "error" : {
+            "description" : "Legacy duplicate of `message` on errors; null on success. Use `message` instead",
+            "example" : "Poll not found",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "errorCode" : {
+            "description" : "Stable machine-readable error code (lowercase, dot-separated); branch on this, not on `message`. Null on success",
+            "example" : "vote.not_found",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "message" : {
+            "description" : "Localized text following Accept-Language. On success it is usually null, except operations that attach a toast-ready text; on error it is the error message",
+            "example" : "Operation completed",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "success" : {
+            "description" : "true on success, false on error",
+            "example" : true,
+            "type" : "boolean"
+          }
+        },
+        "type" : "object"
+      },
+      "ApiResponseListInvitationEmailLockResponse" : {
+        "description" : "Envelope of every API response, success or error",
+        "properties" : {
+          "data" : {
+            "description" : "Response payload; null on errors (a few business errors carry structured data) and on operations without a result",
+            "items" : {
+              "$ref" : "#/components/schemas/InvitationEmailLockResponse"
             },
             "nullable" : true,
             "type" : "array"
@@ -2956,6 +3025,46 @@
         },
         "type" : "object"
       },
+      "CommunityInvitationDetailResponse" : {
+        "description" : "An invitation to join a community account as its invitee sees it",
+        "nullable" : true,
+        "properties" : {
+          "community" : {
+            "$ref" : "#/components/schemas/UserDto"
+          },
+          "expiresAt" : {
+            "description" : "When it stops being usable, 7 days after it was sent",
+            "example" : "2026-11-18T14:52:00+08:00",
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "id" : {
+            "description" : "Invitation id",
+            "example" : "019a6b2c-3d4e-7f50-8a61-b2c3d4e5f607",
+            "type" : "string"
+          },
+          "inviter" : {
+            "$ref" : "#/components/schemas/UserDto"
+          },
+          "locked" : {
+            "description" : "Whether the community account is locked: the invitation can be seen and declined, but accept answers 403 `community.locked` until it is unlocked",
+            "example" : false,
+            "type" : "boolean"
+          },
+          "member" : {
+            "description" : "Whether the caller is already a member: accepting keeps their current role and uses the invitation up",
+            "example" : false,
+            "type" : "boolean"
+          },
+          "role" : {
+            "description" : "Role the invitee gets on joining",
+            "enum" : [ "OWNER", "ADMIN", "CHIEF_EDITOR", "EDITOR", "ANALYST" ],
+            "example" : "EDITOR",
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
       "CommunityInvitationRequest" : {
         "description" : "Invite a user, by id or by email address (exactly one), to a community account",
         "properties" : {
@@ -3022,6 +3131,13 @@
             "description" : "When it was sent",
             "example" : "2026-11-11T14:52:00+08:00",
             "format" : "date-time",
+            "type" : "string"
+          },
+          "resendAvailableAt" : {
+            "description" : "For an invitation by email: from when the caller may email it again with `POST .../invitations/{invitationId}/resend`: the end of the caller's lock on the address (3 emails within one 12-hour window lock it for 7 days, counting every community account and Invite List), or `invitedAt` (in the past, so now) when not locked. Per caller: another member may have no lock. Null for an invitation by user id, which is never emailed. Never tells whether the address has an account",
+            "example" : "2026-11-14T14:52:00+08:00",
+            "format" : "date-time",
+            "nullable" : true,
             "type" : "string"
           },
           "role" : {
@@ -3207,7 +3323,7 @@
             "example" : "sunrise_tower",
             "maxLength" : 50,
             "minLength" : 3,
-            "pattern" : "^(?!(?:search|account|explore|login|notifications|poll|sanity|api|me|my|admin|settings)$)[a-z0-9_]{3,50}$",
+            "pattern" : "^(?!(?:search|account|explore|login|notifications|poll|sanity|api|me|my|admin|settings|contact)$)[a-z0-9_]{3,50}$",
             "type" : "string"
           }
         },
@@ -3781,6 +3897,34 @@
         },
         "type" : "object"
       },
+      "InvitationEmailLockResponse" : {
+        "description" : "A sender locked out of emailing sign-up invitations to an address",
+        "nullable" : true,
+        "properties" : {
+          "email" : {
+            "description" : "The locked address, normalized",
+            "example" : "dave@example.com",
+            "type" : "string"
+          },
+          "lockedUntil" : {
+            "description" : "When the lock ends on its own",
+            "example" : "2026-11-26T14:52:00+08:00",
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "senderId" : {
+            "description" : "The sender's user id (the real member when they acted as a community account)",
+            "example" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d47",
+            "type" : "string"
+          },
+          "senderUsername" : {
+            "description" : "The sender's username",
+            "example" : "alice",
+            "type" : "string"
+          }
+        },
+        "type" : "object"
+      },
       "InviteListMemberResponse" : {
         "description" : "A member of an Invite List: a user added by ID, or an email address (never revealing whether it belongs to an account)",
         "nullable" : true,
@@ -4350,7 +4494,7 @@
             "example" : "sunrise_tower",
             "maxLength" : 50,
             "minLength" : 3,
-            "pattern" : "^(?!(?:search|account|explore|login|notifications|poll|sanity|api|me|my|admin|settings)$)[a-z0-9_]{3,50}$",
+            "pattern" : "^(?!(?:search|account|explore|login|notifications|poll|sanity|api|me|my|admin|settings|contact)$)[a-z0-9_]{3,50}$",
             "type" : "string"
           }
         },
@@ -5907,7 +6051,7 @@
             "maxLength" : 50,
             "minLength" : 3,
             "nullable" : true,
-            "pattern" : "^(?!(?:search|account|explore|login|notifications|poll|sanity|api|me|my|admin|settings)$)[a-z0-9_]{3,50}$",
+            "pattern" : "^(?!(?:search|account|explore|login|notifications|poll|sanity|api|me|my|admin|settings|contact)$)[a-z0-9_]{3,50}$",
             "type" : "string"
           }
         },
@@ -7921,6 +8065,207 @@
         "tags" : [ "Admin - Feedback" ]
       }
     },
+    "/api/admin/invitation-email-locks" : {
+      "get" : {
+        "description" : "**Auth**: admin (role ADMIN; 403 `common.forbidden` otherwise)\n**Precondition**: none\n**Behavior**: every sender currently locked out of emailing sign-up invitations (Invite List members, community account invitations) to an address, the latest lock to end first. A sender who emails one address `invitation_email_burst_limit` times (default 3) within one window of `invitation_email_burst_window_hours` (default 12) is locked out of it for `invitation_email_lock_days` (default 7)\n**Side effects**: none\n**Errors**: none beyond the common ones",
+        "operationId" : "list_1",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "examples" : {
+                  "Locks" : {
+                    "description" : "Locks",
+                    "value" : {
+                      "data" : [ {
+                        "email" : "dave@example.com",
+                        "lockedUntil" : "2026-11-26T14:52:00+08:00",
+                        "senderId" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d47",
+                        "senderUsername" : "alice"
+                      } ],
+                      "error" : null,
+                      "errorCode" : null,
+                      "message" : null,
+                      "success" : true
+                    }
+                  }
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResponseListInvitationEmailLockResponse"
+                }
+              }
+            },
+            "description" : "Success"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Authenticated but not allowed (errorCode `common.forbidden`)"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          }
+        },
+        "summary" : "List invitation email locks",
+        "tags" : [ "Admin - Invitation Email Locks" ]
+      }
+    },
+    "/api/admin/invitation-email-locks/{senderId}" : {
+      "delete" : {
+        "description" : "**Auth**: admin (role ADMIN; 403 `common.forbidden` otherwise)\n**Precondition**: the sender is locked out of the address now\n**Behavior**: lifts the lock and resets the sender's count for the address, so their next email to it starts a new window\n**Side effects**: audit-logged as `UNLOCK` on `INVITATION_EMAIL` with the sender's id\n**Errors**:\n- 404 `invitation.email.lock_not_found`: the sender is not locked out of the address (never was, or the lock already ended)\n",
+        "operationId" : "unlock_1",
+        "parameters" : [ {
+          "description" : "The locked sender's user id",
+          "example" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d47",
+          "in" : "path",
+          "name" : "senderId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        }, {
+          "description" : "The locked address",
+          "example" : "dave@example.com",
+          "in" : "query",
+          "name" : "email",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "examples" : {
+                  "Unlocked" : {
+                    "description" : "Unlocked",
+                    "value" : {
+                      "data" : {
+                        "success" : true
+                      },
+                      "error" : null,
+                      "errorCode" : null,
+                      "message" : null,
+                      "success" : true
+                    }
+                  }
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResponseSimpleResultResponse"
+                }
+              }
+            },
+            "description" : "Success"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Authenticated but not allowed (errorCode `common.forbidden`)"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "examples" : {
+                  "invitation.email.lock_not_found" : {
+                    "description" : "the sender is not locked out of the address (never was, or the lock already ended)",
+                    "value" : {
+                      "data" : null,
+                      "error" : "This sender is not locked out of emailing this address",
+                      "errorCode" : "invitation.email.lock_not_found",
+                      "message" : "This sender is not locked out of emailing this address",
+                      "success" : false
+                    }
+                  }
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          }
+        },
+        "summary" : "Lift an invitation email lock",
+        "tags" : [ "Admin - Invitation Email Locks" ]
+      }
+    },
     "/api/admin/lookups" : {
       "get" : {
         "description" : "**Auth**: admin (role ADMIN; 403 `common.forbidden` otherwise)\n**Precondition**: caller holds role ADMIN\n**Behavior**: lists the items of `type` (every type when omitted), ordered by type then `seq`. Unlike the public listing, `includeInactive` (default true) also returns deactivated items so they can be re-activated. Not cached, not paged\n**Side effects**: none\n**Errors**:\n- 400 `common.type_mismatch`: `includeInactive` is not a boolean\n",
@@ -9285,7 +9630,7 @@
     },
     "/api/admin/users" : {
       "get" : {
-        "description" : "**Auth**: admin (role ADMIN; 403 `common.forbidden` otherwise)\n**Precondition**: caller holds role ADMIN\n**Behavior**: offset page of every account, suspended included, newest first. `q` matches (case-insensitive contains) username, email, phone number, display name, first name, last name or full name (`firstName lastName`, `lastName firstName`, or `lastNamefirstName` with no space); `status` is `active` or `suspended`; `role` is `user`, `moderator` or `admin`. All filters are optional and combine with AND. `page` is 1-based (default 1), `limit` 1-50 (default 20). Items carry masked `email` / `phoneNumber` and no names or birthday: open `GET /api/admin/users/{userId}` for the full record\n**Side effects**: none\n**Errors**:\n- 400 `common.invalid_status`: `status` is neither `active` nor `suspended`\n- 400 `common.validation_failed`: `role` is not `user`, `moderator` or `admin`\n",
+        "description" : "**Auth**: admin (role ADMIN; 403 `common.forbidden` otherwise)\n**Precondition**: caller holds role ADMIN\n**Behavior**: offset page of every account, suspended included, newest first. `q` matches (case-insensitive contains) username, email, phone number, display name, first name, last name or full name (`firstName lastName`, `lastName firstName`, or `lastNamefirstName` with no space); `status` is `active` or `suspended`; `role` is `user`, `moderator` or `admin`; `emailDomain` keeps emails ending in `@` plus that domain (case-insensitive, a leading `@` ignored, so `vomatt.test` matches `a@vomatt.test` but not `a@sub.vomatt.test`). All filters are optional and combine with AND. `page` is 1-based (default 1), `limit` 1-50 (default 20). Items carry masked `email` / `phoneNumber` and no names or birthday: open `GET /api/admin/users/{userId}` for the full record\n**Side effects**: none\n**Errors**:\n- 400 `common.invalid_status`: `status` is neither `active` nor `suspended`\n- 400 `common.validation_failed`: `role` is not `user`, `moderator` or `admin`\n",
         "operationId" : "listUsers",
         "parameters" : [ {
           "description" : "Text matched against username, email, phone number, display name, first name, last name and full name",
@@ -9310,6 +9655,15 @@
           "example" : "admin",
           "in" : "query",
           "name" : "role",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Only accounts whose email ends in `@` plus this domain (case-insensitive; a leading `@` is ignored)",
+          "example" : "gmail.com",
+          "in" : "query",
+          "name" : "emailDomain",
           "required" : false,
           "schema" : {
             "type" : "string"
@@ -15433,6 +15787,7 @@
                         "expiresAt" : "2026-11-18T14:52:00+08:00",
                         "id" : "019a6b2c-3d4e-7f50-8a61-b2c3d4e5f607",
                         "invitedAt" : "2026-11-11T14:52:00+08:00",
+                        "resendAvailableAt" : null,
                         "role" : "EDITOR",
                         "userId" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d47",
                         "username" : "dave"
@@ -15521,7 +15876,7 @@
         "tags" : [ "Community Account" ]
       },
       "post" : {
-        "description" : "**Auth**: required (OWNER or ADMIN)\n**Precondition**: the invitee has no unexpired invitation to this community account\n**Behavior**: the only way to add a member: invites a user picked by `userId` (e.g. from user search) or an `email` address, exactly one, with the role; it can be used for 7 days. Nobody joins without answering: the user, or the account whose email is the address, gets a `COMMUNITY_INVITATION` notification and accepts (`POST /api/community-invitations/{invitationId}/accept`) or declines it. An address with no account is mailed an invitation to sign up; once they sign up with it (any sign-in method that verifies the address) the notification waits for them like for anyone else. For an `email` the response is the same whether or not the address belongs to an account, or to a member. An expired invitation of the same user or address is replaced by the new one. Roles: OWNER and ADMIN manage members; an ADMIN never changes or removes an OWNER nor grants OWNER. CHIEF_EDITOR, EDITOR and ANALYST cannot manage members.\n**Side effects**: an address with no account at all is mailed once committed; one member mails one address at most once a week, within the member's own daily invitation email limit (shared with their Poll and Invite List invitations). Audit-logged.\n**Errors**:\n- 400 `common.validation_failed`: neither or both of `userId` and `email`, `email` invalid, or `role` missing or invalid\n- 400 `community.member.invalid`: the `userId` is suspended or is a community account\n- 404 `user.not_found`: no user with this `userId`\n- 409 `community.member.exists`: the `userId` is already a member\n- 409 `community.invitation.exists`: the user or address already has an unexpired invitation to this community account\n- 403 `community.not_member`: the caller is not a member of this community account, or it does not exist or is suspended\n- 403 `community.role_forbidden`: the caller is not an OWNER or ADMIN, or is an ADMIN and the invitation grants OWNER\n",
+        "description" : "**Auth**: required (OWNER or ADMIN)\n**Precondition**: the invitee has no unexpired invitation to this community account; the members (OWNERs included) plus unexpired invitations are below the community account's limit: 3, or 5 once any OWNER is on the PRO plan (`community_member_limit_free` / `community_member_limit_pro`, admin-configurable). A user invited both by `userId` and by their address takes two places until they answer. An account already over a lowered limit keeps its members\n**Behavior**: the only way to add a member: invites a user picked by `userId` (e.g. from user search) or an `email` address, exactly one, with the role; it can be used for 7 days. Nobody joins without answering: the user, or the account whose email is the address, gets a `COMMUNITY_INVITATION` notification (one per community account, for the earliest invitation, even when invited both by `userId` and by address) and accepts (`POST /api/community-invitations/{invitationId}/accept`) or declines it. An address with no account is mailed an invitation to sign up; once they sign up with it (any sign-in method that verifies the address) the notification waits for them like for anyone else. For an `email` the response is the same whether or not the address belongs to an account, or to a member. An expired invitation of the same user or address is replaced by the new one. Roles: OWNER and ADMIN manage members; an ADMIN never changes or removes an OWNER nor grants OWNER. CHIEF_EDITOR, EDITOR and ANALYST cannot manage members.\n**Side effects**: an address with no account at all is mailed once committed, within the member's own daily invitation email limit (shared with their Poll and Invite List invitations). A member who emails one address 3 times within one 12-hour window (counted from their first email to it) (counting every community account and Invite List) cannot email it again for 7 days unless an admin lifts the lock (all three admin-configurable). While locked, inviting it is refused (429) and no invitation is created, so revoking and inviting again does not get around the lock; over the daily limit the invitation is still created, unmailed. Every invitation by email counts toward that lock and limit, whether or not the address has an account, so neither tells. Audit-logged.\n**Errors**:\n- 400 `common.validation_failed`: neither or both of `userId` and `email`, `email` invalid, or `role` missing or invalid\n- 400 `community.member.invalid`: the `userId` is suspended or is a community account\n- 404 `user.not_found`: no user with this `userId`\n- 409 `community.member.exists`: the `userId` is already a member\n- 409 `community.invitation.exists`: the user or address already has an unexpired invitation to this community account\n- 403 `community.not_member`: the caller is not a member of this community account, or it does not exist or is suspended\n- 403 `community.role_forbidden`: the caller is not an OWNER or ADMIN, or is an ADMIN and the invitation grants OWNER\n- 403 `community.member_limit_reached`: the members plus unexpired invitations have reached the limit; `data` is `{ \"limit\": 3, \"used\": 3 }`\n- 429 `invitation.email.too_soon`: an `email` the caller emailed 3 times within one 12-hour window (counted from their first email to it), across every community account and Invite List; locked out of it for 7 days\n",
         "operationId" : "invite",
         "parameters" : [ {
           "description" : "Community account's user id",
@@ -15575,6 +15930,7 @@
                         "expiresAt" : "2026-11-18T14:52:00+08:00",
                         "id" : "019a6b2c-3d4e-7f50-8a61-b2c3d4e5f607",
                         "invitedAt" : "2026-11-11T14:52:00+08:00",
+                        "resendAvailableAt" : null,
                         "role" : "EDITOR",
                         "userId" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d47",
                         "username" : "dave"
@@ -15640,6 +15996,16 @@
             "content" : {
               "application/json" : {
                 "examples" : {
+                  "community.member_limit_reached" : {
+                    "description" : "the members plus unexpired invitations have reached the limit; `data` is `{ \"limit\": 3, \"used\": 3 }`",
+                    "value" : {
+                      "data" : null,
+                      "error" : "This community account has as many members and pending invitations as its plan allows",
+                      "errorCode" : "community.member_limit_reached",
+                      "message" : "This community account has as many members and pending invitations as its plan allows",
+                      "success" : false
+                    }
+                  },
                   "community.not_member" : {
                     "description" : "the caller is not a member of this community account, or it does not exist or is suspended",
                     "value" : {
@@ -15725,7 +16091,18 @@
           "429" : {
             "content" : {
               "application/json" : {
-                "example" : null,
+                "examples" : {
+                  "invitation.email.too_soon" : {
+                    "description" : "an `email` the caller emailed 3 times within one 12-hour window (counted from their first email to it), across every community account and Invite List; locked out of it for 7 days",
+                    "value" : {
+                      "data" : null,
+                      "error" : "You emailed this address too many invitations in a short time; you cannot email it for now",
+                      "errorCode" : "invitation.email.too_soon",
+                      "message" : "You emailed this address too many invitations in a short time; you cannot email it for now",
+                      "success" : false
+                    }
+                  }
+                },
                 "schema" : {
                   "$ref" : "#/components/schemas/ErrorResponse"
                 }
@@ -15880,6 +16257,189 @@
           }
         },
         "summary" : "Revoke a community account invitation",
+        "tags" : [ "Community Account" ]
+      }
+    },
+    "/api/communities/{communityId}/invitations/{invitationId}/resend" : {
+      "post" : {
+        "description" : "**Auth**: required (OWNER or ADMIN; only an OWNER resends one that grants OWNER)\n**Precondition**: the invitation belongs to this community account, was sent to an `email` address and has not expired (an expired one is invited again instead); its `resendAvailableAt` has passed.\n**Behavior**: emails the invitation again, unchanged: same link, same `expiresAt`. As with the first email, an address that has an account is notified, not mailed, and the answer is the same either way. Returns the invitation with its new `resendAvailableAt`.\n**Side effects**: an address with no account is mailed once committed; the email counts toward the caller's own daily invitation email limit and toward the caller's 3-emails-per-12-hour-window lock on the address. Audit-logged.\n**Errors**:\n- 400 `community.invitation.not_email`: the invitation was sent to a `userId`, not an email address\n- 404 `community.invitation.not_found`: no such invitation of this community account, or it has expired\n- 403 `community.not_member`: the caller is not a member of this community account, or it does not exist or is suspended\n- 403 `community.role_forbidden`: the caller is not an OWNER or ADMIN, or is an ADMIN and the invitation grants OWNER\n- 429 `invitation.email.too_soon`: `resendAvailableAt` has not passed: the caller emailed the address 3 times within one 12-hour window (counted from their first email to it) and is locked out of it for 7 days\n- 429 `invitation.email.daily_limit`: the caller has used up today's invitation email limit (`invitation_email_daily_limit`)\n",
+        "operationId" : "resendInvitation",
+        "parameters" : [ {
+          "description" : "Community account's user id",
+          "example" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d48",
+          "in" : "path",
+          "name" : "communityId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        }, {
+          "description" : "Invitation id",
+          "example" : "019a6b2c-3d4e-7f50-8a61-b2c3d4e5f608",
+          "in" : "path",
+          "name" : "invitationId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "examples" : {
+                  "Resent" : {
+                    "description" : "Resent",
+                    "value" : {
+                      "data" : {
+                        "avatarUrl" : null,
+                        "displayName" : null,
+                        "email" : "dave@example.com",
+                        "expiresAt" : "2026-11-18T14:52:00+08:00",
+                        "id" : "019a6b2c-3d4e-7f50-8a61-b2c3d4e5f608",
+                        "invitedAt" : "2026-11-11T14:52:00+08:00",
+                        "resendAvailableAt" : "2026-11-17T09:30:00+08:00",
+                        "role" : "ANALYST",
+                        "userId" : null,
+                        "username" : null
+                      },
+                      "error" : null,
+                      "errorCode" : null,
+                      "message" : null,
+                      "success" : true
+                    }
+                  }
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResponseCommunityInvitationResponse"
+                }
+              }
+            },
+            "description" : "Success"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "examples" : {
+                  "community.invitation.not_email" : {
+                    "description" : "the invitation was sent to a `userId`, not an email address",
+                    "value" : {
+                      "data" : null,
+                      "error" : "Only an invitation sent to an email address can be emailed again",
+                      "errorCode" : "community.invitation.not_email",
+                      "message" : "Only an invitation sent to an email address can be emailed again",
+                      "success" : false
+                    }
+                  }
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "examples" : {
+                  "community.not_member" : {
+                    "description" : "the caller is not a member of this community account, or it does not exist or is suspended",
+                    "value" : {
+                      "data" : null,
+                      "error" : "You are not a member of this community account",
+                      "errorCode" : "community.not_member",
+                      "message" : "You are not a member of this community account",
+                      "success" : false
+                    }
+                  },
+                  "community.role_forbidden" : {
+                    "description" : "the caller is not an OWNER or ADMIN, or is an ADMIN and the invitation grants OWNER",
+                    "value" : {
+                      "data" : null,
+                      "error" : "Your role in this community account does not allow this action",
+                      "errorCode" : "community.role_forbidden",
+                      "message" : "Your role in this community account does not allow this action",
+                      "success" : false
+                    }
+                  }
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Authenticated but not allowed (errorCode `common.forbidden`)"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "examples" : {
+                  "community.invitation.not_found" : {
+                    "description" : "no such invitation of this community account, or it has expired",
+                    "value" : {
+                      "data" : null,
+                      "error" : "Invitation not found or expired",
+                      "errorCode" : "community.invitation.not_found",
+                      "message" : "Invitation not found or expired",
+                      "success" : false
+                    }
+                  }
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "examples" : {
+                  "invitation.email.daily_limit" : {
+                    "description" : "the caller has used up today's invitation email limit (`invitation_email_daily_limit`)",
+                    "value" : {
+                      "data" : null,
+                      "error" : "You have reached today's invitation email limit; try again tomorrow",
+                      "errorCode" : "invitation.email.daily_limit",
+                      "message" : "You have reached today's invitation email limit; try again tomorrow",
+                      "success" : false
+                    }
+                  },
+                  "invitation.email.too_soon" : {
+                    "description" : "`resendAvailableAt` has not passed: the caller emailed the address 3 times within one 12-hour window (counted from their first email to it) and is locked out of it for 7 days",
+                    "value" : {
+                      "data" : null,
+                      "error" : "You emailed this address too many invitations in a short time; you cannot email it for now",
+                      "errorCode" : "invitation.email.too_soon",
+                      "message" : "You emailed this address too many invitations in a short time; you cannot email it for now",
+                      "success" : false
+                    }
+                  }
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          }
+        },
+        "summary" : "Email a community account invitation again",
         "tags" : [ "Community Account" ]
       }
     },
@@ -16722,9 +17282,142 @@
         "tags" : [ "Community Account" ]
       }
     },
+    "/api/community-invitations/{invitationId}" : {
+      "get" : {
+        "description" : "**Auth**: required; refused while acting as a community account (`X-Act-As`)\n**Precondition**: the invitation was sent to the caller (by id or to their email address) and has not expired\n**Behavior**: the invitation as its invitee sees it, for the page the invitation email links to: the role, when it expires, the community account and the member who sent it (`inviter`, null once their account is deleted), each with public names masked by their visibility settings. `locked`: the community account is locked, so accept answers 403 `community.locked` until it is unlocked. `member`: the caller already belongs to it, so accepting keeps their role. Visible exactly when accept or decline would find it; any other caller gets the same 404, so it never tells whether the invitation exists. The invitation id is the one in the email link, or `communityInvitation.id` of the `COMMUNITY_INVITATION` notification.\n**Side effects**: none\n**Errors**:\n- 404 `community.invitation.not_found`: no unexpired invitation with this id was sent to the caller, or the community account is suspended\n",
+        "operationId" : "getInvitation",
+        "parameters" : [ {
+          "description" : "Invitation id",
+          "example" : "019a6b2c-3d4e-7f50-8a61-b2c3d4e5f607",
+          "in" : "path",
+          "name" : "invitationId",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "examples" : {
+                  "Invitation" : {
+                    "description" : "Invitation",
+                    "value" : {
+                      "data" : {
+                        "community" : {
+                          "avatarUrl" : null,
+                          "community" : true,
+                          "displayName" : "Sunrise Tower Committee",
+                          "firstName" : null,
+                          "id" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d48",
+                          "lastName" : null,
+                          "username" : "sunrise_tower"
+                        },
+                        "expiresAt" : "2026-11-18T14:52:00+08:00",
+                        "id" : "019a6b2c-3d4e-7f50-8a61-b2c3d4e5f607",
+                        "inviter" : {
+                          "avatarUrl" : "bot:boba",
+                          "community" : false,
+                          "displayName" : "Amy",
+                          "firstName" : null,
+                          "id" : "0199c1a2-7b3e-7d4a-9f10-2c5e8a1b3d47",
+                          "lastName" : null,
+                          "username" : "amy"
+                        },
+                        "locked" : false,
+                        "member" : false,
+                        "role" : "EDITOR"
+                      },
+                      "error" : null,
+                      "errorCode" : null,
+                      "message" : null,
+                      "success" : true
+                    }
+                  }
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiResponseCommunityInvitationDetailResponse"
+                }
+              }
+            },
+            "description" : "Success"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Validation failed or malformed request (errorCode `common.validation_failed`, `common.bad_request`, ...)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Missing, expired or invalid access token (errorCode `common.unauthorized`, `auth.token.expired`, `auth.token.invalid`)"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Authenticated but not allowed (errorCode `common.forbidden`)"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "examples" : {
+                  "community.invitation.not_found" : {
+                    "description" : "no unexpired invitation with this id was sent to the caller, or the community account is suspended",
+                    "value" : {
+                      "data" : null,
+                      "error" : "Invitation not found or expired",
+                      "errorCode" : "community.invitation.not_found",
+                      "message" : "Invitation not found or expired",
+                      "success" : false
+                    }
+                  }
+                },
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Not Found"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "example" : null,
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description" : "Rate limit exceeded; see `Retry-After` header (errorCode `common.rate_limited`)"
+          }
+        },
+        "summary" : "Get a community account invitation sent to the caller",
+        "tags" : [ "Community Account" ]
+      }
+    },
     "/api/community-invitations/{invitationId}/accept" : {
       "post" : {
-        "description" : "**Auth**: required; refused while acting as a community account (`X-Act-As`)\n**Precondition**: the invitation was sent to the caller (by id or to their email address) and has not expired\n**Behavior**: the caller joins the community account with the invitation's role; every invitation of this community account to the caller (by id and to their address) is used up. The invitation id is `communityInvitation.id` of the `COMMUNITY_INVITATION` notification. A caller already a member keeps their current role. Returns the membership as `GET /api/users/me/communities` lists it.\n**Side effects**: the invitation and its notification disappear; the action is audit-logged.\n**Errors**:\n- 400 `community.member.invalid`: the caller is suspended or is a community account\n- 404 `community.invitation.not_found`: no unexpired invitation with this id was sent to the caller, or the community account is suspended\n- 403 `community.locked`: the community account is locked; the invitation stays and can be accepted once it is unlocked\n- 403 `community.limit_reached`: the user who would become an OWNER already owns as many community accounts as their plan allows; `data` is `{ \"limit\": 1, \"owned\": 1 }`\n",
+        "description" : "**Auth**: required; refused while acting as a community account (`X-Act-As`)\n**Precondition**: the invitation was sent to the caller (by id or to their email address) and has not expired\n**Behavior**: the caller joins the community account with the invitation's role, or the highest role among this community account's unexpired invitations to them (by `userId` and to their address); every invitation of this community account to the caller (by id and to their address) is used up. The invitation id is `communityInvitation.id` of the `COMMUNITY_INVITATION` notification. A caller already a member keeps their current role. Returns the membership as `GET /api/users/me/communities` lists it.\n**Side effects**: the invitation and its notification disappear; the action is audit-logged.\n**Errors**:\n- 400 `community.member.invalid`: the caller is suspended or is a community account\n- 404 `community.invitation.not_found`: no unexpired invitation with this id was sent to the caller, or the community account is suspended\n- 403 `community.locked`: the community account is locked; the invitation stays and can be accepted once it is unlocked\n- 403 `community.limit_reached`: the user who would become an OWNER already owns as many community accounts as their plan allows; `data` is `{ \"limit\": 1, \"owned\": 1 }`\n",
         "operationId" : "acceptInvitation",
         "parameters" : [ {
           "description" : "Invitation id",
@@ -16872,7 +17565,7 @@
     },
     "/api/community-invitations/{invitationId}/decline" : {
       "post" : {
-        "description" : "**Auth**: required; refused while acting as a community account (`X-Act-As`)\n**Precondition**: the invitation was sent to the caller (by id or to their email address) and has not expired\n**Behavior**: deletes the invitation; the community account can invite the address again.\n**Side effects**: the invitation and its notification disappear; the action is audit-logged.\n**Errors**:\n- 404 `community.invitation.not_found`: no unexpired invitation with this id was sent to the caller\n",
+        "description" : "**Auth**: required; refused while acting as a community account (`X-Act-As`)\n**Precondition**: the invitation was sent to the caller (by id or to their email address) and has not expired\n**Behavior**: deletes every invitation of this community account to the caller, by `userId` and to their address alike; the community account can invite them again.\n**Side effects**: the invitations and their one notification disappear; the action is audit-logged.\n**Errors**:\n- 404 `community.invitation.not_found`: no unexpired invitation with this id was sent to the caller\n",
         "operationId" : "declineInvitation",
         "parameters" : [ {
           "description" : "Invitation id",
@@ -17937,7 +18630,7 @@
         "tags" : [ "Invite List" ]
       },
       "post" : {
-        "description" : "**Auth**: required (owner only)\n**Precondition**: the Invite List stays within the member limit (default 100, admin-configurable). A list already over a lowered limit is kept but accepts no new members\n**Behavior**: adds the users and email addresses as members. Users already members by ID, addresses already members, duplicates and the owner's own ID / address are ignored. An address is always listed as entered, whether or not it belongs to an account, including one of a user already a member by ID; once someone verifies it at sign-up / sign-in it is tied to that user, still listed by the address. Returns the full member list.\n**Side effects**: members get no notification. A new address that belongs to no account at all is mailed, once committed, an invitation to sign up for Vomatt from the owner, naming no Invite List; one Invite List mails one address at most once a week, within the daily invitation email limit of the person adding it (the real member while acting as a community account; shared with Poll invitations). The response is the same whether or not an email was sent. The action is audit-logged.\n**Errors**:\n- 400 `invite_list.member.ids_invalid`: one of `userIds` is not an existing user or is suspended (`emails` never cause it)\n- 400 `community.invitee_not_allowed`: one of `userIds` is a community account\n- 400 `invite_list.members.max`: the Invite List would hold more members than the limit (default 100), including when it is already over a lowered limit\n- 400 `common.validation_failed`: both `userIds` and `emails` are empty, one holds more than 100 entries, a null element or an invalid address\n- 404 `invite_list.not_found`: the Invite List does not exist or belongs to someone else\n",
+        "description" : "**Auth**: required (owner only)\n**Precondition**: the Invite List stays within the member limit (default 100, admin-configurable). A list already over a lowered limit is kept but accepts no new members\n**Behavior**: adds the users and email addresses as members. Users already members by ID, addresses already members, duplicates and the owner's own ID / address are ignored. An address is always listed as entered, whether or not it belongs to an account, including one of a user already a member by ID; once someone verifies it at sign-up / sign-in it is tied to that user, still listed by the address. Returns the full member list.\n**Side effects**: members get no notification. A new address that belongs to no account at all is mailed, once committed, an invitation to sign up for Vomatt from the owner, naming no Invite List, within the daily invitation email limit of the person adding it (the real member while acting as a community account; shared with Poll invitations). A person who emails one address 3 times within one 12-hour window (counted from their first email to it) (counting every Invite List and community account invitation) cannot email it again for 7 days unless an admin lifts the lock (all three admin-configurable). Every new address counts toward that lock and limit, whether or not it has an account, so neither tells. The response is the same whether or not an email was sent. The action is audit-logged.\n**Errors**:\n- 400 `invite_list.member.ids_invalid`: one of `userIds` is not an existing user or is suspended (`emails` never cause it)\n- 400 `community.invitee_not_allowed`: one of `userIds` is a community account\n- 400 `invite_list.members.max`: the Invite List would hold more members than the limit (default 100), including when it is already over a lowered limit\n- 400 `common.validation_failed`: both `userIds` and `emails` are empty, one holds more than 100 entries, a null element or an invalid address\n- 404 `invite_list.not_found`: the Invite List does not exist or belongs to someone else\n",
         "operationId" : "addMembers",
         "parameters" : [ {
           "description" : "Invite List ID",
@@ -29834,7 +30527,7 @@
     },
     "/api/votes/{voteId}/voters" : {
       "get" : {
-        "description" : "**Auth**: required\n**Precondition**: the Poll has Ended and its `revealAt` (if set) has passed, and its Voter Visibility allows the caller: NOBODY allows no one (not even the owner), OWNER allows only the owner, SIGNED_IN allows anyone who can see the Poll (for INVITE_ONLY: the owner and Invitees)\n**Behavior**: cursor-paged list of who took part, oldest Ballot first. Anonymous Ballots are left out, so the list can be shorter than `participantCount`. `optionId` is present only when the Poll holds no Anonymous Ballot other than the caller's own; otherwise it is null for every Participant, so the anonymous choices cannot be worked out from the named ones and the option totals. `nextCursor` null means the last page; `limit` is clamped to 1-50 (default 20).\n**Side effects**: none\n**Errors**:\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is INVITE_ONLY and the caller is neither its owner nor an Invitee, or its owner blocked the caller\n- 403 `vote.results.sealed`: the Poll is still Scheduled or Open, or its `revealAt` has not passed\n- 403 `vote.voters.hidden`: Voter Visibility does not allow the caller\n- 400 `common.cursor_invalid`: `cursor` is malformed or was issued by another list or another ordering of this list\n",
+        "description" : "**Auth**: required\n**Precondition**: the Poll has Ended and its `revealAt` (if set) has passed, and its Voter Visibility allows the caller: NOBODY allows no one (not even the owner), OWNER allows only the owner (for a community account's Poll: members acting as it with role OWNER, ADMIN or ANALYST), SIGNED_IN allows anyone who can see the Poll (for INVITE_ONLY: the owner and Invitees)\n**Behavior**: cursor-paged list of who took part, oldest Ballot first. Anonymous Ballots are left out, so the list can be shorter than `participantCount`. `optionId` is present only when the Poll holds no Anonymous Ballot other than the caller's own; otherwise it is null for every Participant, so the anonymous choices cannot be worked out from the named ones and the option totals. `nextCursor` null means the last page; `limit` is clamped to 1-50 (default 20).\n**Side effects**: none\n**Errors**:\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is INVITE_ONLY and the caller is neither its owner nor an Invitee, or its owner blocked the caller\n- 403 `vote.results.sealed`: the Poll is still Scheduled or Open, or its `revealAt` has not passed\n- 403 `vote.voters.hidden`: Voter Visibility does not allow the caller\n- 403 `community.role_forbidden`: Voter Visibility is OWNER and the caller acts as the owning community account with role CHIEF_EDITOR or EDITOR\n- 400 `common.cursor_invalid`: `cursor` is malformed or was issued by another list or another ordering of this list\n",
         "operationId" : "getVoters",
         "parameters" : [ {
           "description" : "Poll ID",
@@ -29932,6 +30625,16 @@
             "content" : {
               "application/json" : {
                 "examples" : {
+                  "community.role_forbidden" : {
+                    "description" : "Voter Visibility is OWNER and the caller acts as the owning community account with role CHIEF_EDITOR or EDITOR",
+                    "value" : {
+                      "data" : null,
+                      "error" : "Your role in this community account does not allow this action",
+                      "errorCode" : "community.role_forbidden",
+                      "message" : "Your role in this community account does not allow this action",
+                      "success" : false
+                    }
+                  },
                   "vote.results.sealed" : {
                     "description" : "the Poll is still Scheduled or Open, or its `revealAt` has not passed",
                     "value" : {
@@ -30024,6 +30727,9 @@
   }, {
     "description" : "Admin-only tag management APIs",
     "name" : "Admin Tag"
+  }, {
+    "description" : "Senders locked out of emailing an address (Admin)",
+    "name" : "Admin - Invitation Email Locks"
   }, {
     "description" : "Community accounts (a group's page) and the members who manage them",
     "name" : "Community Account"
