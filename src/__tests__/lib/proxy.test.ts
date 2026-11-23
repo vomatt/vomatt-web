@@ -356,6 +356,17 @@ describe('proxy matcher', () => {
 		expect(matches(path)).toBe(false);
 	});
 
+	it.each(['/manifest.webmanifest', '/icon-192.png', '/icon-512.png', '/icon-maskable-512.png'])(
+		'skips %s, which the browser fetches to install the app',
+		(path) => {
+			expect(matches(path)).toBe(false);
+		}
+	);
+
+	it.each(['/manifest.webmanifest.fan', '/icon-fan', '/alice/icon-192.png'])('runs for %s', (path) => {
+		expect(matches(path)).toBe(true);
+	});
+
 	it('runs for a profile whose username starts with "robots"', () => {
 		expect(matches('/robots.txt.fan')).toBe(true);
 	});

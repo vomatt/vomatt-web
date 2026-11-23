@@ -95,6 +95,17 @@ export function useComments(
 		applyFirstPage(await settle(getComments(pollId)));
 	}, [applyFirstPage, pollId]);
 
+	/** Loads the first page again in place, with the Poll's new count; a failure keeps the list as it is. */
+	const refresh = useCallback(
+		async (newTotal: number | undefined) => {
+			const result = await settle(getComments(pollId));
+			if (!result.ok) return;
+			applyFirstPage(result);
+			setTotal(newTotal);
+		},
+		[applyFirstPage, pollId]
+	);
+
 	useEffect(() => {
 		if (!enabled || hasLoaded.current) return;
 		let ignore = false;
@@ -305,6 +316,7 @@ export function useComments(
 		hasMore: !!nextCursor,
 		isLoadingMore,
 		reload,
+		refresh,
 		loadMore,
 		loadReplies,
 		add,

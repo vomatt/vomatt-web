@@ -6,6 +6,7 @@ import { BackLink } from '@/components/BackLink';
 import { JsonLd } from '@/components/JsonLd';
 import { PageShell } from '@/components/layout/PageShell';
 import { LoginPrompt } from '@/components/LoginPrompt';
+import { Refreshable } from '@/components/Refreshable';
 import { T } from '@/components/T';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { getMyProfile, getUserSession } from '@/data/auth';
@@ -76,22 +77,24 @@ export async function generateMetadata({ params }: Props, parent: ResolvingMetad
 export default async function PollDetailPage({ params }: Props) {
 	const { id } = await params;
 	return (
-		<PageShell
-			rail={
-				<Suspense fallback={<PollRailSkeleton />}>
-					<PollRail id={id} />
-				</Suspense>
-			}
-		>
-			<div className="flex flex-col gap-8">
-				<BackLink href="/">
-					<T k="common.back" />
-				</BackLink>
-				<Suspense fallback={<PollCardSkeleton options={4} />}>
-					<PollDetail id={id} />
-				</Suspense>
-			</div>
-		</PageShell>
+		<Refreshable>
+			<PageShell
+				rail={
+					<Suspense fallback={<PollRailSkeleton />}>
+						<PollRail id={id} />
+					</Suspense>
+				}
+			>
+				<div className="flex flex-col gap-8">
+					<BackLink href="/">
+						<T k="common.back" />
+					</BackLink>
+					<Suspense fallback={<PollCardSkeleton options={4} />}>
+						<PollDetail id={id} />
+					</Suspense>
+				</div>
+			</PageShell>
+		</Refreshable>
 	);
 }
 
