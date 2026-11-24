@@ -21,7 +21,7 @@ export function LikeHeart({ liked, className, strokeWidth }: { liked: boolean; c
 	}, [liked, reduceMotion, animate, scope]);
 	return (
 		<span ref={scope} className="inline-flex">
-			<Heart aria-hidden className={cn(className, liked && 'fill-current')} strokeWidth={strokeWidth} />
+			<Heart aria-hidden className={cn(className, liked && 'fill-current')} {...(strokeWidth !== undefined && { strokeWidth })} />
 		</span>
 	);
 }

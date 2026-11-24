@@ -780,7 +780,8 @@ export function PollCreator({
 																								startDrag(e);
 																							}}
 																							onClick={(e) => {
-																								if (!dragged.current)
+																								// A click from the keyboard (detail 0) never ends a drag
+																								if (e.detail === 0 || !dragged.current)
 																									setMoveMenu({ open: true, index, anchor: e.currentTarget });
 																							}}
 																							onKeyDown={(e) => moveOptionByKey(e, index)}
@@ -871,7 +872,10 @@ export function PollCreator({
 																	sideOffset={4}
 																	className="z-50"
 																>
-																	<Menu.Popup className={menuPopupClassName}>
+																	<Menu.Popup
+																		className={menuPopupClassName}
+																		finalFocus={() => moveMenu?.anchor ?? true}
+																	>
 																		{([-1, 1] as const).map((step) => (
 																			<Menu.Item
 																				key={step}
