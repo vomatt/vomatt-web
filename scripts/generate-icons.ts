@@ -5,7 +5,8 @@
  *   pnpm generate:icons
  *
  * Overwrites src/app/icon0.svg, favicon.ico and apple-icon.png. Next.js turns
- * those files into the <link rel="icon"> and apple-touch-icon tags.
+ * those files into the <link rel="icon"> and apple-touch-icon tags. Also overwrites
+ * the installed-app icons in public/ that src/app/manifest.ts lists.
  */
 
 import { writeFileSync } from 'fs';
@@ -14,9 +15,10 @@ import { join } from 'path';
 import sharp from 'sharp';
 
 import { packIco } from '../src/lib/brand/ico';
-import { APPLE_TILE, MARK_ICONS, markGlossIconSvg, markIconSvg } from '../src/lib/brand/mark';
+import { APP_TILE, APPLE_TILE, MARK_ICONS, MASKABLE_TILE, markGlossIconSvg, markIconSvg } from '../src/lib/brand/mark';
 
 const appDir = join(__dirname, '..', 'src', 'app');
+const publicDir = join(__dirname, '..', 'public');
 const ICO_SIZES = [16, 32, 48];
 
 /** Rasterises an SVG once at `size` px; the viewBox is scaled to fit. */
@@ -39,7 +41,17 @@ async function main() {
 		join(appDir, 'apple-icon.png'),
 		await rasterise(markGlossIconSvg(APPLE_TILE), 180).removeAlpha().png().toBuffer()
 	);
-	console.log('Wrote icon0.svg, favicon.ico and apple-icon.png to src/app');
+
+	const app = markGlossIconSvg(APP_TILE);
+	for (const size of [192, 512]) {
+		writeFileSync(join(publicDir, `icon-${size}.png`), await rasterise(app, size).png().toBuffer());
+	}
+	// A maskable icon is cut to the launcher's shape, so its tile is opaque to every edge.
+	writeFileSync(
+		join(publicDir, 'icon-maskable-512.png'),
+		await rasterise(markGlossIconSvg(MASKABLE_TILE), 512).removeAlpha().png().toBuffer()
+	);
+	console.log('Wrote icon0.svg, favicon.ico and apple-icon.png to src/app, and the installed-app icons to public');
 }
 
 main().catch((error) => {

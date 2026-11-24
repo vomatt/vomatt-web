@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { PortableTextBlock } from '@portabletext/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -13,6 +13,7 @@ import { Field, FieldLabel, FieldMessage } from '@/components/ui/Field';
 import { Input } from '@/components/ui/Input';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PasskeyLoginButton } from '@/features/passkeys/PasskeyLoginButton';
+import { trackEvent } from '@/lib/analytics';
 import type { AuthErrorKey } from '@/lib/api/auth-errors';
 import { cn } from '@/lib/utils';
 
@@ -39,7 +40,10 @@ type AuthFlowProps = {
 
 export function AuthFlow({ onDone, onSignedIn, policyMessage, inDialog = false }: AuthFlowProps) {
 	const { t } = useLanguage();
-	const flow = useAuthFlow();
+	const surface = inDialog ? 'dialog' : 'page';
+	const flow = useAuthFlow(surface);
+	// The flow opens on the email step
+	useEffect(() => trackEvent('sign_in_started', { surface }), [surface]);
 
 	let heading: { title: string; subtitle: React.ReactNode };
 	let body: React.ReactNode;
@@ -81,8 +85,13 @@ export function AuthFlow({ onDone, onSignedIn, policyMessage, inDialog = false }
 				<EmailStep
 					defaultEmail={flow.email}
 					onSubmit={flow.submitEmail}
+					onPasskeySignIn={() => {
+						// Only an existing account has a passkey
+						trackEvent('sign_in_completed', { surface, method: 'passkey', newAccount: false });
+						onDone();
+					}}
 					// The login page only: a dialog over another page shouldn't claim its autofill
-					onPasskeySignIn={inDialog ? undefined : onDone}
+					passkeyAutofill={!inDialog}
 				/>
 				{policyMessage && (
 					<div className="text-caption-2 text-muted-foreground">
@@ -116,11 +125,14 @@ function EmailStep({
 	defaultEmail,
 	onSubmit,
 	onPasskeySignIn,
+	passkeyAutofill,
 }: {
 	defaultEmail: string;
 	onSubmit: (email: string) => Promise<AuthResult>;
-	/** Offers passkey sign-in, by button and from the email field's autofill. */
-	onPasskeySignIn?: () => void;
+	/** Called after a passkey sign-in, from the button or the email field's autofill. */
+	onPasskeySignIn: () => void;
+	/** Whether the email field's autofill offers passkeys too. */
+	passkeyAutofill: boolean;
 }) {
 	const { t } = useLanguage();
 	const [error, setError] = useState<AuthErrorKey | null>(null);
@@ -147,7 +159,7 @@ function EmailStep({
 							{...field}
 							type="email"
 							id="authEmail"
-							autoComplete={onPasskeySignIn ? 'username webauthn' : 'email'}
+							autoComplete={passkeyAutofill ? 'username webauthn' : 'email'}
 							autoFocus
 							aria-invalid={fieldState.invalid}
 							aria-describedby={fieldState.invalid ? 'authEmail-error' : undefined}
@@ -168,7 +180,7 @@ function EmailStep({
 			<Button className="w-full" type="submit" loading={form.formState.isSubmitting}>
 				{t('auth.continueWithEmail')}
 			</Button>
-			{onPasskeySignIn && <PasskeyLoginButton onSignedIn={onPasskeySignIn} onError={setError} />}
+			<PasskeyLoginButton onSignedIn={onPasskeySignIn} onError={setError} autofill={passkeyAutofill} />
 			<AuthError error={error} className="mt-3" />
 		</form>
 	);

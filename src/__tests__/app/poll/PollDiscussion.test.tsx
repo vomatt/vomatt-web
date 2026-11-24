@@ -1,7 +1,10 @@
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 
 import { PollDiscussion } from '@/app/(frontend)/poll/[id]/PollDiscussion';
+import { Refreshable, useRefreshGeneration } from '@/components/Refreshable';
 import type { Poll } from '@/features/polls/schema';
+
+import { drag, FAR_ENOUGH } from '../../helpers/pull';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 const mockReplace = jest.fn();
@@ -79,6 +82,51 @@ describe('PollDiscussion', () => {
 
 		expect(mockPostComment).not.toHaveBeenCalled();
 		expect(box).toHaveValue('Draft');
+	});
+
+	it('shows the new comments and count after the page is pulled down to refresh', async () => {
+		const comment = (id: string, text: string) => ({ id, author: 'mei', text, createdAt: '2026-10-05T00:00:00Z' });
+		mockGetComments.mockResolvedValueOnce({ ok: true, data: { items: [comment('c1', 'Saturday works')], nextCursor: null } });
+		function Page() {
+			// The refreshed page renders with the poll's new count
+			const count = useRefreshGeneration() + 1;
+			return <PollDiscussion pollId="poll-1" commentCount={count} />;
+		}
+		render(
+			<Refreshable>
+				<Page />
+			</Refreshable>
+		);
+		expect(await screen.findByText('Saturday works')).toBeInTheDocument();
+
+		mockGetComments.mockResolvedValueOnce({
+			ok: true,
+			data: { items: [comment('c2', 'Friday is better'), comment('c1', 'Saturday works')], nextCursor: null },
+		});
+		drag(0, FAR_ENOUGH);
+
+		expect(await screen.findByText('Friday is better')).toBeInTheDocument();
+		expect(screen.getByText('Saturday works')).toBeInTheDocument();
+		expect(screen.getByRole('heading', { name: 'Discussion' }).nextSibling).toHaveTextContent('2');
+	});
+
+	it('keeps the loaded comments when the refresh cannot load them', async () => {
+		mockGetComments.mockResolvedValueOnce({
+			ok: true,
+			data: { items: [{ id: 'c1', author: 'mei', text: 'Saturday works', createdAt: '2026-10-05T00:00:00Z' }], nextCursor: null },
+		});
+		render(
+			<Refreshable>
+				<PollDiscussion pollId="poll-1" commentCount={1} />
+			</Refreshable>
+		);
+		expect(await screen.findByText('Saturday works')).toBeInTheDocument();
+
+		mockGetComments.mockResolvedValueOnce({ ok: false, error: 'offline' });
+		drag(0, FAR_ENOUGH);
+
+		await waitFor(() => expect(mockGetComments).toHaveBeenCalledTimes(2));
+		expect(screen.getByText('Saturday works')).toBeInTheDocument();
 	});
 	it('sends the owner to their profile after deleting the poll', async () => {
 		mockGetComments.mockResolvedValue({ ok: true, data: { items: [], nextCursor: null } });

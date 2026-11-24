@@ -1,6 +1,7 @@
 import type { ResolvingMetadata } from 'next';
 
 import { generateMetadata } from '@/app/(frontend)/poll/[id]/page';
+import { toShortId } from '@/features/polls/shortId';
 
 const mockGetPoll = jest.fn();
 jest.mock('@/features/polls/service', () => ({
@@ -16,12 +17,13 @@ jest.mock('@/app/(frontend)/poll/[id]/PollDiscussion', () => ({ PollDiscussion: 
 jest.mock('@/features/polls/sharePreview', () => ({ shareDescription: () => 'description' }));
 
 const POLL_ID = '01a195a4-2a06-7137-a746-2c2ebb8136cc';
+const POLL_PATH = `/poll/${toShortId(POLL_ID)}`;
 
 const parent = Promise.resolve({ openGraph: { siteName: 'Vomatt', locale: 'en_US', videos: [{ url: 'https://cdn.example/promo.mp4' }] } }) as unknown as ResolvingMetadata;
 
 const metadataFor = (audience?: string) => {
 	mockGetPoll.mockResolvedValue({ id: POLL_ID, title: 'Market night?', audience });
-	return generateMetadata({ params: Promise.resolve({ id: POLL_ID }) }, parent);
+	return generateMetadata({ params: Promise.resolve({ id: toShortId(POLL_ID) }) }, parent);
 };
 
 describe('poll page metadata', () => {
@@ -38,7 +40,7 @@ describe('poll page metadata', () => {
 			siteName: 'Vomatt',
 			locale: 'en_US',
 			type: 'article',
-			url: `/poll/${POLL_ID}`,
+			url: POLL_PATH,
 		});
 	});
 
@@ -47,6 +49,6 @@ describe('poll page metadata', () => {
 	});
 
 	it('names the poll URL as canonical', async () => {
-		expect((await metadataFor('public')).alternates).toEqual({ canonical: `/poll/${POLL_ID}` });
+		expect((await metadataFor('public')).alternates).toEqual({ canonical: POLL_PATH });
 	});
 });

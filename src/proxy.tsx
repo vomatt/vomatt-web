@@ -9,6 +9,7 @@ import {
 	SESSION_UNCONFIRMED_HEADER,
 } from '@/data/constants';
 import { SIGNED_IN_FEED_ROOTS } from '@/features/polls/feeds';
+import { isUuid } from '@/features/polls/shortId';
 import { clientHeaders } from '@/lib/api/client-ip';
 import {
 	AUTH_COOKIE_BASE,
@@ -19,7 +20,7 @@ import {
 	tokenFingerprint,
 	verifyAccessToken,
 } from '@/lib/api/tokens';
-import { getSafeRedirectPath, isProfileSettingsPath } from '@/lib/routes';
+import { getSafeRedirectPath, isProfileSettingsPath, pollHref } from '@/lib/routes';
 import { AuthTokens } from '@/types';
 
 import { i18n, type Locale } from './i18n-config';
@@ -96,6 +97,16 @@ async function resolveSession(request: NextRequest): Promise<SessionResult> {
 
 export async function proxy(request: NextRequest) {
 	const { pathname } = request.nextUrl;
+
+	// A link by a Poll's full UUID (older shares, the API's emails) moves to its short one before
+	// the session is read, so no refresh token is spent on a response that carries no cookies.
+	// Page loads only: a Server Action from a page opened at the old URL still runs there
+	const pollUuid = pathname.match(/^\/poll\/([^/]+)$/)?.[1];
+	if (pollUuid && isUuid(pollUuid) && (request.method === 'GET' || request.method === 'HEAD')) {
+		const url = request.nextUrl.clone();
+		url.pathname = pollHref(pollUuid);
+		return NextResponse.redirect(url, 308);
+	}
 
 	const isUnder = (paths: string[]) =>
 		paths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
@@ -199,5 +210,8 @@ export const config = {
 	// Static avatars skip it: each image would otherwise run a token refresh.
 	// .well-known files are fetched by Apple's CDN and need no cookies or language.
 	// Crawlers fetch robots.txt and sitemap.xml without cookies; neither has a language or a session.
-	matcher: ['/((?!api/|_next/static|_next/image|favicon.ico|robots\\.txt$|sitemap\\.xml$|avatars/|\\.well-known/).*)'],
+	// Nor do the web app manifest and its icons in public/, which the browser fetches to install the app.
+	matcher: [
+		'/((?!api/|_next/static|_next/image|favicon.ico|robots\\.txt$|sitemap\\.xml$|manifest\\.webmanifest$|icon-[a-z0-9-]+\\.png$|avatars/|\\.well-known/).*)',
+	],
 };

@@ -20,9 +20,20 @@ jest.mock('@/features/follows/service', () => ({
 	getFollowing: jest.fn().mockResolvedValue({ ok: true, data: { items: [], nextCursor: null } }),
 }));
 
+// Product events go to Vercel Analytics, which ships ESM only; tests that check an event mock it themselves.
+jest.mock('@vercel/analytics', () => ({ track: jest.fn() }));
+
 // The switcher, banner and no-vote notice sit on every page and card; their Server Action reaches
 // the auth stack too. Tests that check acting itself mock it with their own expectations.
 jest.mock('@/features/communities/acting', () => ({
 	actAsCommunity: jest.fn().mockResolvedValue({ ok: true, data: undefined }),
 	loadMyCommunities: jest.fn().mockResolvedValue({ ok: true, data: [] }),
 }));
+
+// Fixtures name Polls with labels like 'poll-1' that aren't UUIDs; a label links as itself,
+// and a UUID gets the real short id. Anything but a string (a missing id) still throws as in production.
+jest.mock('@/features/polls/shortId', () => {
+	const actual = jest.requireActual('@/features/polls/shortId');
+	const isLabel = (id: unknown) => typeof id === 'string' && /^[a-z][a-z0-9-]*$/.test(id) && !actual.isUuid(id);
+	return { ...actual, toShortId: (id: string) => (isLabel(id) ? id : actual.toShortId(id)) };
+});
