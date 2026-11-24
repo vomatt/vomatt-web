@@ -113,7 +113,16 @@ export function useComments(
 		setComments((prev) => [...prev.filter(isPostedOnly), ...result.data.items, ...prev.filter(isOlder)]);
 		setReplies((prev) => {
 			const preview = previewLists(result.data.items);
-			if (!keep) return preview;
+			if (!keep) {
+				// Starting over still keeps a Reply that is posting, so it is shown once saved
+				for (const [rootId, list] of Object.entries(prev)) {
+					const posting = list.items.filter(isPostedOnly);
+					if (!posting.length) continue;
+					const base = preview[rootId] ?? NO_REPLIES;
+					preview[rootId] = { ...base, items: mergeById(base.items, posting).sort(byCreatedAt) };
+				}
+				return preview;
+			}
 			// Replies loaded past the preview, and one still posting, stay
 			const merged = { ...prev };
 			for (const [rootId, list] of Object.entries(preview)) {
@@ -169,6 +178,8 @@ export function useComments(
 		if (!result.ok || startedAt !== firstPageLoads.current) return;
 		hasLaterPages.current = true;
 		setComments((prev) => mergeById(prev, result.data.items));
+		// Now, not after the render: a refresh in the same tick must see this page as shown
+		shown.current = mergeById(shown.current, result.data.items);
 		// A Comment already listed keeps the Replies loaded for it
 		setReplies((prev) => ({ ...previewLists(result.data.items), ...prev }));
 		setNextCursor(result.data.nextCursor);

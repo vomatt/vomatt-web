@@ -167,3 +167,24 @@ it("counts a Comment still posting on top of the Poll's new count", async () => 
 
 	expect(result.current.total).toBe(3);
 });
+
+it('keeps a Reply still posting when the refresh starts over', async () => {
+	mockGetComments.mockResolvedValueOnce(page(['c1'], null));
+	const { result } = renderHook(() => useComments('poll-1', { enabled: true }));
+	await waitFor(() => expect(result.current.status).toBe('ready'));
+
+	let savePost!: (value: unknown) => void;
+	mockPostComment.mockReturnValueOnce(new Promise((resolve) => (savePost = resolve)));
+	let posting!: Promise<unknown>;
+	act(() => {
+		posting = result.current.add('hi', author, 'c1');
+	});
+	mockGetComments.mockResolvedValueOnce(page(['n1', 'n2'], 'cursor-n'));
+	await act(() => result.current.refresh());
+	await act(async () => {
+		savePost({ ok: true, data: { ...comment('r2'), ...author, text: 'hi', parentId: 'c1', createdAt: '2026-11-20T11:00:00Z' } });
+		await posting;
+	});
+
+	expect(result.current.replies.c1.items.map((c) => c.id)).toEqual(['r2']);
+});
