@@ -71,6 +71,7 @@ describe('formatPollDay', () => {
 		['2026-10-22T09:00:00', 'Thu', '週四'],
 		['2026-11-04T09:00:00', 'Nov 4', '11月4日'],
 		['2026-10-21T09:00:00', 'Oct 21', '10月21日'],
+		['2025-10-21T09:00:00', 'Oct 21, 2025', '2025年10月21日'],
 	])('says %s as "%s" / "%s"', (local, english, chinese) => {
 		expect(formatPollDay(taipei(local), 'en', NOW)).toBe(english);
 		expect(formatPollDay(taipei(local), 'zh', NOW)).toBe(chinese);
@@ -130,5 +131,10 @@ describe('formatAge', () => {
 	it('gives the date from a week on', () => {
 		expect(formatAge(taipei('2026-10-07T12:00:00'), 'en', NOW)).toBe('Oct 7');
 		expect(formatAge(taipei('2026-10-07T12:00:00'), 'zh', NOW)).toBe('10月7日');
+	});
+
+	it('adds the year to a date from another year, so it never reads as an upcoming one', () => {
+		expect(formatAge(taipei('2025-11-02T12:00:00'), 'en', NOW)).toBe('Nov 2, 2025');
+		expect(formatAge(taipei('2025-11-02T12:00:00'), 'zh', NOW)).toBe('2025年11月2日');
 	});
 });

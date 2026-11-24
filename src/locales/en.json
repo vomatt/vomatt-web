@@ -374,6 +374,7 @@
 		"errors": {
 			"titleRequired": "Ask a question.",
 			"titleTooLong": "Keep the question to 200 characters.",
+			"descriptionTooLong": "Keep the context to 1,000 characters.",
 			"optionRequired": "Fill in every option.",
 			"optionDuplicate": "Each option must be different.",
 			"endRequired": "Choose when the poll ends.",

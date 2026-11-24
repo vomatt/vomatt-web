@@ -71,7 +71,7 @@ export function PollFooter({
 			? t('poll.discuss')
 			: commentCount === 1
 				? t('poll.comment')
-				: t('poll.comments', { count: commentCount });
+				: t('poll.comments', { count: commentCount.toLocaleString(toLocaleTag(currentLanguage)) });
 	// The ••• trigger's ghost circle, as a pill for an action with a label; the footer's 14px regular type
 	const pillClassName = buttonVariants({
 		variant: 'ghost',

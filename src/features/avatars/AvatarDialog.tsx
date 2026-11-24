@@ -148,7 +148,16 @@ export function AvatarDialog({
 				className="group relative shrink-0 rounded-full outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:outline-solid"
 			>
 				{savedUpload ? (
-					<UploadedAvatar src={savedUpload} className={cn('transition-opacity group-hover:opacity-80', className)} />
+					<UploadedAvatar
+						src={savedUpload}
+						className={cn('transition-opacity group-hover:opacity-80', className)}
+						fallback={
+							<ChosenAvatar
+								kind={resolveAvatar(username, null)}
+								className={cn('transition-opacity group-hover:opacity-80', className)}
+							/>
+						}
+					/>
 				) : (
 					<ChosenAvatar
 						kind={saved ?? NO_BOT}
@@ -190,6 +199,7 @@ export function AvatarDialog({
 						{/* pb-3: with the grid's 4px top, the two sections stay 16px apart */}
 						<DialogBody className="flex flex-wrap items-center gap-4 pb-3">
 							{selected === null && savedUpload ? (
+								// A saved photo that no longer loads shows the account icon here, not a bot that isn't chosen
 								<UploadedAvatar src={savedUpload} className="size-16 md:size-28" />
 							) : (
 								<ChosenAvatar kind={selected ?? NO_BOT} className="size-16 md:size-28" />

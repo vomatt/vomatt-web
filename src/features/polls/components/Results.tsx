@@ -180,7 +180,7 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption, r
 								{isWinner && <ElectedStamp label={t('poll.elected')} reveal={reveal} />}
 								{/* Words split only when one is wider than the row, so the count keeps its column; where the option and the pill don't fit side by side, the pill wraps under */}
 								<span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
-									<span className={cn('wrap-anywhere', isWinner && 'font-medium')}>{row.text}</span>
+									<span dir="auto" className={cn('wrap-anywhere', isWinner && 'font-medium')}>{row.text}</span>
 									{row === myRow && <YourVotePill label={t('poll.yourVoteShort')} />}
 								</span>
 								<span

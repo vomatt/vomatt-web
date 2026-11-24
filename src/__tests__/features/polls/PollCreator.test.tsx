@@ -139,6 +139,22 @@ describe('PollCreator', () => {
 		await waitFor(() => expect(screen.getByLabelText(/Context/)).toHaveFocus());
 	});
 
+	it('rejects context past 1,000 characters and says why', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		fillPoll();
+		fireEvent.click(screen.getByRole('button', { name: 'Add context (optional)' }));
+		const context = screen.getByLabelText(/Context/);
+		expect(context).toHaveAttribute('maxLength', '1000');
+		// A pasted or saved text can still be longer than the field allows
+		fireEvent.change(context, { target: { value: 'a'.repeat(1001) } });
+		expect(screen.getByText('1001/1000')).toBeInTheDocument();
+		review();
+		expect(await screen.findByText('Keep the context to 1,000 characters.')).toBeInTheDocument();
+		expect(context).toHaveAttribute('aria-invalid', 'true');
+		expect(screen.queryByText('How voters will see it')).not.toBeInTheDocument();
+	});
+
 	it('requires a question before review', async () => {
 		render(<PollCreator triggerChildren={TRIGGER} />);
 		await openDialog();
@@ -252,6 +268,27 @@ describe('PollCreator', () => {
 		} finally {
 			MotionGlobalConfig.skipAnimations = true;
 		}
+	});
+
+	it('publishes an option with a pasted line break as one line', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		fillPoll();
+		fireEvent.change(screen.getByLabelText('Option 1'), { target: { value: 'Keep Lisbon\n (flights booked) ' } });
+		await toReview();
+		publish();
+		await waitFor(() => expect(mockCreatePoll).toHaveBeenCalled());
+		expect(mockCreatePoll.mock.calls[0][0].options[0]).toEqual({ text: 'Keep Lisbon (flights booked)' });
+	});
+
+	it('counts options that differ only by a line break as the same', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		fillPoll();
+		fireEvent.change(screen.getByLabelText('Option 1'), { target: { value: 'Keep\nLisbon' } });
+		fireEvent.change(screen.getByLabelText('Option 2'), { target: { value: 'Keep Lisbon' } });
+		review();
+		expect(await screen.findByText('Each option must be different.')).toBeInTheDocument();
 	});
 
 	it('moves an option down with the arrow keys on its handle and publishes in that order', async () => {

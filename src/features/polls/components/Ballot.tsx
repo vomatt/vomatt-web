@@ -213,13 +213,14 @@ export function Ballot({
 			<div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 md:flex-nowrap">
 				<p className="flex min-w-0 items-center gap-2.5 text-body-4 leading-5 text-muted-foreground">
 					<RefreshIcon className="size-[18px] shrink-0 text-input" />
-					{/* Sized by the longest option, in full: before a vote there is nothing to replace, so a line that
-					    grew with the option would make the card taller once it is the vote */}
+					{/* Sized by the longest option, up to two lines: before a vote there is nothing to replace, so a line that
+					    grew with the option would make the card taller once it is the vote; past two lines a long option
+					    would leave a blank band above the Vote row */}
 					<span className="grid min-w-0">
-						<span className="col-start-1 row-start-1">
+						<span className="col-start-1 row-start-1 line-clamp-2">
 							{t('poll.updatingHint', { option: replacingText })}
 						</span>
-						<span aria-hidden className="invisible col-start-1 row-start-1">
+						<span aria-hidden className="invisible col-start-1 row-start-1 line-clamp-2">
 							{t('poll.updatingHint', { option: longestOptionText })}
 						</span>
 					</span>
@@ -297,7 +298,7 @@ export function Ballot({
 								<BallotMark
 									state={isSelected ? (isCast ? 'voted' : 'selected') : 'rest'}
 								/>
-								<span className="relative min-w-0 flex-1 wrap-anywhere">
+								<span dir="auto" className="relative min-w-0 flex-1 wrap-anywhere">
 									{option.text}
 								</span>
 							</label>

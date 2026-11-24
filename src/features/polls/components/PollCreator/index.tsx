@@ -68,6 +68,7 @@ import { joinSentences } from '../../format';
 import {
 	AudienceSchema,
 	type Poll,
+	POLL_DESCRIPTION_MAX,
 	POLL_OPTION_MAX,
 	POLL_OPTIONS_LIMIT,
 	POLL_OPTIONS_MIN,
@@ -96,6 +97,7 @@ import {
 const HOUR = 3600_000;
 // An option's counter shows once its text is this close to the limit
 const OPTION_COUNTER_WITHIN = 20;
+const DESCRIPTION_COUNTER_WITHIN = 100;
 const END_PRESETS = [
 	{ key: '1h', label: 'pollCreator.preset1h', ms: HOUR },
 	{ key: '24h', label: 'pollCreator.preset24h', ms: 24 * HOUR },
@@ -617,7 +619,7 @@ export function PollCreator({
 															>
 																<BallotMark state="rest" />
 																<span className="min-w-0 flex-1 wrap-anywhere">
-																	{option.text.trim()}
+																	{toSingleLine(option.text)}
 																</span>
 															</li>
 														))}
@@ -701,8 +703,23 @@ export function PollCreator({
 																			'pollCreator.descriptionPlaceholder'
 																		)}
 																		className="min-h-20 resize-none"
+																		maxLength={POLL_DESCRIPTION_MAX}
+																		aria-invalid={!!errors.description}
+																		aria-describedby={errors.description ? 'description-error' : undefined}
 																		{...register('description')}
 																	/>
+																	{/* A pasted or saved text past the limit says so; the counter shows near it */}
+																	{(errors.description ||
+																		description.length > POLL_DESCRIPTION_MAX - DESCRIPTION_COUNTER_WITHIN) && (
+																		<div className="flex items-start justify-between gap-3 text-caption-2 text-muted-foreground">
+																			<FieldMessage
+																				errors={fieldErrors('description-error', [errors.description?.message])}
+																			/>
+																			<span className="shrink-0 tabular-nums">
+																				{description.length}/{POLL_DESCRIPTION_MAX}
+																			</span>
+																		</div>
+																	)}
 																</div>
 															</Unfold>
 														)}
@@ -724,7 +741,8 @@ export function PollCreator({
 														</Button>
 													)}
 
-													<fieldset>
+													{/* min-w-0: a fieldset is min-content wide by default, which a long option would widen past the sheet */}
+													<fieldset className="min-w-0">
 														<legend className={LABEL}>
 															{t('pollCreator.pollOptionsLabel')}
 														</legend>
@@ -786,11 +804,11 @@ export function PollCreator({
 																							}}
 																							onKeyDown={(e) => moveOptionByKey(e, index)}
 																							// The browser must not scroll or select while the handle drags
-																							className="absolute inset-y-0 left-0.5 my-auto cursor-grab touch-none text-muted-foreground select-none hover:bg-transparent hover:text-foreground active:cursor-grabbing"
+																							className="absolute top-0.5 left-0.5 cursor-grab touch-none text-muted-foreground select-none hover:bg-transparent hover:text-foreground active:cursor-grabbing"
 																						>
 																							<GripVertical className="size-4" />
 																						</Button>
-																						<Input
+																						<Textarea
 																							aria-label={`${t('pollCreator.optionsPlaceholder')} ${index + 1}`}
 																							placeholder={t(
 																								'pollCreator.optionsPlaceholder'
@@ -810,8 +828,10 @@ export function PollCreator({
 																										clearErrors(`options.${index}.text`);
 																								},
 																							})}
-																							// Every row leaves room for the remove button, so adding a third option moves nothing
-																							className="pr-12 pl-11"
+																							// One line like an input, growing so a long option can be read back in full. Every row
+																							// leaves room for the remove button, so adding a third option moves nothing
+																							rows={1}
+																							className="min-h-12 resize-none py-[11px] pr-12 pl-11"
 																							onKeyDown={(e) => {
 																								// Cmd/Ctrl+Return submits the form; Return that commits IME text (Zhuyin etc.) isn't one
 																								if (!isPlainReturn(e)) return;
@@ -842,7 +862,7 @@ export function PollCreator({
 																										)
 																									);
 																								}}
-																								className="absolute inset-y-0 right-0.5 my-auto text-muted-foreground duration-150 ease-out-strong animate-in fade-in motion-safe:zoom-in-95 hover:bg-transparent hover:text-destructive"
+																								className="absolute top-0.5 right-0.5 text-muted-foreground duration-150 ease-out-strong animate-in fade-in motion-safe:zoom-in-95 hover:bg-transparent hover:text-destructive"
 																							>
 																								<X className="size-4" />
 																							</Button>

@@ -34,7 +34,7 @@ export const pollFormSchema = z
 			.trim()
 			.min(1, 'pollCreator.errors.titleRequired')
 			.max(POLL_TITLE_MAX, 'pollCreator.errors.titleTooLong'),
-		description: z.string().max(POLL_DESCRIPTION_MAX),
+		description: z.string().max(POLL_DESCRIPTION_MAX, 'pollCreator.errors.descriptionTooLong'),
 		options: z
 			.array(
 				z.object({
@@ -69,7 +69,8 @@ export const pollFormSchema = z
 		// Two options with the same text split one opinion into two counts
 		const seen = new Set<string>();
 		values.options.forEach(({ text }, index) => {
-			const key = text.trim().toLocaleLowerCase();
+			// Compared as saved: a pasted line break is a space
+			const key = toSingleLine(text).toLocaleLowerCase();
 			if (!key) return;
 			if (seen.has(key)) {
 				ctx.addIssue({
@@ -125,7 +126,7 @@ export function pollToForm(poll: Poll): PollFormValues {
 }
 
 /** `datetime-local` values carry no offset, so convert them to full ISO strings. */
-/** The question as one line: pasted line breaks become spaces. */
+/** The question or an option as one line: pasted line breaks become spaces. */
 export function toSingleLine(text: string) {
 	return text.replace(/\s*\n\s*/g, ' ').trim();
 }
@@ -140,7 +141,7 @@ export function formToInput(values: PollFormValues, duration?: number): PollInpu
 	return {
 		title: toSingleLine(values.title),
 		description: description || undefined,
-		options: values.options.map(({ text }) => ({ text: text.trim() })),
+		options: values.options.map(({ text }) => ({ text: toSingleLine(text) })),
 		startTime: start.toISOString(),
 		endTime: (duration
 			? new Date(start.getTime() + duration)

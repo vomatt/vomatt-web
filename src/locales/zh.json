@@ -366,6 +366,7 @@
 		"errors": {
 			"titleRequired": "請輸入問題。",
 			"titleTooLong": "問題請勿超過 200 個字元。",
+			"descriptionTooLong": "背景說明請勿超過 1,000 個字元。",
 			"optionRequired": "請填寫每個選項。",
 			"optionDuplicate": "每個選項都必須不同。",
 			"endRequired": "請選擇結束時間。",

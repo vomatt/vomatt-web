@@ -33,6 +33,7 @@ import { handle } from '@/features/profiles/name';
 import { ProfileAvatar, ProfileName } from '@/features/profiles/UserChip';
 import { useHydrated } from '@/hooks/useHydrated';
 import { apiErrorText } from '@/lib/api/error-text';
+import { toLocaleTag } from '@/lib/locale';
 import { commentHash, profileHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
@@ -132,9 +133,18 @@ function showComment(id: string) {
 					],
 			{ duration: 1600, easing: 'ease-in' }
 		);
+	// Comments off screen are laid out at an estimated height (content-visibility), so the comment can
+	// move once those above it render on the way; scroll again if it ended up out of view
+	const correct = () => {
+		const { top, bottom } = el.getBoundingClientRect();
+		if (bottom < 0 || top > window.innerHeight) el.scrollIntoView({ block: 'center', behavior: 'auto' });
+	};
 	if (reduceMotion) {
 		el.scrollIntoView({ block: 'center', behavior: 'auto' });
-		flash();
+		requestAnimationFrame(() => {
+			correct();
+			flash();
+		});
 		return;
 	}
 	// Flash when the smooth scroll settles. Without scrollend, or when the comment is already in view
@@ -147,6 +157,7 @@ function showComment(id: string) {
 		window.removeEventListener('scrollend', once);
 		if (flashed) return;
 		flashed = true;
+		correct();
 		flash();
 	};
 	window.addEventListener('scrollend', once, { once: true });
@@ -212,7 +223,7 @@ export function useCommentLink(thread: CommentsState) {
 
 /** Discussion under a Poll. Results stay sealed while it is open, so this is where people argue their case. */
 export function CommentThread({ thread, pollId, viewerId, viewer, requireAuth, replyTo = null }: CommentThreadProps) {
-	const { t } = useLanguage();
+	const { t, currentLanguage } = useLanguage();
 	// One inline Reply composer at a time
 	const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(replyTo);
 	const [linkedReply, setLinkedReply] = useState(replyTo);
@@ -258,7 +269,9 @@ export function CommentThread({ thread, pollId, viewerId, viewer, requireAuth, r
 			<div className="flex items-baseline gap-2">
 				<h2 className="text-title-4">{t('comments.title')}</h2>
 				{thread.total !== undefined && (
-					<span className="text-caption-1 text-muted-foreground tabular-nums">{thread.total}</span>
+					<span className="text-caption-1 text-muted-foreground tabular-nums">
+						{thread.total.toLocaleString(toLocaleTag(currentLanguage))}
+					</span>
 				)}
 			</div>
 
@@ -303,7 +316,12 @@ export function CommentThread({ thread, pollId, viewerId, viewer, requireAuth, r
 				<ul className="has-[>li]:-mt-5">
 					<AnimatePresence initial={false}>
 						{thread.comments.map((comment) => (
-							<li key={thread.keyOf(comment.id)}>
+							// Off-screen comments skip layout and paint, so a long loaded list still scrolls smoothly.
+							// The li spans the 8px Unfold leaves past each edge, so containment clips nothing it draws
+							<li
+								key={thread.keyOf(comment.id)}
+								className="-mx-2 px-2 [contain-intrinsic-size:auto_160px] [content-visibility:auto]"
+							>
 								<Unfold>
 									<div className="pt-5">
 										<CommentItem
@@ -890,12 +908,13 @@ function CommentBody({
 		>
 			<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-caption-3 text-muted-foreground">
 				{isPending ? (
-					<span className="text-caption-1 font-medium text-foreground">{handle(author)}</span>
+					<span className="min-w-0 truncate text-caption-1 font-medium text-foreground">{handle(author)}</span>
 				) : (
 					<ProfileName
 						username={author}
 						avatarUrl={comment.authorAvatarUrl}
-						className="text-caption-1 font-medium text-foreground hover:underline"
+						// A long handle ends in … on a phone; the profile it links to shows it in full
+						className="min-w-0 max-w-full truncate text-caption-1 font-medium text-foreground hover:underline"
 					/>
 				)}
 				{isOwn && (
@@ -953,13 +972,13 @@ function CommentBody({
 							type="button"
 							aria-label={`${t('comments.replyingTo')} ${addressee}`}
 							onClick={() => answered && showComment(answered.id)}
-							className="inline-flex h-[22px] items-center gap-1.5 self-start rounded-full border border-border-strong pr-2 pl-1.5 text-caption-3 font-medium text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring transition-colors active:text-foreground"
+							className="inline-flex h-[22px] max-w-full min-w-0 items-center gap-1.5 self-start rounded-full border border-border-strong pr-2 pl-1.5 text-caption-3 font-medium text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring transition-colors active:text-foreground"
 						>
-							<Reply aria-hidden className="size-3" strokeWidth={2.2} />
-							{addressee}
+							<Reply aria-hidden className="size-3 shrink-0" strokeWidth={2.2} />
+							<span className="truncate">{addressee}</span>
 						</button>
 					)}
-					<p className="text-caption-1 leading-normal break-words whitespace-pre-wrap text-foreground">
+					<p dir="auto" className="text-caption-1 leading-normal break-words whitespace-pre-wrap text-foreground">
 						<MentionText text={text} mentions={comment.mentions} />
 					</p>
 				</>
@@ -984,7 +1003,7 @@ function CommentBody({
 						className={cn(pillClassName, comment.likedByCurrentUser && 'bg-highlight-tint text-foreground')}
 					>
 						<LikeHeart liked={!!comment.likedByCurrentUser} className="size-[15px]" strokeWidth={1.8} />
-						{likes > 0 && <span className="tabular-nums">{likes}</span>}
+						{likes > 0 && <span className="tabular-nums">{likes.toLocaleString(toLocaleTag(currentLanguage))}</span>}
 					</button>
 
 					{!acting?.locked && (

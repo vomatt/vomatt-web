@@ -30,7 +30,8 @@ export function MutualFollowersLine({ profile, onOpen }: { profile: Mutuals; onO
 
 	const content = (
 		<>
-			<span className="flex shrink-0">
+			{/* Lined up with the first line once the text wraps */}
+			<span className="mt-px flex shrink-0">
 				{shown.map((user, index) => (
 					<UserAvatar
 						key={user.id}
@@ -40,11 +41,12 @@ export function MutualFollowersLine({ profile, onOpen }: { profile: Mutuals; onO
 					/>
 				))}
 			</span>
-			{text}
+			{/* A long handle wraps instead of running off a phone's screen */}
+			<span className="min-w-0 wrap-anywhere">{text}</span>
 		</>
 	);
 
-	const className = 'flex items-center gap-1.5 text-left text-caption-2 text-muted-foreground';
+	const className = 'flex max-w-full min-w-0 items-start gap-1.5 text-left text-caption-2 text-muted-foreground';
 	if (!onOpen) return <p className={className}>{content}</p>;
 	return (
 		<button

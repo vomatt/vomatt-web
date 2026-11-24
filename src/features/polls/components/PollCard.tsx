@@ -209,6 +209,7 @@ export function PollCard({
 					{/* On the poll page the title is plain, selectable text; in a list it leads to the page */}
 					{isPage ? (
 						<Heading
+							dir="auto"
 							className="text-title-3 text-balance wrap-anywhere text-foreground select-text md:text-title-2"
 						>
 							{title}
@@ -216,6 +217,7 @@ export function PollCard({
 					) : (
 						<Link href={pollHref(id)} className="group/card-link after:absolute after:inset-0 after:rounded-2xl">
 							<Heading
+									dir="auto"
 									className="text-title-3 text-balance wrap-anywhere text-foreground hover:text-muted-foreground group-active/card-link:text-muted-foreground transition-colors md:text-title-2"
 							>
 								{title}
@@ -223,7 +225,7 @@ export function PollCard({
 						</Link>
 					)}
 					{description && (
-						<p className="mt-2 max-w-[65ch] wrap-anywhere whitespace-pre-line text-body-3 text-muted-foreground leading-normal">
+						<p dir="auto" className="mt-2 max-w-[65ch] wrap-anywhere whitespace-pre-line text-body-3 text-muted-foreground leading-normal">
 							{description}
 						</p>
 					)}

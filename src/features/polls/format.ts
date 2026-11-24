@@ -43,6 +43,12 @@ const RELATIVE_DAY = perLanguage((locale) => new Intl.RelativeTimeFormat(locale,
 const WEEKDAY = perLanguage((locale) => new Intl.DateTimeFormat(locale, { weekday: 'short' }));
 const MONTH_DAY = perLanguage((locale) => new Intl.DateTimeFormat(locale, { month: 'short', day: 'numeric' }));
 const DAY_DATE = perLanguage((locale) => new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }));
+
+/** "Oct 24" within the viewer's current year; "Oct 24, 2023" in any other, so an old date never reads as an upcoming one. */
+function monthDay(date: Date, language: LanguageCode, now: number) {
+	const sameYear = date.getFullYear() === new Date(now).getFullYear();
+	return (sameYear ? MONTH_DAY : DAY_DATE)[language].format(date);
+}
 const unitFormat = (unit: 'minute' | 'hour' | 'day') =>
 	perLanguage((locale) => new Intl.NumberFormat(locale, { style: 'unit', unit, unitDisplay: 'narrow' }));
 const MINUTES = unitFormat('minute');
@@ -84,7 +90,7 @@ function calendarDaysBetween(date: Date, now: number) {
 }
 
 /**
- * "today" / "tomorrow" / "yesterday", the weekday within six days ("Fri"), else "Oct 24";
+ * "today" / "tomorrow" / "yesterday", the weekday within six days ("Fri"), else "Oct 24" ("Oct 24, 2025" in another year);
  * zh 今天 / 週五 / 10月24日. Counts calendar days in the viewer's time zone, not 24-hour spans.
  */
 export function formatPollDay(iso: string, language: LanguageCode, now: number) {
@@ -92,7 +98,7 @@ export function formatPollDay(iso: string, language: LanguageCode, now: number) 
 	const days = calendarDaysBetween(date, now);
 	if (Math.abs(days) <= 1) return RELATIVE_DAY[language].format(days, 'day');
 	if (Math.abs(days) <= 6) return WEEKDAY[language].format(date);
-	return MONTH_DAY[language].format(date);
+	return monthDay(date, language, now);
 }
 
 /** "9:00", "20:00": the same 24-hour clock in both languages. */
@@ -130,7 +136,7 @@ export function formatAge(iso: string, language: LanguageCode, now: number) {
 	if (age < HOUR) return MINUTES[language].format(Math.floor(age / MINUTE));
 	if (age < DAY) return HOURS[language].format(Math.floor(age / HOUR));
 	if (age < 7 * DAY) return DAYS[language].format(Math.floor(age / DAY));
-	return MONTH_DAY[language].format(new Date(iso));
+	return monthDay(new Date(iso), language, now);
 }
 
 /** Sentences as one paragraph: a space between them in English, none after Chinese 。 */

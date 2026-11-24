@@ -209,6 +209,21 @@ describe('CommentThread', () => {
 		});
 	});
 
+	it('groups large like counts and the thread total for the locale', async () => {
+		service.getComments.mockResolvedValue({
+			ok: true,
+			data: { items: [{ ...theirs, likeCount: 12480 }], nextCursor: null },
+		});
+		function Big() {
+			const thread = useComments('poll-1', { enabled: true, initialTotal: 1284 });
+			return <CommentThread thread={thread} pollId="poll-1" viewerId="me" requireAuth={(action) => action()} />;
+		}
+		render(<Big />);
+		await screen.findByText('Theirs');
+		expect(screen.getByRole('button', { name: 'Like' })).toHaveTextContent('12,480');
+		expect(screen.getByText('1,284')).toBeInTheDocument();
+	});
+
 	it('likes optimistically and rolls back on failure', async () => {
 		service.likeComment.mockResolvedValue({ ok: false, message: 'nope' });
 		render(<Harness />);

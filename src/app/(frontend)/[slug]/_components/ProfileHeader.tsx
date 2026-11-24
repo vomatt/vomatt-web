@@ -140,7 +140,7 @@ export default function ProfileHeader({
 				</p>
 				{profile.bio && (
 					// Capped measure (~68 characters); Geist's wide 0 makes `ch` overshoot, so the cap is in rem
-					<p className="mt-2.5 max-w-[30rem] wrap-anywhere whitespace-pre-line text-body-4">
+					<p dir="auto" className="mt-2.5 max-w-[30rem] wrap-anywhere whitespace-pre-line text-body-4">
 						{profile.bio}
 						{isHidden('bio') && (
 							<OnlyYouMarker className="ml-1.5 size-3.5 align-[-0.125em]" />
