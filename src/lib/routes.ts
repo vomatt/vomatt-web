@@ -23,7 +23,12 @@ export const isProfileSettingsPath = (pathname: string) => /^\/[^/]+\/settings\/
 export const accountHref = (username?: string) => (username ? profileHref(username) : '/account');
 
 /** A Poll's page, by the short form of its id; the proxy redirects a link by the full UUID here. */
-export const pollHref = (id: string) => `/poll/${isUuid(id) ? toShortId(id) : encodeURIComponent(id)}`;
+export const pollHref = (id: string) => {
+	if (isUuid(id)) return `/poll/${toShortId(id)}`;
+	// Only test fixtures name Polls otherwise; anywhere else the link would 404
+	if (process.env.NODE_ENV === 'development') console.error(`pollHref: poll id is not a UUID: ${id}`);
+	return `/poll/${encodeURIComponent(id)}`;
+};
 
 /** The home feed filtered to one topic. */
 export const topicHref = (slug: string) => `/?tag=${encodeURIComponent(slug)}`;

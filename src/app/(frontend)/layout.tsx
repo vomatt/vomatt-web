@@ -30,8 +30,15 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 // after the API has already used the sign-in code or sent a new one.
 export const maxDuration = 60;
 
-// Without cover, iOS reports env(safe-area-inset-*) as 0 and the TabBar sits on the home indicator
-export const viewport: Viewport = { viewportFit: 'cover' };
+export const viewport: Viewport = {
+	// Without cover, iOS reports env(safe-area-inset-*) as 0 and the TabBar sits on the home indicator
+	viewportFit: 'cover',
+	// The installed app's bars follow the theme: `background` in each (the manifest names only the light one)
+	themeColor: [
+		{ media: '(prefers-color-scheme: light)', color: '#f2f3f5' },
+		{ media: '(prefers-color-scheme: dark)', color: '#0a0c11' },
+	],
+};
 
 const geistSans = Geist({ subsets: ['latin'], variable: '--font-geist-sans' });
 

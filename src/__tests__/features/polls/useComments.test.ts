@@ -3,8 +3,10 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import { useComments } from '@/features/polls/hooks/useComments';
 
 const mockGetComments = jest.fn();
+const mockPostComment = jest.fn();
 jest.mock('@/features/polls/service', () => ({
 	getComments: (...args: unknown[]) => mockGetComments(...args),
+	postComment: (...args: unknown[]) => mockPostComment(...args),
 }));
 
 const comment = (id: string) => ({
@@ -109,5 +111,59 @@ it("follows the Poll's count when the page brings a new one", async () => {
 	});
 	await waitFor(() => expect(result.current.status).toBe('ready'));
 	rerender({ count: 3 });
+	expect(result.current.total).toBe(3);
+});
+
+const author = { author: 'bob', authorAvatarUrl: null, userId: 'u2' };
+
+it('keeps a Reply still posting under a Comment the refresh brings again', async () => {
+	const withReply = { ...comment('c1'), replyCount: 1, replies: [{ ...comment('r1'), parentId: 'c1' }] };
+	mockGetComments.mockResolvedValue({ ok: true, data: { items: [withReply], nextCursor: null } });
+	const { result } = renderHook(() => useComments('poll-1', { enabled: true }));
+	await waitFor(() => expect(result.current.status).toBe('ready'));
+
+	let savePost!: (value: unknown) => void;
+	mockPostComment.mockReturnValueOnce(new Promise((resolve) => (savePost = resolve)));
+	let posting!: Promise<unknown>;
+	act(() => {
+		posting = result.current.add('hi', author, 'c1');
+	});
+	await act(() => result.current.refresh());
+	await act(async () => {
+		savePost({ ok: true, data: { ...comment('r2'), ...author, text: 'hi', parentId: 'c1', createdAt: '2026-11-20T11:00:00Z' } });
+		await posting;
+	});
+
+	expect(result.current.replies.c1.items.map((c) => c.id)).toEqual(['r1', 'r2']);
+});
+
+it('starts over when the refreshed first page reaches none of the Comments shown', async () => {
+	mockGetComments.mockResolvedValueOnce(page(['c1', 'c2'], 'cursor-2'));
+	const { result } = renderHook(() => useComments('poll-1', { enabled: true }));
+	await waitFor(() => expect(result.current.status).toBe('ready'));
+	mockGetComments.mockResolvedValueOnce(page(['c3'], 'cursor-3'));
+	await act(() => result.current.loadMore());
+
+	mockGetComments.mockResolvedValueOnce(page(['n1', 'n2'], 'cursor-n'));
+	await act(() => result.current.refresh());
+
+	expect(result.current.comments.map((c) => c.id)).toEqual(['n1', 'n2']);
+	mockGetComments.mockResolvedValueOnce(page([], null));
+	await act(() => result.current.loadMore());
+	expect(mockGetComments).toHaveBeenLastCalledWith('poll-1', 'cursor-n');
+});
+
+it("counts a Comment still posting on top of the Poll's new count", async () => {
+	mockGetComments.mockResolvedValue(page(['c1'], null));
+	mockPostComment.mockReturnValueOnce(new Promise(() => {}));
+	const { result, rerender } = renderHook(({ count }) => useComments('poll-1', { enabled: true, initialTotal: count }), {
+		initialProps: { count: 1 },
+	});
+	await waitFor(() => expect(result.current.status).toBe('ready'));
+	act(() => {
+		void result.current.add('hi', author);
+	});
+	rerender({ count: 2 });
+
 	expect(result.current.total).toBe(3);
 });
