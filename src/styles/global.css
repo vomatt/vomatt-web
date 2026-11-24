@@ -107,7 +107,8 @@
 	--tide-tint: oklch(0.963 0.018 184);
 	--tide-line: oklch(0.834 0.075 185);
 	--tide-foreground: oklch(0.439 0.073 186);
-	--highlight-tint: oklch(0.977 0.050 114.6);
+	/* Volt's hue, a touch greener: at this lightness a yellower hue reads as cream, not lime */
+	--highlight-tint: oklch(0.966 0.065 123);
 	/* The flash on a linked comment: a soft ink tint, since Volt means "yours" and is never a notification */
 	--target-tint: oklch(0.945 0.022 258);
 	/* The line around the viewer's own option (chosen ballot row, their result row): ink by day, deep Volt by night */
@@ -229,10 +230,11 @@ html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 	--field: oklch(0.26 0.012 265);
 	--highlight: oklch(0.86 0.15 118);
 	--highlight-foreground: oklch(0.155 0.012 265);
-	--highlight-tint: oklch(0.255 0.028 118);
+	/* Low chroma and a greener hue: dark yellow-green at mid chroma reads as khaki */
+	--highlight-tint: oklch(0.25 0.03 135);
 	--target-tint: oklch(0.30 0.035 258);
-	/* An off-white line would be the loudest edge on the card; deep Volt keeps it in the tint's family, 4.4:1 on it */
-	--chosen-line: oklch(0.62 0.11 118);
+	/* An off-white line would be the loudest edge on the card; a saturated deep Volt keeps it in the tint's family without going olive */
+	--chosen-line: oklch(0.70 0.15 121);
 	--tide: oklch(0.74 0.09 185);
 	--tide-tint: oklch(0.235 0.016 190);
 	--tide-line: oklch(0.34 0.03 185);
