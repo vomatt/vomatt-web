@@ -16,13 +16,9 @@ import { ElectedMark } from './ElectedMark';
 // Critically damped: settles without overshoot
 const INK = { type: 'spring', stiffness: 520, damping: 46 } as const;
 
-const MIN_TILT = 6;
-const MAX_TILT = 24;
-
-/** A hand-pressed stamp never lands square: `r` in [0, 1) picks a lean of 6° to 24°, left below 0.5 and right above. */
+/** A hand-pressed stamp lands at any turn: `r` in [0, 1) picks an angle anywhere in the full circle. */
 export function stampAngle(r: number) {
-	const side = r < 0.5 ? -1 : 1;
-	return side * (MIN_TILT + ((r * 2) % 1) * (MAX_TILT - MIN_TILT));
+	return r * 360;
 }
 
 function seededUnit(seed: string) {
@@ -44,7 +40,7 @@ function PressedStamp({ seed, pressed }: { seed: string; pressed: boolean }) {
 	const [{ angle, press }] = useState(() => {
 		const press = pressed && hydrated;
 		if (press) pressedAngles.set(seed, stampAngle(Math.random()));
-		const angle = (hydrated && pressedAngles.get(seed)) || stampAngle(seededUnit(seed));
+		const angle = (hydrated ? pressedAngles.get(seed) : undefined) ?? stampAngle(seededUnit(seed));
 		return { angle, press };
 	});
 	return (

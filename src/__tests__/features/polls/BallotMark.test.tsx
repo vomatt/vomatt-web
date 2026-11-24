@@ -46,14 +46,12 @@ describe('BallotMark', () => {
 });
 
 describe('stampAngle', () => {
-	it.each([0, 0.25, 0.4999, 0.5, 0.75, 0.9999])('tilts a hand-pressed 6° to 24° either way (r=%s)', (r) => {
-		const angle = Math.abs(stampAngle(r));
-		expect(angle).toBeGreaterThanOrEqual(6);
-		expect(angle).toBeLessThanOrEqual(24);
-	});
-
-	it('leans both ways', () => {
-		expect(stampAngle(0.1)).toBeLessThan(0);
-		expect(stampAngle(0.6)).toBeGreaterThan(0);
+	it.each([
+		[0, 0],
+		[0.25, 90],
+		[0.5, 180],
+		[0.75, 270],
+	])('turns a press anywhere in the full circle (r=%s → %s°)', (r, degrees) => {
+		expect(stampAngle(r)).toBe(degrees);
 	});
 });
