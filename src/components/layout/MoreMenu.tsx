@@ -10,6 +10,7 @@ import { Menu as MenuIcon, Moon, Sun } from '@/components/ui/SvgIcons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ReportProblemDialog } from '@/features/feedback/ReportProblemDialog';
 import { hoverMarkProps, useHoverMark } from '@/hooks/useHoverMark';
+import { aboutHref } from '@/lib/aboutSite';
 import { signout } from '@/lib/api/services/auth';
 import { cn } from '@/lib/utils';
 
@@ -71,19 +72,15 @@ export function MoreMenu({ signedIn, placement = 'sidebar' }: { signedIn: boolea
 					positionMethod="fixed"
 					className="z-50"
 				>
-					<Menu.Popup className="w-60 rounded-xl bg-popover p-1.5 text-popover-foreground shadow-md ring-1 ring-foreground/10 outline-none origin-(--transform-origin) data-starting-style:opacity-0 data-ending-style:opacity-0 transition-opacity duration-100">
+					<Menu.Popup className="w-60 rounded-xl bg-popover p-1.5 text-popover-foreground shadow-md ring-1 ring-foreground/10 outline-none origin-(--transform-origin) data-starting-style:scale-95 data-starting-style:opacity-0 data-ending-style:scale-95 data-ending-style:opacity-0 transition-[opacity,scale] duration-150 ease-out-strong">
 						<Menu.Group>
 							<Menu.GroupLabel className="px-3 pt-1.5 pb-2 text-caption-2 text-muted-foreground">
 								{t('navigation.appearance')}
 							</Menu.GroupLabel>
 							<ThemeOptions />
 						</Menu.Group>
-						{signedIn && (
-							<>
-								<Menu.Separator className="-mx-1.5 my-1.5 h-px bg-border" />
-								<MoreActions onReport={() => setReportOpen(true)} />
-							</>
-						)}
+						<Menu.Separator className="-mx-1.5 my-1.5 h-px bg-border" />
+						<MoreActions signedIn={signedIn} onReport={() => setReportOpen(true)} />
 					</Menu.Popup>
 				</Menu.Positioner>
 			</Menu.Portal>
@@ -141,8 +138,8 @@ function ThemeOptions() {
 }
 
 /** Mounted only while the popup is open, so hovering re-renders just these rows. */
-function MoreActions({ onReport }: { onReport: () => void }) {
-	const { t } = useLanguage();
+function MoreActions({ signedIn, onReport }: { signedIn: boolean; onReport: () => void }) {
+	const { t, currentLanguage } = useLanguage();
 	const hover = useHoverMark('[role=menuitem]', 'y');
 
 	return (
@@ -162,24 +159,39 @@ function MoreActions({ onReport }: { onReport: () => void }) {
 					)}
 				/>
 			)}
-			<Menu.Item onClick={onReport} className={itemClassName}>
-				{t('navigation.reportProblem')}
-			</Menu.Item>
-			<Menu.LinkItem
-				render={<Link href="/settings" />}
-				className={itemClassName}
-			>
-				{t('navigation.settings')}
-			</Menu.LinkItem>
-			<Menu.Item
-				onClick={() => signout()}
-				className={cn(
-					itemClassName,
-					'text-destructive data-highlighted:text-destructive'
-				)}
-			>
-				{t('account.signOut')}
-			</Menu.Item>
+			{/* Guests can't open Settings, where the signed-in find these */}
+			{!signedIn && (
+				<>
+					<Menu.LinkItem href={aboutHref('terms-of-service', currentLanguage)} className={itemClassName}>
+						{t('settings.terms')}
+					</Menu.LinkItem>
+					<Menu.LinkItem href={aboutHref('privacy-policy', currentLanguage)} className={itemClassName}>
+						{t('settings.privacyPolicy')}
+					</Menu.LinkItem>
+				</>
+			)}
+			{signedIn && (
+				<>
+					<Menu.Item onClick={onReport} className={itemClassName}>
+						{t('navigation.reportProblem')}
+					</Menu.Item>
+					<Menu.LinkItem
+						render={<Link href="/settings" />}
+						className={itemClassName}
+					>
+						{t('navigation.settings')}
+					</Menu.LinkItem>
+					<Menu.Item
+						onClick={() => signout()}
+						className={cn(
+							itemClassName,
+							'text-destructive data-highlighted:text-destructive'
+						)}
+					>
+						{t('account.signOut')}
+					</Menu.Item>
+				</>
+			)}
 		</div>
 	);
 }

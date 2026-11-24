@@ -15,7 +15,7 @@ describe('robots.txt', () => {
 		}
 	);
 
-	it.each(['/', '/explore', '/poll/abc', '/alice', '/accountant', '/settings2', '/following_me', '/login_x'])(
+	it.each(['/', '/explore', '/poll/abc', '/alice', '/accountant', '/settings2', '/following_me', '/login_x', '/manifest.webmanifest', '/icon-192.png'])(
 		'allows %s',
 		(path) => {
 			expect(isBlocked(path)).toBe(false);

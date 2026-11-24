@@ -1,4 +1,5 @@
 import { SIGNED_IN_FEED_ROOTS } from '@/features/polls/feeds';
+import { isUuid, toShortId } from '@/features/polls/shortId';
 
 /** A nav link is active on its own page and every page below it; home only on itself. */
 export const isActivePath = (pathname: string, href: string) =>
@@ -13,10 +14,21 @@ export const siteUrl = (path = '') => `${process.env.SITE_URL}${path}`;
 /** A user's profile; profiles live at the root. */
 export const profileHref = (username: string) => `/${encodeURIComponent(username)}`;
 
+/** A profile's own settings pages (a community account's members page): signed in only, so the proxy protects them. */
+export const profileSettingsHref = (username: string) => `${profileHref(username)}/settings`;
+// Any first segment matches: a page that isn't a profile has no /settings/ below it, so it 404s either way
+export const isProfileSettingsPath = (pathname: string) => /^\/[^/]+\/settings\/./.test(pathname);
+
 /** The viewer's profile; /account redirects there, so link to it directly when the username is known and it shows as current. */
 export const accountHref = (username?: string) => (username ? profileHref(username) : '/account');
 
-export const pollHref = (id: string) => `/poll/${encodeURIComponent(id)}`;
+/** A Poll's page, by the short form of its id; the proxy redirects a link by the full UUID here. */
+export const pollHref = (id: string) => {
+	if (isUuid(id)) return `/poll/${toShortId(id)}`;
+	// Only test fixtures name Polls otherwise; anywhere else the link would 404
+	if (process.env.NODE_ENV === 'development') console.error(`pollHref: poll id is not a UUID: ${id}`);
+	return `/poll/${encodeURIComponent(id)}`;
+};
 
 /** The home feed filtered to one topic. */
 export const topicHref = (slug: string) => `/?tag=${encodeURIComponent(slug)}`;

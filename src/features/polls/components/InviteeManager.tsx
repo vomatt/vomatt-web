@@ -3,6 +3,16 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from '@/components/ui/AlertDialog';
 import { Button } from '@/components/ui/Button';
 import {
 	Dialog,
@@ -17,8 +27,17 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
+import { foldAway } from '@/lib/motion';
 
-import { EMPTY_INVITEES, isSelectionEmpty, personKey, selectionToInput, userIdsOf } from '../invitees';
+import {
+	EMPTY_INVITEES,
+	everyInviteeVoted,
+	isSelectionEmpty,
+	personKey,
+	personName,
+	selectionToInput,
+	userIdsOf,
+} from '../invitees';
 import type { Invitee } from '../schema';
 import { addInvitees, getInvitees, removeInvitee } from '../service';
 import { InviteePicker } from './InviteePicker';
@@ -43,7 +62,11 @@ export function InviteeManager({ pollId, open, onOpenChange, onChanged }: Invite
 	const [loadFailed, setLoadFailed] = useState(false);
 	const [selection, setSelection] = useState(EMPTY_INVITEES);
 	const [isAdding, setIsAdding] = useState(false);
-	const [removing, setRemoving] = useState<string | null>(null);
+	const [isRemoving, setIsRemoving] = useState(false);
+	// The Invitee the confirmation names; kept while it closes so its words don't change
+	const [confirming, setConfirming] = useState<Invitee | null>(null);
+	const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+	const [isChecking, setIsChecking] = useState(false);
 
 	useEffect(() => {
 		if (!open) return;
@@ -71,19 +94,45 @@ export function InviteeManager({ pollId, open, onOpenChange, onChanged }: Invite
 		onChanged(result.data);
 	};
 
-	const remove = async (invitee: Invitee) => {
-		setRemoving(personKey(invitee));
-		const result = await settle(removeInvitee(pollId, invitee));
-		setRemoving(null);
+	const refresh = async () => {
+		const result = await settle(getInvitees(pollId));
+		if (result.ok) setInvitees(result.data);
+	};
+
+	// Who has voted may have changed since the list loaded, and it decides whether removing Ends the Poll
+	const askToRemove = async (invitee: Invitee) => {
+		setConfirming(invitee);
+		setIsConfirmOpen(true);
+		setIsChecking(true);
+		await refresh();
+		setIsChecking(false);
+	};
+
+	const remove = async () => {
+		if (!confirming || isRemoving) return;
+		setIsConfirmOpen(false);
+		setIsRemoving(true);
+		const result = await settle(removeInvitee(pollId, confirming));
 		if (!result.ok) {
+			setIsRemoving(false);
 			toast.error(apiErrorText(t, result, 'invitees.removeFailed'));
+			// e.g. they voted meanwhile: show the list as it is now
+			refresh();
 			return;
 		}
+		// Stays removing while the row folds, so nothing else can be removed meanwhile
+		const key = personKey(confirming);
+		if (!result.data.some((invitee) => personKey(invitee) === key)) {
+			await foldAway(document.querySelector(`[data-person="${CSS.escape(key)}"]`), 4);
+		}
+		setIsRemoving(false);
 		setInvitees(result.data);
 		onChanged(result.data);
 	};
 
 	const voted = invitees?.filter((invitee) => invitee.hasBallot).length ?? 0;
+	const confirmingKey = confirming && personKey(confirming);
+	const endsPoll = everyInviteeVoted(invitees?.filter((invitee) => personKey(invitee) !== confirmingKey) ?? []);
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -116,9 +165,9 @@ export function InviteeManager({ pollId, open, onOpenChange, onChanged }: Invite
 						<PeopleList
 							label={t('invitees.title')}
 							people={invitees}
-							onRemove={remove}
-							removingKey={removing}
-							disabled={removing !== null}
+							onRemove={askToRemove}
+							removingKey={isRemoving && confirming ? personKey(confirming) : null}
+							disabled={isRemoving}
 							// One who holds a Ballot can't be removed
 							noteFor={(invitee) => (invitee.hasBallot ? t('invitees.voted') : null)}
 						/>
@@ -146,6 +195,25 @@ export function InviteeManager({ pollId, open, onOpenChange, onChanged }: Invite
 					</div>
 				</div>
 			</DialogContent>
+
+			<AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>
+							{t('invitees.removeTitle', { name: confirming ? personName(confirming) : '' })}
+						</AlertDialogTitle>
+						<AlertDialogDescription>
+							{t(endsPoll ? 'invitees.removeEndsBody' : 'invitees.removeBody')}
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+						<AlertDialogAction variant="destructive" loading={isChecking} onClick={remove}>
+							{t(endsPoll ? 'invitees.removeAndEnd' : 'invitees.removeConfirm')}
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</Dialog>
 	);
 }

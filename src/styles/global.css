@@ -22,7 +22,7 @@
 			color-mix(in oklch, var(--foreground) 6%, transparent),
 			transparent
 		);
-		animation: shimmer 1.6s ease-in-out infinite;
+		animation: shimmer 1.6s linear infinite;
 	}
 	@media (prefers-reduced-motion: reduce) {
 		&::after {
@@ -48,6 +48,11 @@
 			opacity: 0;
 		}
 	}
+}
+
+/* The phone's sticky Vote row settling in above the TabBar (follow-tabbar) */
+@keyframes dock-rise {
+	from { transform: translateY(0.5rem); opacity: 0.4; }
 }
 
 /* The ui/ components are Base UI, which reports state as presence attributes
@@ -80,6 +85,8 @@
 	/* Alert: a count or marker asking to be looked at (unread). White on red, never a button or a status */
 	--alert: oklch(0.55 0.20 27);
 	--alert-foreground: oklch(0.985 0.002 265);
+	/* Alert as text ("new"): the same red by day, lighter by night to stay 4.5:1 on a card */
+	--alert-text: var(--alert);
 	--border: oklch(0.915 0.006 265);
 	--border-strong: oklch(0.84 0.012 265);
 	--input: oklch(0.62 0.018 264);
@@ -101,6 +108,8 @@
 	--tide-line: oklch(0.834 0.075 185);
 	--tide-foreground: oklch(0.439 0.073 186);
 	--highlight-tint: oklch(0.977 0.050 114.6);
+	/* The flash on a linked comment: a soft ink tint, since Volt means "yours" and is never a notification */
+	--target-tint: oklch(0.945 0.022 258);
 	/* The line around the viewer's own option (chosen ballot row, their result row): ink by day, deep Volt by night */
 	--chosen-line: var(--foreground);
 	/* The create action: ink with a Volt icon on light, a Volt button on dark */
@@ -208,6 +217,7 @@ html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 	--destructive: oklch(0.771 0.104 25);
 	--alert: oklch(0.55 0.19 27);
 	--alert-foreground: oklch(0.985 0.002 265);
+	--alert-text: oklch(0.70 0.16 27);
 	--border: oklch(0.30 0.014 265);
 	--border-strong: oklch(0.385 0.016 265);
 	--input: oklch(0.58 0.02 265);
@@ -219,6 +229,7 @@ html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 	--highlight: oklch(0.86 0.15 118);
 	--highlight-foreground: oklch(0.155 0.012 265);
 	--highlight-tint: oklch(0.255 0.028 118);
+	--target-tint: oklch(0.30 0.035 258);
 	/* An off-white line would be the loudest edge on the card; deep Volt keeps it in the tint's family, 4.4:1 on it */
 	--chosen-line: oklch(0.62 0.11 118);
 	--tide: oklch(0.74 0.09 185);
@@ -248,6 +259,11 @@ html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 
 /* The type scale (see DESIGN.md, Type): Tailwind's default sizes are cleared; display and title steps carry weight, leading and tracking */
 @theme {
+	/* Strong ease-out for UI enter, exit and press (`ease-out-strong`); Tailwind's `ease-out` is too weak */
+	--ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+	/* iOS-like settle for things let go of: pull-to-refresh (`ease-drawer`) */
+	--ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
 	--text-*: initial;
 
 	--text-display-1: 3rem;
@@ -302,6 +318,7 @@ html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 	--color-destructive: var(--destructive);
 	--color-alert: var(--alert);
 	--color-alert-foreground: var(--alert-foreground);
+	--color-alert-text: var(--alert-text);
 	--color-muted-foreground: var(--muted-foreground);
 	--color-muted: var(--muted);
 	--color-secondary-foreground: var(--secondary-foreground);
@@ -322,6 +339,7 @@ html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 	--color-highlight: var(--highlight);
 	--color-highlight-foreground: var(--highlight-foreground);
 	--color-highlight-tint: var(--highlight-tint);
+	--color-target-tint: var(--target-tint);
 	--color-chosen-line: var(--chosen-line);
 	--color-tide: var(--tide);
 	--color-tide-tint: var(--tide-tint);
@@ -489,7 +507,24 @@ html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 				opacity: 1;
 			}
 		}
+		@media (prefers-reduced-motion: no-preference) {
+			@container scroll-state(stuck: bottom) {
+				& > :not([data-sticky-fade]) {
+					animation: dock-rise 200ms var(--ease-out-strong);
+				}
+			}
+		}
 	}
+}
+
+/* PageShell's grid from xl, spanning the content area (no max width). The lead track centers the main column on the
+   page, scrollbar excluded: the content area starts at the sidebar's edge, so the track takes off the sidebar's width
+   to balance it. It is capped so the last track keeps the rail and 40px; on a narrow window the main column moves left */
+@utility page-grid {
+	grid-template-columns:
+		max(0px, min((100% - var(--container-main) - var(--sidebar-width, 0px)) / 2, 100% - var(--container-page)))
+		minmax(0, var(--container-main))
+		minmax(calc(var(--container-rail) + 2.5rem), 1fr);
 }
 
 @utility empty-state {

@@ -46,7 +46,7 @@ export function PollTile({ poll }: { poll: Poll }) {
 	const topics = poll.tags?.slice(0, 2).map((tag) => tag.name) ?? [];
 
 	return (
-		<li className={cn(pollTileFrameClassName, 'relative transition-colors hover:border-border-strong')}>
+		<li className={cn(pollTileFrameClassName, 'relative transition-colors hover:border-border-strong has-[a:active]:border-border-strong')}>
 			<div className="flex flex-wrap items-center gap-2">
 				<StatusChip status={status} poll={poll} time="inline" onCard />
 				{!ended && poll.myOptionId && <VotedPill label={t('poll.votedPill')} />}

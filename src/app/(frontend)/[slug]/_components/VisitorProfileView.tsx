@@ -10,6 +10,7 @@ import { FilterPills } from '@/components/FilterPills';
 import { PageShell } from '@/components/layout/PageShell';
 import { RowMenuRoot } from '@/components/RowMenuRoot';
 import { Button, buttonVariants } from '@/components/ui/Button';
+import { menuItemClassName, menuPopupClassName } from '@/components/ui/menu';
 import { ArrowLeft, Ban, Ellipsis, Lock } from '@/components/ui/SvgIcons';
 import { TidePanel } from '@/components/ui/TidePanel';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -29,6 +30,7 @@ import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
 import { toLocaleTag } from '@/lib/locale';
 import { profileHref } from '@/lib/routes';
+import { cn } from '@/lib/utils';
 import type { UserProfile } from '@/types/user';
 
 import { MutualFollowersCard } from './MutualFollowersCard';
@@ -161,13 +163,13 @@ function VisitorActions({ profile, follow }: { profile: UserProfile; follow: Fol
 				</Menu.Trigger>
 				<Menu.Portal>
 					<Menu.Positioner side="bottom" align="end" sideOffset={4} className="z-50">
-						<Menu.Popup className="min-w-44 rounded-xl bg-popover p-1.5 text-popover-foreground shadow-md ring-1 ring-foreground/10 outline-none">
+						<Menu.Popup className={menuPopupClassName}>
 							<Menu.Item
 								disabled={isUnblocking}
 								onClick={profile.isBlocked ? unblock : () => setBlockOpen(true)}
-								className="flex min-h-11 md:min-h-10 cursor-pointer select-none items-center gap-2.5 rounded-lg px-3 text-caption-1 font-medium text-destructive outline-none data-highlighted:bg-foreground/5"
+								className={cn(menuItemClassName, !profile.isBlocked && 'text-destructive')}
 							>
-								<Ban aria-hidden className="size-4" />
+								<Ban aria-hidden />
 								{profile.isBlocked ? t('blocks.unblock') : t('blocks.blockEllipsis')}
 							</Menu.Item>
 						</Menu.Popup>

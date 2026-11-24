@@ -25,9 +25,11 @@ import { settle } from '@/lib/api/settle';
 import { cn } from '@/lib/utils';
 
 import { useSharePoll } from '../hooks/useSharePoll';
+import { everyInviteeVoted } from '../invitees';
 import type { Poll } from '../schema';
 import { closePoll, deletePoll } from '../service';
 import type { PollStatus } from '../status';
+import { PollQrDialog, PollShareMenuItems } from './PollShareMenuItems';
 
 const PollCreator = dynamic(() => import('./PollCreator').then((m) => m.PollCreator));
 const InviteeManager = dynamic(() => import('./InviteeManager').then((m) => m.InviteeManager));
@@ -73,6 +75,8 @@ export function OwnerActions({
 	const { t } = useLanguage();
 	const [isEditing, setIsEditing] = useState(false);
 	const [isInviting, setIsInviting] = useState(false);
+	// null until first opened; then it stays mounted, so closing animates out
+	const [showsQr, setShowsQr] = useState<boolean | null>(null);
 	const [confirming, setConfirming] = useState<Confirm>('delete');
 	const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
@@ -119,12 +123,11 @@ export function OwnerActions({
 					onOpenChange={setIsInviting}
 					// The Poll Ends once every Invitee holds a Ballot; only then refetch it
 					onChanged={(invitees) =>
-						invitees.length > 0 && invitees.every((invitee) => invitee.hasBallot)
-							? onChanged()
-							: onInviteeCount(invitees.length)
+						everyInviteeVoted(invitees) ? onChanged() : onInviteeCount(invitees.length)
 					}
 				/>
 			)}
+			{showsQr !== null && <PollQrDialog pollId={poll.id} title={poll.title} open={showsQr} onOpenChange={setShowsQr} />}
 
 			<AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
 				<AlertDialogContent>
@@ -162,6 +165,7 @@ export function OwnerActions({
 					onEdit={() => setIsEditing(true)}
 					onEnd={() => ask('end')}
 					onInvite={() => setIsInviting(true)}
+					onShowQr={() => setShowsQr(true)}
 					onDelete={() => ask('delete')}
 				/>
 				{dialogs}
@@ -203,7 +207,7 @@ export function OwnerActions({
 	);
 }
 
-/** The ••• menu of a row in the owner's Asked list: their controls plus Share; destructive ones last. */
+/** The ••• menu of a row in the owner's Asked list: their controls plus Share, QR code and LINE; destructive ones last. */
 function OwnerMenu({
 	poll,
 	canEdit,
@@ -213,6 +217,7 @@ function OwnerMenu({
 	onEdit,
 	onEnd,
 	onInvite,
+	onShowQr,
 	onDelete,
 }: {
 	poll: Poll;
@@ -223,6 +228,7 @@ function OwnerMenu({
 	onEdit: () => void;
 	onEnd: () => void;
 	onInvite: () => void;
+	onShowQr: () => void;
 	onDelete: () => void;
 }) {
 	const { t } = useLanguage();
@@ -262,6 +268,7 @@ function OwnerMenu({
 							<Share aria-hidden />
 							{t('poll.share')}
 						</Menu.Item>
+						<PollShareMenuItems pollId={poll.id} onShowQr={onShowQr} />
 						{canDelete && (
 							<>
 								<Menu.Separator className="mx-1.5 my-1 h-px bg-border" />

@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import { AuthDialog } from '@/components/auth/AuthDialog';
+import { AuthFlow } from '@/components/auth/AuthFlow';
 
 // Polyfill APIs missing in jsdom
 if (!document.elementFromPoint) {
@@ -14,13 +15,20 @@ jest.mock('@/contexts/LanguageContext', () => ({
 	useOptionalTranslate: () => (key: string) => key,
 }));
 
+const mockTrack = jest.fn();
+jest.mock('@vercel/analytics', () => ({ track: (...args: unknown[]) => mockTrack(...args) }));
+
 const mockRequestOtp = jest.fn();
 const mockVerifyOtp = jest.fn();
 const mockUpdateProfile = jest.fn();
+const mockGetPasskeyLoginOptions = jest.fn();
+const mockVerifyPasskeyLogin = jest.fn();
 
 jest.mock('@/lib/api/services/auth', () => ({
 	requestOtp: (...args: unknown[]) => mockRequestOtp(...args),
 	verifyOtp: (...args: unknown[]) => mockVerifyOtp(...args),
+	getPasskeyLoginOptions: (...args: unknown[]) => mockGetPasskeyLoginOptions(...args),
+	verifyPasskeyLogin: (...args: unknown[]) => mockVerifyPasskeyLogin(...args),
 }));
 
 jest.mock('@/lib/api/services/users', () => ({
@@ -244,5 +252,117 @@ describe('AuthDialog', () => {
 
 		await waitFor(() => expect(baseProps.onAuthSuccess).toHaveBeenCalled());
 		expect(mockToastError).toHaveBeenCalledWith('onboarding.saveFailed');
+	});
+});
+
+describe('passkey sign-in', () => {
+	const mockGet = jest.fn();
+	const browser = window as unknown as { PublicKeyCredential?: unknown };
+
+	beforeEach(() => {
+		browser.PublicKeyCredential = {
+			parseCreationOptionsFromJSON: jest.fn(),
+			parseRequestOptionsFromJSON: (options: unknown) => options,
+			isConditionalMediationAvailable: async () => true,
+		};
+		Object.defineProperty(navigator, 'credentials', { configurable: true, value: { create: jest.fn(), get: mockGet } });
+		mockGetPasskeyLoginOptions.mockResolvedValue({ status: 'SUCCESS', options: { challenge: 'abc' } });
+		mockVerifyPasskeyLogin.mockResolvedValue({ status: 'SUCCESS' });
+		// The autofill request stays open until a passkey is picked or it is aborted
+		mockGet.mockImplementation(({ mediation, signal }: CredentialRequestOptions) =>
+			mediation === 'conditional'
+				? new Promise((_, reject) =>
+						signal?.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), { name: 'AbortError' })))
+					)
+				: Promise.resolve({ toJSON: () => ({ id: 'credential-1' }) })
+		);
+	});
+	afterEach(() => {
+		delete browser.PublicKeyCredential;
+		Reflect.deleteProperty(navigator, 'credentials');
+	});
+
+	/** Lets the options load and any autofill request start. */
+	const settled = () => act(async () => {});
+
+	it('offers the passkey button in the dialog without claiming the email field for passkey autofill', async () => {
+		render(<AuthDialog {...baseProps} />);
+		await settled();
+
+		expect(screen.getByRole('button', { name: 'auth.continueWithPasskey' })).toBeInTheDocument();
+		expect(screen.getByLabelText('common.email')).toHaveAttribute('autocomplete', 'email');
+		expect(mockGet).not.toHaveBeenCalled();
+		// The challenge is fetched up front, so a tap on a slow network still finds it ready
+		expect(mockGetPasskeyLoginOptions).toHaveBeenCalledTimes(1);
+		fireEvent.pointerDown(screen.getByRole('button', { name: 'auth.continueWithPasskey' }));
+		expect(mockGetPasskeyLoginOptions).toHaveBeenCalledTimes(1);
+	});
+
+	it('resumes the started action after a passkey sign-in in the dialog', async () => {
+		render(<AuthDialog {...baseProps} />);
+		await settled();
+		fireEvent.click(screen.getByRole('button', { name: 'auth.continueWithPasskey' }));
+
+		await waitFor(() => expect(baseProps.onAuthSuccess).toHaveBeenCalledTimes(1));
+		expect(mockGet).toHaveBeenCalledTimes(1);
+		expect(mockGet.mock.calls[0][0].mediation).toBeUndefined();
+		expect(mockVerifyPasskeyLogin).toHaveBeenCalledWith({ id: 'credential-1' });
+	});
+
+	it('records a passkey sign-in in the dialog once it is verified', async () => {
+		render(<AuthDialog {...baseProps} />);
+		await settled();
+		fireEvent.click(screen.getByRole('button', { name: 'auth.continueWithPasskey' }));
+
+		await waitFor(() => expect(baseProps.onAuthSuccess).toHaveBeenCalled());
+		expect(mockTrack.mock.calls).toEqual([
+			['sign_in_started', { surface: 'dialog' }],
+			['sign_in_completed', { surface: 'dialog', method: 'passkey', newAccount: false }],
+		]);
+	});
+
+	it('still offers passkeys from the email field on the login page', async () => {
+		render(<AuthFlow onDone={jest.fn()} />);
+		await settled();
+
+		expect(screen.getByLabelText('common.email')).toHaveAttribute('autocomplete', 'username webauthn');
+		expect(mockGet).toHaveBeenCalledWith(expect.objectContaining({ mediation: 'conditional' }));
+	});
+
+	it('leaves the button out where the browser has no WebAuthn', async () => {
+		delete browser.PublicKeyCredential;
+		render(<AuthDialog {...baseProps} />);
+		await settled();
+
+		expect(screen.queryByRole('button', { name: 'auth.continueWithPasskey' })).not.toBeInTheDocument();
+	});
+});
+
+describe('sign-in events', () => {
+	it('records the email step, the code sent and the sign-in, each once', async () => {
+		mockRequestOtp.mockResolvedValue({ status: 'SUCCESS' });
+		mockVerifyOtp.mockResolvedValue({ status: 'SUCCESS', isNewUser: true });
+		render(<AuthDialog {...baseProps} />);
+		expect(mockTrack.mock.calls).toEqual([['sign_in_started', { surface: 'dialog' }]]);
+
+		await submitEmail();
+		expect(mockTrack).toHaveBeenLastCalledWith('sign_in_code_sent', { surface: 'dialog' });
+		fillOTP('123456');
+		await screen.findByLabelText('profile.firstName');
+
+		expect(mockTrack.mock.calls.map(([name]) => name)).toEqual(['sign_in_started', 'sign_in_code_sent', 'sign_in_completed']);
+		expect(mockTrack).toHaveBeenLastCalledWith('sign_in_completed', { surface: 'dialog', method: 'email', newAccount: true });
+	});
+
+	it('records no code sent while an earlier code is still cooling down, and no sign-in for a wrong code', async () => {
+		mockRequestOtp.mockResolvedValue({ status: 'COOLDOWN', seconds: 60 });
+		mockVerifyOtp.mockResolvedValue({ status: 'ERROR', error: 'invalidCode' });
+		render(<AuthFlow onDone={jest.fn()} />);
+
+		await submitEmail();
+		fillOTP('123456');
+		await waitFor(() => expect(mockVerifyOtp).toHaveBeenCalled());
+		await act(async () => {});
+		expect(mockTrack.mock.calls).toEqual([['sign_in_started', { surface: 'page' }]]);
 	});
 });

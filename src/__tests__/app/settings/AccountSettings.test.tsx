@@ -20,8 +20,6 @@ jest.mock('@/features/passkeys/service', () => ({
 jest.mock('@/lib/api/services/users', () => ({
 	deleteMyAccount: jest.fn(),
 	editProfile: jest.fn(),
-	sendPhoneBindOtp: jest.fn(),
-	verifyPhoneBind: jest.fn(),
 }));
 const mockUnlock = jest.fn();
 jest.mock('@/features/communities/service', () => ({
@@ -77,23 +75,10 @@ describe('AccountSettings', () => {
 		expect(link).toHaveAttribute('href', '/settings/visibility');
 	});
 
-	it('shows the phone number by state: add, verify, or verified', () => {
-		const { rerender } = render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} communities={[]} />);
-		expect(screen.getByRole('button', { name: 'Add phone number' })).toBeInTheDocument();
-
-		rerender(<AccountSettings profile={{ ...myProfile, phoneNumber: '+886912345678', phoneVerified: false }} inviteListCount={3} notificationPreferences={preferences} communities={[]} />);
-		expect(screen.getByRole('button', { name: 'Verify' })).toBeInTheDocument();
-
-		rerender(<AccountSettings profile={{ ...myProfile, phoneNumber: '+886912345678', phoneVerified: true }} inviteListCount={3} notificationPreferences={preferences} communities={[]} />);
-		expect(screen.queryByRole('button', { name: 'Verify' })).not.toBeInTheDocument();
-		expect(screen.queryByRole('button', { name: 'Add phone number' })).not.toBeInTheDocument();
-		expect(screen.getByText('Verified')).toBeInTheDocument();
-	});
-
-	it('opens the phone dialog from the row', () => {
+	it('offers no phone number while SMS codes are unavailable', () => {
 		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} communities={[]} />);
-		fireEvent.click(screen.getByRole('button', { name: 'Add phone number' }));
-		expect(screen.getByRole('dialog', { name: 'Add your phone number' })).toBeInTheDocument();
+		expect(screen.queryByText('Phone number')).not.toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Add phone number' })).not.toBeInTheDocument();
 	});
 
 	it('shows how many invite lists there are and links to their page from Voting', () => {
@@ -118,11 +103,14 @@ describe('AccountSettings', () => {
 		expect(row).toHaveTextContent('English');
 	});
 
-	it('ends with the Terms and Privacy pages', () => {
+	it('links About, Terms and Privacy on the about site from the About section', () => {
 		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} communities={[]} />);
-		const legal = screen.getByRole('navigation', { name: 'Legal' });
-		expect(within(legal).getByRole('link', { name: 'Terms' })).toHaveAttribute('href', 'https://about.vomatt.com/terms-of-service');
-		expect(within(legal).getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', 'https://about.vomatt.com/privacy-policy');
+		const about = screen.getByRole('region', { name: 'About' });
+		expect(within(about).getAllByRole('link').map((link) => [link.textContent, link.getAttribute('href')])).toEqual([
+			['About vomatt', 'https://about.vomatt.com/about'],
+			['Terms of Service', 'https://about.vomatt.com/terms-of-service'],
+			['Privacy Policy', 'https://about.vomatt.com/privacy-policy'],
+		]);
 	});
 
 	it('picks the theme from a radio group', () => {
@@ -549,7 +537,7 @@ describe('SettingsNav', () => {
 	it('marks the last section at the bottom of the page, though its top never reaches the top', () => {
 		renderNav();
 		scrollTo(2000);
-		expect(marked()).toBe('Account');
+		expect(marked()).toBe('About');
 	});
 
 	it('marks the first section when the whole page fits the viewport', () => {

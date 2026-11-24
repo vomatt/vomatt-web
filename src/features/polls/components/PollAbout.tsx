@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/Progress';
 import { Eye, Lock, User } from '@/components/ui/SvgIcons';
 import { TideRule, TideRules } from '@/components/ui/TidePanel';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { accountName } from '@/features/communities/schema';
 import { useHydrated } from '@/hooks/useHydrated';
 import { topicHref } from '@/lib/routes';
 
@@ -25,6 +26,7 @@ export function PollAbout({ poll }: { poll: Poll }) {
 	const clock = useViewerClock();
 	const progress = isHydrated ? timelineProgress(poll) : null;
 	const level = visibilityLevel(poll);
+	const creatorName = accountName({ username: poll.creatorUsername, displayName: poll.creatorDisplayName });
 
 	return (
 		<section aria-labelledby={headingId} className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5">
@@ -79,7 +81,7 @@ export function PollAbout({ poll }: { poll: Poll }) {
 					<TideRules>
 						<TideRule icon={Lock}>{t('pollDetail.ruleSealed')}</TideRule>
 						<TideRule icon={User}>{t('pollDetail.ruleOneVote')}</TideRule>
-						{level && <TideRule icon={Eye}>{t(`poll.visibility.${level}`)}</TideRule>}
+						{level && <TideRule icon={Eye}>{t(`poll.visibility.${level}`, { name: creatorName })}</TideRule>}
 					</TideRules>
 
 					{!!poll.tags?.length && (
@@ -89,7 +91,7 @@ export function PollAbout({ poll }: { poll: Poll }) {
 								<li key={tag.id}>
 									<Link
 										href={topicHref(tag.slug)}
-										className="relative inline-flex items-center rounded-full bg-field px-2.5 py-[5px] text-caption-2 leading-normal font-medium text-foreground transition-colors outline-none before:absolute before:inset-x-0 before:-inset-y-2 before:content-[''] hover:bg-border-strong focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring md:before:hidden"
+										className="relative inline-flex items-center rounded-full bg-field px-2.5 py-[5px] text-caption-2 leading-normal font-medium text-foreground transition-colors outline-none before:absolute before:inset-x-0 before:-inset-y-2 before:content-[''] hover:bg-border-strong active:bg-border-strong focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-ring md:before:hidden"
 									>
 										{tag.name}
 									</Link>

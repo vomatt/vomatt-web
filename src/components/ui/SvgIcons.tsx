@@ -635,6 +635,26 @@ export function ChevronLeft({ size = '1em', ...props }: IconProps) {
 	);
 }
 
+export function ArrowUpRight({ size = '1em', ...props }: IconProps) {
+	return (
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			width={size}
+			height={size}
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth={2}
+			strokeLinecap="round"
+			strokeLinejoin="round"
+			{...props}
+		>
+			<path d="M7 7h10v10" />
+			<path d="M7 17 17 7" />
+		</svg>
+	);
+}
+
 export function ChevronRight({ size = '1em', ...props }: IconProps) {
 	return (
 		<svg
@@ -856,6 +876,60 @@ export function RotateCw({ size = '1em', ...props }: IconProps) {
 		>
 			<path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
 			<path d="M21 3v5h-5" />
+		</svg>
+	);
+}
+
+export function QrCode({ size = '1em', ...props }: IconProps) {
+	return (
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			width={size}
+			height={size}
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth={2}
+			strokeLinecap="round"
+			strokeLinejoin="round"
+			{...props}
+		>
+			<rect width="5" height="5" x="3" y="3" rx="1" />
+			<rect width="5" height="5" x="16" y="3" rx="1" />
+			<rect width="5" height="5" x="3" y="16" rx="1" />
+			<path d="M21 16h-3a2 2 0 0 0-2 2v3" />
+			<path d="M21 21v.01" />
+			<path d="M12 7v3a2 2 0 0 1-2 2H7" />
+			<path d="M3 12h.01" />
+			<path d="M12 3h.01" />
+			<path d="M12 16v.01" />
+			<path d="M16 12h1" />
+			<path d="M21 12v.01" />
+			<path d="M12 21v-1" />
+		</svg>
+	);
+}
+
+export function GripVertical({ size = '1em', ...props }: IconProps) {
+	return (
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			width={size}
+			height={size}
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth={2}
+			strokeLinecap="round"
+			strokeLinejoin="round"
+			{...props}
+		>
+			<circle cx="9" cy="12" r="1" />
+			<circle cx="9" cy="5" r="1" />
+			<circle cx="9" cy="19" r="1" />
+			<circle cx="15" cy="12" r="1" />
+			<circle cx="15" cy="5" r="1" />
+			<circle cx="15" cy="19" r="1" />
 		</svg>
 	);
 }

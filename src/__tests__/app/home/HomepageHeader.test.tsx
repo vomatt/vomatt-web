@@ -39,16 +39,10 @@ describe('HomepageHeader', () => {
 		expect(screen.queryByRole('link', { name: 'Following' })).not.toBeInTheDocument();
 	});
 
-	it('links guests to the legal pages under the login prompt, and not signed-in viewers', () => {
-		const { unmount } = render(<HomepageHeader tags={tags} />);
-		const legal = within(screen.getByRole('navigation', { name: 'Legal' }));
-		expect(legal.getByRole('link', { name: 'Terms' })).toHaveAttribute('href', 'https://about.vomatt.com/terms-of-service');
-		expect(legal.getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', 'https://about.vomatt.com/privacy-policy');
-		expect(legal.queryByRole('link', { name: 'Cookies' })).not.toBeInTheDocument();
-		unmount();
-
-		render(<HomepageHeader tags={tags} signedIn />);
+	it('keeps the legal pages out of the login prompt', () => {
+		render(<HomepageHeader tags={tags} />);
 		expect(screen.queryByRole('navigation', { name: 'Legal' })).not.toBeInTheDocument();
+		expect(screen.queryByRole('link', { name: /Terms/ })).not.toBeInTheDocument();
 	});
 
 	it('runs the topic row out to the screen edges on phones', () => {

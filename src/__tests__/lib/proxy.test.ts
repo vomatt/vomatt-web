@@ -51,6 +51,25 @@ beforeEach(() => {
 	global.fetch = fetchMock;
 });
 
+describe('poll links by UUID', () => {
+	it('moves a link by the full UUID to the short one, keeping the query, without reading the session', async () => {
+		const res = await proxy(requestFor('/poll/0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05?ref=email', { refreshToken: 'r1' }));
+		expect(res.status).toBe(308);
+		expect(res.headers.get('location')).toBe('http://localhost:3000/poll/31LUbIpAXJLg0ktOgLrEL?ref=email');
+		expect(fetchMock).not.toHaveBeenCalled();
+	});
+
+	it('lets a Server Action posted to the old URL run there', async () => {
+		const req = new NextRequest('http://localhost:3000/poll/0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05', { method: 'POST' });
+		expect((await proxy(req)).headers.get('location')).toBeNull();
+	});
+
+	it('leaves a short link to the page', async () => {
+		const res = await proxy(requestFor('/poll/31LUbIpAXJLg0ktOgLrEL'));
+		expect(res.headers.get('location')).toBeNull();
+	});
+});
+
 describe('proxy auth', () => {
 	it('does not treat a garbage access token as a session', async () => {
 		const res = await proxy(requestFor('/login', { accessToken: 'garbage' }));
@@ -343,10 +362,32 @@ describe('proxy auth', () => {
 
 describe('proxy matcher', () => {
 	const { config } = require('@/proxy') as typeof import('@/proxy');
-	const matches = (path: string) => config.matcher.some((source) => new RegExp(`^${source}$`).test(path));
+	// Compiled the way Next compiles it, so the tests follow Next's own reading of the pattern
+	const { getMiddlewareMatchers } = require('next/dist/build/analysis/get-page-static-info');
+	const compiled: { regexp: string }[] = getMiddlewareMatchers(config.matcher, {});
+	const matches = (path: string) => compiled.some(({ regexp }) => new RegExp(regexp).test(path));
 
 	it('skips the API routes', () => {
 		expect(matches('/api/revalidate')).toBe(false);
+	});
+
+	it.each(['/robots.txt', '/sitemap.xml'])('skips %s, which crawlers fetch without cookies', (path) => {
+		expect(matches(path)).toBe(false);
+	});
+
+	it.each(['/manifest.webmanifest', '/icon-192.png', '/icon-512.png', '/icon-maskable-512.png'])(
+		'skips %s, which the browser fetches to install the app',
+		(path) => {
+			expect(matches(path)).toBe(false);
+		}
+	);
+
+	it.each(['/manifest.webmanifest.fan', '/icon-fan', '/alice/icon-192.png'])('runs for %s', (path) => {
+		expect(matches(path)).toBe(true);
+	});
+
+	it('runs for a profile whose username starts with "robots"', () => {
+		expect(matches('/robots.txt.fan')).toBe(true);
 	});
 
 	it('runs for a profile whose username starts with "api"', () => {

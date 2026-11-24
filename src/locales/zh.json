@@ -33,6 +33,7 @@
 		"settings": "設定",
 		"howCountsTitle": "vomatt 如何計票",
 		"howCountsBody": "每人一票。投票進行中選票保持密封，沒有人會跟著群眾投票。",
+		"howCountsDismiss": "關閉「vomatt 如何計票」",
 		"more": "更多",
 		"appearance": "外觀",
 		"themeLight": "淺色",
@@ -120,6 +121,8 @@
 	"explore": {
 		"title": "探索",
 		"searchPlaceholder": "搜尋投票與主題…",
+		"searchPlaceholderPeople": "搜尋投票、主題與使用者名稱…",
+		"people": "使用者",
 		"topics": "主題",
 		"moreOptions": "還有 {count} 個",
 		"searchLabel": "搜尋",
@@ -327,6 +330,11 @@
 		"editTitle": "編輯投票",
 		"editSubtitle": "投票開始前都可以編輯。",
 		"removeOption": "移除選項",
+		"moveOption": "移動選項",
+		"moveOptionHint": "按下可上移或下移，也可用上下方向鍵。",
+		"moveUp": "上移",
+		"moveDown": "下移",
+		"optionMoved": "已移到第 {position} 個，共 {count} 個。",
 		"opensLabel": "開始時間",
 		"opensHint": "留空則立即開始。",
 		"endsLabel": "結束並公開結果",
@@ -346,8 +354,8 @@
 			"signed-inHint": "每位登入的使用者都能看到誰選了什麼。",
 			"invited": "所有受邀者",
 			"invitedHint": "所有受邀者都能看到誰選了什麼。",
-			"community": "只有 {name}",
-			"communityHint": "以 {name} 身分操作的成員能看到誰選了哪個選項，其他人看得到總數。"
+			"community": "只有 {name} 的管理團隊",
+			"communityHint": "{name} 的擁有者、管理員和分析師能看到誰選了哪個選項，其他人看得到總數。"
 		},
 		"visibilityNote": "投票者投票前會先看到這個設定。",
 		"publish": "發布投票",
@@ -383,7 +391,7 @@
 			"owner": "結束後只有你會看到誰選了什麼。",
 			"signed-in": "結束後所有登入的人都會看到誰選了什麼。",
 			"invited": "結束後所有受邀者都會看到誰選了什麼。",
-			"community": "結束後只有以 {name} 身分操作的成員會看到誰選了什麼。"
+			"community": "結束後只有 {name} 的擁有者、管理員和分析師會看到誰選了什麼。"
 		},
 		"ruleAnonymous": "只要有人匿名投票，就只會列出誰參與了。",
 		"ruleFixed": "投票開始後就不能再更改。",
@@ -468,6 +476,11 @@
 		"comments": "{count} 則留言",
 		"comment": "1 則留言",
 		"share": "分享",
+		"showQr": "顯示 QR code",
+		"shareOnLine": "分享到 LINE",
+		"qrHint": "掃描即可開啟這個投票。",
+		"qrLabel": "這個投票連結的 QR code",
+		"copyLink": "複製連結",
 		"like": "喜歡",
 		"liked": "已喜歡",
 		"likeFailed": "無法喜歡這個投票，請再試一次。",
@@ -515,7 +528,8 @@
 			"nobody": "結束後，沒有人能看到你選了什麼。",
 			"owner": "結束後，只有發起人能看到你選了什麼。",
 			"signed-in": "結束後，所有登入的使用者都能看到你選了什麼。",
-			"invited": "結束後，所有受邀者都能看到你選了什麼。"
+			"invited": "結束後，所有受邀者都能看到你選了什麼。",
+			"community": "結束後，{name} 的擁有者、管理員和分析師能看到你選了什麼。"
 		},
 		"edit": "編輯",
 		"keepPoll": "保留投票",
@@ -524,6 +538,12 @@
 		"voters": "投票者",
 		"votersHidden": "這個投票的投票者名單已隱藏，以保護匿名投票，或是依照投票的公開設定。",
 		"votersTruncated": "這裡只能列出前 {count} 位投票者。",
+		"votersUnlisted": "另有 {count} 位投票者",
+		"votersUnlistedAll": "{count} 位投票者",
+		"votersUnlistedWhy": "匿名投票或帳號已刪除",
+		"votersUnlistedMine": "包含你的匿名投票",
+		"votersUnlistedYou": "你",
+		"votersUnlistedYouWhy": "你以匿名投票，因此未列出",
 		"votersNone": "沒有可顯示的投票者。",
 		"votersChoicesHidden": "此投票含有匿名票，因此不顯示任何人的選擇。以下列出所有具名投票者。",
 		"votersFailed": "無法載入投票者。",
@@ -695,6 +715,11 @@
 		"add": "邀請",
 		"addFailed": "無法邀請，請再試一次。",
 		"removeFailed": "無法移除，請再試一次。",
+		"removeTitle": "要移除 {name} 嗎？",
+		"removeBody": "對方將無法再看到這個投票，也無法投票。",
+		"removeEndsBody": "其他人都已投票，所以投票會立即結束並公開結果，且無法復原。",
+		"removeConfirm": "移除",
+		"removeAndEnd": "移除並結束投票",
 		"communityNotAllowed": "社群帳號不投票，無法邀請。"
 	},
 	"groups": {
@@ -991,7 +1016,8 @@
 	"apiError": {
 		"invitation": {
 			"email": {
-				"too_soon": "你近期寄給這個電子郵件地址的邀請太多次，請稍後再試。"
+				"too_soon": "你短時間內寄給此信箱的邀請信過多，暫時無法再寄。",
+				"daily_limit": "今天的邀請信已達上限，請明天再試。"
 			}
 		},
 		"common": {
@@ -1104,7 +1130,8 @@
 			},
 			"not_allowed": "投票尚未開始或已結束",
 			"ballot": {
-				"community_not_allowed": "社群帳號不投票。"
+				"community_not_allowed": "社群帳號不投票。",
+				"phone_verification_required": "這個投票需要已驗證的手機號碼。請先到設定新增，再回來投票。"
 			},
 			"ended": "投票已結束，無法再投票或撤回",
 			"results": {
@@ -1198,15 +1225,16 @@
 			"role_forbidden": "你在這個社群帳號的角色無法執行此操作。擁有者與管理員管理帳號與成員，主編可修改任何投票與留言，編輯只能修改自己發布的，分析師只能查看結果報告。",
 			"invitation": {
 				"not_found": "這個邀請已失效或不存在。",
-				"exists": "對方已受邀。如要重新邀請，請先撤回待回覆的邀請。"
+				"exists": "對方已受邀。如要重新邀請，請先撤回待回覆的邀請。",
+				"not_email": "只有寄到電子郵件地址的邀請可以重寄。"
 			},
+			"member_limit_reached": "這個社群帳號的成員與待回覆邀請已達方案上限。撤回邀請或移除成員後，才能再邀請。",
 			"member": {
 				"exists": "對方已經是成員。",
 				"invalid": "無法將對方加入這個帳號。",
 				"not_found": "對方已不是成員，列表已重新整理。"
 			},
 			"limit_reached": "你擁有的社群帳號已達方案上限。",
-			"member_limit_reached": "這個社群帳號的成員（含待回覆的邀請）已達上限，請先移除成員或撤回邀請。",
 			"locked": "這個社群帳號已被鎖定，無法執行此操作。升級 Pro，或請有額度的擁有者解鎖。",
 			"keep": {
 				"invalid": "請選擇剛好所要求數量的帳號，且都必須是你擁有的。"
@@ -1271,7 +1299,6 @@
 		"appLanguage": "介面語言",
 		"appLanguageBody": "以你偏好的語言顯示 vomatt 上的按鈕、標題及其他文字。",
 		"appLanguageNote": "投票與留言會保留撰寫時使用的語言。",
-		"legal": "法律資訊",
 		"terms": "服務條款",
 		"privacyPolicy": "隱私權政策",
 		"notifyResultsIn": "結果出爐",
@@ -1294,7 +1321,9 @@
 		"visibilityNotSet": "未設定",
 		"visibilityOn": "{field} 已對所有人公開",
 		"visibilityOff": "{field} 僅限你可見",
-		"visibilityEditDetails": "編輯這些資料"
+		"visibilityEditDetails": "編輯這些資料",
+		"about": "關於",
+		"aboutVomatt": "關於 vomatt"
 	},
 	"passkey": {
 		"title": "通行密鑰",
@@ -1362,7 +1391,7 @@
 			"ADMIN": "所有權限，但不能變更或移除擁有者。",
 			"CHIEF_EDITOR": "發布內容，並可編輯或結束任何人的投票和留言。",
 			"EDITOR": "發布投票和留言，並編輯自己發布的內容。",
-			"ANALYST": "查看結果報告，不能發布內容。"
+			"ANALYST": "查看結果報告和投票者名單，不能發布內容。"
 		},
 		"you": "（你）",
 		"joined": "{date} 加入",
@@ -1393,6 +1422,8 @@
 		"invitationExpired": "已到期",
 		"revoke": "撤回邀請",
 		"revoked": "已撤回對 {name} 的邀請",
+		"resend": "重寄邀請",
+		"resent": "已再次寄出對 {name} 的邀請",
 		"roleChanged": "已變更 @{name} 的角色",
 		"transferred": "@{name} 已成為擁有者",
 		"removed": "已移除 @{name}",
@@ -1491,7 +1522,8 @@
 	"meta": {
 		"siteDescription": "提出問題、參與他人的投票，看看大家真正的想法。投票結束前票數保持密封，沒有人會跟風投票。",
 		"exploreDescription": "依主題瀏覽公開投票，參與進行中的投票，並查看已結束投票的結果。",
-		"profileDescription": "看看 {name} 發起的投票。"
+		"profileDescription": "看看 {name} 發起的投票。",
+		"topicDescription": "關於「{topic}」的投票。參與進行中的投票，看看大家的想法。"
 	},
 	"plan": {
 		"upgrade": "升級 Pro",

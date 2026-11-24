@@ -21,7 +21,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
-import { cn } from '@/lib/utils';
+import { cn, wrapRowText } from '@/lib/utils';
 
 import { useActing } from './ActingProvider';
 import type { MyCommunity } from './schema';
@@ -67,7 +67,7 @@ export function DeleteCommunity({ community }: { community: MyCommunity }) {
 			aria-labelledby="delete-community-title"
 			className={cn(rowClassName, 'flex-wrap rounded-2xl border border-destructive/30 bg-card')}
 		>
-			<span className="min-w-0 grow basis-56">
+			<span className={wrapRowText}>
 				<h2 id="delete-community-title" className="font-medium text-destructive">
 					{t('communities.deleteTitle')}
 				</h2>

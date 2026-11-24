@@ -1,4 +1,7 @@
+import type { ResolvingMetadata } from 'next';
+
 import { generateMetadata } from '@/app/(frontend)/poll/[id]/page';
+import { toShortId } from '@/features/polls/shortId';
 
 const NOT_FOUND = new Error('NEXT_HTTP_ERROR_FALLBACK;404');
 jest.mock('next/navigation', () => ({
@@ -26,7 +29,8 @@ const { AuthError } = jest.requireMock('@/lib/api/client');
 // Metadata and the page share one lookup, so its outcome decides both.
 // Each test uses its own id: the lookup is cached per id
 const pollId = (n: number) => `01a195a4-2a06-7137-a746-2c2ebb8136c${n}`;
-const lookup = (id: string) => generateMetadata({ params: Promise.resolve({ id }) });
+const open = (param: string) => generateMetadata({ params: Promise.resolve({ id: param }) }, Promise.resolve({}) as ResolvingMetadata);
+const lookup = (id: string) => open(toShortId(id));
 
 beforeEach(() => {
 	mockGetPoll.mockReset();
@@ -46,6 +50,11 @@ describe('poll page for a poll that does not open', () => {
 		await expect(lookup(pollId(2))).resolves.toBeTruthy();
 	});
 
+	it('opens a poll by its full UUID, which a Server Action from a page opened at the old URL renders under', async () => {
+		mockGetPoll.mockResolvedValue({ id: pollId(6), title: 'By UUID' });
+		await expect(open(pollId(6))).resolves.toMatchObject({ title: 'By UUID' });
+	});
+
 	it('keeps the login prompt when the API rejected the session', async () => {
 		mockGetPoll.mockRejectedValue(new AuthError());
 		await expect(lookup(pollId(3))).resolves.toBeTruthy();
@@ -55,7 +64,8 @@ describe('poll page for a poll that does not open', () => {
 	it('shows not-found for a link whose id is not a poll id, whatever the API answers', async () => {
 		// Signed out, the API refuses a malformed id with 401 instead of 404
 		mockGetPoll.mockRejectedValue(new Error('unauthorized'));
-		await expect(lookup('does-not-exist')).rejects.toBe(NOT_FOUND);
-		await expect(lookup(pollId(4).slice(0, -1))).rejects.toBe(NOT_FOUND);
+		await expect(open('does-not-exist')).rejects.toBe(NOT_FOUND);
+		await expect(open(pollId(4).slice(0, -1))).rejects.toBe(NOT_FOUND);
+		await expect(open(`0${toShortId(pollId(4))}`)).rejects.toBe(NOT_FOUND);
 	});
 });

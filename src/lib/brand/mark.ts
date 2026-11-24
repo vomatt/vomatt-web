@@ -60,6 +60,11 @@ export const MARK_ICONS = {
 /** iOS home screen: the glossy silver mark at 58% on an ink tile; iOS rounds the corners. */
 export const APPLE_TILE = { fill: MARK_INK, scale: 0.58 } satisfies MarkTile;
 
+/** Installed web app: the iOS icon with its own corners, for launchers that draw the icon as it is. */
+export const APP_TILE = { ...APPLE_TILE, radius: 0.22 } satisfies MarkTile;
+/** Installed web app, maskable: the launcher cuts the square tile to its own shape, and the mark at 58% stays inside the centre 80% it keeps. */
+export const MASKABLE_TILE = APPLE_TILE;
+
 const n = (value: number) => String(Number(value.toFixed(2)));
 
 /** The square the icon fills: the mark's own, or the tile's at its scale. */
@@ -176,13 +181,13 @@ function glossMark(p: string) {
 	return { defs, box };
 }
 
-/** An SVG document of the glossy silver mark on a tile, for the iOS icon. */
+/** An SVG document of the glossy silver mark on a tile, for the iOS and installed-app icons. */
 export function markGlossIconSvg(tile: MarkTile): string {
 	const { origin, side, viewBox } = square(tile);
 	const { defs, box } = glossMark('');
 	return (
 		`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}"><defs>${defs}</defs>` +
-		`<rect fill="${tile.fill}" x="${origin}" y="${origin}" width="${side}" height="${side}"/>` +
+		`<rect fill="${tile.fill}" x="${origin}" y="${origin}" width="${side}" height="${side}"${tile.radius ? ` rx="${n(Number(side) * tile.radius)}"` : ''}/>` +
 		`<g filter="url(#d)">${box}</g></svg>`
 	);
 }

@@ -14,7 +14,7 @@ export function UnreadDot({ label, className }: { label: string; className?: str
 export function NewMark({ className }: { className?: string }) {
 	const { t } = useLanguage();
 	return (
-		<span aria-hidden className={cn('text-alert', className)}>
+		<span aria-hidden className={cn('text-alert-text', className)}>
 			{t('profile.new')}
 		</span>
 	);

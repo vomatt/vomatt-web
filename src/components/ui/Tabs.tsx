@@ -146,7 +146,7 @@ function TabsIndicator({ className, ...props }: TabsPrimitive.Indicator.Props) {
 				data-slot="tabs-indicator"
 				renderBeforeHydration
 				className={cn(
-					'absolute bottom-[-1px] left-(--active-tab-left) h-0.5 w-(--active-tab-width) bg-foreground transition-[left,width] duration-200 ease-out group-data-vertical/tabs:hidden motion-reduce:transition-none',
+					'absolute bottom-[-1px] left-0 h-0.5 w-(--active-tab-width) translate-x-(--active-tab-left) bg-foreground transition-[translate,width] duration-200 ease-out-strong group-data-vertical/tabs:hidden motion-reduce:transition-none',
 					className
 				)}
 				{...props}

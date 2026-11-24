@@ -27,23 +27,36 @@ const voter = (userId: string, optionId: string | null) => ({
 });
 
 /** The way PollCard drives the dialog: one voter list, an option at a time. */
-function Harness({ options = defaultOptions }: { options?: Option[] }) {
+function Harness({
+	options = defaultOptions,
+	participants = 3,
+	myAnonymousOptionId = null,
+}: {
+	options?: Option[];
+	participants?: number;
+	myAnonymousOptionId?: string | null;
+}) {
 	const voters = useVoters('p1', 'me');
-	const [option, setOption] = useState<Option | null>(null);
+	const [option, setOption] = useState<(Option & { participants: number }) | null>(null);
 	return (
 		<>
 			{options.map((o) => (
 				<button
 					key={o.id}
 					onClick={() => {
-						setOption(o);
+						setOption({ ...o, participants });
 						voters.load(o);
 					}}
 				>
 					{o.text}
 				</button>
 			))}
-			<VotersDialog option={option} voters={voters} onClose={() => setOption(null)} />
+			<VotersDialog
+				option={option}
+				voters={voters}
+				myAnonymousOptionId={myAnonymousOptionId}
+				onClose={() => setOption(null)}
+			/>
 		</>
 	);
 }
@@ -72,6 +85,7 @@ describe('VotersDialog', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Spaces' }));
 		expect(await screen.findByRole('link', { name: /klaus/ })).toBeInTheDocument();
 		expect(mockGetVoters).toHaveBeenCalledTimes(2);
+		expect(screen.queryByText(/other voter/)).not.toBeInTheDocument();
 	});
 
 	it('stops paging once the chosen option is complete', async () => {
@@ -91,11 +105,57 @@ describe('VotersDialog', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Tabs' }));
 		expect(await screen.findByText('Only the first 0 voters can be listed here.')).toBeInTheDocument();
 		expect(mockGetVoters).toHaveBeenCalledTimes(MAX_VOTER_PAGES);
+		// The cap leaves the size of the gap unknown
+		expect(screen.queryByText(/other voter/)).not.toBeInTheDocument();
+	});
+
+	it('counts the voters of an option the list leaves out', async () => {
+		mockGetVoters.mockResolvedValue({ ok: true, data: { items: [voter('mei', 'o1')], nextCursor: null } });
+		render(<Harness />);
+		fireEvent.click(screen.getByRole('button', { name: 'Tabs' }));
+		expect(await screen.findByText('1 other voter')).toBeInTheDocument();
+		expect(screen.getByText('Voted anonymously or account removed')).toBeInTheDocument();
+	});
+
+	it('counts everyone left out when the API withholds the choices', async () => {
+		mockGetVoters.mockResolvedValue({
+			ok: true,
+			data: { items: [voter('mei', null), voter('klaus', null)], nextCursor: null },
+		});
+		render(<Harness participants={5} />);
+		fireEvent.click(screen.getByRole('button', { name: 'Spaces' }));
+		expect(await screen.findByText('3 other voters')).toBeInTheDocument();
+	});
+
+	it('names the viewer as the one voter left out when their vote is anonymous', async () => {
+		mockGetVoters.mockResolvedValue({ ok: true, data: { items: [voter('mei', 'o1')], nextCursor: null } });
+		render(<Harness myAnonymousOptionId="o1" />);
+		fireEvent.click(screen.getByRole('button', { name: 'Tabs' }));
+		expect(await screen.findByText('You')).toBeInTheDocument();
+		expect(screen.getByText('Voted anonymously, so you’re not listed')).toBeInTheDocument();
+	});
+
+	it('says the viewer’s anonymous vote is among those left out', async () => {
+		mockGetVoters.mockResolvedValue({ ok: true, data: { items: [], nextCursor: null } });
+		render(<Harness myAnonymousOptionId="o1" />);
+		fireEvent.click(screen.getByRole('button', { name: 'Tabs' }));
+		// No names above it, so not "other"
+		expect(await screen.findByText('2 voters')).toBeInTheDocument();
+		expect(screen.getByText('Includes your anonymous vote')).toBeInTheDocument();
+		expect(screen.queryByText('No one to show.')).not.toBeInTheDocument();
+	});
+
+	it('leaves the viewer’s anonymous vote for another option out of the reason', async () => {
+		mockGetVoters.mockResolvedValue({ ok: true, data: { items: [], nextCursor: null } });
+		render(<Harness myAnonymousOptionId="o1" />);
+		fireEvent.click(screen.getByRole('button', { name: 'Spaces' }));
+		expect(await screen.findByText('1 voter')).toBeInTheDocument();
+		expect(screen.getByText('Voted anonymously or account removed')).toBeInTheDocument();
 	});
 
 	it('says when no voter of the option can be shown', async () => {
 		mockGetVoters.mockResolvedValue({ ok: true, data: { items: [voter('mei', 'o1')], nextCursor: null } });
-		render(<Harness />);
+		render(<Harness options={[{ id: 'o2', text: 'Spaces', votes: 0 }]} />);
 		fireEvent.click(screen.getByRole('button', { name: 'Spaces' }));
 		expect(await screen.findByText('No one to show.')).toBeInTheDocument();
 	});
@@ -126,7 +186,7 @@ describe('VotersDialog', () => {
 		expect(mockGetVoters).toHaveBeenCalledTimes(1);
 	});
 
-	it('treats a community role without access to voters as hidden', async () => {
+	it('treats a role that may not read the voter list as hidden', async () => {
 		mockGetVoters.mockResolvedValue({ ok: false, status: 403, errorCode: 'community.role_forbidden', message: 'no' });
 		render(<Harness />);
 		fireEvent.click(screen.getByRole('button', { name: 'Tabs' }));

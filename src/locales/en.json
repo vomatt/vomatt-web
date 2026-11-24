@@ -33,6 +33,7 @@
 		"settings": "Settings",
 		"howCountsTitle": "How vomatt counts",
 		"howCountsBody": "One vote per person. Ballots stay sealed while a poll is open, so nobody votes with the crowd.",
+		"howCountsDismiss": "Close How vomatt counts",
 		"more": "More",
 		"appearance": "Appearance",
 		"themeLight": "Light",
@@ -121,6 +122,8 @@
 	"explore": {
 		"title": "Explore",
 		"searchPlaceholder": "Search polls and topics…",
+		"searchPlaceholderPeople": "Search polls, topics and usernames…",
+		"people": "People",
 		"topics": "Topics",
 		"moreOptions": "+{count} more",
 		"searchLabel": "Search",
@@ -335,6 +338,11 @@
 		"editTitle": "Edit poll",
 		"editSubtitle": "You can edit a poll until it opens.",
 		"removeOption": "Remove option",
+		"moveOption": "Move option",
+		"moveOptionHint": "Press to move it up or down, or use the up and down arrow keys.",
+		"moveUp": "Move up",
+		"moveDown": "Move down",
+		"optionMoved": "Moved to position {position} of {count}.",
 		"opensLabel": "Opens",
 		"opensHint": "Leave empty to open now.",
 		"endsLabel": "Ends and reveals results",
@@ -354,8 +362,8 @@
 			"signed-inHint": "Every signed-in user sees who chose what.",
 			"invited": "Everyone invited",
 			"invitedHint": "Everyone invited sees who chose what.",
-			"community": "Only {name}",
-			"communityHint": "Anyone acting as {name} sees who chose each option. Everyone else sees the totals."
+			"community": "Only {name}’s managers",
+			"communityHint": "{name}’s owners, admins and analysts see who chose each option. Everyone else sees the totals."
 		},
 		"visibilityNote": "Voters are shown this before they vote.",
 		"publish": "Publish poll",
@@ -391,7 +399,7 @@
 			"owner": "Only you will see who chose what once it ends.",
 			"signed-in": "Anyone signed in will see who chose what once it ends.",
 			"invited": "Everyone invited will see who chose what once it ends.",
-			"community": "Only people acting as {name} will see who chose what once it ends."
+			"community": "Only {name}’s owners, admins and analysts will see who chose what once it ends."
 		},
 		"ruleAnonymous": "If anyone votes anonymously, only who took part is listed.",
 		"ruleFixed": "You can’t change this after it opens.",
@@ -477,6 +485,11 @@
 		"comments": "{count} comments",
 		"comment": "1 comment",
 		"share": "Share",
+		"showQr": "Show QR code",
+		"shareOnLine": "Share on LINE",
+		"qrHint": "Scan to open this poll.",
+		"qrLabel": "QR code for this poll’s link",
+		"copyLink": "Copy link",
 		"like": "Like",
 		"liked": "Liked",
 		"likeFailed": "Couldn’t like the poll. Try again.",
@@ -525,7 +538,8 @@
 			"nobody": "After it ends, no one can see what you chose.",
 			"owner": "After it ends, only the poll owner can see what you chose.",
 			"signed-in": "After it ends, anyone signed in can see what you chose.",
-			"invited": "After it ends, everyone invited can see what you chose."
+			"invited": "After it ends, everyone invited can see what you chose.",
+			"community": "After it ends, {name}’s owners, admins and analysts can see what you chose."
 		},
 		"edit": "Edit",
 		"keepPoll": "Keep poll",
@@ -534,6 +548,14 @@
 		"voters": "Who voted",
 		"votersHidden": "The voter list for this poll is hidden, to keep anonymous votes anonymous or because of its visibility setting.",
 		"votersTruncated": "Only the first {count} voters can be listed here.",
+		"votersUnlisted": "{count} other voters",
+		"votersUnlisted_one": "{count} other voter",
+		"votersUnlistedAll": "{count} voters",
+		"votersUnlistedAll_one": "{count} voter",
+		"votersUnlistedWhy": "Voted anonymously or account removed",
+		"votersUnlistedMine": "Includes your anonymous vote",
+		"votersUnlistedYou": "You",
+		"votersUnlistedYouWhy": "Voted anonymously, so you’re not listed",
 		"votersNone": "No one to show.",
 		"votersChoicesHidden": "This poll has anonymous votes, so no choices are shown. Listing everyone who voted by name.",
 		"votersFailed": "Couldn’t load who voted.",
@@ -705,6 +727,11 @@
 		"add": "Invite",
 		"addFailed": "Couldn’t invite them. Try again.",
 		"removeFailed": "Couldn’t remove them. Try again.",
+		"removeTitle": "Remove {name}?",
+		"removeBody": "They’ll no longer see this poll or be able to vote.",
+		"removeEndsBody": "Everyone else has voted, so the poll ends now and the results are revealed. This can’t be undone.",
+		"removeConfirm": "Remove",
+		"removeAndEnd": "Remove and end poll",
 		"communityNotAllowed": "Community accounts don’t vote, so they can’t be invited."
 	},
 	"groups": {
@@ -1002,7 +1029,8 @@
 	"apiError": {
 		"invitation": {
 			"email": {
-				"too_soon": "You’ve emailed this address too many times recently. Try again later."
+				"too_soon": "You’ve emailed that address too many invitations in a short time, so you can’t email it for now.",
+				"daily_limit": "You’ve reached today’s invitation email limit. Try again tomorrow."
 			}
 		},
 		"common": {
@@ -1115,7 +1143,8 @@
 			},
 			"not_allowed": "Voting period has ended or not started",
 			"ballot": {
-				"community_not_allowed": "Community accounts don’t vote."
+				"community_not_allowed": "Community accounts don’t vote.",
+				"phone_verification_required": "This poll asks for a verified phone number. Add yours in Settings, then vote."
 			},
 			"ended": "This poll has ended; ballots can no longer be cast or retracted",
 			"results": {
@@ -1209,15 +1238,16 @@
 			"role_forbidden": "Your role in this community account doesn’t allow this. Owners and admins manage the account and its members; chief editors change any poll or comment; editors change only their own; analysts only see result reports.",
 			"invitation": {
 				"not_found": "That invitation is no longer available.",
-				"exists": "They’re already invited. Revoke the pending invitation to send a new one."
+				"exists": "They’re already invited. Revoke the pending invitation to send a new one.",
+				"not_email": "Only an invitation sent to an email address can be emailed again."
 			},
+			"member_limit_reached": "This community account has as many members and pending invitations as its plan allows. Revoke an invitation or remove a member to invite someone new.",
 			"member": {
 				"exists": "They’re already a member.",
 				"invalid": "They can’t be added to this account.",
 				"not_found": "They’re no longer a member. The list has been refreshed."
 			},
 			"limit_reached": "You already own as many community accounts as your plan allows.",
-			"member_limit_reached": "This community account has reached its member limit (members plus pending invitations). Remove a member or revoke an invitation first.",
 			"locked": "This community account is locked, so it can’t do that. Upgrade to Pro, or have an owner with room unlock it.",
 			"keep": {
 				"invalid": "Choose exactly as many accounts as asked, all ones you own."
@@ -1284,9 +1314,8 @@
 		"appLanguage": "App language",
 		"appLanguageBody": "See buttons, titles and other text on vomatt in your preferred language.",
 		"appLanguageNote": "Polls and comments stay in the language they were written in.",
-		"legal": "Legal",
-		"terms": "Terms",
-		"privacyPolicy": "Privacy",
+		"terms": "Terms of Service",
+		"privacyPolicy": "Privacy Policy",
 		"notifyResultsIn": "Results are in",
 		"notifyResultsInBody": "When a poll you voted in or asked ends. This is the promise on every ballot.",
 		"notifyInvitations": "Invitations",
@@ -1307,7 +1336,9 @@
 		"visibilityNotSet": "Not set",
 		"visibilityOn": "{field} shown to everyone",
 		"visibilityOff": "{field} shown only to you",
-		"visibilityEditDetails": "Edit these details"
+		"visibilityEditDetails": "Edit these details",
+		"about": "About",
+		"aboutVomatt": "About vomatt"
 	},
 	"passkey": {
 		"title": "Passkeys",
@@ -1375,7 +1406,7 @@
 			"ADMIN": "Everything except changing or removing owners.",
 			"CHIEF_EDITOR": "Posts, and edits or ends anyone’s polls and comments.",
 			"EDITOR": "Posts polls and comments, and edits their own.",
-			"ANALYST": "Sees result reports; doesn’t post."
+			"ANALYST": "Sees result reports and voter lists; doesn’t post."
 		},
 		"you": "(you)",
 		"joined": "joined {date}",
@@ -1406,6 +1437,8 @@
 		"invitationExpired": "expired",
 		"revoke": "Revoke invitation",
 		"revoked": "Revoked the invitation to {name}",
+		"resend": "Resend invitation",
+		"resent": "Emailed the invitation to {name} again",
 		"roleChanged": "Changed @{name}’s role",
 		"transferred": "@{name} is now an owner",
 		"removed": "Removed @{name}",
@@ -1504,7 +1537,8 @@
 	"meta": {
 		"siteDescription": "Ask a question, vote on other people’s polls, and see what everyone really thinks. Ballots stay sealed until a poll ends, so nobody votes with the crowd.",
 		"exploreDescription": "Browse public polls by topic. Vote on open polls and see the results of polls that have ended.",
-		"profileDescription": "See the polls {name} has asked."
+		"profileDescription": "See the polls {name} has asked.",
+		"topicDescription": "Polls about {topic}. Vote on the open ones and see what everyone thinks."
 	},
 	"plan": {
 		"upgrade": "Upgrade to Pro",

@@ -20,13 +20,15 @@ type PasskeyLoginButtonProps = {
 	onSignedIn: () => void;
 	/** Called with null when a new attempt starts. */
 	onError: (error: AuthErrorKey | null) => void;
+	/** False for the button alone: no passkey request starts until it is pressed. */
+	autofill?: boolean;
 };
 
 /**
- * Signs in with a passkey from this button, or, while it is mounted, from the
+ * Signs in with a passkey from this button, or, while it is mounted with `autofill`, from the
  * autofill menu of an input with `autoComplete="username webauthn"`.
  */
-export function PasskeyLoginButton({ onSignedIn, onError }: PasskeyLoginButtonProps) {
+export function PasskeyLoginButton({ onSignedIn, onError, autofill: offersAutofill = true }: PasskeyLoginButtonProps) {
 	const { t } = useLanguage();
 	const isSupported = useSupportsPasskeys();
 	const [isSigningIn, setIsSigningIn] = useState(false);
@@ -87,7 +89,9 @@ export function PasskeyLoginButton({ onSignedIn, onError }: PasskeyLoginButtonPr
 	}
 
 	const prepare = useEffectEvent(async (signal: AbortSignal) => {
+		// Ready before the tap, even on a slow network; the button alone starts no passkey request
 		loginOptions();
+		if (!offersAutofill) return;
 		const available = await window.PublicKeyCredential.isConditionalMediationAvailable?.();
 		if (available && !signal.aborted) await signIn('conditional', signal);
 	});
@@ -126,7 +130,15 @@ export function PasskeyLoginButton({ onSignedIn, onError }: PasskeyLoginButtonPr
 
 	if (!isSupported) return null;
 	return (
-		<Button type="button" variant="outline" className="mt-2 w-full" loading={isSigningIn} onClick={signInWithButton}>
+		<Button
+			type="button"
+			variant="outline"
+			className="mt-2 w-full"
+			loading={isSigningIn}
+			onPointerDown={loginOptions}
+			onFocus={loginOptions}
+			onClick={signInWithButton}
+		>
 			{t('auth.continueWithPasskey')}
 		</Button>
 	);

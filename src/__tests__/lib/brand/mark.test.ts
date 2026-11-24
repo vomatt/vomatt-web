@@ -2,6 +2,7 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 
 import {
+	APP_TILE,
 	APPLE_TILE,
 	MARK_ICONS,
 	MARK_PATH,
@@ -9,6 +10,7 @@ import {
 	markGlossIconSvg,
 	markIconSvg,
 	markLoaderSvg,
+	MASKABLE_TILE,
 	roundedPolygon,
 } from '@/lib/brand/mark';
 
@@ -47,6 +49,18 @@ describe('brand mark', () => {
 	it('ships the current mark as the favicon', () => {
 		const shipped = readFileSync(join(process.cwd(), 'src/app/icon0.svg'), 'utf8').trim();
 		expect(shipped).toBe(markIconSvg(MARK_ICONS.favicon));
+	});
+});
+
+describe('app icons', () => {
+	it('rounds the corners of the tile under the glossy mark when the tile has a radius', () => {
+		expect(markGlossIconSvg(APP_TILE)).toMatch(/<rect fill="#14213a" [^>]* rx="42\.48"\/>/);
+		expect(markGlossIconSvg(APPLE_TILE)).toContain('<rect fill="#14213a" x="-36.55" y="-36.55" width="193.1" height="193.1"/>');
+	});
+
+	it("keeps the maskable icon's mark inside the centre 80% safe zone", () => {
+		expect(MASKABLE_TILE.scale).toBeLessThanOrEqual(0.8);
+		expect(MASKABLE_TILE).not.toHaveProperty('radius');
 	});
 });
 

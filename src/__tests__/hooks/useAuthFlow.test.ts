@@ -24,7 +24,7 @@ beforeEach(() => {
 
 async function atCodeStep() {
 	mockRequestOtp.mockResolvedValue({ status: 'SUCCESS' });
-	const hook = renderHook(() => useAuthFlow());
+	const hook = renderHook(() => useAuthFlow('page'));
 	await act(async () => {
 		await hook.result.current.submitEmail('User@Test.com');
 	});
@@ -33,7 +33,7 @@ async function atCodeStep() {
 
 describe('useAuthFlow', () => {
 	it('starts at the email step', () => {
-		const { result } = renderHook(() => useAuthFlow());
+		const { result } = renderHook(() => useAuthFlow('page'));
 		expect(result.current.step).toBe('email');
 	});
 
@@ -47,7 +47,7 @@ describe('useAuthFlow', () => {
 
 	it('stays on the email step when sending fails', async () => {
 		mockRequestOtp.mockResolvedValue({ status: 'ERROR', error: 'rateLimited' });
-		const { result } = renderHook(() => useAuthFlow());
+		const { result } = renderHook(() => useAuthFlow('page'));
 
 		let res: unknown;
 		await act(async () => {

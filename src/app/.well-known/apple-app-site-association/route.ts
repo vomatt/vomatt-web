@@ -21,7 +21,8 @@ export async function GET() {
 	if (appIDs.length === 0) return new Response(null, { status: 404 });
 
 	const components: Component[] = [
-		{ '/': '/poll/*', comment: 'Poll' },
+		// By UUID only: the app can't read a short poll id yet, so those links stay on the web
+		{ '/': '/poll/????????-????-????-????-????????????', comment: 'Poll' },
 		{ '/': '/', exclude: true },
 		...EXCLUDED_ROOTS.map((root): Component => ({ '/': `/${root}`, exclude: true })),
 		{ '/': '/*/*', exclude: true, comment: 'Profiles are a single segment' },

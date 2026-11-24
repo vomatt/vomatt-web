@@ -27,4 +27,19 @@ describe('MoreMenu', () => {
 		expect(screen.getByRole('menuitem', { name: 'Log out' })).toBeInTheDocument();
 		expect(screen.getByText('Appearance')).toBeInTheDocument();
 	});
+
+	it('links the legal pages on the about site for guests, without the account actions', async () => {
+		render(<MoreMenu signedIn={false} />);
+		fireEvent.click(screen.getByRole('button', { name: 'More' }));
+		expect(await screen.findByRole('menuitem', { name: 'Terms of Service' })).toHaveAttribute('href', 'https://about.vomatt.com/terms-of-service');
+		expect(screen.getByRole('menuitem', { name: 'Privacy Policy' })).toHaveAttribute('href', 'https://about.vomatt.com/privacy-policy');
+		expect(screen.queryByRole('menuitem', { name: 'Settings' })).not.toBeInTheDocument();
+	});
+
+	it('leaves the legal pages to Settings › About', async () => {
+		render(<MoreMenu signedIn />);
+		fireEvent.click(screen.getByRole('button', { name: 'More' }));
+		expect(await screen.findByRole('menuitem', { name: 'Settings' })).toBeInTheDocument();
+		expect(screen.queryByRole('menuitem', { name: /Terms|Privacy/ })).not.toBeInTheDocument();
+	});
 });

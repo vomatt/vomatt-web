@@ -31,6 +31,7 @@ import { ProfileAvatar, ProfileName } from '@/features/profiles/UserChip';
 import type { ActionResult } from '@/lib/api/action';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
+import { foldAway } from '@/lib/motion';
 import { META_GAP } from '@/lib/rich';
 import { cn } from '@/lib/utils';
 
@@ -47,7 +48,7 @@ import {
 	type MyCommunity,
 	OFFERED_ROLES,
 } from './schema';
-import { changeRole, inviteMember, removeMember, revokeInvitation, transferOwner } from './service';
+import { changeRole, inviteMember, removeMember, resendInvitation, revokeInvitation, transferOwner } from './service';
 
 // The list is stale after these: someone else changed it, or the viewer's role
 const REFRESH_CODES = [
@@ -57,6 +58,10 @@ const REFRESH_CODES = [
 	'community.invitation.exists',
 	'community.role_forbidden',
 	'community.not_member',
+	// A stale resendAvailableAt
+	'invitation.email.too_soon',
+	// Another manager took the last seat
+	'community.member_limit_reached',
 ];
 
 const ICONS: Record<MemberAction, React.ReactNode> = {
@@ -71,8 +76,8 @@ type Pending = { action: MemberAction; member: CommunityMember };
 /** One row action: the request, what follows its success, the toast, and the confirm dialog's copy (none for Change role, which has its own dialog). */
 type Step<T = unknown> = {
 	request: () => Promise<ActionResult<T>>;
-	// A method, so a step over one data type still fits `Step`
-	after(data: T): void;
+	// A method, so a step over one data type still fits `Step`; a row folding away returns its promise
+	after(data: T): void | Promise<void>;
 	done: string;
 	confirm?: { title: string; body: string; cta: string };
 };
@@ -120,20 +125,23 @@ export function CommunityMembers({
 	const roleChoices = pending && !grantable.includes(pending.member.role) ? [...grantable, pending.member.role] : grantable;
 	const [busy, setBusy] = useState(false);
 	const clock = useViewerClock();
+	const canInvite = canManageMembers(community.role) && !community.locked;
 
 	/** Sends a change; the error when it didn't go through, null when it did. */
 	const send = async <T,>({ request, after, done }: Omit<Step<T>, 'confirm'>) => {
 		setBusy(true);
 		const result = await settle(request());
-		setBusy(false);
 		if (!result.ok) {
+			setBusy(false);
 			if (result.errorCode && REFRESH_CODES.includes(result.errorCode)) router.refresh();
 			// Every limit this page can hit is the other member's: they'd become an owner
 			const text = result.errorCode === 'community.limit_reached' ? t('communities.theirLimitReached') : apiErrorText(t, result);
 			return { text, code: result.errorCode };
 		}
 		toast.success(done);
-		after(result.data);
+		// Stays busy while a row folds, so it can't be acted on twice
+		await after(result.data);
+		setBusy(false);
 		return null;
 	};
 
@@ -211,8 +219,12 @@ export function CommunityMembers({
 					<h2 id="members-title" className="text-title-4">
 						{t('communities.members')}
 					</h2>
-					{canManageMembers(community.role) && !community.locked && (
-						<Button size="md" variant="outline" onClick={() => setAdding(true)}>
+					{canInvite && (
+						<Button
+							size="md"
+							variant="outline"
+							onClick={() => setAdding(true)}
+						>
 							<Plus aria-hidden />
 							{t('communities.invite')}
 						</Button>
@@ -283,6 +295,10 @@ export function CommunityMembers({
 						{invitations.map((invitation) => {
 							const name = invitation.username ? handle(invitation.username) : (invitation.email ?? '');
 							const expired = !!clock && new Date(invitation.expiresAt).getTime() <= clock.now;
+							// Only an invitation by email is mailed, and only once its window has passed
+							// An ADMIN can't resend one that grants OWNER
+							const resendable = !!invitation.email && !expired && grantable.includes(invitation.role);
+							const windowPassed = !!clock && !!invitation.resendAvailableAt && new Date(invitation.resendAvailableAt).getTime() <= clock.now;
 							return (
 								<li key={invitation.id} className={cn(rowClassName, 'gap-3')}>
 									{invitation.username && (
@@ -300,19 +316,40 @@ export function CommunityMembers({
 											</span>
 										</p>
 									</div>
+									{!community.locked && resendable && (
+										<Button
+											variant="ghost"
+											size="xs"
+											aria-label={t('communities.resend') + ': ' + name}
+											disabled={busy || !windowPassed}
+											onClick={() =>
+												run({
+													request: () => resendInvitation(community.communityId, invitation.id),
+													after: (sent) => setInvitations((list) => list.map((i) => (i.id === sent.id ? sent : i))),
+													done: t('communities.resent', { name }),
+												})
+											}
+										>
+											{t('communities.resend')}
+										</Button>
+									)}
 									{!community.locked && (
 										<Button
 											variant="ghost"
 											size="icon-xs"
 											aria-label={t('communities.revoke') + ': ' + name}
 											disabled={busy}
-											onClick={() =>
+											onClick={(event) => {
+												const row = event.currentTarget.closest('li');
 												run({
 													request: () => revokeInvitation(community.communityId, invitation.id),
-													after: () => setInvitations((list) => list.filter((i) => i.id !== invitation.id)),
+													after: async () => {
+														await foldAway(row);
+														setInvitations((list) => list.filter((i) => i.id !== invitation.id));
+													},
 													done: t('communities.revoked', { name }),
-												})
-											}
+												});
+											}}
 										>
 											<Trash2 aria-hidden />
 										</Button>
@@ -343,15 +380,21 @@ export function CommunityMembers({
 				roles={grantableRoles(community.role)}
 				excludeIds={members.map((member) => member.userId)}
 				busy={busy}
-				onInvite={(invitee, role) => {
+				onInvite={async (invitee, role) => {
 					const name = 'user' in invitee ? `@${invitee.user.username}` : invitee.email;
 					// The dialog shows the error itself, next to who was picked
-					return send({
+					const error = await send({
 						request: () => inviteMember(community.communityId, 'user' in invitee ? { userId: invitee.user.id } : invitee, role),
 						// A re-sent invitation replaces the expired one
 						after: (sent) => setInvitations((list) => [...list.filter((i) => i.id !== sent.id && !(sent.username ? i.username === sent.username : !!sent.email && i.email === sent.email)), sent]),
 						done: t('communities.invited', { name }),
 					});
+					// No one else can be invited either: close, and let the refreshed list show who holds the seats
+					if (error?.code === 'community.member_limit_reached') {
+						toast.error(error.text, { duration: Infinity });
+						return null;
+					}
+					return error;
 				}}
 			/>
 

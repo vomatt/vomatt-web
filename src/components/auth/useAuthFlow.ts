@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 
+import { trackEvent } from '@/lib/analytics';
 import type { AuthErrorKey } from '@/lib/api/auth-errors';
 import { requestOtp, verifyOtp } from '@/lib/api/services/auth';
 import { getMyProfile, updateProfile } from '@/lib/api/services/users';
@@ -17,8 +18,9 @@ export const SERVER_ERROR: AuthResult = { status: 'ERROR', error: 'serverError' 
 /**
  * One flow for sign-in and sign-up: the backend signs in an existing email
  * and creates an account for a new one with the same one-time code.
+ * `surface` is where it runs, for the sign-in events.
  */
-export function useAuthFlow() {
+export function useAuthFlow(surface: 'dialog' | 'page') {
 	const [step, setStep] = useState<AuthStep>('email');
 	const [email, setEmail] = useState('');
 	/** Seconds until a resend, when the code step opened during the cooldown of an earlier code. */
@@ -30,6 +32,7 @@ export function useAuthFlow() {
 		try {
 			const res = await requestOtp(value);
 			if (res.status === 'ERROR') return res;
+			if (res.status === 'SUCCESS') trackEvent('sign_in_code_sent', { surface });
 			// A code sent within the cooldown (after a reload, or a quick sign-out) is usually still valid: both last 180 s
 			setResendIn(res.status === 'COOLDOWN' ? res.seconds : undefined);
 			setEmail(value.trim());
@@ -38,7 +41,7 @@ export function useAuthFlow() {
 		} catch {
 			return SERVER_ERROR;
 		}
-	}, []);
+	}, [surface]);
 
 	const resendCode = useCallback(async (): Promise<ResendResult> => {
 		try {
@@ -55,6 +58,7 @@ export function useAuthFlow() {
 			try {
 				const res = await verifyOtp(email, code);
 				if (res.status === 'ERROR') return res;
+				trackEvent('sign_in_completed', { surface, method: 'email', newAccount: res.isNewUser });
 				if (res.isNewUser) {
 					setUsername(res.username);
 					setStep('profile');
@@ -72,7 +76,7 @@ export function useAuthFlow() {
 				return SERVER_ERROR;
 			}
 		},
-		[email]
+		[email, surface]
 	);
 
 	/** Saves a new account's real name. The account already exists, so failure isn't fatal. */

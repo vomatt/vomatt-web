@@ -422,6 +422,24 @@ describe('OwnProfileView', () => {
 		expect(screen.getByRole('tab', { name: /Voted/ })).toHaveTextContent('Voted2');
 	});
 
+	it('opens the tab a record count counts, scrolling the tabs into view', () => {
+		const original = Element.prototype.scrollIntoView;
+		const scrollIntoView = jest.fn();
+		Element.prototype.scrollIntoView = scrollIntoView;
+		try {
+			render(<OwnProfileView profile={me} polls={[mine, voted, sealed]} />);
+
+			fireEvent.click(within(cell('polls voted in')!).getByRole('button', { name: '2' }));
+			expect(screen.getByRole('tab', { name: /Voted/, selected: true })).toBeInTheDocument();
+			expect(scrollIntoView).toHaveBeenCalledWith({ block: 'nearest' });
+
+			fireEvent.click(within(cell('polls asked')!).getByRole('button'));
+			expect(screen.getByRole('tab', { name: /Asked/, selected: true })).toBeInTheDocument();
+		} finally {
+			Element.prototype.scrollIntoView = original;
+		}
+	});
+
 	it('lists asked polls with the owner menu, and voted ones with the pick and outcome', () => {
 		render(<OwnProfileView profile={me} polls={[mine, voted, sealed]} />);
 
@@ -455,7 +473,7 @@ describe('OwnProfileView', () => {
 
 		await userEvent.click(screen.getByRole('button', { name: 'More actions for Poll i' }));
 		const items = (await screen.findAllByRole('menuitem')).map((item) => item.textContent);
-		expect(items).toEqual(['End poll now…', 'Invitees', 'Share']);
+		expect(items).toEqual(['End poll now…', 'Invitees', 'Share', 'Show QR code', 'Share on LINE']);
 	});
 
 	it('puts the unread dot right after the title, not at either edge of the row', () => {

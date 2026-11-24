@@ -14,3 +14,6 @@ const twMerge = extendTailwindMerge({
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
+
+/** The text in a wrapping row beside a button: it shares the line while it has 14rem, otherwise the button drops below it. */
+export const wrapRowText = 'min-w-0 grow basis-56';

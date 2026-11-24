@@ -1,14 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { CookieChoiceRow } from '@/components/layout/CookieConsent';
 import type { Integrations } from '@/components/layout/HeadTrackingCode';
-import { LegalLinks } from '@/components/layout/LegalLinks';
 import { rowClassName, rowLinkClassName, RowText, SettingsCard } from '@/components/SettingsCard';
 import {
 	AlertDialog,
@@ -23,10 +21,9 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
-import { Check, ChevronRight } from '@/components/ui/SvgIcons';
+import { ArrowUpRight, ChevronRight } from '@/components/ui/SvgIcons';
 import { Switch } from '@/components/ui/Switch';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { PhoneBindDialog } from '@/features/account/PhoneBindDialog';
 import { isSettingPublic, VISIBILITY_SETTINGS } from '@/features/account/visibility';
 import { UpgradeButton } from '@/features/billing/UpgradeButton';
 import { CommunityAccountsCard } from '@/features/communities/CommunityAccountsCard';
@@ -45,15 +42,23 @@ import { useFocusAfterRender } from '@/hooks/useFocusAfterRender';
 import { useHydrated } from '@/hooks/useHydrated';
 import { useSavingKeys } from '@/hooks/useSavingKeys';
 import { htmlLang, SUPPORTED_LANGUAGES } from '@/i18n-config';
+import { aboutHref } from '@/lib/aboutSite';
 import { apiErrorText } from '@/lib/api/error-text';
 import { signout } from '@/lib/api/services/auth';
 import { deleteMyAccount, editProfile } from '@/lib/api/services/users';
 import { countText } from '@/lib/count';
-import { cn } from '@/lib/utils';
+import { cn, wrapRowText } from '@/lib/utils';
 import type { CommunityQuota, MyProfile } from '@/types/user';
 
 /** The page's sections, in order; the On this page list links to each. */
-export const SETTINGS_SECTIONS = ['voting', 'notifications', 'appearance', 'privacy', 'help', 'communities', 'account'] as const;
+export const SETTINGS_SECTIONS = ['voting', 'notifications', 'appearance', 'privacy', 'help', 'communities', 'account', 'about'] as const;
+
+/** The about site's pages the About section links to. */
+const ABOUT_PAGES = [
+	{ slug: 'about', labelKey: 'settings.aboutVomatt' },
+	{ slug: 'terms-of-service', labelKey: 'settings.terms' },
+	{ slug: 'privacy-policy', labelKey: 'settings.privacyPolicy' },
+];
 
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
 	return (
@@ -212,7 +217,6 @@ export default function AccountSettings({
 							{t('account.signOut')}
 						</Button>
 					</div>
-					<PhoneRow profile={profile} />
 					<div className={cn(rowClassName, 'flex-col items-stretch')}>
 						<PasskeysPanel />
 					</div>
@@ -228,10 +232,20 @@ export default function AccountSettings({
 				</SettingsCard>
 			</Section>
 
+			<Section id="about" title={t('settings.about')}>
+				<SettingsCard>
+					{ABOUT_PAGES.map(({ slug, labelKey }) => (
+						<a key={slug} href={aboutHref(slug, currentLanguage)} className={rowLinkClassName}>
+							<RowText title={t(labelKey)} />
+							{/* Another site, not a Settings page */}
+							<ArrowUpRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+						</a>
+					))}
+				</SettingsCard>
+			</Section>
+
 			{/* Kept apart, at the end, and quiet until opened */}
 			<DeleteAccount username={profile.username} />
-
-			<LegalLinks className="flex gap-4.5 text-caption-1 text-muted-foreground" />
 		</div>
 	);
 }
@@ -311,51 +325,6 @@ function CreateCommunityRow({ profile: { plan, communityQuota: quota } }: { prof
 			</button>
 			<CreateCommunityDialog open={open} onOpenChange={setOpen} />
 		</SettingsCard>
-	);
-}
-
-/** The account's phone number: add one, verify one, or show it as verified. */
-function PhoneRow({ profile }: { profile: MyProfile }) {
-	const { t } = useLanguage();
-	const router = useRouter();
-	const [open, setOpen] = useState(false);
-	const phone = profile.phoneNumber;
-	return (
-		<div className={cn(rowClassName, 'flex-wrap')}>
-			<RowText
-				title={t('phoneBind.rowTitle')}
-				body={
-					!phone ? (
-						t('phoneBind.rowBodyNone')
-					) : (
-						<span className="inline-flex flex-wrap items-center gap-x-2">
-							<span className="tabular-nums wrap-anywhere">{phone}</span>
-							{profile.phoneVerified && (
-								<span className="inline-flex items-center gap-1 text-foreground">
-									<Check aria-hidden className="size-3.5" />
-									{t('phoneBind.verified')}
-								</span>
-							)}
-						</span>
-					)
-				}
-			/>
-			{!profile.phoneVerified && (
-				<Button variant="outline" size="md" onClick={() => setOpen(true)}>
-					{t(phone ? 'phoneBind.verify' : 'phoneBind.add')}
-				</Button>
-			)}
-			<PhoneBindDialog
-				open={open}
-				onOpenChange={setOpen}
-				defaultPhone={phone}
-				onVerified={() => {
-					setOpen(false);
-					toast.success(t('phoneBind.done'));
-					router.refresh();
-				}}
-			/>
-		</div>
 	);
 }
 
@@ -554,7 +523,7 @@ function DeleteAccount({ username }: { username: string }) {
 			aria-labelledby="delete-title"
 			className={cn(rowClassName, 'flex-wrap rounded-2xl border border-destructive/30 bg-card')}
 		>
-			<span className="min-w-0 grow basis-56">
+			<span className={wrapRowText}>
 				<h2 id="delete-title" className="font-medium text-destructive">
 					{t('account.deleteTitle')}
 				</h2>
@@ -615,6 +584,7 @@ const SECTION_TITLES: Record<(typeof SETTINGS_SECTIONS)[number], string> = {
 	help: 'settings.help',
 	communities: 'communities.title',
 	account: 'settings.account',
+	about: 'settings.about',
 };
 
 /** On this page: the sections as links, the one in view marked. */

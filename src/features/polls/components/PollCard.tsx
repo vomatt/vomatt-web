@@ -9,9 +9,11 @@ import { toast } from 'sonner';
 import { AuthDialog } from '@/components/auth/AuthDialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useActing } from '@/features/communities/ActingProvider';
+import { canReadResults } from '@/features/communities/permissions';
 import { UserChip } from '@/features/profiles/UserChip';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
+import { EASE_OUT_STRONG } from '@/lib/motion';
 import { pollHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
@@ -133,15 +135,20 @@ export function PollCard({
 	const ballot = useBallot(poll, { isAuthed, anonymousByDefault, onPollEnded: handlePollEnded });
 	// Ended by the clock, this copy still has the Open Poll's Turnout; Results fetch the counts
 	const { status, sealedUntil } = usePollStatus(poll, refetch);
+	// Results fill in only when the end or reveal happens on screen; a feed of ended Polls stays still
+	const [revealedOnMount] = useState(status === 'ended' && !sealedUntil);
 	const { id, title, description, creatorId, creatorUsername, createdAt } = poll;
 	const isOwner = !!viewerId && viewerId === creatorId;
 	const canSeeVoters =
 		!sealedUntil &&
-		(poll.voterVisibility === 'signed-in' ? isAuthed : poll.voterVisibility === 'owner' && isOwner);
+		(poll.voterVisibility === 'signed-in'
+			? isAuthed
+			: // An unknown role (its account list failed to load) leaves it to the API
+				poll.voterVisibility === 'owner' && isOwner && (!acting?.role || canReadResults(acting.role)));
 	const voters = useVoters(id, isAuthed ? (viewerId ?? 'signed-in') : 'guest');
-	const [votersOption, setVotersOption] = useState<ResultRow | null>(null);
-	const showVoters = (row: ResultRow) => {
-		setVotersOption(row);
+	const [votersOption, setVotersOption] = useState<(ResultRow & { participants: number }) | null>(null);
+	const showVoters = (row: ResultRow, participants: number) => {
+		setVotersOption({ ...row, participants });
 		voters.load(row);
 	};
 
@@ -175,7 +182,7 @@ export function PollCard({
 								username={creatorUsername}
 								avatarUrl={poll.creatorAvatarUrl}
 								// 44px tall hit area without growing the header row
-								className="pointer-events-auto -my-2.5 min-h-11 gap-2.5 font-medium text-foreground transition-colors hover:text-muted-foreground"
+								className="pointer-events-auto -my-2.5 min-h-11 gap-2.5 font-medium text-foreground transition-colors hover:text-muted-foreground active:text-muted-foreground"
 								avatarClassName="size-7"
 							/>
 							{/* The age needs the viewer's clock; the line holds its height until then */}
@@ -207,9 +214,9 @@ export function PollCard({
 							{title}
 						</Heading>
 					) : (
-						<Link href={pollHref(id)} className="after:absolute after:inset-0 after:rounded-2xl">
+						<Link href={pollHref(id)} className="group/card-link after:absolute after:inset-0 after:rounded-2xl">
 							<Heading
-									className="text-title-3 text-balance wrap-anywhere text-foreground hover:text-muted-foreground transition-colors md:text-title-2"
+									className="text-title-3 text-balance wrap-anywhere text-foreground hover:text-muted-foreground group-active/card-link:text-muted-foreground transition-colors md:text-title-2"
 							>
 								{title}
 							</Heading>
@@ -230,7 +237,7 @@ export function PollCard({
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
-						transition={{ duration: 0.2 }}
+						transition={{ duration: 0.12, ease: EASE_OUT_STRONG }}
 					>
 						{sealedUntil ? (
 							<SealedUntilReveal revealAt={sealedUntil} />
@@ -241,6 +248,7 @@ export function PollCard({
 								turnout={ballot.turnout}
 								onSealed={refetch}
 								onSelectOption={canSeeVoters ? showVoters : undefined}
+								reveal={!revealedOnMount}
 							/>
 						) : (
 							<Ballot
@@ -279,7 +287,12 @@ export function PollCard({
 			{isReporting && <ReportCommentDialog pollId={id} open onOpenChange={setIsReporting} />}
 
 			{canSeeVoters && (
-				<VotersDialog option={votersOption} voters={voters} onClose={() => setVotersOption(null)} />
+				<VotersDialog
+					option={votersOption}
+					voters={voters}
+					myAnonymousOptionId={ballot.anonymous ? ballot.savedOptionId : null}
+					onClose={() => setVotersOption(null)}
+				/>
 			)}
 
 			{authDialog.open && <AuthDialog {...authDialog} />}

@@ -20,6 +20,9 @@ jest.mock('@/features/follows/service', () => ({
 	getFollowing: jest.fn().mockResolvedValue({ ok: true, data: { items: [], nextCursor: null } }),
 }));
 
+// Product events go to Vercel Analytics, which ships ESM only; tests that check an event mock it themselves.
+jest.mock('@vercel/analytics', () => ({ track: jest.fn() }));
+
 // The switcher, banner and no-vote notice sit on every page and card; their Server Action reaches
 // the auth stack too. Tests that check acting itself mock it with their own expectations.
 jest.mock('@/features/communities/acting', () => ({

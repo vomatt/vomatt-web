@@ -189,4 +189,9 @@ describe('visibilityLevel()', () => {
 		expect(visibilityLevel({ voterVisibility: 'owner', audience: 'invite-only' })).toBe('owner');
 		expect(visibilityLevel({ voterVisibility: undefined, audience: 'public' })).toBeUndefined();
 	});
+
+	it('reads owner as community on a community account’s Poll', () => {
+		expect(visibilityLevel({ voterVisibility: 'owner', audience: 'public', creatorCommunity: true })).toBe('community');
+		expect(visibilityLevel({ voterVisibility: 'nobody', audience: 'public', creatorCommunity: true })).toBe('nobody');
+	});
 });

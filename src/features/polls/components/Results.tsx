@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { countText } from '@/lib/count';
+import { EASE_OUT_STRONG } from '@/lib/motion';
 import { META_GAP } from '@/lib/rich';
 import { cn } from '@/lib/utils';
 
@@ -18,24 +19,24 @@ import { ElectedMark } from './ElectedMark';
 
 export type ResultRow = { id: string; text: string; votes: number };
 
-const BAR_EASE = [0.22, 1, 0.36, 1] as const;
-const BAR_DURATION = 0.8;
-const STAGGER = 0.08;
+const BAR_EASE = EASE_OUT_STRONG;
+const BAR_DURATION = 0.3;
+const STAGGER = 0.05;
 
-/** Counts up to `value` alongside its bar. Screen readers get the final value elsewhere. */
-function CountUp({ value, delay }: { value: number; delay: number }) {
-	const reduceMotion = useReducedMotion();
-	const count = useMotionValue(reduceMotion ? value : 0);
+/** Counts up to `value` alongside its bar when `reveal`; otherwise shows it at once. Screen readers get the final value elsewhere. */
+function CountUp({ value, delay, reveal }: { value: number; delay: number; reveal: boolean }) {
+	const still = useReducedMotion() || !reveal;
+	const count = useMotionValue(still ? value : 0);
 	const label = useTransform(count, (latest) => `${Math.round(latest)}%`);
 
 	useEffect(() => {
-		if (reduceMotion) {
+		if (still) {
 			count.set(value);
 			return;
 		}
 		const controls = animate(count, value, { duration: BAR_DURATION, delay, ease: BAR_EASE });
 		return () => controls.stop();
-	}, [count, delay, reduceMotion, value]);
+	}, [count, delay, still, value]);
 
 	return <m.span aria-hidden>{label}</m.span>;
 }
@@ -43,14 +44,14 @@ function CountUp({ value, delay }: { value: number; delay: number }) {
 const MotionElectedMark = m.create(ElectedMark);
 
 /** The Elected stamp on the winning option, pressed down once its bar fills. */
-function ElectedStamp({ label }: { label: string }) {
+function ElectedStamp({ label, reveal }: { label: string; reveal: boolean }) {
 	return (
 		<MotionElectedMark
 			label={label}
 			className="relative size-[18px]"
-			initial={{ scale: 1.6, opacity: 0 }}
+			initial={reveal ? { scale: 1.6, opacity: 0 } : false}
 			animate={{ scale: 1, opacity: 1 }}
-			transition={{ duration: 0.3, ease: [0.25, 1, 0.5, 1], delay: BAR_DURATION }}
+			transition={{ duration: 0.3, ease: EASE_OUT_STRONG, delay: BAR_DURATION }}
 		/>
 	);
 }
@@ -65,7 +66,7 @@ function RowContent({ onClick, children }: { onClick?: () => void; children: Rea
 			type="button"
 			onClick={onClick}
 			aria-haspopup="dialog"
-			className={cn(ROW_CLASS, 'cursor-pointer rounded-xl outline-none transition-colors hover:bg-foreground/[0.03] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring')}
+			className={cn(ROW_CLASS, 'cursor-pointer rounded-xl outline-none transition-colors hover:bg-foreground/[0.03] active:bg-foreground/[0.03] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring')}
 		>
 			{children}
 		</button>
@@ -78,8 +79,10 @@ type ResultsProps = {
 	turnout: number | undefined;
 	/** `/results` answered 403: the Poll is still sealed, so refetch it. */
 	onSealed: () => void;
-	/** Set when the viewer may see who voted: options with votes become buttons. */
-	onSelectOption?: (row: ResultRow) => void;
+	/** Set when the viewer may see who voted: options with votes become buttons. Gets the Poll's participant count too. */
+	onSelectOption?: (row: ResultRow, participants: number) => void;
+	/** The Poll ended while on screen: fill the bars and count up. A card that loads ended shows them still. */
+	reveal?: boolean;
 };
 
 function rowsFromPoll(poll: Poll): ResultRow[] | null {
@@ -88,7 +91,7 @@ function rowsFromPoll(poll: Poll): ResultRow[] | null {
 }
 
 /** Card state D. Only rendered for revealed Polls (Ended, past any `revealAt`), so it never asks for sealed data. */
-export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }: ResultsProps) {
+export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption, reveal = false }: ResultsProps) {
 	const { t, currentLanguage } = useLanguage();
 	const [fetched, setFetched] = useState<ActionResult<PollResults> | null>(null);
 	const inlineRows = rowsFromPoll(poll);
@@ -167,14 +170,14 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }:
 							<m.div
 								aria-hidden
 								className="absolute inset-0 origin-left bg-muted"
-								initial={{ scaleX: 0 }}
+								initial={reveal ? { scaleX: 0 } : false}
 								animate={{ scaleX: percent / 100 }}
 								transition={{ duration: BAR_DURATION, delay, ease: BAR_EASE }}
 							/>
 							<RowContent
-								onClick={onSelectOption && row.votes > 0 ? () => onSelectOption(row) : undefined}
+								onClick={onSelectOption && row.votes > 0 ? () => onSelectOption(row, participants) : undefined}
 							>
-								{isWinner && <ElectedStamp label={t('poll.elected')} />}
+								{isWinner && <ElectedStamp label={t('poll.elected')} reveal={reveal} />}
 								{/* Words split only when one is wider than the row, so the count keeps its column; where the option and the pill don't fit side by side, the pill wraps under */}
 								<span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
 									<span className={cn('wrap-anywhere', isWinner && 'font-medium')}>{row.text}</span>
@@ -192,7 +195,7 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption }:
 										{votes}
 										<span className="max-sm:hidden">{META_GAP}</span>
 									</span>
-									<CountUp value={percent} delay={delay} />
+									<CountUp value={percent} delay={delay} reveal={reveal} />
 								</span>
 							</RowContent>
 						</li>

@@ -24,6 +24,9 @@ jest.mock('sonner', () => {
 	return { toast };
 });
 
+const mockTrack = jest.fn();
+jest.mock('@vercel/analytics', () => ({ track: (...args: unknown[]) => mockTrack(...args) }));
+
 const mockCastBallot = jest.fn();
 const mockRetractBallot = jest.fn();
 const mockGetMyBallot = jest.fn();
@@ -39,6 +42,7 @@ const mockUnbookmarkPoll = jest.fn();
 const mockReportPoll = jest.fn();
 const mockLikePoll = jest.fn();
 const mockUnlikePoll = jest.fn();
+const mockSharePoll = jest.fn();
 
 jest.mock('@/features/blocks/service', () => ({ blockUser: jest.fn() }));
 jest.mock('@/features/polls/service', () => ({
@@ -57,6 +61,7 @@ jest.mock('@/features/polls/service', () => ({
 	reportPoll: (...args: any[]) => mockReportPoll(...args),
 	likePoll: (...args: any[]) => mockLikePoll(...args),
 	unlikePoll: (...args: any[]) => mockUnlikePoll(...args),
+	sharePoll: (...args: any[]) => mockSharePoll(...args),
 }));
 
 // Exposes the layoutId that motion would use to fly the highlight between elements
@@ -235,6 +240,18 @@ describe('PollCard state A: Open, no Ballot', () => {
 		expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
 	});
 
+	it('tells a voter on a community account’s “only me” poll which of its members see their choice', () => {
+		render(
+			<PollCard
+				poll={{ ...openPoll, voterVisibility: 'owner', creatorCommunity: true, creatorDisplayName: 'Tower B' }}
+				viewerId="user-voter"
+			/>
+		);
+		expect(
+			screen.getByText('After it ends, Tower B’s owners, admins and analysts can see what you chose.')
+		).toBeInTheDocument();
+	});
+
 	it('offers no name choice to the owner of a poll only its owner sees voters of', () => {
 		render(<PollCard poll={{ ...openPoll, voterVisibility: 'owner' }} viewerId={openPoll.creatorId} />);
 		expect(screen.queryByRole('button', { name: 'Hide my name' })).not.toBeInTheDocument();
@@ -355,6 +372,17 @@ describe('PollCard state B: Open, has Ballot', () => {
 		expect(mockGetMyBallot).not.toHaveBeenCalled();
 	});
 
+	it('drops the Ballot when the viewer signs out', () => {
+		const { myOptionId, ...guestPoll } = openPoll;
+		const { rerender } = render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerId="user-voter" />);
+		expect(screen.getByLabelText(/Sunday/)).toBeChecked();
+
+		rerender(<PollCard poll={guestPoll} />);
+		expect(screen.getByLabelText(/Sunday/)).not.toBeChecked();
+		expect(screen.queryByText('Voted')).not.toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Withdraw vote' })).not.toBeInTheDocument();
+	});
+
 	it('slides the highlight within one card but never to another card of the same poll', () => {
 		const poll = { ...openPoll, myOptionId: 'opt-sun' };
 		render(
@@ -403,6 +431,35 @@ describe('PollCard state B: Open, has Ballot', () => {
 		expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
 		expect(screen.getByRole('button', { name: 'Withdraw vote' })).toBeInTheDocument();
 		expect(screen.queryByRole('link', { name: /Change vote/ })).not.toBeInTheDocument();
+	});
+
+	it('records a saved first vote, and a replaced one as a change', async () => {
+		const { unmount } = render(<PollCard poll={openPoll} viewerId="user-voter" />);
+		vote('Saturday');
+		expect(mockTrack).not.toHaveBeenCalled();
+		await waitFor(() => expect(mockTrack).toHaveBeenCalledWith('vote_cast', { change: false }));
+		unmount();
+
+		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerId="user-voter" />);
+		fireEvent.click(screen.getByLabelText(/Friday/));
+		fireEvent.click(screen.getByRole('button', { name: 'Update vote' }));
+		await waitFor(() => expect(mockTrack).toHaveBeenLastCalledWith('vote_cast', { change: true }));
+		expect(mockTrack).toHaveBeenCalledTimes(2);
+	});
+
+	it('records no vote when the cast fails or the vote is withdrawn', async () => {
+		mockCastBallot.mockResolvedValue({ ok: false, message: 'down' });
+		const { unmount } = render(<PollCard poll={openPoll} viewerId="user-voter" />);
+		vote('Saturday');
+		await waitFor(() => expect(toast.error).toHaveBeenCalled());
+		unmount();
+
+		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerId="user-voter" />);
+		fireEvent.click(screen.getByRole('button', { name: 'Withdraw vote' }));
+		fireEvent.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Withdraw' }));
+		await waitFor(() => expect(mockRetractBallot).toHaveBeenCalled());
+		await act(async () => {});
+		expect(mockTrack).not.toHaveBeenCalled();
 	});
 
 	it('replaces the Ballot without changing Turnout', async () => {
@@ -718,6 +775,13 @@ describe('PollCard state B: Open, has Ballot', () => {
 		expect(screen.getByText('Sunday')).toHaveClass('wrap-anywhere');
 	});
 
+	it('shows the final percentages at once when the card loads already ended, without counting up', async () => {
+		render(<PollCard poll={endedPoll} viewerId="user-voter" />);
+		await waitFor(() => expect(screen.getByText('62 votes, 48%')).toBeInTheDocument());
+		expect(screen.getByText('48%')).toBeInTheDocument();
+		expect(screen.queryByText('0%')).not.toBeInTheDocument();
+	});
+
 	it('on vote.ended, toasts and refetches so the card flips to state D', async () => {
 		mockCastBallot.mockResolvedValue({ ok: false, errorCode: 'vote.ended', message: 'ended' });
 		mockGetPoll.mockResolvedValue(endedPoll);
@@ -984,8 +1048,59 @@ describe('PollCard state D: Ended', () => {
 		expect(await within(dialog).findByRole('link', { name: /klaus/ })).toBeInTheDocument();
 	});
 
+	it('tells a viewer their own anonymous vote is the one left out of the voter list', async () => {
+		const mine: Poll = {
+			...endedPoll,
+			voterVisibility: 'signed-in',
+			myOptionId: 'opt-fri',
+			myBallotAnonymous: true,
+			options: endedPoll.options.map((o) => (o.id === 'opt-fri' ? { ...o, votes: 1 } : o)),
+		};
+		mockGetMyBallot.mockResolvedValue({ ok: true, data: mine });
+		mockGetVoters.mockResolvedValue({ ok: true, data: { items: [], nextCursor: null } });
+		render(<PollCard poll={mine} viewerId="user-voter" />);
+		fireEvent.click(screen.getByRole('button', { name: /Friday/ }));
+		const dialog = await screen.findByRole('dialog');
+		expect(await within(dialog).findByText('You')).toBeInTheDocument();
+	});
+
+	it('counts the voters a list of everyone leaves out against the fetched participant count', async () => {
+		const stale: Poll = { ...endedPoll, participantCount: 2, options: openPoll.options };
+		mockGetResults.mockResolvedValue({
+			ok: true,
+			data: {
+				totalParticipants: 5,
+				options: openPoll.options.map((o, i) => ({ id: o.id, text: o.text, voteCount: i + 1 })),
+			},
+		});
+		mockGetVoters.mockResolvedValue({
+			ok: true,
+			data: {
+				items: [
+					{ userId: 'u2', username: 'klaus', optionId: null, votedAt: iso(-2 * HOUR) },
+					{ userId: 'u3', username: 'mei', optionId: null, votedAt: iso(-2 * HOUR) },
+				],
+				nextCursor: null,
+			},
+		});
+		render(<PollCard poll={stale} viewerId="user-1" />);
+		fireEvent.click(await screen.findByRole('button', { name: /Sunday/ }));
+		const dialog = await screen.findByRole('dialog');
+		expect(await within(dialog).findByText('3 other voters')).toBeInTheDocument();
+	});
+
 	it('keeps options plain when Voter Visibility hides voters from the viewer', () => {
 		render(<PollCard poll={endedPoll} viewerId="user-voter" />);
+		expect(screen.queryByRole('button', { name: /Sunday/ })).not.toBeInTheDocument();
+	});
+
+	it('keeps options plain for an editor acting as the community account that owns the poll', () => {
+		const acting = { communityId: 'user-1', username: 'tower', displayName: 'Tower', avatarUrl: null, role: 'EDITOR' as const };
+		render(
+			<ActingProvider state={{ acting, me: null, communities: [acting], stale: false }}>
+				<PollCard poll={{ ...endedPoll, creatorCommunity: true }} viewerId="user-1" />
+			</ActingProvider>
+		);
 		expect(screen.queryByRole('button', { name: /Sunday/ })).not.toBeInTheDocument();
 	});
 
@@ -1176,12 +1291,66 @@ describe('PollCard signed-out visitor', () => {
 		expect(mockBookmarkPoll).not.toHaveBeenCalled();
 	});
 
-	it('offers Report to everyone but the owner', () => {
+	const openMenu = async () => {
+		fireEvent.click(screen.getByRole('button', { name: 'More options' }));
+		return (await screen.findAllByRole('menuitem')).map((item) => item.textContent);
+	};
+
+	it('offers the QR code and LINE to everyone, and Report to everyone but the owner', async () => {
 		const { unmount } = render(<PollCard poll={openPoll} viewerId="user-1" />);
-		expect(screen.queryByRole('button', { name: 'More options' })).not.toBeInTheDocument();
+		expect(await openMenu()).toEqual(['Show QR code', 'Share on LINE']);
 		unmount();
 		render(<PollCard poll={openPoll} viewerId="user-voter" />);
-		expect(screen.getByRole('button', { name: 'More options' })).toBeInTheDocument();
+		expect(await openMenu()).toEqual(['Show QR code', 'Share on LINE', 'Report poll']);
+	});
+
+	it("opens LINE's share page for the poll's link in a new tab and counts the share", async () => {
+		mockSharePoll.mockResolvedValue({ ok: true, data: 1 });
+		render(<PollCard poll={openPoll} />);
+		await openMenu();
+		const line = screen.getByRole('menuitem', { name: 'Share on LINE' });
+		expect(line).toHaveAttribute(
+			'href',
+			`https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(`http://localhost/poll/${openPoll.id}`)}`
+		);
+		expect(line).toHaveAttribute('target', '_blank');
+		expect(line).toHaveAttribute('rel', 'noopener noreferrer');
+		line.addEventListener('click', (event) => event.preventDefault());
+		fireEvent.click(line);
+		expect(mockSharePoll).toHaveBeenCalledWith(openPoll.id, 'LINE');
+		expect(mockTrack).toHaveBeenCalledWith('poll_shared', { channel: 'LINE' });
+	});
+
+	it("shows the poll's QR code with its title and a way to copy the link", async () => {
+		mockSharePoll.mockResolvedValue({ ok: true, data: 1 });
+		const writeText = jest.fn().mockResolvedValue(undefined);
+		Object.assign(navigator, { clipboard: { writeText } });
+		render(<PollCard poll={openPoll} />);
+		await openMenu();
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Show QR code' }));
+
+		const dialog = await screen.findByRole('dialog', { name: openPoll.title });
+		expect(mockTrack.mock.calls).toEqual([['poll_shared', { channel: 'QR' }]]);
+		expect(within(dialog).getByRole('img', { name: 'QR code for this poll’s link' })).toBeInTheDocument();
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Copy link' }));
+		await waitFor(() => expect(toast).toHaveBeenCalledWith('Link copied'));
+		expect(writeText).toHaveBeenCalledWith(`http://localhost/poll/${openPoll.id}`);
+		expect(mockSharePoll).toHaveBeenCalledWith(openPoll.id, 'COPY_LINK');
+		expect(mockTrack).toHaveBeenLastCalledWith('poll_shared', { channel: 'COPY_LINK' });
+	});
+
+	it('records a share from the native sheet once it is sent, not when it is dismissed', async () => {
+		mockSharePoll.mockResolvedValue({ ok: true, data: 1 });
+		const share = jest.fn().mockRejectedValueOnce(new DOMException('dismissed', 'AbortError')).mockResolvedValue(undefined);
+		Object.assign(navigator, { share });
+		render(<PollCard poll={openPoll} />);
+
+		fireEvent.click(screen.getByRole('button', { name: 'Share' }));
+		await act(async () => {});
+		expect(mockTrack).not.toHaveBeenCalled();
+		fireEvent.click(screen.getByRole('button', { name: 'Share' }));
+		await waitFor(() => expect(mockTrack.mock.calls).toEqual([['poll_shared', { channel: 'NATIVE' }]]));
+		Reflect.deleteProperty(navigator, 'share');
 	});
 
 	it('leads Comments down to the discussion on the poll page', () => {

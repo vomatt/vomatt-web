@@ -66,14 +66,33 @@ export function useComments(
 	const [replies, setReplies] = useState<Record<string, ReplyList>>({});
 	const [nextCursor, setNextCursor] = useState<string | null>(null);
 	const [total, setTotal] = useState(initialTotal);
+	// The Poll's count wins whenever the page brings a new one (a refresh, or an action that re-renders the route)
+	const [seenInitialTotal, setSeenInitialTotal] = useState(initialTotal);
+	if (seenInitialTotal !== initialTotal) {
+		setSeenInitialTotal(initialTotal);
+		// Comments still posting aren't in the page's count yet
+		const posting = [...comments, ...Object.values(replies).flatMap((list) => list.items)].filter((c) =>
+			c.id.startsWith('pending-')
+		).length;
+		setTotal(shiftCount(initialTotal, posting));
+	}
 	const [status, setStatus] = useState<Status>('loading');
 	const [isLoadingMore, setIsLoadingMore] = useState(false);
 	// Collapsing and reopening a card keeps the comments already loaded
 	const hasLoaded = useRef(false);
 	// A posted Comment keeps the key it was rendered under while pending, so it isn't remounted once saved
 	const pendingKeys = useRef(new Map<string, string>());
+	// Bumped when the list starts over from its first page, so a later page asked for before then is dropped
+	const firstPageLoads = useRef(0);
+	// Whether pages after the first are listed; a refresh then keeps them and the cursor after them
+	const hasLaterPages = useRef(false);
+	// The Comments on screen, for a refresh to tell whether its first page reaches them
+	const shown = useRef<Comment[]>([]);
+	useEffect(() => {
+		shown.current = comments;
+	}, [comments]);
 
-	const applyFirstPage = useCallback((result: Awaited<ReturnType<typeof getComments>>) => {
+	const applyFirstPage = useCallback((result: Awaited<ReturnType<typeof getComments>>, keepLoaded = false) => {
 		if (!result.ok) {
 			setStatus('error');
 			return;
@@ -84,22 +103,66 @@ export function useComments(
 		const listed = new Set(result.data.items.map((c) => c.id));
 		const isPostedOnly = (c: Comment) =>
 			!listed.has(c.id) && (c.id.startsWith('pending-') || pendingKeys.current.has(c.id));
-		setComments((prev) => [...prev.filter(isPostedOnly), ...result.data.items]);
-		setReplies(previewLists(result.data.items));
-		setNextCursor(result.data.nextCursor);
+		// A refresh keeps the Comments already loaded after the new first page: a Reply may be open under one.
+		// One that doesn't reach them (more than a page arrived) starts over, or those between would never load
+		const keep = keepLoaded && shown.current.some((c) => listed.has(c.id));
+		const last = result.data.items.at(-1);
+		// Older than the new first page, so pushed past it; one the page skips is gone (deleted elsewhere)
+		const isOlder = (c: Comment) =>
+			keep && !!last && !listed.has(c.id) && !isPostedOnly(c) && byCreatedAt(c, last) <= 0;
+		setComments((prev) => [...prev.filter(isPostedOnly), ...result.data.items, ...prev.filter(isOlder)]);
+		setReplies((prev) => {
+			const preview = previewLists(result.data.items);
+			if (!keep) {
+				// Starting over still keeps a Reply that is posting, so it is shown once saved
+				for (const [rootId, list] of Object.entries(prev)) {
+					const posting = list.items.filter(isPostedOnly);
+					if (!posting.length) continue;
+					const base = preview[rootId] ?? NO_REPLIES;
+					preview[rootId] = { ...base, items: mergeById(base.items, posting).sort(byCreatedAt) };
+				}
+				return preview;
+			}
+			// Replies loaded past the preview, and one still posting, stay
+			const merged = { ...prev };
+			for (const [rootId, list] of Object.entries(preview)) {
+				const loaded = prev[rootId];
+				merged[rootId] = loaded ? { ...loaded, items: mergeById(loaded.items, list.items).sort(byCreatedAt) } : list;
+			}
+			return merged;
+		});
+		if (!keep) hasLaterPages.current = false;
+		if (!hasLaterPages.current) setNextCursor(result.data.nextCursor);
 		setStatus('ready');
 	}, []);
 
 	const reload = useCallback(async () => {
+		const load = ++firstPageLoads.current;
 		setStatus('loading');
-		applyFirstPage(await settle(getComments(pollId)));
+		const result = await settle(getComments(pollId));
+		if (load === firstPageLoads.current) applyFirstPage(result);
+	}, [applyFirstPage, pollId]);
+
+	/** Loads the first page again in place. A failure keeps the list as it is and resolves to false. */
+	const refresh = useCallback(async () => {
+		const load = ++firstPageLoads.current;
+		const result = await settle(getComments(pollId));
+		if (load !== firstPageLoads.current) return true;
+		if (!result.ok) {
+			// A load this one replaced may have left the list loading
+			setStatus(hasLoaded.current ? 'ready' : 'error');
+			return false;
+		}
+		applyFirstPage(result, true);
+		return true;
 	}, [applyFirstPage, pollId]);
 
 	useEffect(() => {
 		if (!enabled || hasLoaded.current) return;
 		let ignore = false;
+		const load = ++firstPageLoads.current;
 		settle(getComments(pollId)).then((result) => {
-			if (!ignore) applyFirstPage(result);
+			if (!ignore && load === firstPageLoads.current) applyFirstPage(result);
 		});
 		return () => {
 			ignore = true;
@@ -109,10 +172,14 @@ export function useComments(
 	const loadMore = useCallback(async () => {
 		if (!nextCursor || isLoadingMore) return;
 		setIsLoadingMore(true);
+		const startedAt = firstPageLoads.current;
 		const result = await settle(getComments(pollId, nextCursor));
 		setIsLoadingMore(false);
-		if (!result.ok) return;
+		if (!result.ok || startedAt !== firstPageLoads.current) return;
+		hasLaterPages.current = true;
 		setComments((prev) => mergeById(prev, result.data.items));
+		// Now, not after the render: a refresh in the same tick must see this page as shown
+		shown.current = mergeById(shown.current, result.data.items);
 		// A Comment already listed keeps the Replies loaded for it
 		setReplies((prev) => ({ ...previewLists(result.data.items), ...prev }));
 		setNextCursor(result.data.nextCursor);
@@ -305,6 +372,7 @@ export function useComments(
 		hasMore: !!nextCursor,
 		isLoadingMore,
 		reload,
+		refresh,
 		loadMore,
 		loadReplies,
 		add,

@@ -3,7 +3,9 @@ import { toast } from 'sonner';
 
 import { ActingProvider, useActing } from '@/features/communities/ActingProvider';
 import { CommunityMembers } from '@/features/communities/CommunityMembers';
-import type { CommunityMember, CommunityRole, MyCommunity } from '@/features/communities/schema';
+import type { CommunityInvitation, CommunityMember, CommunityRole, MyCommunity } from '@/features/communities/schema';
+
+import { stubFold } from '../../helpers/stubFold';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn() } }));
@@ -13,6 +15,7 @@ jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh: mockRefresh, 
 jest.mock('@/lib/api/services/users', () => ({ searchUsers: jest.fn() }));
 jest.mock('@/features/communities/service', () => ({
 	inviteMember: jest.fn(),
+	resendInvitation: jest.fn(),
 	revokeInvitation: jest.fn(),
 	changeRole: jest.fn(),
 	removeMember: jest.fn(),
@@ -42,10 +45,10 @@ const member = (userId: string, role: CommunityRole): CommunityMember => ({
 
 const members = [member('olive', 'OWNER'), member('adam', 'ADMIN'), member('ed', 'EDITOR')];
 
-function renderAs(viewerId: string) {
+function renderAs(viewerId: string, invitations?: CommunityInvitation[]) {
 	const role = members.find((m) => m.userId === viewerId)!.role;
 	const community: MyCommunity = { communityId: 'off1', username: 'sunrise', displayName: 'Sunrise', avatarUrl: null, role };
-	render(<CommunityMembers community={community} viewerId={viewerId} members={members} />);
+	render(<CommunityMembers community={community} viewerId={viewerId} members={members} invitations={invitations} />);
 }
 
 const moreButton = (name: string) => screen.queryByRole('button', { name: `More for @${name}` });
@@ -90,11 +93,11 @@ describe('CommunityMembers', () => {
 		const withAnalyst = [...members, member('ana', 'ANALYST')];
 		const community: MyCommunity = { communityId: 'off1', username: 'sunrise', displayName: 'Sunrise', avatarUrl: null, role: 'OWNER' };
 		const { unmount } = render(<CommunityMembers community={community} viewerId="olive" members={members} />);
-		expect(screen.queryByText('Sees result reports; doesn’t post.')).not.toBeInTheDocument();
+		expect(screen.queryByText('Sees result reports and voter lists; doesn’t post.')).not.toBeInTheDocument();
 		unmount();
 
 		render(<CommunityMembers community={community} viewerId="olive" members={withAnalyst} />);
-		expect(screen.getByText('Sees result reports; doesn’t post.')).toBeInTheDocument();
+		expect(screen.getByText('Sees result reports and voter lists; doesn’t post.')).toBeInTheDocument();
 		const menu = await openMenu('ana');
 		fireEvent.click(menu.getByRole('menuitem', { name: 'Change role' }));
 		const dialog = await screen.findByRole('dialog');
@@ -212,6 +215,71 @@ describe('CommunityMembers', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Revoke invitation: new@x.co' }));
 		await waitFor(() => expect(revokeInvitation).toHaveBeenCalledWith('off1', 'i1'));
 		await waitFor(() => expect(screen.queryByText('Pending invitations')).not.toBeInTheDocument());
+	});
+
+	it('stays busy while a revoked invitation folds away', async () => {
+		const { revokeInvitation } = jest.requireMock('@/features/communities/service');
+		revokeInvitation.mockResolvedValue({ ok: true, data: undefined });
+		const base = { role: 'EDITOR' as const, invitedAt: '2026-11-09T10:00:00Z', expiresAt: '2099-11-16T10:00:00Z', resendAvailableAt: null };
+		const fold = stubFold();
+		try {
+			renderAs('olive', [
+				{ id: 'i1', email: 'a@x.co', ...base },
+				{ id: 'i2', email: 'b@x.co', ...base },
+			]);
+			fireEvent.click(screen.getByRole('button', { name: 'Revoke invitation: a@x.co' }));
+			await waitFor(() => expect(fold.folded).toHaveLength(1));
+			expect(screen.getByRole('button', { name: 'Revoke invitation: b@x.co' })).toBeDisabled();
+			fold.finish();
+			await waitFor(() => expect(screen.queryByText('a@x.co')).not.toBeInTheDocument());
+			expect(screen.getByRole('button', { name: 'Revoke invitation: b@x.co' })).toBeEnabled();
+		} finally {
+			fold.restore();
+		}
+	});
+
+	it('resends an email invitation once its window has passed, and not before', async () => {
+		const { resendInvitation } = jest.requireMock('@/features/communities/service');
+		const base = { role: 'EDITOR' as const, invitedAt: '2026-11-09T10:00:00Z', expiresAt: '2099-11-16T10:00:00Z' };
+		const next = { id: 'i1', email: 'a@x.co', ...base, resendAvailableAt: '2099-01-01T00:00:00Z' };
+		resendInvitation.mockResolvedValue({ ok: true, data: next });
+		renderAs('olive', [
+			{ id: 'i1', email: 'a@x.co', ...base, resendAvailableAt: '2020-01-01T00:00:00Z' },
+			{ id: 'i2', email: 'b@x.co', ...base, resendAvailableAt: '2099-01-01T00:00:00Z' },
+			{ id: 'i3', username: 'cy', userId: 'u3', ...base, resendAvailableAt: null },
+		]);
+		expect(screen.getByRole('button', { name: 'Resend invitation: b@x.co' })).toBeDisabled();
+		expect(screen.queryByRole('button', { name: /Resend invitation: @cy/ })).not.toBeInTheDocument();
+		fireEvent.click(screen.getByRole('button', { name: 'Resend invitation: a@x.co' }));
+		await waitFor(() => expect(resendInvitation).toHaveBeenCalledWith('off1', 'i1'));
+		await waitFor(() => expect(screen.getByRole('button', { name: 'Resend invitation: a@x.co' })).toBeDisabled());
+	});
+
+	it('leaves inviting to the server, whose limit depends on the owner’s plan', () => {
+		const base = { role: 'EDITOR' as const, invitedAt: '2026-11-09T10:00:00Z', resendAvailableAt: null };
+		renderAs('olive', [
+			{ id: 'i1', email: 'a@x.co', ...base, expiresAt: '2099-11-16T10:00:00Z' },
+			{ id: 'i2', email: 'b@x.co', ...base, expiresAt: '2099-11-16T10:00:00Z' },
+		]);
+		expect(screen.getByRole('button', { name: 'Invite member' })).toBeEnabled();
+	});
+
+	it('closes the dialog, says the account is full and refreshes the list when another manager took the last seat', async () => {
+		const { inviteMember } = jest.requireMock('@/features/communities/service');
+		inviteMember.mockResolvedValue({ ok: false, status: 403, errorCode: 'community.member_limit_reached', message: 'raw' });
+		renderAs('olive');
+		fireEvent.click(screen.getByRole('button', { name: 'Invite member' }));
+		fireEvent.change(await screen.findByRole('textbox', { name: 'Username or email' }), { target: { value: 'new@x.co' } });
+		fireEvent.click(await screen.findByRole('button', { name: 'Invite new@x.co' }));
+		const dialog = await screen.findByRole('dialog');
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Invite member' }));
+		await waitFor(() =>
+			expect(toast.error).toHaveBeenCalledWith('This community account has as many members and pending invitations as its plan allows. Revoke an invitation or remove a member to invite someone new.', {
+				duration: Infinity,
+			})
+		);
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+		expect(mockRefresh).toHaveBeenCalled();
 	});
 
 	it('shows a failed invitation in the dialog, under the invitee, until another is picked', async () => {

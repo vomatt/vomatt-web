@@ -40,7 +40,7 @@ export function MutualFollowersCard({
 							<UserChip
 								username={user.username}
 								avatarUrl={user.avatarUrl}
-								className={cn('flex gap-2.5 rounded-[10px] p-2 text-body-4 font-medium transition-colors hover:bg-surface-soft', focusRing)}
+								className={cn('flex gap-2.5 rounded-[10px] p-2 text-body-4 font-medium transition-colors hover:bg-surface-soft active:bg-surface-soft', focusRing)}
 							/>
 						</li>
 					))}

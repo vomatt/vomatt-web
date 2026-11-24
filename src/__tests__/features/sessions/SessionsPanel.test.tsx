@@ -6,6 +6,8 @@ import { SessionsPanel } from '@/features/sessions/SessionsPanel';
 import { META_GAP } from '@/lib/rich';
 import type { SignedInSession } from '@/types/user';
 
+import { stubFold } from '../../helpers/stubFold';
+
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn() } }));
 jest.mock('@/features/sessions/service', () => ({
@@ -75,6 +77,26 @@ describe('SessionsPanel', () => {
 		await waitFor(() => expect(mockRevokeSession).toHaveBeenCalledWith('s2'));
 		await waitFor(() => expect(items()).toHaveLength(1));
 		expect(toast.success).toHaveBeenCalled();
+	});
+
+	it('shows a fresh row when the reload still lists the signed-out device', async () => {
+		const fold = stubFold();
+		try {
+			render(<SessionsPanel />);
+			await waitFor(() => expect(items()).toHaveLength(2));
+			const folding = screen.getByRole('button', { name: 'Sign out Unknown device' }).closest('li');
+
+			fireEvent.click(screen.getByRole('button', { name: 'Sign out Unknown device' }));
+			fireEvent.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Sign out' }));
+			await waitFor(() => expect(fold.folded).toEqual([folding]));
+			fold.finish();
+
+			await waitFor(() => expect(mockGetSessions).toHaveBeenCalledTimes(2));
+			await waitFor(() => expect(items()).toHaveLength(2));
+			expect(screen.getByRole('button', { name: 'Sign out Unknown device' }).closest('li')).not.toBe(folding);
+		} finally {
+			fold.restore();
+		}
 	});
 
 	it('signs out the other devices and keeps this one', async () => {

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { profileHref } from '@/lib/routes';
+import { profileSettingsHref } from '@/lib/routes';
 import { UserDtoSchema } from '@/schemas/user';
 
 /** Most powerful first; the order members' roles are listed and offered in. */
@@ -38,6 +38,8 @@ export const CommunityInvitationSchema = z.object({
 	role: CommunityRoleSchema,
 	invitedAt: z.string(),
 	expiresAt: z.string(),
+	/** For an invitation by email: from when it may be emailed again (past means now); null for one by id. */
+	resendAvailableAt: z.string().nullish(),
 });
 
 /** An invitation to the signed-in person, as its own page shows it; the API may not name the inviter. */
@@ -69,7 +71,7 @@ export type CommunityInvitation = z.infer<typeof CommunityInvitationSchema>;
 export type CommunityInvitationDetail = z.infer<typeof CommunityInvitationDetailSchema>;
 export type CommunityMember = z.infer<typeof CommunityMemberSchema>;
 
-export const communityMembersHref = (username: string) => `${profileHref(username)}/settings/members`;
+export const communityMembersHref = (username: string) => `${profileSettingsHref(username)}/members`;
 
 /** Where an invitation's own page lives; log in names it as the redirect for someone the invitation email sent there. */
 export const COMMUNITY_INVITATIONS_PATH = '/notifications/community-invitations/';

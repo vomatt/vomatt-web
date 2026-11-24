@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, ResolvingMetadata } from 'next';
 import { notFound } from 'next/navigation';
 import { cache, Suspense } from 'react';
 
@@ -6,6 +6,7 @@ import { BackLink } from '@/components/BackLink';
 import { JsonLd } from '@/components/JsonLd';
 import { PageShell } from '@/components/layout/PageShell';
 import { LoginPrompt } from '@/components/LoginPrompt';
+import { Refreshable } from '@/components/Refreshable';
 import { T } from '@/components/T';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { getMyProfile, getUserSession } from '@/data/auth';
@@ -17,9 +18,11 @@ import { PollCardSkeleton } from '@/features/polls/components/PollCardSkeleton';
 import type { Poll } from '@/features/polls/schema';
 import { getInviteOnlyCreator, getPoll, getUserPolls } from '@/features/polls/service';
 import { shareDescription } from '@/features/polls/sharePreview';
+import { fromShortId, isUuid } from '@/features/polls/shortId';
 import { derivePollStatus, holdsBallot, isCancelled, isInvitee, isPublic } from '@/features/polls/status';
 import { AuthError } from '@/lib/api/client';
 import { signout } from '@/lib/api/services/auth';
+import { pageOpenGraph } from '@/lib/pageOpenGraph';
 import { loginHref, pollHref } from '@/lib/routes';
 import { pollJsonLd } from '@/lib/structuredData';
 
@@ -30,12 +33,13 @@ type Lookup =
 	| { poll: null; reason: 'session-rejected' }
 	| { poll: null; reason: 'invite-only'; creator: { username: string; avatarUrl: string | null } };
 
-// The API only serves UUID poll ids; signed out, it answers any other id with 401
-const POLL_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+// The URL has the short id; the proxy moves a page load by the full UUID there, but a Server Action
+// from a page opened at the old URL renders here by UUID. The API only serves UUID poll ids;
+// signed out, it answers any other id with 401
+const pollIdFrom = (param: string) => (isUuid(param) ? param : (fromShortId(param) ?? notFound()));
 
 // Metadata and the page share one lookup per request
 const lookupPoll = cache(async (id: string): Promise<Lookup> => {
-	if (!POLL_ID.test(id)) notFound();
 	let poll: Poll | null;
 	try {
 		poll = await getPoll(id);
@@ -54,8 +58,8 @@ const lookupPoll = cache(async (id: string): Promise<Lookup> => {
 
 type Props = { params: Promise<{ id: string }> };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-	const { id } = await params;
+export async function generateMetadata({ params }: Props, parent: ResolvingMetadata): Promise<Metadata> {
+	const id = pollIdFrom((await params).id);
 	const { poll } = await lookupPoll(id);
 	if (!poll) return { title: 'Vomatt', robots: { index: false } };
 
@@ -63,8 +67,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 	return {
 		title: poll.title,
 		description,
-		openGraph: { title: poll.title, description, type: 'article' },
-		twitter: { card: 'summary_large_image', title: poll.title, description },
+		// A Poll is shared by its own image, not the site's video
+		openGraph: await pageOpenGraph(parent, { url: pollHref(poll.id), type: 'article', videos: undefined }),
+		twitter: { card: 'summary_large_image' },
 		alternates: { canonical: pollHref(poll.id) },
 		// Unlisted and invite-only polls are meant only for people with the link
 		...(!isPublic(poll) && { robots: { index: false } }),
@@ -72,24 +77,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function PollDetailPage({ params }: Props) {
-	const { id } = await params;
+	const id = pollIdFrom((await params).id);
 	return (
-		<PageShell
-			rail={
-				<Suspense fallback={<PollRailSkeleton />}>
-					<PollRail id={id} />
-				</Suspense>
-			}
-		>
-			<div className="flex flex-col gap-8">
-				<BackLink href="/">
-					<T k="common.back" />
-				</BackLink>
-				<Suspense fallback={<PollCardSkeleton options={4} />}>
-					<PollDetail id={id} />
-				</Suspense>
-			</div>
-		</PageShell>
+		<Refreshable>
+			<PageShell
+				rail={
+					<Suspense fallback={<PollRailSkeleton />}>
+						<PollRail id={id} />
+					</Suspense>
+				}
+			>
+				<div className="flex flex-col gap-8">
+					<BackLink href="/">
+						<T k="common.back" />
+					</BackLink>
+					<Suspense fallback={<PollCardSkeleton options={4} />}>
+						<PollDetail id={id} />
+					</Suspense>
+				</div>
+			</PageShell>
+		</Refreshable>
 	);
 }
 

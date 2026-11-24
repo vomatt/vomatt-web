@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { AnnouncementBar } from '@/features/announcement/AnnouncementBar';
@@ -54,10 +54,11 @@ describe('AnnouncementBar', () => {
 		expect(screen.getByRole('region', { name: '公告' })).toHaveTextContent('Voting closes Friday');
 	});
 
-	it('hides once dismissed and remembers which announcement it was', () => {
+	it('hides once dismissed and remembers which announcement it was', async () => {
 		renderBar(announcement());
 		fireEvent.click(screen.getByRole('button', { name: 'Dismiss announcement' }));
-		expect(screen.queryByRole('region', { name: 'Announcement' })).not.toBeInTheDocument();
+		// It folds away first
+		await waitFor(() => expect(screen.queryByRole('region', { name: 'Announcement' })).not.toBeInTheDocument());
 		expect(document.cookie).toContain('announcement-dismissed=rev1');
 	});
 

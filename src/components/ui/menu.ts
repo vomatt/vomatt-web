@@ -4,8 +4,8 @@
  * item adds `text-destructive` and its icon follows.
  */
 export const menuPopupClassName =
-	'min-w-50 origin-(--transform-origin) rounded-xl bg-popover p-1.5 text-popover-foreground shadow-md ring-1 ring-foreground/10 outline-none transition-opacity duration-100 data-ending-style:opacity-0 data-starting-style:opacity-0';
+	'min-w-50 origin-(--transform-origin) rounded-xl bg-popover p-1.5 text-popover-foreground shadow-md ring-1 ring-foreground/10 outline-none transition-[opacity,scale] duration-150 ease-out-strong data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0';
 
 // Phones keep the 44px target, as Button does; from md the item is 36px
 export const menuItemClassName =
-	'flex h-11 w-full cursor-pointer select-none items-center gap-2.5 rounded-lg px-2.5 text-body-4 outline-none data-highlighted:bg-foreground/5 md:h-9 [&_svg]:size-4 [&_svg]:shrink-0';
+	'flex h-11 w-full cursor-pointer select-none items-center gap-2.5 rounded-lg px-2.5 text-body-4 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring data-highlighted:bg-foreground/5 md:h-9 [&_svg]:size-4 [&_svg]:shrink-0';

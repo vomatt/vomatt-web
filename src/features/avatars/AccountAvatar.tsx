@@ -15,3 +15,18 @@ export function AccountAvatar({ className }: { className?: string }) {
 		</span>
 	);
 }
+
+/** "+3" on the account avatar's muted circle, for people a list counts but can't show. */
+export function CountAvatar({ count, className }: { count: number; className?: string }) {
+	return (
+		<span
+			aria-hidden
+			className={cn(
+				'avatar-frame grid place-items-center bg-muted text-caption-2 text-muted-foreground tabular-nums',
+				className
+			)}
+		>
+			+{count}
+		</span>
+	);
+}

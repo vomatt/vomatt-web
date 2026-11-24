@@ -12,6 +12,13 @@ const counter = (action: string, count: number | undefined) =>
 		? []
 		: [{ '@type': 'InteractionCounter', interactionType: `https://schema.org/${action}`, userInteractionCount: count }];
 
+/** The Poll's context and options; once its counts are out, each option with its votes. Read by machines, so not translated. */
+function pollText(poll: Poll) {
+	if (poll.options.some((option) => option.votes === undefined)) return shareDescription(poll);
+	const options = poll.options.map((option) => ({ ...option, text: `${option.text} (${option.votes} ${option.votes === 1 ? 'vote' : 'votes'})` }));
+	return shareDescription({ ...poll, options });
+}
+
 /**
  * A Poll is user-asked and discussed in its Comments, which DiscussionForumPosting describes.
  * Null for Unlisted and Invite-only Polls, which are meant only for people with the link.
@@ -24,7 +31,7 @@ export function pollJsonLd(poll: Poll): JsonLd | null {
 		'@type': 'DiscussionForumPosting',
 		url: siteUrl(pollHref(poll.id)),
 		headline: poll.title,
-		text: shareDescription(poll),
+		text: pollText(poll),
 		datePublished: poll.startTime,
 		...(poll.updatedAt && { dateModified: poll.updatedAt }),
 		author: { '@type': 'Person', name: poll.creatorUsername, url: siteUrl(profileHref(poll.creatorUsername)) },

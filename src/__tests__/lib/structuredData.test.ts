@@ -42,6 +42,11 @@ describe('pollJsonLd', () => {
 		});
 	});
 
+	it('gives each option its votes once the counts are out', () => {
+		const ended = { ...poll, options: [{ id: 'o1', text: 'Friday', votes: 8 }, { id: 'o2', text: 'Saturday', votes: 1 }] };
+		expect(pollJsonLd(ended as Poll)?.text).toBe('Friday or Saturday\nFriday (8 votes) / Saturday (1 vote)');
+	});
+
 	it('counts comments and participants', () => {
 		expect(pollJsonLd(poll)?.interactionStatistic).toEqual([
 			{ '@type': 'InteractionCounter', interactionType: 'https://schema.org/CommentAction', userInteractionCount: 3 },
