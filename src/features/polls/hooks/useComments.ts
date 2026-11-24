@@ -72,6 +72,8 @@ export function useComments(
 	const hasLoaded = useRef(false);
 	// A posted Comment keeps the key it was rendered under while pending, so it isn't remounted once saved
 	const pendingKeys = useRef(new Map<string, string>());
+	// Bumped when the list starts over from its first page, so a later page asked for before then is dropped
+	const firstPageLoads = useRef(0);
 
 	const applyFirstPage = useCallback((result: Awaited<ReturnType<typeof getComments>>) => {
 		if (!result.ok) {
@@ -91,6 +93,7 @@ export function useComments(
 	}, []);
 
 	const reload = useCallback(async () => {
+		firstPageLoads.current++;
 		setStatus('loading');
 		applyFirstPage(await settle(getComments(pollId)));
 	}, [applyFirstPage, pollId]);
@@ -98,6 +101,7 @@ export function useComments(
 	/** Loads the first page again in place, with the Poll's new count; a failure keeps the list as it is. */
 	const refresh = useCallback(
 		async (newTotal: number | undefined) => {
+			firstPageLoads.current++;
 			const result = await settle(getComments(pollId));
 			if (!result.ok) return;
 			applyFirstPage(result);
@@ -120,9 +124,10 @@ export function useComments(
 	const loadMore = useCallback(async () => {
 		if (!nextCursor || isLoadingMore) return;
 		setIsLoadingMore(true);
+		const startedAt = firstPageLoads.current;
 		const result = await settle(getComments(pollId, nextCursor));
 		setIsLoadingMore(false);
-		if (!result.ok) return;
+		if (!result.ok || startedAt !== firstPageLoads.current) return;
 		setComments((prev) => mergeById(prev, result.data.items));
 		// A Comment already listed keeps the Replies loaded for it
 		setReplies((prev) => ({ ...previewLists(result.data.items), ...prev }));
