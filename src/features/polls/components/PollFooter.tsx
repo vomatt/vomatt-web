@@ -64,7 +64,8 @@ export function PollFooter({
 	const { t, currentLanguage } = useLanguage();
 
 	const share = useSharePoll();
-	const [showsQr, setShowsQr] = useState(false);
+	// null until first opened; then it stays mounted, so closing animates out
+	const [showsQr, setShowsQr] = useState<boolean | null>(null);
 	const commentsLabel =
 		commentCount === undefined
 			? t('poll.discuss')
@@ -165,7 +166,7 @@ export function PollFooter({
 						</Menu.Positioner>
 					</Menu.Portal>
 				</RowMenuRoot>
-				{showsQr && <PollQrDialog pollId={pollId} title={title} open onOpenChange={setShowsQr} />}
+				{showsQr !== null && <PollQrDialog pollId={pollId} title={title} open={showsQr} onOpenChange={setShowsQr} />}
 			</div>
 		</div>
 	);

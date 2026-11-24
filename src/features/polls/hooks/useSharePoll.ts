@@ -14,10 +14,13 @@ export function useCopyPollLink() {
 	const { t } = useLanguage();
 
 	return async (id: string) => {
-		const copied = await navigator.clipboard.writeText(pollUrl(id)).then(
-			() => true,
-			() => false
-		);
+		// No Clipboard API (plain http, some webviews) fails like a refused copy
+		const copied = navigator.clipboard
+			? await navigator.clipboard.writeText(pollUrl(id)).then(
+					() => true,
+					() => false
+				)
+			: false;
 		if (!copied) {
 			toast.error(t('poll.linkCopyFailed'));
 			return;

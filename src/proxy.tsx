@@ -210,8 +210,8 @@ export const config = {
 	// Static avatars skip it: each image would otherwise run a token refresh.
 	// .well-known files are fetched by Apple's CDN and need no cookies or language.
 	// Crawlers fetch robots.txt and sitemap.xml without cookies; neither has a language or a session.
-	// Nor do the web app manifest and its icons in public/, which the browser fetches to install the app.
+	// Nor do the web app manifest and the icons (public/ and src/app), which the browser fetches for the tab and to install the app.
 	matcher: [
-		'/((?!api/|_next/static|_next/image|favicon.ico|robots\\.txt$|sitemap\\.xml$|manifest\\.webmanifest$|icon-[a-z0-9-]+\\.png$|avatars/|\\.well-known/).*)',
+		'/((?!api/|_next/static|_next/image|favicon.ico|robots\\.txt$|sitemap\\.xml$|manifest\\.webmanifest$|icon-[a-z0-9-]+\\.png$|icon0\\.svg$|apple-icon\\.png$|avatars/|\\.well-known/).*)',
 	],
 };

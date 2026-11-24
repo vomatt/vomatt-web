@@ -2,6 +2,7 @@
 
 import { Menu } from '@base-ui/react/menu';
 import dynamic from 'next/dynamic';
+import { useEffect } from 'react';
 
 import { menuItemClassName } from '@/components/ui/menu';
 import { ArrowUpRight, QrCode } from '@/components/ui/SvgIcons';
@@ -20,6 +21,10 @@ const LINE_SHARE_URL = 'https://social-plugins.line.me/lineit/share';
 /** Show QR code and Share on LINE, for a poll's ••• menu. Render inside the `Menu.Popup`, which only mounts in the browser. */
 export function PollShareMenuItems({ pollId, onShowQr }: { pollId: string; onShowQr: () => void }) {
 	const { t } = useLanguage();
+	// The menu is open: fetch the dialog now, so Show QR code opens at once
+	useEffect(() => {
+		void import('./PollQrDialog');
+	}, []);
 
 	return (
 		<>

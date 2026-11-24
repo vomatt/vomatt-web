@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { toast } from 'sonner';
 import { encode } from 'uqr';
 
 import { PollQrDialog } from '@/features/polls/components/PollQrDialog';
@@ -24,5 +25,13 @@ describe('PollQrDialog', () => {
 		expect(qr()).toHaveAttribute('viewBox', `0 0 ${modules + 8} ${modules + 8}`);
 		// The first dark module is the finder's corner, four modules in from the top and left
 		expect(qr().querySelector('path')!.getAttribute('d')).toMatch(/^M4 4h/);
+	});
+
+	it('says the link could not be copied where the browser has no Clipboard API', async () => {
+		Object.assign(navigator, { clipboard: undefined });
+		qr();
+		fireEvent.click(screen.getByRole('button', { name: 'Copy link' }));
+		await waitFor(() => expect(toast.error).toHaveBeenCalledTimes(1));
+		expect(toast).not.toHaveBeenCalled();
 	});
 });

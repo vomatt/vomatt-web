@@ -5,8 +5,9 @@ import type { Audience } from '@/features/polls/schema';
 type SignInSurface = 'dialog' | 'page';
 
 /**
- * Every product event and its props. Props say what happened, never who or to which poll:
- * no user ids, emails, usernames, poll ids or titles.
+ * Every product event and its props. Props never say who or which poll: no user ids, emails,
+ * usernames, poll ids or titles. Vercel adds the page's URL to each event, so one sent from a
+ * poll's page still names that poll by its link.
  */
 type ProductEvents = {
 	/** The email step is shown. */

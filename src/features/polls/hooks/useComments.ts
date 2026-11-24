@@ -66,6 +66,12 @@ export function useComments(
 	const [replies, setReplies] = useState<Record<string, ReplyList>>({});
 	const [nextCursor, setNextCursor] = useState<string | null>(null);
 	const [total, setTotal] = useState(initialTotal);
+	// The Poll's count wins whenever the page brings a new one (a refresh, or an action that re-renders the route)
+	const [seenInitialTotal, setSeenInitialTotal] = useState(initialTotal);
+	if (seenInitialTotal !== initialTotal) {
+		setSeenInitialTotal(initialTotal);
+		setTotal(initialTotal);
+	}
 	const [status, setStatus] = useState<Status>('loading');
 	const [isLoadingMore, setIsLoadingMore] = useState(false);
 	// Collapsing and reopening a card keeps the comments already loaded
@@ -74,8 +80,10 @@ export function useComments(
 	const pendingKeys = useRef(new Map<string, string>());
 	// Bumped when the list starts over from its first page, so a later page asked for before then is dropped
 	const firstPageLoads = useRef(0);
+	// Whether pages after the first are listed; a refresh then keeps them and the cursor after them
+	const hasLaterPages = useRef(false);
 
-	const applyFirstPage = useCallback((result: Awaited<ReturnType<typeof getComments>>) => {
+	const applyFirstPage = useCallback((result: Awaited<ReturnType<typeof getComments>>, keepLoaded = false) => {
 		if (!result.ok) {
 			setStatus('error');
 			return;
@@ -86,9 +94,12 @@ export function useComments(
 		const listed = new Set(result.data.items.map((c) => c.id));
 		const isPostedOnly = (c: Comment) =>
 			!listed.has(c.id) && (c.id.startsWith('pending-') || pendingKeys.current.has(c.id));
-		setComments((prev) => [...prev.filter(isPostedOnly), ...result.data.items]);
-		setReplies(previewLists(result.data.items));
-		setNextCursor(result.data.nextCursor);
+		// A refresh keeps the Comments already loaded after the new first page: a Reply may be open under one
+		const isOlder = (c: Comment) => keepLoaded && !listed.has(c.id) && !isPostedOnly(c);
+		setComments((prev) => [...prev.filter(isPostedOnly), ...result.data.items, ...prev.filter(isOlder)]);
+		setReplies((prev) => (keepLoaded ? { ...prev, ...previewLists(result.data.items) } : previewLists(result.data.items)));
+		if (!keepLoaded) hasLaterPages.current = false;
+		if (!hasLaterPages.current) setNextCursor(result.data.nextCursor);
 		setStatus('ready');
 	}, []);
 
@@ -99,23 +110,26 @@ export function useComments(
 		if (load === firstPageLoads.current) applyFirstPage(result);
 	}, [applyFirstPage, pollId]);
 
-	/** Loads the first page again in place, with the Poll's new count; a failure keeps the list as it is. */
-	const refresh = useCallback(
-		async (newTotal: number | undefined) => {
-			const load = ++firstPageLoads.current;
-			const result = await settle(getComments(pollId));
-			if (!result.ok || load !== firstPageLoads.current) return;
-			applyFirstPage(result);
-			setTotal(newTotal);
-		},
-		[applyFirstPage, pollId]
-	);
+	/** Loads the first page again in place. A failure keeps the list as it is and resolves to false. */
+	const refresh = useCallback(async () => {
+		const load = ++firstPageLoads.current;
+		const result = await settle(getComments(pollId));
+		if (load !== firstPageLoads.current) return true;
+		if (!result.ok) {
+			// A load this one replaced may have left the list loading
+			setStatus(hasLoaded.current ? 'ready' : 'error');
+			return false;
+		}
+		applyFirstPage(result, true);
+		return true;
+	}, [applyFirstPage, pollId]);
 
 	useEffect(() => {
 		if (!enabled || hasLoaded.current) return;
 		let ignore = false;
+		const load = ++firstPageLoads.current;
 		settle(getComments(pollId)).then((result) => {
-			if (!ignore) applyFirstPage(result);
+			if (!ignore && load === firstPageLoads.current) applyFirstPage(result);
 		});
 		return () => {
 			ignore = true;
@@ -129,6 +143,7 @@ export function useComments(
 		const result = await settle(getComments(pollId, nextCursor));
 		setIsLoadingMore(false);
 		if (!result.ok || startedAt !== firstPageLoads.current) return;
+		hasLaterPages.current = true;
 		setComments((prev) => mergeById(prev, result.data.items));
 		// A Comment already listed keeps the Replies loaded for it
 		setReplies((prev) => ({ ...previewLists(result.data.items), ...prev }));
