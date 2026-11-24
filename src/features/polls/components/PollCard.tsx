@@ -137,6 +137,12 @@ export function PollCard({
 	const { status, sealedUntil } = usePollStatus(poll, refetch);
 	// Results fill in only when the end or reveal happens on screen; a feed of ended Polls stays still
 	const [revealedOnMount] = useState(status === 'ended' && !sealedUntil);
+	const pane = sealedUntil ? 'sealed' : status === 'ended' ? 'results' : 'ballot';
+	// The pane shown on mount appears still; every one after it fades in. Not AnimatePresence initial={false}, whose
+	// context would also block every later mount animation inside the pane: the stamp, the Seal's pop, the ballot box
+	const [paneOnMount] = useState(pane);
+	const [paneChanged, setPaneChanged] = useState(false);
+	if (!paneChanged && pane !== paneOnMount) setPaneChanged(true);
 	const { id, title, description, creatorId, creatorUsername, createdAt } = poll;
 	const isOwner = !!viewerId && viewerId === creatorId;
 	const canSeeVoters =
@@ -232,11 +238,11 @@ export function PollCard({
 				</div>
 
 				{/* When a Poll ends while open on screen, the Ballot gives way to the Results */}
-				<AnimatePresence mode="wait" initial={false}>
+				<AnimatePresence mode="wait">
 					<m.div
-						key={sealedUntil ? 'sealed' : status === 'ended' ? 'results' : 'ballot'}
+						key={pane}
 						className="relative z-10"
-						initial={{ opacity: 0 }}
+						initial={paneChanged ? { opacity: 0 } : false}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
 						transition={{ duration: 0.12, ease: EASE_OUT_STRONG }}

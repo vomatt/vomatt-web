@@ -265,7 +265,7 @@ export function Ballot({
 					{poll.options.map((option) => {
 						// The user's own vote stays in this state after switching; the community has none
 						const isSelected = !isActing && selected === option.id;
-						// The check waits for the cast to land, so it never shows on a vote that rolls back
+						// The voted state waits for the cast to land, so it never shows on a vote that rolls back
 						const isCast = option.id === savedOptionId;
 						return (
 							<label
@@ -295,9 +295,11 @@ export function Ballot({
 									onChange={() => choose(option.id)}
 									className="peer sr-only"
 								/>
-								<BallotMark
-									state={isSelected ? (isCast ? 'voted' : 'selected') : 'rest'}
-								/>
+								{isSelected ? (
+									<BallotMark state={isCast ? 'voted' : 'selected'} seed={option.id} />
+								) : (
+									<BallotMark state="rest" />
+								)}
 								<span dir="auto" className="relative min-w-0 flex-1 wrap-anywhere">
 									{option.text}
 								</span>

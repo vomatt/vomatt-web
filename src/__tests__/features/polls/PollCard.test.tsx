@@ -415,6 +415,15 @@ describe('PollCard state B: Open, has Ballot', () => {
 		expect(mark('Sunday')).toBe('rest');
 	});
 
+	it('presses the stamp in on a pick, and draws a vote already cast still', () => {
+		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerId="user-voter" />);
+		const stamp = (option: string) =>
+			screen.getByLabelText(option).closest('label')!.querySelector<HTMLElement>('[data-state] > span')!;
+		expect(stamp('Sunday').style.opacity).toBe('1');
+		fireEvent.click(screen.getByLabelText('Friday'));
+		expect(stamp('Friday').style.opacity).toBe('0');
+	});
+
 	it('keeps every option choosable after a vote is cast, with no pill on the rows', () => {
 		render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun' }} viewerId="user-voter" />);
 		expect(screen.getByLabelText('Friday')).toBeEnabled();
@@ -1001,6 +1010,11 @@ describe('PollCard state D: Ended', () => {
 		expect(screen.getAllByRole('img', { name: 'Elected' })).toHaveLength(1);
 		expect(screen.getByText('“Saturday” was your vote.')).toBeInTheDocument();
 		expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+	});
+
+	it('draws the viewer’s “your vote” pill still on a poll that loads ended', () => {
+		render(<PollCard poll={{ ...endedPoll, myOptionId: 'opt-sat' }} viewerId="user-voter" />);
+		expect(screen.getByText('your vote').style.opacity).toBe('1');
 	});
 
 	it('tells a viewer who didn’t vote how many people decided', () => {

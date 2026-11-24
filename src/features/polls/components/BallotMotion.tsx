@@ -1,12 +1,14 @@
 'use client';
 
 import { m, useReducedMotion } from 'motion/react';
-import { useId } from 'react';
+import { useId, useState } from 'react';
 
 import { Check } from '@/components/ui/SvgIcons';
+import { useHydrated } from '@/hooks/useHydrated';
 import { cn } from '@/lib/utils';
 
 import { chipClassName } from '../chip';
+import { ElectedMark } from './ElectedMark';
 
 // Motion pieces for the paper-ballot metaphor: mark your choice, drop the ballot
 // in the box, see it marked as yours. Reduced motion is handled by <MotionProvider>.
@@ -14,37 +16,71 @@ import { chipClassName } from '../chip';
 // Critically damped: settles without overshoot
 const INK = { type: 'spring', stiffness: 520, damping: 46 } as const;
 
+const MIN_TILT = 6;
+const MAX_TILT = 24;
+
+/** A hand-pressed stamp never lands square: `r` in [0, 1) picks a lean of 6° to 24°, left below 0.5 and right above. */
+export function stampAngle(r: number) {
+	const side = r < 0.5 ? -1 : 1;
+	return side * (MIN_TILT + ((r * 2) % 1) * (MAX_TILT - MIN_TILT));
+}
+
+function seededUnit(seed: string) {
+	let hash = 0;
+	for (const char of seed) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+	return (hash % 1000) / 1000;
+}
+
+// The angle each option was last pressed at in this tab, so a cast stamp redrawn after Cancel or in another view keeps it
+const pressedAngles = new Map<string, number>();
+
 /**
- * The 22px radio circle: a 2px `input` ring at rest; once chosen, ink filled around a Volt check.
- * The ink is `highlight-foreground`, not `primary`: in dark `primary` is off-white and the check would vanish into it.
+ * The ballot stamp at its own angle, picked once when it mounts so it holds through the cast. A press lands at a random
+ * angle and springs in. A vote already cast when it mounts is drawn still, at the angle it was pressed at in this tab or
+ * else one taken from the seed, so the server and hydration agree and the mark shows before the JavaScript runs.
  */
-export function BallotMark({ state }: { state: 'rest' | 'selected' | 'voted' }) {
+function PressedStamp({ seed, pressed }: { seed: string; pressed: boolean }) {
+	const hydrated = useHydrated();
+	const [{ angle, press }] = useState(() => {
+		const press = pressed && hydrated;
+		if (press) pressedAngles.set(seed, stampAngle(Math.random()));
+		const angle = (hydrated && pressedAngles.get(seed)) || stampAngle(seededUnit(seed));
+		return { angle, press };
+	});
+	return (
+		<m.span
+			className="absolute inset-0"
+			initial={press ? { scale: 1.4, opacity: 0, rotate: angle } : false}
+			animate={{ scale: 1, opacity: 1, rotate: angle }}
+			transition={INK}
+		>
+			<ElectedMark className="size-full" />
+		</m.span>
+	);
+}
+
+/** The 22px radio mark: a 2px `input` ring at rest; once chosen, the ballot stamp. `seed` is the option's id. */
+export function BallotMark(props: { state: 'rest' } | { state: 'selected' | 'voted'; seed: string }) {
 	return (
 		<span
 			aria-hidden
-			data-state={state}
+			data-state={props.state}
 			className={cn(
-				'relative grid size-[22px] shrink-0 place-items-center rounded-full transition-[border-color,background-color] duration-150',
-				// In dark the ink is the canvas, so a Volt edge keeps the disc's shape on a card or the tint
-				state === 'rest' ? 'border-2 border-input bg-card' : 'bg-highlight-foreground dark:border-2 dark:border-highlight'
+				'relative size-[22px] shrink-0 rounded-full',
+				props.state === 'rest' && 'border-2 border-input bg-card'
 			)}
 		>
-			{state !== 'rest' && (
-				<m.span initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={INK}>
-					<Check aria-hidden size={12} strokeWidth={3.5} className="text-highlight" />
-				</m.span>
-			)}
+			{props.state !== 'rest' && <PressedStamp seed={props.seed} pressed={props.state === 'selected'} />}
 		</span>
 	);
 }
 
-/** "your vote": the viewer's option on a result row. Lower-case on purpose. */
-export function YourVotePill({ label }: { label: string }) {
+/** "your vote": the viewer's option on a result row. Lower-case on purpose. Pops in when `reveal`, else drawn still. */
+export function YourVotePill({ label, reveal }: { label: string; reveal: boolean }) {
 	return (
 		<m.span
-			initial={{ opacity: 0, scale: 0.95 }}
+			initial={reveal ? { opacity: 0, scale: 0.95 } : false}
 			animate={{ opacity: 1, scale: 1 }}
-			exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
 			transition={INK}
 			className="relative shrink-0 select-none whitespace-nowrap rounded-full border border-highlight-foreground bg-highlight px-2 py-0.5 text-caption-3 font-semibold leading-4 text-highlight-foreground"
 		>
