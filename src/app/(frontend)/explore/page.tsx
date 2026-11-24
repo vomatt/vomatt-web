@@ -43,7 +43,7 @@ export default async function ExplorePage({ searchParams }: Props) {
 		session && exploreQuery.q ? searchUsers(exploreQuery.q).then((page) => page.items, () => []) : Promise.resolve([]);
 	return (
 		<Refreshable>
-			<PageShell wide>
+			<PageShell wide className="pt-2 md:pt-8">
 				<ExploreView initialPage={firstPage} topics={topics} initial={initial} canSearchPeople={!!session} initialPeople={firstPeople} />
 			</PageShell>
 		</Refreshable>
