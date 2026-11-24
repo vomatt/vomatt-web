@@ -25,7 +25,7 @@ export function Header({ signedIn, loginLink }: HeaderProps) {
 		<header
 			data-mobile-header
 			data-nosnippet
-			className="fixed inset-x-0 top-0 z-header flex h-header items-center justify-between border-b border-border bg-background/80 backdrop-blur-lg px-contain md:hidden"
+			className="fixed inset-x-0 top-0 z-header flex h-header items-center justify-between border-b border-border bg-background/80 backdrop-blur-lg px-contain pt-[env(safe-area-inset-top)] md:hidden"
 		>
 			<BrandLink className="w-20" />
 			{/* The menu button's padding sits past the gutter, so its icon lines up with the page */}

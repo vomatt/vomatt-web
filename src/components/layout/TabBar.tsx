@@ -35,8 +35,9 @@ const createClassName = cn(
 	buttonVariants({ variant: 'ghost' }),
 	'w-13 px-0 bg-muted text-foreground active:bg-foreground/10 motion-safe:transition-[background-color,scale] motion-safe:duration-160 motion-safe:ease-out-strong motion-safe:active:scale-[0.97]'
 );
+// A long press on a tab is a press, not a link preview or a text selection
 const cellClassName =
-	'group flex-1 h-full flex justify-center items-center outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring';
+	'group flex-1 select-none [-webkit-touch-callout:none] h-full flex justify-center items-center outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring';
 
 export function TabBar({ className, userSession, username, avatarUrl }: TabBarProps) {
 	const pathname = usePathname();

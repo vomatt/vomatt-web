@@ -161,7 +161,8 @@
 		--tabbar-space: calc(64px + env(safe-area-inset-bottom));
 	}
 	:root:has([data-mobile-header]) {
-		--header-height: 56px;
+		/* The installed app runs under the status bar (viewport-fit=cover); the Header pads it back out */
+		--header-height: calc(56px + env(safe-area-inset-top));
 	}
 }
 
@@ -425,11 +426,13 @@ html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 		text-wrap-style: pretty;
 	}
 
-	/* Controls draw their own pressed state, so no gray tap flash under it */
+	/* Controls draw their own pressed state, so no gray tap flash under it. They never double-tap
+	   zoom either, so a quick second tap (the TabBar, a vote) is a tap, not a zoom */
 	button,
 	[role='button'],
 	a {
 		-webkit-tap-highlight-color: transparent;
+		touch-action: manipulation;
 	}
 }
 
