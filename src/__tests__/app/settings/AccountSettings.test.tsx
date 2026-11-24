@@ -20,8 +20,6 @@ jest.mock('@/features/passkeys/service', () => ({
 jest.mock('@/lib/api/services/users', () => ({
 	deleteMyAccount: jest.fn(),
 	editProfile: jest.fn(),
-	sendPhoneBindOtp: jest.fn(),
-	verifyPhoneBind: jest.fn(),
 }));
 const mockUnlock = jest.fn();
 jest.mock('@/features/communities/service', () => ({
@@ -77,23 +75,10 @@ describe('AccountSettings', () => {
 		expect(link).toHaveAttribute('href', '/settings/visibility');
 	});
 
-	it('shows the phone number by state: add, verify, or verified', () => {
-		const { rerender } = render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} communities={[]} />);
-		expect(screen.getByRole('button', { name: 'Add phone number' })).toBeInTheDocument();
-
-		rerender(<AccountSettings profile={{ ...myProfile, phoneNumber: '+886912345678', phoneVerified: false }} inviteListCount={3} notificationPreferences={preferences} communities={[]} />);
-		expect(screen.getByRole('button', { name: 'Verify' })).toBeInTheDocument();
-
-		rerender(<AccountSettings profile={{ ...myProfile, phoneNumber: '+886912345678', phoneVerified: true }} inviteListCount={3} notificationPreferences={preferences} communities={[]} />);
-		expect(screen.queryByRole('button', { name: 'Verify' })).not.toBeInTheDocument();
-		expect(screen.queryByRole('button', { name: 'Add phone number' })).not.toBeInTheDocument();
-		expect(screen.getByText('Verified')).toBeInTheDocument();
-	});
-
-	it('opens the phone dialog from the row', () => {
+	it('offers no phone number while SMS codes are unavailable', () => {
 		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} communities={[]} />);
-		fireEvent.click(screen.getByRole('button', { name: 'Add phone number' }));
-		expect(screen.getByRole('dialog', { name: 'Add your phone number' })).toBeInTheDocument();
+		expect(screen.queryByText('Phone number')).not.toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Add phone number' })).not.toBeInTheDocument();
 	});
 
 	it('shows how many invite lists there are and links to their page from Voting', () => {
