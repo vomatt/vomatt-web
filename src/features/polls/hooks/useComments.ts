@@ -70,7 +70,11 @@ export function useComments(
 	const [seenInitialTotal, setSeenInitialTotal] = useState(initialTotal);
 	if (seenInitialTotal !== initialTotal) {
 		setSeenInitialTotal(initialTotal);
-		setTotal(initialTotal);
+		// Comments still posting aren't in the page's count yet
+		const posting = [...comments, ...Object.values(replies).flatMap((list) => list.items)].filter((c) =>
+			c.id.startsWith('pending-')
+		).length;
+		setTotal(shiftCount(initialTotal, posting));
 	}
 	const [status, setStatus] = useState<Status>('loading');
 	const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -82,6 +86,11 @@ export function useComments(
 	const firstPageLoads = useRef(0);
 	// Whether pages after the first are listed; a refresh then keeps them and the cursor after them
 	const hasLaterPages = useRef(false);
+	// The Comments on screen, for a refresh to tell whether its first page reaches them
+	const shown = useRef<Comment[]>([]);
+	useEffect(() => {
+		shown.current = comments;
+	}, [comments]);
 
 	const applyFirstPage = useCallback((result: Awaited<ReturnType<typeof getComments>>, keepLoaded = false) => {
 		if (!result.ok) {
@@ -94,11 +103,35 @@ export function useComments(
 		const listed = new Set(result.data.items.map((c) => c.id));
 		const isPostedOnly = (c: Comment) =>
 			!listed.has(c.id) && (c.id.startsWith('pending-') || pendingKeys.current.has(c.id));
-		// A refresh keeps the Comments already loaded after the new first page: a Reply may be open under one
-		const isOlder = (c: Comment) => keepLoaded && !listed.has(c.id) && !isPostedOnly(c);
+		// A refresh keeps the Comments already loaded after the new first page: a Reply may be open under one.
+		// One that doesn't reach them (more than a page arrived) starts over, or those between would never load
+		const keep = keepLoaded && shown.current.some((c) => listed.has(c.id));
+		const last = result.data.items.at(-1);
+		// Older than the new first page, so pushed past it; one the page skips is gone (deleted elsewhere)
+		const isOlder = (c: Comment) =>
+			keep && !!last && !listed.has(c.id) && !isPostedOnly(c) && byCreatedAt(c, last) <= 0;
 		setComments((prev) => [...prev.filter(isPostedOnly), ...result.data.items, ...prev.filter(isOlder)]);
-		setReplies((prev) => (keepLoaded ? { ...prev, ...previewLists(result.data.items) } : previewLists(result.data.items)));
-		if (!keepLoaded) hasLaterPages.current = false;
+		setReplies((prev) => {
+			const preview = previewLists(result.data.items);
+			if (!keep) {
+				// Starting over still keeps a Reply that is posting, so it is shown once saved
+				for (const [rootId, list] of Object.entries(prev)) {
+					const posting = list.items.filter(isPostedOnly);
+					if (!posting.length) continue;
+					const base = preview[rootId] ?? NO_REPLIES;
+					preview[rootId] = { ...base, items: mergeById(base.items, posting).sort(byCreatedAt) };
+				}
+				return preview;
+			}
+			// Replies loaded past the preview, and one still posting, stay
+			const merged = { ...prev };
+			for (const [rootId, list] of Object.entries(preview)) {
+				const loaded = prev[rootId];
+				merged[rootId] = loaded ? { ...loaded, items: mergeById(loaded.items, list.items).sort(byCreatedAt) } : list;
+			}
+			return merged;
+		});
+		if (!keep) hasLaterPages.current = false;
 		if (!hasLaterPages.current) setNextCursor(result.data.nextCursor);
 		setStatus('ready');
 	}, []);
@@ -145,6 +178,8 @@ export function useComments(
 		if (!result.ok || startedAt !== firstPageLoads.current) return;
 		hasLaterPages.current = true;
 		setComments((prev) => mergeById(prev, result.data.items));
+		// Now, not after the render: a refresh in the same tick must see this page as shown
+		shown.current = mergeById(shown.current, result.data.items);
 		// A Comment already listed keeps the Replies loaded for it
 		setReplies((prev) => ({ ...previewLists(result.data.items), ...prev }));
 		setNextCursor(result.data.nextCursor);

@@ -292,8 +292,8 @@ describe('passkey sign-in', () => {
 		expect(screen.getByRole('button', { name: 'auth.continueWithPasskey' })).toBeInTheDocument();
 		expect(screen.getByLabelText('common.email')).toHaveAttribute('autocomplete', 'email');
 		expect(mockGet).not.toHaveBeenCalled();
-		// No challenge is asked for until the button is about to be pressed
-		expect(mockGetPasskeyLoginOptions).not.toHaveBeenCalled();
+		// The challenge is fetched up front, so a tap on a slow network still finds it ready
+		expect(mockGetPasskeyLoginOptions).toHaveBeenCalledTimes(1);
 		fireEvent.pointerDown(screen.getByRole('button', { name: 'auth.continueWithPasskey' }));
 		expect(mockGetPasskeyLoginOptions).toHaveBeenCalledTimes(1);
 	});
