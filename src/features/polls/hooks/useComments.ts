@@ -93,17 +93,18 @@ export function useComments(
 	}, []);
 
 	const reload = useCallback(async () => {
-		firstPageLoads.current++;
+		const load = ++firstPageLoads.current;
 		setStatus('loading');
-		applyFirstPage(await settle(getComments(pollId)));
+		const result = await settle(getComments(pollId));
+		if (load === firstPageLoads.current) applyFirstPage(result);
 	}, [applyFirstPage, pollId]);
 
 	/** Loads the first page again in place, with the Poll's new count; a failure keeps the list as it is. */
 	const refresh = useCallback(
 		async (newTotal: number | undefined) => {
-			firstPageLoads.current++;
+			const load = ++firstPageLoads.current;
 			const result = await settle(getComments(pollId));
-			if (!result.ok) return;
+			if (!result.ok || load !== firstPageLoads.current) return;
 			applyFirstPage(result);
 			setTotal(newTotal);
 		},

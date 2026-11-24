@@ -120,11 +120,18 @@ function showComment(id: string) {
 	const el = document.getElementById(`comment-${id}`);
 	if (!el) return;
 	const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false;
+	// The spread pads the tint 8px past the comment without moving it; 4px corners plus the spread round to 12px.
+	// A Reply with its composer open keeps its Volt tint and corners, and only its edge flashes, in Volt
 	const flash = () =>
-		el.animate([{ backgroundColor: 'var(--highlight-tint)' }, { backgroundColor: 'transparent' }], {
-			duration: 1200,
-			easing: 'ease-out',
-		});
+		el.animate(
+			el.hasAttribute('data-reply-target')
+				? [{ boxShadow: '0 0 0 8px var(--highlight-tint)' }, { boxShadow: '0 0 0 8px transparent' }]
+				: [
+						{ backgroundColor: 'var(--target-tint)', boxShadow: '0 0 0 8px var(--target-tint)', borderRadius: '4px' },
+						{ backgroundColor: 'transparent', boxShadow: '0 0 0 8px transparent', borderRadius: '4px' },
+					],
+			{ duration: 1600, easing: 'ease-in' }
+		);
 	if (reduceMotion) {
 		el.scrollIntoView({ block: 'center', behavior: 'auto' });
 		flash();
@@ -649,6 +656,7 @@ function CommentItem({
 			node: (
 				<div
 					id={`comment-${reply.id}`}
+					data-reply-target={isTarget || undefined}
 					className={cn(
 						'flex min-w-0 flex-1 items-start gap-2.5 rounded-xl',
 						// Within the 8px Unfold leaves past each edge, or the highlight's corners clip
@@ -710,8 +718,9 @@ function CommentItem({
 	const hasRail = rows.length > 0;
 
 	return (
-		<article id={`comment-${comment.id}`} className="flex flex-col">
-			<div className="flex items-start gap-3">
+		<article className="flex flex-col">
+			{/* The id is on the comment's own row, so its link flashes the comment, not its Replies */}
+			<div id={`comment-${comment.id}`} className="flex items-start gap-3">
 				<div className="flex w-8 shrink-0 flex-col items-center self-stretch">
 					<Avatar comment={comment} size="root" />
 					{hasRail && <div aria-hidden className="mt-1.5 w-0.5 flex-1 bg-border" />}
