@@ -29,3 +29,11 @@ jest.mock('@/features/communities/acting', () => ({
 	actAsCommunity: jest.fn().mockResolvedValue({ ok: true, data: undefined }),
 	loadMyCommunities: jest.fn().mockResolvedValue({ ok: true, data: [] }),
 }));
+
+// Fixtures name Polls with labels like 'poll-1' that aren't UUIDs; a label links as itself,
+// and a UUID gets the real short id. Anything but a string (a missing id) still throws as in production.
+jest.mock('@/features/polls/shortId', () => {
+	const actual = jest.requireActual('@/features/polls/shortId');
+	const isLabel = (id: unknown) => typeof id === 'string' && /^[a-z][a-z0-9-]*$/.test(id) && !actual.isUuid(id);
+	return { ...actual, toShortId: (id: string) => (isLabel(id) ? id : actual.toShortId(id)) };
+});

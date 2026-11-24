@@ -2,6 +2,7 @@ import { ImageResponse } from 'next/og';
 
 import { DEFAULT_SITE_NAME } from '@/data/constants';
 import { getPoll } from '@/features/polls/service';
+import { fromShortId, isUuid } from '@/features/polls/shortId';
 
 export const alt = 'A poll on vomatt';
 export const size = { width: 1200, height: 630 };
@@ -37,9 +38,11 @@ async function loadFont(text: string): Promise<ArrayBuffer | null> {
 type Props = { params: Promise<{ id: string }> };
 
 export default async function Image({ params }: Props) {
-	const { id } = await params;
+	const param = (await params).id;
+	// Unfurlers cache image URLs, so one by the full UUID (from before short links) still draws its Poll
+	const id = isUuid(param) ? param : fromShortId(param);
 	// Unfurlers send no cookies: a Poll this viewer can't open gets the brand card
-	const poll = await getPoll(id).catch(() => null);
+	const poll = id ? await getPoll(id).catch(() => null) : null;
 
 	const title = poll?.title ?? DEFAULT_SITE_NAME;
 	const context = poll?.description?.trim() ?? '';

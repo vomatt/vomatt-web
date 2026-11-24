@@ -55,7 +55,7 @@ describe('apple-app-site-association', () => {
 		expect(body.webcredentials).toEqual({ apps: appIDs });
 	});
 
-	it.each(['/poll/abc123', '/alice', '/bob_99'])('opens %s in the app', async (path) => {
+	it.each(['/poll/0199f2a3-5b7e-7d40-a1c8-9e3b2f6d4c05', '/alice', '/bob_99'])('opens %s in the app', async (path) => {
 		expect(await opensApp(path)).toBe(true);
 	});
 
@@ -71,6 +71,7 @@ describe('apple-app-site-association', () => {
 		'/closing-soon',
 		'/settings',
 		'/poll',
+		'/poll/31LUbIpAXJLg0ktOgLrEL',
 		'/sanity',
 		'/api',
 		'/about',
