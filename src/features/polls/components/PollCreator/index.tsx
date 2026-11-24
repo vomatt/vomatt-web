@@ -1,9 +1,12 @@
 'use client';
 
+import { Menu } from '@base-ui/react/menu';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
 	AnimatePresence,
 	m,
+	Reorder,
+	useDragControls,
 	useIsPresent,
 	useReducedMotion,
 } from 'motion/react';
@@ -11,10 +14,12 @@ import { useRouter } from 'next/navigation';
 import {
 	type FormEvent,
 	type KeyboardEvent,
+	type PointerEvent as ReactPointerEvent,
 	ReactElement,
 	type ReactNode,
 	type RefObject,
 	useEffect,
+	useId,
 	useRef,
 	useState,
 	useSyncExternalStore,
@@ -44,7 +49,8 @@ import {
 import { FieldMessage } from '@/components/ui/Field';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { Eye, Lock, Plus, User, Users, X } from '@/components/ui/SvgIcons';
+import { menuItemClassName, menuPopupClassName } from '@/components/ui/menu';
+import { Eye, GripVertical, Lock, Plus, User, Users, X } from '@/components/ui/SvgIcons';
 import { Textarea } from '@/components/ui/Textarea';
 import { TideRule, TideRules } from '@/components/ui/TidePanel';
 import { ENTER, EXIT, Unfold } from '@/components/Unfold';
@@ -55,6 +61,7 @@ import { trackEvent } from '@/lib/analytics';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
 import { pollHref } from '@/lib/routes';
+import { cn } from '@/lib/utils';
 
 import { deleteDraft, type PollDraft, saveDraft } from '../../drafts';
 import { joinSentences } from '../../format';
@@ -120,6 +127,33 @@ const STEP_FADE = {
 	center: { opacity: 1, transition: ENTER },
 	exit: { opacity: 0, transition: EXIT },
 };
+
+/** An option row that only its handle drags, so touching the field types and scrolls as usual. */
+function OptionItem({
+	value,
+	onDragStart,
+	children,
+}: {
+	value: string;
+	onDragStart: () => void;
+	children: (startDrag: (e: ReactPointerEvent) => void) => ReactNode;
+}) {
+	const controls = useDragControls();
+	return (
+		<Reorder.Item
+			as="div"
+			value={value}
+			dragListener={false}
+			dragControls={controls}
+			// Position only: a full layout animation would stretch the row while it unfolds
+			layout="position"
+			whileDrag={{ scale: 1.02 }}
+			onDragStart={onDragStart}
+		>
+			{children((e) => controls.start(e))}
+		</Reorder.Item>
+	);
+}
 
 /** One step's content; inert while it leaves, since it is laid over the step that replaced it. */
 function StepLayer({ children }: { children: ReactNode }) {
@@ -226,6 +260,12 @@ export function PollCreator({
 	// null is Custom: the end (and opening) times are typed in
 	const [endPreset, setEndPreset] = useState<string | null>(initialPreset);
 	const [showSaveDraftAlert, setShowSaveDraftAlert] = useState(false);
+	const [moveMessage, setMoveMessage] = useState('');
+	// Move up and Move down for the option whose handle was tapped; kept while the menu closes, so it stays put
+	const [moveMenu, setMoveMenu] = useState<{ open: boolean; index: number; anchor: HTMLElement } | null>(null);
+	// A drag ends in a click on its handle, which mustn't open the menu
+	const dragged = useRef(false);
+	const moveHintId = useId();
 
 	const {
 		register,
@@ -243,7 +283,7 @@ export function PollCreator({
 		resolver: zodResolver(pollFormSchema),
 		defaultValues: defaults,
 	});
-	const { fields, append, remove } = useFieldArray({
+	const { fields, append, remove, move, swap } = useFieldArray({
 		control,
 		name: 'options',
 	});
@@ -427,6 +467,29 @@ export function PollCreator({
 				{ message: 'pollCreator.errors.optionRequired' },
 				{ shouldFocus: true }
 			);
+	};
+
+	// Reorder only ever swaps the dragged option with a neighbour
+	const reorderOptions = (order: string[]) => {
+		const at = order.findIndex((id, index) => id !== fields[index].id);
+		if (at !== -1) swap(at, at + 1);
+	};
+
+	const moveOption = (index: number, to: number, handle: HTMLElement) => {
+		if (!fields[to]) return;
+		move(index, to);
+		const message = t('pollCreator.optionMoved', { position: to + 1, count: fields.length });
+		// The same words again aren't read out, so a repeat gets a trailing space
+		setMoveMessage((prev) => (prev === message ? `${message}\u00a0` : message));
+		// React moves the row's nodes, which drops focus from the handle
+		setTimeout(() => handle.focus());
+	};
+
+	const moveOptionByKey = (e: KeyboardEvent<HTMLButtonElement>, index: number) => {
+		const step = e.key === 'ArrowUp' ? -1 : e.key === 'ArrowDown' ? 1 : 0;
+		if (!step) return;
+		e.preventDefault();
+		moveOption(index, index + step, e.currentTarget);
 	};
 
 	// A typed opening time stays in view even after a preset is picked, since presets count from it
@@ -675,81 +738,157 @@ export function PollCreator({
 																)}
 															/>
 														</p>
-														<div className="mt-3">
+														<p id={moveHintId} hidden>
+															{t('pollCreator.moveOptionHint')}
+														</p>
+														<p role="status" className="sr-only">
+															{moveMessage}
+														</p>
+														<Reorder.Group
+															as="div"
+															axis="y"
+															values={fields.map((field) => field.id)}
+															onReorder={reorderOptions}
+															className="mt-3"
+														>
 															<AnimatePresence initial={false}>
 																{fields.map((field, index) => (
-																	<Unfold key={field.id}>
-																		{/* The gap is padding inside the fold, so it opens and closes with the row */}
-																		<div className="pb-2">
-																			<div className="relative">
-																				<Input
-																					aria-label={`${t('pollCreator.optionsPlaceholder')} ${index + 1}`}
-																					placeholder={t(
-																						'pollCreator.optionsPlaceholder'
+																	<OptionItem
+																		key={field.id}
+																		value={field.id}
+																		onDragStart={() => {
+																			dragged.current = true;
+																		}}
+																	>
+																		{(startDrag) => (
+																			<Unfold>
+																				{/* The gap is padding inside the fold, so it opens and closes with the row */}
+																				<div className="pb-2">
+																					<div className="relative">
+																						<Button
+																							type="button"
+																							variant="ghost"
+																							size="icon"
+																							aria-label={`${t('pollCreator.moveOption')} ${index + 1}`}
+																							aria-describedby={moveHintId}
+																							aria-haspopup="menu"
+																							aria-expanded={moveMenu?.open && moveMenu.index === index}
+																							onPointerDown={(e) => {
+																								// Keeps an option's keyboard up on a phone, so the sheet doesn't shift under the drag
+																								e.preventDefault();
+																								dragged.current = false;
+																								startDrag(e);
+																							}}
+																							onClick={(e) => {
+																								if (!dragged.current)
+																									setMoveMenu({ open: true, index, anchor: e.currentTarget });
+																							}}
+																							onKeyDown={(e) => moveOptionByKey(e, index)}
+																							// The browser must not scroll or select while the handle drags
+																							className="absolute inset-y-0 left-0.5 my-auto cursor-grab touch-none text-muted-foreground select-none hover:bg-transparent hover:text-foreground active:cursor-grabbing"
+																						>
+																							<GripVertical className="size-4" />
+																						</Button>
+																						<Input
+																							aria-label={`${t('pollCreator.optionsPlaceholder')} ${index + 1}`}
+																							placeholder={t(
+																								'pollCreator.optionsPlaceholder'
+																							)}
+																							maxLength={POLL_OPTION_MAX}
+																							enterKeyHint="next"
+																							aria-invalid={
+																								!!errors.options?.[index]?.text
+																							}
+																							aria-describedby={optionDescription(
+																								index
+																							)}
+																							{...register(`options.${index}.text`, {
+																								// Before review nothing re-validates as you type, so clear Add option's error here
+																								onChange: () => {
+																									if (!isSubmitted)
+																										clearErrors(`options.${index}.text`);
+																								},
+																							})}
+																							// Every row leaves room for the remove button, so adding a third option moves nothing
+																							className="pr-12 pl-11"
+																							onKeyDown={(e) => {
+																								// Cmd/Ctrl+Return submits the form; Return that commits IME text (Zhuyin etc.) isn't one
+																								if (!isPlainReturn(e)) return;
+																								// Return moves to the next option, or adds one, instead of submitting
+																								e.preventDefault();
+																								if (index < fields.length - 1)
+																									focusField(
+																										e,
+																										`options.${index + 1}.text`
+																									);
+																								// Like Add option: an empty option gets the focus and says why
+																								else if (fields.length < POLL_OPTIONS_LIMIT)
+																									addOption();
+																							}}
+																						/>
+																						{fields.length > POLL_OPTIONS_MIN && (
+																							<Button
+																								type="button"
+																								variant="ghost"
+																								size="icon"
+																								aria-label={`${t('pollCreator.removeOption')} ${index + 1}`}
+																								onClick={() => {
+																									remove(index);
+																									// The button leaves with its row: keep focus in the list
+																									setTimeout(() =>
+																										setFocus(
+																											`options.${Math.max(index - 1, 0)}.text`
+																										)
+																									);
+																								}}
+																								className="absolute inset-y-0 right-0.5 my-auto text-muted-foreground duration-150 ease-out-strong animate-in fade-in motion-safe:zoom-in-95 hover:bg-transparent hover:text-destructive"
+																							>
+																								<X className="size-4" />
+																							</Button>
+																						)}
+																					</div>
+																					{(options?.[index]?.text.length ?? 0) > POLL_OPTION_MAX - OPTION_COUNTER_WITHIN && (
+																						<p className="mt-1 text-right text-caption-2 text-muted-foreground tabular-nums">
+																							{options[index].text.length}/{POLL_OPTION_MAX}
+																						</p>
 																					)}
-																					maxLength={POLL_OPTION_MAX}
-																					enterKeyHint="next"
-																					aria-invalid={
-																						!!errors.options?.[index]?.text
-																					}
-																					aria-describedby={optionDescription(
-																						index
-																					)}
-																					{...register(`options.${index}.text`, {
-																						// Before review nothing re-validates as you type, so clear Add option's error here
-																						onChange: () => {
-																							if (!isSubmitted)
-																								clearErrors(`options.${index}.text`);
-																						},
-																					})}
-																					// Every row leaves room for the remove button, so adding a third option moves nothing
-																					className="pr-12"
-																					onKeyDown={(e) => {
-																						// Cmd/Ctrl+Return submits the form; Return that commits IME text (Zhuyin etc.) isn't one
-																						if (!isPlainReturn(e)) return;
-																						// Return moves to the next option, or adds one, instead of submitting
-																						e.preventDefault();
-																						if (index < fields.length - 1)
-																							focusField(
-																								e,
-																								`options.${index + 1}.text`
-																							);
-																						// Like Add option: an empty option gets the focus and says why
-																						else if (fields.length < POLL_OPTIONS_LIMIT)
-																							addOption();
-																					}}
-																				/>
-																				{fields.length > POLL_OPTIONS_MIN && (
-																					<Button
-																						type="button"
-																						variant="ghost"
-																						size="icon"
-																						aria-label={`${t('pollCreator.removeOption')} ${index + 1}`}
-																						onClick={() => {
-																							remove(index);
-																							// The button leaves with its row: keep focus in the list
-																							setTimeout(() =>
-																								setFocus(
-																									`options.${Math.max(index - 1, 0)}.text`
-																								)
-																							);
-																						}}
-																						className="absolute inset-y-0 right-0.5 my-auto text-muted-foreground duration-150 ease-out-strong animate-in fade-in motion-safe:zoom-in-95 hover:bg-transparent hover:text-destructive"
-																					>
-																						<X className="size-4" />
-																					</Button>
-																				)}
-																			</div>
-																			{(options?.[index]?.text.length ?? 0) > POLL_OPTION_MAX - OPTION_COUNTER_WITHIN && (
-																				<p className="mt-1 text-right text-caption-2 text-muted-foreground tabular-nums">
-																					{options[index].text.length}/{POLL_OPTION_MAX}
-																				</p>
-																			)}
-																		</div>
-																	</Unfold>
+																				</div>
+																			</Unfold>
+																		)}
+																	</OptionItem>
 																))}
 															</AnimatePresence>
-														</div>
+														</Reorder.Group>
+														<Menu.Root
+															open={!!moveMenu?.open}
+															onOpenChange={(open) => setMoveMenu((menu) => menu && { ...menu, open })}
+														>
+															<Menu.Portal>
+																<Menu.Positioner
+																	anchor={moveMenu?.anchor}
+																	side="bottom"
+																	align="start"
+																	sideOffset={4}
+																	className="z-50"
+																>
+																	<Menu.Popup className={menuPopupClassName}>
+																		{([-1, 1] as const).map((step) => (
+																			<Menu.Item
+																				key={step}
+																				disabled={!moveMenu || !fields[moveMenu.index + step]}
+																				onClick={() =>
+																					moveMenu &&
+																					moveOption(moveMenu.index, moveMenu.index + step, moveMenu.anchor)
+																				}
+																				className={cn(menuItemClassName, 'data-disabled:cursor-default data-disabled:opacity-50')}
+																			>
+																				{t(step < 0 ? 'pollCreator.moveUp' : 'pollCreator.moveDown')}
+																			</Menu.Item>
+																		))}
+																	</Menu.Popup>
+																</Menu.Positioner>
+															</Menu.Portal>
+														</Menu.Root>
 														{fields.length < POLL_OPTIONS_LIMIT && (
 															<Button
 																type="button"
