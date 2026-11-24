@@ -11,6 +11,24 @@ import { Poll } from '@/features/polls/schema';
 import { createPoll, updatePoll } from '@/features/polls/service';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
+// jsdom has no layout for Reorder to measure, so a button stands in for a drag past the next option
+jest.mock('motion/react', () => {
+	const actual = jest.requireActual('motion/react');
+	const { createElement } = jest.requireActual('react');
+	return {
+		...actual,
+		Reorder: {
+			Group: ({ values, onReorder, children, className }: any) =>
+				createElement(
+					'div',
+					{ className },
+					createElement('button', { type: 'button', onClick: () => onReorder([values[1], values[0], ...values.slice(2)]) }, 'Drag option 1 down'),
+					children
+				),
+			Item: ({ children }: any) => createElement('div', null, children),
+		},
+	};
+});
 const mockPush = jest.fn();
 jest.mock('next/navigation', () => ({ useRouter: () => ({ push: mockPush }) }));
 jest.mock('sonner', () => ({ toast: Object.assign(jest.fn(), { error: jest.fn() }) }));
@@ -234,6 +252,70 @@ describe('PollCreator', () => {
 		} finally {
 			MotionGlobalConfig.skipAnimations = true;
 		}
+	});
+
+	it('moves an option down with the arrow keys on its handle and publishes in that order', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		fillPoll();
+		fireEvent.keyDown(screen.getByRole('button', { name: 'Move option 1' }), { key: 'ArrowDown' });
+		expect(screen.getByLabelText('Option 1')).toHaveValue('Option B');
+		expect(screen.getByLabelText('Option 2')).toHaveValue('Option A');
+		await toReview();
+		publish();
+		await waitFor(() => expect(mockCreatePoll).toHaveBeenCalled());
+		expect(mockCreatePoll.mock.calls[0][0].options).toEqual([{ text: 'Option B' }, { text: 'Option A' }]);
+	});
+
+	it('keeps focus on the moved option’s handle and says where it went', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		fillPoll();
+		fireEvent.keyDown(screen.getByRole('button', { name: 'Move option 2' }), { key: 'ArrowUp' });
+		await waitFor(() => expect(screen.getByRole('button', { name: 'Move option 1' })).toHaveFocus());
+		expect(screen.getByRole('status')).toHaveTextContent('Moved to position 1 of 2.');
+	});
+
+	it('publishes the order a drag leaves', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		fillPoll();
+		fireEvent.click(screen.getByRole('button', { name: 'Drag option 1 down' }));
+		await toReview();
+		publish();
+		await waitFor(() => expect(mockCreatePoll).toHaveBeenCalled());
+		expect(mockCreatePoll.mock.calls[0][0].options).toEqual([{ text: 'Option B' }, { text: 'Option A' }]);
+	});
+
+	it('moves an option from the menu its handle opens, for screen readers without arrow keys', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		fillPoll();
+		fireEvent.click(screen.getByRole('button', { name: 'Move option 2' }));
+		expect(await screen.findByRole('menuitem', { name: 'Move down' })).toHaveAttribute('aria-disabled', 'true');
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Move up' }));
+		expect(screen.getByLabelText('Option 1')).toHaveValue('Option B');
+		expect(screen.getByRole('status')).toHaveTextContent('Moved to position 1 of 2.');
+	});
+
+	it('says where an option went again when a second move lands in the same place', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		fillPoll();
+		fireEvent.keyDown(screen.getByRole('button', { name: 'Move option 1' }), { key: 'ArrowDown' });
+		const first = screen.getByRole('status').textContent;
+		fireEvent.keyDown(screen.getByRole('button', { name: 'Move option 1' }), { key: 'ArrowDown' });
+		expect(screen.getByRole('status').textContent).not.toBe(first);
+	});
+
+	it('leaves the order alone when an end option is moved past the end', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		fillPoll();
+		fireEvent.keyDown(screen.getByRole('button', { name: 'Move option 1' }), { key: 'ArrowUp' });
+		fireEvent.keyDown(screen.getByRole('button', { name: 'Move option 2' }), { key: 'ArrowDown' });
+		expect(screen.getByLabelText('Option 1')).toHaveValue('Option A');
+		expect(screen.getByLabelText('Option 2')).toHaveValue('Option B');
 	});
 
 	it('adds the next option when Return is pressed in the last one', async () => {
