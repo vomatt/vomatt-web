@@ -25,7 +25,7 @@ jest.mock('motion/react', () => {
 					createElement('button', { type: 'button', onClick: () => onReorder([values[1], values[0], ...values.slice(2)]) }, 'Drag option 1 down'),
 					children
 				),
-			Item: ({ children }: any) => createElement('div', null, children),
+			Item: ({ children, onDragStart }: any) => createElement('div', { onDragStart }, children),
 		},
 	};
 });
@@ -296,6 +296,28 @@ describe('PollCreator', () => {
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Move up' }));
 		expect(screen.getByLabelText('Option 1')).toHaveValue('Option B');
 		expect(screen.getByRole('status')).toHaveTextContent('Moved to position 1 of 2.');
+	});
+
+	it('leaves focus on the moved option’s handle after a move from the menu', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		fillPoll();
+		screen.getByLabelText('Option 2').focus();
+		fireEvent.click(screen.getByRole('button', { name: 'Move option 2' }));
+		fireEvent.click(await screen.findByRole('menuitem', { name: 'Move up' }));
+		await waitFor(() => expect(screen.queryByRole('menu')).toBeNull());
+		await waitFor(() => expect(screen.getByRole('button', { name: 'Move option 1' })).toHaveFocus());
+	});
+
+	it('still opens the move menu from the keyboard after a drag', async () => {
+		render(<PollCreator triggerChildren={TRIGGER} />);
+		await openDialog();
+		fillPoll();
+		const handle = screen.getByRole('button', { name: 'Move option 1' });
+		fireEvent.pointerDown(handle);
+		fireEvent.dragStart(handle);
+		fireEvent.click(screen.getByRole('button', { name: 'Move option 2' }), { detail: 0 });
+		expect(await screen.findByRole('menuitem', { name: 'Move up' })).toBeInTheDocument();
 	});
 
 	it('says where an option went again when a second move lands in the same place', async () => {
