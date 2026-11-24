@@ -9630,7 +9630,7 @@
     },
     "/api/admin/users" : {
       "get" : {
-        "description" : "**Auth**: admin (role ADMIN; 403 `common.forbidden` otherwise)\n**Precondition**: caller holds role ADMIN\n**Behavior**: offset page of every account, suspended included, newest first. `q` matches (case-insensitive contains) username, email, phone number, display name, first name, last name or full name (`firstName lastName`, `lastName firstName`, or `lastNamefirstName` with no space); `status` is `active` or `suspended`; `role` is `user`, `moderator` or `admin`. All filters are optional and combine with AND. `page` is 1-based (default 1), `limit` 1-50 (default 20). Items carry masked `email` / `phoneNumber` and no names or birthday: open `GET /api/admin/users/{userId}` for the full record\n**Side effects**: none\n**Errors**:\n- 400 `common.invalid_status`: `status` is neither `active` nor `suspended`\n- 400 `common.validation_failed`: `role` is not `user`, `moderator` or `admin`\n",
+        "description" : "**Auth**: admin (role ADMIN; 403 `common.forbidden` otherwise)\n**Precondition**: caller holds role ADMIN\n**Behavior**: offset page of every account, suspended included, newest first. `q` matches (case-insensitive contains) username, email, phone number, display name, first name, last name or full name (`firstName lastName`, `lastName firstName`, or `lastNamefirstName` with no space); `status` is `active` or `suspended`; `role` is `user`, `moderator` or `admin`; `emailDomain` keeps emails ending in `@` plus that domain (case-insensitive, a leading `@` ignored, so `vomatt.test` matches `a@vomatt.test` but not `a@sub.vomatt.test`). All filters are optional and combine with AND. `page` is 1-based (default 1), `limit` 1-50 (default 20). Items carry masked `email` / `phoneNumber` and no names or birthday: open `GET /api/admin/users/{userId}` for the full record\n**Side effects**: none\n**Errors**:\n- 400 `common.invalid_status`: `status` is neither `active` nor `suspended`\n- 400 `common.validation_failed`: `role` is not `user`, `moderator` or `admin`\n",
         "operationId" : "listUsers",
         "parameters" : [ {
           "description" : "Text matched against username, email, phone number, display name, first name, last name and full name",
@@ -9655,6 +9655,15 @@
           "example" : "admin",
           "in" : "query",
           "name" : "role",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Only accounts whose email ends in `@` plus this domain (case-insensitive; a leading `@` is ignored)",
+          "example" : "gmail.com",
+          "in" : "query",
+          "name" : "emailDomain",
           "required" : false,
           "schema" : {
             "type" : "string"
@@ -15867,7 +15876,7 @@
         "tags" : [ "Community Account" ]
       },
       "post" : {
-        "description" : "**Auth**: required (OWNER or ADMIN)\n**Precondition**: the invitee has no unexpired invitation to this community account; the members (OWNERs included) plus unexpired invitations are below the community account's limit: 5, or 10 once any OWNER is on the PRO plan (`community_member_limit_free` / `community_member_limit_pro`, admin-configurable). A user invited both by `userId` and by their address takes two places until they answer. An account already over a lowered limit keeps its members\n**Behavior**: the only way to add a member: invites a user picked by `userId` (e.g. from user search) or an `email` address, exactly one, with the role; it can be used for 7 days. Nobody joins without answering: the user, or the account whose email is the address, gets a `COMMUNITY_INVITATION` notification (one per community account, for the earliest invitation, even when invited both by `userId` and by address) and accepts (`POST /api/community-invitations/{invitationId}/accept`) or declines it. An address with no account is mailed an invitation to sign up; once they sign up with it (any sign-in method that verifies the address) the notification waits for them like for anyone else. For an `email` the response is the same whether or not the address belongs to an account, or to a member. An expired invitation of the same user or address is replaced by the new one. Roles: OWNER and ADMIN manage members; an ADMIN never changes or removes an OWNER nor grants OWNER. CHIEF_EDITOR, EDITOR and ANALYST cannot manage members.\n**Side effects**: an address with no account at all is mailed once committed, within the member's own daily invitation email limit (shared with their Poll and Invite List invitations). A member who emails one address 3 times within one 12-hour window (counted from their first email to it) (counting every community account and Invite List) cannot email it again for 7 days unless an admin lifts the lock (all three admin-configurable); the invitation is still created, unmailed. Every invitation by email counts toward that lock and limit, whether or not the address has an account, so neither tells. Audit-logged.\n**Errors**:\n- 400 `common.validation_failed`: neither or both of `userId` and `email`, `email` invalid, or `role` missing or invalid\n- 400 `community.member.invalid`: the `userId` is suspended or is a community account\n- 404 `user.not_found`: no user with this `userId`\n- 409 `community.member.exists`: the `userId` is already a member\n- 409 `community.invitation.exists`: the user or address already has an unexpired invitation to this community account\n- 403 `community.not_member`: the caller is not a member of this community account, or it does not exist or is suspended\n- 403 `community.role_forbidden`: the caller is not an OWNER or ADMIN, or is an ADMIN and the invitation grants OWNER\n- 403 `community.member_limit_reached`: the members plus unexpired invitations have reached the limit; `data` is `{ \"limit\": 5, \"used\": 5 }`\n",
+        "description" : "**Auth**: required (OWNER or ADMIN)\n**Precondition**: the invitee has no unexpired invitation to this community account; the members (OWNERs included) plus unexpired invitations are below the community account's limit: 3, or 5 once any OWNER is on the PRO plan (`community_member_limit_free` / `community_member_limit_pro`, admin-configurable). A user invited both by `userId` and by their address takes two places until they answer. An account already over a lowered limit keeps its members\n**Behavior**: the only way to add a member: invites a user picked by `userId` (e.g. from user search) or an `email` address, exactly one, with the role; it can be used for 7 days. Nobody joins without answering: the user, or the account whose email is the address, gets a `COMMUNITY_INVITATION` notification (one per community account, for the earliest invitation, even when invited both by `userId` and by address) and accepts (`POST /api/community-invitations/{invitationId}/accept`) or declines it. An address with no account is mailed an invitation to sign up; once they sign up with it (any sign-in method that verifies the address) the notification waits for them like for anyone else. For an `email` the response is the same whether or not the address belongs to an account, or to a member. An expired invitation of the same user or address is replaced by the new one. Roles: OWNER and ADMIN manage members; an ADMIN never changes or removes an OWNER nor grants OWNER. CHIEF_EDITOR, EDITOR and ANALYST cannot manage members.\n**Side effects**: an address with no account at all is mailed once committed, within the member's own daily invitation email limit (shared with their Poll and Invite List invitations). A member who emails one address 3 times within one 12-hour window (counted from their first email to it) (counting every community account and Invite List) cannot email it again for 7 days unless an admin lifts the lock (all three admin-configurable). While locked, inviting it is refused (429) and no invitation is created, so revoking and inviting again does not get around the lock; over the daily limit the invitation is still created, unmailed. Every invitation by email counts toward that lock and limit, whether or not the address has an account, so neither tells. Audit-logged.\n**Errors**:\n- 400 `common.validation_failed`: neither or both of `userId` and `email`, `email` invalid, or `role` missing or invalid\n- 400 `community.member.invalid`: the `userId` is suspended or is a community account\n- 404 `user.not_found`: no user with this `userId`\n- 409 `community.member.exists`: the `userId` is already a member\n- 409 `community.invitation.exists`: the user or address already has an unexpired invitation to this community account\n- 403 `community.not_member`: the caller is not a member of this community account, or it does not exist or is suspended\n- 403 `community.role_forbidden`: the caller is not an OWNER or ADMIN, or is an ADMIN and the invitation grants OWNER\n- 403 `community.member_limit_reached`: the members plus unexpired invitations have reached the limit; `data` is `{ \"limit\": 3, \"used\": 3 }`\n- 429 `invitation.email.too_soon`: an `email` the caller emailed 3 times within one 12-hour window (counted from their first email to it), across every community account and Invite List; locked out of it for 7 days\n",
         "operationId" : "invite",
         "parameters" : [ {
           "description" : "Community account's user id",
@@ -15988,7 +15997,7 @@
               "application/json" : {
                 "examples" : {
                   "community.member_limit_reached" : {
-                    "description" : "the members plus unexpired invitations have reached the limit; `data` is `{ \"limit\": 5, \"used\": 5 }`",
+                    "description" : "the members plus unexpired invitations have reached the limit; `data` is `{ \"limit\": 3, \"used\": 3 }`",
                     "value" : {
                       "data" : null,
                       "error" : "This community account has as many members and pending invitations as its plan allows",
@@ -16082,7 +16091,18 @@
           "429" : {
             "content" : {
               "application/json" : {
-                "example" : null,
+                "examples" : {
+                  "invitation.email.too_soon" : {
+                    "description" : "an `email` the caller emailed 3 times within one 12-hour window (counted from their first email to it), across every community account and Invite List; locked out of it for 7 days",
+                    "value" : {
+                      "data" : null,
+                      "error" : "You emailed this address too many invitations in a short time; you cannot email it for now",
+                      "errorCode" : "invitation.email.too_soon",
+                      "message" : "You emailed this address too many invitations in a short time; you cannot email it for now",
+                      "success" : false
+                    }
+                  }
+                },
                 "schema" : {
                   "$ref" : "#/components/schemas/ErrorResponse"
                 }
@@ -30507,7 +30527,7 @@
     },
     "/api/votes/{voteId}/voters" : {
       "get" : {
-        "description" : "**Auth**: required\n**Precondition**: the Poll has Ended and its `revealAt` (if set) has passed, and its Voter Visibility allows the caller: NOBODY allows no one (not even the owner), OWNER allows only the owner, SIGNED_IN allows anyone who can see the Poll (for INVITE_ONLY: the owner and Invitees)\n**Behavior**: cursor-paged list of who took part, oldest Ballot first. Anonymous Ballots are left out, so the list can be shorter than `participantCount`. `optionId` is present only when the Poll holds no Anonymous Ballot other than the caller's own; otherwise it is null for every Participant, so the anonymous choices cannot be worked out from the named ones and the option totals. `nextCursor` null means the last page; `limit` is clamped to 1-50 (default 20).\n**Side effects**: none\n**Errors**:\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is INVITE_ONLY and the caller is neither its owner nor an Invitee, or its owner blocked the caller\n- 403 `vote.results.sealed`: the Poll is still Scheduled or Open, or its `revealAt` has not passed\n- 403 `vote.voters.hidden`: Voter Visibility does not allow the caller\n- 400 `common.cursor_invalid`: `cursor` is malformed or was issued by another list or another ordering of this list\n",
+        "description" : "**Auth**: required\n**Precondition**: the Poll has Ended and its `revealAt` (if set) has passed, and its Voter Visibility allows the caller: NOBODY allows no one (not even the owner), OWNER allows only the owner (for a community account's Poll: members acting as it with role OWNER, ADMIN or ANALYST), SIGNED_IN allows anyone who can see the Poll (for INVITE_ONLY: the owner and Invitees)\n**Behavior**: cursor-paged list of who took part, oldest Ballot first. Anonymous Ballots are left out, so the list can be shorter than `participantCount`. `optionId` is present only when the Poll holds no Anonymous Ballot other than the caller's own; otherwise it is null for every Participant, so the anonymous choices cannot be worked out from the named ones and the option totals. `nextCursor` null means the last page; `limit` is clamped to 1-50 (default 20).\n**Side effects**: none\n**Errors**:\n- 404 `vote.not_found`: Poll does not exist, is Deleted, or is INVITE_ONLY and the caller is neither its owner nor an Invitee, or its owner blocked the caller\n- 403 `vote.results.sealed`: the Poll is still Scheduled or Open, or its `revealAt` has not passed\n- 403 `vote.voters.hidden`: Voter Visibility does not allow the caller\n- 403 `community.role_forbidden`: Voter Visibility is OWNER and the caller acts as the owning community account with role CHIEF_EDITOR or EDITOR\n- 400 `common.cursor_invalid`: `cursor` is malformed or was issued by another list or another ordering of this list\n",
         "operationId" : "getVoters",
         "parameters" : [ {
           "description" : "Poll ID",
@@ -30605,6 +30625,16 @@
             "content" : {
               "application/json" : {
                 "examples" : {
+                  "community.role_forbidden" : {
+                    "description" : "Voter Visibility is OWNER and the caller acts as the owning community account with role CHIEF_EDITOR or EDITOR",
+                    "value" : {
+                      "data" : null,
+                      "error" : "Your role in this community account does not allow this action",
+                      "errorCode" : "community.role_forbidden",
+                      "message" : "Your role in this community account does not allow this action",
+                      "success" : false
+                    }
+                  },
                   "vote.results.sealed" : {
                     "description" : "the Poll is still Scheduled or Open, or its `revealAt` has not passed",
                     "value" : {
