@@ -75,7 +75,8 @@ export function OwnerActions({
 	const { t } = useLanguage();
 	const [isEditing, setIsEditing] = useState(false);
 	const [isInviting, setIsInviting] = useState(false);
-	const [showsQr, setShowsQr] = useState(false);
+	// null until first opened; then it stays mounted, so closing animates out
+	const [showsQr, setShowsQr] = useState<boolean | null>(null);
 	const [confirming, setConfirming] = useState<Confirm>('delete');
 	const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
@@ -126,7 +127,7 @@ export function OwnerActions({
 					}
 				/>
 			)}
-			{showsQr && <PollQrDialog pollId={poll.id} title={poll.title} open onOpenChange={setShowsQr} />}
+			{showsQr !== null && <PollQrDialog pollId={poll.id} title={poll.title} open={showsQr} onOpenChange={setShowsQr} />}
 
 			<AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
 				<AlertDialogContent>

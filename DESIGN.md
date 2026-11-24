@@ -23,6 +23,7 @@ Cool canvas, navy ink actions, two signals: Volt (`highlight`) marks what is you
 | Elected | `elected` | The red stamp on a winning result (`ElectedMark`): on a result row a graphic with an accessible name; in a meta line ("**Yes** won", "Tie between **A** and **B**", `WinnerName`) a decorative 1em mark before each named winner, held to the name's first character so it never wraps alone, since the words say it. A tie stamps every option it names, as the result rows do. Never text or a button |
 | Error | `destructive` | Validation and destructive actions |
 | Focus | `ring` | Keyboard focus only (`outline-ring`, full strength, never `/50`): a blue no other state uses, so a focused control never reads as chosen (ink line) or yours (Volt). Selection in a picker (the avatar grid) is an ink ring with an ink check badge, not a Volt halo, which is 1.1:1 on white |
+| Linked comment | `target-tint` | The flash on a comment a link or an addressee chip scrolls to: a soft ink tint, padded 8px past the comment with 12px corners, fading over 1.6s. Not Volt, which is never a notification |
 
 `sidebar` is one step deeper than the canvas, divided by a 1px `sidebar-border`; the other `sidebar-*` tokens alias the base tokens, so change the base, not the alias.
 

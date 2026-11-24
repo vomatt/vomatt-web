@@ -1,5 +1,5 @@
 import { SIGNED_IN_FEED_ROOTS } from '@/features/polls/feeds';
-import { toShortId } from '@/features/polls/shortId';
+import { isUuid, toShortId } from '@/features/polls/shortId';
 
 /** A nav link is active on its own page and every page below it; home only on itself. */
 export const isActivePath = (pathname: string, href: string) =>
@@ -23,7 +23,7 @@ export const isProfileSettingsPath = (pathname: string) => /^\/[^/]+\/settings\/
 export const accountHref = (username?: string) => (username ? profileHref(username) : '/account');
 
 /** A Poll's page, by the short form of its id; the proxy redirects a link by the full UUID here. */
-export const pollHref = (id: string) => `/poll/${toShortId(id)}`;
+export const pollHref = (id: string) => `/poll/${isUuid(id) ? toShortId(id) : encodeURIComponent(id)}`;
 
 /** The home feed filtered to one topic. */
 export const topicHref = (slug: string) => `/?tag=${encodeURIComponent(slug)}`;

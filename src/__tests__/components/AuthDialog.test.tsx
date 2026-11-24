@@ -292,6 +292,10 @@ describe('passkey sign-in', () => {
 		expect(screen.getByRole('button', { name: 'auth.continueWithPasskey' })).toBeInTheDocument();
 		expect(screen.getByLabelText('common.email')).toHaveAttribute('autocomplete', 'email');
 		expect(mockGet).not.toHaveBeenCalled();
+		// No challenge is asked for until the button is about to be pressed
+		expect(mockGetPasskeyLoginOptions).not.toHaveBeenCalled();
+		fireEvent.pointerDown(screen.getByRole('button', { name: 'auth.continueWithPasskey' }));
+		expect(mockGetPasskeyLoginOptions).toHaveBeenCalledTimes(1);
 	});
 
 	it('resumes the started action after a passkey sign-in in the dialog', async () => {

@@ -89,14 +89,15 @@ export function PasskeyLoginButton({ onSignedIn, onError, autofill: offersAutofi
 	}
 
 	const prepare = useEffectEvent(async (signal: AbortSignal) => {
-		loginOptions();
+		// The button alone asks for its options when it is about to be pressed, not on every mount
 		if (!offersAutofill) return;
+		loginOptions();
 		const available = await window.PublicKeyCredential.isConditionalMediationAvailable?.();
 		if (available && !signal.aborted) await signIn('conditional', signal);
 	});
 
 	const refreshOptions = useEffectEvent(() => {
-		loginOptions();
+		if (offersAutofill || options.current) loginOptions();
 	});
 
 	useEffect(() => {
@@ -129,7 +130,11 @@ export function PasskeyLoginButton({ onSignedIn, onError, autofill: offersAutofi
 
 	if (!isSupported) return null;
 	return (
-		<Button type="button" variant="outline" className="mt-2 w-full" loading={isSigningIn} onClick={signInWithButton}>
+		<Button type="button" variant="outline" className="mt-2 w-full" loading={isSigningIn}
+			onPointerDown={loginOptions}
+			onFocus={loginOptions}
+			onClick={signInWithButton}
+		>
 			{t('auth.continueWithPasskey')}
 		</Button>
 	);

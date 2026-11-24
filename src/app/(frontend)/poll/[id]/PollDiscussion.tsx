@@ -1,9 +1,11 @@
 'use client';
 
 import { useEffect, useEffectEvent } from 'react';
+import { toast } from 'sonner';
 
 import { AuthDialog } from '@/components/auth/AuthDialog';
 import { useRefreshGeneration } from '@/components/Refreshable';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { CommentThread, useCommentLink } from '@/features/polls/components/CommentThread';
 import { PollCard } from '@/features/polls/components/PollCard';
 import { useComments } from '@/features/polls/hooks/useComments';
@@ -23,12 +25,15 @@ type PollDiscussionProps = {
 
 /** The poll page's discussion, its own card under the poll's, which it draws when given the poll. */
 export function PollDiscussion({ pollId, commentCount, viewerId, viewer, poll, anonymousByDefault }: PollDiscussionProps) {
+	const { t } = useLanguage();
 	const { requireAuth, authDialog } = useRequireAuth(!!viewerId);
 	const thread = useComments(pollId, { enabled: true, initialTotal: commentCount });
 	const replyTo = useCommentLink(thread);
 	// Comments load in the browser, so a page refresh brings only their count; the list follows it
 	const generation = useRefreshGeneration();
-	const refreshThread = useEffectEvent(() => thread.refresh(commentCount));
+	const refreshThread = useEffectEvent(async () => {
+		if (!(await thread.refresh())) toast.error(t('comments.loadFailed'));
+	});
 	useEffect(() => {
 		if (generation > 0) refreshThread();
 	}, [generation]);

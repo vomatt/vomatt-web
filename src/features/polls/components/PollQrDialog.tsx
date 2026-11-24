@@ -44,7 +44,7 @@ export function PollQrDialog({
 						aria-label={t('poll.qrLabel')}
 						viewBox={`0 0 ${size} ${size}`}
 						shapeRendering="crispEdges"
-						className="size-64 rounded-xl"
+						className="h-auto w-full max-w-64 rounded-xl"
 					>
 						<rect width={size} height={size} fill="#fff" />
 						<path fill="#000" d={modules} />
