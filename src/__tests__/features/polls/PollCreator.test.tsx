@@ -30,7 +30,7 @@ jest.mock('motion/react', () => {
 	};
 });
 const mockPush = jest.fn();
-jest.mock('next/navigation', () => ({ useRouter: () => ({ push: mockPush }) }));
+jest.mock('next/navigation', () => ({ ...jest.requireActual('next/navigation'), useRouter: () => ({ push: mockPush }) }));
 jest.mock('sonner', () => ({ toast: Object.assign(jest.fn(), { error: jest.fn() }) }));
 jest.mock('@/features/polls/service', () => ({
 	createPoll: jest.fn(),

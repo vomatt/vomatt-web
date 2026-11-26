@@ -7,7 +7,7 @@ const ARBITRARY_TYPE = String.raw`/(^|[\s:!])(text-(\[[-.0-9]|\[length:|\(length
 const DEFAULT_TEXT_SIZE = String.raw`/(^|[\s:!])text-(xs|sm|base|lg|[2-9]?xl)(!|\/\S*)?(\s|$)/`;
 const typeScaleRules = [ARBITRARY_TYPE, DEFAULT_TEXT_SIZE].map((pattern) => ({
 	selector: `:matches(Literal[value=${pattern}], TemplateElement[value.raw=${pattern}])`,
-	message: 'Use the type scale (text-title-*, text-body-*, text-caption-*, leading-*, tracking-*) instead of a raw size.',
+	message: 'Use the type scale (text-display-*, text-title-*, text-body-*, text-caption-*, leading-*, tracking-*) instead of a raw size.',
 }));
 
 export default defineConfig([

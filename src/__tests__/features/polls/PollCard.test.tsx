@@ -18,7 +18,7 @@ jest.mock('next/link', () => {
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 
 const mockReplace = jest.fn();
-jest.mock('next/navigation', () => ({ useRouter: () => ({ replace: mockReplace, refresh: jest.fn() }) }));
+jest.mock('next/navigation', () => ({ ...jest.requireActual('next/navigation'), useRouter: () => ({ replace: mockReplace, refresh: jest.fn() }) }));
 
 jest.mock('sonner', () => {
 	const toast = Object.assign(jest.fn(), { error: jest.fn(), success: jest.fn() });
@@ -1162,6 +1162,12 @@ describe('PollCard state D: Ended', () => {
 		render(<PollCard poll={{ ...endedPoll, options: openPoll.options }} />);
 		await waitFor(() => expect(mockGetPoll).toHaveBeenCalledWith('poll-1'));
 		expect(await screen.findByText("Couldn’t load the results.")).toBeInTheDocument();
+	});
+	it('says the results couldn’t load when the request itself fails', async () => {
+		mockGetResults.mockRejectedValue(new Error('network'));
+		const { participantCount, ...sealedEnded } = { ...endedPoll, options: openPoll.options };
+		render(<PollCard poll={sealedEnded} />);
+		expect(await screen.findByText('Couldn’t load the results.')).toBeInTheDocument();
 	});
 });
 

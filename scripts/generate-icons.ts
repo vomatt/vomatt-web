@@ -11,11 +11,10 @@
 
 import { writeFileSync } from 'fs';
 import { join } from 'path';
-
 import sharp from 'sharp';
 
 import { packIco } from '../src/lib/brand/ico';
-import { APP_TILE, APPLE_TILE, MARK_ICONS, MASKABLE_TILE, markGlossIconSvg, markIconSvg } from '../src/lib/brand/mark';
+import { APP_TILE, APPLE_TILE, MARK_ICONS, markGlossIconSvg, markIconSvg, MASKABLE_TILE } from '../src/lib/brand/mark';
 
 const appDir = join(__dirname, '..', 'src', 'app');
 const publicDir = join(__dirname, '..', 'public');

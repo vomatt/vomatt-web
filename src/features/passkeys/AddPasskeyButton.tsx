@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { apiErrorText } from '@/lib/api/error-text';
 import { getPasskeyRegistrationOptions, verifyPasskeyRegistration } from '@/lib/api/services/auth';
+import { settle } from '@/lib/api/settle';
 
 import { isPasskeyCancelled, PasskeyRefusedError, requestPasskey } from './request';
 
@@ -18,7 +19,7 @@ export function AddPasskeyButton({ onAdded }: { onAdded?: () => void }) {
 	const add = async () => {
 		setIsAdding(true);
 		try {
-			const options = await getPasskeyRegistrationOptions();
+			const options = await settle(getPasskeyRegistrationOptions());
 			if (!options.ok) {
 				toast.error(apiErrorText(t, options, 'passkey.addFailed'), { duration: Infinity });
 				return;
@@ -44,7 +45,7 @@ export function AddPasskeyButton({ onAdded }: { onAdded?: () => void }) {
 				return;
 			}
 			if (!credential) return;
-			const result = await verifyPasskeyRegistration((credential as PublicKeyCredential).toJSON());
+			const result = await settle(verifyPasskeyRegistration((credential as PublicKeyCredential).toJSON()));
 			if (!result.ok) {
 				const text =
 					result.errorCode === 'common.conflict' ? t('passkey.alreadyAdded') : apiErrorText(t, result, 'passkey.addFailed');

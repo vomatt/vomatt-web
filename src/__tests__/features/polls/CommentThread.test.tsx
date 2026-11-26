@@ -11,7 +11,7 @@ jest.mock('next/link', () => {
 });
  
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
-jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh: jest.fn() }) }));
+jest.mock('next/navigation', () => ({ ...jest.requireActual('next/navigation'), useRouter: () => ({ refresh: jest.fn() }) }));
 jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn() } }));
 jest.mock('@/features/blocks/service', () => ({ blockUser: jest.fn() }));
 jest.mock('@/lib/api/services/users', () => ({ searchUsers: jest.fn() }));

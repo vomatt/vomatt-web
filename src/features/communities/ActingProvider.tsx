@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { ActingState } from '@/data/auth';
 import { apiErrorText } from '@/lib/api/error-text';
+import { settle } from '@/lib/api/settle';
 import { profileHref } from '@/lib/routes';
 
 import { actAsCommunity, loadMyCommunities } from './acting';
@@ -90,7 +91,7 @@ export function useSwitchAccount() {
 	const switchTo = async (community: MyCommunity | null, then?: string) => {
 		if (busy) return;
 		setBusy(true);
-		const result = await actAsCommunity(community?.communityId ?? null);
+		const result = await settle(actAsCommunity(community?.communityId ?? null));
 		if (!result.ok) toast.error(apiErrorText(t, result, 'communities.acting.switchFailed'));
 		else if (community) toast.success(t('communities.acting.switched', { name: accountName(community) }));
 		else toast.success(t('communities.acting.switchedBack'));

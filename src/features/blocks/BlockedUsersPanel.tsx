@@ -9,6 +9,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UserAvatar } from '@/features/avatars/UserAvatar';
 import { handle } from '@/features/profiles/name';
+import { forgetProfile } from '@/features/profiles/ProfileHoverCard';
 import { mergeById } from '@/lib/api/cursor';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
@@ -80,6 +81,7 @@ export function BlockedUsersPanel() {
 		setPendingId(null);
 		setUsers((list) => list?.filter((u) => u.id !== user.id) ?? null);
 		toast.success(t('blocks.unblocked', { username: user.username }));
+		forgetProfile(user.username);
 	};
 
 	const retry = () => {

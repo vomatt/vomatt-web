@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 
 import { type CursorPage, mergeById } from '@/lib/api/cursor';
 
@@ -29,30 +29,46 @@ export function useCursorList<T extends { id: string }>(
 		setItems(initialPage?.items ?? []);
 		setNextCursor(initialPage?.nextCursor ?? null);
 		setLoadFailed(false);
+		setIsLoading(false);
 		setFetchListed(() => fetchPage);
 	}
+
+	// Counts the lists shown, so a page still loading when a seed or `reset` replaces the list is dropped.
+	// A layout effect runs in the commit, before a pending request can resolve against the new list.
+	// Effects can run again without a new list (Fast Refresh, a remount), so it counts only a new seed.
+	const listVersion = useRef(0);
+	const shownSeed = useRef(seed);
+	useLayoutEffect(() => {
+		if (shownSeed.current === seed) return;
+		shownSeed.current = seed;
+		listVersion.current += 1;
+	}, [seed]);
 
 	const loadMore = useCallback(async () => {
 		if (isLoading || !nextCursor) return;
 		setIsLoading(true);
 		setLoadFailed(false);
+		const version = listVersion.current;
 		try {
 			const page = await fetchListed(nextCursor);
+			if (version !== listVersion.current) return;
 			setItems((prev) => mergeById(prev, page.items));
 			setNextCursor(page.nextCursor);
 		} catch {
-			setLoadFailed(true);
+			if (version === listVersion.current) setLoadFailed(true);
 		} finally {
-			setIsLoading(false);
+			if (version === listVersion.current) setIsLoading(false);
 		}
 	}, [fetchListed, isLoading, nextCursor]);
 
 	// `fetchNext` replaces the fetcher Load more uses for the new pages (default: `fetchPage`)
 	const reset = useCallback(
 		(page: CursorPage<T>, fetchNext: (cursor: string) => Promise<CursorPage<T>> = fetchPage) => {
+			listVersion.current += 1;
 			setItems(page.items);
 			setNextCursor(page.nextCursor);
 			setLoadFailed(false);
+			setIsLoading(false);
 			setFetchListed(() => fetchNext);
 		},
 		[fetchPage]

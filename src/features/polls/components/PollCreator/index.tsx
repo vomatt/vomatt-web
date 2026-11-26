@@ -169,7 +169,7 @@ function StepLayer({ children }: { children: ReactNode }) {
 
 /**
  * Write everything on one screen, then review it the way voters will see it.
- * Status and times are fixed when entering review; a Closing chip still counts down.
+ * Status and times are fixed when entering review.
  */
 type ReviewSnapshot = {
 	status: PollStatus;
