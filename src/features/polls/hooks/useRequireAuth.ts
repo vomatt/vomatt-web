@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 /**
  * Wraps writes for signed-out visitors: the action opens the AuthDialog and
  * runs once sign-in succeeds, and `onCancel` runs if they close it instead.
+ * `resume` opens it at the code step a reload interrupted (a held vote coming back).
  * Reads never go through this.
  */
 export function useRequireAuth(isAuthenticated: boolean) {
@@ -16,18 +17,20 @@ export function useRequireAuth(isAuthenticated: boolean) {
 		if (!isAuthenticated) setIsLocallyAuthed(false);
 	}
 	const [open, setOpen] = useState(false);
+	const [resume, setResume] = useState(false);
 	const pendingAction = useRef<(() => void) | null>(null);
 	const pendingCancel = useRef<(() => void) | null>(null);
 	const isAuthed = isAuthenticated || isLocallyAuthed;
 
 	const requireAuth = useCallback(
-		(action: () => void, onCancel?: () => void) => {
+		(action: () => void, onCancel?: () => void, resumeCode = false) => {
 			if (isAuthed) {
 				action();
 				return;
 			}
 			pendingAction.current = action;
 			pendingCancel.current = onCancel ?? null;
+			setResume(resumeCode);
 			setOpen(true);
 		},
 		[isAuthed]
@@ -64,5 +67,5 @@ export function useRequireAuth(isAuthenticated: boolean) {
 		action?.();
 	}, []);
 
-	return { isAuthed, requireAuth, authDialog: { open, onOpenChange, onAuthSuccess } };
+	return { isAuthed, requireAuth, authDialog: { open, resume, onOpenChange, onAuthSuccess } };
 }

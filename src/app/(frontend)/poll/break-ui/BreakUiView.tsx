@@ -62,7 +62,7 @@ export function BreakUiView({
 	switch (view) {
 		case 'feed':
 			content = (
-				<PageShell className="pt-4 md:pt-8">
+				<PageShell>
 					<div className="space-y-4">
 						{fixture.polls.map((poll) => (
 							<PollCard key={poll.id} poll={poll} viewerId={VIEWER_ID} />
@@ -74,7 +74,7 @@ export function BreakUiView({
 		case 'poll': {
 			const poll = fixture.polls[0];
 			content = (
-				<PageShell className="pt-4 md:pt-8">
+				<PageShell>
 					<div className="space-y-4">
 						{poll && <PollCard poll={poll} viewerId={VIEWER_ID} commentCount={thread.total} headingLevel="h1" isPage />}
 						<CommentThread
@@ -111,7 +111,7 @@ export function BreakUiView({
 			break;
 		case 'creator':
 			content = (
-				<PageShell className="pt-4 md:pt-8">
+				<PageShell>
 					{fixture.polls[0] ? (
 						<PollCreator key={data} poll={fixture.polls[0]} open onOpenChange={() => {}} />
 					) : (

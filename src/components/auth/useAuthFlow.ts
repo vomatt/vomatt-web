@@ -22,10 +22,10 @@ export const SERVER_ERROR: AuthResult = { status: 'ERROR', error: 'serverError' 
  * and creates an account for a new one with the same one-time code.
  * `surface` is where it runs, for the sign-in events.
  */
-export function useAuthFlow(surface: 'dialog' | 'page') {
-	// The dialog opens only on the client, after a tap, so it can start at the code step a reload interrupted.
-	// The login page renders on the server too, and always starts at the email step
-	const [resumed] = useState(() => (surface === 'dialog' ? recallCodeSent() : null));
+export function useAuthFlow(surface: 'dialog' | 'page', resume = false) {
+	// Only a dialog reopened for the action a reload interrupted starts at its code step; it opens only on the
+	// client. Any other sign-in, and the login page (rendered on the server too), starts at the email step
+	const [resumed] = useState(() => (surface === 'dialog' && resume ? recallCodeSent() : null));
 	const [step, setStep] = useState<AuthStep>(resumed ? 'code' : 'email');
 	const [email, setEmail] = useState(resumed?.email ?? '');
 	/** Seconds until a resend, when the code step opened during the cooldown of an earlier code. */

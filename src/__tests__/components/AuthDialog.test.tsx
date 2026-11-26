@@ -239,7 +239,7 @@ describe('AuthDialog', () => {
 		await submitEmail();
 		await reload(unmount);
 
-		render(<AuthDialog {...baseProps} />);
+		render(<AuthDialog {...baseProps} resume />);
 		expect(screen.getByRole('dialog', { name: 'verificationCode.title' })).toHaveAccessibleDescription(
 			'verificationCode.subtitle user@test.com'
 		);
@@ -253,9 +253,21 @@ describe('AuthDialog', () => {
 		await reload(unmount);
 		mockTrack.mockClear();
 
-		render(<AuthDialog {...baseProps} />);
+		render(<AuthDialog {...baseProps} resume />);
 		await screen.findByText('verificationCode.title');
 		expect(mockTrack).not.toHaveBeenCalledWith('sign_in_started', expect.anything());
+	});
+
+	it('starts a sign-in for another action at the email step, even with a code just sent', async () => {
+		mockRequestOtp.mockResolvedValue({ status: 'SUCCESS' });
+		const { unmount } = render(<AuthDialog {...baseProps} />);
+		await submitEmail();
+		await reload(unmount);
+		mockTrack.mockClear();
+
+		render(<AuthDialog {...baseProps} />);
+		expect(screen.getByLabelText('common.email')).toBeInTheDocument();
+		expect(mockTrack).toHaveBeenCalledWith('sign_in_started', expect.anything());
 	});
 
 	it('starts from the email step when the page was left mid sign-in', async () => {
@@ -264,7 +276,7 @@ describe('AuthDialog', () => {
 		await submitEmail();
 		await leavePage(unmount);
 
-		render(<AuthDialog {...baseProps} />);
+		render(<AuthDialog {...baseProps} resume />);
 		expect(screen.getByLabelText('common.email')).toBeInTheDocument();
 	});
 
@@ -274,7 +286,7 @@ describe('AuthDialog', () => {
 		await submitEmail();
 		await reload(unmount);
 
-		render(<AuthDialog {...baseProps} />);
+		render(<AuthDialog {...baseProps} resume />);
 		expect(screen.getByLabelText('common.email')).toBeInTheDocument();
 	});
 
@@ -287,7 +299,7 @@ describe('AuthDialog', () => {
 		await waitFor(() => expect(baseProps.onAuthSuccess).toHaveBeenCalled());
 		await reload(unmount);
 
-		render(<AuthDialog {...baseProps} />);
+		render(<AuthDialog {...baseProps} resume />);
 		expect(screen.getByLabelText('common.email')).toBeInTheDocument();
 	});
 
@@ -298,7 +310,7 @@ describe('AuthDialog', () => {
 		fireEvent.click(screen.getAllByRole('button', { name: 'common.close' })[0]);
 		await reload(unmount);
 
-		render(<AuthDialog {...baseProps} />);
+		render(<AuthDialog {...baseProps} resume />);
 		expect(screen.getByLabelText('common.email')).toBeInTheDocument();
 	});
 

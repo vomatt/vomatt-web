@@ -50,7 +50,6 @@ export default async function NotificationsPage({ searchParams }: { searchParams
 	return (
 		<Refreshable>
 			<PageShell
-				className="pt-4 md:pt-8"
 				rail={
 					<Suspense fallback={null}>
 						<NotificationsRail firstPage={firstPage} category={category} preferences={preferences} />

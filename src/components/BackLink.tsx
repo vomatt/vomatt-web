@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-import { StickyBar } from '@/components/StickyBar';
+import { HeaderBack } from '@/components/layout/HeaderStart';
 import { ChevronLeft } from '@/components/ui/SvgIcons';
 import { cn } from '@/lib/utils';
 
@@ -46,8 +46,9 @@ export function useReturnTo(href: string) {
 }
 
 /**
- * "‹ Back": back to the previous page as a quiet link, no button chrome. Its hit area is
- * 44px tall but takes only its line's height in the layout.
+ * "‹ Back": back to the previous page. On phones it is a chevron in the Header's left slot; from md, where
+ * there is no Header, a quiet link that sticks to the top as the page scrolls. Its hit area is 44px tall but
+ * takes only its line's height in the layout.
  *
  * Goes back in history when the previous entry is a page of this site, so the viewer lands
  * where they came from (notifications, a profile). A page opened directly (a shared link,
@@ -57,11 +58,14 @@ export function useReturnTo(href: string) {
 export function BackLink({
 	href,
 	strict,
+	headerOnly,
 	className,
 	children,
 }: {
 	href: string;
 	strict?: boolean;
+	/** Only the phone Header's chevron, for a page that has another way out from `md` (Settings' sidebar). */
+	headerOnly?: boolean;
 	className?: string;
 	children: React.ReactNode;
 }) {
@@ -76,17 +80,26 @@ export function BackLink({
 		router.back();
 	}
 
+	const headerBack = <HeaderBack href={href} onClick={goBack} label={children} />;
+	if (headerOnly) return headerBack;
+
 	return (
-		// Stays under the phone Header as the page scrolls; the bar's 44px backs the hit area
-		<StickyBar data-sticky-bar className={cn('-my-3', className)}>
-			<Link
-				href={href}
-				onClick={goBack}
-				className="inline-flex min-h-11 items-center gap-1 rounded-sm text-body-4 leading-5 text-muted-foreground transition-colors outline-none hover:text-foreground active:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ring"
-			>
-				<ChevronLeft aria-hidden className="size-3.5 shrink-0" />
-				{children}
-			</Link>
-		</StickyBar>
+		<>
+			{headerBack}
+			{/* Only as wide as the link, so it covers nothing beside it once stuck */}
+			<div data-sticky-bar="back" className={cn('sticky top-0 z-20 -my-3 self-start max-md:hidden', className)}>
+				<Link
+					href={href}
+					onClick={goBack}
+					className="group inline-flex min-h-11 items-center text-body-4 leading-5 text-muted-foreground transition-colors outline-none hover:text-foreground active:text-foreground"
+				>
+					{/* The pill keeps the label readable over what scrolls under it; -ml-2.5 keeps the chevron on the page's edge */}
+					<span className="-ml-2.5 inline-flex h-8 items-center gap-1 rounded-full bg-background pr-3 pl-2.5 group-focus-visible:outline-2 group-focus-visible:outline-solid group-focus-visible:outline-ring">
+						<ChevronLeft aria-hidden className="size-3.5 shrink-0" />
+						{children}
+					</span>
+				</Link>
+			</div>
+		</>
 	);
 }

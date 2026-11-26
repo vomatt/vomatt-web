@@ -33,7 +33,7 @@ type BallotProps = {
 	poll: Poll;
 	status: Exclude<PollStatus, 'ended'>;
 	ballot: BallotState;
-	requireAuth: (action: () => void, onCancel?: () => void) => void;
+	requireAuth: (action: () => void, onCancel?: () => void, resume?: boolean) => void;
 	/** Signed in, here or on the page: a held vote then only comes back picked, for them to confirm. */
 	isAuthed: boolean;
 	isOwner: boolean;
@@ -130,8 +130,8 @@ export function Ballot({
 		setMode({ kind: 'sealed' });
 	};
 
-	/** Casts once signed in; a guest signs in first. */
-	const requestCast = (optionId: string) =>
+	/** Casts once signed in; a guest signs in first. `resume` reopens sign-in at the code step a reload interrupted. */
+	const requestCast = (optionId: string, resume?: boolean) =>
 		requireAuth(async () => {
 			releaseHeldVote();
 			// A small tap on phones, like the ballot hitting the bottom of the box
@@ -146,7 +146,7 @@ export function Ballot({
 			} else if (outcome === 'failed') {
 				shake();
 			}
-		}, releaseHeldVote);
+		}, releaseHeldVote, resume);
 
 	const castSelected = () => {
 		if (!selected) return;
@@ -160,10 +160,14 @@ export function Ballot({
 	// confirm, never a vote cast for them
 	const resumeHeldVote = useEffectEvent(() => {
 		const optionId = takeHeldVote(poll.id);
-		if (!optionId || view !== 'vote' || myOptionId || !poll.options.some((option) => option.id === optionId)) return;
+		if (!optionId) return;
+		if (view !== 'vote' || myOptionId || !poll.options.some((option) => option.id === optionId)) {
+			releaseHeldVote();
+			return;
+		}
 		setSelected(optionId);
 		if (isAuthed) releaseHeldVote();
-		else requestCast(optionId);
+		else requestCast(optionId, true);
 	});
 	useEffect(() => resumeHeldVote(), []);
 

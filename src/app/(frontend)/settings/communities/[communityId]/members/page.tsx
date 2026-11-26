@@ -22,7 +22,7 @@ export default async function OldCommunityMembersPage({ params }: Props) {
 	// Removed, never was, or the account is gone: the same answer the members page gives
 	return (
 		<PageShell>
-			<div className="flex flex-col gap-8">
+			<div className="flex flex-col gap-5 md:gap-8">
 				<SettingsSubpageHeader title={<T k="communities.members" />} />
 				<EmptyCard title={<T k="communities.notMemberTitle" />} body={<T k="communities.notMemberBody" />} />
 			</div>
