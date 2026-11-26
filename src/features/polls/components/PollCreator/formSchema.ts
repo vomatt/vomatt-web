@@ -125,7 +125,6 @@ export function pollToForm(poll: Poll): PollFormValues {
 	};
 }
 
-/** `datetime-local` values carry no offset, so convert them to full ISO strings. */
 /** The question or an option as one line: pasted line breaks become spaces. */
 export function toSingleLine(text: string) {
 	return text.replace(/\s*\n\s*/g, ' ').trim();
@@ -134,6 +133,7 @@ export function toSingleLine(text: string) {
 /**
  * `duration` is the chosen end preset: the end is that long after the start, which is now when
  * the poll opens on publish. The end field holds when the preset was picked, to the minute.
+ * `datetime-local` values carry no offset, so they become full ISO strings.
  */
 export function formToInput(values: PollFormValues, duration?: number): PollInput {
 	const description = values.description.trim();

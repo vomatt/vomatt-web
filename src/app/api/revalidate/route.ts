@@ -17,9 +17,10 @@ const MAX_SYNC_TAG_LENGTH = 100;
  */
 export async function POST(request: Request) {
 	const secret = process.env.SANITY_REVALIDATE_SECRET;
+	if (!secret) return Response.json({ revalidated: false }, { status: 401 });
 	const expected = Buffer.from(`Bearer ${secret}`);
 	const received = Buffer.from(request.headers.get('authorization') ?? '');
-	if (!secret || received.length !== expected.length || !timingSafeEqual(received, expected)) {
+	if (received.length !== expected.length || !timingSafeEqual(received, expected)) {
 		return Response.json({ revalidated: false }, { status: 401 });
 	}
 

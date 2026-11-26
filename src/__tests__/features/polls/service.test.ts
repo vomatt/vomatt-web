@@ -492,7 +492,6 @@ describe('createPoll() and updatePoll()', () => {
 			],
 			startTime: '2026-10-04T02:00:00.000Z',
 			endTime: '2026-10-07T14:00:00.000Z',
-			allowMultipleChoices: false,
 			voterVisibility: 'NOBODY',
 		});
 		expect(updateTag).toHaveBeenCalledWith('polls-feed');

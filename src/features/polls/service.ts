@@ -54,7 +54,6 @@ function toRequestBody(input: PollInput) {
 		options: input.options.map((option, i) => ({ text: option.text, displayOrder: i })),
 		startTime: input.startTime,
 		endTime: input.endTime,
-		allowMultipleChoices: false,
 		voterVisibility: toApiVoterVisibility(input.voterVisibility),
 		audience: input.audience && toApiAudience(input.audience),
 		tagIds: input.tagIds,
@@ -395,12 +394,12 @@ export async function retractBallot(pollId: string): Promise<ActionResult> {
 /** Where a Poll's link was shared, as the API names it. */
 export type ShareChannel = 'COPY_LINK' | 'NATIVE' | 'LINE' | 'FACEBOOK' | 'X' | 'THREADS' | 'OTHER';
 
+const ShareResult = z.object({ shareCount: z.number().int() });
+
 /**
  * Counts a signed-in user's share of a Poll (once per user and Poll; a repeat
  * keeps the first channel). Signed-out viewers aren't counted: they get a 401 failure.
  */
-const ShareResult = z.object({ shareCount: z.number().int() });
-
 export async function sharePoll(pollId: string, channel: ShareChannel): Promise<ActionResult<number>> {
 	return attempt(async () => {
 		const result = await apiClient(`/votes/${encodeURIComponent(pollId)}/share`, {
