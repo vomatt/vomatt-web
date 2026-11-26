@@ -554,21 +554,3 @@ html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 @utility avatar-frame {
 	@apply size-8 shrink-0 rounded-full border border-border;
 }
-
-@layer utilities {
-
-	/* Chrome, Safari and Opera */
-	.no-scrollbar::-webkit-scrollbar {
-		display: none;
-	}
-
-	/* IE and Edge */
-	.no-scrollbar {
-		-ms-overflow-style: none;
-	}
-
-	/* Firefox */
-	.no-scrollbar {
-		scrollbar-width: none;
-	}
-}

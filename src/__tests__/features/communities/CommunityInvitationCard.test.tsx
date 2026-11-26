@@ -8,7 +8,7 @@ import { signout } from '@/lib/api/services/auth';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 const mockPush = jest.fn();
-jest.mock('next/navigation', () => ({ useRouter: () => ({ push: mockPush, refresh: jest.fn() }) }));
+jest.mock('next/navigation', () => ({ ...jest.requireActual('next/navigation'), useRouter: () => ({ push: mockPush, refresh: jest.fn() }) }));
 jest.mock('@/features/communities/service', () => ({
 	acceptCommunityInvitation: jest.fn(),
 	declineCommunityInvitation: jest.fn(),

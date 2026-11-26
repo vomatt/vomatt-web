@@ -17,7 +17,7 @@ jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn(), info
 const mockRefresh = jest.fn();
 const mockPush = jest.fn();
 jest.mock('@/features/communities/service', () => ({ unlockCommunity: jest.fn() }));
-jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh: mockRefresh, push: mockPush }), usePathname: () => '/' }));
+jest.mock('next/navigation', () => ({ ...jest.requireActual('next/navigation'), useRouter: () => ({ refresh: mockRefresh, push: mockPush }), usePathname: () => '/' }));
 
 const community = (communityId: string, role: CommunityRole): MyCommunity => ({
 	communityId,
@@ -240,5 +240,14 @@ describe('CommunityAccountsCard', () => {
 		fireEvent.click(screen.getByRole('button', { name: /Community c1/ }));
 		await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Couldn’t switch accounts. Please try again.'));
 		expect(mockPush).not.toHaveBeenCalled();
+	});
+	it('says so and can switch again when the request itself fails', async () => {
+		(actAsCommunity as jest.Mock).mockRejectedValueOnce(new Error('network'));
+		renderWith({}, <CommunityAccountsCard communities={[community('c1', 'ADMIN')]} />);
+
+		fireEvent.click(screen.getByRole('button', { name: /Community c1/ }));
+		await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Couldn’t switch accounts. Please try again.'));
+		fireEvent.click(screen.getByRole('button', { name: /Community c1/ }));
+		await waitFor(() => expect(actAsCommunity).toHaveBeenCalledTimes(2));
 	});
 });

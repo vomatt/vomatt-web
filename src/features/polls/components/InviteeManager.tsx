@@ -155,7 +155,7 @@ export function InviteeManager({ pollId, open, onOpenChange, onChanged }: Invite
 							<Spinner />
 						</div>
 					)}
-					{loadFailed && (
+					{invitees === null && loadFailed && (
 						<p className="py-2 text-caption-2 text-muted-foreground">{t('invitees.loadFailed')}</p>
 					)}
 					{invitees?.length === 0 && (

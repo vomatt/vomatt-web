@@ -19,7 +19,7 @@ export default function ProfileNotFound() {
 	return (
 		<PageShell>
 			<EmptyCard
-				className="max-w-[640px]"
+				className="max-w-feed"
 				headingLevel={1}
 				title={t(isHandle ? 'profile.notFoundTitle' : 'profile.pageNotFoundTitle')}
 				body={t(isHandle ? 'profile.notFoundBody' : 'profile.pageNotFoundBody')}

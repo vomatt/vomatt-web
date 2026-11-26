@@ -12,7 +12,7 @@ export default function PollNotFound() {
 	return (
 		<PageShell>
 			<EmptyCard
-				className="w-full max-w-[640px]"
+				className="w-full max-w-feed"
 				headingLevel={1}
 				title={<T k="pollDetail.notFound" />}
 				body={<T k="pollDetail.notFoundBody" />}

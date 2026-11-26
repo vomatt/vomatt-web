@@ -46,6 +46,7 @@ import { aboutHref } from '@/lib/aboutSite';
 import { apiErrorText } from '@/lib/api/error-text';
 import { signout } from '@/lib/api/services/auth';
 import { deleteMyAccount, editProfile } from '@/lib/api/services/users';
+import { settle } from '@/lib/api/settle';
 import { countText } from '@/lib/count';
 import { cn, wrapRowText } from '@/lib/utils';
 import type { CommunityQuota, MyProfile } from '@/types/user';
@@ -101,7 +102,7 @@ export default function AccountSettings({
 
 	const toggleAnonymousDefault = async (value: boolean) => {
 		setAnonymousDefault(value);
-		const result = await editProfile({ anonymousBallotByDefault: value });
+		const result = await settle(editProfile({ anonymousBallotByDefault: value }));
 		if (result.ok) {
 			savedAnonymousDefault.current = value;
 			setAnnouncement(t(value ? 'account.anonymousDefaultOn' : 'account.anonymousDefaultOff'));
@@ -337,7 +338,7 @@ function useDeviceCount() {
 	const [count, setCount] = useState<number | null>(null);
 	useEffect(() => {
 		let ignore = false;
-		getSessions().then((result) => {
+		settle(getSessions()).then((result) => {
 			if (!ignore && result.ok) setCount(result.data.length);
 		});
 		return () => {
@@ -363,7 +364,7 @@ function NotificationSwitches({
 	const toggle = async (key: keyof NotificationPreferences, value: boolean, name: string) => {
 		setPreferences((current) => ({ ...current, [key]: value }));
 		setSavingKey(key, true);
-		const result = await updateNotificationPreferences({ [key]: value });
+		const result = await settle(updateNotificationPreferences({ [key]: value }));
 		setSavingKey(key, false);
 		if (result.ok) {
 			// Only this switch: another one may still be saving
@@ -500,7 +501,7 @@ function DeleteAccount({ username }: { username: string }) {
 		}
 		setIsDeleting(true);
 		// Only returns on failure; success redirects
-		const result = await deleteMyAccount();
+		const result = await settle(deleteMyAccount());
 		setIsDeleting(false);
 		const key = result.errorCode && DELETE_ERROR_KEYS[result.errorCode];
 		const lastOwner = result.errorCode === 'community.last_owner';

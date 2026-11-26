@@ -48,6 +48,18 @@ afterEach(() => {
 const add = () => fireEvent.click(screen.getByRole('button', { name: 'Add passkey' }));
 
 describe('AddPasskeyButton', () => {
+	it.each([
+		['the options request', () => mockGetOptions.mockRejectedValueOnce(new Error('network'))],
+		['the verify request', () => mockVerify.mockRejectedValueOnce(new Error('network'))],
+	])('says adding failed and stops loading when %s itself fails', async (_, fail) => {
+		fail();
+		render(<AddPasskeyButton />);
+		add();
+
+		await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Couldn’t add the passkey. Please try again.', { duration: Infinity }));
+		expect(screen.getByRole('button', { name: 'Add passkey' })).not.toHaveAttribute('aria-busy');
+	});
+
 	it('creates the passkey from the parsed options and sends its toJSON() to verify', async () => {
 		render(<AddPasskeyButton />);
 		add();

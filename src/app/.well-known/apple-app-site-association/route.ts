@@ -1,9 +1,9 @@
 import { ABOUT_SITE_SLUGS } from '@/lib/aboutSite';
 import { APP_ROOT_SEGMENTS } from '@/lib/routes';
 
-// Root segments that are not usernames; the about site's old paths redirect there, and old
+// Root segments that are not usernames; the about site's old paths and /signup redirect, and old
 // /my-polls links get the web's 404 instead of a missing profile in the app
-const EXCLUDED_ROOTS = [...APP_ROOT_SEGMENTS, 'sanity', 'api', 'my-polls', ...ABOUT_SITE_SLUGS];
+const EXCLUDED_ROOTS = [...APP_ROOT_SEGMENTS, 'sanity', 'api', 'my-polls', 'signup', ...ABOUT_SITE_SLUGS];
 
 type Component = { '/': string; exclude?: true; comment?: string };
 

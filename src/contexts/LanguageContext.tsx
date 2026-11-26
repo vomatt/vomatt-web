@@ -26,7 +26,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(
 	undefined
 );
 
-/** The active `t`, or null outside a LanguageProvider (e.g. the Sanity studio) for shared primitives. */
+/** The active `t`, or null outside a LanguageProvider for shared primitives. */
 export const useOptionalTranslate = () => useContext(LanguageContext)?.t ?? null;
 
 // Hook to use language context
@@ -60,7 +60,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
 		useState<Translations>(defaultTranslations);
 	const setLanguage = (language: LanguageCode) => {
 		setCurrentLanguage(language);
-		setLanguageCookie(language); // Use cookie instead of localStorage
+		setLanguageCookie(language);
 		loadTranslations(language);
 	};
 	// Load translations for a specific language
@@ -87,8 +87,6 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
 	useEffect(() => {
 		document.documentElement.lang = htmlLang(currentLanguage);
 	}, [currentLanguage]);
-
-	// Set language and persist to localStorage
 
 	// Translation function with nested key support and `{name}` placeholders
 	const t = (key: string, fallbackOrValues?: string | TranslationValues): string => {

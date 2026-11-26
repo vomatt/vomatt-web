@@ -6,7 +6,7 @@ import type { MyProfile } from '@/types/user';
 
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 const mockRefresh = jest.fn();
-jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh: mockRefresh }) }));
+jest.mock('next/navigation', () => ({ ...jest.requireActual('next/navigation'), useRouter: () => ({ refresh: mockRefresh }) }));
 const mockSetTheme = jest.fn();
 jest.mock('next-themes', () => ({ useTheme: () => ({ theme: 'system', setTheme: mockSetTheme }) }));
 jest.mock('sonner', () => ({ toast: { error: jest.fn(), success: jest.fn(), info: jest.fn() } }));
@@ -230,6 +230,23 @@ describe('AccountSettings', () => {
 		await waitFor(() => expect(confirm).toHaveAttribute('aria-busy', 'true'));
 	});
 
+	it('stops the delete spinner and says so when the request itself fails', async () => {
+		const { deleteMyAccount } = jest.requireMock('@/lib/api/services/users');
+		deleteMyAccount.mockRejectedValue(new Error('network'));
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} communities={[]} />);
+
+		fireEvent.click(screen.getByRole('button', { name: 'Delete account…' }));
+		fireEvent.change(screen.getByRole('textbox', { name: 'Type your username to confirm' }), {
+			target: { value: 'mei' },
+		});
+		const confirm = screen.getAllByRole('button', { name: 'Delete account' }).at(-1)!;
+		fireEvent.click(confirm);
+		await waitFor(() =>
+			expect(toast.error).toHaveBeenCalledWith("Couldn’t delete your account. It’s still active; try again.", { duration: Infinity })
+		);
+		expect(confirm).not.toHaveAttribute('aria-busy', 'true');
+	});
+
 	it('says the account is still active when deletion fails without a reason', async () => {
 		const { deleteMyAccount } = jest.requireMock('@/lib/api/services/users');
 		deleteMyAccount.mockResolvedValue({ ok: false, status: 502, message: 'Request failed with status 502' });
@@ -328,6 +345,17 @@ describe('AccountSettings', () => {
 		expect(toggle).not.toBeChecked();
 		await waitFor(() => expect(toggle).toBeChecked());
 		expect(toast.error).toHaveBeenCalled();
+	});
+
+	it('puts a notification switch back and re-enables it when the request itself fails', async () => {
+		mockUpdatePreferences.mockRejectedValue(new Error('network'));
+		render(<AccountSettings profile={myProfile} inviteListCount={3} notificationPreferences={preferences} communities={[]} />);
+
+		const toggle = screen.getByRole('switch', { name: 'Results are in' });
+		fireEvent.click(toggle);
+		await waitFor(() => expect(toggle).toBeChecked());
+		expect(toast.error).toHaveBeenCalled();
+		expect(toggle).not.toHaveAttribute('aria-disabled', 'true');
 	});
 
 	it('rolls back only the switch that failed when two saves overlap', async () => {
