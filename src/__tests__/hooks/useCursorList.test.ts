@@ -50,4 +50,92 @@ describe('useCursorList', () => {
 		expect(result.current.items).toEqual([b, c]);
 		expect(result.current.hasMore).toBe(true);
 	});
+
+	it('drops a page that arrives after a reset', async () => {
+		let resolveOld: (page: { items: { id: string }[]; nextCursor: string | null }) => void = () => {};
+		const fetchOld = jest.fn(() => new Promise<{ items: { id: string }[]; nextCursor: string | null }>((resolve) => (resolveOld = resolve)));
+		const first = { items: [a], nextCursor: 'n1' };
+		const { result } = renderHook(() => useCursorList(first, fetchOld));
+
+		let pending: Promise<void> = Promise.resolve();
+		act(() => {
+			pending = result.current.loadMore();
+		});
+		act(() => result.current.reset({ items: [c], nextCursor: 'm1' }, jest.fn()));
+		await act(async () => {
+			resolveOld({ items: [b], nextCursor: 'n2' });
+			await pending;
+		});
+
+		expect(result.current.items).toEqual([c]);
+		expect(result.current.isLoading).toBe(false);
+	});
+
+	it('ignores a failure or spinner from a page that was in flight during a reset', async () => {
+		let rejectOld: (error: Error) => void = () => {};
+		const fetchOld = jest.fn(() => new Promise<{ items: { id: string }[]; nextCursor: string | null }>((_, reject) => (rejectOld = reject)));
+		const first = { items: [a], nextCursor: 'n1' };
+		const { result } = renderHook(() => useCursorList(first, fetchOld));
+
+		let pending: Promise<void> = Promise.resolve();
+		act(() => {
+			pending = result.current.loadMore();
+		});
+		expect(result.current.isLoading).toBe(true);
+		act(() => result.current.reset({ items: [c], nextCursor: 'm1' }, jest.fn()));
+		expect(result.current.isLoading).toBe(false);
+		await act(async () => {
+			rejectOld(new Error('down'));
+			await pending;
+		});
+
+		expect(result.current.loadFailed).toBe(false);
+		expect(result.current.items).toEqual([c]);
+	});
+
+	it('drops a page that arrives after the server sends a new first page', async () => {
+		let resolveOld: (page: { items: { id: string }[]; nextCursor: string | null }) => void = () => {};
+		const fetchOld = jest.fn(() => new Promise<{ items: { id: string }[]; nextCursor: string | null }>((resolve) => (resolveOld = resolve)));
+		const { result, rerender } = renderHook(({ page }) => useCursorList(page, fetchOld), {
+			initialProps: { page: { items: [a], nextCursor: 'n1' as string | null } },
+		});
+
+		let pending: Promise<void> = Promise.resolve();
+		act(() => {
+			pending = result.current.loadMore();
+		});
+		rerender({ page: { items: [c], nextCursor: null } });
+		expect(result.current.isLoading).toBe(false);
+		await act(async () => {
+			resolveOld({ items: [b], nextCursor: 'n2' });
+			await pending;
+		});
+
+		expect(result.current.items).toEqual([c]);
+		expect(result.current.hasMore).toBe(false);
+	});
+
+	it('keeps the new list loading when a page from before a reset arrives', async () => {
+		let resolveOld: (page: { items: { id: string }[]; nextCursor: string | null }) => void = () => {};
+		const fetchOld = jest.fn(() => new Promise<{ items: { id: string }[]; nextCursor: string | null }>((resolve) => (resolveOld = resolve)));
+		const fetchNew = jest.fn(() => new Promise<{ items: { id: string }[]; nextCursor: string | null }>(() => {}));
+		const first = { items: [a], nextCursor: 'n1' };
+		const { result } = renderHook(() => useCursorList(first, fetchOld));
+
+		let pending: Promise<void> = Promise.resolve();
+		act(() => {
+			pending = result.current.loadMore();
+		});
+		act(() => result.current.reset({ items: [c], nextCursor: 'm1' }, fetchNew));
+		act(() => {
+			void result.current.loadMore();
+		});
+		await act(async () => {
+			resolveOld({ items: [b], nextCursor: 'n2' });
+			await pending;
+		});
+
+		expect(fetchNew).toHaveBeenCalledWith('m1');
+		expect(result.current.isLoading).toBe(true);
+	});
 });
