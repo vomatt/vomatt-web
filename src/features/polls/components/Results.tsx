@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { settle } from '@/lib/api/settle';
 import { countText } from '@/lib/count';
 import { EASE_OUT_STRONG } from '@/lib/motion';
 import { META_GAP } from '@/lib/rich';
@@ -100,7 +101,7 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption, r
 	useEffect(() => {
 		if (!needsFetch) return;
 		let ignore = false;
-		getResults(poll.id).then((result) => {
+		settle(getResults(poll.id)).then((result) => {
 			if (ignore) return;
 			// Still sealed after the refetch means the card's status is wrong; stop loading
 			if (isSealed(result)) onSealed();

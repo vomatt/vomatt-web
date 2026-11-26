@@ -22,6 +22,7 @@ import { pollTiming } from '@/features/polls/timing';
 import { handle } from '@/features/profiles/name';
 import { rememberFollowing } from '@/features/profiles/ProfileHoverCard';
 import { ProfileAvatar, ProfileName } from '@/features/profiles/UserChip';
+import type { ActionResult } from '@/lib/api/action';
 import { apiErrorText } from '@/lib/api/error-text';
 import { settle } from '@/lib/api/settle';
 import { countText } from '@/lib/count';
@@ -534,7 +535,7 @@ function CommunityInvitationRow({ entry, onOpen }: RowProps<Extract<Entry, { kin
 
 	const answer = async (choice: 'accept' | 'decline', row: Element | null) => {
 		setBusy(choice);
-		const result = await settle<unknown>((choice === 'accept' ? acceptCommunityInvitation : declineCommunityInvitation)(communityInvitation.id));
+		const result = await settle<ActionResult<unknown>>((choice === 'accept' ? acceptCommunityInvitation : declineCommunityInvitation)(communityInvitation.id));
 		// The buttons stay busy while the row folds away, so it can't be answered twice
 		if (!result.ok) {
 			toast.error(apiErrorText(t, result));
