@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 /**
  * Wraps writes for signed-out visitors: the action opens the AuthDialog and
@@ -40,6 +40,19 @@ export function useRequireAuth(isAuthenticated: boolean) {
 		pendingAction.current = null;
 		pendingCancel.current = null;
 		cancel?.();
+	}, []);
+
+	// Leaving the page mid sign-in (a link, the TabBar) unmounts without a close, so it counts as cancelling. A
+	// reload runs no clean-up and keeps what waits. Deferred, since a Strict Mode remount comes straight back
+	const mounted = useRef(false);
+	useEffect(() => {
+		mounted.current = true;
+		return () => {
+			mounted.current = false;
+			setTimeout(() => {
+				if (!mounted.current) pendingCancel.current?.();
+			}, 0);
+		};
 	}, []);
 
 	const onAuthSuccess = useCallback(() => {

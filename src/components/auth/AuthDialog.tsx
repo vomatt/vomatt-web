@@ -22,6 +22,18 @@ export function AuthDialog({ open, onOpenChange, onAuthSuccess }: AuthDialogProp
 	const [policyMessage, setPolicyMessage] = useState<PortableTextBlock[] | null>(null);
 	// Past the code, the account is signed in; closing at the name step must still resume the action
 	const signedIn = useRef(false);
+	// Unmounted without a close (the page left mid sign-in): a later dialog starts from the email step. A reload
+	// runs no clean-up, so it still resumes. Deferred, since a Strict Mode remount comes straight back
+	const mounted = useRef(false);
+	useEffect(() => {
+		mounted.current = true;
+		return () => {
+			mounted.current = false;
+			setTimeout(() => {
+				if (!mounted.current) forgetCodeSent();
+			}, 0);
+		};
+	}, []);
 
 	useEffect(() => {
 		let active = true;

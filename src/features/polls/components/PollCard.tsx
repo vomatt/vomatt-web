@@ -266,6 +266,7 @@ export function PollCard({
 								status={status}
 								ballot={ballot}
 								requireAuth={requireAuth}
+								isAuthed={isAuthed}
 								isOwner={isOwner}
 								isActing={!!acting}
 							/>

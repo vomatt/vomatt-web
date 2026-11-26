@@ -34,6 +34,8 @@ type BallotProps = {
 	status: Exclude<PollStatus, 'ended'>;
 	ballot: BallotState;
 	requireAuth: (action: () => void, onCancel?: () => void) => void;
+	/** Signed in, here or on the page: a held vote then only comes back picked, for them to confirm. */
+	isAuthed: boolean;
 	isOwner: boolean;
 	/** Acting as a community account, which never votes: the options show, but can't be picked. */
 	isActing: boolean;
@@ -52,6 +54,7 @@ export function Ballot({
 	status,
 	ballot,
 	requireAuth,
+	isAuthed,
 	isOwner,
 	isActing,
 }: BallotProps) {
@@ -127,9 +130,8 @@ export function Ballot({
 		setMode({ kind: 'sealed' });
 	};
 
-	const castOption = (optionId: string) => {
-		// Held until it is cast, so a guest whose page reloads during sign-in finds it waiting
-		holdVote(poll.id, optionId);
+	/** Casts once signed in; a guest signs in first. */
+	const requestCast = (optionId: string) =>
 		requireAuth(async () => {
 			releaseHeldVote();
 			// A small tap on phones, like the ballot hitting the bottom of the box
@@ -145,18 +147,23 @@ export function Ballot({
 				shake();
 			}
 		}, releaseHeldVote);
-	};
 
 	const castSelected = () => {
-		if (selected) castOption(selected);
+		if (!selected) return;
+		// Held until it is cast, so a guest whose page reloads during sign-in finds it waiting
+		holdVote(poll.id, selected);
+		requestCast(selected);
 	};
 
-	// Back from a reload mid sign-in: pick the held option again and pick sign-in up where it was
+	// Back from a reload mid sign-in: pick the held option again and pick sign-in up where it was. Not held again,
+	// so its window still runs from the first tap. Someone who signed in another way meanwhile gets the pick to
+	// confirm, never a vote cast for them
 	const resumeHeldVote = useEffectEvent(() => {
 		const optionId = takeHeldVote(poll.id);
 		if (!optionId || view !== 'vote' || myOptionId || !poll.options.some((option) => option.id === optionId)) return;
 		setSelected(optionId);
-		castOption(optionId);
+		if (isAuthed) releaseHeldVote();
+		else requestCast(optionId);
 	});
 	useEffect(() => resumeHeldVote(), []);
 

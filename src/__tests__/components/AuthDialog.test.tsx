@@ -3,6 +3,8 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { AuthDialog } from '@/components/auth/AuthDialog';
 import { AuthFlow } from '@/components/auth/AuthFlow';
 
+import { leavePage, reload, settleUnmounts } from '../helpers/reload';
+
 // Polyfill APIs missing in jsdom
 if (!document.elementFromPoint) {
 	document.elementFromPoint = () => null;
@@ -51,7 +53,9 @@ jest.mock('@/components/auth/policy', () => ({
 	getPolicyMessage: () => mockGetPolicyMessage(),
 }));
 
-beforeEach(() => {
+beforeEach(async () => {
+	// The last test's dialog clears its code a tick after it unmounts
+	await settleUnmounts();
 	jest.clearAllMocks();
 	sessionStorage.clear();
 	mockGetPolicyMessage.mockResolvedValue(null);
@@ -233,13 +237,45 @@ describe('AuthDialog', () => {
 		mockRequestOtp.mockResolvedValue({ status: 'SUCCESS' });
 		const { unmount } = render(<AuthDialog {...baseProps} />);
 		await submitEmail();
-		unmount();
+		await reload(unmount);
 
 		render(<AuthDialog {...baseProps} />);
 		expect(screen.getByRole('dialog', { name: 'verificationCode.title' })).toHaveAccessibleDescription(
 			'verificationCode.subtitle user@test.com'
 		);
 		expect(mockRequestOtp).toHaveBeenCalledTimes(1);
+	});
+
+	it('does not count a sign-in resumed after a reload as a new one', async () => {
+		mockRequestOtp.mockResolvedValue({ status: 'SUCCESS' });
+		const { unmount } = render(<AuthDialog {...baseProps} />);
+		await submitEmail();
+		await reload(unmount);
+		mockTrack.mockClear();
+
+		render(<AuthDialog {...baseProps} />);
+		await screen.findByText('verificationCode.title');
+		expect(mockTrack).not.toHaveBeenCalledWith('sign_in_started', expect.anything());
+	});
+
+	it('starts from the email step when the page was left mid sign-in', async () => {
+		mockRequestOtp.mockResolvedValue({ status: 'SUCCESS' });
+		const { unmount } = render(<AuthDialog {...baseProps} />);
+		await submitEmail();
+		await leavePage(unmount);
+
+		render(<AuthDialog {...baseProps} />);
+		expect(screen.getByLabelText('common.email')).toBeInTheDocument();
+	});
+
+	it('leaves nothing for a dialog to resume after a code requested on the login page', async () => {
+		mockRequestOtp.mockResolvedValue({ status: 'SUCCESS' });
+		const { unmount } = render(<AuthFlow onDone={jest.fn()} />);
+		await submitEmail();
+		await reload(unmount);
+
+		render(<AuthDialog {...baseProps} />);
+		expect(screen.getByLabelText('common.email')).toBeInTheDocument();
 	});
 
 	it('starts from the email step again once signed in', async () => {
@@ -249,7 +285,7 @@ describe('AuthDialog', () => {
 		await submitEmail();
 		fillOTP('123456');
 		await waitFor(() => expect(baseProps.onAuthSuccess).toHaveBeenCalled());
-		unmount();
+		await reload(unmount);
 
 		render(<AuthDialog {...baseProps} />);
 		expect(screen.getByLabelText('common.email')).toBeInTheDocument();
@@ -260,7 +296,7 @@ describe('AuthDialog', () => {
 		const { unmount } = render(<AuthDialog {...baseProps} />);
 		await submitEmail();
 		fireEvent.click(screen.getAllByRole('button', { name: 'common.close' })[0]);
-		unmount();
+		await reload(unmount);
 
 		render(<AuthDialog {...baseProps} />);
 		expect(screen.getByLabelText('common.email')).toBeInTheDocument();

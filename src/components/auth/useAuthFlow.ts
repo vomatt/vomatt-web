@@ -42,7 +42,8 @@ export function useAuthFlow(surface: 'dialog' | 'page') {
 			const cooldown = res.status === 'COOLDOWN' ? res.seconds : undefined;
 			setResendIn(cooldown);
 			setEmail(value.trim());
-			rememberCodeSent(value.trim(), cooldown);
+			// Only the dialog resumes after a reload
+			if (surface === 'dialog') rememberCodeSent(value.trim(), cooldown);
 			setStep('code');
 			return OK;
 		} catch {
@@ -54,12 +55,12 @@ export function useAuthFlow(surface: 'dialog' | 'page') {
 		try {
 			const res = await requestOtp(email);
 			if (res.status !== 'SUCCESS') return res;
-			rememberCodeSent(email);
+			if (surface === 'dialog') rememberCodeSent(email);
 			return OK;
 		} catch {
 			return SERVER_ERROR;
 		}
-	}, [email]);
+	}, [email, surface]);
 
 	/** Resolves `done: true` when the user is signed in and nothing else is asked. */
 	const submitCode = useCallback(
@@ -107,6 +108,8 @@ export function useAuthFlow(surface: 'dialog' | 'page') {
 	}, []);
 
 	return {
+		/** Opened at the code step a reload interrupted, rather than starting a sign-in. */
+		resumed: !!resumed,
 		step,
 		email,
 		resendIn,
