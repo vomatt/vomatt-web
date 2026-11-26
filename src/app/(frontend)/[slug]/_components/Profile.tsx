@@ -70,7 +70,7 @@ export async function OwnProfile({
 export function ProfileSkeleton({ rail = true }: { rail?: boolean }) {
 	return (
 		<PageShell
-			className="pt-4 md:pt-8"
+			className="pt-4 md:pt-12"
 			rail={rail && <Skeleton className="h-28 rounded-2xl" />}
 		>
 			<div className="space-y-6">
