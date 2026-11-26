@@ -1,7 +1,7 @@
 'use client';
 
 import { useAnimate, useReducedMotion } from 'motion/react';
-import { useId, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useId, useRef, useState } from 'react';
 
 import {
 	AlertDialog,
@@ -22,6 +22,7 @@ import { useHydrated } from '@/hooks/useHydrated';
 import { cn } from '@/lib/utils';
 
 import { formatFromNow } from '../format';
+import { holdVote, releaseHeldVote, takeHeldVote } from '../heldVote';
 import type { BallotState } from '../hooks/useBallot';
 import type { Poll } from '../schema';
 import { type PollStatus, revealTime, visibilityLevel } from '../status';
@@ -32,7 +33,9 @@ type BallotProps = {
 	poll: Poll;
 	status: Exclude<PollStatus, 'ended'>;
 	ballot: BallotState;
-	requireAuth: (action: () => void) => void;
+	requireAuth: (action: () => void, onCancel?: () => void) => void;
+	/** Signed in, here or on the page: a held vote then only comes back picked, for them to confirm. */
+	isAuthed: boolean;
 	isOwner: boolean;
 	/** Acting as a community account, which never votes: the options show, but can't be picked. */
 	isActing: boolean;
@@ -51,6 +54,7 @@ export function Ballot({
 	status,
 	ballot,
 	requireAuth,
+	isAuthed,
 	isOwner,
 	isActing,
 }: BallotProps) {
@@ -126,12 +130,13 @@ export function Ballot({
 		setMode({ kind: 'sealed' });
 	};
 
-	const castSelected = () => {
-		if (!selected) return;
+	/** Casts once signed in; a guest signs in first. */
+	const requestCast = (optionId: string) =>
 		requireAuth(async () => {
+			releaseHeldVote();
 			// A small tap on phones, like the ballot hitting the bottom of the box
 			navigator.vibrate?.(12);
-			const outcome = await ballot.cast(selected);
+			const outcome = await ballot.cast(optionId);
 			if (outcome === 'saved') {
 				setMode({ kind: 'sealed' });
 				setCasts((count) => count + 1);
@@ -141,8 +146,26 @@ export function Ballot({
 			} else if (outcome === 'failed') {
 				shake();
 			}
-		});
+		}, releaseHeldVote);
+
+	const castSelected = () => {
+		if (!selected) return;
+		// Held until it is cast, so a guest whose page reloads during sign-in finds it waiting
+		holdVote(poll.id, selected);
+		requestCast(selected);
 	};
+
+	// Back from a reload mid sign-in: pick the held option again and pick sign-in up where it was. Not held again,
+	// so its window still runs from the first tap. Someone who signed in another way meanwhile gets the pick to
+	// confirm, never a vote cast for them
+	const resumeHeldVote = useEffectEvent(() => {
+		const optionId = takeHeldVote(poll.id);
+		if (!optionId || view !== 'vote' || myOptionId || !poll.options.some((option) => option.id === optionId)) return;
+		setSelected(optionId);
+		if (isAuthed) releaseHeldVote();
+		else requestCast(optionId);
+	});
+	useEffect(() => resumeHeldVote(), []);
 
 	const withdraw = async () => {
 		withdrew.current = true;

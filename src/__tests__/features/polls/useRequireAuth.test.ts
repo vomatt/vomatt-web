@@ -15,6 +15,19 @@ describe('useRequireAuth', () => {
 		expect(result.current.authDialog.open).toBe(false);
 	});
 
+	it('runs onCancel when the guest closes sign-in instead, and not after they sign in', () => {
+		const onCancel = jest.fn();
+		const signedIn = renderHook(() => useRequireAuth(false)).result;
+		act(() => signedIn.current.requireAuth(jest.fn(), onCancel));
+		act(() => signedIn.current.authDialog.onAuthSuccess());
+		expect(onCancel).not.toHaveBeenCalled();
+
+		const cancelled = renderHook(() => useRequireAuth(false)).result;
+		act(() => cancelled.current.requireAuth(jest.fn(), onCancel));
+		act(() => cancelled.current.authDialog.onOpenChange(false));
+		expect(onCancel).toHaveBeenCalledTimes(1);
+	});
+
 	it('runs the action at once for a signed-in person', () => {
 		const action = jest.fn();
 		const { result } = renderHook(() => useRequireAuth(true));

@@ -7,6 +7,7 @@ import { Poll } from '@/features/polls/schema';
 import { META_GAP } from '@/lib/rich';
 
 import { keepGaps } from '../../helpers/keepGaps';
+import { leavePage, reload } from '../../helpers/reload';
 
 jest.mock('next/link', () => {
 	return function MockLink({ children, href }: { children: React.ReactNode; href: string }) {
@@ -87,11 +88,12 @@ jest.mock('@/features/polls/components/VoterList', () => {
 });
 
 jest.mock('@/components/auth/AuthDialog', () => ({
-	AuthDialog: ({ open, onAuthSuccess }: any) => {
+	AuthDialog: ({ open, onOpenChange, onAuthSuccess }: any) => {
 		if (!open) return null;
 		return (
 			<div data-testid="auth-dialog">
 				<button onClick={onAuthSuccess}>Mock Auth Success</button>
+				<button onClick={() => onOpenChange(false)}>Mock Auth Cancel</button>
 			</div>
 		);
 	},
@@ -149,6 +151,7 @@ const announcement = () => {
 
 beforeEach(() => {
 	jest.clearAllMocks();
+	sessionStorage.clear();
 	mockCastBallot.mockResolvedValue({ ok: true });
 	mockRetractBallot.mockResolvedValue({ ok: true });
 	mockGetMyBallot.mockResolvedValue(null);
@@ -1236,6 +1239,92 @@ describe('PollCard signed-out visitor', () => {
 
 		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-sun', undefined);
 		expect(screen.queryByTestId('auth-dialog')).not.toBeInTheDocument();
+	});
+
+	it('after a reload mid sign-in, picks the held option again and reopens sign-in, then casts it', async () => {
+		const { unmount } = render(<PollCard poll={openPoll} />);
+		vote('Sunday');
+		await reload(unmount);
+
+		render(<PollCard poll={openPoll} />);
+		expect(screen.getByLabelText(/Sunday/)).toBeChecked();
+		expect(screen.getByTestId('auth-dialog')).toBeInTheDocument();
+		await act(async () => {
+			fireEvent.click(screen.getByText('Mock Auth Success'));
+		});
+		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-sun', undefined);
+	});
+
+	it('casts a held vote once, not again on the next reload', async () => {
+		const first = render(<PollCard poll={openPoll} />);
+		vote('Sunday');
+		await act(async () => {
+			fireEvent.click(screen.getByText('Mock Auth Success'));
+		});
+		await reload(first.unmount);
+
+		render(<PollCard poll={openPoll} />);
+		expect(screen.queryByTestId('auth-dialog')).not.toBeInTheDocument();
+		expect(mockCastBallot).toHaveBeenCalledTimes(1);
+	});
+
+	it('lets a held vote go when sign-in is cancelled', async () => {
+		const { unmount } = render(<PollCard poll={openPoll} />);
+		vote('Sunday');
+		fireEvent.click(screen.getByText('Mock Auth Cancel'));
+		await reload(unmount);
+
+		render(<PollCard poll={openPoll} />);
+		expect(screen.queryByTestId('auth-dialog')).not.toBeInTheDocument();
+		expect(screen.getByLabelText(/Sunday/)).not.toBeChecked();
+	});
+
+	it('holds a vote for its own poll only', async () => {
+		const { unmount } = render(<PollCard poll={openPoll} />);
+		vote('Sunday');
+		await reload(unmount);
+
+		render(<PollCard poll={{ ...openPoll, id: 'poll-2' }} />);
+		expect(screen.queryByTestId('auth-dialog')).not.toBeInTheDocument();
+	});
+
+	it('lets a held vote go when the guest leaves the page mid sign-in', async () => {
+		const { unmount } = render(<PollCard poll={openPoll} />);
+		vote('Sunday');
+		await leavePage(unmount);
+
+		render(<PollCard poll={openPoll} />);
+		expect(screen.queryByTestId('auth-dialog')).not.toBeInTheDocument();
+		expect(screen.getByLabelText(/Sunday/)).not.toBeChecked();
+	});
+
+	it('gives someone who signed in another way the held pick to confirm, and casts nothing', async () => {
+		const { unmount } = render(<PollCard poll={openPoll} />);
+		vote('Sunday');
+		await reload(unmount);
+
+		render(<PollCard poll={openPoll} viewerId="user-voter" />);
+		expect(screen.getByLabelText(/Sunday/)).toBeChecked();
+		expect(screen.queryByTestId('auth-dialog')).not.toBeInTheDocument();
+		expect(mockCastBallot).not.toHaveBeenCalled();
+	});
+
+	it('lets a held vote go 15 minutes after the tap, however often the page reloads', async () => {
+		const start = Date.now();
+		const now = jest.spyOn(Date, 'now').mockReturnValue(start);
+		const first = render(<PollCard poll={openPoll} />);
+		vote('Sunday');
+		await reload(first.unmount);
+
+		now.mockReturnValue(start + 10 * 60_000);
+		const second = render(<PollCard poll={openPoll} />);
+		expect(screen.getByTestId('auth-dialog')).toBeInTheDocument();
+		await reload(second.unmount);
+
+		now.mockReturnValue(start + 16 * 60_000);
+		render(<PollCard poll={openPoll} />);
+		expect(screen.queryByTestId('auth-dialog')).not.toBeInTheDocument();
+		now.mockRestore();
 	});
 
 	it('after sign-in, counts Turnout against a Ballot cast elsewhere and keeps the new vote', async () => {

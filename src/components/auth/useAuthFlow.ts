@@ -5,6 +5,8 @@ import type { AuthErrorKey } from '@/lib/api/auth-errors';
 import { requestOtp, verifyOtp } from '@/lib/api/services/auth';
 import { getMyProfile, updateProfile } from '@/lib/api/services/users';
 
+import { forgetCodeSent, recallCodeSent, rememberCodeSent } from './codeSent';
+
 /** email → code → profile (new accounts, and ones that never gave a first name). */
 type AuthStep = 'email' | 'code' | 'profile';
 
@@ -21,10 +23,13 @@ export const SERVER_ERROR: AuthResult = { status: 'ERROR', error: 'serverError' 
  * `surface` is where it runs, for the sign-in events.
  */
 export function useAuthFlow(surface: 'dialog' | 'page') {
-	const [step, setStep] = useState<AuthStep>('email');
-	const [email, setEmail] = useState('');
+	// The dialog opens only on the client, after a tap, so it can start at the code step a reload interrupted.
+	// The login page renders on the server too, and always starts at the email step
+	const [resumed] = useState(() => (surface === 'dialog' ? recallCodeSent() : null));
+	const [step, setStep] = useState<AuthStep>(resumed ? 'code' : 'email');
+	const [email, setEmail] = useState(resumed?.email ?? '');
 	/** Seconds until a resend, when the code step opened during the cooldown of an earlier code. */
-	const [resendIn, setResendIn] = useState<number>();
+	const [resendIn, setResendIn] = useState<number | undefined>(resumed?.resendIn);
 	/** A new account's username, which everyone else sees it by until it sets a display name. */
 	const [username, setUsername] = useState<string>();
 
@@ -34,8 +39,11 @@ export function useAuthFlow(surface: 'dialog' | 'page') {
 			if (res.status === 'ERROR') return res;
 			if (res.status === 'SUCCESS') trackEvent('sign_in_code_sent', { surface });
 			// A code sent within the cooldown (after a reload, or a quick sign-out) is usually still valid: both last 180 s
-			setResendIn(res.status === 'COOLDOWN' ? res.seconds : undefined);
+			const cooldown = res.status === 'COOLDOWN' ? res.seconds : undefined;
+			setResendIn(cooldown);
 			setEmail(value.trim());
+			// Only the dialog resumes after a reload
+			if (surface === 'dialog') rememberCodeSent(value.trim(), cooldown);
 			setStep('code');
 			return OK;
 		} catch {
@@ -46,11 +54,13 @@ export function useAuthFlow(surface: 'dialog' | 'page') {
 	const resendCode = useCallback(async (): Promise<ResendResult> => {
 		try {
 			const res = await requestOtp(email);
-			return res.status === 'SUCCESS' ? OK : res;
+			if (res.status !== 'SUCCESS') return res;
+			if (surface === 'dialog') rememberCodeSent(email);
+			return OK;
 		} catch {
 			return SERVER_ERROR;
 		}
-	}, [email]);
+	}, [email, surface]);
 
 	/** Resolves `done: true` when the user is signed in and nothing else is asked. */
 	const submitCode = useCallback(
@@ -58,6 +68,7 @@ export function useAuthFlow(surface: 'dialog' | 'page') {
 			try {
 				const res = await verifyOtp(email, code);
 				if (res.status === 'ERROR') return res;
+				forgetCodeSent();
 				trackEvent('sign_in_completed', { surface, method: 'email', newAccount: res.isNewUser });
 				if (res.isNewUser) {
 					setUsername(res.username);
@@ -91,9 +102,14 @@ export function useAuthFlow(surface: 'dialog' | 'page') {
 		}
 	}, []);
 
-	const editEmail = useCallback(() => setStep('email'), []);
+	const editEmail = useCallback(() => {
+		forgetCodeSent();
+		setStep('email');
+	}, []);
 
 	return {
+		/** Opened at the code step a reload interrupted, rather than starting a sign-in. */
+		resumed: !!resumed,
 		step,
 		email,
 		resendIn,

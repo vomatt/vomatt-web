@@ -42,8 +42,11 @@ export function AuthFlow({ onDone, onSignedIn, policyMessage, inDialog = false }
 	const { t } = useLanguage();
 	const surface = inDialog ? 'dialog' : 'page';
 	const flow = useAuthFlow(surface);
-	// The flow opens on the email step
-	useEffect(() => trackEvent('sign_in_started', { surface }), [surface]);
+	// The flow opens on the email step; one resumed after a reload was already counted
+	const { resumed } = flow;
+	useEffect(() => {
+		if (!resumed) trackEvent('sign_in_started', { surface });
+	}, [surface, resumed]);
 
 	let heading: { title: string; subtitle: React.ReactNode };
 	let body: React.ReactNode;
