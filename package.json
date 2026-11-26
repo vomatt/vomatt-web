@@ -6,7 +6,7 @@
 	"scripts": {
 		"dev": "next dev --port=3002 --turbopack",
 		"build": "next build",
-		"lint": "eslint src",
+		"lint": "eslint src scripts *.config.ts jest.setup.ts",
 		"start": "next start",
 		"start:vercel": "vercel dev",
 		"test": "jest",

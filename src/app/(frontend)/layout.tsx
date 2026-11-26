@@ -2,6 +2,7 @@ import '@/styles/global.css';
 
 import type { SanityImageSource } from '@sanity/image-url';
 import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import type { Viewport } from 'next';
 import { Geist } from 'next/font/google';
 import { headers } from 'next/headers';
@@ -23,7 +24,6 @@ import { htmlLang } from '@/i18n-config';
 import { getServerMessages } from '@/lib/getServerLocale';
 import { getSiteSettings } from '@/lib/siteSettings';
 import { buildShareImageUrl, imageBuilder } from '@/sanity/lib/image';
-import { SpeedInsights } from '@vercel/speed-insights/next';
 
 // Server Actions run under the page's limit, and vomatt-api can take over 10s
 // (Vercel's old default) on a cold start. A limit below that kills the action
