@@ -176,19 +176,21 @@ export function PollCard({
 
 	return (
 		// In a list the title's link stretches over the card; the controls sit above it (z-10)
-		<article className={cn('group bg-card border border-border rounded-2xl', !isPage && 'relative')}>
-			<div className="flex flex-col gap-4 p-5 md:gap-5 md:px-8 md:pt-7 md:pb-7">
-				{/* The layout follows the card's width, never the vote, so the Voted pill can't push the status chip to another row.
+		<article className={cn('group rounded-2xl bg-card forced-colors:border', !isPage && 'relative')}>
+			<div className="flex flex-col gap-4 p-5 pb-1 md:gap-5 md:px-8 md:pt-7 md:pb-1">
+				{/* One row wherever the author and the status chip fit side by side; a longer name sends the chip to a row
+				    of its own instead of being cut. The Voted pill shows only where the card is wide enough for it beside the status
+				    chip: on a phone it would squeeze the author's name, and the chosen option and the Seal already say the vote is in.
 				    Lifted whole over the title's stretched link (a query container may be its own stacking context), and
 				    letting clicks through to it everywhere but the author */}
 				<div className="pointer-events-none relative z-10 @container">
-					<div className="flex flex-col gap-y-2 @md:flex-row @md:items-center @md:justify-between @md:gap-x-4">
-						<div className="flex min-w-0 items-center gap-2.5 text-body-4 text-muted-foreground">
+					<div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 @md:gap-x-4">
+						<div className="flex max-w-full min-w-0 items-center gap-2.5 text-body-3 text-muted-foreground">
 							<UserChip
 								username={creatorUsername}
 								avatarUrl={poll.creatorAvatarUrl}
 								// 44px tall hit area without growing the header row
-								className="pointer-events-auto -my-2.5 min-h-11 gap-2.5 font-medium text-foreground transition-colors hover:text-muted-foreground active:text-muted-foreground"
+								className="pointer-events-auto -my-2.5 min-h-11 gap-2.5 font-semibold text-foreground transition-colors hover:text-muted-foreground active:text-muted-foreground"
 								avatarClassName="size-7"
 							/>
 							{/* The age needs the viewer's clock; the line holds its height until then */}
@@ -196,11 +198,11 @@ export function PollCard({
 								{clock ? formatAge(createdAt, clock.language, clock.now) : '\u00a0'}
 							</time>
 						</div>
-						{/* Reversed from @md so the status chip keeps the right edge and the Voted pill appears to its left */}
-						<div className="flex shrink-0 items-center gap-2 @md:flex-row-reverse">
+						{/* Reversed so the status chip keeps the right edge and the Voted pill appears to its left */}
+						<div className="flex shrink-0 flex-row-reverse items-center gap-2">
 							<StatusChip status={status} poll={poll} time="inline" onCard />
 							{status !== 'ended' && !acting && (
-								<span className="grid *:col-start-1 *:row-start-1">
+								<span className="hidden *:col-start-1 *:row-start-1 @md:grid">
 									<VotedPillSpace label={t('poll.votedPill')} />
 									<AnimatePresence initial={false}>
 										{ballot.myOptionId && <VotedPill key="voted" label={t('poll.votedPill')} />}
@@ -216,7 +218,7 @@ export function PollCard({
 					{isPage ? (
 						<Heading
 							dir="auto"
-							className="text-title-3 text-balance wrap-anywhere text-foreground select-text md:text-title-2"
+							className="text-title-2 font-semibold tracking-title text-balance wrap-anywhere text-foreground select-text"
 						>
 							{title}
 						</Heading>
@@ -224,7 +226,7 @@ export function PollCard({
 						<Link href={pollHref(id)} className="group/card-link after:absolute after:inset-0 after:rounded-2xl">
 							<Heading
 									dir="auto"
-									className="text-title-3 text-balance wrap-anywhere text-foreground hover:text-muted-foreground group-active/card-link:text-muted-foreground transition-colors md:text-title-2"
+									className="text-title-2 font-semibold tracking-title text-balance wrap-anywhere text-foreground hover:text-muted-foreground group-active/card-link:text-muted-foreground transition-colors"
 							>
 								{title}
 							</Heading>

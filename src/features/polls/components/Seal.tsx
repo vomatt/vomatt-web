@@ -88,7 +88,7 @@ export function SealedUntilReveal({ revealAt }: { revealAt: string }) {
 				<Lock aria-hidden className="size-[18px] shrink-0 text-tide" />
 				<p
 					className={cn(
-						'text-body-4 font-medium leading-5 text-foreground',
+						'text-caption-1 font-medium leading-5 text-foreground',
 						!clock && 'invisible'
 					)}
 				>
@@ -126,7 +126,7 @@ export function Seal({ popKey = 0, endTime, children }: SealProps) {
 				</m.span>
 				{/* Two lines, no more: every line the Seal has is room an unvoted card keeps empty above its divider */}
 				<div className="flex flex-col gap-0.5">
-					<p className="text-body-4 font-medium leading-5 text-foreground">
+					<p className="text-caption-1 font-medium leading-5 text-foreground">
 						{line}
 					</p>
 					<p className="text-caption-1 leading-snug text-pretty">

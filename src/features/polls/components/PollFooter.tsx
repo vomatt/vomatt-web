@@ -72,11 +72,11 @@ export function PollFooter({
 			: commentCount === 1
 				? t('poll.comment')
 				: t('poll.comments', { count: commentCount.toLocaleString(toLocaleTag(currentLanguage)) });
-	// The ••• trigger's ghost circle, as a pill for an action with a label; the footer's 14px regular type
+	// The ••• trigger's ghost circle, as a pill for an action with a label; the footer's 13px regular type
 	const pillClassName = buttonVariants({
 		variant: 'ghost',
 		size: 'xs',
-		className: 'rounded-full px-2 text-body-4 font-normal',
+		className: 'rounded-full px-2 text-caption-1 font-normal',
 	});
 	const meta = [
 		turnout !== undefined &&
@@ -89,18 +89,30 @@ export function PollFooter({
 		.join(META_GAP);
 
 	return (
-		// Each row is 44px tall; 4px above and below set the text 16px in. Too narrow for one row
+		// One 44px row with no divider above it: the card's own padding sets it off. Too narrow for one row
 		// (320px, or a non-Public audience), the actions wrap to a second row on the right
-		<div className="flex flex-wrap items-center gap-x-4 border-t border-border px-5 py-1 text-body-4 text-muted-foreground md:px-8">
+		<div className="flex flex-wrap items-center gap-x-2 px-5 pt-1 pb-2 text-caption-1 text-muted-foreground md:px-8">
 			{meta && <span className="flex min-h-11 items-center tabular-nums">{meta}</span>}
 			<Link
 				href={isPage ? '#discussion' : `${pollHref(pollId)}#discussion`}
+				aria-label={commentsLabel}
 				className={`${pillClassName} -ml-2 gap-2`}
 			>
 				<MessageSquare className="size-[18px]" />
-				{commentsLabel}
+				{/* On phones the count alone, like the heart's: with the words the row sits a few pixels from wrapping,
+				    so some cards in a feed would take one row and others two */}
+				{commentCount === undefined ? (
+					commentsLabel
+				) : (
+					<>
+						<span aria-hidden className="tabular-nums md:hidden">
+							{commentCount.toLocaleString(toLocaleTag(currentLanguage))}
+						</span>
+						<span className="max-md:hidden">{commentsLabel}</span>
+					</>
+				)}
 			</Link>
-			<div className="ml-auto flex min-h-11 items-center gap-2">
+			<div className="ml-auto flex min-h-11 items-center">
 				{onToggleLike && (
 					<button
 						type="button"

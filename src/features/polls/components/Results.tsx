@@ -57,7 +57,7 @@ function ElectedStamp({ label, reveal }: { label: string; reveal: boolean }) {
 	);
 }
 
-const ROW_CLASS = 'relative flex min-h-14 w-full items-center gap-3 px-5 py-2.5 text-left';
+const ROW_CLASS = 'relative flex min-h-13 w-full items-center gap-3 px-5 py-2.5 text-left';
 
 /** A plain row, or a button that opens who chose it. */
 function RowContent({ onClick, children }: { onClick?: () => void; children: React.ReactNode }) {
@@ -124,7 +124,7 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption, r
 		) : (
 			<div className="space-y-2.5" aria-busy>
 				{poll.options.map((option) => (
-					<Skeleton key={option.id} className="h-14 rounded-xl" />
+					<Skeleton key={option.id} className="h-13 rounded-xl" />
 				))}
 			</div>
 		);
@@ -163,7 +163,7 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption, r
 						<li
 							key={row.id}
 							className={cn(
-								'relative overflow-hidden rounded-xl text-body-2',
+								'relative overflow-hidden rounded-xl text-body-3',
 								row === myRow ? 'border-[1.5px] border-chosen-line' : 'border border-border'
 							)}
 						>
@@ -186,7 +186,7 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption, r
 								</span>
 								<span
 									className={cn(
-										'shrink-0 text-right text-body-4 tabular-nums',
+										'shrink-0 text-right text-caption-1 tabular-nums',
 										!isWinner && 'text-muted-foreground'
 									)}
 								>
@@ -203,7 +203,7 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption, r
 					);
 				})}
 			</ul>
-			<p className="text-body-4 leading-5 text-muted-foreground">
+			<p className="text-caption-1 leading-5 text-muted-foreground">
 				{caption}
 				{onSelectOption && winners.length > 0 && <span className="block">{t('poll.votersHint')}</span>}
 			</p>

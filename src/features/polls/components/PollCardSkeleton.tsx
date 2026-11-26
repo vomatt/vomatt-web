@@ -10,7 +10,7 @@ import { pollTileFrameClassName, PollTileGrid } from './PollTile';
 /** Placeholder with the PollCard's shape, shown while a page's data loads. */
 export function PollCardSkeleton({ options = 3 }: { options?: number }) {
 	return (
-		<div aria-hidden className="rounded-2xl border border-border bg-card">
+		<div aria-hidden className="rounded-2xl bg-card">
 			<div className="space-y-4 p-5">
 				<div className="flex items-center justify-between">
 					<Skeleton className="h-3.5 w-28" />

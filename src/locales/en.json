@@ -462,6 +462,7 @@
 			"switchAccount": "Switch account"
 		},
 		"vote": "Vote",
+		"pickOption": "Pick an option",
 		"updateVote": "Update vote",
 		"changeHint": "Pick another option to change your vote.",
 		"updatingHint": "Replaces your vote for {option}.",
@@ -536,11 +537,11 @@
 			"ended": "Ended"
 		},
 		"visibility": {
-			"nobody": "After it ends, no one can see what you chose.",
-			"owner": "After it ends, only the poll owner can see what you chose.",
-			"signed-in": "After it ends, anyone signed in can see what you chose.",
-			"invited": "After it ends, everyone invited can see what you chose.",
-			"community": "After it ends, {name}’s owners, admins and analysts can see what you chose."
+			"nobody": "After it ends, no one sees your choice.",
+			"owner": "After it ends, only the owner sees your choice.",
+			"signed-in": "After it ends, anyone signed in sees your choice.",
+			"invited": "After it ends, everyone invited sees your choice.",
+			"community": "After it ends, {name}’s owners, admins and analysts see your choice."
 		},
 		"edit": "Edit",
 		"keepPoll": "Keep poll",
