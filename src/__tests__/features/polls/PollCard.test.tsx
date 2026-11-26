@@ -87,11 +87,12 @@ jest.mock('@/features/polls/components/VoterList', () => {
 });
 
 jest.mock('@/components/auth/AuthDialog', () => ({
-	AuthDialog: ({ open, onAuthSuccess }: any) => {
+	AuthDialog: ({ open, onOpenChange, onAuthSuccess }: any) => {
 		if (!open) return null;
 		return (
 			<div data-testid="auth-dialog">
 				<button onClick={onAuthSuccess}>Mock Auth Success</button>
+				<button onClick={() => onOpenChange(false)}>Mock Auth Cancel</button>
 			</div>
 		);
 	},
@@ -149,6 +150,7 @@ const announcement = () => {
 
 beforeEach(() => {
 	jest.clearAllMocks();
+	sessionStorage.clear();
 	mockCastBallot.mockResolvedValue({ ok: true });
 	mockRetractBallot.mockResolvedValue({ ok: true });
 	mockGetMyBallot.mockResolvedValue(null);
@@ -1229,6 +1231,53 @@ describe('PollCard signed-out visitor', () => {
 		});
 
 		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-sun', undefined);
+		expect(screen.queryByTestId('auth-dialog')).not.toBeInTheDocument();
+	});
+
+	it('after a reload mid sign-in, picks the held option again and reopens sign-in, then casts it', async () => {
+		const { unmount } = render(<PollCard poll={openPoll} />);
+		vote('Sunday');
+		unmount();
+
+		render(<PollCard poll={openPoll} />);
+		expect(screen.getByLabelText(/Sunday/)).toBeChecked();
+		expect(screen.getByTestId('auth-dialog')).toBeInTheDocument();
+		await act(async () => {
+			fireEvent.click(screen.getByText('Mock Auth Success'));
+		});
+		expect(mockCastBallot).toHaveBeenCalledWith('poll-1', 'opt-sun', undefined);
+	});
+
+	it('casts a held vote once, not again on the next reload', async () => {
+		const first = render(<PollCard poll={openPoll} />);
+		vote('Sunday');
+		await act(async () => {
+			fireEvent.click(screen.getByText('Mock Auth Success'));
+		});
+		first.unmount();
+
+		render(<PollCard poll={openPoll} />);
+		expect(screen.queryByTestId('auth-dialog')).not.toBeInTheDocument();
+		expect(mockCastBallot).toHaveBeenCalledTimes(1);
+	});
+
+	it('lets a held vote go when sign-in is cancelled', () => {
+		const { unmount } = render(<PollCard poll={openPoll} />);
+		vote('Sunday');
+		fireEvent.click(screen.getByText('Mock Auth Cancel'));
+		unmount();
+
+		render(<PollCard poll={openPoll} />);
+		expect(screen.queryByTestId('auth-dialog')).not.toBeInTheDocument();
+		expect(screen.getByLabelText(/Sunday/)).not.toBeChecked();
+	});
+
+	it('holds a vote for its own poll only', () => {
+		const { unmount } = render(<PollCard poll={openPoll} />);
+		vote('Sunday');
+		unmount();
+
+		render(<PollCard poll={{ ...openPoll, id: 'poll-2' }} />);
 		expect(screen.queryByTestId('auth-dialog')).not.toBeInTheDocument();
 	});
 

@@ -53,6 +53,7 @@ jest.mock('@/components/auth/policy', () => ({
 
 beforeEach(() => {
 	jest.clearAllMocks();
+	sessionStorage.clear();
 	mockGetPolicyMessage.mockResolvedValue(null);
 });
 
@@ -226,6 +227,43 @@ describe('AuthDialog', () => {
 		expect(baseProps.onAuthSuccess).toHaveBeenCalled();
 		expect(baseProps.onOpenChange).not.toHaveBeenCalledWith(false);
 		expect(mockUpdateProfile).not.toHaveBeenCalled();
+	});
+
+	it('after a reload, reopens at the code step for the address a code just went to', async () => {
+		mockRequestOtp.mockResolvedValue({ status: 'SUCCESS' });
+		const { unmount } = render(<AuthDialog {...baseProps} />);
+		await submitEmail();
+		unmount();
+
+		render(<AuthDialog {...baseProps} />);
+		expect(screen.getByRole('dialog', { name: 'verificationCode.title' })).toHaveAccessibleDescription(
+			'verificationCode.subtitle user@test.com'
+		);
+		expect(mockRequestOtp).toHaveBeenCalledTimes(1);
+	});
+
+	it('starts from the email step again once signed in', async () => {
+		mockRequestOtp.mockResolvedValue({ status: 'SUCCESS' });
+		mockVerifyOtp.mockResolvedValue({ status: 'SUCCESS', isNewUser: false });
+		const { unmount } = render(<AuthDialog {...baseProps} />);
+		await submitEmail();
+		fillOTP('123456');
+		await waitFor(() => expect(baseProps.onAuthSuccess).toHaveBeenCalled());
+		unmount();
+
+		render(<AuthDialog {...baseProps} />);
+		expect(screen.getByLabelText('common.email')).toBeInTheDocument();
+	});
+
+	it('forgets the address when sign-in is cancelled', async () => {
+		mockRequestOtp.mockResolvedValue({ status: 'SUCCESS' });
+		const { unmount } = render(<AuthDialog {...baseProps} />);
+		await submitEmail();
+		fireEvent.click(screen.getAllByRole('button', { name: 'common.close' })[0]);
+		unmount();
+
+		render(<AuthDialog {...baseProps} />);
+		expect(screen.getByLabelText('common.email')).toBeInTheDocument();
 	});
 
 	it('closes as cancelled before the code is entered', async () => {

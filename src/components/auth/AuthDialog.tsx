@@ -7,6 +7,7 @@ import { Dialog, DialogContent } from '@/components/ui/Dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 import { AuthFlow } from './AuthFlow';
+import { forgetCodeSent } from './codeSent';
 import { getPolicyMessage } from './policy';
 
 interface AuthDialogProps {
@@ -39,7 +40,11 @@ export function AuthDialog({ open, onOpenChange, onAuthSuccess }: AuthDialogProp
 			open={open}
 			onOpenChange={(next) => {
 				if (!next && signedIn.current) onAuthSuccess();
-				else onOpenChange(next);
+				else {
+					// Cancelled: a reload shouldn't bring the code step back
+					if (!next) forgetCodeSent();
+					onOpenChange(next);
+				}
 			}}
 		>
 			<DialogContent
