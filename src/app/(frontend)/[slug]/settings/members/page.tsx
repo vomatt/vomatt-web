@@ -54,7 +54,7 @@ export default async function CommunityMembersPage({ params }: Props) {
 
 	return (
 		<PageShell>
-			<div className="flex flex-col gap-8">
+			<div className="flex flex-col gap-5 md:gap-8">
 				<SettingsSubpageHeader
 					title={community ? community.displayName || community.username : <T k="communities.members" />}
 					// Acting as this account, Settings is the person's own; the way back is the account's profile
@@ -65,7 +65,7 @@ export default async function CommunityMembersPage({ params }: Props) {
 					}
 				/>
 				{community && members?.ok ? (
-					<>
+					<div className="flex flex-col gap-8">
 						<CommunityProfileCard community={community} bio={publicProfile?.bio ?? null} />
 						<CommunityMembers
 							community={community}
@@ -83,7 +83,7 @@ export default async function CommunityMembersPage({ params }: Props) {
 							</SettingsCard>
 						)}
 						{canDelete(community.role) && <DeleteCommunity community={community} />}
-					</>
+					</div>
 				) : notMember ? (
 					<EmptyCard title={<T k="communities.notMemberTitle" />} body={<T k="communities.notMemberBody" />} />
 				) : (

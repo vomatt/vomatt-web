@@ -1309,6 +1309,19 @@ describe('PollCard signed-out visitor', () => {
 		expect(mockCastBallot).not.toHaveBeenCalled();
 	});
 
+	it('lets a held vote go when the viewer already voted another way, so it never comes back', async () => {
+		const first = render(<PollCard poll={openPoll} />);
+		vote('Sunday');
+		await reload(first.unmount);
+
+		const second = render(<PollCard poll={{ ...openPoll, myOptionId: 'opt-sat' }} viewerId="user-voter" />);
+		await reload(second.unmount);
+
+		render(<PollCard poll={openPoll} viewerId="user-voter" />);
+		expect(screen.getByLabelText(/Sunday/)).not.toBeChecked();
+		expect(mockCastBallot).not.toHaveBeenCalled();
+	});
+
 	it('lets a held vote go 15 minutes after the tap, however often the page reloads', async () => {
 		const start = Date.now();
 		const now = jest.spyOn(Date, 'now').mockReturnValue(start);

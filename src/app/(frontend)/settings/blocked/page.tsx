@@ -18,7 +18,7 @@ export default async function BlockedPage() {
 	const { acting } = await loadActingState();
 	return (
 		<PageShell>
-			<div className="flex flex-col gap-8">
+			<div className="flex flex-col gap-5 md:gap-8">
 				<SettingsSubpageHeader
 					title={<T k="blocks.title" />}
 					// While acting these are the account's blocks, reached from its members page; Settings is the person's own

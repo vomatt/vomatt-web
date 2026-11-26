@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 
 import { Header } from '@/components/layout/Header';
+import { HeaderBack } from '@/components/layout/HeaderStart';
 
 let mockPathname = '/';
 jest.mock('next/navigation', () => ({
@@ -52,5 +53,18 @@ describe('Header', () => {
 		expect(screen.queryByRole('link', { name: 'Log in' })).not.toBeInTheDocument();
 		expect(screen.queryByRole('link', { name: /Notifications/ })).not.toBeInTheDocument();
 		expect(screen.queryByRole('link', { name: 'Profile' })).not.toBeInTheDocument();
+	});
+
+	it('shows the page\'s way back while the page is shown, and none once it is gone', () => {
+		const { rerender } = render(
+			<>
+				<Header {...guest} />
+				<HeaderBack href="/me" label="Back" />
+			</>
+		);
+		expect(screen.getByRole('link', { name: 'Back' })).toHaveAttribute('href', '/me');
+
+		rerender(<Header {...guest} />);
+		expect(screen.queryByRole('link', { name: 'Back' })).not.toBeInTheDocument();
 	});
 });

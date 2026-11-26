@@ -18,7 +18,7 @@ export default async function InviteListsPage() {
 	const { acting } = await loadActingState();
 	return (
 		<PageShell>
-			<div className="flex flex-col gap-8">
+			<div className="flex flex-col gap-5 md:gap-8">
 				<SettingsSubpageHeader title={<T k="account.tabGroups" />} />
 				{/* As on Settings: while acting, these are the person's own and stay out of reach */}
 				{acting ? <ActingSettingsNotice /> : <GroupsPanel />}

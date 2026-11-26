@@ -7,7 +7,7 @@ import { SettingsSubpageHeader } from '../_components/SettingsSubpageHeader';
 export default function Loading() {
 	return (
 		<PageShell>
-			<div className="flex flex-col gap-8">
+			<div className="flex flex-col gap-5 md:gap-8">
 				<SettingsSubpageHeader title={<T k="account.privacyTitle" />} />
 				<div role="status" aria-busy className="flex flex-col gap-3">
 					<span className="sr-only">

@@ -12,12 +12,14 @@ import { getPolicyMessage } from './policy';
 
 interface AuthDialogProps {
 	open: boolean;
+	/** Open at the code step a reload interrupted, if a code was sent in the last 15 minutes. */
+	resume?: boolean;
 	onOpenChange: (open: boolean) => void;
 	onAuthSuccess: () => void;
 }
 
 /** Sign-in without leaving the page; the started action resumes after it. */
-export function AuthDialog({ open, onOpenChange, onAuthSuccess }: AuthDialogProps) {
+export function AuthDialog({ open, resume = false, onOpenChange, onAuthSuccess }: AuthDialogProps) {
 	const { t } = useLanguage();
 	const [policyMessage, setPolicyMessage] = useState<PortableTextBlock[] | null>(null);
 	// Past the code, the account is signed in; closing at the name step must still resume the action
@@ -68,6 +70,7 @@ export function AuthDialog({ open, onOpenChange, onAuthSuccess }: AuthDialogProp
 				{open && (
 					<AuthFlow
 						inDialog
+						resume={resume}
 						policyMessage={policyMessage}
 						// Setting the session cookies re-renders the page, so the sidebar updates on its own
 						onDone={onAuthSuccess}

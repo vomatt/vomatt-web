@@ -20,7 +20,7 @@ export default async function VisibilityPage() {
 
 	return (
 		<PageShell>
-			<div className="flex flex-col gap-8">
+			<div className="flex flex-col gap-5 md:gap-8">
 				<SettingsSubpageHeader title={<T k="account.privacyTitle" />} />
 				{/* As on Settings: while acting, these are the person's own and stay out of reach */}
 				{acting ? <ActingSettingsNotice /> : <VisibilitySettings profile={profile} />}

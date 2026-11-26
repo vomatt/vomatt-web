@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 
 import SettingsPage from '@/app/(frontend)/settings/page';
+import { HeaderStart } from '@/components/layout/HeaderStart';
 import { loadActingState } from '@/data/auth';
 import { ActingProvider } from '@/features/communities/ActingProvider';
 
@@ -23,8 +24,13 @@ jest.mock('@/app/(frontend)/settings/_components/AccountSettings', () => ({
 }));
 
 describe('Settings page', () => {
-	it('leads back to the profile it is reached from', async () => {
-		render(await SettingsPage());
+	it('leads back from the phone Header to the profile it is reached from', async () => {
+		render(
+			<>
+				<HeaderStart />
+				{await SettingsPage()}
+			</>
+		);
 		expect(screen.getByRole('heading', { level: 1, name: 'Settings' })).toBeInTheDocument();
 		expect(screen.getByRole('link', { name: 'Back' })).toHaveAttribute('href', '/mei');
 	});

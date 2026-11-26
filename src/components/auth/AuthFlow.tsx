@@ -36,12 +36,14 @@ type AuthFlowProps = {
 	policyMessage?: PortableTextBlock[] | null;
 	/** Each step's title becomes the dialog's title instead of the page's h1. */
 	inDialog?: boolean;
+	/** Picks up the code step a reload interrupted (dialog only). */
+	resume?: boolean;
 };
 
-export function AuthFlow({ onDone, onSignedIn, policyMessage, inDialog = false }: AuthFlowProps) {
+export function AuthFlow({ onDone, onSignedIn, policyMessage, inDialog = false, resume = false }: AuthFlowProps) {
 	const { t } = useLanguage();
 	const surface = inDialog ? 'dialog' : 'page';
-	const flow = useAuthFlow(surface);
+	const flow = useAuthFlow(surface, resume);
 	// The flow opens on the email step; one resumed after a reload was already counted
 	const { resumed } = flow;
 	useEffect(() => {

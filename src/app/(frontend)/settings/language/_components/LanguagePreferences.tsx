@@ -21,7 +21,7 @@ export function LanguagePreferences() {
 	const headingId = useId();
 
 	return (
-		<div className="flex flex-col gap-8">
+		<div className="flex flex-col gap-5 md:gap-8">
 			<SettingsSubpageHeader title={t('settings.languageTitle')} />
 			<section aria-labelledby={headingId} className="flex flex-col gap-3">
 				<div>

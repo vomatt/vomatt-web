@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 
 import { BackLink } from '@/components/BackLink';
+import { HeaderStart } from '@/components/layout/HeaderStart';
 
 const back = jest.fn();
 jest.mock('next/navigation', () => ({ useRouter: () => ({ back, refresh: jest.fn() }) }));
@@ -72,5 +73,49 @@ describe('BackLink', () => {
 
 		expect(back).not.toHaveBeenCalled();
 		expect(event.defaultPrevented).toBe(false);
+	});
+
+	describe('in the phone Header', () => {
+		it('returns to the previous page in the app', () => {
+			setCanGoBack(true);
+			render(
+				<>
+					<HeaderStart />
+					<BackLink href="/" headerOnly>
+						Back
+					</BackLink>
+				</>
+			);
+
+			const event = clickBack();
+
+			expect(back).toHaveBeenCalledTimes(1);
+			expect(event.defaultPrevented).toBe(true);
+		});
+
+		it('with strict, goes back when the previous page is its href', () => {
+			Object.defineProperty(window, 'navigation', {
+				configurable: true,
+				value: {
+					canGoBack: true,
+					currentEntry: { index: 1 },
+					entries: () => [{ url: 'http://localhost/me' }, { url: 'http://localhost/settings' }],
+					addEventListener: jest.fn(),
+				},
+			});
+			render(
+				<>
+					<HeaderStart />
+					<BackLink href="/me" strict headerOnly>
+						Back
+					</BackLink>
+				</>
+			);
+
+			const event = clickBack();
+
+			expect(back).toHaveBeenCalledTimes(1);
+			expect(event.defaultPrevented).toBe(true);
+		});
 	});
 });

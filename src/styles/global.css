@@ -191,6 +191,13 @@ html:has([data-sticky-bar='explore'][data-sticky-bar]) {
 		scroll-padding-top: calc(112px + 1.5rem);
 	}
 }
+/* A back bar or a Settings page's title row, sticky from md only: on phones the way back is in the Header */
+html:has([data-sticky-bar='back'][data-sticky-bar]) {
+	scroll-padding-top: var(--header-height);
+	@media (width >= 48rem) {
+		scroll-padding-top: calc(44px + 1.5rem);
+	}
+}
 /* Home's pill bar, sticky from md only. The repeated attribute matches the generic rule's specificity, so this one, coming later, wins */
 html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 	scroll-padding-top: var(--header-height);
