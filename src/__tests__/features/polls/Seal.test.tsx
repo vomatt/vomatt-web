@@ -54,7 +54,7 @@ describe('Seal', () => {
 
 	it('says neither who sees the choice nor the turnout', () => {
 		render(<Seal endTime={iso(3 * HOUR)}>{null}</Seal>);
-		expect(screen.queryByText(/can see what you chose/)).not.toBeInTheDocument();
+		expect(screen.queryByText(/sees? your choice/)).not.toBeInTheDocument();
 		expect(screen.queryByText(/voted/)).not.toBeInTheDocument();
 	});
 });

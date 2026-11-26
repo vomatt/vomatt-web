@@ -89,7 +89,10 @@ export function Ballot({
 	// One id per Ballot, not per Poll: the feed card and the Poll page each have a Ballot for the same Poll,
 	// and a shared layoutId flies the highlight from one to the other on navigation
 	const highlightId = useId();
-	const creatorName = accountName({ username: poll.creatorUsername, displayName: poll.creatorDisplayName });
+	const creatorName = accountName({
+		username: poll.creatorUsername,
+		displayName: poll.creatorDisplayName,
+	});
 	// Nobody else sees the voter list on a 'nobody' Poll, or on an 'owner' one its owner votes on: nothing to hide from.
 	// A community account never votes, so it has no name to hide
 	const canHideName =
@@ -168,7 +171,7 @@ export function Ballot({
 	);
 
 	const opensHint = (
-		<p className="flex min-h-11 items-center text-body-4 text-muted-foreground">
+		<p className="flex min-h-11 items-center text-caption-1 text-muted-foreground">
 			{isHydrated &&
 				t('poll.opensHint', {
 					distance: formatFromNow(poll.startTime, currentLanguage),
@@ -188,20 +191,33 @@ export function Ballot({
 
 	const panes: Record<Pane, React.ReactNode> = {
 		vote: (
+			// On phones Vote spans the card with the hint centered under it; from md they share one row
 			<div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
-					<p className="flex min-w-0 items-center gap-2.5 text-body-4 leading-5 text-tide-foreground">
-						<Lock aria-hidden className="size-[18px] shrink-0 text-tide" />
-						{t('poll.revealHint')}
-					</p>
-					<Button
-						disabled={isPending || !selected}
-						loading={pendingAction === 'vote'}
-						loadingIcon={<BallotBoxIcon className="size-4" />}
-						onClick={castSelected}
-						className="ml-auto min-w-[132px]"
-					>
-						{t('poll.vote')}
-					</Button>
+				<p className="flex min-w-0 items-center gap-2.5 text-caption-1 leading-5 text-tide-foreground max-md:order-last max-md:w-full max-md:justify-center">
+					<Lock aria-hidden className="size-[18px] shrink-0 text-tide" />
+					{t('poll.revealHint')}
+				</p>
+				<Button
+					disabled={isPending || !selected}
+					loading={pendingAction === 'vote'}
+					loadingIcon={<BallotBoxIcon className="size-4" />}
+					onClick={castSelected}
+					className="ml-auto min-w-[132px] max-md:w-full"
+				>
+					{/* Until an option is picked the button says what it is waiting for. Both labels hold the width, so
+						    picking never resizes it or moves its edge */}
+					<span className="grid justify-items-center *:col-start-1 *:row-start-1">
+						<span>
+							{selected || isPending ? t('poll.vote') : t('poll.pickOption')}
+						</span>
+						<span aria-hidden className="invisible">
+							{t('poll.vote')}
+						</span>
+						<span aria-hidden className="invisible">
+							{t('poll.pickOption')}
+						</span>
+					</span>
+				</Button>
 			</div>
 		),
 		sealed: (
@@ -211,7 +227,7 @@ export function Ballot({
 		),
 		updating: (
 			<div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 md:flex-nowrap">
-				<p className="flex min-w-0 items-center gap-2.5 text-body-4 leading-5 text-muted-foreground">
+				<p className="flex min-w-0 items-center gap-2.5 text-caption-1 leading-5 text-muted-foreground">
 					<RefreshIcon className="size-[18px] shrink-0 text-input" />
 					{/* Sized by the longest option, up to two lines: before a vote there is nothing to replace, so a line that
 					    grew with the option would make the card taller once it is the vote; past two lines a long option
@@ -220,7 +236,10 @@ export function Ballot({
 						<span className="col-start-1 row-start-1 line-clamp-2">
 							{t('poll.updatingHint', { option: replacingText })}
 						</span>
-						<span aria-hidden className="invisible col-start-1 row-start-1 line-clamp-2">
+						<span
+							aria-hidden
+							className="invisible col-start-1 row-start-1 line-clamp-2"
+						>
 							{t('poll.updatingHint', { option: longestOptionText })}
 						</span>
 					</span>
@@ -249,7 +268,7 @@ export function Ballot({
 	};
 
 	return (
-		<div className="flex flex-col gap-4 md:gap-5">
+		<div className="flex flex-col gap-2 md:gap-5">
 			{/* A form of its own keeps these radios out of any other copy's group: while the page streams in,
 			    a second copy of the card can be in the document, and checking one would uncheck the other */}
 			<form onSubmit={(event) => event.preventDefault()}>
@@ -271,7 +290,7 @@ export function Ballot({
 							<label
 								key={option.id}
 								className={cn(
-									'relative flex min-h-14 cursor-pointer items-center gap-3.5 rounded-xl border border-border bg-card px-5 py-2.5 text-body-2 font-medium transition-colors',
+									'relative flex min-h-13 cursor-pointer items-center gap-3.5 rounded-xl border border-border bg-card px-5 py-2.5 text-body-3 font-medium transition-colors',
 									'has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring',
 									// Raised so the highlight slides over the other options, not under the ones after it
 									isSelected
@@ -296,11 +315,17 @@ export function Ballot({
 									className="peer sr-only"
 								/>
 								{isSelected ? (
-									<BallotMark state={isCast ? 'voted' : 'selected'} seed={option.id} />
+									<BallotMark
+										state={isCast ? 'voted' : 'selected'}
+										seed={option.id}
+									/>
 								) : (
 									<BallotMark state="rest" />
 								)}
-								<span dir="auto" className="relative min-w-0 flex-1 wrap-anywhere">
+								<span
+									dir="auto"
+									className="relative min-w-0 flex-1 wrap-anywhere"
+								>
 									{option.text}
 								</span>
 							</label>
@@ -309,22 +334,18 @@ export function Ballot({
 				</fieldset>
 			</form>
 
-			{view === 'acting' || view === 'scheduled' ? (
-				<div className="border-t border-border pt-4 md:pt-5">
-					{view === 'acting' ? (
-						<div className="flex flex-col gap-3">
-							{isScheduled && opensHint}
-							<CommunityCantVote />
-						</div>
-					) : (
-						opensHint
-					)}
+			{view === 'acting' ? (
+				<div className="flex flex-col gap-3">
+					{isScheduled && opensHint}
+					<CommunityCantVote />
 				</div>
+			) : view === 'scheduled' ? (
+				opensHint
 			) : (
 				// The name line rides in the sticky confirm row too: on phones it stays in view while Vote does
 				<div
 					className={cn(
-						'flex flex-col gap-4 md:gap-5',
+						'flex flex-col gap-4 md:gap-5 pt-2 md:pt-0',
 						awaitsConfirm && 'follow-tabbar'
 					)}
 				>
@@ -337,7 +358,9 @@ export function Ballot({
 							status={
 								anonymous
 									? t('poll.anonymousHidden')
-									: t(`poll.visibility.${visibilityLevel(poll)}`, { name: creatorName })
+									: t(`poll.visibility.${visibilityLevel(poll)}`, {
+											name: creatorName,
+										})
 							}
 							isPending={isPending}
 							onToggle={() => setAnonymous(!anonymous)}
@@ -356,10 +379,9 @@ export function Ballot({
 										visibility: active ? 'visible' : 'hidden',
 										opacity: active ? 1 : 0,
 									}}
-									// Each fills the cell, divider on top and content centered under it: the divider holds still
-									// through every state, and a shorter pane splits its spare room above and below its row
-									// instead of opening a gap under the line (from md, Vote sits where Withdraw vote will be)
-									className="col-start-1 row-start-1 flex flex-col justify-center border-t border-border pt-4 motion-safe:transition-[opacity,visibility] motion-safe:duration-200 md:pt-5"
+									// Each fills the cell with its content centered: a shorter pane splits its spare room above
+									// and below its row (from md, Vote sits where Withdraw vote will be)
+									className="col-start-1 row-start-1 flex flex-col justify-center motion-safe:transition-[opacity,visibility] motion-safe:duration-200"
 								>
 									{panes[pane]}
 								</div>
@@ -418,7 +440,8 @@ function NameLine({
 	className,
 }: NameLineProps) {
 	const { t } = useLanguage();
-	const Icon = hidden ? EyeOff : Eye;
+	// The icon shows what the button does, not where the name stands now
+	const Icon = hidden ? Eye : EyeOff;
 	return (
 		<div
 			className={cn(
@@ -426,7 +449,6 @@ function NameLine({
 				className
 			)}
 		>
-			<Icon aria-hidden className="size-4 shrink-0 text-tide" />
 			<p role="status" className="min-w-0 flex-1">
 				{status}
 			</p>
@@ -439,6 +461,11 @@ function NameLine({
 				onClick={() => !isPending && onToggle()}
 				className="shrink-0 text-foreground"
 			>
+				<Icon
+					aria-hidden
+					data-icon="inline-start"
+					className="size-4 text-tide"
+				/>
 				{hidden ? t('poll.showMyName') : t('poll.hideMyName')}
 			</Button>
 		</div>

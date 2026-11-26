@@ -26,6 +26,18 @@ describe('LoginPrompt', () => {
 		expect(container.firstElementChild).toHaveAttribute('data-nosnippet');
 	});
 
+	it('in the feed, keeps to one row on phones: the title beside Log in, without the line under it', () => {
+		render(<LoginPrompt />);
+		expect(screen.getByText('See what people are talking about and join the conversation.')).toHaveClass('max-sm:hidden');
+		expect(screen.getByRole('link', { name: 'Log in' })).not.toHaveClass('w-full');
+	});
+
+	it('on a poll, keeps its explanation on phones, stacked over a full-width Log in', () => {
+		render(<LoginPrompt forPoll />);
+		expect(screen.getByText(/Log in to open this poll\./)).not.toHaveClass('max-sm:hidden');
+		expect(screen.getByRole('link', { name: 'Log in' })).toHaveClass('w-full');
+	});
+
 	it('on a poll, says logging in opens it and comes back to it', () => {
 		render(<LoginPrompt forPoll redirectTo="/poll/p1" sessionExpired />);
 		expect(

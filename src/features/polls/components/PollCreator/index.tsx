@@ -595,14 +595,15 @@ export function PollCreator({
 									<StepLayer>
 										{review ? (
 											<>
-												<div className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-5">
+												{/* Drawn as the PollCard: no border, the card's semibold title */}
+												<div className="space-y-4 rounded-2xl bg-card p-4 forced-colors:border sm:p-5">
 													<StatusChip
 														status={review.status}
 														poll={review}
 														time="inline"
 													/>
 													<div className="space-y-2">
-														<p className="text-title-3 text-balance wrap-anywhere">
+														<p className="text-title-2 font-semibold tracking-title text-balance wrap-anywhere">
 															{toSingleLine(title)}
 														</p>
 														{description?.trim() && (

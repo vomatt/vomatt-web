@@ -35,7 +35,7 @@ describe('PollAbout', () => {
 			/>
 		);
 		expect(
-			screen.getByText('After it ends, Tower B’s owners, admins and analysts can see what you chose.')
+			screen.getByText('After it ends, Tower B’s owners, admins and analysts see your choice.')
 		).toBeInTheDocument();
 	});
 
@@ -63,7 +63,7 @@ describe('PollAbout', () => {
 		render(<PollAbout poll={{ ...poll, voterVisibility: 'owner' }} />);
 		expect(screen.getByText('Ballots are sealed. Counts are revealed only when the poll ends.')).toBeInTheDocument();
 		expect(screen.getByText('One vote per person. You can change it until the end.')).toBeInTheDocument();
-		expect(screen.getByText('After it ends, only the poll owner can see what you chose.')).toBeInTheDocument();
+		expect(screen.getByText('After it ends, only the owner sees your choice.')).toBeInTheDocument();
 	});
 
 	it('shows when the Poll opened and when its results come, with how far through it is', () => {

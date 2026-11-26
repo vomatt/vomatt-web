@@ -228,14 +228,14 @@ describe('PollCard state A: Open, no Ballot', () => {
 		render(<PollCard poll={openPoll} />);
 		expect(screen.getByText('128 voted')).toBeInTheDocument();
 		expect(screen.getByText('Results are revealed when the poll ends')).toBeVisible();
-		expect(screen.getByRole('button', { name: 'Vote' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Pick an option' })).toBeInTheDocument();
 		expect(screen.getByText(/^Sealed until /)).not.toBeVisible();
 		expect(screen.queryByText(/%/)).not.toBeInTheDocument();
 	});
 
 	it('says before voting who will see the name, with Hide my name beside it', () => {
 		render(<PollCard poll={{ ...openPoll, voterVisibility: 'signed-in' }} viewerId="user-voter" />);
-		expect(screen.getByText('After it ends, anyone signed in can see what you chose.')).toBeInTheDocument();
+		expect(screen.getByText('After it ends, anyone signed in sees your choice.')).toBeInTheDocument();
 		expect(screen.getByRole('button', { name: 'Hide my name' })).toBeInTheDocument();
 		expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
 	});
@@ -248,7 +248,7 @@ describe('PollCard state A: Open, no Ballot', () => {
 			/>
 		);
 		expect(
-			screen.getByText('After it ends, Tower B’s owners, admins and analysts can see what you chose.')
+			screen.getByText('After it ends, Tower B’s owners, admins and analysts see your choice.')
 		).toBeInTheDocument();
 	});
 
@@ -298,14 +298,14 @@ describe('PollCard state A: Open, no Ballot', () => {
 
 	it('disables Vote until an option is selected', () => {
 		render(<PollCard poll={openPoll} viewerId="user-voter" />);
-		expect(screen.getByRole('button', { name: 'Vote' })).toBeDisabled();
+		expect(screen.getByRole('button', { name: 'Pick an option' })).toBeDisabled();
 		fireEvent.click(screen.getByLabelText('Friday'));
 		expect(screen.getByRole('button', { name: 'Vote' })).toBeEnabled();
 	});
 
 	it('holds Vote above the TabBar on phones once an option is picked, and not before', () => {
 		render(<PollCard poll={openPoll} viewerId="user-voter" />);
-		expect(screen.getByRole('button', { name: 'Vote' }).closest('.follow-tabbar')).toBeNull();
+		expect(screen.getByRole('button', { name: 'Pick an option' }).closest('.follow-tabbar')).toBeNull();
 		fireEvent.click(screen.getByLabelText('Friday'));
 		expect(screen.getByRole('button', { name: 'Vote' }).closest('.follow-tabbar')).not.toBeNull();
 	});
@@ -340,6 +340,12 @@ describe('PollCard state B: Open, has Ballot', () => {
 		expect(pill.parentElement).toBe(space?.parentElement);
 		const chip = screen.getByText(/^Ends/);
 		expect(chip.compareDocumentPosition(pill) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+	});
+
+	it('shows the Voted pill only where the card is wide enough for it beside the status chip', () => {
+		const { container } = render(<PollCard poll={openPoll} viewerId="user-voter" />);
+		const slot = container.querySelector('[data-label="Voted"]')?.parentElement;
+		expect(slot).toHaveClass('hidden', '@md:grid');
 	});
 
 	it('keeps the vote and Turnout when the poll is saved after voting', async () => {
@@ -435,7 +441,7 @@ describe('PollCard state B: Open, has Ballot', () => {
 			<PollCard poll={{ ...openPoll, myOptionId: 'opt-sun', myBallotAnonymous: false }} viewerId="user-voter" />
 		);
 		expect(screen.getByText(/^Sealed until /)).toBeVisible();
-		expect(screen.getByText('After it ends, only the poll owner can see what you chose.')).toBeVisible();
+		expect(screen.getByText('After it ends, only the owner sees your choice.')).toBeVisible();
 		expect(screen.getByRole('button', { name: 'Hide my name' })).toBeInTheDocument();
 		expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
 		expect(screen.getByRole('button', { name: 'Withdraw vote' })).toBeInTheDocument();
@@ -572,7 +578,7 @@ describe('PollCard state B: Open, has Ballot', () => {
 		expect(container.querySelector('[aria-busy]')).not.toBeNull();
 		await waitFor(() => expect(container.querySelector('[aria-busy]')).toBeNull());
 		// The vote is rolled back like any failed request
-		expect(screen.getByRole('button', { name: 'Vote' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Pick an option' })).toBeInTheDocument();
 		expect(screen.getByText('128 voted')).toBeInTheDocument();
 	});
 
@@ -633,7 +639,7 @@ describe('PollCard state B: Open, has Ballot', () => {
 			data: { ...openPoll, myOptionId: 'opt-fri', myBallotAnonymous: false },
 		});
 		render(<PollCard poll={openPoll} viewerId="user-voter" />);
-		const line = 'After it ends, only the poll owner can see what you chose.';
+		const line = 'After it ends, only the owner sees your choice.';
 		expect(screen.getByText(line)).toBeVisible();
 
 		vote('Friday');
@@ -671,7 +677,7 @@ describe('PollCard state B: Open, has Ballot', () => {
 				viewerId="user-voter"
 			/>
 		);
-		expect(screen.queryByText(/can see what you chose/)).not.toBeInTheDocument();
+		expect(screen.queryByText(/sees? your choice/)).not.toBeInTheDocument();
 		expect(screen.queryByRole('button', { name: 'Hide my name' })).not.toBeInTheDocument();
 	});
 
@@ -720,7 +726,7 @@ describe('PollCard state B: Open, has Ballot', () => {
 		rerender(<PollCard poll={{ ...voted, commentCount: 1 }} viewerId="user-voter" isPage />);
 
 		expect(screen.getByLabelText('Sunday')).not.toBeChecked();
-		expect(screen.getByRole('button', { name: 'Vote' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Pick an option' })).toBeInTheDocument();
 	});
 
 	it('folds the Seal to a row on a later visit', () => {
@@ -826,14 +832,14 @@ describe('PollCard: the end passes while it is on screen', () => {
 			},
 		});
 		render(<PollCard poll={closing} viewerId="user-voter" />);
-		expect(screen.getByRole('button', { name: 'Vote' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Pick an option' })).toBeInTheDocument();
 		expect(screen.getByText('Ends in 2m')).toBeInTheDocument();
 
 		await act(async () => {
 			jest.advanceTimersByTime(MINUTE);
 		});
 		// Still open: no counts before the end
-		expect(screen.getByRole('button', { name: 'Vote' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Pick an option' })).toBeInTheDocument();
 		expect(mockGetResults).not.toHaveBeenCalled();
 
 		await act(async () => {
@@ -970,7 +976,7 @@ describe('PollCard Audience', () => {
 			/>
 		);
 		expect(screen.getByText(`128 voted${META_GAP}invite only`, keepGaps)).toBeInTheDocument();
-		expect(screen.getByText('After it ends, everyone invited can see what you chose.')).toBeInTheDocument();
+		expect(screen.getByText('After it ends, everyone invited sees your choice.')).toBeInTheDocument();
 	});
 
 	it('marks an Unlisted Poll after its Turnout', () => {
@@ -1371,6 +1377,14 @@ describe('PollCard signed-out visitor', () => {
 		render(<PollCard poll={{ ...openPoll, commentCount: 3 }} isPage />);
 		expect(screen.getByRole('link', { name: '3 comments' })).toHaveAttribute('href', '#discussion');
 		expect(mockGetComments).not.toHaveBeenCalled();
+	});
+
+	it('shows the comment count alone on phones, still naming the link in full', () => {
+		render(<PollCard poll={{ ...openPoll, commentCount: 3 }} />);
+		const link = screen.getByRole('link', { name: '3 comments' });
+		expect(within(link).getByText('3')).toHaveClass('md:hidden');
+		expect(within(link).getByText('3')).toHaveAttribute('aria-hidden');
+		expect(within(link).getByText('3 comments')).toHaveClass('max-md:hidden');
 	});
 
 	it('leads from a feed card to the poll page discussion instead of unfolding it', () => {

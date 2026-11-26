@@ -55,11 +55,12 @@ const buttonVariantClasses = cva(
 			},
 		},
 		compoundVariants: [
-			// After the size classes, so a link lines up with the text beside it
+			// After the size classes, so a link lines up with the text beside it. The xs and sm offsets are the side
+			// padding plus the 1px transparent border, so the label, not the border, meets the edge
 			{ variant: 'link', className: 'px-0' },
-			{ size: ['xs', 'sm'], flush: 'start', className: '-ml-3' },
-			{ size: ['xs', 'sm'], flush: 'end', className: '-mr-3' },
-			{ size: ['xs', 'sm'], flush: 'start-md-end', className: '-ml-3 md:ml-0 md:-mr-3' },
+			{ size: ['xs', 'sm'], flush: 'start', className: '-ml-[13px]' },
+			{ size: ['xs', 'sm'], flush: 'end', className: '-mr-[13px]' },
+			{ size: ['xs', 'sm'], flush: 'start-md-end', className: '-ml-[13px] md:ml-0 md:-mr-[13px]' },
 			{ size: 'icon-xs', flush: 'start', className: '-ml-2' },
 			{ size: 'icon-xs', flush: 'end', className: '-mr-2' },
 		],
