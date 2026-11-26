@@ -473,7 +473,7 @@ describe('OwnProfileView', () => {
 
 		await userEvent.click(screen.getByRole('button', { name: 'More actions for Poll i' }));
 		const items = (await screen.findAllByRole('menuitem')).map((item) => item.textContent);
-		expect(items).toEqual(['End poll now…', 'Invitees', 'Share', 'Show QR code', 'Share on LINE']);
+		expect(items).toEqual(['End poll now…', 'Invitees', 'Share', 'Show QR code']);
 	});
 
 	it('puts the unread dot right after the title, not at either edge of the row', () => {

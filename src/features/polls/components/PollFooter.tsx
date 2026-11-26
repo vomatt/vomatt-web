@@ -167,7 +167,7 @@ export function PollFooter({
 							className="z-50"
 						>
 							<Menu.Popup className={menuPopupClassName}>
-								<PollShareMenuItems pollId={pollId} onShowQr={() => setShowsQr(true)} />
+								<PollShareMenuItems onShowQr={() => setShowsQr(true)} />
 								{onReport && (
 									<Menu.Item onClick={onReport} className={menuItemClassName}>
 										<Flag aria-hidden />

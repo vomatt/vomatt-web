@@ -17,7 +17,7 @@ type ProductEvents = {
 	/** A ballot is saved; `change` when it replaced the voter's earlier one. */
 	vote_cast: { change: boolean };
 	/** `QR` when the QR dialog opens. */
-	poll_shared: { channel: 'NATIVE' | 'COPY_LINK' | 'LINE' | 'QR' };
+	poll_shared: { channel: 'NATIVE' | 'COPY_LINK' | 'QR' };
 	poll_created: { audience: Audience };
 	upgrade_clicked: Record<string, never>;
 };

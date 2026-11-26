@@ -8,7 +8,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { settle } from '@/lib/api/settle';
 import { countText } from '@/lib/count';
 import { EASE_OUT_STRONG } from '@/lib/motion';
-import { META_GAP } from '@/lib/rich';
+import { META_GAP, rich } from '@/lib/rich';
 import { cn } from '@/lib/utils';
 
 import { type ActionResult, isSealed } from '../errors';
@@ -137,18 +137,17 @@ export function Results({ poll, myOptionId, turnout, onSealed, onSelectOption, r
 		participants === 0 ? 0 : Math.round((votes / participants) * 100);
 
 	const myRow = rows.find((row) => row.id === myOptionId);
-	let caption: string;
-	if (myRow) {
-		// The stamp says who won; the voter hears back what they chose
-		caption = t('poll.yourVoteCaption', { option: myRow.text });
-	} else if (winners.length === 0) {
+	let caption: React.ReactNode;
+	if (winners.length === 0) {
 		caption = t('poll.noVotes');
 	} else if (winners.length > 1) {
 		caption = t('poll.tie', {
 			options: winners.map((row) => row.text).join(t('poll.and')),
 		});
 	} else {
-		caption = countText(t, 'poll.won', participants, currentLanguage, { option: winners[0].text });
+		caption = rich(t('poll.won'), {
+			option: <strong className="font-medium wrap-anywhere">{winners[0].text}</strong>,
+		});
 	}
 
 	return (

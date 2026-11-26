@@ -790,7 +790,7 @@ describe('PollCard state B: Open, has Ballot', () => {
 	it('lets a result\'s option break anywhere, so one long word never runs under its count', async () => {
 		render(<PollCard poll={endedPoll} viewerId="user-voter" />);
 		await waitFor(() => expect(screen.getByText('62 votes, 48%')).toBeInTheDocument());
-		expect(screen.getByText('Sunday')).toHaveClass('wrap-anywhere');
+		for (const name of screen.getAllByText('Sunday')) expect(name).toHaveClass('wrap-anywhere');
 	});
 
 	it('shows the final percentages at once when the card loads already ended, without counting up', async () => {
@@ -1015,10 +1015,14 @@ describe('PollCard state D: Ended', () => {
 		expect(screen.getByText('29 votes, 22%')).toBeInTheDocument();
 		expect(screen.getByText('62 votes, 48%')).toBeInTheDocument();
 		expect(screen.getByText('your vote')).toBeInTheDocument();
-		expect(within(screen.getByText('Sunday').closest('li')!).getByRole('img', { name: 'Elected' })).toBeInTheDocument();
+		expect(within(screen.getAllByText('Sunday').find((el) => el.closest('li'))!.closest('li')!).getByRole('img', { name: 'Elected' })).toBeInTheDocument();
 		expect(screen.getAllByRole('img', { name: 'Elected' })).toHaveLength(1);
-		expect(screen.getByText('“Saturday” was your vote.')).toBeInTheDocument();
 		expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+	});
+
+	it('tells a viewer who voted who won, as it tells everyone else', () => {
+		render(<PollCard poll={{ ...endedPoll, myOptionId: 'opt-sat' }} viewerId="user-voter" />);
+		expect(screen.getByText((_, el) => el?.tagName === 'P' && el.textContent?.startsWith('“Sunday” won.') === true)).toBeInTheDocument();
 	});
 
 	it('draws the viewer’s “your vote” pill still on a poll that loads ended', () => {
@@ -1026,20 +1030,26 @@ describe('PollCard state D: Ended', () => {
 		expect(screen.getByText('your vote').style.opacity).toBe('1');
 	});
 
-	it('tells a viewer who didn’t vote how many people decided', () => {
+	it('tells a viewer who didn’t vote who won', () => {
 		render(<PollCard poll={endedPoll} viewerId="user-voter" />);
-		expect(screen.getByText('“Sunday” won. 129 people decided this.')).toBeInTheDocument();
+		expect(screen.getByText((_, el) => el?.tagName === 'P' && el.textContent?.startsWith('“Sunday” won.') === true)).toBeInTheDocument();
 		expect(screen.queryByText('your vote')).not.toBeInTheDocument();
 	});
 
-	it('says one person in the singular', () => {
+	it('sets the winning option in bold in the caption', () => {
+		render(<PollCard poll={endedPoll} viewerId="user-voter" />);
+		const name = within(screen.getByText((_, el) => el?.tagName === 'P' && el.textContent?.startsWith('“Sunday” won.') === true)).getByText('Sunday');
+		expect(name.tagName).toBe('STRONG');
+		expect(name).toHaveClass('font-medium');
+	});
+
+	it('says one vote in the singular', () => {
 		const single: Poll = {
 			...endedPoll,
 			participantCount: 1,
 			options: endedPoll.options.map((o) => ({ ...o, votes: o.id === 'opt-fri' ? 1 : 0 })),
 		};
 		render(<PollCard poll={single} />);
-		expect(screen.getByText('“Friday” won. 1 person decided this.')).toBeInTheDocument();
 		expect(screen.getByText('1 vote, 100%')).toBeInTheDocument();
 	});
 
@@ -1424,29 +1434,12 @@ describe('PollCard signed-out visitor', () => {
 		return (await screen.findAllByRole('menuitem')).map((item) => item.textContent);
 	};
 
-	it('offers the QR code and LINE to everyone, and Report to everyone but the owner', async () => {
+	it('offers the QR code to everyone, and Report to everyone but the owner', async () => {
 		const { unmount } = render(<PollCard poll={openPoll} viewerId="user-1" />);
-		expect(await openMenu()).toEqual(['Show QR code', 'Share on LINE']);
+		expect(await openMenu()).toEqual(['Show QR code']);
 		unmount();
 		render(<PollCard poll={openPoll} viewerId="user-voter" />);
-		expect(await openMenu()).toEqual(['Show QR code', 'Share on LINE', 'Report poll']);
-	});
-
-	it("opens LINE's share page for the poll's link in a new tab and counts the share", async () => {
-		mockSharePoll.mockResolvedValue({ ok: true, data: 1 });
-		render(<PollCard poll={openPoll} />);
-		await openMenu();
-		const line = screen.getByRole('menuitem', { name: 'Share on LINE' });
-		expect(line).toHaveAttribute(
-			'href',
-			`https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(`http://localhost/poll/${openPoll.id}`)}`
-		);
-		expect(line).toHaveAttribute('target', '_blank');
-		expect(line).toHaveAttribute('rel', 'noopener noreferrer');
-		line.addEventListener('click', (event) => event.preventDefault());
-		fireEvent.click(line);
-		expect(mockSharePoll).toHaveBeenCalledWith(openPoll.id, 'LINE');
-		expect(mockTrack).toHaveBeenCalledWith('poll_shared', { channel: 'LINE' });
+		expect(await openMenu()).toEqual(['Show QR code', 'Report poll']);
 	});
 
 	it("shows the poll's QR code with its title and a way to copy the link", async () => {

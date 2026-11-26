@@ -268,7 +268,7 @@ function OwnerMenu({
 							<Share aria-hidden />
 							{t('poll.share')}
 						</Menu.Item>
-						<PollShareMenuItems pollId={poll.id} onShowQr={onShowQr} />
+						<PollShareMenuItems onShowQr={onShowQr} />
 						{canDelete && (
 							<>
 								<Menu.Separator className="mx-1.5 my-1 h-px bg-border" />
