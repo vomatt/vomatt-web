@@ -33,7 +33,7 @@ global.IntersectionObserver = class {
 
 describe('PollFeedList', () => {
 	it('points an empty Following feed to Explore', () => {
-		render(<PollFeedList initialPage={{ items: [], nextCursor: null }} feed="following" header={null} />);
+		render(<PollFeedList initialPage={{ items: [], nextCursor: null }} feed="following" />);
 		expect(screen.getByRole('heading', { name: 'Nothing from people you follow yet.' })).toBeInTheDocument();
 		expect(
 			screen.getByText('Open polls by people you follow show up here. Follow someone from their profile.')
@@ -45,13 +45,13 @@ describe('PollFeedList', () => {
 		['resultsIn', 'No results yet.'],
 		['closingSoon', 'Nothing closes in the next day.'],
 	] as const)('says why an empty %s feed is empty, without offering to create a poll', (feed, title) => {
-		render(<PollFeedList initialPage={{ items: [], nextCursor: null }} feed={feed} header={null} />);
+		render(<PollFeedList initialPage={{ items: [], nextCursor: null }} feed={feed} />);
 		expect(screen.getByRole('heading', { name: title })).toBeInTheDocument();
 		expect(screen.queryByRole('button', { name: 'Create the first poll' })).not.toBeInTheDocument();
 	});
 
 	it('says nothing is there only once no pages remain', () => {
-		render(<PollFeedList initialPage={{ items: [], nextCursor: 'more' }} feed="resultsIn" header={null} />);
+		render(<PollFeedList initialPage={{ items: [], nextCursor: 'more' }} feed="resultsIn" />);
 		expect(screen.queryByRole('heading', { name: 'No results yet.' })).not.toBeInTheDocument();
 		expect(screen.getByRole('button', { name: 'Load more' })).toBeInTheDocument();
 	});
@@ -66,7 +66,7 @@ describe('PollFeedList', () => {
 			mockOnRefresh = refreshes ? () => setPage({ items: [poll('b1')], nextCursor: 'c2' }) : () => {};
 			return (
 				<Refreshable>
-					<PollFeedList initialPage={page} header={null} />
+					<PollFeedList initialPage={page} />
 					{/* A re-render with a new first page that isn't a refresh, as a vote's revalidation brings */}
 					<button onClick={() => setPage({ items: [poll('v1')], nextCursor: 'c3' })}>Revalidate</button>
 					<button onClick={() => setRefreshes(false)}>Fail refreshes</button>

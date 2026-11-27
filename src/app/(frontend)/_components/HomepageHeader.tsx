@@ -1,37 +1,27 @@
 'use client';
 import Link from 'next/link';
-import { Suspense, use, useState } from 'react';
-import { toast } from 'sonner';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { Suspense, use } from 'react';
 
 import { LoginPrompt } from '@/components/LoginPrompt';
 import { StickyBar } from '@/components/StickyBar';
-import { Button, buttonVariants } from '@/components/ui/Button';
-import { Check, Plus } from '@/components/ui/SvgIcons';
+import { buttonVariants } from '@/components/ui/Button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { UnreadDot } from '@/features/notifications/UnreadDot';
 import {
 	FEED_KINDS,
-	type FeedKind,
 	FEEDS,
 	isRailFeed,
 } from '@/features/polls/feeds';
 import type { TagDto } from '@/features/polls/schema';
-import { followTag, unfollowTag } from '@/features/polls/service';
-import { apiErrorText } from '@/lib/api/error-text';
-import { settle } from '@/lib/api/settle';
 import { topicHref } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
 type HomepageHeaderProps = {
-	tags: TagDto[];
-	/** The selected topic's slug; none means every topic. */
-	activeTag?: string;
+	/** Only what a pill shows: the layout sends these to the client on every feed page. */
+	tags: Pick<TagDto, 'name' | 'slug'>[];
 	/** Signed-in viewers get the Following, Results are in and Closing soon feeds; guests get the login prompt above the topics. */
 	signedIn?: boolean;
-	/** The feed shown; For you unless another feed's page. */
-	feed?: FeedKind;
-	/** Ids of the topics the viewer follows; a topic's page offers Follow once it is known. */
-	followedTagIds?: string[];
 	/** Whether a result is unread, for the Results are in pill's dot; streamed so the feed doesn't wait on it. */
 	resultsUnread?: Promise<boolean>;
 };
@@ -44,16 +34,17 @@ type PillLink = {
 	dot?: Promise<boolean>;
 };
 
-/** Feed and topic pills over the feed. Each is a link, so a feed or topic can be shared and server-rendered. */
-export function HomepageHeader({
-	tags,
-	activeTag,
-	signedIn,
-	feed = 'forYou',
-	followedTagIds,
-	resultsUnread,
-}: HomepageHeaderProps) {
+/**
+ * Feed and topic pills over the feed. Each is a link, so a feed or topic can be shared and server-rendered.
+ * It sits in the feeds' layout and stays mounted across them, so it reads the current feed and topic from the URL.
+ */
+export function HomepageHeader({ tags, signedIn, resultsUnread }: HomepageHeaderProps) {
 	const { t } = useLanguage();
+	const pathname = usePathname();
+	const feed = FEED_KINDS.find((kind) => FEEDS[kind].href === pathname) ?? 'forYou';
+	const searchParams = useSearchParams();
+	// Only For you filters by topic; repeated ?tag= takes the first, like the page
+	const activeTag = (feed === 'forYou' && searchParams.get('tag')) || undefined;
 	const feeds: PillLink[] = FEED_KINDS.filter(
 		(kind) => signedIn || kind === 'forYou'
 	).map((kind) => {
@@ -96,9 +87,8 @@ export function HomepageHeader({
 	);
 
 	// A filtered feed is that topic's page; the topic may not be among the popular ones listed
-	const activeTagDto = tags.find((tag) => tag.slug === activeTag);
 	const heading = activeTag
-		? (activeTagDto?.name ?? activeTag)
+		? (tags.find((tag) => tag.slug === activeTag)?.name ?? activeTag)
 		: feed === 'forYou'
 			? t('navigation.home')
 			: t(FEEDS[feed].label);
@@ -118,13 +108,6 @@ export function HomepageHeader({
 					</ul>
 				</nav>
 			</StickyBar>
-			{signedIn && activeTagDto && followedTagIds && (
-				<TopicFollowButton
-					key={activeTagDto.id}
-					tagId={activeTagDto.id}
-					initiallyFollowing={followedTagIds.includes(activeTagDto.id)}
-				/>
-			)}
 		</>
 	);
 }
@@ -132,50 +115,4 @@ export function HomepageHeader({
 function StreamedUnreadDot({ unread }: { unread: Promise<boolean> }) {
 	const { t } = useLanguage();
 	return use(unread) ? <UnreadDot label={t('notifications.unread')} /> : null;
-}
-
-/** Following a topic adds its Open Public Polls to the Following feed. One tap undoes it. */
-function TopicFollowButton({
-	tagId,
-	initiallyFollowing,
-}: {
-	tagId: string;
-	initiallyFollowing: boolean;
-}) {
-	const { t } = useLanguage();
-	const [following, setFollowing] = useState(initiallyFollowing);
-	const [isPending, setIsPending] = useState(false);
-
-	const toggle = async () => {
-		const next = !following;
-		setFollowing(next);
-		setIsPending(true);
-		const result = await settle(next ? followTag(tagId) : unfollowTag(tagId));
-		setIsPending(false);
-		if (!result.ok) {
-			setFollowing(!next);
-			toast.error(
-				apiErrorText(
-					t,
-					result,
-					next ? 'homePage.followTopicFailed' : 'homePage.unfollowTopicFailed'
-				)
-			);
-		}
-	};
-
-	return (
-		<Button
-			size="sm"
-			variant={following ? 'outline' : 'default'}
-			aria-pressed={following}
-			onClick={toggle}
-			disabled={isPending}
-			// Starts where the first card would, level with the rail's first card
-			className="mt-2 mb-2"
-		>
-			{following ? <Check aria-hidden /> : <Plus aria-hidden />}
-			{t(following ? 'homePage.followingTopic' : 'homePage.followTopic')}
-		</Button>
-	);
 }

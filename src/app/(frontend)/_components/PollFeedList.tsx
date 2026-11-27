@@ -27,7 +27,6 @@ type PollFeedListProps = {
 	initialPage: { items: Poll[]; nextCursor: string | null } | null;
 	tag?: string;
 	feed?: FeedKind;
-	header: React.ReactNode;
 };
 
 export function PollFeedList({
@@ -37,7 +36,6 @@ export function PollFeedList({
 	initialPage,
 	tag,
 	feed = 'forYou',
-	header,
 }: PollFeedListProps) {
 	const { t } = useLanguage();
 	const reduceMotion = useReducedMotion();
@@ -86,8 +84,6 @@ export function PollFeedList({
 		<div
 			className={cn('w-full flex-1 max-w-feed', className)}
 		>
-			{header}
-
 			{seed.page === null && (
 				<div className="py-16 text-center">
 					<p className="mb-4 text-muted-foreground">

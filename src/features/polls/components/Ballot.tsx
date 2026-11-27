@@ -218,9 +218,9 @@ export function Ballot({
 
 	const panes: Record<Pane, React.ReactNode> = {
 		vote: (
-			// On phones Vote spans the card with the hint centered under it; from md they share one row
+			// On phones Vote spans the card with the hint centered above it, in reading order; from md they share one row
 			<div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
-				<p className="flex min-w-0 items-center gap-2.5 text-caption-1 leading-5 text-tide-foreground max-md:order-last max-md:w-full max-md:justify-center">
+				<p className="flex min-w-0 items-center gap-2.5 text-caption-1 leading-5 text-tide-foreground max-md:w-full max-md:justify-center">
 					<Lock aria-hidden className="size-[18px] shrink-0 text-tide" />
 					{t('poll.revealHint')}
 				</p>
@@ -415,7 +415,8 @@ export function Ballot({
 							);
 						})}
 					</div>
-					{/* Only the phone's sticky row draws it, out of the flow; from md it would be an empty item taking a gap */}
+					{/* Only the phone's sticky row draws it, out of the flow; elsewhere follow-tabbar hides it (from md, md:hidden),
+					    since it would be an empty item taking a gap */}
 					{awaitsConfirm && (
 						<span data-sticky-fade aria-hidden className="md:hidden" />
 					)}

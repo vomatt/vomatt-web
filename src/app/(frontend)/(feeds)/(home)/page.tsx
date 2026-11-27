@@ -2,11 +2,9 @@ import type { Metadata, ResolvingMetadata } from 'next';
 import { Suspense } from 'react';
 
 import { JsonLd } from '@/components/JsonLd';
-import { PageShell } from '@/components/layout/PageShell';
-import { Refreshable } from '@/components/Refreshable';
 import { getMyProfile, getUserSession } from '@/data/auth';
 import { DEFAULT_SITE_NAME } from '@/data/constants';
-import { getFeed, getFollowedTags, getPopularTags, getTagBySlug } from '@/features/polls/service';
+import { getFeed, getFollowedTags, getTagBySlug } from '@/features/polls/service';
 import { getServerMessages } from '@/lib/getServerLocale';
 import { interpolate } from '@/lib/interpolate';
 import { pageOpenGraph } from '@/lib/pageOpenGraph';
@@ -14,11 +12,9 @@ import { topicHref } from '@/lib/routes';
 import { getSiteSettings } from '@/lib/siteSettings';
 import { websiteJsonLd } from '@/lib/structuredData';
 
-import { FeedSkeleton } from '../_components/FeedSkeleton';
-import { HomepageHeader } from '../_components/HomepageHeader';
-import { HomeRail } from '../_components/HomeRail';
-import { PollFeedList } from '../_components/PollFeedList';
-import { getRailPolls } from '../_components/RailPolls';
+import { FeedSkeleton } from '../../_components/FeedSkeleton';
+import { PollFeedList } from '../../_components/PollFeedList';
+import { TopicFollowButton } from '../../_components/TopicFollowButton';
 
 type Props = { searchParams: Promise<{ tag?: string | string[] }> };
 
@@ -46,7 +42,6 @@ export async function generateMetadata({ searchParams }: Props, parent: Resolvin
 
 export default async function Page({ searchParams }: Props) {
 	const tag = firstTag((await searchParams).tag);
-	// The layout waits on the same profile check, so the rail still paints with the shell instead of after the feed
 	const [user, settings, { messages }] = await Promise.all([getUserSession(), getSiteSettings(), getServerMessages()]);
 
 	return (
@@ -57,46 +52,39 @@ export default async function Page({ searchParams }: Props) {
 					description: messages.meta.siteDescription,
 				})}
 			/>
-			<Refreshable>
-				<PageShell className="pt-0" rail={<HomeRail signedIn={!!user} />}>
-					<Suspense
-						fallback={<FeedSkeleton signedIn={!!user} />}
-					>
-						<Feed tag={tag} viewerId={user?.sub} />
-					</Suspense>
-				</PageShell>
-			</Refreshable>
+			<Suspense fallback={<FeedSkeleton />}>
+				<Feed tag={tag} viewerId={user?.sub} />
+			</Suspense>
 		</>
 	);
 }
 
 /** Streams in behind the skeleton so the shell paints first. */
 async function Feed({ tag, viewerId }: { tag: string | undefined; viewerId: string | undefined }) {
-	const [profile, firstPage, tags, followedTags] = await Promise.all([
+	const [profile, firstPage, [topic, followedTags] = []] = await Promise.all([
 		getMyProfile(),
 		getFeed(null, 10, tag).catch(() => null),
-		getPopularTags(),
 		// Only a topic's page offers Follow
-		viewerId && tag ? getFollowedTags() : null,
+		viewerId && tag ? Promise.all([getTagBySlug(tag), getFollowedTags()]) : undefined,
 	]);
 
 	return (
-		<PollFeedList
-			// Another topic starts a fresh list
-			key={tag ?? ''}
-			viewerId={viewerId}
-			anonymousByDefault={profile?.anonymousBallotByDefault}
-			initialPage={firstPage}
-			tag={tag}
-			header={
-				<HomepageHeader
-					tags={tags}
-					activeTag={tag}
-					signedIn={!!viewerId}
-					followedTagIds={followedTags?.ok ? followedTags.data.map((followed) => followed.id) : undefined}
-					resultsUnread={viewerId ? getRailPolls().then((rail) => rail.resultsUnread) : undefined}
+		<>
+			{topic && followedTags?.ok && (
+				<TopicFollowButton
+					key={topic.id}
+					tagId={topic.id}
+					initiallyFollowing={followedTags.data.some((followed) => followed.id === topic.id)}
 				/>
-			}
-		/>
+			)}
+			<PollFeedList
+				// Another topic starts a fresh list
+				key={tag ?? ''}
+				viewerId={viewerId}
+				anonymousByDefault={profile?.anonymousBallotByDefault}
+				initialPage={firstPage}
+				tag={tag}
+			/>
+		</>
 	);
 }

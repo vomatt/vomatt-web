@@ -487,9 +487,15 @@ html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 /* A card's confirm row on phones (the Ballot's Vote or Update vote once an option is picked): held above the TabBar
    while the card's options are on screen, so the pick never leaves its confirmation off-screen. Card-colored, and
    20px past its sides to the card's edges like follow-header; the padding reaches into the card's own bottom padding
-   (the margin gives it back, so nothing moves), and once stuck it fades into the options scrolling under it */
+   (the margin gives it back, so nothing moves), and once stuck it fades into the options scrolling under it.
+   Not on a short screen (200% zoom): the Header, this row and the TabBar would leave too little room to read an option */
 @utility follow-tabbar {
 	@media (width < 48rem) {
+		& > [data-sticky-fade] {
+			display: none;
+		}
+	}
+	@media (width < 48rem) and (height >= 30rem) {
 		position: sticky;
 		bottom: var(--tabbar-space);
 		z-index: 20;
@@ -501,6 +507,7 @@ html:has([data-sticky-bar='feed'][data-sticky-bar]) {
 			1.25rem 0 var(--card);
 		container-type: scroll-state;
 		& > [data-sticky-fade] {
+			display: block;
 			position: absolute;
 			inset-inline: 0;
 			bottom: 100%;

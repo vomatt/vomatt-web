@@ -1,6 +1,6 @@
 import type { ResolvingMetadata } from 'next';
 
-import { generateMetadata as homeMetadata } from '@/app/(frontend)/(home)/page';
+import { generateMetadata as homeMetadata } from '@/app/(frontend)/(feeds)/(home)/page';
 import { generateMetadata as profileMetadata } from '@/app/(frontend)/[slug]/page';
 import { generateMetadata as exploreMetadata } from '@/app/(frontend)/explore/page';
 import en from '@/locales/en.json';
@@ -20,8 +20,6 @@ jest.mock('@/features/polls/service', () => ({
 jest.mock('@/lib/siteSettings', () => ({ getSiteSettings: jest.fn() }));
 jest.mock('@/app/(frontend)/[slug]/_components/Profile', () => ({}));
 jest.mock('@/app/(frontend)/explore/_components/ExploreView', () => ({}));
-jest.mock('@/app/(frontend)/_components/HomepageHeader', () => ({}));
-jest.mock('@/app/(frontend)/_components/HomeRail', () => ({}));
 jest.mock('@/app/(frontend)/_components/PollFeedList', () => ({}));
 
 const site = { type: 'website', siteName: 'Vomatt', locale: 'en_US' };

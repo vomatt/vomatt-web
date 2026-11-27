@@ -198,9 +198,8 @@ export function PollCard({
 								{clock ? formatAge(createdAt, clock.language, clock.now) : '\u00a0'}
 							</time>
 						</div>
-						{/* Reversed so the status chip keeps the right edge and the Voted pill appears to its left */}
-						<div className="flex shrink-0 flex-row-reverse items-center gap-2">
-							<StatusChip status={status} poll={poll} time="inline" onCard />
+						{/* The status chip keeps the right edge; the Voted pill appears to its left */}
+						<div className="flex shrink-0 items-center gap-2">
 							{status !== 'ended' && !acting && (
 								<span className="hidden *:col-start-1 *:row-start-1 @md:grid">
 									<VotedPillSpace label={t('poll.votedPill')} />
@@ -209,6 +208,7 @@ export function PollCard({
 									</AnimatePresence>
 								</span>
 							)}
+							<StatusChip status={status} poll={poll} time="inline" onCard />
 						</div>
 					</div>
 				</div>

@@ -7,8 +7,6 @@ jest.mock('@/data/auth', () => ({
 	redirectToLogin: (path: string) => mockRedirectToLogin(path),
 }));
 jest.mock('@/features/polls/service', () => ({ getPopularTags: jest.fn(), loadFeed: jest.fn() }));
-jest.mock('@/app/(frontend)/_components/HomeRail', () => ({ HomeRail: () => null }));
-jest.mock('@/app/(frontend)/_components/HomepageHeader', () => ({ HomepageHeader: () => null }));
 jest.mock('@/app/(frontend)/_components/PollFeedList', () => ({ PollFeedList: () => null }));
 
 describe('SignedInFeedPage', () => {

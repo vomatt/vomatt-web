@@ -334,7 +334,7 @@ describe('PollCard state B: Open, has Ballot', () => {
 		expect(await screen.findByText('Voted')).toBeInTheDocument();
 	});
 
-	it('holds the Voted pill\'s room after the status chip before the vote, and fills it on voting', async () => {
+	it('holds the Voted pill\'s room before the status chip, in reading order, and fills it on voting', async () => {
 		const { container } = render(<PollCard poll={openPoll} viewerId="user-voter" />);
 		const space = container.querySelector('[data-label="Voted"]');
 		expect(space).toBeInTheDocument();
@@ -342,7 +342,7 @@ describe('PollCard state B: Open, has Ballot', () => {
 		const pill = await screen.findByText('Voted');
 		expect(pill.parentElement).toBe(space?.parentElement);
 		const chip = screen.getByText(/^Ends/);
-		expect(chip.compareDocumentPosition(pill) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+		expect(chip.compareDocumentPosition(pill) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
 	});
 
 	it('shows the Voted pill only where the card is wide enough for it beside the status chip', () => {

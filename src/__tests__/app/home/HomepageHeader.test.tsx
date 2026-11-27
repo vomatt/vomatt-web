@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 
 import { HomepageHeader } from '@/app/(frontend)/_components/HomepageHeader';
+import { TopicFollowButton } from '@/app/(frontend)/_components/TopicFollowButton';
 import { topicHref } from '@/lib/routes';
 
 jest.mock('next/link', () => {
@@ -12,6 +13,14 @@ jest.mock('next/link', () => {
 		);
 	};
 });
+let mockUrl = new URL('http://localhost/');
+jest.mock('next/navigation', () => ({
+	usePathname: () => mockUrl.pathname,
+	useSearchParams: () => mockUrl.searchParams,
+}));
+const visit = (path: string) => {
+	mockUrl = new URL(path, 'http://localhost');
+};
 jest.mock('@/contexts/LanguageContext', () => require('../../helpers/mockLanguage'));
 const mockFollowTag = jest.fn();
 jest.mock('@/features/polls/service', () => ({ followTag: (...args: any[]) => mockFollowTag(...args), unfollowTag: jest.fn() }));
@@ -19,8 +28,11 @@ jest.mock('@/features/polls/service', () => ({ followTag: (...args: any[]) => mo
 const tags = [{ id: 't1', name: 'Housing', slug: 'housing' }];
 
 describe('HomepageHeader', () => {
+	beforeEach(() => visit('/'));
+
 	it('shows each topic as a pill link without a "#", the current one marked', () => {
-		render(<HomepageHeader tags={tags} activeTag="housing" signedIn />);
+		visit(topicHref('housing'));
+		render(<HomepageHeader tags={tags} signedIn />);
 		const topics = within(screen.getByRole('navigation', { name: 'Topics' }));
 		const housing = topics.getByRole('link', { name: 'Housing' });
 		expect(housing).toHaveAttribute('href', topicHref('housing'));
@@ -31,10 +43,12 @@ describe('HomepageHeader', () => {
 	});
 
 	it('keeps the Following topic for signed-in viewers only', () => {
-		const { unmount } = render(<HomepageHeader tags={tags} signedIn feed="following" />);
+		visit('/following');
+		const { unmount } = render(<HomepageHeader tags={tags} signedIn />);
 		expect(screen.getByRole('link', { name: 'Following' })).toHaveAttribute('aria-current', 'page');
 		unmount();
 
+		visit('/');
 		render(<HomepageHeader tags={tags} />);
 		expect(screen.queryByRole('link', { name: 'Following' })).not.toBeInTheDocument();
 	});
@@ -57,20 +71,17 @@ describe('HomepageHeader', () => {
 		expect(screen.queryByRole('link', { name: 'Saved' })).not.toBeInTheDocument();
 	});
 
-	it('offers Follow on a topic page and follows it at once', async () => {
+	it('follows a topic at once', async () => {
 		mockFollowTag.mockResolvedValue({ ok: true });
-		render(<HomepageHeader tags={tags} activeTag="housing" signedIn followedTagIds={[]} />);
+		render(<TopicFollowButton tagId="t1" initiallyFollowing={false} />);
 		fireEvent.click(screen.getByRole('button', { name: 'Follow topic' }));
 		expect(await screen.findByRole('button', { name: 'Following topic' })).toHaveAttribute('aria-pressed', 'true');
 		expect(mockFollowTag).toHaveBeenCalledWith('t1');
 	});
 
-	it('shows a followed topic as followed, and offers no Follow to guests', () => {
-		const { unmount } = render(<HomepageHeader tags={tags} activeTag="housing" signedIn followedTagIds={['t1']} />);
+	it('shows a followed topic as followed', () => {
+		render(<TopicFollowButton tagId="t1" initiallyFollowing />);
 		expect(screen.getByRole('button', { name: 'Following topic' })).toBeInTheDocument();
-		unmount();
-		render(<HomepageHeader tags={tags} activeTag="housing" />);
-		expect(screen.queryByRole('button', { name: /topic/ })).not.toBeInTheDocument();
 	});
 
 	it('invites guests to log in above the topics, and no one else', () => {
@@ -104,7 +115,8 @@ describe('HomepageHeader', () => {
 	});
 
 	it('marks the current feed at every width, and names the page after it', () => {
-		render(<HomepageHeader tags={tags} signedIn feed="closingSoon" />);
+		visit('/closing-soon');
+		render(<HomepageHeader tags={tags} signedIn />);
 		const closing = screen.getByRole('link', { name: 'Closing soon' });
 		expect(closing).toHaveAttribute('aria-current', 'page');
 		expect(closing.closest('li')).not.toHaveClass('xl:hidden');
