@@ -22,7 +22,7 @@ export function PageShell({
 )) {
 	return (
 		// Clipped sideways so `bleed-x` and `bleed-r` rows end at the page's edges; `clip` keeps sticky bars working
-		<div className={cn('overflow-x-clip px-contain pt-4 pb-16 md:pt-8', className)}>
+		<div className={cn('overflow-x-clip px-contain pt-4 pb-16 md:pt-5', className)}>
 			<div className="mx-auto flex w-full max-w-main flex-col gap-8 xl:grid xl:max-w-none xl:gap-0 xl:page-grid">
 				<div className={cn('flex min-w-0 flex-col xl:col-start-2', wide && 'xl:col-end-[-1] xl:max-w-page')}>
 					{children}

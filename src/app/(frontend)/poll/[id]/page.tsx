@@ -146,7 +146,7 @@ async function PollRail({ id }: { id: string }) {
 	if (!poll) return null;
 	return (
 		// pt-13 is the BackLink's line plus gap-8, so the rail starts level with the poll card
-		<aside className="flex flex-col gap-4 xl:sticky xl:top-8 xl:pt-13">
+		<aside className="flex flex-col gap-4 xl:sticky xl:top-5 xl:pt-13">
 			<PollAbout poll={poll} />
 			{derivePollStatus(poll) !== 'ended' && (
 				<Suspense fallback={null}>

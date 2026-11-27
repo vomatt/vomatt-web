@@ -16,7 +16,7 @@ export default async function FeedsLayout({ children }: { children: ReactNode })
 
 	return (
 		<Refreshable>
-			<PageShell className="pt-0" rail={<HomeRail signedIn={signedIn} />}>
+			<PageShell className="pt-0 md:pt-0" rail={<HomeRail signedIn={signedIn} />}>
 				{/* Holds the feed too: the pill bar sticks only within this box */}
 				<div className="flex w-full max-w-feed flex-1 flex-col">
 					<HomepageHeader

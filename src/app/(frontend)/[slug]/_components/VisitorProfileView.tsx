@@ -70,11 +70,10 @@ export function VisitorProfileView({
 
 	return (
 		<PageShell
-			className="md:pt-12"
 			rail={
 				// What following does, for every visitor: signed out too, before they can follow
 				!preview && (
-					<aside className="flex flex-col gap-3 xl:sticky xl:top-8">
+					<aside className="flex flex-col gap-3 xl:sticky xl:top-5">
 						<TidePanel className="p-3.5 text-caption-1 leading-relaxed">
 							<p className="mb-1 flex items-center gap-1.5 font-medium">
 								<Lock aria-hidden className="size-3.5 shrink-0 text-tide" />

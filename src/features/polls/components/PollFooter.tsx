@@ -91,12 +91,13 @@ export function PollFooter({
 	return (
 		// One 44px row with no divider above it: the card's own padding sets it off. Too narrow for one row
 		// (320px, or a non-Public audience), the actions wrap to a second row on the right
-		<div className="flex flex-wrap items-center gap-x-2 px-5 pt-1 pb-2 text-caption-1 text-muted-foreground md:px-8">
+		<div className="flex flex-wrap items-center gap-x-3 px-5 pt-1 pb-2 text-caption-1 text-muted-foreground md:px-8">
 			{meta && <span className="flex min-h-11 items-center tabular-nums">{meta}</span>}
 			<Link
 				href={isPage ? '#discussion' : `${pollHref(pollId)}#discussion`}
 				aria-label={commentsLabel}
-				className={`${pillClassName} -ml-2 gap-2`}
+				// Leading the row, the pill pulls left so its icon lines up with the card's text
+				className={`${pillClassName} gap-2 ${meta ? '' : '-ml-2'}`}
 			>
 				<MessageSquare className="size-[18px]" />
 				{/* On phones the count alone, like the heart's: with the words the row sits a few pixels from wrapping,

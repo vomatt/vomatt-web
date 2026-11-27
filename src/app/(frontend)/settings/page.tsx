@@ -34,7 +34,7 @@ export default async function SettingsPage() {
 			rail={
 				// Acting, there are no sections to jump to
 				acting ? undefined : (
-					<aside className="sticky top-8 hidden xl:block">
+					<aside className="sticky top-5 hidden xl:block">
 						<SettingsNav />
 					</aside>
 				)

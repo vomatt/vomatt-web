@@ -111,7 +111,7 @@ async function NotificationsRail({
 	// How rows are read means nothing until there is a row; one empty tab says nothing about the rest
 	if (!category && page?.items.length === 0) return null;
 	return (
-		<aside className="flex w-full flex-col gap-3 xl:sticky xl:top-8">
+		<aside className="flex w-full flex-col gap-3 xl:sticky xl:top-5">
 			<TidePanel className="p-3.5 text-caption-1 leading-relaxed">
 				<p className="mb-1 flex items-center gap-1.5 font-medium">
 					<Lock aria-hidden className="size-3.5 shrink-0 text-tide" />

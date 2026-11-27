@@ -19,7 +19,7 @@ export function HomeRail({ signedIn }: { signedIn: boolean }) {
 		<aside
 			className={cn(
 				'flex w-full max-w-feed flex-col gap-4 xl:sticky xl:top-0 xl:max-h-dvh xl:overflow-y-auto xl:pb-2',
-				signedIn ? 'xl:pt-[calc(var(--feed-bar-height)+0.5rem)]' : 'xl:pt-6'
+				signedIn ? 'xl:pt-[calc(var(--feed-bar-height)+0.5rem)]' : 'xl:pt-5'
 			)}
 		>
 			{signedIn ? (

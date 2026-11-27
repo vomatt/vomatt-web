@@ -97,12 +97,12 @@ export function HomepageHeader({ tags, signedIn, resultsUnread }: HomepageHeader
 		<>
 			{/* The feed has no visible title; the page still needs one for headings navigation */}
 			<h1 className="sr-only">{heading}</h1>
-			{!signedIn && <LoginPrompt className="mt-6" />}
+			{!signedIn && <LoginPrompt className="mt-6 md:mt-5" />}
 			{/* Its pills sit at its bottom, with the room above them inside it, so it sticks where it rests and never moves.
 			    Phones scroll it away: the fixed Header and TabBar already take their room */}
 			<StickyBar data-sticky-bar="feed" className="-mx-1 max-md:static max-md:mx-0">
 				<nav aria-label={t('homePage.topics')}>
-					<ul className="flex gap-2 overflow-x-auto h-(--feed-bar-height) items-end px-1 py-2 scrollbar-none max-md:bleed-x">
+					<ul className="flex gap-2 overflow-x-auto h-(--feed-bar-height) items-end px-1 py-2 md:pb-1 scrollbar-none max-md:bleed-x">
 						{feeds.map(renderLink)}
 						{topics.map(renderLink)}
 					</ul>
