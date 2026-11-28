@@ -45,7 +45,7 @@ import {
 } from '@/features/polls/service';
 import { apiClient, ApiError, AuthError, publicFetch } from '@/lib/api/client';
 
-jest.mock('next/cache', () => ({ updateTag: jest.fn(), revalidateTag: jest.fn() }));
+jest.mock('next/cache', () => ({ refresh: jest.fn(), updateTag: jest.fn(), revalidateTag: jest.fn() }));
 jest.mock('next/navigation', () => ({ unstable_rethrow: jest.fn() }));
 
 jest.mock('@/lib/api/client', () => {
@@ -69,7 +69,7 @@ jest.mock('@/lib/api/client', () => {
 	};
 });
 
-const { updateTag, revalidateTag } = jest.requireMock('next/cache');
+const { refresh, updateTag, revalidateTag } = jest.requireMock('next/cache');
 const mockApiClient = apiClient as jest.MockedFunction<typeof apiClient>;
 const mockPublicFetch = publicFetch as jest.MockedFunction<typeof publicFetch>;
 
@@ -799,6 +799,18 @@ describe('bookmarks', () => {
 		expect(mockApiClient).toHaveBeenLastCalledWith('/votes/poll-1/bookmark', { method: 'DELETE' });
 	});
 
+	it.each([
+		['likePoll', likePoll],
+		['unlikePoll', unlikePoll],
+		['bookmarkPoll', bookmarkPoll],
+		['unbookmarkPoll', unbookmarkPoll],
+	])("%s expires the Poll's cached copy, so going back to a list shows the change", async (_name, action) => {
+		mockApiClient.mockResolvedValue({ success: true });
+		await action('poll-1');
+		expect(revalidateTag).toHaveBeenCalledWith('poll:poll-1', { expire: 0 });
+		expect(revalidateTag).not.toHaveBeenCalledWith('polls-feed', expect.anything());
+	});
+
 	it('returns the error code of a Poll that can no longer be reached', async () => {
 		mockApiClient.mockRejectedValue(new ApiError('gone', 404, { errorCode: 'vote.not_found' }));
 		expect(await bookmarkPoll('poll-1')).toMatchObject({ ok: false, errorCode: 'vote.not_found' });
@@ -818,6 +830,13 @@ describe('followed tags', () => {
 		expect(mockApiClient).toHaveBeenLastCalledWith('/tags/t1/follow', { method: 'PUT' });
 		expect(await unfollowTag('t1')).toEqual({ ok: true, data: undefined });
 		expect(mockApiClient).toHaveBeenLastCalledWith('/tags/t1/follow', { method: 'DELETE' });
+	});
+
+	it('refreshes after either, so pages kept from before show the new Follow state', async () => {
+		mockApiClient.mockResolvedValue({ success: true });
+		await followTag('t1');
+		await unfollowTag('t1');
+		expect(refresh).toHaveBeenCalledTimes(2);
 	});
 
 	it('lists the followed tags', async () => {

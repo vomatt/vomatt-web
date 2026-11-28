@@ -23,6 +23,8 @@ jest.mock('@/lib/api/client', () => {
 	return { apiClient: jest.fn(), ApiError, AuthError };
 });
 
+jest.mock('next/cache', () => ({ refresh: jest.fn() }));
+
 const mockApiClient = apiClient as jest.MockedFunction<typeof apiClient>;
 
 beforeEach(() => jest.clearAllMocks());
@@ -61,37 +63,69 @@ describe('getUnreadNotificationIds()', () => {
 });
 
 describe('markNotificationRead()', () => {
-	it('posts the feed item\'s id to its read endpoint', async () => {
-		mockApiClient.mockResolvedValue({ success: true });
-		expect(await markNotificationRead('comment_0199')).toBe(true);
+	const { refresh } = jest.requireMock('next/cache');
+	// The unread count before the read, the read, then the count after
+	const respond = (before: number, after: number) =>
+		mockApiClient
+			.mockResolvedValueOnce({ count: before })
+			.mockResolvedValueOnce({ success: true })
+			.mockResolvedValueOnce({ count: after });
+
+	it('posts the feed item\'s id to its read endpoint and returns the count after', async () => {
+		respond(2, 1);
+		expect(await markNotificationRead('comment_0199')).toBe(1);
 		expect(mockApiClient).toHaveBeenCalledWith('/notifications/comment_0199/read', { method: 'POST' });
 	});
 
+	it('refreshes when the read lowered the count, so pages kept from before drop their unread marks', async () => {
+		respond(2, 1);
+		await markNotificationRead('poll-1');
+		expect(refresh).toHaveBeenCalled();
+	});
+
+	it('skips the refresh when the notification was already read', async () => {
+		respond(2, 2);
+		await markNotificationRead('poll-1');
+		expect(refresh).not.toHaveBeenCalled();
+	});
+
+	it('refreshes when the count is capped, since 100 can hide a read', async () => {
+		respond(100, 100);
+		await markNotificationRead('poll-1');
+		expect(refresh).toHaveBeenCalled();
+	});
+
+	it('refreshes and returns null when a count check fails', async () => {
+		const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+		mockApiClient
+			.mockResolvedValueOnce({ count: 2 })
+			.mockResolvedValueOnce({ success: true })
+			.mockRejectedValueOnce(new ApiError('down', 503, {}));
+		expect(await markNotificationRead('poll-1')).toBeNull();
+		expect(refresh).toHaveBeenCalled();
+		spy.mockRestore();
+	});
+
 	it('still takes a poll id, for the poll page', async () => {
-		mockApiClient.mockResolvedValue({ success: true });
+		respond(1, 0);
 		await markNotificationRead('poll-1');
 		expect(mockApiClient).toHaveBeenCalledWith('/notifications/poll-1/read', { method: 'POST' });
 	});
 
 	it('reports a failed request', async () => {
 		const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
-		mockApiClient.mockRejectedValue(new ApiError('down', 503, { errorCode: 'common.service_unavailable' }));
-		expect(await markNotificationRead('comment_0199')).toBe(false);
+		mockApiClient
+			.mockResolvedValueOnce({ count: 1 })
+			.mockRejectedValueOnce(new ApiError('down', 503, { errorCode: 'common.service_unavailable' }));
+		expect(await markNotificationRead('comment_0199')).toBeNull();
+		expect(spy).toHaveBeenCalledWith('Marking notification read failed:', expect.anything());
 		spy.mockRestore();
 	});
 
-	it('ignores a poll with no notification for the user', async () => {
+	it.each(['notification.not_found', 'vote.not_found'])('quietly ignores %s', async (errorCode) => {
 		const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
-		mockApiClient.mockRejectedValue(new ApiError('nf', 404, { errorCode: 'notification.not_found' }));
-		await expect(markNotificationRead('poll-1')).resolves.toBe(true);
-		expect(spy).not.toHaveBeenCalled();
-		spy.mockRestore();
-	});
-
-	it('ignores a Deleted poll', async () => {
-		const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
-		mockApiClient.mockRejectedValue(new ApiError('nf', 404, { errorCode: 'vote.not_found' }));
-		await expect(markNotificationRead('poll-1')).resolves.toBe(true);
+		mockApiClient.mockResolvedValueOnce({ count: 1 }).mockRejectedValueOnce(new ApiError('nf', 404, { errorCode }));
+		await expect(markNotificationRead('poll-1')).resolves.toBeNull();
 		expect(spy).not.toHaveBeenCalled();
 		spy.mockRestore();
 	});

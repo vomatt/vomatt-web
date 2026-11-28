@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { DraftList } from '@/features/polls/components/DraftList';
@@ -22,7 +22,16 @@ const values = {
 	invitees: { users: [], emails: [], groups: [] },
 };
 
-beforeEach(() => localStorage.clear());
+// Stored outside saveDraft, as another tab would, so the list hears of it
+const storeRaw = (drafts: unknown) => {
+	localStorage.setItem('vomatt_poll_drafts', JSON.stringify(drafts));
+	window.dispatchEvent(new StorageEvent('storage', { key: 'vomatt_poll_drafts' }));
+};
+
+beforeEach(() => {
+	localStorage.clear();
+	window.dispatchEvent(new StorageEvent('storage', { key: null }));
+});
 
 describe('DraftList', () => {
 	it('shows the given empty state without drafts', () => {
@@ -46,13 +55,29 @@ describe('DraftList', () => {
 		expect(items[1]).toHaveTextContent('Older');
 	});
 
+	it('adds a draft saved elsewhere on the page, without a reload', async () => {
+		render(<DraftList empty={<p>Nothing saved</p>} />);
+		act(() => {
+			saveDraft({ ...values, title: 'From the sidebar' });
+		});
+		expect(await screen.findByText('From the sidebar')).toBeInTheDocument();
+		expect(screen.queryByText('Nothing saved')).not.toBeInTheDocument();
+	});
+
+	it('follows drafts saved in another tab', async () => {
+		render(<DraftList />);
+		const drafts = [{ id: 'd1', savedAt: new Date().toISOString(), values: { ...values, title: 'Other tab' } }];
+		act(() => storeRaw(drafts));
+		expect(await screen.findByText('Other tab')).toBeInTheDocument();
+	});
+
 	describe('meta', () => {
 		// Wed 28 Oct 2026 10:00 in Taipei, where Jest runs
 		beforeEach(() => jest.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-10-28T02:00:00Z')));
 		afterEach(() => jest.restoreAllMocks());
 
 		const store = (draft: { savedAt: string; values: typeof values }) =>
-			localStorage.setItem('vomatt_poll_drafts', JSON.stringify([{ id: 'd1', ...draft }]));
+			storeRaw([{ id: 'd1', ...draft }]);
 
 		it('says when it was saved, its filled options and a missing end', () => {
 			store({
@@ -135,15 +160,12 @@ describe('DraftList', () => {
 
 	it('fills in the Audience of a draft saved before it existed', () => {
 		const { audience: _audience, invitees: _invitees, ...old } = values;
-		localStorage.setItem('vomatt_poll_drafts', JSON.stringify([{ id: 'd1', savedAt: '', values: old }]));
+		storeRaw([{ id: 'd1', savedAt: '', values: old }]);
 		expect(listDrafts()[0].values).toMatchObject({ audience: 'public', invitees: { users: [] } });
 	});
 
 	it('skips a malformed draft instead of hiding them all', () => {
-		localStorage.setItem(
-			'vomatt_poll_drafts',
-			JSON.stringify([{ id: 'd1', savedAt: '', values }, { id: 'd2', savedAt: '' }])
-		);
+		storeRaw([{ id: 'd1', savedAt: '', values }, { id: 'd2', savedAt: '' }]);
 		expect(listDrafts().map((draft) => draft.id)).toEqual(['d1']);
 	});
 });

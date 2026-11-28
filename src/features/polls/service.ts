@@ -1,6 +1,6 @@
 'use server';
 
-import { revalidateTag, updateTag } from 'next/cache';
+import { refresh, revalidateTag, updateTag } from 'next/cache';
 import { unstable_rethrow } from 'next/navigation';
 import { z } from 'zod';
 
@@ -352,7 +352,7 @@ export async function getResults(pollId: string): Promise<ActionResult<PollResul
  * The Poll's cached copy (what guests see) is fresh on the next view.
  * Revalidating also evicts the browser's back/forward cache, so going back to a
  * list shows the new Turnout and comment count, and makes the action's response
- * re-render the current route. Ballots and Comments leave the shared lists to
+ * re-render the current route. Ballots, Comments, likes and bookmarks leave the shared lists to
  * their 30s revalidate (expiring them on every vote would make the next guest
  * wait for a full uncached list); owner changes (`lists: true`) also expire them,
  * so an edited, ended or deleted poll doesn't linger in Explore, profiles and
@@ -614,6 +614,7 @@ export async function reportPoll(voteId: string, report: ReportPollRequest): Pro
 export async function bookmarkPoll(voteId: string): Promise<ActionResult> {
 	return attempt(async () => {
 		await apiClient(`/votes/${encodeURIComponent(voteId)}/bookmark`, { method: 'PUT' });
+		invalidatePoll(voteId);
 	});
 }
 
@@ -621,6 +622,7 @@ export async function bookmarkPoll(voteId: string): Promise<ActionResult> {
 export async function unbookmarkPoll(voteId: string): Promise<ActionResult> {
 	return attempt(async () => {
 		await apiClient(`/votes/${encodeURIComponent(voteId)}/bookmark`, { method: 'DELETE' });
+		invalidatePoll(voteId);
 	});
 }
 
@@ -628,6 +630,7 @@ export async function unbookmarkPoll(voteId: string): Promise<ActionResult> {
 export async function likePoll(voteId: string): Promise<ActionResult> {
 	return attempt(async () => {
 		await apiClient(`/votes/${encodeURIComponent(voteId)}/like`, { method: 'PUT' });
+		invalidatePoll(voteId);
 	});
 }
 
@@ -635,6 +638,7 @@ export async function likePoll(voteId: string): Promise<ActionResult> {
 export async function unlikePoll(voteId: string): Promise<ActionResult> {
 	return attempt(async () => {
 		await apiClient(`/votes/${encodeURIComponent(voteId)}/like`, { method: 'DELETE' });
+		invalidatePoll(voteId);
 	});
 }
 
@@ -647,6 +651,8 @@ export async function getFollowedTags(): Promise<ActionResult<TagDto[]>> {
 export async function followTag(tagId: string): Promise<ActionResult> {
 	return attempt(async () => {
 		await apiClient(`/tags/${encodeURIComponent(tagId)}/follow`, { method: 'PUT' });
+		// Nothing shared is cached per viewer, but pages the browser kept still show the old button
+		refresh();
 	});
 }
 
@@ -654,5 +660,6 @@ export async function followTag(tagId: string): Promise<ActionResult> {
 export async function unfollowTag(tagId: string): Promise<ActionResult> {
 	return attempt(async () => {
 		await apiClient(`/tags/${encodeURIComponent(tagId)}/follow`, { method: 'DELETE' });
+		refresh();
 	});
 }

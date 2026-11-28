@@ -18,12 +18,15 @@ type UnreadCount = {
 	/** Whether `count` came from the API. */
 	isLoaded: boolean;
 	refresh: () => void;
+	/** Sets a count just read elsewhere, like a Server Action's, instead of asking again. */
+	set: (count: number) => void;
 };
 
 const UnreadCountContext = createContext<UnreadCount>({
 	count: 0,
 	isLoaded: false,
 	refresh: () => {},
+	set: () => {},
 });
 
 export function useUnreadCount() {
@@ -57,6 +60,11 @@ export function UnreadCountProvider({
 			() => {}
 		);
 	}, []);
+	const set = useCallback((next: number) => {
+		// Newer than any check still in flight
+		++latestRequest.current;
+		setCount(next);
+	}, []);
 
 	useEffect(() => {
 		if (!isActive) return;
@@ -81,7 +89,7 @@ export function UnreadCountProvider({
 
 	return (
 		<UnreadCountContext.Provider
-			value={{ count: isActive ? (count ?? 0) : 0, isLoaded: isActive && count !== null, refresh }}
+			value={{ count: isActive ? (count ?? 0) : 0, isLoaded: isActive && count !== null, refresh, set }}
 		>
 			{children}
 		</UnreadCountContext.Provider>

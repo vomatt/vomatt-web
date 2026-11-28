@@ -2,7 +2,7 @@
 
 import { Menu } from '@base-ui/react/menu';
 import dynamic from 'next/dynamic';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState, useSyncExternalStore } from 'react';
 
 import { RowMenuRoot } from '@/components/RowMenuRoot';
 import {
@@ -24,7 +24,7 @@ import { foldAway } from '@/lib/motion';
 import { META_GAP } from '@/lib/rich';
 import { cn } from '@/lib/utils';
 
-import { deleteDraft, listDrafts, type PollDraft } from '../drafts';
+import { deleteDraft, listDrafts, type PollDraft, subscribeDrafts } from '../drafts';
 import { formatPollDay } from '../format';
 import { useViewerClock } from '../hooks/useViewerClock';
 
@@ -45,7 +45,11 @@ export function DraftList({
 }) {
 	const { t, currentLanguage } = useLanguage();
 	const clock = useViewerClock();
-	const [drafts, setDrafts] = useState<PollDraft[] | null>(null);
+	// Local storage is only readable after hydration, so the server and the first render see none yet
+	const stored = useSyncExternalStore(subscribeDrafts, listDrafts, () => null);
+	// While a deleted row folds, the list it folds out of; storage already holds the delete
+	const [folding, setFolding] = useState<PollDraft[] | null>(null);
+	const drafts = folding ?? stored;
 	const [resuming, setResuming] = useState<PollDraft | null>(null);
 	// Drafts live only in this browser, so a delete can't be taken back
 	const [deleting, setDeleting] = useState<PollDraft | null>(null);
@@ -57,15 +61,6 @@ export function DraftList({
 	const [justDeleted, setJustDeleted] = useState(false);
 	const listRef = useRef<HTMLUListElement>(null);
 	const deletedNote = useRef<HTMLSpanElement>(null);
-
-	// Local storage is only readable after hydration
-	// eslint-disable-next-line react-hooks/set-state-in-effect -- reading it during render would mismatch the server HTML
-	useEffect(() => setDrafts(listDrafts()), []);
-
-	const stopResuming = () => {
-		setResuming(null);
-		setDrafts(listDrafts());
-	};
 
 	// The saved day reads the viewer's clock, also only there after hydration
 	if (drafts === null || !clock) return null;
@@ -157,11 +152,12 @@ export function DraftList({
 							onClick={() => {
 								if (deleting) {
 									const index = drafts.findIndex((draft) => draft.id === deleting.id);
-									const remaining = deleteDraft(deleting.id);
 									deletedAt.current = index;
 									foldingRow.current = listRef.current?.children[index] ?? null;
 									setJustDeleted(true);
-									void foldAway(foldingRow.current, 8).then(() => setDrafts(remaining));
+									setFolding(drafts);
+									deleteDraft(deleting.id);
+									void foldAway(foldingRow.current, 8).then(() => setFolding(null));
 								}
 								setDeleting(null);
 							}}
@@ -176,8 +172,8 @@ export function DraftList({
 					key={resuming.id}
 					draft={resuming}
 					open
-					onOpenChange={(open) => !open && stopResuming()}
-					onSaved={stopResuming}
+					onOpenChange={(open) => !open && setResuming(null)}
+					onSaved={() => setResuming(null)}
 				/>
 			)}
 		</>
