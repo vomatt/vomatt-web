@@ -2,7 +2,7 @@ import { blockUser, getBlockedUsers, unblockUser } from '@/features/blocks/servi
 import { apiClient, ApiError } from '@/lib/api/client';
 
 jest.mock('@/lib/api/auth', () => ({ clearAuthTokens: jest.fn() }));
-jest.mock('next/cache', () => ({ revalidateTag: jest.fn(), updateTag: jest.fn() }));
+jest.mock('next/cache', () => ({ refresh: jest.fn(), revalidateTag: jest.fn(), updateTag: jest.fn() }));
 jest.mock('next/navigation', () => ({ unstable_rethrow: jest.fn() }));
 jest.mock('@/lib/api/client', () => {
 	class ApiError extends Error {
@@ -35,6 +35,12 @@ it('blocks and unblocks by user ID', async () => {
 	expect(mockApiClient).toHaveBeenCalledWith('/users/me/blocks/u1', { method: 'POST' });
 	expect(await unblockUser('u1')).toEqual({ ok: true, data: undefined });
 	expect(mockApiClient).toHaveBeenCalledWith('/users/me/blocks/u1', { method: 'DELETE' });
+});
+
+it("refreshes after an unblock, so pages kept from before show that user's polls again", async () => {
+	mockApiClient.mockResolvedValue(undefined);
+	await unblockUser('u1');
+	expect(jest.requireMock('next/cache').refresh).toHaveBeenCalled();
 });
 
 it('returns the errorCode of a refused block', async () => {

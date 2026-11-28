@@ -1,6 +1,6 @@
 'use server';
 
-import { revalidateTag } from 'next/cache';
+import { refresh, revalidateTag } from 'next/cache';
 
 import type { ActionResult } from '@/lib/api/action';
 import { attempt } from '@/lib/api/action';
@@ -32,5 +32,7 @@ export async function blockUser(userId: string): Promise<ActionResult> {
 export async function unblockUser(userId: string): Promise<ActionResult> {
 	return attempt(async () => {
 		await apiClient(blockPath(userId), { method: 'DELETE' });
+		// Pages the browser kept from before still leave out their Polls
+		refresh();
 	});
 }

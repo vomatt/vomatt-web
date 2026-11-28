@@ -81,6 +81,8 @@ async function toReview() {
 beforeEach(() => {
 	jest.clearAllMocks();
 	localStorage.clear();
+	// Drafts are cached per change; tell the store storage was cleared
+	window.dispatchEvent(new StorageEvent('storage', { key: null }));
 	mockCreatePoll.mockResolvedValue({ ok: true, data: {} });
 	mockUpdatePoll.mockResolvedValue({ ok: true, data: {} });
 	mockGetGroups.mockResolvedValue({
@@ -990,6 +992,7 @@ describe('PollCreator', () => {
 			voterVisibility: 'signed-in' as const,
 		};
 		localStorage.setItem('vomatt_poll_drafts', JSON.stringify([{ id: 'd1', savedAt: '', values }]));
+		window.dispatchEvent(new StorageEvent('storage', { key: 'vomatt_poll_drafts' }));
 		const [draft] = listDrafts();
 		render(<PollCreator draft={draft} open onOpenChange={jest.fn()} />);
 

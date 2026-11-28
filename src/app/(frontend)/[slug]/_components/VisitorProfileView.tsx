@@ -147,7 +147,6 @@ function VisitorActions({ profile, follow }: { profile: UserProfile; follow: Fol
 		}
 		toast.success(t('blocks.unblocked', { username: profile.username }));
 		forgetProfile(profile.username);
-		router.refresh();
 	};
 
 	return (

@@ -1,5 +1,6 @@
 'use server';
 
+import { refresh } from 'next/cache';
 import { z } from 'zod';
 
 import { NOTIFICATIONS_PAGE_SIZE } from '@/features/polls/constants';
@@ -66,16 +67,32 @@ const NOTHING_TO_READ = ['notification.not_found', 'vote.not_found'];
 /**
  * Marks one notification read: a feed item's `id`, or (deprecated, for a Poll page) a Poll id,
  * which reads its Invitation before it Ends and its result after. Idempotent; false when the
- * request failed (nothing to read counts as done).
+ * request failed (nothing to read counts as done). Returns the unread count after the read, or
+ * null when it isn't known (the request failed, nothing to read, or the count check failed).
  */
-export async function markNotificationRead(id: string): Promise<boolean> {
+export async function markNotificationRead(id: string): Promise<number | null> {
 	try {
+		const before = await checkUnreadCount();
 		await apiClient(`/notifications/${encodeURIComponent(id)}/read`, { method: 'POST' });
-		return true;
+		const after = await checkUnreadCount();
+		// The read succeeds for a read notification too, so only a lower count says this one was
+		// unread; a count the API capped (100 means 100 or more) or couldn't give says nothing.
+		// Pages the browser kept from before, like the profile, would still show it unread
+		if (before === null || after === null || before >= 100 || after < before) refresh();
+		return after;
 	} catch (error) {
-		if (error instanceof ApiError && NOTHING_TO_READ.includes(error.data?.errorCode)) return true;
+		if (error instanceof ApiError && NOTHING_TO_READ.includes(error.data?.errorCode)) return null;
 		console.error('Marking notification read failed:', error);
-		return false;
+		return null;
+	}
+}
+
+async function checkUnreadCount(): Promise<number | null> {
+	try {
+		return await getUnreadCount();
+	} catch (error) {
+		console.error('Checking the unread count around a read failed:', error);
+		return null;
 	}
 }
 
